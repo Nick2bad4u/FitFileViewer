@@ -464,6 +464,12 @@ function reRenderChartsAfterReset() {
 
         console.log(`${LOG_PREFIX} Re-rendering charts after settings reset`);
 
+        // CRITICAL: Clear cached settings so chart rendering re-reads fresh defaults from localStorage.
+        // This mirrors the behavior of reRenderChartsAfterSettingChange.
+        if (typeof setState === "function") {
+            setState("settings.charts", null, { source: "reRenderChartsAfterReset" });
+        }
+
         // Get the charts container
         const chartsContainer = document.querySelector("#chart-container");
 

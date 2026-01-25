@@ -39,17 +39,6 @@ const LRef = getLeaflet();
  * @returns {any} A Leaflet icon configured for the end marker.
  */
 export function createEndIcon() {
-    // Prefer a themeable divIcon; fall back to PNG if divIcon is not available.
-    if (typeof LRef.divIcon === "function") {
-        return LRef.divIcon({
-            className: "ffv-map-marker ffv-map-marker--end",
-            html: '<div class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">E</span></div>',
-            iconAnchor: [16, 28],
-            iconSize: [32, 32],
-            popupAnchor: [0, -28],
-        });
-    }
-
     return LRef.icon({
         iconAnchor: ICON_ANCHOR,
         iconSize: ICON_SIZE,
@@ -63,17 +52,6 @@ export function createEndIcon() {
  * @returns {any} A Leaflet icon configured for the start marker.
  */
 export function createStartIcon() {
-    // Prefer a themeable divIcon; fall back to PNG if divIcon is not available.
-    if (typeof LRef.divIcon === "function") {
-        return LRef.divIcon({
-            className: "ffv-map-marker ffv-map-marker--start",
-            html: '<div class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">S</span></div>',
-            iconAnchor: [16, 28],
-            iconSize: [32, 32],
-            popupAnchor: [0, -28],
-        });
-    }
-
     return LRef.icon({
         iconAnchor: ICON_ANCHOR,
         iconSize: ICON_SIZE,

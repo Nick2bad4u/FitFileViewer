@@ -38,6 +38,8 @@
      *  secondaryLengthUnit?: 'meters'|'miles'|null;
      *  primaryAreaUnit?: 'sqmeters'|'acres';
      *  secondaryAreaUnit?: 'sqmeters'|'acres'|null;
+     *  autoStart?: boolean; // When true, clicking the ruler button immediately starts a measurement.
+     *  finishClickToleranceMeters?: number; // Finish-click distance tolerance (meters) for existing points.
      *  decPoint?: string;
      *  thousandsSep?: string;
      * }} MeasureLiteOptions
@@ -45,8 +47,10 @@
 
     const DEFAULTS = {
         activeColor: "#ff7800",
+        autoStart: true,
         completedColor: "#1976d2",
         decPoint: ".",
+        finishClickToleranceMeters: 12,
         popupOptions: { className: "leaflet-measure-resultpopup", autoPanPadding: [10, 10] },
         position: "topright",
         primaryAreaUnit: "sqmeters",
@@ -79,14 +83,15 @@
      * @returns {string}
      */
     function formatDistance(meters, unit, decPoint, thousandsSep) {
+        // Prefer compact unit strings so segment labels fit comfortably.
         if (unit === "miles") {
             const miles = meters / 1609.344;
-            return `${formatNumber(miles, 2, decPoint, thousandsSep)} Miles`;
+            return `${formatNumber(miles, 2, decPoint, thousandsSep)} mi`;
         }
         if (meters >= 1000) {
-            return `${formatNumber(meters / 1000, 2, decPoint, thousandsSep)} Kilometers`;
+            return `${formatNumber(meters / 1000, 2, decPoint, thousandsSep)} km`;
         }
-        return `${formatNumber(meters, 0, decPoint, thousandsSep)} Meters`;
+        return `${formatNumber(meters, 0, decPoint, thousandsSep)} m`;
     }
 
     /**
@@ -114,9 +119,9 @@
     function formatArea(sqMeters, unit, decPoint, thousandsSep) {
         if (unit === "acres") {
             const acres = sqMeters * 0.000_247_105;
-            return `${formatNumber(acres, 2, decPoint, thousandsSep)} Acres`;
+            return `${formatNumber(acres, 2, decPoint, thousandsSep)} ac`;
         }
-        return `${formatNumber(sqMeters, 0, decPoint, thousandsSep)} Sq Meters`;
+        return `${formatNumber(sqMeters, 0, decPoint, thousandsSep)} m²`;
     }
 
     /**
@@ -169,6 +174,7 @@
         initialize: function initialize(options) {
             L.setOptions(this, options);
             this._locked = false;
+            this._expanded = false;
             /** @type {any[]} */
             this._latlngs = [];
             /** @type {number} */
@@ -197,6 +203,17 @@
                 "leaflet-control-measure-interaction js-interaction",
                 container
             ));
+
+            // Close button (lets the user dismiss the panel without starting a measurement)
+            const closeBtn = (this.$close = L.DomUtil.create(
+                "button",
+                "leaflet-control-measure-close js-close",
+                interaction
+            ));
+            closeBtn.type = "button";
+            closeBtn.title = "Close measurement tool";
+            closeBtn.setAttribute("aria-label", "Close measurement tool");
+            closeBtn.textContent = "×";
 
             // Start prompt
             const startPrompt = (this.$startPrompt = L.DomUtil.create(
@@ -231,8 +248,31 @@
             L.DomEvent.disableClickPropagation(container);
             L.DomEvent.disableScrollPropagation(container);
 
+            // Allow closing by clicking outside the panel.
+            // Safe while measuring: _collapse() is a no-op when _locked.
+            try {
+                map.on("click", this._collapse, this);
+            } catch {
+                /* ignore */
+            }
+
             L.DomEvent.on(toggle, "click", L.DomEvent.stop);
             L.DomEvent.on(toggle, "click", this._expand, this);
+            // Optionally auto-start measuring immediately after expanding.
+            L.DomEvent.on(toggle, "click", () => {
+                if (this.options.autoStart) {
+                    this._startMeasure();
+                }
+            });
+
+            L.DomEvent.on(closeBtn, "click", L.DomEvent.stop);
+            L.DomEvent.on(closeBtn, "click", () => {
+                if (this._locked) {
+                    this._cancelMeasure();
+                } else {
+                    this._collapse();
+                }
+            });
 
             L.DomEvent.on(this.$start, "click", L.DomEvent.stop);
             L.DomEvent.on(this.$start, "click", this._startMeasure, this);
@@ -243,6 +283,9 @@
             L.DomEvent.on(this.$finish, "click", L.DomEvent.stop);
             L.DomEvent.on(this.$finish, "click", this._finishMeasure, this);
 
+            // Esc key: cancel or close.
+            this._installEscapeKeyHandler();
+
             return container;
         },
 
@@ -252,6 +295,7 @@
             } catch {
                 /* ignore */
             }
+            this._removeEscapeKeyHandler();
             this._detachMapHandlers();
             for (const layer of [this._tempLayer, this._resultLayer]) {
                 if (!layer || !map) continue;
@@ -266,12 +310,82 @@
         _expand: function _expand() {
             hide(this.$toggle);
             show(this.$interaction);
+            this._expanded = true;
         },
 
         _collapse: function _collapse() {
             if (this._locked) return;
             hide(this.$interaction);
             show(this.$toggle);
+            this._expanded = false;
+        },
+
+        _installEscapeKeyHandler: function _installEscapeKeyHandler() {
+            /** @type {any} */
+            const g = globalThis;
+            const key = "__ffvLeafletMeasureLiteEscapeHandler";
+
+            // Remove an existing handler from a prior map render.
+            try {
+                if (typeof g[key] === "function") {
+                    document.removeEventListener("keydown", g[key]);
+                }
+            } catch {
+                /* ignore */
+            }
+
+            /** @param {KeyboardEvent} e */
+            const handler = (e) => {
+                if (e.key !== "Escape") return;
+
+                if (this._locked) {
+                    this._cancelMeasure();
+                    return;
+                }
+
+                if (this._expanded) {
+                    this._collapse();
+                }
+            };
+
+            g[key] = handler;
+            this._escapeHandler = handler;
+            document.addEventListener("keydown", handler);
+        },
+
+        _removeEscapeKeyHandler: function _removeEscapeKeyHandler() {
+            try {
+                if (this._escapeHandler) {
+                    document.removeEventListener("keydown", this._escapeHandler);
+                }
+            } catch {
+                /* ignore */
+            }
+            this._escapeHandler = null;
+        },
+
+        /**
+         * Clear all completed measurements and reset the control UI.
+         * This is used by FitFileViewer's "Clear All" overlay action.
+         */
+        clearMeasurements: function clearMeasurements() {
+            this._locked = false;
+            this._detachMapHandlers();
+            this._clearTempLayers();
+            this._latlngs = [];
+            this._segmentMeters = [];
+            this._measurementRunningTotal = 0;
+
+            try {
+                if (this._resultLayer && typeof this._resultLayer.clearLayers === "function") {
+                    this._resultLayer.clearLayers();
+                }
+            } catch {
+                /* ignore */
+            }
+
+            this._collapse();
+            this._updateNotStarted();
         },
 
         _updateNotStarted: function _updateNotStarted() {
@@ -435,14 +549,31 @@
         _handleMapClick: function _handleMapClick(evt) {
             if (!evt || !evt.latlng) return;
 
-            // Allow finishing by clicking near the first point (common UX expectation).
-            if (this._latlngs.length >= 3 && this._map && typeof this._map.distance === "function") {
+            // Finishing by clicking an existing point.
+            // Users expect "click last point to finish" (and sometimes Leaflet doesn't
+            // deliver the marker click reliably), so we also handle this at the map level.
+            if (this._latlngs.length >= 2 && this._map && typeof this._map.distance === "function") {
+                const tol =
+                    typeof this.options.finishClickToleranceMeters === "number" &&
+                    Number.isFinite(this.options.finishClickToleranceMeters)
+                        ? this.options.finishClickToleranceMeters
+                        : 12;
                 try {
-                    const first = this._latlngs[0];
-                    const distToFirst = this._map.distance(first, evt.latlng);
-                    if (typeof distToFirst === "number" && distToFirst > 0 && distToFirst <= 8) {
+                    const last = this._latlngs.at(-1);
+                    const distToLast = last ? this._map.distance(last, evt.latlng) : null;
+                    if (typeof distToLast === "number" && distToLast >= 0 && distToLast <= tol) {
                         this._finishMeasure();
                         return;
+                    }
+
+                    // For polygons, clicking near the first point is also a common expectation.
+                    if (this._latlngs.length >= 3) {
+                        const first = this._latlngs[0];
+                        const distToFirst = this._map.distance(first, evt.latlng);
+                        if (typeof distToFirst === "number" && distToFirst >= 0 && distToFirst <= tol) {
+                            this._finishMeasure();
+                            return;
+                        }
                     }
                 } catch {
                     /* ignore */
@@ -642,7 +773,7 @@
                 if (latlngs.length === 0) {
                     this.$startHelp.textContent = "Start creating a measurement by adding points to the map";
                 } else {
-                    this.$startHelp.textContent = "Double-click, right-click, or click the first point to finish";
+                    this.$startHelp.textContent = "Double-click, right-click, or click an existing point to finish";
                 }
             }
         },

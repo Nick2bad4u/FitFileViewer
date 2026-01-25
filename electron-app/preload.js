@@ -557,6 +557,67 @@ const electronAPI = {
      */
     getTheme: createSafeInvokeHandler(CONSTANTS.CHANNELS.THEME_GET, "getTheme"),
 
+    /**
+     * Write text to the system clipboard using Electron's clipboard module.
+     * This avoids browser Clipboard API permission issues in file:// contexts.
+     *
+     * @param {string} text
+     * @returns {boolean} true if the write succeeded
+     */
+    writeClipboardText: (text) => {
+        try {
+            // Support Vitest mocks (CJS/ESM interop) the same way we do for contextBridge/ipcRenderer.
+            const mod =
+                __electronOverride && /** @type {any} */ (__electronOverride).clipboard
+                    ? /** @type {any} */ (__electronOverride)
+                    : /** @type {any} */ (require("electron"));
+            const m = mod && mod.clipboard ? mod : mod && mod.default ? mod.default : mod;
+            if (!m || !m.clipboard || typeof m.clipboard.writeText !== "function") {
+                return false;
+            }
+
+            m.clipboard.writeText(String(text));
+            return true;
+        } catch (error) {
+            console.error("[preload.js] writeClipboardText failed:", error);
+            return false;
+        }
+    },
+
+    /**
+     * Write a PNG image to the system clipboard.
+     *
+     * The renderer commonly produces chart images as data URLs.
+     * Using Electron's clipboard avoids Chromium permission issues for navigator.clipboard.
+     *
+     * @param {string} pngDataUrl
+     * @returns {boolean} true if the write succeeded
+     */
+    writeClipboardPngDataUrl: (pngDataUrl) => {
+        try {
+            const mod =
+                __electronOverride && /** @type {any} */ (__electronOverride).clipboard
+                    ? /** @type {any} */ (__electronOverride)
+                    : /** @type {any} */ (require("electron"));
+            const m = mod && mod.clipboard ? mod : mod && mod.default ? mod.default : mod;
+            const { clipboard, nativeImage } = m || {};
+
+            if (!clipboard || typeof clipboard.writeImage !== "function") {
+                return false;
+            }
+            if (!nativeImage || typeof nativeImage.createFromDataURL !== "function") {
+                return false;
+            }
+
+            const img = nativeImage.createFromDataURL(String(pngDataUrl));
+            clipboard.writeImage(img);
+            return true;
+        } catch (error) {
+            console.error("[preload.js] writeClipboardPngDataUrl failed:", error);
+            return false;
+        }
+    },
+
     // Development Tools
     /**
      * Manually inject/reset the menu from the renderer (DevTools or app code).

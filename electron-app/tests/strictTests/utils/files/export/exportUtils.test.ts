@@ -627,32 +627,23 @@ describe("exportUtils core flows", () => {
 
             localStorage.setItem("gyazo_access_token", "test-token");
 
-            // Mock blob for base64 conversion
-            const mockBlob = new Blob(["test"], { type: "image/png" });
-
-            // Mock fetch for both base64 conversion and upload
-            const mockFetch = vi
-                .fn()
-                .mockResolvedValueOnce({
-                    blob: () => Promise.resolve(mockBlob),
-                }) // First call for base64 conversion
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () =>
-                        Promise.resolve({
-                            url: "https://gyazo.com/test.png",
-                        }),
-                }); // Second call for upload
+            // uploadToGyazo no longer fetches the data URL (CSP-safe conversion is done locally).
+            // Only the Gyazo API upload request is performed.
+            const mockFetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        url: "https://gyazo.com/test.png",
+                    }),
+            });
 
             vi.stubGlobal("fetch", mockFetch);
 
             const result = await exportUtils.uploadToGyazo("data:image/png;base64,ABC123");
 
-            // Check both fetch calls
-            expect(fetch).toHaveBeenCalledTimes(2);
-            expect(fetch).toHaveBeenNthCalledWith(1, "data:image/png;base64,ABC123", expect.any(Object));
+            expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenNthCalledWith(
-                2,
+                1,
                 "https://upload.gyazo.com/api/upload",
                 expect.objectContaining({
                     method: "POST",

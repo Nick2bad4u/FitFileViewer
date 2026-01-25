@@ -408,24 +408,19 @@ describe("exportUtils", () => {
 
     describe("uploadToGyazo", () => {
         it("should upload base64 image to Gyazo", async () => {
-            const base64Image = "data:image/png;base64,test-image-data";
+            // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
+            const base64Image = "data:image/png;base64,dGVzdA=="; // "test"
 
             // Mock localStorage to return an access token
             mockLocalStorage.getItem.mockReturnValue("test-token");
 
-            // Mock fetch for base64 to blob conversion
-            const mockBlob = new Blob(["test"], { type: "image/png" });
-            mockFetch
-                .mockResolvedValueOnce({
-                    blob: vi.fn().mockResolvedValue(mockBlob),
-                })
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({
-                        url: "https://gyazo.com/uploaded",
-                        permalink_url: "https://gyazo.com/uploaded",
-                    }),
-                });
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: vi.fn().mockResolvedValue({
+                    url: "https://gyazo.com/uploaded",
+                    permalink_url: "https://gyazo.com/uploaded",
+                }),
+            });
 
             const result = await exportUtils.uploadToGyazo(base64Image);
 
@@ -441,22 +436,17 @@ describe("exportUtils", () => {
         });
 
         it("should handle upload failure", async () => {
-            const base64Image = "data:image/png;base64,test-image-data";
+            // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
+            const base64Image = "data:image/png;base64,dGVzdA=="; // "test"
 
             // Mock localStorage to return an access token
             mockLocalStorage.getItem.mockReturnValue("test-token");
 
-            // Mock fetch for base64 to blob conversion
-            const mockBlob = new Blob(["test"], { type: "image/png" });
-            mockFetch
-                .mockResolvedValueOnce({
-                    blob: vi.fn().mockResolvedValue(mockBlob),
-                })
-                .mockResolvedValueOnce({
-                    ok: false,
-                    status: 500,
-                    text: vi.fn().mockResolvedValue("Internal Server Error"),
-                });
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                text: vi.fn().mockResolvedValue("Internal Server Error"),
+            });
 
             await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow(
                 "Gyazo upload failed: 500 - Internal Server Error"

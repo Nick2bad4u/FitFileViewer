@@ -2,9 +2,10 @@ import {
     getGlobalStorageKey,
     getStorageKey,
     loadColPrefs,
+    orderSummaryColumnsNamedFirst,
     renderTable,
-    showColModal,
 } from "../helpers/renderSummaryHelpers.js";
+import { showColModal } from "../helpers/summaryColModal.js";
 
 /**
  * @typedef {import("../helpers/renderSummaryHelpers.js").FitSummaryData} FitSummaryData
@@ -52,7 +53,8 @@ export function renderSummary(data) {
     const fileKey = getStorageKey(data, allKeys);
     const perFilePrefs = loadColPrefs(fileKey, allKeys);
     const globalPrefs = loadColPrefs(getGlobalStorageKey(), allKeys);
-    let visibleColumns = perFilePrefs || globalPrefs || [...allKeys];
+    // Always render named columns before numbered-only columns.
+    let visibleColumns = orderSummaryColumnsNamedFirst(perFilePrefs || globalPrefs || [...allKeys]);
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";

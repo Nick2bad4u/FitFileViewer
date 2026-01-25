@@ -13,23 +13,13 @@ async function loadModule() {
 
 function createTableLike() {
     return {
-        toHTML: ({ limit }: { limit: number }) => {
-            expect(limit).toBe(Infinity);
-            return "<thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody>";
-        },
+        rows: [{ A: 1, B: 2 }],
     } as any;
 }
 
 function createMaliciousTableLike() {
     return {
-        toHTML: ({ limit }: { limit: number }) => {
-            expect(limit).toBe(Infinity);
-            // Attempt DOM injection in a cell.
-            return (
-                "<thead><tr><th>A</th><th>B</th></tr></thead>" +
-                "<tbody><tr><td><img src=x onerror=alert(1)></td><td><a href=javascript:alert(2)>x</a></td></tr></tbody>"
-            );
-        },
+        rows: [{ A: "<img src=x onerror=alert(1)>", B: "<a href=javascript:alert(2)>x</a>" }],
     } as any;
 }
 
@@ -78,6 +68,11 @@ describe("renderTable", () => {
 
         const table = root.querySelector("table#datatable_2") as HTMLTableElement;
         expect(table).toBeTruthy();
+
+        // Expand to render fallback body
+        (root.querySelector(".table-header") as HTMLElement).click();
+        const firstCell = root.querySelector("tbody td") as HTMLTableCellElement;
+        expect(firstCell?.textContent).toBe("1");
     });
 
     it("sanitizes injected markup from table HTML", async () => {
@@ -86,10 +81,13 @@ describe("renderTable", () => {
 
         await renderTable(root, "XSS", createMaliciousTableLike(), 9);
 
+        // Expand to render fallback body
+        (root.querySelector(".table-header") as HTMLElement).click();
+
         const table = root.querySelector("table#datatable_9") as HTMLTableElement;
         expect(table).toBeTruthy();
 
-        // Ensure potentially executable elements are not present.
+        // Ensure potentially executable elements are not present (we only set textContent).
         expect(table.querySelector("img")).toBeNull();
         expect(table.querySelector("a")).toBeNull();
     });

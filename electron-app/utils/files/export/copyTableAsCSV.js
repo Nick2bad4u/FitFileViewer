@@ -8,7 +8,7 @@ const CSV_CONFIG = {
         CLIPBOARD_ERROR: "Failed to copy CSV:",
         FALLBACK_ERROR: "Failed to copy CSV using fallback:",
         FALLBACK_SUCCESS: "Copied CSV to clipboard using fallback!",
-        FALLBACK_WARNING: "navigator.clipboard.writeText is not supported. Using fallback.",
+        FALLBACK_WARNING: "Clipboard API unavailable or denied. Using fallback.",
         INVALID_TABLE: "Invalid table object: missing objects method",
         SUCCESS: "Copied CSV to clipboard!",
     },
@@ -23,8 +23,8 @@ const CSV_CONFIG = {
  */
 
 /**
- * @typedef {Object} DataTable
- * @property {() => TableRow[]} objects - Returns array of row objects
+ * @typedef {Object} RowsTable
+ * @property {TableRow[]} rows
  */
 
 /**
@@ -33,27 +33,46 @@ const CSV_CONFIG = {
  * This function serializes each row of the table, handling nested objects by stringifying them.
  * It attempts to use the modern Clipboard API and falls back to the legacy method if necessary.
  *
- * @param {DataTable} table - The table object to copy. Must have an `objects()` method that returns an array of row objects
- * @throws {Error} If the table object does not have an `objects()` method
+ * @param {TableRow[]|RowsTable|{ objects: () => TableRow[] }} table - The table data to copy.
+ * Prefer passing a plain array of row objects (CSP-safe).
  * @example
  * // Copy a DataTable to clipboard as CSV
  * copyTableAsCSV(myDataTable);
  */
 export async function copyTableAsCSV(table) {
-    // Input validation
-    if (!table || typeof table.objects !== "function") {
+    /** @type {TableRow[] | null} */
+    let rows = null;
+
+    if (Array.isArray(table)) {
+        rows = table;
+    } else if (table && typeof table === "object" && Array.isArray(/** @type {any} */ (table).rows)) {
+        const { rows: tableRows } = /** @type {any} */ (table);
+        rows = tableRows;
+    } else if (table && typeof table === "object" && typeof (/** @type {any} */ (table).objects) === "function") {
+        // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
+        try {
+            const { objects } = /** @type {any} */ (table);
+            rows = objects();
+        } catch (error) {
+            console.error("[copyTableAsCSV] Failed to copy table:", error);
+            throw error;
+        }
+    }
+
+    if (!rows) {
         console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.INVALID_TABLE}`);
         throw new Error(CSV_CONFIG.MESSAGES.INVALID_TABLE);
     }
 
     try {
-        // Serialize table data with object handling
-        const // Convert to CSV format
-            { aq } = /** @type {any} */ (globalThis),
-            // Avoid repeated property lookups and satisfy prefer-destructuring
-            processedRows = processTableRows(table.objects()),
-            flattenedTable = aq.from(processedRows),
-            csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
+        // Serialize table data with object handling.
+        // IMPORTANT: Do not use Arquero's `toCSV()` here.
+        // Arquero's CSV implementation can rely on runtime function generation in some builds,
+        // which violates FitFileViewer's strict CSP (no `unsafe-eval`).
+        const processedRows = processTableRows(rows);
+
+        // Convert to CSV format (CSP-safe).
+        const csvString = buildCsvString(processedRows, { includeHeader: CSV_CONFIG.HEADER_ENABLED });
 
         // Attempt clipboard copy
         await copyToClipboard(csvString);
@@ -64,25 +83,63 @@ export async function copyTableAsCSV(table) {
 }
 
 /**
+ * Build a CSV string from row objects.
+ * @param {TableRow[]} rows
+ * @param {{ includeHeader: boolean }} options
+ * @returns {string}
+ */
+function buildCsvString(rows, { includeHeader }) {
+    const cols = getCsvColumns(rows);
+    /** @type {string[]} */
+    const lines = [];
+
+    if (includeHeader) {
+        lines.push(cols.map((value) => escapeCsvValue(value)).join(","));
+    }
+
+    for (const row of rows) {
+        lines.push(cols.map((k) => escapeCsvValue(row[k])).join(","));
+    }
+
+    // Use CRLF for best compatibility with spreadsheet tools.
+    return lines.join("\r\n");
+}
+
+/**
  * Attempts to copy text to clipboard using modern API with fallback
  * @param {string} text - Text to copy to clipboard
  * @returns {Promise<void>} Resolves when copy operation completes
  * @private
  */
 async function copyToClipboard(text) {
-    // Try modern Clipboard API first
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
+    try {
+        const { electronAPI } = /** @type {any} */ (globalThis);
+        if (electronAPI && typeof electronAPI.writeClipboardText === "function") {
+            const { writeClipboardText } = electronAPI;
+            const ok = Boolean(writeClipboardText(text));
+            if (ok) {
+                console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
+                return;
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+
+    // Try modern Clipboard API.
+    const { clipboard } = navigator;
+    if (clipboard && typeof clipboard.writeText === "function") {
         try {
-            await navigator.clipboard.writeText(text);
+            await clipboard.writeText(text);
             console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
             return;
-        } catch (error) {
-            console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.CLIPBOARD_ERROR}`, error);
-            // Fall through to legacy method
+        } catch {
+            // Do not treat as a hard error; permissions are commonly denied in non-secure contexts.
         }
     }
 
-    // Fallback to legacy method
+    // Fallback to legacy method.
     console.warn(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_WARNING}`);
     copyToClipboardFallback(text);
 }
@@ -116,6 +173,63 @@ function copyToClipboardFallback(text) {
     } finally {
         textarea.remove();
     }
+}
+
+/**
+ * Escape a value for CSV.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function escapeCsvValue(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    const str = typeof value === "string" ? value : String(value);
+    // NOTE: In unicode regex mode, some non-standard escapes are rejected.
+    // We only need to match quote/comma/newlines.
+    const mustQuote = /[",\r\n]/u.test(str);
+    if (!mustQuote) {
+        return str;
+    }
+
+    // RFC 4180: escape quotes by doubling.
+    const escaped = str.replaceAll('"', '""');
+    return `"${escaped}"`;
+}
+
+/**
+ * @param {TableRow[]} rows
+ * @returns {string[]}
+ */
+function getCsvColumns(rows) {
+    /** @type {string[]} */
+    const cols = [];
+    /** @type {Set<string>} */
+    const seen = new Set();
+
+    // Prefer the first row's key order for stability.
+    const first = rows.length > 0 ? rows[0] : null;
+    if (first && typeof first === "object") {
+        for (const k of Object.keys(first)) {
+            if (!seen.has(k)) {
+                seen.add(k);
+                cols.push(k);
+            }
+        }
+    }
+
+    // Add any keys encountered later.
+    for (const row of rows) {
+        for (const k of Object.keys(row)) {
+            if (!seen.has(k)) {
+                seen.add(k);
+                cols.push(k);
+            }
+        }
+    }
+
+    return cols;
 }
 
 /**

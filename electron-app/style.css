@@ -4013,6 +4013,38 @@ body .leaflet-measure-segment-label {
     white-space: nowrap;
 }
 
+/* Leaflet-measure icon assets are dark by default; invert in dark UI so the ruler icon is visible. */
+body.theme-dark .leaflet-control-measure .leaflet-control-measure-toggle,
+#leaflet-map.ffv-map-inverted .leaflet-control-measure .leaflet-control-measure-toggle {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Close button for the CSP-safe leaflet-measure-lite control. */
+body .leaflet-control-measure .leaflet-control-measure-close {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 6px;
+    border: 1px solid rgb(var(--color-fg-rgb) / 20%);
+    background: rgb(var(--color-bg-rgb) / 30%);
+    color: var(--color-fg);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+body .leaflet-control-measure .leaflet-control-measure-interaction {
+    position: relative;
+}
+
+body .leaflet-control-measure .leaflet-control-measure-close:hover {
+    background: rgb(var(--color-fg-rgb) / 10%);
+}
+
 /* Leaflet-draw uses a dark sprite sheet; invert in dark UI so icons are visible */
 body.theme-dark .leaflet-draw-toolbar a,
 #leaflet-map.ffv-map-inverted .leaflet-draw-toolbar a {
@@ -5702,17 +5734,185 @@ body.theme-light .data-point-filter-control__range-values {
     margin-top: 0;
     margin-bottom: 18px;
     font-size: 1.3rem;
-    text-align: center;
+    text-align: left;
     background: var(--color-title);
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 700;
 }
 
-.summary-col-modal .col-list {
+.summary-col-modal-header {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.summary-col-modal-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgb(var(--color-fg-rgb) / 18%);
+    background: rgb(var(--color-bg-rgb) / 35%);
+    color: var(--color-modal-fg);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.summary-col-modal-close:hover {
+    background: rgb(var(--color-fg-rgb) / 10%);
+    border-color: rgb(var(--color-accent-rgb) / 40%);
+    transform: translateY(-1px);
+}
+
+.summary-col-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.summary-col-selected-count {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-modal-fg);
+    opacity: 0.9;
+}
+
+.summary-col-search-wrap {
+    flex: 1 1 auto;
+    min-width: 220px;
+}
+
+.summary-col-search {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--color-border);
+    background: rgb(var(--color-bg-rgb) / 35%);
+    color: var(--color-modal-fg);
+}
+
+.summary-col-search:focus-visible {
+    outline: 2px solid rgb(var(--color-accent-rgb) / 80%);
+    outline-offset: 2px;
+}
+
+.summary-col-status {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid rgb(var(--color-fg-rgb) / 16%);
+    background: rgb(var(--color-bg-rgb) / 22%);
+}
+
+.summary-col-status-text {
+    font-weight: 800;
+    color: var(--color-modal-fg);
+}
+
+.summary-col-status-hint {
+    font-size: 0.92rem;
+    color: rgb(var(--color-fg-rgb) / 70%);
+    text-align: right;
+}
+
+.summary-col-status[data-mode="global"] {
+    border-color: rgb(var(--color-accent-rgb) / 30%);
+    background: rgb(var(--color-accent-rgb) / 10%);
+}
+
+.summary-col-status[data-mode="file"] {
+    border-color: rgb(var(--color-secondary-accent-rgb) / 30%);
+    background: rgb(var(--color-secondary-accent-rgb) / 10%);
+}
+
+.summary-col-status[data-mode="custom"] {
+    border-color: rgb(var(--color-fg-rgb) / 16%);
+    background: rgb(var(--color-bg-rgb) / 18%);
+}
+
+.summary-col-presets {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.summary-col-badges {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+}
+
+.summary-col-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--color-fg-rgb) / 18%);
+    background: rgb(var(--color-bg-rgb) / 22%);
+    color: var(--color-modal-fg);
+    font-weight: 800;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.summary-col-badge:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.summary-col-badge--ok {
+    border-color: rgb(var(--color-accent-rgb) / 35%);
+    background: rgb(var(--color-accent-rgb) / 14%);
+    color: rgb(var(--color-accent-rgb));
+}
+
+.summary-col-badge--warn {
+    border-color: rgb(var(--color-secondary-accent-rgb) / 35%);
+    background: rgb(var(--color-secondary-accent-rgb) / 12%);
+    color: rgb(var(--color-secondary-accent-rgb));
+}
+
+.summary-col-badge--off {
+    border-color: rgb(var(--color-fg-rgb) / 15%);
+    background: rgb(var(--color-bg-rgb) / 18%);
+    color: rgb(var(--color-fg-rgb) / 75%);
+}
+
+.summary-col-badge:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--color-box-shadow-light);
+}
+
+.summary-col-presets-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.summary-col-modal .col-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 8px 10px;
     margin-bottom: 18px;
     max-height: 40vh;
     overflow-y: auto;
@@ -5740,8 +5940,17 @@ body.theme-light .data-point-filter-control__range-values {
 .summary-col-modal label:hover {
     background: var(--color-accent-hover);
     border-color: var(--color-accent);
-    transform: translateX(4px);
+    transform: none;
     box-shadow: var(--color-box-shadow-light);
+}
+
+.summary-col-empty {
+    grid-column: 1 / -1;
+    padding: 12px;
+    border-radius: var(--border-radius-small);
+    border: 1px dashed rgb(var(--color-fg-rgb) / 20%);
+    color: rgb(var(--color-fg-rgb) / 70%);
+    background: rgb(var(--color-bg-rgb) / 18%);
 }
 
 .summary-col-modal label:has(input:disabled) {
@@ -5760,6 +5969,49 @@ body.theme-light .data-point-filter-control__range-values {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+.summary-col-selectall {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.summary-col-tooltip {
+    position: fixed;
+    z-index: 10030;
+    width: min(420px, calc(100vw - 16px));
+    max-height: 300px;
+    overflow: hidden;
+    background: rgb(var(--color-bg-rgb) / 85%);
+    border: 1px solid rgb(var(--color-fg-rgb) / 18%);
+    border-radius: var(--border-radius);
+    box-shadow: var(--color-box-shadow);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.summary-col-tooltip-title {
+    padding: 10px 12px;
+    font-weight: 800;
+    border-bottom: 1px solid rgb(var(--color-fg-rgb) / 12%);
+    color: var(--color-fg);
+}
+
+.summary-col-tooltip-list {
+    padding: 8px 10px;
+    overflow: auto;
+    max-height: 250px;
+}
+
+.summary-col-tooltip-item {
+    padding: 4px 6px;
+    border-radius: 8px;
+    color: rgb(var(--color-fg-rgb) / 90%);
+    font-size: 0.92rem;
+}
+
+.summary-col-tooltip-item:nth-child(odd) {
+    background: rgb(var(--color-fg-rgb) / 6%);
 }
 
 .summary-col-default-badge {
@@ -6334,7 +6586,7 @@ footer {
     font-size: 12px;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 0;
     white-space: nowrap;
     overflow: hidden;
     transform: translateX(0);
@@ -6372,11 +6624,10 @@ footer {
 }
 
 .credits-section a {
-    color: var(--color-credits);
+    color: var(--color-accent);
     text-decoration: none;
-    margin: 0 4px;
+    margin: 0;
     font-weight: 800;
-    font-size: 0.9rem;
     transition: var(--transition-smooth);
     padding: 2px 6px;
     border-radius: 4px;
@@ -6390,6 +6641,18 @@ footer {
     background: var(--c_rgb255255255_8p);
     transform: translateY(-1px);
     transition: var(--transition-smooth);
+}
+
+.credits-item {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* Use a CSS separator so we don't rely on brittle text nodes (whitespace/newlines). */
+.credits-item + .credits-item::before {
+    content: ", ";
+    color: rgb(var(--color-fg-rgb) / 70%);
 }
 
 .credits-section img {

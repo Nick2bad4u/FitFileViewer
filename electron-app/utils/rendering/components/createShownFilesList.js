@@ -590,6 +590,18 @@ export function createShownFilesList() {
                 /** @param {MouseEvent} ev */
                 clearAll.addEventListener("click", (ev) => {
                     ev.stopPropagation();
+
+                    // Also clear any map measurement overlays (leaflet-measure-lite).
+                    // Users expect "Clear All" to reset transient map overlays, not only file overlays.
+                    try {
+                        const measureControl = /** @type {any} */ (globalThis)._measureControl;
+                        if (measureControl && typeof measureControl.clearMeasurements === "function") {
+                            measureControl.clearMeasurements();
+                        }
+                    } catch {
+                        /* ignore */
+                    }
+
                     if (globalThis.loadedFitFiles) {
                         globalThis.loadedFitFiles.splice(1);
                         assignKeyboardFocus(-1);

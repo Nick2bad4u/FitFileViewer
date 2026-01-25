@@ -10,7 +10,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
             it("should contain expected number of fields", () => {
                 expect(formatChartFields.length).toBeGreaterThan(0);
-                expect(formatChartFields.length).toBe(14); // Current count
+                expect(formatChartFields.length).toBe(15); // Current count
             });
 
             it("should contain only string values", () => {
@@ -32,6 +32,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 expect(formatChartFields).toContain("heartRate");
                 expect(formatChartFields).toContain("altitude");
                 expect(formatChartFields).toContain("power");
+                expect(formatChartFields).toContain("estimatedPower");
                 expect(formatChartFields).toContain("cadence");
                 expect(formatChartFields).toContain("temperature");
                 expect(formatChartFields).toContain("distance");
@@ -61,6 +62,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                     "heartRate",
                     "altitude",
                     "power",
+                    "estimatedPower",
                     "cadence",
                     "temperature",
                     "distance",
@@ -128,7 +130,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should contain expected number of labels", () => {
                 const labelKeys = Object.keys(fieldLabels);
                 expect(labelKeys.length).toBeGreaterThan(0);
-                expect(labelKeys.length).toBe(25); // Current count including chart types
+                expect(labelKeys.length).toBe(26); // Current count including chart types
             });
 
             it("should have string keys and string values", () => {
@@ -238,7 +240,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should contain expected number of colors", () => {
                 const colorKeys = Object.keys(fieldColors);
                 expect(colorKeys.length).toBeGreaterThan(0);
-                expect(colorKeys.length).toBe(25); // Current count including chart types
+                expect(colorKeys.length).toBe(26); // Current count including chart types
             });
 
             it("should have string keys and string values", () => {

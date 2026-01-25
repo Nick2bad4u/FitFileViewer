@@ -15,12 +15,6 @@ import { renderTable } from "../core/renderTable.js";
 export function createTables(dataFrames, containerOverride) {
     console.log("[DEBUG] createTables called", dataFrames);
 
-    const { aq } = /** @type {any} */ (globalThis);
-    if (!aq) {
-        console.error("[ERROR] Arquero (window.aq) is not available.");
-        return;
-    }
-
     const container = containerOverride || document.querySelector("#content-data");
     if (!container) {
         console.error(
@@ -36,17 +30,25 @@ export function createTables(dataFrames, containerOverride) {
     while (container.firstChild) {
         container.firstChild.remove();
     }
+    /**
+     * @param {unknown} row
+     * @returns {row is Record<string, unknown>}
+     */
+    const isRowObject = (row) => Boolean(row) && typeof row === "object" && !Array.isArray(row);
+
     const keys = Object.keys(dataFrames).filter((key) => {
-        const rows = /** @type {any} */ (dataFrames)[key];
-        return Array.isArray(rows) && rows.every((row) => row && typeof row === "object" && !Array.isArray(row));
+        const rows = /** @type {unknown} */ (/** @type {any} */ (dataFrames)[key]);
+        // Some datasets can contain occasional null entries; render what we can instead of dropping the entire table.
+        return Array.isArray(rows) && rows.some((row) => isRowObject(row));
     });
     console.log("[DEBUG] Table keys:", keys);
 
-    // Debug: print first row of each table
+    // Debug: print first *valid* row of each table
     for (const key of keys) {
-        const rows = /** @type {any} */ (dataFrames)[key];
-        if (rows && rows.length > 0) {
-            console.log(`[DEBUG] First row for ${key}:`, rows[0], "Type:", typeof rows[0]);
+        const rows = /** @type {unknown[]} */ (/** @type {any} */ (dataFrames)[key]);
+        const firstValid = Array.isArray(rows) ? rows.find((row) => isRowObject(row)) : null;
+        if (firstValid) {
+            console.log(`[DEBUG] First row for ${key}:`, firstValid, "Type:", typeof firstValid);
         }
     }
 
@@ -63,18 +65,22 @@ export function createTables(dataFrames, containerOverride) {
 
     for (const [index, key] of keys.entries()) {
         try {
-            const rows = /** @type {any} */ (dataFrames)[key];
-            if (
-                !Array.isArray(rows) ||
-                rows.length === 0 ||
-                !rows.every((row) => row && typeof row === "object" && !Array.isArray(row))
-            ) {
-                console.warn(`[WARNING] Skipping table for key: ${key} as it is not compatible with Arquero.`);
+            const rows = /** @type {unknown[]} */ (/** @type {any} */ (dataFrames)[key]);
+            if (!Array.isArray(rows) || rows.length === 0) {
                 continue;
             }
-            const table = aq.from(rows);
-            console.log(`[DEBUG] Rendering table for key: ${key}, rows:`, table.numRows());
-            renderTable(container, key, table, index);
+
+            const validRows = rows.filter((row) => isRowObject(row));
+            if (validRows.length === 0) {
+                console.warn(`[WARNING] Skipping table for key: ${key} as it has no compatible rows.`);
+                continue;
+            }
+
+            // IMPORTANT (CSP): Avoid Arquero for raw table rendering.
+            // Arquero's `toHTML()` / `objects()` use runtime Function generation in some builds,
+            // which is blocked by our CSP (no unsafe-eval). Render tables directly from raw rows instead.
+            console.log(`[DEBUG] Rendering table for key: ${key}, rows:`, validRows.length);
+            renderTable(container, key, { rows: validRows }, index);
         } catch (error) {
             console.error(
                 `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (error).message}. Stack trace:`,

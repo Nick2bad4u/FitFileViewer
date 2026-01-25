@@ -1,9 +1,11 @@
+import { MAP_FILTER_METRICS } from "../../maps/filters/mapMetricFilter.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createFilterControlElements } from "./dataPointFilterControl/elementFactory.js";
 import { buildSummaryText, previewFilterResult } from "./dataPointFilterControl/metricsPreview.js";
 import {
     clampPercent,
     clampRangeValue,
+    computeMetricStats,
     computeRangeState,
     formatMetricValue,
     formatPercent,
@@ -52,9 +54,79 @@ export function createDataPointFilterControl(onFilterChange) {
     const viewportPadding = 16;
     let pendingFrame = 0;
 
-    const initialConfig = resolveInitialConfig(metricSelect.value, percentInput.value);
-    metricSelect.value = initialConfig.metric;
-    percentInput.value = String(initialConfig.percent ?? 10);
+    /** @type {Map<string, ReturnType<typeof computeMetricStats>>} */
+    const metricStatsCache = new Map();
+
+    /**
+     * Resolve cached stats for a metric key to avoid repeated scans.
+     * @param {string} metricKey
+     * @returns {ReturnType<typeof computeMetricStats>}
+     */
+    const getMetricStats = (metricKey) => {
+        if (metricStatsCache.has(metricKey)) {
+            return metricStatsCache.get(metricKey);
+        }
+        const stats = computeMetricStats(metricKey);
+        metricStatsCache.set(metricKey, stats);
+        return stats;
+    };
+
+    /**
+     * Determine if a metric has data available for this file.
+     *
+     * NOTE: Do not exclude all-zero metrics here. Some files legitimately have
+     * constant values (e.g., stationary rides or flat altitude), and users still
+     * expect those metrics to appear in the selector.
+     *
+     * @param {string} metricKey
+     * @returns {boolean}
+     */
+    const isMetricAvailable = (metricKey) => {
+        const stats = getMetricStats(metricKey);
+        return Boolean(stats && Number.isFinite(stats.count) && stats.count > 0);
+    };
+
+    const availableMetrics = MAP_FILTER_METRICS.filter((metric) => isMetricAvailable(metric.key));
+    metricSelect.replaceChildren();
+
+    if (availableMetrics.length === 0) {
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        emptyOption.textContent = "No metrics available";
+        emptyOption.disabled = true;
+        emptyOption.selected = true;
+        metricSelect.append(emptyOption);
+        metricSelect.disabled = true;
+        toggleButton.disabled = true;
+        applyButton.disabled = true;
+        resetButton.disabled = true;
+        summary.textContent = "No map metrics available for this file.";
+    } else {
+        for (const metric of availableMetrics) {
+            const option = document.createElement("option");
+            option.value = metric.key;
+            option.textContent = metric.label;
+            metricSelect.append(option);
+        }
+        metricSelect.disabled = false;
+        toggleButton.disabled = false;
+        applyButton.disabled = false;
+        resetButton.disabled = false;
+    }
+
+    const defaultMetric = availableMetrics[0]?.key ?? "";
+    const resolvedConfig = resolveInitialConfig(defaultMetric, percentInput.value);
+    const metricIsAvailable = availableMetrics.some((metric) => metric.key === resolvedConfig.metric);
+    const metricKey = metricIsAvailable ? resolvedConfig.metric : defaultMetric;
+    metricSelect.value = metricKey;
+    percentInput.value = String(resolvedConfig.percent ?? 10);
+
+    const shouldDisable = availableMetrics.length === 0 || !metricIsAvailable;
+    const initialConfig = {
+        ...resolvedConfig,
+        enabled: shouldDisable ? false : resolvedConfig.enabled,
+        metric: metricKey,
+    };
 
     let currentMode = initialConfig.mode === "valueRange" ? "valueRange" : "topPercent";
     let currentStats = null;
@@ -70,8 +142,12 @@ export function createDataPointFilterControl(onFilterChange) {
     updateModeSelectionState();
     updateRangeStats({ preserveSelection: true });
 
-    if (!globalThis.mapDataPointFilter) {
+    if (!globalThis.mapDataPointFilter || shouldDisable) {
         updateGlobalFilter(initialConfig);
+    }
+
+    if (!metricIsAvailable && availableMetrics.length > 0) {
+        summary.textContent = "Selected metric unavailable; filter disabled.";
     }
 
     if (initialConfig.enabled) {
@@ -193,7 +269,7 @@ export function createDataPointFilterControl(onFilterChange) {
     });
 
     applyButton.addEventListener("click", () => {
-        const metricKey = metricSelect.value;
+        const selectedMetricKey = metricSelect.value;
 
         if (currentMode === "valueRange") {
             if (!currentStats) {
@@ -207,7 +283,7 @@ export function createDataPointFilterControl(onFilterChange) {
             const config = {
                 enabled: true,
                 maxValue,
-                metric: metricKey,
+                metric: selectedMetricKey,
                 minValue,
                 mode: "valueRange",
             };
@@ -261,7 +337,7 @@ export function createDataPointFilterControl(onFilterChange) {
 
         const config = {
             enabled: true,
-            metric: metricKey,
+            metric: selectedMetricKey,
             mode: "topPercent",
             percent: percentValue,
         };
@@ -293,7 +369,7 @@ export function createDataPointFilterControl(onFilterChange) {
     });
 
     resetButton.addEventListener("click", () => {
-        const metricKey = metricSelect.value;
+        const selectedMetricKey = metricSelect.value;
         let clearedConfig;
 
         if (currentMode === "valueRange") {
@@ -303,14 +379,14 @@ export function createDataPointFilterControl(onFilterChange) {
                 clearedConfig = {
                     enabled: false,
                     maxValue,
-                    metric: metricKey,
+                    metric: selectedMetricKey,
                     minValue,
                     mode: "valueRange",
                 };
             } else {
                 clearedConfig = {
                     enabled: false,
-                    metric: metricKey,
+                    metric: selectedMetricKey,
                     mode: "valueRange",
                 };
             }
@@ -319,7 +395,7 @@ export function createDataPointFilterControl(onFilterChange) {
             percentInput.value = String(percentValue);
             clearedConfig = {
                 enabled: false,
-                metric: metricKey,
+                metric: selectedMetricKey,
                 mode: "topPercent",
                 percent: percentValue,
             };

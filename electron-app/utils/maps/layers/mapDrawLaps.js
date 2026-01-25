@@ -60,13 +60,13 @@ export function drawOverlayForFitFile({
                 : "#1976d2";
         const polyline = L.polyline(
             coords.map((c) => [c[0], c[1]]),
-            {
+            buildPolylineOptions({
                 className: isHighlighted ? "overlay-highlight-glow" : "",
                 color: paletteColor,
                 dashArray: null,
                 opacity: 0.95,
                 weight: isHighlighted ? 10 : 4,
-            }
+            })
         ).addTo(map);
 
         if (typeof overlayIdx === "number") {
@@ -435,12 +435,12 @@ export function mapDrawLaps(
             console.log(`[mapDrawLaps] Drawing polyline for all laps, coords.length = ${coords.length}`);
             const polyline = L.polyline(
                 coords.map((c) => [c[0], c[1]]),
-                {
+                buildPolylineOptions({
                     color: polyColor,
                     dashArray: "6, 8",
                     opacity: 0.9,
                     weight: 4,
-                }
+                })
             );
             // Avoid relying on addTo return value for mock compatibility
             polyline.addTo(map);
@@ -640,12 +640,12 @@ export function mapDrawLaps(
                 console.log(`[mapDrawLaps] Drawing polyline for all laps, coords.length = ${coords.length}`);
                 const polyline = L.polyline(
                     coords.map((c) => [c[0], c[1]]),
-                    {
+                    buildPolylineOptions({
                         color: polyColor,
                         dashArray: "6, 8",
                         opacity: 0.9,
                         weight: 4,
-                    }
+                    })
                 );
                 polyline.addTo(map);
                 /** @type {any} */ (getWin())._mainPolyline = polyline;
@@ -828,12 +828,12 @@ export function mapDrawLaps(
                         const polyColor = getLapColor(Number(lapVal)),
                             polyline = L.polyline(
                                 lapCoords.map((c) => [c[0], c[1]]),
-                                {
+                                buildPolylineOptions({
                                     color: polyColor,
                                     dashArray: null,
                                     opacity: 0.9,
                                     weight: 4,
-                                }
+                                })
                             ).addTo(map);
                         if (bounds) {
                             bounds.extend(polyline.getBounds());
@@ -1043,12 +1043,12 @@ export function mapDrawLaps(
         console.log("[mapDrawLaps] DEBUG About to create polyline with L.polyline");
         const polylineResult = L.polyline(
             coords.map((c) => [c[0], c[1]]),
-            {
+            buildPolylineOptions({
                 color: polyColor,
                 dashArray: lapIdx === "all" ? "6, 8" : null,
                 opacity: 0.9,
                 weight: 4,
-            }
+            })
         );
         console.log("[mapDrawLaps] DEBUG L.polyline() returned:", polylineResult);
 
@@ -1176,6 +1176,18 @@ export function mapDrawLaps(
 }
 
 /**
+ * Merge base polyline options with the dynamic simplification setting.
+ * @param {Record<string, unknown>} options
+ * @returns {Record<string, unknown>}
+ */
+function buildPolylineOptions(options) {
+    return {
+        ...options,
+        smoothFactor: getPolylineSmoothFactor(),
+    };
+}
+
+/**
  * Helper to find the index in recordMesgs closest to a given lat/lon
  * @param {number} lat - Latitude to search for
  * @param {number} lon - Longitude to search for
@@ -1221,6 +1233,19 @@ function getMarkerLimit() {
         return 0;
     }
     return value;
+}
+
+/**
+ * Resolve a polyline smooth factor based on the marker density setting.
+ *
+ * When the user chooses "All" data points (markerLimit === 0), we disable
+ * Leaflet's simplification so the track doesn't appear to skip segments.
+ *
+ * @returns {number}
+ */
+function getPolylineSmoothFactor() {
+    const markerLimit = getMarkerLimit();
+    return markerLimit === 0 ? 0 : 1;
 }
 
 /**
@@ -1289,6 +1314,9 @@ function selectDefaultMarkerCoordinates(coordsArray, markerLimit) {
     if (!Array.isArray(coordsArray) || coordsArray.length === 0) {
         return [];
     }
+    if (markerLimit === 0 || markerLimit >= coordsArray.length) {
+        return coordsArray.slice();
+    }
     const effectiveStep = markerLimit === 0 ? 1 : Math.max(1, Math.floor(coordsArray.length / markerLimit));
     const selected = [];
     for (let i = 0; i < coordsArray.length; i += effectiveStep) {
@@ -1296,6 +1324,10 @@ function selectDefaultMarkerCoordinates(coordsArray, markerLimit) {
         if (coord) {
             selected.push(coord);
         }
+    }
+    const last = coordsArray.at(-1);
+    if (last && selected.at(-1) !== last) {
+        selected.push(last);
     }
     if (selected.length === 0) {
         const [first] = coordsArray;

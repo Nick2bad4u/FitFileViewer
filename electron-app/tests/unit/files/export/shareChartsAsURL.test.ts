@@ -123,7 +123,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            "Chart image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+            "Chart image copied to clipboard as data URL (Imgur not configured).",
             "info"
         );
     });
@@ -155,7 +155,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            "Combined charts image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+            "Combined charts image copied to clipboard as data URL (Imgur not configured).",
             "info"
         );
     });
@@ -207,6 +207,10 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         }
 
         // Assert
-        expect(mockShowNotification).toHaveBeenCalledWith("Failed to share chart. Please try again.", "error");
+        // Clipboard permissions are often denied in Electron/file contexts; sharing should still complete.
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            "Chart uploaded to Imgur! (Clipboard copy blocked)",
+            "warning"
+        );
     });
 });

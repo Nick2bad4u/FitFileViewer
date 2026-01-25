@@ -70,7 +70,24 @@ beforeEach(() => {
     document.body.innerHTML = "";
     globalThis.mapDataPointFilter = undefined;
     globalThis.mapDataPointFilterLastResult = undefined;
-    globalThis.globalData = { recordMesgs: [] };
+    globalThis.globalData = {
+        recordMesgs: [
+            {
+                speed: 6.5,
+                power: 210,
+                cadence: 85,
+                heartRate: 145,
+                altitude: 120,
+            },
+            {
+                speed: 7.2,
+                power: 230,
+                cadence: 92,
+                heartRate: 152,
+                altitude: 128,
+            },
+        ],
+    };
     originalQueueMicrotask = globalThis.queueMicrotask;
 
     originalRAF = globalThis.requestAnimationFrame;

@@ -25,22 +25,15 @@ describe("createTables", () => {
         vi.clearAllMocks();
         // reset DOM
         document.body.innerHTML = "";
-        // reset window.aq
-        // @ts-ignore
-        delete window.aq;
     });
 
-    it("returns early when Arquero is missing", () => {
+    it("renders tables without requiring Arquero", () => {
         const container = getContainer();
         createTables({ recordMesgs: [{ a: 1 }] }, container);
-        expect(renderTable).not.toHaveBeenCalled();
+        expect(renderTable).toHaveBeenCalledTimes(1);
     });
 
     it("returns early when container not found and no override provided", () => {
-        // Provide aq but do not add #content-data
-        /** @type {(rows: any[]) => { numRows: () => number }} */
-        const from = (rows) => ({ numRows: () => rows.length });
-        /** @type {any} */ window.aq = { from };
         // Ensure DOM has no content-data element
         document.body.innerHTML = "<div id='other'></div>";
 
@@ -50,9 +43,6 @@ describe("createTables", () => {
 
     it("renders only valid tables and in correct order (recordMesgs first)", () => {
         const container = getContainer();
-        /** @type {(rows: any[]) => { numRows: () => number }} */
-        const from = vi.fn((rows) => ({ numRows: () => rows.length }));
-        /** @type {any} */ window.aq = { from };
 
         // Mix of valid/invalid tables
         const dataFrames = {
@@ -73,9 +63,9 @@ describe("createTables", () => {
         // expect container to no longer have the pre-filled child (cleared)
         expect(container.querySelector("span")).toBeNull();
 
-        // Should call aq.from only for valid object arrays and renderTable in order:
-        // recordMesgs (index 0), aTable (1), bTable (2)
-        const expectedOrder = ["recordMesgs", "aTable", "bTable"];
+        // Should render valid object arrays and in order:
+        // recordMesgs first, then alphabetically (aTable, bTable, invalid3)
+        const expectedOrder = ["recordMesgs", "aTable", "bTable", "invalid3"];
         expect(renderTable).toHaveBeenCalledTimes(expectedOrder.length);
 
         expectedOrder.forEach((key, idx) => {
@@ -86,21 +76,21 @@ describe("createTables", () => {
             expect(call?.[3]).toBe(idx);
         });
 
-        // aq.from called for 3 valid tables
-        expect(vi.mocked(/** @type {any} */ window.aq.from)).toHaveBeenCalledTimes(3);
+        // No Arquero required
     });
 
-    it("continues gracefully when aq.from throws for a table", () => {
+    it("continues gracefully when renderTable throws for a table", () => {
         const container = getContainer();
-        const fromMock = vi
-            .fn()
-            .mockImplementationOnce(() => ({ numRows: () => 1 })) // recordMesgs ok
+        vi.mocked(renderTable)
+            .mockImplementationOnce(() => {
+                // ok
+            })
             .mockImplementationOnce(() => {
                 throw new Error("boom");
-            }) // aTable throws
-            .mockImplementationOnce(() => ({ numRows: () => 2 })); // bTable ok
-
-        /** @type {any} */ window.aq = { from: fromMock };
+            })
+            .mockImplementationOnce(() => {
+                // ok
+            });
 
         const dataFrames = {
             recordMesgs: [{ r: 1 }],
@@ -110,9 +100,15 @@ describe("createTables", () => {
 
         createTables(dataFrames, container);
 
-        // renderTable should have been called for recordMesgs (index 0) and bTable (index 2 after sorting)
-        expect(vi.mocked(renderTable).mock.calls.length).toBe(2);
+        // renderTable is invoked for each eligible table; if one invocation throws,
+        // createTables should catch and continue with the next tables.
+        expect(vi.mocked(renderTable).mock.calls.length).toBe(3);
         expect(vi.mocked(renderTable).mock.calls[0]?.[1]).toBe("recordMesgs");
-        expect(vi.mocked(renderTable).mock.calls[1]?.[1]).toBe("bTable");
+        expect(vi.mocked(renderTable).mock.calls[1]?.[1]).toBe("aTable");
+        expect(vi.mocked(renderTable).mock.calls[2]?.[1]).toBe("bTable");
+
+        expect(vi.mocked(renderTable).mock.calls[0]?.[3]).toBe(0);
+        expect(vi.mocked(renderTable).mock.calls[1]?.[3]).toBe(1);
+        expect(vi.mocked(renderTable).mock.calls[2]?.[3]).toBe(2);
     });
 });

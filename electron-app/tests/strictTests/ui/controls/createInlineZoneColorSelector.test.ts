@@ -31,6 +31,9 @@ const hoisted = vi.hoisted(() => {
     const applyZoneColors = vi.fn((zones: any[], _type: string) => zones);
     const getZoneTypeFromField = vi.fn((field: string) => (field.includes("hr") ? "hr" : "power"));
 
+    // Cache invalidation helper used by the selector when switching schemes.
+    const clearCachedChartZoneColor = vi.fn();
+
     return {
         renderChartJS,
         showNotification,
@@ -47,6 +50,7 @@ const hoisted = vi.hoisted(() => {
         getChartZoneColors,
         applyZoneColors,
         getZoneTypeFromField,
+        clearCachedChartZoneColor,
     };
 });
 
@@ -69,6 +73,7 @@ vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     resetZoneColors: hoisted.resetZoneColors,
     saveChartSpecificZoneColor: hoisted.saveChartSpecificZoneColor,
     saveZoneColor: hoisted.saveZoneColor,
+    clearCachedChartZoneColor: hoisted.clearCachedChartZoneColor,
 }));
 
 // Under test

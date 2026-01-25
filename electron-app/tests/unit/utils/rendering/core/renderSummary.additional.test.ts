@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // From tests/unit/utils/rendering/core -> utils/... requires going up 5 levels
 const SUT = "../../../../../utils/rendering/core/renderSummary.js";
 const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
 
 describe("renderSummary - modal and renderTable wiring", () => {
     beforeEach(() => {
@@ -18,6 +19,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
         const loadColPrefs = vi.fn((_key: string, all: string[]) => all);
         const getStorageKey = vi.fn(() => "summaryColSel_testkey");
         const getGlobalStorageKey = vi.fn(() => "summaryColSel_global_default");
+        const orderSummaryColumnsNamedFirst = vi.fn((cols: string[]) => cols);
 
         // Intercept showColModal to immediately call the provided renderTable closure and setVisibleColumns
         const showColModal = vi.fn((opts: any) => {
@@ -32,6 +34,10 @@ describe("renderSummary - modal and renderTable wiring", () => {
             loadColPrefs,
             getGlobalStorageKey,
             getStorageKey,
+            orderSummaryColumnsNamedFirst,
+        }));
+
+        vi.doMock(MODAL, () => ({
             showColModal,
         }));
 

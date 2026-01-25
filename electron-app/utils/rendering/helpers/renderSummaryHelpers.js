@@ -1,4 +1,6 @@
+import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
+import { exportUtils } from "../../files/export/exportUtils.js";
 
 /**
  * Generic dictionary record
@@ -44,6 +46,37 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
  */
 
 export const LABEL_COL = "__row_label__";
+
+/**
+ * Determine whether a Summary column key is a "numbered column" (e.g. "0", "1", "2").
+ *
+ * Important: this classifies by key name (not by the value type).
+ *
+ * @param {string} key
+ * @returns {boolean}
+ */
+export function isNumberedSummaryColumnKey(key) {
+    return /^\d+$/u.test(key);
+}
+
+/**
+ * Always order named columns before numbered-only columns while keeping relative order stable.
+ *
+ * @param {string[]} keys
+ * @returns {string[]}
+ */
+export function orderSummaryColumnsNamedFirst(keys) {
+    /** @type {string[]} */
+    const named = [];
+    /** @type {string[]} */
+    const numbered = [];
+
+    for (const k of keys) {
+        (isNumberedSummaryColumnKey(k) ? numbered : named).push(k);
+    }
+
+    return [...named, ...numbered];
+}
 
 /**
  * Global default key for summary column preferences.
@@ -218,7 +251,8 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         try {
             /** @type {string[]} */
             const rows = [],
-                sortedVisible = [LABEL_COL, ...visibleColumns];
+                orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
+                sortedVisible = [LABEL_COL, ...orderedVisible];
             rows.push(sortedVisible.map((k) => (k === LABEL_COL ? "Type" : k)).join(","));
             // Summary row
             if (filterValue === "All" || filterValue === "Summary") {
@@ -249,9 +283,11 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
                     }
                 }
             }
-            if (navigator?.clipboard?.writeText) {
-                navigator.clipboard.writeText(rows.join("\n"));
-            }
+            const csvText = rows.join("\n");
+            // Prefer the Electron clipboard bridge to avoid permission denials in file:// contexts.
+            Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch((error) => {
+                console.warn("[renderSummary] Failed to copy summary CSV:", error);
+            });
         } catch {
             /* Ignore copy errors */
         }
@@ -262,7 +298,8 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     const table = document.createElement("table");
     table.classList.add("display");
     const headerRow = document.createElement("tr"),
-        sortedVisible = [LABEL_COL, ...visibleColumns],
+        orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
+        sortedVisible = [LABEL_COL, ...orderedVisible],
         tbody = document.createElement("tbody"),
         thead = document.createElement("thead");
     for (const key of sortedVisible) {
@@ -623,6 +660,29 @@ function getSummaryRows(data) {
     if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
         const raw = { ...data.sessionMesgs[0] };
         patchSummaryFields(raw);
+
+        // If this activity has estimated power (and no real power), surface basic stats.
+        // This lets the Summary tab reflect the Estimated Power feature without altering FIT semantics.
+        try {
+            const recs = Array.isArray(data.recordMesgs) ? data.recordMesgs : [];
+            if (recs.length > 0 && !hasPowerData(/** @type {Array<Record<string, unknown>>} */ (recs))) {
+                /** @type {number[]} */
+                const values = [];
+                for (const r of recs) {
+                    const v = Number(/** @type {any} */ (r)?.estimatedPower);
+                    if (Number.isFinite(v) && v > 0) {
+                        values.push(v);
+                    }
+                }
+                if (values.length > 0) {
+                    const total = values.reduce((a, b) => a + b, 0);
+                    raw.avg_estimated_power = Math.round(total / values.length);
+                    raw.max_estimated_power = Math.round(Math.max(...values));
+                }
+            }
+        } catch {
+            /* ignore */
+        }
         if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
             raw.total_ascent_ft = `${(raw.total_ascent * 3.280_84).toFixed(0)} ft`;
         }

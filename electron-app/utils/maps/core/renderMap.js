@@ -795,6 +795,46 @@ export function renderMap() {
                 if (typeof windowExt.updateShownFilesList === "function") {
                     windowExt.updateShownFilesList();
                 }
+
+                // Estimated power changes are data-changing for charts/summary/tables.
+                // Invalidate chart caches so the new series is recalculated.
+                try {
+                    if (typeof (/** @type {any} */ (globalThis).invalidateChartRenderCache) === "function") {
+                        /** @type {any} */ (globalThis).invalidateChartRenderCache("estimated-power-updated");
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                try {
+                    if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
+                        /** @type {any} */ (globalThis).renderChartJS();
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                try {
+                    if (
+                        typeof (/** @type {any} */ (globalThis).renderSummary) === "function" &&
+                        /** @type {any} */ (globalThis).globalData
+                    ) {
+                        /** @type {any} */ (globalThis).renderSummary(/** @type {any} */ (globalThis).globalData);
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                try {
+                    if (
+                        typeof (/** @type {any} */ (globalThis).createTables) === "function" &&
+                        /** @type {any} */ (globalThis).globalData
+                    ) {
+                        /** @type {any} */ (globalThis).createTables(/** @type {any} */ (globalThis).globalData);
+                    }
+                } catch {
+                    /* ignore */
+                }
             },
         });
 
@@ -1001,12 +1041,19 @@ export function renderMap() {
                 marker: true,
                 polygon: {
                     allowIntersection: false,
+                    // Prefer imperial units so distances match the rest of the app (miles).
+                    // Leaflet.draw will still display metric when appropriate internally.
+                    feet: true,
+                    metric: false,
                     shapeOptions: {
                         clickable: true,
                         color: "#1976d2",
                     },
                 },
                 polyline: {
+                    // Prefer imperial units so distances match the rest of the app (miles).
+                    feet: true,
+                    metric: false,
                     shapeOptions: {
                         clickable: true,
                         color: "#1976d2",
@@ -1028,11 +1075,18 @@ export function renderMap() {
         map.addControl(drawControl);
         windowExt._drawControl = drawControl;
 
-        // Add drawn shapes to the layer so they persist
-        map.on(L.Draw.Event.CREATED, (/** @type {any} */ e) => {
+        // Add drawn shapes to the layer so they persist.
+        // Use the string event name as the most reliable option across Leaflet.draw builds.
+        const onDrawCreated = (/** @type {any} */ e) => {
             const { layer } = e;
             drawnItems.addLayer(layer);
-        });
+        };
+
+        map.on("draw:created", onDrawCreated);
+        // Keep the constant-based subscription as a secondary fallback (some builds rely on it).
+        if (L.Draw && L.Draw.Event && L.Draw.Event.CREATED) {
+            map.on(L.Draw.Event.CREATED, onDrawCreated);
+        }
 
         // Store reference to drawn items for persistence
         windowExt._drawnItems = drawnItems;

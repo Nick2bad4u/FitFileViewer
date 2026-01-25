@@ -18,6 +18,8 @@
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { deferUntilIdle } from "../../app/performance/lazyRenderingUtils.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
+import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCyclingPower.js";
+import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { setState } from "../../state/core/stateManager.js";
 
@@ -84,6 +86,26 @@ export function showFitData(data, filePath, options = {}) {
 
         // Set global data for legacy compatibility
         globalThis.globalData = data;
+
+        // Apply estimated power early so Charts/Summary/Tables can consume it immediately.
+        // This only applies to cycling-like activities that lack real power, and only when enabled.
+        try {
+            if (globalThis.globalData && Array.isArray(/** @type {any} */ (globalThis.globalData).recordMesgs)) {
+                applyEstimatedPowerToRecords({
+                    recordMesgs: /** @type {Array<Record<string, unknown>>} */ (
+                        /** @type {any} */ (globalThis.globalData).recordMesgs
+                    ),
+                    sessionMesgs: Array.isArray(/** @type {any} */ (globalThis.globalData).sessionMesgs)
+                        ? /** @type {Array<Record<string, unknown>>} */ (
+                              /** @type {any} */ (globalThis.globalData).sessionMesgs
+                          )
+                        : undefined,
+                    settings: getPowerEstimationSettings(),
+                });
+            }
+        } catch {
+            /* ignore */
+        }
 
         // Reset rendering states if requested
         if (config.resetRenderStates) {

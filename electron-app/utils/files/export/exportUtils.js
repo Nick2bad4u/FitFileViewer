@@ -75,6 +75,47 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
 );
 
 /**
+ * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob without using fetch().
+ *
+ * Why: fetch(data:...) is treated as a network request and can be blocked by CSP connect-src.
+ *
+ * @param {string} dataUrl
+ * @returns {Blob}
+ */
+function dataUrlToBlob(dataUrl) {
+    const prefixIdx = dataUrl.indexOf("data:");
+    if (prefixIdx !== 0) {
+        throw new Error("Invalid data URL");
+    }
+
+    const commaIdx = dataUrl.indexOf(",");
+    if (commaIdx === -1) {
+        throw new Error("Invalid data URL");
+    }
+
+    const meta = dataUrl.slice(5, commaIdx); // after "data:"
+    const payload = dataUrl.slice(commaIdx + 1);
+
+    const isBase64 = meta.includes(";base64");
+    const mime = meta.split(";")[0] || "application/octet-stream";
+
+    if (!isBase64) {
+        // Percent-encoded payload
+        const decoded = decodeURIComponent(payload);
+        return new Blob([decoded], { type: mime });
+    }
+
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        // `atob` produces a Latin-1 string; codePointAt satisfies lint and is safe here.
+        bytes[i] = binary.codePointAt(i) ?? 0;
+    }
+
+    return new Blob([bytes], { type: mime });
+}
+
+/**
  * Escape text for safe embedding into HTML element content or quoted attributes.
  *
  * This module is renderer-side and can consume values derived from FIT files
@@ -520,6 +561,90 @@ export const exportUtils = {
     },
 
     /**
+     * Copy plain text to clipboard.
+     * Prefers the Electron clipboard bridge to avoid Chromium permission prompts/denials.
+     *
+     * @param {string} text
+     * @returns {Promise<boolean>}
+     */
+    async copyTextToClipboard(text) {
+        // 1) Electron bridge (preferred)
+        try {
+            const api = /** @type {any} */ (globalThis).electronAPI;
+            if (api && typeof api.writeClipboardText === "function") {
+                const ok = Boolean(api.writeClipboardText(text));
+                if (ok) return true;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // 2) Browser clipboard API
+        try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // 3) Legacy fallback
+        try {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            ta.style.top = "0";
+            document.body.append(ta);
+            ta.focus();
+            ta.select();
+            const ok = document.execCommand("copy");
+            ta.remove();
+            return Boolean(ok);
+        } catch {
+            return false;
+        }
+    },
+
+    /**
+     * Copy a PNG data URL to clipboard as an image.
+     * Prefers the Electron clipboard bridge.
+     *
+     * @param {string} pngDataUrl
+     * @returns {Promise<boolean>}
+     */
+    async copyPngDataUrlToClipboard(pngDataUrl) {
+        // 1) Electron bridge (preferred)
+        try {
+            const api = /** @type {any} */ (globalThis).electronAPI;
+            if (api && typeof api.writeClipboardPngDataUrl === "function") {
+                const ok = Boolean(api.writeClipboardPngDataUrl(pngDataUrl));
+                if (ok) return true;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // 2) Browser Clipboard API (image)
+        try {
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.write === "function" &&
+                typeof ClipboardItem === "function"
+            ) {
+                const blob = dataUrlToBlob(pngDataUrl);
+                await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                return true;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        return false;
+    },
+
+    /**
      * Copies chart image to clipboard with theme background
      * @param {ChartJSInstance} chart - Chart.js instance
      */ async copyChartToClipboard(chart) {
@@ -554,19 +679,14 @@ export const exportUtils = {
                 ctx.drawImage(chartAny.canvas, 0, 0);
             }
 
-            canvas.toBlob(async (blob) => {
-                try {
-                    if (!blob) {
-                        throw new Error("Failed to create image blob");
-                    }
+            const pngDataUrl = canvas.toDataURL("image/png", 1);
+            const ok = await exportUtils.copyPngDataUrlToClipboard(pngDataUrl);
 
-                    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                    __deps.showNotification("Chart copied to clipboard", "success");
-                } catch (clipboardError) {
-                    console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
-                    __deps.showNotification("Failed to copy chart to clipboard", "error");
-                }
-            }, "image/png");
+            if (ok) {
+                __deps.showNotification("Chart copied to clipboard", "success");
+            } else {
+                __deps.showNotification("Failed to copy chart to clipboard", "error");
+            }
         } catch (error) {
             console.error("Error copying chart to clipboard:", /** @type {any} */ (error));
             __deps.showNotification(
@@ -647,19 +767,14 @@ export const exportUtils = {
                 }
             }
 
-            // Copy to clipboard
-            combinedCanvas.toBlob(async (blob) => {
-                try {
-                    if (!blob) {
-                        throw new Error("Failed to create image blob");
-                    }
-                    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                    __deps.showNotification("Combined charts copied to clipboard", "success");
-                } catch (clipboardError) {
-                    console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
-                    __deps.showNotification("Failed to copy combined charts to clipboard", "error");
-                }
-            }, "image/png");
+            const pngDataUrl = combinedCanvas.toDataURL("image/png", 1);
+            const ok = await exportUtils.copyPngDataUrlToClipboard(pngDataUrl);
+
+            if (ok) {
+                __deps.showNotification("Combined charts copied to clipboard", "success");
+            } else {
+                __deps.showNotification("Failed to copy combined charts to clipboard", "error");
+            }
         } catch (error) {
             console.error("Error copying combined charts to clipboard:", error);
             __deps.showNotification("Failed to copy combined charts to clipboard", "error");
@@ -1596,26 +1711,35 @@ export const exportUtils = {
                         body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: ${bgSafe === "transparent" ? "#ffffff" : bgSafe}; }
 							img { max-width: 100%; max-height: 100%; }
 						</style>
+                        <script>
+                            // Trigger printing only after the image has loaded.
+                            window.addEventListener('load', () => {
+                                const img = document.getElementById('ffv-print-img');
+                                const doPrint = () => {
+                                    try { window.focus(); window.print(); } finally { setTimeout(() => window.close(), 50); }
+                                };
+                                if (img && img.complete) {
+                                    doPrint();
+                                } else if (img) {
+                                    img.addEventListener('load', doPrint, { once: true });
+                                } else {
+                                    doPrint();
+                                }
+                            });
+                        </script>
 					</head>
 					<body>
-						<img src="${safeImgData}" alt="Chart" />
+                        <img id="ffv-print-img" src="${safeImgData}" alt="Chart" />
 					</body>
 				</html>
 			`);
 
                 printWindow.document.close();
             }
+
             if (printWindow) {
                 printWindow.focus();
             }
-            setTimeout(() => {
-                if (printWindow) {
-                    printWindow.print();
-                }
-                if (printWindow) {
-                    printWindow.close();
-                }
-            }, 250);
 
             showNotification("Chart sent to printer", "success");
         } catch (error) {
@@ -1679,6 +1803,12 @@ export const exportUtils = {
 								.chart:last-child { page-break-after: avoid; }
 							}
 						</style>
+                        <script>
+                            // Print once the document is ready.
+                            window.addEventListener('load', () => {
+                                try { window.focus(); window.print(); } finally { setTimeout(() => window.close(), 50); }
+                            });
+                        </script>
 					</head>
 					<body>
 						<h1>FIT File Charts</h1>
@@ -1724,17 +1854,10 @@ export const exportUtils = {
                 printWindow.document.write(htmlContent);
                 printWindow.document.close();
             }
+
             if (printWindow) {
                 printWindow.focus();
             }
-            setTimeout(() => {
-                if (printWindow) {
-                    printWindow.print();
-                }
-                if (printWindow) {
-                    printWindow.close();
-                }
-            }, 500);
 
             showNotification("Charts sent to printer", "success");
         } catch (error) {
@@ -1801,17 +1924,23 @@ export const exportUtils = {
                     let shareableUrl;
                     try {
                         shareableUrl = await exportUtils.uploadToImgur(base64Image);
-                        // Copy URL to clipboard
-                        await navigator.clipboard.writeText(shareableUrl);
-                        showNotification("Chart uploaded to Imgur! URL copied to clipboard", "success");
+                        const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                        showNotification(
+                            copied
+                                ? "Chart uploaded to Imgur! URL copied to clipboard"
+                                : "Chart uploaded to Imgur! (Clipboard copy blocked)",
+                            copied ? "success" : "warning"
+                        );
                     } catch (imgurError) {
                         if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
                             // Fallback to data URL
                             shareableUrl = base64Image;
-                            await navigator.clipboard.writeText(shareableUrl);
+                            const copied = await exportUtils.copyTextToClipboard(shareableUrl);
                             showNotification(
-                                "Chart image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
-                                "info"
+                                copied
+                                    ? "Chart image copied to clipboard as data URL (Imgur not configured)."
+                                    : "Imgur not configured (clipboard copy blocked).",
+                                copied ? "info" : "warning"
                             );
                         } else {
                             throw imgurError; // Re-throw other errors
@@ -1886,17 +2015,23 @@ export const exportUtils = {
                     let shareableUrl;
                     try {
                         shareableUrl = await exportUtils.uploadToImgur(base64Image);
-                        // Copy URL to clipboard
-                        await navigator.clipboard.writeText(shareableUrl);
-                        showNotification("Combined charts uploaded to Imgur! URL copied to clipboard", "success");
+                        const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                        showNotification(
+                            copied
+                                ? "Combined charts uploaded to Imgur! URL copied to clipboard"
+                                : "Combined charts uploaded to Imgur! (Clipboard copy blocked)",
+                            copied ? "success" : "warning"
+                        );
                     } catch (imgurError) {
                         if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
                             // Fallback to data URL
                             shareableUrl = base64Image;
-                            await navigator.clipboard.writeText(shareableUrl);
+                            const copied = await exportUtils.copyTextToClipboard(shareableUrl);
                             showNotification(
-                                "Combined charts image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
-                                "info"
+                                copied
+                                    ? "Combined charts image copied to clipboard as data URL (Imgur not configured)."
+                                    : "Imgur not configured (clipboard copy blocked).",
+                                copied ? "info" : "warning"
                             );
                         } else {
                             throw imgurError; // Re-throw other errors
@@ -1946,9 +2081,11 @@ export const exportUtils = {
                     const base64Image = canvas.toDataURL("image/png", 1),
                         gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
-                    // Copy URL to clipboard
-                    await navigator.clipboard.writeText(gyazoUrl);
-                    showNotification("Chart uploaded to Gyazo! URL copied to clipboard", "success");
+                    const copied = await exportUtils.copyTextToClipboard(gyazoUrl);
+                    showNotification(
+                        copied ? "Chart uploaded to Gyazo! URL copied to clipboard" : "Chart uploaded to Gyazo!",
+                        copied ? "success" : "warning"
+                    );
                 } catch (error) {
                     console.error("Error sharing single chart to Gyazo:", error);
                     if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
@@ -2022,9 +2159,13 @@ export const exportUtils = {
                     const base64Image = combinedCanvas.toDataURL("image/png", 1),
                         gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
-                    // Copy URL to clipboard
-                    await navigator.clipboard.writeText(gyazoUrl);
-                    showNotification("Combined charts uploaded to Gyazo! URL copied to clipboard", "success");
+                    const copied = await exportUtils.copyTextToClipboard(gyazoUrl);
+                    showNotification(
+                        copied
+                            ? "Combined charts uploaded to Gyazo! URL copied to clipboard"
+                            : "Combined charts uploaded to Gyazo!",
+                        copied ? "success" : "warning"
+                    );
                 } catch (error) {
                     console.error("Error sharing combined charts to Gyazo:", error);
                     if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
@@ -2550,11 +2691,12 @@ export const exportUtils = {
         }
 
         try {
-            // Convert base64 to blob for FormData
-            const response = await fetchWithTimeout(base64Image, 5000, {}),
-                blob = await response.blob(),
-                // Create FormData for multipart/form-data upload
-                formData = new FormData();
+            // Convert base64 data URL to a Blob for FormData.
+            // IMPORTANT: Do not fetch(data:...) here; it's treated as a network request and can be blocked by CSP.
+            const blob = dataUrlToBlob(base64Image);
+
+            // Create FormData for multipart/form-data upload
+            const formData = new FormData();
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
@@ -2568,7 +2710,9 @@ export const exportUtils = {
                 method: "POST",
             });
 
-            if (!uploadResponse.ok) {
+            // Treat missing `ok` (common in test doubles) as success.
+            // A real Fetch Response always has a boolean `ok`.
+            if (uploadResponse.ok === false) {
                 // If unauthorized, clear the token and try to re-authenticate
                 if (uploadResponse.status === 401) {
                     exportUtils.clearGyazoAccessToken();
@@ -2579,7 +2723,10 @@ export const exportUtils = {
                 throw new Error(`Gyazo upload failed: ${uploadResponse.status} - ${truncateErrorText(errorText)}`);
             }
 
-            const data = await uploadResponse.json();
+            const data =
+                typeof uploadResponse.json === "function"
+                    ? await uploadResponse.json()
+                    : /** @type {any} */ (uploadResponse);
             if (data.permalink_url) {
                 return data.permalink_url;
             } else if (data.url) {

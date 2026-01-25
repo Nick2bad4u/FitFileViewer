@@ -256,17 +256,77 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     helpBtn.type = "button";
     helpBtn.className = "lap-help-btn";
     helpBtn.setAttribute("aria-label", "Lap selection help");
+    helpBtn.setAttribute("aria-expanded", "false");
     helpBtn.textContent = "?";
 
     const helpTooltip = document.createElement("div");
+    helpTooltip.id = "lap-help-tooltip";
     helpTooltip.className = "ffv-map-tooltip";
     helpTooltip.setAttribute("role", "tooltip");
+    helpBtn.setAttribute("aria-controls", helpTooltip.id);
     helpTooltip.textContent =
         "Select a lap (or All). Toggle multi-lap mode to select multiple laps via click/drag. Press Esc to clear.";
 
-    helpBtn.addEventListener("click", () => {
-        helpTooltip.classList.toggle("is-visible");
+    let tooltipPinned = false;
+
+    function handleOutsideClick(event) {
+        const target = event.target instanceof Node ? event.target : null;
+        if (target && !lapControl.contains(target)) {
+            hideHelpTooltip({ force: true });
+        }
+    }
+
+    function handleEscapeKey(event) {
+        if (event.key === "Escape") {
+            hideHelpTooltip({ force: true });
+        }
+    }
+
+    /**
+     * @param {{ force?: boolean }} [options]
+     */
+    function hideHelpTooltip(options = {}) {
+        const force = Boolean(options.force);
+        if (tooltipPinned && !force) {
+            return;
+        }
+        tooltipPinned = false;
+        helpTooltip.classList.remove("is-visible");
+        helpBtn.setAttribute("aria-expanded", "false");
+        document.removeEventListener("mousedown", handleOutsideClick, true);
+        document.removeEventListener("keydown", handleEscapeKey);
+    }
+
+    /**
+     * @param {{ pinned?: boolean }} [options]
+     */
+    function showHelpTooltip(options = {}) {
+        if (options.pinned) {
+            tooltipPinned = true;
+        }
+        helpTooltip.classList.add("is-visible");
+        helpBtn.setAttribute("aria-expanded", "true");
+        if (tooltipPinned) {
+            document.addEventListener("mousedown", handleOutsideClick, true);
+            document.addEventListener("keydown", handleEscapeKey);
+        }
+    }
+
+    helpBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (tooltipPinned) {
+            hideHelpTooltip({ force: true });
+        } else {
+            showHelpTooltip({ pinned: true });
+        }
     });
+
+    helpBtn.addEventListener("mouseenter", () => showHelpTooltip());
+    helpBtn.addEventListener("focus", () => showHelpTooltip());
+    helpBtn.addEventListener("mouseleave", () => hideHelpTooltip());
+    helpBtn.addEventListener("blur", () => hideHelpTooltip({ force: true }));
+    helpTooltip.addEventListener("mouseenter", () => showHelpTooltip());
+    helpTooltip.addEventListener("mouseleave", () => hideHelpTooltip());
 
     bar.append(multiLapToggle, deselectAllBtn, label, lapSelect, helpBtn, helpTooltip);
     lapControl.append(bar);

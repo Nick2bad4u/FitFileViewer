@@ -143,6 +143,8 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
     afterEach(() => {
         vi.resetAllMocks();
+        // Ensure per-test Electron API mocks never leak across cases.
+        delete (globalThis as any).electronAPI;
     });
 
     describe("isValidChart function", () => {
@@ -416,12 +418,6 @@ describe("exportUtils.js - Basic Test Coverage", () => {
                 configurable: true,
             });
 
-            // Mock canvas toBlob
-            mockCanvas.toBlob = vi.fn((callback: any) => {
-                const mockBlob = new Blob(["mock"], { type: "image/png" });
-                callback(mockBlob);
-            });
-
             await exportUtils.copyChartToClipboard(mockChart);
 
             expect(notifySpy).toHaveBeenCalledWith("Chart copied to clipboard", "success");
@@ -437,8 +433,13 @@ describe("exportUtils.js - Basic Test Coverage", () => {
         });
 
         it("should handle clipboard write failure", async () => {
-            // Mock navigator.clipboard
-            const mockWriteBuffer = vi.fn().mockResolvedValue(undefined);
+            // Prefer Electron clipboard bridge (CSP/permission-safe)
+            (globalThis as any).electronAPI = {
+                writeClipboardPngDataUrl: vi.fn(() => false),
+            };
+
+            // Mock browser Clipboard API failure as the fallback path.
+            const mockWriteBuffer = vi.fn().mockRejectedValue(new Error("Permission denied"));
             Object.defineProperty(global, "navigator", {
                 value: {
                     clipboard: {
@@ -449,13 +450,14 @@ describe("exportUtils.js - Basic Test Coverage", () => {
                 configurable: true,
             });
 
-            // Mock canvas toBlob to return null blob
-            mockCanvas.toBlob = vi.fn((callback: any) => {
-                callback(null);
-            });
-
             await exportUtils.copyChartToClipboard(mockChart);
 
+            // Electron bridge attempted first
+            expect((globalThis as any).electronAPI.writeClipboardPngDataUrl).toHaveBeenCalledWith(
+                "data:image/png;base64,mockdata"
+            );
+
+            // Both Electron + browser clipboard failed => error notification
             expect(notifySpy).toHaveBeenCalledWith("Failed to copy chart to clipboard", "error");
         });
     });
@@ -487,10 +489,15 @@ describe("exportUtils.js - Basic Test Coverage", () => {
         });
 
         it("should copy combined charts successfully", async () => {
+            (globalThis as any).electronAPI = {
+                writeClipboardPngDataUrl: vi.fn(() => true),
+            };
+
             const mockCombinedCanvas = {
                 width: 0,
                 height: 0,
                 getContext: vi.fn(() => mockContext),
+                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
                 toBlob: vi.fn((callback: any) => {
                     const mockBlob = new Blob(["mock"], { type: "image/png" });
                     callback(mockBlob);
@@ -501,6 +508,9 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.copyCombinedChartsToClipboard([mockChart]);
 
+            expect((globalThis as any).electronAPI.writeClipboardPngDataUrl).toHaveBeenCalledWith(
+                "data:image/png;base64,combined"
+            );
             expect(notifySpy).toHaveBeenCalledWith("Combined charts copied to clipboard", "success");
         });
     });
