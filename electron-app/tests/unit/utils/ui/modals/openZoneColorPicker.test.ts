@@ -2,10 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const debouncedRenderMock = vi.fn();
 const applyZoneColorsMock = vi.fn();
-const clearCachedChartZoneColorMock = vi.fn();
-const clearCachedZoneColorMock = vi.fn();
 const getChartSpecificZoneColorMock = vi.fn();
+const removeChartSpecificZoneColorMock = vi.fn();
+const removeZoneColorMock = vi.fn();
 const saveChartSpecificZoneColorMock = vi.fn();
+const setChartColorSchemeMock = vi.fn();
 const showNotificationMock = vi.fn();
 
 const chartStateManagerRef: { current: { debouncedRender: typeof debouncedRenderMock } | null } = {
@@ -20,12 +21,13 @@ vi.mock("../../../../../utils/charts/core/chartStateManager.js", () => ({
 
 vi.mock("../../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     applyZoneColors: applyZoneColorsMock,
-    clearCachedChartZoneColor: clearCachedChartZoneColorMock,
-    clearCachedZoneColor: clearCachedZoneColorMock,
     DEFAULT_HR_ZONE_COLORS: ["#ff5500", "#ff8800", "#ffaa00", "#ffcc00", "#ffee00"],
     DEFAULT_POWER_ZONE_COLORS: ["#0044ff", "#3366ff", "#5588ff", "#77aaff", "#99ccff"],
     getChartSpecificZoneColor: getChartSpecificZoneColorMock,
+    removeChartSpecificZoneColor: removeChartSpecificZoneColorMock,
+    removeZoneColor: removeZoneColorMock,
     saveChartSpecificZoneColor: saveChartSpecificZoneColorMock,
+    setChartColorScheme: setChartColorSchemeMock,
 }));
 
 vi.mock("../../../../../utils/formatting/formatters/formatTime.js", () => ({
@@ -59,10 +61,11 @@ describe("openZoneColorPicker", () => {
 
         debouncedRenderMock.mockClear();
         applyZoneColorsMock.mockClear();
-        clearCachedChartZoneColorMock.mockClear();
-        clearCachedZoneColorMock.mockClear();
         getChartSpecificZoneColorMock.mockReset();
+        removeChartSpecificZoneColorMock.mockClear();
+        removeZoneColorMock.mockClear();
         saveChartSpecificZoneColorMock.mockClear();
+        setChartColorSchemeMock.mockClear();
         showNotificationMock.mockClear();
 
         applyZoneColorsMock.mockImplementation((zones: Array<Record<string, unknown>>) =>
@@ -125,10 +128,6 @@ describe("openZoneColorPicker", () => {
         (globalThis as any).resetAllSettings = resetAllSettingsMock;
         (globalThis as any).showNotification = globalNotificationMock;
 
-        localStorage.setItem("chartjs_hr_zone_zone_1_color", "#ffffff");
-        localStorage.setItem("chartjs_hr_zone_zone_2_color", "#eeeeee");
-        localStorage.setItem("chartjs_hr_zone_color_scheme", "preset");
-
         const module = await loadModule();
 
         module.openZoneColorPicker("hr_zone");
@@ -150,7 +149,7 @@ describe("openZoneColorPicker", () => {
         colorInput.value = "#123456";
         colorInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-        expect(localStorage.getItem("chartjs_hr_zone_color_scheme")).toBe("custom");
+        expect(setChartColorSchemeMock).toHaveBeenCalledWith("hr_zone", "custom");
         expect(saveChartSpecificZoneColorMock).toHaveBeenCalledWith("hr_zone", 0, "#123456");
         if (colorPreview) {
             expect(colorPreview.style.background.toLowerCase()).toBe("rgb(18, 52, 86)");
@@ -161,9 +160,9 @@ describe("openZoneColorPicker", () => {
         expect(resetAllButton).toBeTruthy();
         resetAllButton?.click();
 
-        expect(localStorage.getItem("chartjs_hr_zone_color_scheme")).toBe("custom");
-        expect(clearCachedChartZoneColorMock).toHaveBeenCalledWith("hr_zone", 0);
-        expect(clearCachedZoneColorMock).toHaveBeenCalledWith("hr", 0);
+        expect(setChartColorSchemeMock).toHaveBeenCalledWith("hr_zone", "custom");
+        expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith("hr_zone", 0);
+        expect(removeZoneColorMock).toHaveBeenCalledWith("hr", 0);
         expect(checkbox.checked).toBe(true);
         expect(resetAllSettingsMock).toHaveBeenCalled();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");

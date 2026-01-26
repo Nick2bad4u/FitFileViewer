@@ -1,63 +1,49 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { getUnitSymbol } from "../../../utils/data/lookups/getUnitSymbol.js";
+import { getChartSetting } from "../../../utils/state/domain/settingsStateManager.js";
+
+vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn(),
+}));
 
 describe("getUnitSymbol.js - additional branch coverage", () => {
     const originalConsoleWarn = console.warn;
     const originalConsoleError = console.error;
-    let originalWindowLocalStorage: any;
-    let originalGlobalLocalStorage: any;
+    let mockGetChartSetting: any;
 
     beforeEach(() => {
-        originalWindowLocalStorage = (window as any).localStorage;
-        originalGlobalLocalStorage = (globalThis as any).localStorage;
         vi.restoreAllMocks();
+        mockGetChartSetting = vi.mocked(getChartSetting);
+        mockGetChartSetting.mockReset();
     });
 
     afterEach(() => {
-        // restore storages
-        Object.defineProperty(window, "localStorage", {
-            value: originalWindowLocalStorage,
-            writable: true,
-            configurable: true,
-        });
-        (globalThis as any).localStorage = originalGlobalLocalStorage;
         console.warn = originalConsoleWarn;
         console.error = originalConsoleError;
     });
 
     it("falls back when no storage is available", () => {
-        Object.defineProperty(window, "localStorage", { value: undefined, writable: true, configurable: true });
-        (globalThis as any).localStorage = undefined;
+        mockGetChartSetting.mockReturnValue(undefined);
         const result = getUnitSymbol("distance");
         expect(result).toBe("km");
     });
 
     it("uses global localStorage when window.localStorage is unavailable", () => {
-        Object.defineProperty(window, "localStorage", { value: undefined, writable: true, configurable: true });
-        (globalThis as any).localStorage = {
-            getItem: (key: string) => (key === "chartjs_distanceUnits" ? "miles" : null),
-        } as Storage;
+        mockGetChartSetting.mockReturnValue("miles");
         const result = getUnitSymbol("distance");
         expect(result).toBe("mi");
     });
 
     it("returns fallback when storage.getItem is not a function", () => {
-        Object.defineProperty(window, "localStorage", { value: {} as any, writable: true, configurable: true });
-        (globalThis as any).localStorage = undefined;
+        mockGetChartSetting.mockReturnValue(undefined);
         const result = getUnitSymbol("distance");
         expect(result).toBe("km");
     });
 
     it("handles storage.getItem throwing by warning and using fallback", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        Object.defineProperty(window, "localStorage", {
-            value: {
-                getItem: () => {
-                    throw new Error("boom");
-                },
-            } as any,
-            writable: true,
-            configurable: true,
+        mockGetChartSetting.mockImplementation(() => {
+            throw new Error("boom");
         });
         const result = getUnitSymbol("temperature");
         expect(result).toBe("°C");

@@ -10,14 +10,34 @@ const hoisted = vi.hoisted(() => {
     const DEFAULT_POWER_ZONE_COLORS = ["#1", "#2", "#3", "#4"];
     const storeChartSpecific: Record<string, string> = {};
     const storeGeneric: Record<string, string> = {};
+    const schemeStore: Record<string, string> = {};
     const getChartSpecificZoneColor = vi.fn(
         (field: string, idx: number) => storeChartSpecific[`${field}:${idx}`] || "#000000"
     );
+    const getStoredChartSpecificZoneColor = vi.fn(
+        (field: string, idx: number) => storeChartSpecific[`${field}:${idx}`] || null
+    );
+    const getStoredZoneColor = vi.fn((type: string, idx: number) => storeGeneric[`${type}:${idx}`] || null);
     const saveChartSpecificZoneColor = vi.fn((field: string, idx: number, val: string) => {
         storeChartSpecific[`${field}:${idx}`] = val;
     });
     const saveZoneColor = vi.fn((type: string, idx: number, val: string) => {
         storeGeneric[`${type}:${idx}`] = val;
+    });
+    const removeChartSpecificZoneColor = vi.fn((field: string, idx: number) => {
+        delete storeChartSpecific[`${field}:${idx}`];
+    });
+    const removeZoneColor = vi.fn((type: string, idx: number) => {
+        delete storeGeneric[`${type}:${idx}`];
+    });
+    const getChartColorScheme = vi.fn((field: string) => schemeStore[field] || "custom");
+    const setChartColorScheme = vi.fn((field: string, scheme: string) => {
+        schemeStore[field] = scheme;
+        return scheme;
+    });
+    const clearChartColorScheme = vi.fn((field: string) => {
+        delete schemeStore[field];
+        return true;
     });
     const resetChartSpecificZoneColors = vi.fn((field: string, count: number) => {
         for (let i = 0; i < count; i++) delete storeChartSpecific[`${field}:${i}`];
@@ -42,9 +62,17 @@ const hoisted = vi.hoisted(() => {
         DEFAULT_POWER_ZONE_COLORS,
         storeChartSpecific,
         storeGeneric,
+        schemeStore,
         getChartSpecificZoneColor,
+        getStoredChartSpecificZoneColor,
+        getStoredZoneColor,
         saveChartSpecificZoneColor,
         saveZoneColor,
+        removeChartSpecificZoneColor,
+        removeZoneColor,
+        getChartColorScheme,
+        setChartColorScheme,
+        clearChartColorScheme,
         resetChartSpecificZoneColors,
         resetZoneColors,
         getChartZoneColors,
@@ -66,14 +94,20 @@ vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     DEFAULT_HR_ZONE_COLORS: hoisted.DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS: hoisted.DEFAULT_POWER_ZONE_COLORS,
     applyZoneColors: hoisted.applyZoneColors,
+    clearChartColorScheme: hoisted.clearChartColorScheme,
     getChartSpecificZoneColor: hoisted.getChartSpecificZoneColor,
+    getChartColorScheme: hoisted.getChartColorScheme,
+    getStoredChartSpecificZoneColor: hoisted.getStoredChartSpecificZoneColor,
+    getStoredZoneColor: hoisted.getStoredZoneColor,
     getChartZoneColors: hoisted.getChartZoneColors,
     getZoneTypeFromField: hoisted.getZoneTypeFromField,
+    removeChartSpecificZoneColor: hoisted.removeChartSpecificZoneColor,
+    removeZoneColor: hoisted.removeZoneColor,
     resetChartSpecificZoneColors: hoisted.resetChartSpecificZoneColors,
     resetZoneColors: hoisted.resetZoneColors,
     saveChartSpecificZoneColor: hoisted.saveChartSpecificZoneColor,
     saveZoneColor: hoisted.saveZoneColor,
-    clearCachedChartZoneColor: hoisted.clearCachedChartZoneColor,
+    setChartColorScheme: hoisted.setChartColorScheme,
 }));
 
 // Under test
@@ -147,7 +181,7 @@ describe("createInlineZoneColorSelector", () => {
         const preview = item.querySelector(".zone-color-preview") as HTMLElement;
         input.value = "#ff0000";
         input.dispatchEvent(new Event("change"));
-        expect(localStorage.getItem("chartjs_hr_zone_color_scheme")).toBe("custom");
+        expect(hoisted.setChartColorScheme).toHaveBeenCalledWith("hr_zone", "custom");
         expect(hoisted.saveChartSpecificZoneColor).toHaveBeenCalledWith("hr_zone", 0, "#ff0000");
         expect(hoisted.saveZoneColor).toHaveBeenCalledWith("hr", 0, "#ff0000");
         const bg = getComputedStyle(preview).backgroundColor;
@@ -189,7 +223,9 @@ describe("createInlineZoneColorSelector", () => {
 
         // clear
         clearZoneColorData("hr_zone", 3);
-        expect(localStorage.getItem("chartjs_hr_zone_color_scheme")).toBeNull();
+        expect(hoisted.clearChartColorScheme).toHaveBeenCalledWith("hr_zone");
+        expect(hoisted.removeChartSpecificZoneColor).toHaveBeenCalled();
+        expect(hoisted.removeZoneColor).toHaveBeenCalled();
 
         // remove
         removeInlineZoneColorSelectors(container);
@@ -197,7 +233,7 @@ describe("createInlineZoneColorSelector", () => {
 
         // scheme getter
         expect(getCurrentColorScheme("hr_zone")).toBe("custom");
-        localStorage.setItem("chartjs_hr_zone_color_scheme", "classic");
+        hoisted.setChartColorScheme("hr_zone", "classic");
         expect(getCurrentColorScheme("hr_zone")).toBe("classic");
     });
 });

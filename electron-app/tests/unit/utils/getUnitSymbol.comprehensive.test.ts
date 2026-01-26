@@ -2,21 +2,17 @@
  * Comprehensive test suite for getUnitSymbol utility function
  *
  * Tests the function that provides appropriate unit symbols for display based on
- * field types and user preferences stored in localStorage. Supports distance,
+ * field types and user preferences stored in settings state. Supports distance,
  * temperature, speed, time, and various fitness metrics.
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getUnitSymbol } from "../../../utils/data/lookups/getUnitSymbol.js";
+import { getChartSetting } from "../../../utils/state/domain/settingsStateManager.js";
 
-// Mock localStorage for testing
-const mockLocalStorage = {
-    store: new Map(),
-    getItem: vi.fn((key) => mockLocalStorage.store.get(key) || null),
-    setItem: vi.fn((key, value) => mockLocalStorage.store.set(key, value)),
-    removeItem: vi.fn((key) => mockLocalStorage.store.delete(key)),
-    clear: vi.fn(() => mockLocalStorage.store.clear()),
-};
+vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn(),
+}));
 
 // Mock console for testing warnings and errors
 const mockConsole = {
@@ -46,20 +42,15 @@ const mockConsole = {
     profileEnd: vi.fn(),
 } as Console;
 
-// Setup global mocks
-Object.defineProperty(window, "localStorage", {
-    value: mockLocalStorage,
-    writable: true,
-});
-
 // Setup comprehensive console mocking
 globalThis.console = mockConsole;
 global.console = mockConsole;
 
 describe("getUnitSymbol.js - Unit Symbol Utility", () => {
+    let mockGetChartSetting: any;
     beforeEach(() => {
-        // Clear localStorage and console mocks before each test
-        mockLocalStorage.store.clear();
+        mockGetChartSetting = vi.mocked(getChartSetting);
+        mockGetChartSetting.mockReset();
         vi.clearAllMocks();
         (mockConsole.warn as any).mockClear();
         (mockConsole.error as any).mockClear();
@@ -130,25 +121,25 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With User Preferences", () => {
             it("should return meters symbol when user prefers meters", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", "meters");
+                mockGetChartSetting.mockReturnValue("meters");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("m");
             });
 
             it("should return feet symbol when user prefers feet", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", "feet");
+                mockGetChartSetting.mockReturnValue("feet");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("ft");
             });
 
             it("should return miles symbol when user prefers miles", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", "miles");
+                mockGetChartSetting.mockReturnValue("miles");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("mi");
             });
 
             it("should return kilometers symbol when user prefers kilometers", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", "kilometers");
+                mockGetChartSetting.mockReturnValue("kilometers");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("km");
             });
@@ -156,13 +147,13 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With Invalid User Preferences", () => {
             it("should fallback to meters symbol for unknown distance unit", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", "lightyears");
+                mockGetChartSetting.mockReturnValue("lightyears");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("m"); // fallback to UNIT_SYMBOLS.DISTANCE.meters
             });
 
             it("should fallback to kilometers symbol for null distance unit", () => {
-                mockLocalStorage.store.set("chartjs_distanceUnits", null);
+                mockGetChartSetting.mockReturnValue(null);
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("km"); // fallback to default kilometers via getUserPreference
             });
@@ -179,13 +170,13 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With User Preferences", () => {
             it("should return celsius symbol when user prefers celsius", () => {
-                mockLocalStorage.store.set("chartjs_temperatureUnits", "celsius");
+                mockGetChartSetting.mockReturnValue("celsius");
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
             });
 
             it("should return fahrenheit symbol when user prefers fahrenheit", () => {
-                mockLocalStorage.store.set("chartjs_temperatureUnits", "fahrenheit");
+                mockGetChartSetting.mockReturnValue("fahrenheit");
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°F");
             });
@@ -193,13 +184,13 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With Invalid User Preferences", () => {
             it("should fallback to celsius symbol for unknown temperature unit", () => {
-                mockLocalStorage.store.set("chartjs_temperatureUnits", "kelvin");
+                mockGetChartSetting.mockReturnValue("kelvin");
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
             });
 
             it("should fallback to celsius symbol for null temperature unit", () => {
-                mockLocalStorage.store.set("chartjs_temperatureUnits", null);
+                mockGetChartSetting.mockReturnValue(null);
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
             });
@@ -218,7 +209,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         });
 
         it("should return mph for speed when distance unit is miles", () => {
-            mockLocalStorage.store.set("chartjs_distanceUnits", "miles");
+            mockGetChartSetting.mockReturnValue("miles");
             const result = getUnitSymbol("speed");
             expect(result).toBe("mph");
         });
@@ -234,19 +225,19 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With User Preferences", () => {
             it("should return seconds symbol when user prefers seconds", () => {
-                mockLocalStorage.store.set("chartjs_timeUnits", "seconds");
+                mockGetChartSetting.mockReturnValue("seconds");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
             });
 
             it("should return minutes symbol when user prefers minutes", () => {
-                mockLocalStorage.store.set("chartjs_timeUnits", "minutes");
+                mockGetChartSetting.mockReturnValue("minutes");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("min");
             });
 
             it("should return hours symbol when user prefers hours", () => {
-                mockLocalStorage.store.set("chartjs_timeUnits", "hours");
+                mockGetChartSetting.mockReturnValue("hours");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("h");
             });
@@ -254,13 +245,13 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
         describe("With Invalid User Preferences", () => {
             it("should fallback to seconds symbol for unknown time unit", () => {
-                mockLocalStorage.store.set("chartjs_timeUnits", "days");
+                mockGetChartSetting.mockReturnValue("days");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
             });
 
             it("should fallback to seconds symbol for null time unit", () => {
-                mockLocalStorage.store.set("chartjs_timeUnits", null);
+                mockGetChartSetting.mockReturnValue(null);
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
             });
@@ -332,15 +323,15 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         });
     });
 
-    describe("localStorage Error Handling", () => {
+    describe("Settings Error Handling", () => {
         beforeEach(() => {
-            // Mock localStorage to throw errors
-            mockLocalStorage.getItem.mockImplementation(() => {
-                throw new Error("localStorage access denied");
+            // Mock settings access to throw errors
+            mockGetChartSetting.mockImplementation(() => {
+                throw new Error("settings access denied");
             });
         });
 
-        it("should handle localStorage errors gracefully for distance fields", () => {
+        it("should handle settings errors gracefully for distance fields", () => {
             const result = getUnitSymbol("distance");
             expect(result).toBe("km"); // Should fallback to default kilometers
             expect(mockConsole.warn).toHaveBeenCalledWith(
@@ -349,7 +340,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             );
         });
 
-        it("should handle localStorage errors gracefully for temperature fields", () => {
+        it("should handle settings errors gracefully for temperature fields", () => {
             const result = getUnitSymbol("temperature");
             expect(result).toBe("°C"); // Should fallback to celsius
             expect(mockConsole.warn).toHaveBeenCalledWith(
@@ -358,7 +349,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             );
         });
 
-        it("should handle localStorage errors gracefully for time context", () => {
+        it("should handle settings errors gracefully for time context", () => {
             const result = getUnitSymbol("anyField", "time");
             expect(result).toBe("s"); // Should fallback to seconds
             expect(mockConsole.warn).toHaveBeenCalledWith(
@@ -370,9 +361,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
     describe("Function Error Handling", () => {
         it("should handle and log unexpected errors", () => {
-            // Mock the field parameter to cause an error
-            const originalGetItem = mockLocalStorage.getItem;
-            mockLocalStorage.getItem.mockImplementation(() => {
+            mockGetChartSetting.mockImplementation(() => {
                 throw new Error("Unexpected error");
             });
 
@@ -384,9 +373,6 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 '[UnitSymbol] Error reading setting "distanceUnits":',
                 expect.any(Error)
             );
-
-            // Restore original implementation
-            mockLocalStorage.getItem.mockImplementation(originalGetItem);
         });
     });
 
@@ -421,26 +407,35 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
     describe("Combined Scenarios", () => {
         it("should correctly handle distance field with multiple preference types set", () => {
-            mockLocalStorage.store.set("chartjs_distanceUnits", "miles");
-            mockLocalStorage.store.set("chartjs_temperatureUnits", "fahrenheit");
-            mockLocalStorage.store.set("chartjs_timeUnits", "hours");
+            mockGetChartSetting.mockImplementation((key: string) => {
+                if (key === "distanceUnits") return "miles";
+                if (key === "temperatureUnits") return "fahrenheit";
+                if (key === "timeUnits") return "hours";
+                return undefined;
+            });
 
             const result = getUnitSymbol("distance");
             expect(result).toBe("mi"); // Should use distance preference
         });
 
         it("should correctly handle time context with multiple preference types set", () => {
-            mockLocalStorage.store.set("chartjs_distanceUnits", "miles");
-            mockLocalStorage.store.set("chartjs_temperatureUnits", "fahrenheit");
-            mockLocalStorage.store.set("chartjs_timeUnits", "hours");
+            mockGetChartSetting.mockImplementation((key: string) => {
+                if (key === "distanceUnits") return "miles";
+                if (key === "temperatureUnits") return "fahrenheit";
+                if (key === "timeUnits") return "hours";
+                return undefined;
+            });
 
             const result = getUnitSymbol("distance", "time");
             expect(result).toBe("h"); // Should use time preference, not distance
         });
 
         it("should handle multiple calls with different fields efficiently", () => {
-            mockLocalStorage.store.set("chartjs_distanceUnits", "kilometers");
-            mockLocalStorage.store.set("chartjs_temperatureUnits", "celsius");
+            mockGetChartSetting.mockImplementation((key: string) => {
+                if (key === "distanceUnits") return "kilometers";
+                if (key === "temperatureUnits") return "celsius";
+                return undefined;
+            });
 
             const results = [
                 getUnitSymbol("distance"),

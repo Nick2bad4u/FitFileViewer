@@ -1,4 +1,5 @@
 // Ensure a safe console is available before Vitest workers initialize.
+import "./env-setup.js";
 import "./shims/nodeWebStorage";
 
 export default async function globalSetup() {

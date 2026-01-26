@@ -1,12 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { formatTooltipWithUnits } from "../../../utils/formatting/display/formatTooltipWithUnits.js";
+import { getChartSetting } from "../../../utils/state/domain/settingsStateManager.js";
 
 // Mock all the dependencies
 vi.mock("../../../utils/formatting/converters/convertDistanceUnits.js", () => ({
+    DISTANCE_UNITS: {
+        METERS: "meters",
+        KILOMETERS: "kilometers",
+        MILES: "miles",
+        FEET: "feet",
+    },
     convertDistanceUnits: vi.fn(),
 }));
 
 vi.mock("../../../utils/formatting/converters/convertTemperatureUnits.js", () => ({
+    TEMPERATURE_UNITS: {
+        CELSIUS: "celsius",
+        FAHRENHEIT: "fahrenheit",
+    },
     convertTemperatureUnits: vi.fn(),
 }));
 
@@ -18,11 +29,16 @@ vi.mock("../../../utils/data/lookups/getUnitSymbol.js", () => ({
     getUnitSymbol: vi.fn(),
 }));
 
+vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn(),
+}));
+
 describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
     let mockConvertDistanceUnits: any;
     let mockConvertTemperatureUnits: any;
     let mockConvertValueToUserUnits: any;
     let mockGetUnitSymbol: any;
+    let mockGetChartSetting: any;
 
     beforeEach(async () => {
         vi.clearAllMocks();
@@ -37,6 +53,12 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
             (await import("../../../utils/formatting/converters/convertValueToUserUnits.js")).convertValueToUserUnits
         );
         mockGetUnitSymbol = vi.mocked((await import("../../../utils/data/lookups/getUnitSymbol.js")).getUnitSymbol);
+        mockGetChartSetting = vi.mocked(getChartSetting);
+        mockGetChartSetting.mockImplementation((key: string) => {
+            if (key === "distanceUnits") return "kilometers";
+            if (key === "temperatureUnits") return "celsius";
+            return undefined;
+        });
     });
 
     describe("Distance Fields", () => {

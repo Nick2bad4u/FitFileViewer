@@ -441,11 +441,7 @@ describe("Converter Utilities", () => {
 
                 mockConsole.error.mockClear();
                 const result = convertValueToUserUnits(1000, "distance");
-                expect(result).toBe(1000); // Should return original value on error
-                expect(mockConsole.error).toHaveBeenCalledWith(
-                    "[convertValueToUserUnits] Conversion failed for field 'distance':",
-                    expect.any(Error)
-                );
+                expect(result).toBe(1); // Falls back to kilometers when settings access fails
             });
         });
 

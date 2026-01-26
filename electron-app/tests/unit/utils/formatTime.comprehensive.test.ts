@@ -4,13 +4,14 @@
  * Tests all aspects of the time formatting utility including:
  * - Input validation and error handling
  * - Time string formatting (MM:SS, HH:MM:SS)
- * - User units integration with localStorage
+ * - User units integration with settings state
  * - Dependency mocking (convertTimeUnits)
  * - Edge cases and boundary conditions
  * - Real-world time scenarios
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { getChartSetting } from "../../../utils/state/domain/settingsStateManager.js";
 
 // Mock the convertTimeUnits dependency
 vi.mock("../../../utils/formatting/converters/convertTimeUnits.js", () => ({
@@ -22,26 +23,20 @@ vi.mock("../../../utils/formatting/converters/convertTimeUnits.js", () => ({
     convertTimeUnits: vi.fn(),
 }));
 
-// Mock localStorage
-const mockLocalStorage = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-};
-
-Object.defineProperty(global, "localStorage", {
-    value: mockLocalStorage,
-    writable: true,
-});
+vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn(),
+}));
 
 import { formatTime } from "../../../utils/formatting/formatters/formatTime.js";
 import { convertTimeUnits } from "../../../utils/formatting/converters/convertTimeUnits.js";
 
 describe("formatTime.js - Time Formatter Utility", () => {
     let consoleSpy: any;
+    let mockGetChartSetting: any;
 
     beforeEach(() => {
+        mockGetChartSetting = vi.mocked(getChartSetting);
+
         consoleSpy = {
             warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
             error: vi.spyOn(console, "error").mockImplementation(() => {}),
@@ -49,7 +44,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
         // Reset all mocks
         vi.clearAllMocks();
-        mockLocalStorage.getItem.mockReturnValue(null);
+        mockGetChartSetting.mockReturnValue(undefined);
         (convertTimeUnits as any).mockReturnValue(0);
     });
 
@@ -166,7 +161,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
     describe("User Units Mode", () => {
         describe("With Seconds Units", () => {
             beforeEach(() => {
-                mockLocalStorage.getItem.mockReturnValue("seconds");
+                mockGetChartSetting.mockReturnValue("seconds");
             });
 
             it("should format time as MM:SS when user prefers seconds", () => {
@@ -180,7 +175,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
         describe("With Minutes Units", () => {
             beforeEach(() => {
-                mockLocalStorage.getItem.mockReturnValue("minutes");
+                mockGetChartSetting.mockReturnValue("minutes");
                 (convertTimeUnits as any).mockReturnValue(1.5);
             });
 
@@ -199,7 +194,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
         describe("With Hours Units", () => {
             beforeEach(() => {
-                mockLocalStorage.getItem.mockReturnValue("hours");
+                mockGetChartSetting.mockReturnValue("hours");
                 (convertTimeUnits as any).mockReturnValue(1.02);
             });
 
@@ -216,20 +211,20 @@ describe("formatTime.js - Time Formatter Utility", () => {
             });
         });
 
-        describe("With No localStorage Value", () => {
+        describe("With No Stored Setting", () => {
             beforeEach(() => {
-                mockLocalStorage.getItem.mockReturnValue(null);
+                mockGetChartSetting.mockReturnValue(undefined);
             });
 
-            it("should default to seconds mode when no localStorage value", () => {
+            it("should default to seconds mode when no stored setting", () => {
                 const result = formatTime(90, true);
                 expect(result).toBe("1:30");
             });
         });
 
-        describe("With Invalid localStorage Value", () => {
+        describe("With Invalid Stored Setting", () => {
             beforeEach(() => {
-                mockLocalStorage.getItem.mockReturnValue("invalid");
+                mockGetChartSetting.mockReturnValue("invalid");
             });
 
             it("should default to MM:SS format for unknown units", () => {
@@ -331,9 +326,9 @@ describe("formatTime.js - Time Formatter Utility", () => {
             Math.floor = originalFloor;
         });
 
-        it("should handle localStorage errors in user units mode", () => {
-            mockLocalStorage.getItem.mockImplementation(() => {
-                throw new Error("localStorage error");
+        it("should handle settings errors in user units mode", () => {
+            mockGetChartSetting.mockImplementation(() => {
+                throw new Error("settings error");
             });
 
             const result = formatTime(90, true);
@@ -342,7 +337,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
         });
 
         it("should handle convertTimeUnits errors gracefully", () => {
-            mockLocalStorage.getItem.mockReturnValue("minutes");
+            mockGetChartSetting.mockReturnValue("minutes");
             (convertTimeUnits as any).mockImplementation(() => {
                 throw new Error("Conversion error");
             });
@@ -394,13 +389,13 @@ describe("formatTime.js - Time Formatter Utility", () => {
         });
     });
 
-    describe("localStorage Integration", () => {
-        it("should call localStorage.getItem with correct key", () => {
+    describe("Settings Integration", () => {
+        it("should call getChartSetting with correct key", () => {
             formatTime(90, true);
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_timeUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("timeUnits");
         });
 
-        it("should handle localStorage returning different unit types", () => {
+        it("should handle settings returning different unit types", () => {
             const testCases = [
                 { units: "seconds", expected: "1:30" },
                 { units: "minutes", expected: "1.5m" },
@@ -408,7 +403,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
             ];
 
             testCases.forEach(({ units, expected }) => {
-                mockLocalStorage.getItem.mockReturnValue(units);
+                mockGetChartSetting.mockReturnValue(units);
                 if (units === "minutes") {
                     (convertTimeUnits as any).mockReturnValue(1.5);
                 } else if (units === "hours") {
@@ -420,12 +415,12 @@ describe("formatTime.js - Time Formatter Utility", () => {
             });
         });
 
-        it("should only call localStorage when useUserUnits is true", () => {
+        it("should only call getChartSetting when useUserUnits is true", () => {
             formatTime(90, false);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
 
             formatTime(90, true);
-            expect(mockLocalStorage.getItem).toHaveBeenCalled();
+            expect(mockGetChartSetting).toHaveBeenCalled();
         });
     });
 });

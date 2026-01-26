@@ -2,14 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { convertValueToUserUnits } from "../../../utils/formatting/converters/convertValueToUserUnits.js";
 import { convertDistanceUnits } from "../../../utils/formatting/converters/convertDistanceUnits.js";
 import { convertTemperatureUnits } from "../../../utils/formatting/converters/convertTemperatureUnits.js";
-
-// Mock localStorage
-const mockLocalStorage = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-};
+import { getChartSetting } from "../../../utils/state/domain/settingsStateManager.js";
 
 // Mock the converter dependencies
 vi.mock("../../../utils/formatting/converters/convertDistanceUnits.js", () => ({
@@ -29,23 +22,28 @@ vi.mock("../../../utils/formatting/converters/convertTemperatureUnits.js", () =>
     convertTemperatureUnits: vi.fn(),
 }));
 
+vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn(),
+}));
+
 describe("convertValueToUserUnits.js - Value to User Units Converter Utility", () => {
     let mockConsole: {
         warn: any;
         error: any;
     };
+    let mockGetChartSetting: any;
 
     beforeEach(() => {
-        // Setup localStorage mock
-        Object.defineProperty(global, "localStorage", {
-            value: mockLocalStorage,
-            writable: true,
-        });
+        // Clear all mocks
+        vi.clearAllMocks();
 
         mockConsole = {
             warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
             error: vi.spyOn(console, "error").mockImplementation(() => {}),
         };
+
+        mockGetChartSetting = vi.mocked(getChartSetting);
+        mockGetChartSetting.mockReturnValue("kilometers");
 
         // Setup default mock implementations
         (convertDistanceUnits as any).mockImplementation((value, unit) => {
@@ -58,9 +56,6 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             if (unit === "fahrenheit") return (value * 9) / 5 + 32;
             return value; // celsius
         });
-
-        // Clear all mocks
-        vi.clearAllMocks();
     });
 
     afterEach(() => {
@@ -159,44 +154,44 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             });
         });
 
-        it("should convert distance field with user preference from localStorage", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+        it("should convert distance field with user preference from settings", () => {
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(1000, "distance");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
             expect(result).toBe(1); // 1000m = 1km
         });
 
         it("should convert distance field with default kilometers when no preference", () => {
-            mockLocalStorage.getItem.mockReturnValue(null);
+            mockGetChartSetting.mockReturnValue(undefined);
 
             const result = convertValueToUserUnits(1000, "distance");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
             expect(result).toBe(1); // Default kilometers conversion
         });
 
         it("should convert altitude field as distance", () => {
-            mockLocalStorage.getItem.mockReturnValue("miles");
+            mockGetChartSetting.mockReturnValue("miles");
 
             const result = convertValueToUserUnits(1609.34, "altitude");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
             expect(result).toBeCloseTo(1, 5); // 1609.34m = 1 mile
         });
 
         it("should convert enhancedAltitude field as distance", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(5000, "enhancedAltitude");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
             expect(result).toBe(5); // 5000m = 5km
         });
 
         it("should handle zero distance values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(0, "distance");
 
@@ -204,7 +199,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle negative distance values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(-1000, "distance");
 
@@ -212,7 +207,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle decimal distance values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(1500.5, "distance");
 
@@ -229,26 +224,26 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             });
         });
 
-        it("should convert temperature field with user preference from localStorage", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+        it("should convert temperature field with user preference from settings", () => {
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(25, "temperature");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
             expect(result).toBe(77); // 25°C = 77°F
         });
 
         it("should convert temperature field with default celsius when no preference", () => {
-            mockLocalStorage.getItem.mockReturnValue(null);
+            mockGetChartSetting.mockReturnValue(undefined);
 
             const result = convertValueToUserUnits(25, "temperature");
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
             expect(result).toBe(25); // Default celsius
         });
 
         it("should handle zero temperature values", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(0, "temperature");
 
@@ -256,7 +251,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle negative temperature values", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(-10, "temperature");
 
@@ -264,7 +259,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle decimal temperature values", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(25.5, "temperature");
 
@@ -277,42 +272,42 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             const result = convertValueToUserUnits(123.45, "power");
 
             expect(result).toBe(123.45);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
 
         it("should return converted value for speed field (default km/h)", () => {
             const result = convertValueToUserUnits(15.5, "speed");
 
             expect(result).toBeCloseTo(55.8, 1);
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
         });
 
         it("should return value unchanged for heartRate field", () => {
             const result = convertValueToUserUnits(150, "heartRate");
 
             expect(result).toBe(150);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
 
         it("should return value unchanged for cadence field", () => {
             const result = convertValueToUserUnits(90, "cadence");
 
             expect(result).toBe(90);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
 
         it("should return value unchanged for timestamp field", () => {
             const result = convertValueToUserUnits(1640995200000, "timestamp");
 
             expect(result).toBe(1640995200000);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
 
         it("should handle arbitrary field names gracefully", () => {
             const result = convertValueToUserUnits(42, "customField");
 
             expect(result).toBe(42);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
     });
 
@@ -322,7 +317,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
                 throw new Error("Conversion failed");
             });
 
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(1000, "distance");
 
@@ -338,7 +333,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
                 throw new Error("Temperature conversion failed");
             });
 
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(25, "temperature");
 
@@ -349,9 +344,9 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             );
         });
 
-        it("should handle localStorage errors gracefully", () => {
-            mockLocalStorage.getItem.mockImplementation(() => {
-                throw new Error("LocalStorage error");
+        it("should handle settings errors gracefully", () => {
+            mockGetChartSetting.mockImplementation(() => {
+                throw new Error("Settings error");
             });
 
             const result = convertValueToUserUnits(1000, "distance");
@@ -363,24 +358,18 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             );
         });
 
-        it("should handle corrupted localStorage values", () => {
-            mockLocalStorage.getItem.mockReturnValue("invalid-unit");
-
-            // Mock converter to handle invalid unit gracefully
-            (convertDistanceUnits as any).mockImplementation((value, unit) => {
-                if (unit === "invalid-unit") return value; // No conversion for unknown unit
-                return value / 1000;
-            });
+        it("should handle corrupted settings values", () => {
+            mockGetChartSetting.mockReturnValue("invalid-unit");
 
             const result = convertValueToUserUnits(1000, "distance");
 
-            expect(result).toBe(1000); // No conversion applied
+            expect(result).toBe(1); // Falls back to kilometers
         });
     });
 
     describe("Edge Cases and Performance", () => {
         it("should handle very large values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(1e12, "distance");
 
@@ -388,7 +377,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle very small values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(0.001, "distance");
 
@@ -396,7 +385,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle Infinity values", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const result = convertValueToUserUnits(Infinity, "distance");
 
@@ -404,7 +393,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle negative Infinity values", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const result = convertValueToUserUnits(-Infinity, "temperature");
 
@@ -412,7 +401,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should be consistent across multiple calls", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const results = Array.from({ length: 100 }, () => convertValueToUserUnits(1000, "distance"));
 
@@ -420,7 +409,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle rapid successive conversions", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const testValues = [0, 10, 20, 30, 40, 50];
             const expectedValues = [32, 50, 68, 86, 104, 122];
@@ -435,7 +424,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
     describe("Real-world Usage Scenarios", () => {
         it("should handle FIT file distance data conversion", () => {
-            mockLocalStorage.getItem.mockReturnValue("miles");
+            mockGetChartSetting.mockReturnValue("miles");
 
             // Typical GPS distance in meters
             const results = [
@@ -452,7 +441,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle altitude elevation data", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             const elevations = [
                 convertValueToUserUnits(100, "altitude"), // 100m hill
@@ -466,7 +455,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should handle temperature sensor data", () => {
-            mockLocalStorage.getItem.mockReturnValue("fahrenheit");
+            mockGetChartSetting.mockReturnValue("fahrenheit");
 
             const temperatures = [
                 convertValueToUserUnits(20, "temperature"), // Room temperature
@@ -481,10 +470,10 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
         it("should handle mixed field types in typical FIT record", () => {
             // Setup different preferences
-            mockLocalStorage.getItem.mockImplementation((key) => {
-                if (key === "chartjs_distanceUnits") return "miles";
-                if (key === "chartjs_temperatureUnits") return "fahrenheit";
-                return null;
+            mockGetChartSetting.mockImplementation((key) => {
+                if (key === "distanceUnits") return "miles";
+                if (key === "temperatureUnits") return "fahrenheit";
+                return undefined;
             });
 
             const fitRecord = {
@@ -506,17 +495,17 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
         it("should handle user preference changes consistently", () => {
             // Start with metric
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
             let result1 = convertValueToUserUnits(1000, "distance");
             expect(result1).toBe(1);
 
             // Change to imperial
-            mockLocalStorage.getItem.mockReturnValue("miles");
+            mockGetChartSetting.mockReturnValue("miles");
             let result2 = convertValueToUserUnits(1000, "distance");
             expect(result2).toBeCloseTo(0.6213727366498067, 4);
 
             // Back to metric
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
             let result3 = convertValueToUserUnits(1000, "distance");
             expect(result3).toBe(1);
         });
@@ -525,44 +514,39 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
     describe("Integration with Storage System", () => {
         it("should use correct storage keys for different unit types", () => {
             convertValueToUserUnits(1000, "distance");
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
 
             vi.clearAllMocks();
 
             convertValueToUserUnits(25, "temperature");
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
         });
 
-        it("should handle missing localStorage gracefully", () => {
-            // Simulate environment without localStorage
-            Object.defineProperty(global, "localStorage", {
-                value: undefined,
-                writable: true,
-            });
-
+        it("should handle missing settings gracefully", () => {
+            mockGetChartSetting.mockReturnValue(undefined);
             const result = convertValueToUserUnits(1000, "distance");
 
-            // Should handle gracefully and return original value
-            expect(result).toBe(1000);
+            // Should fall back to default kilometers
+            expect(result).toBe(1);
         });
 
-        it("should cache localStorage calls efficiently", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+        it("should call settings accessor for each conversion", () => {
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             // Multiple calls for same field type
             convertValueToUserUnits(1000, "distance");
             convertValueToUserUnits(2000, "distance");
             convertValueToUserUnits(3000, "altitude");
 
-            // Should call localStorage for each conversion (no caching in this implementation)
-            expect(mockLocalStorage.getItem).toHaveBeenCalledTimes(3);
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+            // Should call settings accessor for each conversion (no caching in this implementation)
+            expect(mockGetChartSetting).toHaveBeenCalledTimes(3);
+            expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
         });
     });
 
     describe("Type Safety and Validation", () => {
         it("should handle edge case numeric values correctly", () => {
-            mockLocalStorage.getItem.mockReturnValue("kilometers");
+            mockGetChartSetting.mockReturnValue("kilometers");
 
             expect(convertValueToUserUnits(Number.MAX_VALUE, "distance")).toBeDefined();
             expect(convertValueToUserUnits(Number.MIN_VALUE, "distance")).toBeDefined();
@@ -576,7 +560,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             expect(convertValueToUserUnits(25, "Temperature")).toBe(25);
             expect(convertValueToUserUnits(25, "TEMPERATURE")).toBe(25);
 
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
 
         it("should handle field names with extra whitespace", () => {
@@ -585,7 +569,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             expect(convertValueToUserUnits(1000, "distance ")).toBe(1000);
             expect(convertValueToUserUnits(1000, " distance")).toBe(1000);
 
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
     });
 });

@@ -176,7 +176,7 @@ export default defineConfig({
         testTimeout: 30_000,
         passWithNoTests: false,
         maxConcurrency: 4, // Limit max concurrency to reduce resource contention in multi-project setup
-        maxWorkers: 6, // Limit max workers to reduce resource contention in multi-project setup
+        maxWorkers: process.platform === "win32" ? 1 : 6,
         retry: 1, // Retry failed tests once to reduce transient failures
         allowOnly: false, // Fail if .only is left in the code
         includeTaskLocation: true,

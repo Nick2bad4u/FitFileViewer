@@ -5,8 +5,27 @@ vi.useFakeTimers();
 
 // Hoisted container for spies and state to satisfy Vitest mock hoisting
 const h = vi.hoisted(() => {
+    const chartSettings: Record<string, any> = {};
+    const fieldVisibility: Record<string, string> = {};
+    const getChartSetting = vi.fn((key: string) => chartSettings[key]);
+    const setChartSetting = vi.fn((key: string, value: any) => {
+        chartSettings[key] = value;
+        return true;
+    });
+    const getChartFieldVisibility = vi.fn((field: string, fallback = "visible") => fieldVisibility[field] ?? fallback);
+    const setChartFieldVisibility = vi.fn((field: string, visibility: string) => {
+        fieldVisibility[field] = visibility;
+        return { [field]: visibility };
+    });
+
     return {
         state: {} as Record<string, any>,
+        chartSettings,
+        fieldVisibility,
+        getChartSetting,
+        setChartSetting,
+        getChartFieldVisibility,
+        setChartFieldVisibility,
         spies: {
             applySettingsPanelStyles: vi.fn(),
             createPowerZoneControls: vi.fn(),
@@ -26,6 +45,8 @@ const h = vi.hoisted(() => {
 });
 
 const state = h.state;
+const chartSettings = h.chartSettings;
+const fieldVisibility = h.fieldVisibility;
 const spies = h.spies as typeof h.spies;
 
 // Mocks for modules used by ensure/create* modules. Must be declared before imports.
@@ -37,6 +58,13 @@ vi.mock("../../utils/state/core/stateManager.js", () => ({
     updateState: (ns: string, patch: any) => {
         state[ns] = { ...(state[ns] || {}), ...patch };
     },
+}));
+
+vi.mock("../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: h.getChartSetting,
+    setChartSetting: h.setChartSetting,
+    getChartFieldVisibility: h.getChartFieldVisibility,
+    setChartFieldVisibility: h.setChartFieldVisibility,
 }));
 
 vi.mock("../../utils/rendering/helpers/updateControlsState.js", () => ({
@@ -192,6 +220,12 @@ function seedCharts(count = 2) {
 beforeEach(() => {
     // reset state and spies
     for (const k of Object.keys(state)) delete state[k];
+    for (const k of Object.keys(chartSettings)) delete chartSettings[k];
+    for (const k of Object.keys(fieldVisibility)) delete fieldVisibility[k];
+    h.getChartSetting.mockClear();
+    h.setChartSetting.mockClear();
+    h.getChartFieldVisibility.mockClear();
+    h.setChartFieldVisibility.mockClear();
     Object.values(spies).forEach((fn) => (fn as any).mockClear?.());
     if (typeof localStorage !== "undefined") {
         localStorage.clear();
@@ -245,7 +279,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(spies.updateControlsState).toHaveBeenCalled();
     });
 
-    it("range/toggle/select controls update localStorage and trigger re-render (debounced)", () => {
+    it("range/toggle/select controls update settings and trigger re-render (debounced)", () => {
         setupDOM(true);
         seedGlobalData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -257,7 +291,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(alphaSlider).toBeTruthy();
         alphaSlider.value = "25";
         alphaSlider.dispatchEvent(new Event("input", { bubbles: true }));
-        expect(localStorage.getItem("chartjs_alpha")).toBe("25");
+        expect(chartSettings.alpha).toBe(25);
         // Debounce 300ms
         expect(spies.reRenderChartsAfterSettingChange).not.toHaveBeenCalledWith("alpha", "25");
         vi.advanceTimersByTime(300);
@@ -267,7 +301,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const toggleSwitch = wrapper.querySelector(".toggle-switch") as HTMLElement;
         expect(toggleSwitch).toBeTruthy();
         toggleSwitch.click();
-        expect(localStorage.getItem("chartjs_smoothing")).toBe("false"); // default true -> toggled to false
+        expect(chartSettings.smoothing).toBe(false); // default true -> toggled to false
         expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("smoothing", false);
 
         // Select control
@@ -275,8 +309,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(maxpoints).toBeTruthy();
         maxpoints.value = "100";
         maxpoints.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(localStorage.getItem("chartjs_maxpoints")).toBe("100");
-        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("maxpoints", "100");
+        expect(chartSettings.maxpoints).toBe(100);
+        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("maxpoints", 100);
     });
 
     it("field toggle hides/shows and triggers state render and status updates; color picker updates", () => {
@@ -303,7 +337,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Change color
         speedColor.value = "#abcdef";
         speedColor.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(localStorage.getItem("chartjs_color_speed")).toBe("#abcdef");
+        expect(chartSettings.color_speed).toBe("#abcdef");
         expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("speed_color", "#abcdef");
 
         // Zone chart has no color picker

@@ -295,7 +295,6 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             // Assert that event listeners were added
-            expect(window.addEventListener).toHaveBeenCalledWith("storage", expect.any(Function));
             expect(window.addEventListener).toHaveBeenCalledWith("fieldToggleChanged", expect.any(Function));
             expect(document.addEventListener).toHaveBeenCalledWith("chartsRendered", expect.any(Function));
 
