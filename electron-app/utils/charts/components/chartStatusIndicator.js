@@ -9,6 +9,7 @@ import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicatorFromCounts.js";
 import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
+import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 /** @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts */
 
 /**
@@ -17,17 +18,15 @@ import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartS
  */
 export function setupChartStatusUpdates() {
     try {
-        // Listen for storage changes (field toggles)
-        globalThis.addEventListener("storage", (e) => {
-            if (e.key && e.key.startsWith("chartjs_field_")) {
-                setTimeout(() => {
-                    try {
-                        updateAllChartStatusIndicators();
-                    } catch (error) {
-                        console.error("[ChartStatus] Error in storage handler:", error);
-                    }
-                }, 50);
-            }
+        // Listen for chart settings updates (field visibility changes)
+        subscribeToChartSettings(() => {
+            setTimeout(() => {
+                try {
+                    updateAllChartStatusIndicators();
+                } catch (error) {
+                    console.error("[ChartStatus] Error in chart settings handler:", error);
+                }
+            }, 50);
         });
 
         // Listen for custom field toggle events (real-time updates in same window)

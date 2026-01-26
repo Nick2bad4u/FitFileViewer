@@ -11,6 +11,7 @@
  * @property {number} [pointRadius] - Point radius
  * @property {number} [pointHoverRadius] - Point hover radius
  * @property {number} [tension] - Line tension
+ * @property {boolean} [hidden] - Whether to hide the dataset
  * @property {string} [yAxisID] - Y-axis ID for multi-axis charts
  */
 /**
@@ -48,6 +49,19 @@
  * @returns {any} Chart.js configuration object
  */
 export function buildChartConfigFromSpec(spec: ChartSpec, themeConfig: any): any;
+/**
+ * Build a ChartSpec from a declarative definition and record data.
+ *
+ * @param {ChartDefinition} definition - Declarative chart definition
+ * @param {Array<Record<string, unknown>>} records - Raw record data
+ * @param {ChartDefinitionOptions} [options] - Optional settings injection
+ * @returns {ChartSpec} Chart specification
+ */
+export function buildChartSpecFromDefinition(
+    definition: ChartDefinition,
+    records: Array<Record<string, unknown>>,
+    options?: ChartDefinitionOptions
+): ChartSpec;
 export type ChartDatasetSpec = {
     /**
      * - Identifier for the dataset
@@ -94,9 +108,91 @@ export type ChartDatasetSpec = {
      */
     tension?: number;
     /**
+     * - Whether to hide the dataset
+     */
+    hidden?: boolean;
+    /**
      * - Y-axis ID for multi-axis charts
      */
     yAxisID?: string;
+};
+export type ChartDatasetDefinition = {
+    /**
+     * - Dataset identifier
+     */
+    id: string;
+    /**
+     * - Label for legend/tooltips
+     */
+    label: string;
+    /**
+     * - Record key for values
+     */
+    dataKey?: string;
+    /**
+     * - Selector for values
+     */
+    valueSelector?: (record: Record<string, unknown>, index: number) => number | null;
+    /**
+     * - Optional transform applied to each value
+     */
+    transform?: (value: number | null, record: Record<string, unknown>, index: number) => number | null;
+    /**
+     * - Explicit dataset color
+     */
+    color?: string;
+    /**
+     * - Y-axis ID
+     */
+    yAxisId?: string;
+    /**
+     * - Whether to hide the dataset
+     */
+    hidden?: boolean;
+    /**
+     * - Additional dataset options
+     */
+    datasetOptions?: Record<string, unknown>;
+};
+export type ChartDefinition = {
+    /**
+     * - Chart identifier
+     */
+    id: string;
+    /**
+     * - Chart title
+     */
+    title: string;
+    /**
+     * - Chart type
+     */
+    chartType: string;
+    /**
+     * - Dataset definitions
+     */
+    datasets: ChartDatasetDefinition[];
+    /**
+     * - Label selector for x-axis values
+     */
+    labelSelector?: (record: Record<string, unknown>, index: number) => string | number;
+    /**
+     * - X-axis label
+     */
+    xAxisLabel?: string;
+    /**
+     * - Y-axis label
+     */
+    yAxisLabel?: string;
+};
+export type ChartDefinitionOptions = {
+    /**
+     * - Chart settings injection
+     */
+    chartSettings?: Record<string, unknown>;
+    /**
+     * - Default dataset colors
+     */
+    defaultColorPalette?: string[];
 };
 export type ChartAxisSpec = {
     /**

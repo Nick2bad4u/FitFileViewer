@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { buildChartConfigFromSpec } from "../../../../../utils/charts/core/chartSpecFactory.js";
+import { buildChartConfigFromSpec, buildChartSpecFromDefinition } from "../../../../../utils/charts/core/chartSpecFactory.js";
 import { createManagedChart } from "../../../../../utils/charts/core/createManagedChart.js";
 
 type ChartSpecFromFactory = Parameters<typeof buildChartConfigFromSpec>[0];
@@ -125,6 +125,54 @@ describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
         expect(dataset.showLine).toBe(false);
         expect(dataset.pointRadius).toBe(3);
         expect(dataset.pointHoverRadius).toBe(5);
+    });
+
+    it("builds a chart spec from a declarative definition with settings", () => {
+        type SampleRecord = {
+            time: number;
+            speed: number;
+            power: number;
+        };
+
+        const definition = {
+            id: "speed",
+            title: "Speed Over Time",
+            chartType: "line",
+            labelSelector: (record: SampleRecord) => record.time,
+            datasets: [
+                {
+                    id: "speed",
+                    label: "Speed",
+                    dataKey: "speed",
+                    color: "#ff9800",
+                },
+                {
+                    id: "power",
+                    label: "Power",
+                    dataKey: "power",
+                    transform: (value: number | null) => (value == null ? null : value * 2),
+                },
+            ],
+        } as const;
+
+        const records = [
+            { time: 0, speed: 10, power: 150 },
+            { time: 1, speed: 12, power: 160 },
+        ];
+
+        const spec = buildChartSpecFromDefinition(definition, records, {
+            chartSettings: {
+                fieldVisibility: {
+                    speed: "hidden",
+                },
+            },
+        });
+
+        expect(spec.labels).toEqual([0, 1]);
+        expect(spec.datasets).toHaveLength(2);
+        expect(spec.datasets[0].data).toEqual([10, 12]);
+        expect(spec.datasets[0].hidden).toBe(true);
+        expect(spec.datasets[1].data).toEqual([300, 320]);
     });
 
     it("produces a config that can be passed to createManagedChart", () => {

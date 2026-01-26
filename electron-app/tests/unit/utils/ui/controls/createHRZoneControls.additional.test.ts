@@ -1,4 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { setChartFieldVisibility } from "../../../../../utils/state/domain/settingsStateManager.js";
 
 const inlineSelectorMock = vi.hoisted(() => ({
     createInlineZoneColorSelector: vi.fn((prefix: string, container: HTMLElement): HTMLElement | null => {
@@ -65,9 +66,8 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("getHRZoneVisibilitySettings reflects stored visibility flags", async () => {
-        localStorage.setItem("chartjs_field_hr_zone_doughnut", "hidden");
-        localStorage.removeItem("chartjs_field_hr_lap_zone_individual");
-        localStorage.setItem("chartjs_field_hr_lap_zone_stacked", "hidden");
+        setChartFieldVisibility("hr_zone_doughnut", "hidden");
+        setChartFieldVisibility("hr_lap_zone_stacked", "hidden");
         const { getHRZoneVisibilitySettings } = await loadModule();
         const settings = getHRZoneVisibilitySettings();
         expect(settings).toEqual({

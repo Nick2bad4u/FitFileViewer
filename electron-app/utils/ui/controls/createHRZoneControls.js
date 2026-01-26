@@ -3,7 +3,7 @@
  * @fileoverview Dedicated heart rate zone chart controls section
  */
 
-import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 
 /**
@@ -135,9 +135,9 @@ export function createHRZoneControls(parentContainer) {
  */
 export function getHRZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartSetting("field_hr_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartSetting("field_hr_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartSetting("field_hr_lap_zone_stacked") !== "hidden",
+        doughnutVisible: getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
+        lapIndividualVisible: getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
+        lapStackedVisible: getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
     };
 }
 

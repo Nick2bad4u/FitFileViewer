@@ -89,6 +89,74 @@ const SETTINGS_SCHEMA = {
     },
 };
 
+const CHART_FIELD_VISIBILITY_KEY = "fieldVisibility";
+const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
+
+/**
+ * @typedef {"visible" | "hidden"} ChartFieldVisibility
+ */
+
+/**
+ * @typedef {Record<string, ChartFieldVisibility>} ChartFieldVisibilityMap
+ */
+
+/**
+ * @typedef {Object} ChartSettings
+ * @property {ChartFieldVisibilityMap} [fieldVisibility] - Per-field visibility overrides.
+ */
+
+/**
+ * Normalize chart settings payloads to ensure consistent shapes.
+ *
+ * @param {ChartSettings | null | undefined} settings
+ * @returns {ChartSettings}
+ */
+function normalizeChartSettings(settings) {
+    const safeSettings = settings && typeof settings === "object" ? settings : {};
+    const fieldVisibility = safeSettings?.[CHART_FIELD_VISIBILITY_KEY] || {};
+
+    return {
+        ...safeSettings,
+        [CHART_FIELD_VISIBILITY_KEY]: {
+            ...fieldVisibility,
+        },
+    };
+}
+
+/**
+ * Read legacy per-field visibility preferences stored as individual keys.
+ *
+ * @param {string} fieldKey
+ * @returns {ChartFieldVisibility | undefined}
+ */
+function readLegacyChartFieldVisibility(fieldKey) {
+    const storage = globalThis?.localStorage;
+    if (!storage) {
+        return undefined;
+    }
+
+    const storedValue = storage.getItem(`${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`);
+    if (storedValue === "visible" || storedValue === "hidden") {
+        return storedValue;
+    }
+
+    return undefined;
+}
+
+/**
+ * Remove legacy per-field visibility keys after migration.
+ *
+ * @param {string} fieldKey
+ */
+function removeLegacyChartFieldVisibility(fieldKey) {
+    const storage = globalThis?.localStorage;
+    if (!storage) {
+        return;
+    }
+
+    storage.removeItem(`${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`);
+}
+
 /**
  * Settings State Manager Class
  */
@@ -580,6 +648,122 @@ export function exportAllSettings() {
 /** @param {string} key */
 export function getChartSetting(key) {
     return settingsStateManager.getSetting("chart", key);
+}
+
+/**
+ * Return normalized chart settings with default field visibility map.
+ *
+ * @returns {ChartSettings}
+ */
+export function getChartSettings() {
+    return normalizeChartSettings(settingsStateManager.getSetting("chart"));
+}
+
+/**
+ * Convenience wrapper for chart renderers to access user chart settings.
+ *
+ * @returns {ChartSettings}
+ */
+export function getUserChartSettings() {
+    return getChartSettings();
+}
+
+/**
+ * Update chart settings by merging new values into existing settings.
+ *
+ * @param {ChartSettings} updates
+ * @returns {ChartSettings}
+ */
+export function updateChartSettings(updates) {
+    const current = getChartSettings();
+    const nextFieldVisibility = updates?.[CHART_FIELD_VISIBILITY_KEY]
+        ? {
+              ...current[CHART_FIELD_VISIBILITY_KEY],
+              ...updates[CHART_FIELD_VISIBILITY_KEY],
+          }
+        : current[CHART_FIELD_VISIBILITY_KEY];
+
+    const nextSettings = {
+        ...current,
+        ...updates,
+        [CHART_FIELD_VISIBILITY_KEY]: nextFieldVisibility,
+    };
+
+    Object.entries(updates || {}).forEach(([key, value]) => {
+        if (key === CHART_FIELD_VISIBILITY_KEY && typeof value === "object") {
+            setChartSetting(CHART_FIELD_VISIBILITY_KEY, nextFieldVisibility);
+            return;
+        }
+
+        setChartSetting(key, value);
+    });
+
+    return nextSettings;
+}
+
+/**
+ * Read field visibility from settings, migrating legacy localStorage keys if present.
+ *
+ * @param {string} fieldKey
+ * @param {ChartFieldVisibility} [defaultVisibility="visible"]
+ * @returns {ChartFieldVisibility}
+ */
+export function getChartFieldVisibility(fieldKey, defaultVisibility = "visible") {
+    const settings = getChartSettings();
+    const fieldVisibility = settings[CHART_FIELD_VISIBILITY_KEY] || {};
+    const currentValue = fieldVisibility[fieldKey];
+
+    if (currentValue === "visible" || currentValue === "hidden") {
+        return currentValue;
+    }
+
+    const legacyValue = readLegacyChartFieldVisibility(fieldKey);
+    if (legacyValue) {
+        const nextFieldVisibility = {
+            ...fieldVisibility,
+            [fieldKey]: legacyValue,
+        };
+
+        setChartSetting(CHART_FIELD_VISIBILITY_KEY, nextFieldVisibility);
+        removeLegacyChartFieldVisibility(fieldKey);
+
+        return legacyValue;
+    }
+
+    return defaultVisibility;
+}
+
+/**
+ * Update visibility for a single chart field.
+ *
+ * @param {string} fieldKey
+ * @param {ChartFieldVisibility} visibility
+ * @returns {ChartFieldVisibilityMap}
+ */
+export function setChartFieldVisibility(fieldKey, visibility) {
+    const settings = getChartSettings();
+    const fieldVisibility = settings[CHART_FIELD_VISIBILITY_KEY] || {};
+    const nextFieldVisibility = {
+        ...fieldVisibility,
+        [fieldKey]: visibility,
+    };
+
+    setChartSetting(CHART_FIELD_VISIBILITY_KEY, nextFieldVisibility);
+    removeLegacyChartFieldVisibility(fieldKey);
+
+    return nextFieldVisibility;
+}
+
+/**
+ * Subscribe to chart settings updates.
+ *
+ * @param {(nextSettings: ChartSettings, previousSettings: ChartSettings) => void} callback
+ * @returns {() => void}
+ */
+export function subscribeToChartSettings(callback) {
+    return subscribe("settings.chart", (nextValue, previousValue) => {
+        callback(normalizeChartSettings(nextValue), normalizeChartSettings(previousValue));
+    });
 }
 
 /**

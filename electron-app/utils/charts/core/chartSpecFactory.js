@@ -11,7 +11,38 @@
  * @property {number} [pointRadius] - Point radius
  * @property {number} [pointHoverRadius] - Point hover radius
  * @property {number} [tension] - Line tension
+ * @property {boolean} [hidden] - Whether to hide the dataset in the chart
  * @property {string} [yAxisID] - Y-axis ID for multi-axis charts
+ */
+
+/**
+ * @typedef {Object} ChartDatasetDefinition
+ * @property {string} id
+ * @property {string} label
+ * @property {string} [dataKey]
+ * @property {(record: Record<string, unknown>, index: number) => number | null} [valueSelector]
+ * @property {(value: number | null, record: Record<string, unknown>, index: number) => number | null} [transform]
+ * @property {string} [color]
+ * @property {string} [yAxisId]
+ * @property {boolean} [hidden]
+ * @property {Record<string, unknown>} [datasetOptions]
+ */
+
+/**
+ * @typedef {Object} ChartDefinition
+ * @property {string} id
+ * @property {string} title
+ * @property {string} chartType
+ * @property {ChartDatasetDefinition[]} datasets
+ * @property {(record: Record<string, unknown>, index: number) => string | number} [labelSelector]
+ * @property {string} [xAxisLabel]
+ * @property {string} [yAxisLabel]
+ */
+
+/**
+ * @typedef {Object} ChartDefinitionOptions
+ * @property {Record<string, unknown>} [chartSettings]
+ * @property {string[]} [defaultColorPalette]
  */
 
 /**
@@ -67,6 +98,7 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
             borderColor: dataset.borderColor || baseColor,
             data: dataset.data,
             fill: dataset.fill ?? false,
+            hidden: dataset.hidden ?? false,
             label: dataset.label,
             pointHoverRadius: dataset.pointHoverRadius ?? 4,
             pointRadius: dataset.pointRadius ?? 2,
@@ -124,4 +156,69 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
         options,
         type: spec.type,
     };
+}
+
+/**
+ * Build a chart specification from a declarative definition and raw record data.
+ *
+ * @param {ChartDefinition} definition
+ * @param {Array<Record<string, unknown>>} records
+ * @param {ChartDefinitionOptions} [options]
+ * @returns {ChartSpec}
+ */
+export function buildChartSpecFromDefinition(definition, records, options = {}) {
+    const { chartSettings = {}, defaultColorPalette = [] } = options;
+    const fieldVisibility =
+        typeof chartSettings === "object" && chartSettings !== null ? chartSettings.fieldVisibility || {} : {};
+
+    const labels = definition.labelSelector
+        ? records.map((record, index) => definition.labelSelector(record, index))
+        : records.map((_, index) => index);
+
+    const datasets = definition.datasets.map((dataset, datasetIndex) => {
+        const color = dataset.color || defaultColorPalette[datasetIndex];
+        const data = records.map((record, recordIndex) => {
+            const rawValue = dataset.valueSelector
+                ? dataset.valueSelector(record, recordIndex)
+                : dataset.dataKey
+                ? /** @type {number | null} */ (record?.[dataset.dataKey])
+                : null;
+
+            return dataset.transform ? dataset.transform(rawValue, record, recordIndex) : rawValue;
+        });
+
+        const visibilityOverride = fieldVisibility?.[dataset.id];
+        const isHidden = visibilityOverride === "hidden" || dataset.hidden === true;
+
+        return {
+            id: dataset.id,
+            label: dataset.label,
+            data,
+            backgroundColor: color,
+            borderColor: color,
+            yAxisID: dataset.yAxisId,
+            hidden: isHidden,
+            ...(dataset.datasetOptions || {}),
+        };
+    });
+
+    return createChartSpec({
+        id: definition.id,
+        title: definition.title,
+        chartType: definition.chartType,
+        labels,
+        datasets,
+        axes: {
+            x: definition.xAxisLabel
+                ? {
+                      label: definition.xAxisLabel,
+                  }
+                : undefined,
+            y: definition.yAxisLabel
+                ? {
+                      label: definition.yAxisLabel,
+                  }
+                : undefined,
+        },
+    });
 }

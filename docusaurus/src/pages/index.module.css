@@ -7,25 +7,22 @@
    Hero Section
    ============================================ */
 
-.heroSection {
+.hero-section {
   padding: 4rem 0;
   background: linear-gradient(180deg, var(--ifm-background-color) 0%, var(--ifm-background-surface-color) 100%);
   position: relative;
   overflow: hidden;
 }
 
-.heroSection::before {
+.hero-section::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: radial-gradient(ellipse at 50% 0%, rgb(74 222 128 / 10%) 0%, transparent 50%);
   pointer-events: none;
 }
 
-.heroContent {
+.hero-content {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -33,13 +30,13 @@
   gap: 3rem;
 }
 
-.heroText {
+.hero-text {
   flex: 1;
   min-width: 300px;
   max-width: 600px;
 }
 
-.heroTitle {
+.hero-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   line-height: 1.1;
@@ -47,26 +44,26 @@
   margin-bottom: 1.5rem;
 }
 
-.heroTitle .accent {
+.hero-title .accent {
   color: var(--ifm-color-primary);
   display: block;
 }
 
-.heroSubtitle {
+.hero-subtitle {
   font-size: 1.25rem;
   color: var(--ifm-font-color-secondary);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
 
-.heroCta {
+.hero-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
 }
 
-.heroDemo {
+.hero-demo {
   flex: 1;
   min-width: 350px;
   max-width: 500px;
@@ -76,7 +73,7 @@
    Buttons
    ============================================ */
 
-.primaryButton {
+.primary-button {
   background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
   border: none;
   color: #1a1a2e;
@@ -88,14 +85,14 @@
   display: inline-block;
 }
 
-.primaryButton:hover {
+.primary-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgb(74 222 128 / 20%);
   color: #1a1a2e;
   text-decoration: none;
 }
 
-.secondaryButton {
+.secondary-button {
   background: transparent;
   border: 2px solid var(--ifm-color-primary);
   color: var(--ifm-color-primary);
@@ -107,7 +104,7 @@
   display: inline-block;
 }
 
-.secondaryButton:hover {
+.secondary-button:hover {
   background: var(--ifm-color-primary);
   color: #1a1a2e;
   text-decoration: none;
@@ -117,7 +114,7 @@
    App Window Demo
    ============================================ */
 
-.appWindow {
+.app-window {
   background: var(--ifm-background-surface-color);
   border-radius: 0.75rem;
   overflow: hidden;
@@ -125,7 +122,7 @@
   border: 1px solid rgb(255 255 255 / 10%);
 }
 
-.appHeader {
+.app-header {
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
@@ -133,43 +130,43 @@
   gap: 0.75rem;
 }
 
-.appButtons {
+.app-buttons {
   display: flex;
   gap: 0.5rem;
 }
 
-.appButtonRed,
-.appButtonYellow,
-.appButtonGreen {
+.app-button-red,
+.app-button-yellow,
+.app-button-green {
   width: 12px;
   height: 12px;
   border-radius: 50%;
 }
 
-.appButtonRed {
+.app-button-red {
   background: #ff5f57;
 }
 
-.appButtonYellow {
+.app-button-yellow {
   background: #febc2e;
 }
 
-.appButtonGreen {
+.app-button-green {
   background: #28c840;
 }
 
-.appTitle {
+.app-title {
   font-size: 0.875rem;
   font-weight: 500;
   opacity: 0.85;
   color: #e5e7eb;
 }
 
-.appBody {
+.app-body {
   padding: 1rem;
 }
 
-.appToolbar {
+.app-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -178,7 +175,7 @@
   border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 
-.addButton {
+.add-button {
   background: var(--ifm-color-primary);
   color: #1a1a2e;
   border: none;
@@ -190,23 +187,23 @@
   transition: all 0.2s ease;
 }
 
-.addButton:hover {
+.add-button:hover {
   transform: scale(1.02);
 }
 
-.statusCount {
+.status-count {
   font-size: 0.75rem;
   opacity: 0.9;
   color: #9ca3af;
 }
 
-.siteList {
+.site-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.siteItem {
+.site-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -216,30 +213,30 @@
   color: #e5e7eb;
 }
 
-.siteStatus {
+.site-status {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.statusDot {
+.status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
 }
 
-.statusDot[data-status="up"] {
+.status-dot[data-status="up"] {
   background: #4ade80;
   box-shadow: 0 0 8px #4ade80;
 }
 
-.siteUrl {
+.site-url {
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.9rem;
   color: #e5e7eb;
 }
 
-.siteMetrics {
+.site-metrics {
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
@@ -247,7 +244,7 @@
   color: #9ca3af;
 }
 
-.responseTime,
+.response-time,
 .uptime {
   font-family: var(--ifm-font-family-monospace);
 }
@@ -256,7 +253,7 @@
    Status Section
    ============================================ */
 
-.statusSection {
+.status-section {
   padding: 4rem 0;
   background: var(--ifm-background-surface-color);
 }
@@ -265,7 +262,7 @@
    Screenshot Gallery
    ============================================ */
 
-.screenshotsSection {
+.screenshots-section {
   padding: 4rem 0;
   background: linear-gradient(
     180deg,
@@ -274,7 +271,7 @@
   );
 }
 
-.screenshotsSubtitle {
+.screenshots-subtitle {
   margin: 0 auto 2rem;
   max-width: 56rem;
   text-align: center;
@@ -283,13 +280,13 @@
   line-height: 1.6;
 }
 
-.screenshotGrid {
+.screenshot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
 }
 
-.screenshotCard {
+.screenshot-card {
   overflow: hidden;
   border-radius: 0.85rem;
   background: var(--ifm-background-surface-color);
@@ -301,19 +298,19 @@
     border-color 0.18s ease;
 }
 
-.screenshotCard:hover {
+.screenshot-card:hover {
   transform: translateY(-3px);
   border-color: rgb(74 222 128 / 55%);
   box-shadow: 0 28px 60px rgb(0 0 0 / 16%);
 }
 
-.screenshotImageLink {
+.screenshot-image-link {
   display: block;
   position: relative;
   overflow: hidden;
 }
 
-.screenshotImage {
+.screenshot-image {
   display: block;
   width: 100%;
   height: auto;
@@ -323,83 +320,83 @@
   transition: transform 0.25s ease;
 }
 
-.screenshotCard:hover .screenshotImage {
+.screenshot-card:hover .screenshot-image {
   transform: scale(1.02);
 }
 
-.screenshotBody {
+.screenshot-body {
   padding: 1.15rem 1.15rem 1.25rem;
 }
 
-.screenshotTitle {
+.screenshot-title {
   margin: 0 0 0.35rem;
   font-size: 1.1rem;
 }
 
-.screenshotDescription {
+.screenshot-description {
   margin: 0 0 1rem;
   color: var(--ifm-font-color-secondary);
   line-height: 1.55;
 }
 
-.screenshotActions {
+.screenshot-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
 }
 
-.screenshotAction {
+.screenshot-action {
   border-radius: 999px;
 }
 
 @media (width <= 996px) {
-  .screenshotGrid {
+  .screenshot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (width <= 640px) {
-  .screenshotGrid {
+  .screenshot-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.sectionTitle {
+.section-title {
   text-align: center;
   margin-bottom: 3rem;
   font-size: 2rem;
   font-weight: 700;
 }
 
-.statusGrid {
+.status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
 }
 
-.statusCard {
+.status-card {
   background: var(--ifm-background-color);
   border-radius: var(--ifm-global-radius);
   padding: 1.5rem;
   border: 1px solid rgb(255 255 255 / 5%);
 }
 
-.statusHeader {
+.status-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.statusIndicator {
+.status-indicator {
   font-size: 1.25rem;
 }
 
-.statusText {
+.status-text {
   font-weight: 600;
 }
 
-.statusDescription {
+.status-description {
   color: var(--ifm-font-color-secondary);
   font-style: italic;
   line-height: 1.6;
@@ -409,52 +406,52 @@
    Tech Section
    ============================================ */
 
-.techSection {
+.tech-section {
   padding: 4rem 0;
 }
 
-.techContent {
+.tech-content {
   display: flex;
   flex-wrap: wrap;
   gap: 3rem;
   align-items: flex-start;
 }
 
-.techInfo {
+.tech-info {
   flex: 1;
   min-width: 300px;
 }
 
-.techFeatures {
+.tech-features {
   margin-top: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.techFeature strong {
+.tech-feature strong {
   display: block;
   margin-bottom: 0.5rem;
 }
 
-.techFeature p {
+.tech-feature p {
   margin: 0;
   color: var(--ifm-font-color-secondary);
 }
 
-.techCode {
+.tech-code {
   flex: 1;
   min-width: 350px;
 }
 
-.codeBlock {
+.code-block {
   background: #0d0d1a;
   border-radius: var(--ifm-global-radius);
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 10%);
 }
 
-.codeHeader {
+.code-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -463,13 +460,13 @@
   border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 
-.codeActions {
+.code-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.copyButton,
-.viewButton {
+.copy-button,
+.view-button {
   background: transparent;
   border: 1px solid rgb(255 255 255 / 20%);
   color: var(--ifm-font-color-base);
@@ -481,15 +478,15 @@
   text-decoration: none;
 }
 
-.copyButton:hover,
-.viewButton:hover {
+.copy-button:hover,
+.view-button:hover {
   background: var(--ifm-color-primary);
   color: #1a1a2e;
   border-color: var(--ifm-color-primary);
   text-decoration: none;
 }
 
-.codeContent {
+.code-content {
   padding: 1rem;
   margin: 0;
   overflow-x: auto;
@@ -502,30 +499,30 @@
    Scroll Reveal Animations
    ============================================ */
 
-.scrollReveal,
-.scrollRevealLeft,
-.scrollRevealRight {
+.scroll-reveal,
+.scroll-reveal-left,
+.scroll-reveal-right {
   /* Default to visible so content is never hidden if JS or IntersectionObserver fails */
   opacity: 1;
   transform: none;
   transition: all 0.6s ease-out;
 }
 
-.scrollReveal {
+.scroll-reveal {
   /* Motion handled via transition when "visible" is toggled; base state is readable */
 }
 
-.scrollRevealLeft {
+.scroll-reveal-left {
   /* Left reveal offset applied only when "visible" is toggled */
 }
 
-.scrollRevealRight {
+.scroll-reveal-right {
   /* Right reveal offset applied only when "visible" is toggled */
 }
 
-.scrollReveal.visible,
-.scrollRevealLeft.visible,
-.scrollRevealRight.visible {
+.scroll-reveal.visible,
+.scroll-reveal-left.visible,
+.scroll-reveal-right.visible {
   opacity: 1;
   transform: translate(0);
 }
@@ -535,24 +532,24 @@
    ============================================ */
 
 @media (width <= 768px) {
-  .heroContent {
+  .hero-content {
     flex-direction: column;
   }
 
-  .heroText,
-  .heroDemo {
+  .hero-text,
+  .hero-demo {
     max-width: 100%;
   }
 
-  .techContent {
+  .tech-content {
     flex-direction: column;
   }
 
-  .heroTitle {
+  .hero-title {
     font-size: 2rem;
   }
 
-  .sectionTitle {
+  .section-title {
     font-size: 1.5rem;
   }
 }

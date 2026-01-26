@@ -3,7 +3,7 @@
  * @fileoverview Dedicated power zone chart controls section
  */
 
-import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 
 /**
@@ -135,9 +135,9 @@ export function createPowerZoneControls(parentContainer) {
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartSetting("field_power_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartSetting("field_power_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartSetting("field_power_lap_zone_stacked") !== "hidden",
+        doughnutVisible: getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        lapIndividualVisible: getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
+        lapStackedVisible: getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
     };
 }
 
@@ -150,9 +150,10 @@ export function movePowerZoneControlsToSection() {
     if (!powerZoneContent) {
         console.warn("[PowerZoneControls] Power zone content container not found");
         return;
-    } // Find existing power zone controls in the field toggles section
-    const movedControls = [],
-        powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"];
+    }
+
+    // Find existing power zone controls in the field toggles section
+    const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"];
 
     for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID

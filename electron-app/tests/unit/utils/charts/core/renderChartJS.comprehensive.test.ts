@@ -156,11 +156,31 @@ function injectRenderChartJSMocks() {
             },
         },
         settingsStateManager: {
+            getChartSettings: vi.fn().mockReturnValue({
+                animation: "normal",
+                chartType: "line",
+                colors: [],
+                fieldVisibility: {},
+                interpolation: "linear",
+                maxpoints: "all",
+                showFill: false,
+                showGrid: true,
+                showLegend: true,
+                showPoints: false,
+                showTitle: true,
+                smoothing: 0.1,
+            }),
+            getChartFieldVisibility: vi.fn().mockReturnValue("visible"),
+            setChartFieldVisibility: vi.fn().mockImplementation((field, visibility) => ({
+                [field]: visibility,
+            })),
+            updateChartSettings: vi.fn(),
             settingsStateManager: {
                 getChartSettings: vi.fn().mockReturnValue({
                     animation: "normal",
                     chartType: "line",
                     colors: [],
+                    fieldVisibility: {},
                     interpolation: "linear",
                     maxpoints: "all",
                     showFill: false,
@@ -418,12 +438,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     });
 
     describe("chartSettingsManager Object", () => {
-        it("should provide getFieldVisibility method with localStorage integration", async () => {
+        it("should provide getFieldVisibility method with settings state manager", async () => {
             const { chartSettingsManager } = await import("../../../../../utils/charts/core/renderChartJS.js");
 
             const result = chartSettingsManager.getFieldVisibility("speed");
 
-            expect(global.window.localStorage.getItem).toHaveBeenCalledWith("chartjs_field_speed");
+            expect(mocks.settingsStateManager.getChartFieldVisibility).toHaveBeenCalledWith("speed", "visible");
             expect(mocks.stateManager.setState).toHaveBeenCalledWith(
                 "settings.charts.fieldVisibility.speed",
                 "visible",
@@ -459,7 +479,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             chartSettingsManager.setFieldVisibility("power", "hidden");
 
-            expect(global.window.localStorage.setItem).toHaveBeenCalledWith("chartjs_field_power", "hidden");
+            expect(mocks.settingsStateManager.setChartFieldVisibility).toHaveBeenCalledWith("power", "hidden");
             expect(mocks.stateManager.setState).toHaveBeenCalledWith(
                 "settings.charts.fieldVisibility.power",
                 "hidden",
@@ -476,7 +496,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const newSettings = { chartType: "bar", showPoints: true };
             chartSettingsManager.updateSettings(newSettings);
 
-            expect(mocks.settingsStateManager.settingsStateManager.updateChartSettings).toHaveBeenCalled();
+            expect(mocks.settingsStateManager.updateChartSettings).toHaveBeenCalled();
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "settings.charts",
                 expect.objectContaining(newSettings),
@@ -880,7 +900,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle settings validation and boolean conversion", async () => {
-            mocks.settingsStateManager.settingsStateManager.getChartSettings.mockReturnValue({
+            mocks.settingsStateManager.getChartSettings.mockReturnValue({
                 showFill: "on",
                 showGrid: "off",
                 showLegend: true,
@@ -904,12 +924,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             };
 
             mocks.formatChartFields.formatChartFields = ["speed", "elevation"];
-            global.window.localStorage.getItem.mockImplementation((key) => {
-                if (key && key.startsWith("chartjs_field_")) {
-                    return "visible";
-                }
-                return "visible";
-            });
+            mocks.settingsStateManager.getChartFieldVisibility.mockReturnValue("visible");
 
             mocks.stateManager.getState.mockImplementation((path) => {
                 const stateMap = {

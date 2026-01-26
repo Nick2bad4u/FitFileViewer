@@ -24,6 +24,10 @@ vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
     invalidateChartRenderCache: vi.fn(),
 }));
 
+vi.mock("../../../../utils/state/domain/settingsStateManager.js", () => ({
+    subscribeToChartSettings: vi.fn(() => () => {}),
+}));
+
 // Import mocked functions for spying
 import { getState, setState, subscribe, updateState } from "../../../../utils/state/core/stateManager.js";
 import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";

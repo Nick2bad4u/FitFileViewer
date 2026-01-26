@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { subscribeToChartSettings } from "../../../../../utils/state/domain/settingsStateManager.js";
 import { JSDOM } from "jsdom";
 
 // Mock dependencies
@@ -46,6 +47,10 @@ vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
             gps: { total: 0, visible: 0, available: 0 },
         },
     }),
+}));
+
+vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
+    subscribeToChartSettings: vi.fn(() => () => {}),
 }));
 
 describe("chartStatusIndicator.js", () => {
@@ -315,9 +320,6 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             // Extract the event handlers
-            const storageHandlerCall = vi
-                .mocked(window.addEventListener)
-                .mock.calls.find((call) => call[0] === "storage");
             const fieldToggleHandlerCall = vi
                 .mocked(window.addEventListener)
                 .mock.calls.find((call) => call[0] === "fieldToggleChanged");
@@ -327,20 +329,11 @@ describe("chartStatusIndicator.js", () => {
 
             // Manually invoke the handlers to test their behavior
             // Check that the event listeners were registered
-            expect(storageHandlerCall).toBeTruthy();
             expect(fieldToggleHandlerCall).toBeTruthy();
             expect(chartsRenderedHandlerCall).toBeTruthy();
+            expect(vi.mocked(subscribeToChartSettings)).toHaveBeenCalled();
 
             // Test that the event handlers can be called without errors
-            if (storageHandlerCall) {
-                const handler = storageHandlerCall[1];
-                if (typeof handler === "function") {
-                    // This should not throw an error
-                    handler({ key: "chartjs_field_test" } as StorageEvent);
-                    expect(setTimeout).toHaveBeenCalled();
-                }
-            }
-
             if (fieldToggleHandlerCall) {
                 const handler = fieldToggleHandlerCall[1];
                 if (typeof handler === "function") {

@@ -6,6 +6,7 @@ import {
     movePowerZoneControlsToSection,
     updatePowerZoneControlsVisibility,
 } from "../../../../../utils/ui/controls/createPowerZoneControlsSimple.js";
+import { setChartFieldVisibility } from "../../../../../utils/state/domain/settingsStateManager.js";
 
 describe("createPowerZoneControlsSimple", () => {
     beforeEach(() => {
@@ -149,10 +150,10 @@ describe("createPowerZoneControlsSimple", () => {
         expect(controls.style.opacity).toBe("0.5");
     });
 
-    it("reads power zone visibility preference from localStorage", () => {
+    it("reads power zone visibility preference from chart settings", () => {
         const initialSettings = getPowerZoneVisibilitySettings() as { doughnutVisible: boolean };
         expect(initialSettings.doughnutVisible).toBe(true);
-        localStorage.setItem("chartjs_field_power_zone_doughnut", "hidden");
+        setChartFieldVisibility("power_zone_doughnut", "hidden");
         const updatedSettings = getPowerZoneVisibilitySettings() as { doughnutVisible: boolean };
         expect(updatedSettings.doughnutVisible).toBe(false);
     });

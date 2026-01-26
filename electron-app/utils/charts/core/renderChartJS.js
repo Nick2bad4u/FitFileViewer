@@ -19,74 +19,26 @@
  *
  * Dependencies:
  * - Chart.js library (windowAny.Chart)
- * - chartjs-plugin-zoom for interactive zoom/pan
- * - showNotification utility for user feedback
- * - JSZip library (window.JSZip) for ZIP export functionality
- * - State management system must be initialized
- *
- * @author FitFileViewer Development Team
- * @version 21.2.0
- * @since 1.0.0
- */
-
-/**
- * @typedef {Object} ChartJS
- * @property {Function} register - Chart.js plugin registration
+        const settingsApi = resolveChartSettingsApi();
+        return settingsApi.getChartSettings();
  * @property {Object} Zoom - Chart.js zoom plugin
  */
-
-/**
- * @typedef {Object} ChartSettings
- * @property {string|number} maxpoints - Maximum data points to display
- * @property {string} chartType - Type of chart (line, bar, etc.)
- * @property {string} interpolation - Data interpolation method
- * @property {string} animation - Animation style preference
- * @property {boolean} showGrid - Whether to show grid lines
- * @property {boolean} showLegend - Whether to show chart legend
- * @property {boolean} showTitle - Whether to show chart title
- * @property {boolean} showPoints - Whether to show data points
- * @property {boolean} showFill - Whether to fill areas under lines
- * @property {number} smoothing - Line smoothing factor
- * @property {Array<string>} colors - Custom color palette
+        const settingsApi = resolveChartSettingsApi();
+        return settingsApi.getChartFieldVisibility(field, "visible");
  */
 
-/**
- * @typedef {Object} ThemeConfig
- * @property {Object} colors - Theme color configuration
- * @property {string} colors.text - Primary text color
- * @property {string} colors.textPrimary - Primary text color variant
- * @property {string} colors.backgroundAlt - Alternative background color
- * @property {string} colors.border - Border color
- * @property {string} colors.error - Error state color
- * @property {string} colors.primary - Primary brand color
- * @property {string} colors.primaryAlpha - Primary color with transparency
+        const settingsApi = resolveChartSettingsApi();
+        const visibilityMap = settingsApi.setChartFieldVisibility(field, visibility);
  */
 
-/**
- * @typedef {Object} RenderResult
- * @property {boolean} success - Whether rendering succeeded
- * @property {number} chartCount - Number of charts rendered
+        callSetState("settings.charts.fieldVisibility", {
+            ...((getState && getState("settings.charts.fieldVisibility")) || {}),
+            ...visibilityMap,
+        });
  * @property {number} renderTime - Time taken to render in milliseconds
  * @property {Array<string>} fieldsRendered - List of fields that were rendered
- */
-
-/**
- * @typedef {Object} ChartData
- * @property {Array<any>} labels - Chart x-axis labels
- * @property {Array<Object>} datasets - Chart dataset configurations
- */
-
-/**
- * @typedef {Object} ChartPoint
- * @property {number} x - X coordinate value
- * @property {number|null} y - Y coordinate value (nullable)
- */
-
-/**
- * @typedef {Object} PerformanceRecord
- * @property {number} duration - Duration in milliseconds
- * @property {number} timestamp - Timestamp of the record
- * @property {number} chartCount - Number of charts rendered
+        const settingsApi = resolveChartSettingsApi();
+        settingsApi.updateChartSettings(settings);
  */
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
@@ -487,15 +439,59 @@ function getSettingsStateManagerSafe() {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
             const mod = g.require("../../state/domain/settingsStateManager.js");
-            // Prefer nested export to hit spies used in tests
+            if (mod && typeof mod.getChartSettings === "function") return mod;
             const nested = mod?.settingsStateManager || mod?.default?.settingsStateManager;
             if (nested && typeof nested === "object") return nested;
-            if (mod && typeof mod.updateChartSettings === "function") return mod;
         }
     } catch {
         /* ignore */
     }
     return /** @type {any} */ (settingsStateManager);
+}
+
+function resolveChartSettingsApi() {
+    const manager = getSettingsStateManagerSafe();
+
+    return {
+        getChartSettings: manager.getUserChartSettings
+            ? () => manager.getUserChartSettings()
+            : manager.getChartSettings
+            ? () => manager.getChartSettings()
+            : () => manager.getSetting?.("chart") ?? {},
+        getChartSetting: manager.getChartSetting
+            ? (key) => manager.getChartSetting(key)
+            : (key) => manager.getSetting?.("chart", key),
+        setChartSetting: manager.setChartSetting
+            ? (key, value) => manager.setChartSetting(key, value)
+            : (key, value) => manager.setSetting?.("chart", value, key),
+        getChartFieldVisibility: manager.getChartFieldVisibility
+            ? (fieldKey, defaultVisibility) =>
+                  manager.getChartFieldVisibility(fieldKey, defaultVisibility)
+            : (fieldKey, defaultVisibility = "visible") => {
+                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  return visibilityMap?.[fieldKey] ?? defaultVisibility;
+              },
+        setChartFieldVisibility: manager.setChartFieldVisibility
+            ? (fieldKey, visibility) => manager.setChartFieldVisibility(fieldKey, visibility)
+            : (fieldKey, visibility) => {
+                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  const nextVisibility = { ...visibilityMap, [fieldKey]: visibility };
+                  manager.setSetting?.("chart", nextVisibility, "fieldVisibility");
+                  return nextVisibility;
+              },
+        updateChartSettings: manager.updateChartSettings
+            ? (updates) => manager.updateChartSettings(updates)
+            : (updates) => {
+                  Object.entries(updates || {}).forEach(([key, value]) => {
+                      if (key === "fieldVisibility" && typeof value === "object") {
+                          const existing = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                          manager.setSetting?.("chart", { ...existing, ...value }, "fieldVisibility");
+                          return;
+                      }
+                      manager.setSetting?.("chart", value, key);
+                  });
+              },
+    };
 }
 
 // Safe accessor for settings state manager (tests inject nested object)
@@ -582,10 +578,8 @@ export const chartSettingsManager = {
      * @returns {string} Visibility setting ("visible", "hidden")
      */
     getFieldVisibility(field) {
-        // Use window.localStorage so tests can spy on localStorage integration.
-        const ls =
-            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
-        const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+        const settingsApi = resolveChartSettingsApi();
+        const visibility = settingsApi.getChartFieldVisibility(field, "visible");
 
         // Update field visibility state for reactive access
         callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
@@ -606,9 +600,8 @@ export const chartSettingsManager = {
 
         // Fallback to settings state manager if not available
         if (!settings) {
-            const ssm = getSettingsStateManagerSafe();
-            const fn = ssm?.getChartSettings || ssm?.settingsStateManager?.getChartSettings;
-            settings = typeof fn === "function" ? fn() : settingsStateManager.getChartSettings();
+            const settingsApi = resolveChartSettingsApi();
+            settings = settingsApi.getChartSettings();
             // Cache in state for faster access
             callSetState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
         }
@@ -636,10 +629,8 @@ export const chartSettingsManager = {
      * @param {string} visibility - Visibility setting
      */
     setFieldVisibility(field, visibility) {
-        // Use window.localStorage so tests can spy on localStorage integration.
-        const ls =
-            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
-        ls?.setItem?.(`chartjs_field_${field}`, visibility);
+        const settingsApi = resolveChartSettingsApi();
+        settingsApi.setChartFieldVisibility(field, visibility);
 
         // Update state for reactive access
         callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
@@ -678,9 +669,8 @@ export const chartSettingsManager = {
 
         // Update through settings state manager for persistence
         {
-            const ssm = getSettingsStateManagerSafe();
-            const fn = ssm?.updateChartSettings || ssm?.settingsStateManager?.updateChartSettings;
-            if (typeof fn === "function") fn(updatedSettings);
+            const settingsApi = resolveChartSettingsApi();
+            settingsApi.updateChartSettings(updatedSettings);
         }
 
         // Update in global state for reactive access using updateState
@@ -1097,19 +1087,6 @@ function readSettingOrStorageValue(settingKey, storageKey, settings) {
     if (settingKey in settings && settings[settingKey] != null) {
         return settings[settingKey];
     }
-    if (!storageKey) {
-        return null;
-    }
-    try {
-        const g = /** @type {any} */ (globalThis);
-        const storage = g?.localStorage || g?.window?.localStorage;
-        if (storage && typeof storage.getItem === "function") {
-            const value = storage.getItem(storageKey);
-            return value ?? null;
-        }
-    } catch {
-        /* ignore */
-    }
     return null;
 }
 
@@ -1405,11 +1382,7 @@ export const chartState = {
         const fields = getFormatChartFieldsSafe();
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                  // Use window.localStorage so tests can spy on localStorage integration.
-                  const ls =
-                      /** @type {any} */ (globalThis)?.window?.localStorage ||
-                      /** @type {any} */ (globalThis)?.localStorage;
-                  const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+                  const visibility = chartSettingsManager.getFieldVisibility(field) || "visible";
                   return visibility !== "hidden";
               })
             : [];

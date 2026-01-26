@@ -123,6 +123,7 @@ vi.mock("../../utils/data/processing/extractDeveloperFieldsList.js", () => ({
 
 // Bring in SUT after mocks
 import { ensureChartSettingsDropdowns } from "../../utils/ui/components/ensureChartSettingsDropdowns.js";
+import { getChartFieldVisibility } from "../../utils/state/domain/settingsStateManager.js";
 import { fieldLabels } from "../../utils/formatting/display/formatChartFields.js";
 import { exportUtils } from "../../utils/files/export/exportUtils.js";
 
@@ -294,7 +295,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Toggle off
         speedCheckbox.checked = false;
         speedCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(localStorage.getItem("chartjs_field_speed")).toBe("hidden");
+        expect(getChartFieldVisibility("speed")).toBe("hidden");
         expect(spies.debouncedRender).toHaveBeenCalled();
         vi.advanceTimersByTime(100);
         expect(spies.updateAllChartStatusIndicators).toHaveBeenCalled();
@@ -333,14 +334,14 @@ describe("ensureChartSettingsDropdowns integration", () => {
         enableAll.click();
         expect(spies.showNotification).toHaveBeenCalledWith("All charts enabled", "success");
         // spot check a couple of keys
-        expect(localStorage.getItem("chartjs_field_speed")).toBe("visible");
-        expect(localStorage.getItem("chartjs_field_heartRate")).toBe("visible");
+        expect(getChartFieldVisibility("speed")).toBe("visible");
+        expect(getChartFieldVisibility("heartRate")).toBe("visible");
         expect(spies.debouncedRender).toHaveBeenCalled();
 
         disableAll.click();
         expect(spies.showNotification).toHaveBeenCalledWith("All charts disabled", "success");
-        expect(localStorage.getItem("chartjs_field_speed")).toBe("hidden");
-        expect(localStorage.getItem("chartjs_field_heartRate")).toBe("hidden");
+        expect(getChartFieldVisibility("speed")).toBe("hidden");
+        expect(getChartFieldVisibility("heartRate")).toBe("hidden");
 
         // dispatched custom event for bulk change
         expect(dispatchSpy).toHaveBeenCalled();

@@ -9,6 +9,8 @@ const mockShowNotification = vi.fn();
 const mockChartStateManager = {
     debouncedRender: vi.fn(),
 };
+const mockSetChartSetting = vi.fn();
+const mockSetChartFieldVisibility = vi.fn();
 
 // Mock modules
 vi.mock("../../../../../utils/charts/core/renderChartJS.js", () => ({
@@ -23,6 +25,11 @@ vi.mock("../../../../../utils/charts/core/chartStateManager.js", () => ({
     chartStateManager: mockChartStateManager,
 }));
 
+vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
+    setChartSetting: mockSetChartSetting,
+    setChartFieldVisibility: mockSetChartFieldVisibility,
+}));
+
 describe("loadSharedConfiguration.js", () => {
     let originalConsoleError: any;
     let mockLocalStorage: { [key: string]: string } = {};
@@ -31,6 +38,11 @@ describe("loadSharedConfiguration.js", () => {
         vi.resetAllMocks();
         originalConsoleError = console.error;
         console.error = vi.fn();
+
+        mockSetChartSetting.mockClear();
+        mockSetChartFieldVisibility.mockClear();
+        mockShowNotification.mockClear();
+        mockRenderChartJS.mockClear();
 
         // Mock localStorage
         mockLocalStorage = {};
@@ -57,7 +69,7 @@ describe("loadSharedConfiguration.js", () => {
         vi.useRealTimers();
     });
 
-    it("should load configuration from URL and update localStorage", async () => {
+    it("should load configuration from URL and update chart settings", async () => {
         // Reset modules to ensure we have a clean slate
         vi.resetModules();
 
@@ -104,12 +116,11 @@ describe("loadSharedConfiguration.js", () => {
         // Call the function
         loadSharedConfiguration();
 
-        // Check localStorage values were set correctly
-        expect(mockLocalStorage["chartjs_field_heart_rate"]).toBe("true");
-        expect(mockLocalStorage["chartjs_field_power"]).toBe("true");
-        expect(mockLocalStorage["chartjs_field_speed"]).toBe("false");
-        expect(mockLocalStorage["chartjs_smoothing"]).toBe("5");
-        expect(mockLocalStorage["chartjs_showMarkers"]).toBe("true");
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("heart_rate", "visible");
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("power", "visible");
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("speed", "hidden");
+        expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 5);
+        expect(mockSetChartSetting).toHaveBeenCalledWith("showMarkers", true);
 
         // Check notification was shown
         expect(mockShowNotification).toHaveBeenCalledWith("Chart configuration loaded from URL", "success");
@@ -151,7 +162,7 @@ describe("loadSharedConfiguration.js", () => {
         expect(mockRenderChartJS).toHaveBeenCalled();
     });
 
-    // Adding a simpler test instead that verifies localStorage is set correctly
+    // Adding a simpler test instead that verifies settings are updated correctly
     it("should handle basic configuration correctly", async () => {
         // Reset modules and localStorage
         vi.resetModules();
@@ -180,8 +191,7 @@ describe("loadSharedConfiguration.js", () => {
         // Call the function
         loadSharedConfiguration();
 
-        // Check localStorage value was set correctly
-        expect(mockLocalStorage["chartjs_smoothing"]).toBe("10");
+        expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 10);
     });
 
     it("should handle missing chartConfig parameter", async () => {
@@ -200,8 +210,8 @@ describe("loadSharedConfiguration.js", () => {
         // Call the function
         loadSharedConfiguration();
 
-        // No localStorage should be set
-        expect(Object.keys(mockLocalStorage).length).toBe(0);
+        expect(mockSetChartSetting).not.toHaveBeenCalled();
+        expect(mockSetChartFieldVisibility).not.toHaveBeenCalled();
 
         // No notifications should be shown
         expect(mockShowNotification).not.toHaveBeenCalled();

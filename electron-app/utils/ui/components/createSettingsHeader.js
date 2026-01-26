@@ -7,7 +7,12 @@ import { extractDeveloperFieldsList } from "../../data/processing/extractDevelop
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { fieldColors, fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
-import { getChartSetting, setChartSetting } from "../../state/domain/settingsStateManager.js";
+import {
+    getChartFieldVisibility,
+    getChartSetting,
+    setChartFieldVisibility,
+    setChartSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../notifications/showNotification.js";
 
@@ -1004,7 +1009,7 @@ function createFieldToggle(/** @type {string} */ field) {
     const toggle = document.createElement("input");
     toggle.type = "checkbox";
     toggle.id = `field-toggle-${field}`;
-    toggle.checked = getChartSetting(`field_${field}`) !== "hidden";
+    toggle.checked = getChartFieldVisibility(field) !== "hidden";
     toggle.style.cssText = `
 		width: 18px;
 		height: 18px;
@@ -1093,7 +1098,7 @@ function createFieldToggle(/** @type {string} */ field) {
     } // Event listeners for toggle
     toggle.addEventListener("change", () => {
         const visibility = toggle.checked ? "visible" : "hidden";
-        setChartSetting(`field_${field}`, visibility);
+        setChartFieldVisibility(field, visibility);
 
         // Dispatch custom event for field toggle change (for real-time updates)
         globalThis.dispatchEvent(
@@ -1468,7 +1473,7 @@ function toggleAllFields(enable) {
             allFields.push(...devFields);
         } // Update localStorage for all fields
         for (const field of allFields) {
-            setChartSetting(`field_${field}`, visibility);
+            setChartFieldVisibility(field, visibility);
         }
 
         // Dispatch custom event for bulk field toggle change

@@ -1,6 +1,6 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
-import { setChartSetting } from "../../state/domain/settingsStateManager.js";
+import { setChartFieldVisibility, setChartSetting } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Function to load shared configuration from URL
@@ -12,16 +12,16 @@ export function loadSharedConfiguration() {
         if (configParam) {
             const settings = JSON.parse(atob(configParam));
 
-            // Apply settings to localStorage
+            // Apply settings using centralized chart settings state
             for (const key of Object.keys(settings)) {
                 if (key === "visibleFields") {
                     for (const field of Object.keys(settings.visibleFields)) {
-                        setChartSetting(`field_${field}`, settings.visibleFields[field]);
+                        const rawValue = settings.visibleFields[field];
+                        const visibility = rawValue === "hidden" || rawValue === false ? "hidden" : "visible";
+                        setChartFieldVisibility(field, visibility);
                     }
-                } else if (typeof settings[key] === "boolean") {
-                    localStorage.setItem(`chartjs_${key}`, settings[key].toString());
                 } else {
-                    localStorage.setItem(`chartjs_${key}`, settings[key]);
+                    setChartSetting(key, settings[key]);
                 }
             }
 

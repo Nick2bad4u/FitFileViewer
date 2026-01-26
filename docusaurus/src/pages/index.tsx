@@ -132,38 +132,38 @@ const UIDemo = (): JSX.Element => {
     ];
 
     return (
-        <div className={clsx(styles["appWindow"], styles["scrollReveal"])}>
-            <div className={styles["appHeader"]}>
-                <div className={styles["appButtons"]}>
-                    <span className={styles["appButtonRed"]} />
-                    <span className={styles["appButtonYellow"]} />
-                    <span className={styles["appButtonGreen"]} />
+        <div className={clsx(styles["app-window"], styles["scroll-reveal"])}>
+            <div className={styles["app-header"]}>
+                <div className={styles["app-buttons"]}>
+                    <span className={styles["app-button-red"]} />
+                    <span className={styles["app-button-yellow"]} />
+                    <span className={styles["app-button-green"]} />
                 </div>
-                <span className={styles["appTitle"]}>FitFileViewer</span>
+                <span className={styles["app-title"]}>FitFileViewer</span>
             </div>
-            <div className={styles["appBody"]}>
-                <div className={styles["appToolbar"]}>
+            <div className={styles["app-body"]}>
+                <div className={styles["app-toolbar"]}>
                     <button
                         type="button"
-                        className={styles["addButton"]}
+                        className={styles["add-button"]}
                         onClick={handleDemoButtonClick}
                         title="Demo button - not functional"
                     >
                         📂 Open FIT File (Demo)
                     </button>
-                    <span className={styles["statusCount"]}>
+                    <span className={styles["status-count"]}>
                         {activities.length} activities loaded
                     </span>
                 </div>
-                <div className={styles["siteList"]}>
+                <div className={styles["site-list"]}>
                     {activities.map((activity) => (
-                        <div key={activity.type + activity.date} className={styles["siteItem"]}>
-                            <div className={styles["siteStatus"]}>
-                                <span className={styles["statusDot"]} data-status="up" />
-                                <span className={styles["siteUrl"]}>{activity.type}</span>
+                        <div key={activity.type + activity.date} className={styles["site-item"]}>
+                            <div className={styles["site-status"]}>
+                                <span className={styles["status-dot"]} data-status="up" />
+                                <span className={styles["site-url"]}>{activity.type}</span>
                             </div>
-                            <div className={styles["siteMetrics"]}>
-                                <span className={styles["responseTime"]}>{activity.distance}</span>
+                            <div className={styles["site-metrics"]}>
+                                <span className={styles["response-time"]}>{activity.distance}</span>
                                 <span className={styles["uptime"]}>{activity.duration}</span>
                             </div>
                         </div>
@@ -178,13 +178,13 @@ const UIDemo = (): JSX.Element => {
  * Renders the homepage header section with hero content.
  */
 const HomepageHeader = (): JSX.Element => (
-    <header className={clsx("hero", "hero--primary", styles["heroSection"])}>
+    <header className={clsx("hero", "hero--primary", styles["hero-section"])}>
         <div className="container">
-            <div className={styles["heroContent"]}>
-                <div className={styles["heroText"]}>
+            <div className={styles["hero-content"]}>
+                <div className={styles["hero-text"]}>
                     <Heading
                         as="h1"
-                        className={`${styles["heroTitle"]} gradient-text-animated hero__title`}
+                        className={`${styles["hero-title"]} gradient-text-animated hero__title`}
                     >
                         View Your Fitness Data
                         <br />
@@ -192,18 +192,16 @@ const HomepageHeader = (): JSX.Element => (
                             The Way It Should Be.
                         </span>
                     </Heading>
-                    <p
-                        className={`${styles["heroSubtitle"]} hero__subtitle`}
-                    >
+                    <p className={`${styles["hero-subtitle"]} hero__subtitle`}>
                         A powerful desktop application for viewing and analyzing .fit files
                         from Garmin and other fitness devices. Interactive maps, detailed charts,
                         and comprehensive data tables - all in one place.
                     </p>
-                    <div className={styles["heroCta"]}>
+                    <div className={styles["hero-cta"]}>
                         <Link
                             className={clsx(
                                 "button",
-                                styles["primaryButton"],
+                                styles["primary-button"],
                                 "liquid-button"
                             )}
                             href="https://github.com/Nick2bad4u/FitFileViewer/releases"
@@ -213,7 +211,7 @@ const HomepageHeader = (): JSX.Element => (
                         <Link
                             className={clsx(
                                 "button",
-                                styles["secondaryButton"],
+                                styles["secondary-button"],
                                 "liquid-button"
                             )}
                             to="/docs"
@@ -223,7 +221,7 @@ const HomepageHeader = (): JSX.Element => (
                         <GitHubStatsComponent />
                     </div>
                 </div>
-                <div className={styles["heroDemo"]}>
+                <div className={styles["hero-demo"]}>
                     <UIDemo />
                 </div>
             </div>
@@ -236,61 +234,52 @@ const HomepageHeader = (): JSX.Element => (
  * relying on subjective user reviews.
  */
 const RealTimeStatus = (): JSX.Element => (
-    <section className={styles["statusSection"]}>
+    <section className={styles["status-section"]}>
         <div className="container">
-            <Heading as="h2" className={styles["sectionTitle"]}>
+            <Heading as="h2" className={styles["section-title"]}>
                 ✨ Why FitFileViewer?
             </Heading>
-            <div className={styles["statusGrid"]}>
+            <div className={styles["status-grid"]}>
                 <div
-                        className={clsx(
-                            styles["statusCard"],
-                            styles["scrollRevealLeft"]
-                        )}
+                    className={clsx(styles["status-card"], styles["scroll-reveal-left"])}
                 >
-                    <div className={styles["statusHeader"]}>
-                        <span className={styles["statusIndicator"]}>📊</span>
-                        <span className={styles["statusText"]}>
+                    <div className={styles["status-header"]}>
+                        <span className={styles["status-indicator"]}>📊</span>
+                        <span className={styles["status-text"]}>
                             Deep Activity Insight
                         </span>
                     </div>
-                    <p className={styles["statusDescription"]}>
+                    <p className={styles["status-description"]}>
                         Inspect every data point from your .fit files: pace, heart rate,
                         power, cadence, elevation, laps, and more. Flexible charts and
                         data tables let you drill into exactly the metrics you care about.
                     </p>
                 </div>
                 <div
-                        className={clsx(
-                            styles["statusCard"],
-                            styles["scrollReveal"]
-                        )}
+                    className={clsx(styles["status-card"], styles["scroll-reveal"])}
                 >
-                    <div className={styles["statusHeader"]}>
-                        <span className={styles["statusIndicator"]}>🛡️</span>
-                        <span className={styles["statusText"]}>
+                    <div className={styles["status-header"]}>
+                        <span className={styles["status-indicator"]}>🛡️</span>
+                        <span className={styles["status-text"]}>
                             Privacy by Design
                         </span>
                     </div>
-                    <p className={styles["statusDescription"]}>
+                    <p className={styles["status-description"]}>
                         FitFileViewer works completely offline. Your activities stay on
                         your machine: no logins, no sync jobs, no background uploads to
                         third-party servers.
                     </p>
                 </div>
                 <div
-                        className={clsx(
-                            styles["statusCard"],
-                            styles["scrollRevealRight"]
-                        )}
+                    className={clsx(styles["status-card"], styles["scroll-reveal-right"])}
                 >
-                    <div className={styles["statusHeader"]}>
-                        <span className={styles["statusIndicator"]}>⚙️</span>
-                        <span className={styles["statusText"]}>
+                    <div className={styles["status-header"]}>
+                        <span className={styles["status-indicator"]}>⚙️</span>
+                        <span className={styles["status-text"]}>
                             Built for Power Users
                         </span>
                     </div>
-                    <p className={styles["statusDescription"]}>
+                    <p className={styles["status-description"]}>
                         Keyboard shortcuts, multi-window workflows, and a focus on raw
                         data make FitFileViewer ideal for athletes, coaches, and
                         developers who want full control over their analysis.
@@ -305,10 +294,10 @@ const RealTimeStatus = (): JSX.Element => (
  * Renders the technology stack section.
  */
 const TechStack = (): JSX.Element => (
-    <section className={styles["techSection"]}>
+    <section className={styles["tech-section"]}>
         <div className="container">
-            <div className={styles["techContent"]}>
-                <div className={styles["techInfo"]}>
+            <div className={styles["tech-content"]}>
+                <div className={styles["tech-info"]}>
                     <Heading as="h2">
                         Built for Athletes, by Athletes
                     </Heading>
@@ -317,22 +306,22 @@ const TechStack = (): JSX.Element => (
                         complete control over your fitness data. No subscriptions, no
                         cloud uploads, no data mining - just pure analysis.
                     </p>
-                    <div className={styles["techFeatures"]}>
-                        <div className={styles["techFeature"]}>
+                    <div className={styles["tech-features"]}>
+                        <div className={styles["tech-feature"]}>
                             <strong>🔓 Fully Open Source</strong>
                             <p>
                                 View the code, contribute features, or customize it for
                                 your needs. It&apos;s all on GitHub under the Unlicense.
                             </p>
                         </div>
-                        <div className={styles["techFeature"]}>
+                        <div className={styles["tech-feature"]}>
                             <strong>🖥️ Cross-Platform Desktop</strong>
                             <p>
                                 Native apps for Windows, macOS, and Linux. Works offline
                                 with all your data stored locally.
                             </p>
                         </div>
-                        <div className={styles["techFeature"]}>
+                        <div className={styles["tech-feature"]}>
                             <strong>📊 Powerful Visualization</strong>
                             <p>
                                 Leaflet maps, Chart.js graphs, and DataTables for
@@ -341,14 +330,14 @@ const TechStack = (): JSX.Element => (
                         </div>
                     </div>
                 </div>
-                <div className={styles["techCode"]}>
-                    <div className={styles["codeBlock"]}>
-                        <div className={styles["codeHeader"]}>
+                <div className={styles["tech-code"]}>
+                    <div className={styles["code-block"]}>
+                        <div className={styles["code-header"]}>
                             <span>package.json</span>
-                            <div className={styles["codeActions"]}>
+                            <div className={styles["code-actions"]}>
                                 <button
                                     type="button"
-                                    className={styles["copyButton"]}
+                                    className={styles["copy-button"]}
                                     onClick={handleCopyCodeClick}
                                 >
                                     📋 Copy
@@ -357,13 +346,13 @@ const TechStack = (): JSX.Element => (
                                     href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/electron-app/package.json"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={styles["viewButton"]}
+                                    className={styles["view-button"]}
                                 >
                                     🔗 View Full
                                 </a>
                             </div>
                         </div>
-                        <pre className={styles["codeContent"]}>
+                        <pre className={styles["code-content"]}>
                             {`{
   "name": "fitfileviewer",
   "version": "29.3.0",
@@ -421,21 +410,21 @@ const ScreenshotGallery = (): JSX.Element => {
     ] as const;
 
     return (
-        <section className={styles["screenshotsSection"]}>
+        <section className={styles["screenshots-section"]}>
             <div className="container">
-                <Heading as="h2" className={styles["sectionTitle"]}>
+                <Heading as="h2" className={styles["section-title"]}>
                     🖼️ Screenshots
                 </Heading>
-                <p className={styles["screenshotsSubtitle"]}>
+                <p className={styles["screenshots-subtitle"]}>
                     A quick look at the Map, Tables, and Charts tabs.
                 </p>
-                <div className={styles["screenshotGrid"]}>
+                <div className={styles["screenshot-grid"]}>
                     {screenshots.map((shot) => {
                         const imgSrc = useBaseUrl(shot.imagePath);
                         return (
-                            <article key={shot.imagePath} className={styles["screenshotCard"]}>
+                            <article key={shot.imagePath} className={styles["screenshot-card"]}>
                                 <Link
-                                    className={styles["screenshotImageLink"]}
+                                    className={styles["screenshot-image-link"]}
                                     href={imgSrc}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -443,23 +432,23 @@ const ScreenshotGallery = (): JSX.Element => {
                                 >
                                     <img
                                         alt={shot.imageAlt}
-                                        className={styles["screenshotImage"]}
+                                        className={styles["screenshot-image"]}
                                         loading="lazy"
                                         src={imgSrc}
                                     />
                                 </Link>
-                                <div className={styles["screenshotBody"]}>
-                                    <Heading as="h3" className={styles["screenshotTitle"]}>
+                                <div className={styles["screenshot-body"]}>
+                                    <Heading as="h3" className={styles["screenshot-title"]}>
                                         {shot.title}
                                     </Heading>
-                                    <p className={styles["screenshotDescription"]}>
+                                    <p className={styles["screenshot-description"]}>
                                         {shot.description}
                                     </p>
-                                    <div className={styles["screenshotActions"]}>
+                                    <div className={styles["screenshot-actions"]}>
                                         <Link
                                             className={clsx(
                                                 "button button--primary button--sm",
-                                                styles["screenshotAction"]
+                                                styles["screenshot-action"]
                                             )}
                                             to={shot.docHref}
                                         >
@@ -468,7 +457,7 @@ const ScreenshotGallery = (): JSX.Element => {
                                         <Link
                                             className={clsx(
                                                 "button button--secondary button--sm",
-                                                styles["screenshotAction"]
+                                                styles["screenshot-action"]
                                             )}
                                             href={imgSrc}
                                             target="_blank"

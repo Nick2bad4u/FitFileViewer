@@ -15,6 +15,20 @@ export function exportAllSettings(): ExportedSettings | null;
 /** @param {string} key */
 export function getChartSetting(key: string): any;
 /**
+ * Get normalized chart settings with field visibility map.
+ */
+export function getChartSettings(): ChartSettings;
+/**
+ * Convenience wrapper for chart renderers to access chart settings.
+ */
+export function getUserChartSettings(): ChartSettings;
+/**
+ * Get visibility for a chart field.
+ * @param {string} fieldKey
+ * @param {ChartFieldVisibility} [defaultVisibility]
+ */
+export function getChartFieldVisibility(fieldKey: string, defaultVisibility?: ChartFieldVisibility): ChartFieldVisibility;
+/**
  * Get map theme setting
  * @returns {boolean} Map theme inverted state
  */
@@ -43,6 +57,24 @@ export function resetChartSettings(): boolean;
 /** @param {string} key @param {any} value */
 export function setChartSetting(key: string, value: any): boolean;
 /**
+ * Update chart settings by merging new values.
+ * @param {ChartSettings} updates
+ */
+export function updateChartSettings(updates: ChartSettings): ChartSettings;
+/**
+ * Set visibility for a chart field.
+ * @param {string} fieldKey
+ * @param {ChartFieldVisibility} visibility
+ */
+export function setChartFieldVisibility(fieldKey: string, visibility: ChartFieldVisibility): ChartFieldVisibilityMap;
+/**
+ * Subscribe to chart settings changes.
+ * @param {(next: ChartSettings, previous: ChartSettings) => void} callback
+ */
+export function subscribeToChartSettings(
+    callback: (next: ChartSettings, previous: ChartSettings) => void
+): () => void;
+/**
  * Set map theme setting
  * @param {boolean} inverted - Map theme inverted state
  */
@@ -61,6 +93,12 @@ export type SettingSchema = {
     default: any;
     validate: (value: any) => boolean;
     type: "string" | "boolean" | "object" | "number";
+};
+export type ChartFieldVisibility = "visible" | "hidden";
+export type ChartFieldVisibilityMap = Record<string, ChartFieldVisibility>;
+export type ChartSettings = {
+    fieldVisibility?: ChartFieldVisibilityMap;
+    [key: string]: any;
 };
 export type ExportedSettings = {
     version: string;
