@@ -19,26 +19,7 @@
  *
  * Dependencies:
  * - Chart.js library (windowAny.Chart)
-        const settingsApi = resolveChartSettingsApi();
-        return settingsApi.getChartSettings();
- * @property {Object} Zoom - Chart.js zoom plugin
- */
-        const settingsApi = resolveChartSettingsApi();
-        return settingsApi.getChartFieldVisibility(field, "visible");
- */
-
-        const settingsApi = resolveChartSettingsApi();
-        const visibilityMap = settingsApi.setChartFieldVisibility(field, visibility);
- */
-
-        callSetState("settings.charts.fieldVisibility", {
-            ...((getState && getState("settings.charts.fieldVisibility")) || {}),
-            ...visibilityMap,
-        });
- * @property {number} renderTime - Time taken to render in milliseconds
- * @property {Array<string>} fieldsRendered - List of fields that were rendered
-        const settingsApi = resolveChartSettingsApi();
-        settingsApi.updateChartSettings(settings);
+ * - Chart.js zoom plugin (windowAny.ChartZoom)
  */
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
@@ -449,54 +430,6 @@ function getSettingsStateManagerSafe() {
     return /** @type {any} */ (settingsStateManager);
 }
 
-function resolveChartSettingsApi() {
-    const manager = getSettingsStateManagerSafe();
-
-    return {
-        getChartSettings: manager.getUserChartSettings
-            ? () => manager.getUserChartSettings()
-            : manager.getChartSettings
-            ? () => manager.getChartSettings()
-            : () => manager.getSetting?.("chart") ?? {},
-        getChartSetting: manager.getChartSetting
-            ? (key) => manager.getChartSetting(key)
-            : (key) => manager.getSetting?.("chart", key),
-        setChartSetting: manager.setChartSetting
-            ? (key, value) => manager.setChartSetting(key, value)
-            : (key, value) => manager.setSetting?.("chart", value, key),
-        getChartFieldVisibility: manager.getChartFieldVisibility
-            ? (fieldKey, defaultVisibility) =>
-                  manager.getChartFieldVisibility(fieldKey, defaultVisibility)
-            : (fieldKey, defaultVisibility = "visible") => {
-                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  return visibilityMap?.[fieldKey] ?? defaultVisibility;
-              },
-        setChartFieldVisibility: manager.setChartFieldVisibility
-            ? (fieldKey, visibility) => manager.setChartFieldVisibility(fieldKey, visibility)
-            : (fieldKey, visibility) => {
-                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  const nextVisibility = { ...visibilityMap, [fieldKey]: visibility };
-                  manager.setSetting?.("chart", nextVisibility, "fieldVisibility");
-                  return nextVisibility;
-              },
-        updateChartSettings: manager.updateChartSettings
-            ? (updates) => manager.updateChartSettings(updates)
-            : (updates) => {
-                  Object.entries(updates || {}).forEach(([key, value]) => {
-                      if (key === "fieldVisibility" && typeof value === "object") {
-                          const existing = manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                          manager.setSetting?.("chart", { ...existing, ...value }, "fieldVisibility");
-                          return;
-                      }
-                      manager.setSetting?.("chart", value, key);
-                  });
-              },
-    };
-}
-
-// Safe accessor for settings state manager (tests inject nested object)
-// (duplicate removed below)
-
 function getSetupZoneDataSafe() {
     try {
         const g = /** @type {any} */ (globalThis);
@@ -510,7 +443,8 @@ function getSetupZoneDataSafe() {
     return setupZoneData;
 }
 
-// (moved up)
+// Safe accessor for settings state manager (tests inject nested object)
+// (duplicate removed below)
 
 function getShowRenderNotificationSafe() {
     try {
@@ -524,6 +458,8 @@ function getShowRenderNotificationSafe() {
     }
     return showRenderNotification;
 }
+
+// (moved up)
 
 function getStateManagerSafe() {
     try {
@@ -565,6 +501,50 @@ function getUIStateManagerMaybe() {
     } catch {
         return null;
     }
+}
+
+function resolveChartSettingsApi() {
+    const manager = getSettingsStateManagerSafe();
+
+    return {
+        getChartSettings: manager.getUserChartSettings
+            ? () => manager.getUserChartSettings()
+            : manager.getChartSettings
+              ? () => manager.getChartSettings()
+              : () => manager.getSetting?.("chart") ?? {},
+        getChartSetting: manager.getChartSetting
+            ? (key) => manager.getChartSetting(key)
+            : (key) => manager.getSetting?.("chart", key),
+        setChartSetting: manager.setChartSetting
+            ? (key, value) => manager.setChartSetting(key, value)
+            : (key, value) => manager.setSetting?.("chart", value, key),
+        getChartFieldVisibility: manager.getChartFieldVisibility
+            ? (fieldKey, defaultVisibility) => manager.getChartFieldVisibility(fieldKey, defaultVisibility)
+            : (fieldKey, defaultVisibility = "visible") => {
+                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  return visibilityMap?.[fieldKey] ?? defaultVisibility;
+              },
+        setChartFieldVisibility: manager.setChartFieldVisibility
+            ? (fieldKey, visibility) => manager.setChartFieldVisibility(fieldKey, visibility)
+            : (fieldKey, visibility) => {
+                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  const nextVisibility = { ...visibilityMap, [fieldKey]: visibility };
+                  manager.setSetting?.("chart", nextVisibility, "fieldVisibility");
+                  return nextVisibility;
+              },
+        updateChartSettings: manager.updateChartSettings
+            ? (updates) => manager.updateChartSettings(updates)
+            : (updates) => {
+                  for (const [key, value] of Object.entries(updates || {})) {
+                      if (key === "fieldVisibility" && typeof value === "object") {
+                          const existing = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                          manager.setSetting?.("chart", { ...existing, ...value }, "fieldVisibility");
+                          continue;
+                      }
+                      manager.setSetting?.("chart", value, key);
+                  }
+              },
+    };
 }
 
 /**

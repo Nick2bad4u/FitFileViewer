@@ -152,6 +152,9 @@ export function movePowerZoneControlsToSection() {
         return;
     }
 
+    /** @type {string[]} */
+    const movedControls = [];
+
     // Find existing power zone controls in the field toggles section
     const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"];
 

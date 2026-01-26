@@ -27,7 +27,10 @@ export function getUserChartSettings(): ChartSettings;
  * @param {string} fieldKey
  * @param {ChartFieldVisibility} [defaultVisibility]
  */
-export function getChartFieldVisibility(fieldKey: string, defaultVisibility?: ChartFieldVisibility): ChartFieldVisibility;
+export function getChartFieldVisibility(
+    fieldKey: string,
+    defaultVisibility?: ChartFieldVisibility
+): ChartFieldVisibility;
 /**
  * Get map theme setting
  * @returns {boolean} Map theme inverted state
@@ -48,7 +51,7 @@ export function importAllSettings(settingsData: any): boolean;
 /**
  * Reset all chart settings
  */
-export function resetChartSettings(): boolean;
+export function resetChartSettings(options?: { silent?: boolean }): boolean;
 /**
  * Set chart setting
  * @param {string} key - Chart setting key
@@ -56,6 +59,11 @@ export function resetChartSettings(): boolean;
  */
 /** @param {string} key @param {any} value */
 export function setChartSetting(key: string, value: any): boolean;
+/**
+ * Remove a chart setting (chartjs_* key).
+ * @param {string} key
+ */
+export function removeChartSetting(key: string): boolean;
 /**
  * Update chart settings by merging new values.
  * @param {ChartSettings} updates
@@ -71,9 +79,7 @@ export function setChartFieldVisibility(fieldKey: string, visibility: ChartField
  * Subscribe to chart settings changes.
  * @param {(next: ChartSettings, previous: ChartSettings) => void} callback
  */
-export function subscribeToChartSettings(
-    callback: (next: ChartSettings, previous: ChartSettings) => void
-): () => void;
+export function subscribeToChartSettings(callback: (next: ChartSettings, previous: ChartSettings) => void): () => void;
 /**
  * Set map theme setting
  * @param {boolean} inverted - Map theme inverted state
@@ -190,7 +196,12 @@ declare class SettingsStateManager {
      * @param {SettingCategory|null} [category=null]
      * @returns {boolean}
      */
-    resetSettings(category?: SettingCategory | null): boolean;
+    resetSettings(
+        category?: SettingCategory | null,
+        options?: {
+            silent?: boolean;
+        }
+    ): boolean;
     /**
      * Set a setting value with validation
      * @param {string} category - Setting category

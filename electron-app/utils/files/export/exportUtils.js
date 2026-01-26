@@ -3,6 +3,7 @@ import { z } from "zod";
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { fetchWithTimeout, isAbortError, truncateErrorText } from "../../net/networkUtils.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import { safeStorageGetItem, safeStorageRemoveItem, safeStorageSetItem } from "../../storage/storageUtils.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
@@ -1500,7 +1501,7 @@ export const exportUtils = {
      * @returns {string} Background color based on export theme setting
      */
     getExportThemeBackground() {
-        const exportTheme = safeStorageGetItem("chartjs_exportTheme", __deps.getStorage);
+        const exportTheme = getChartSetting("exportTheme");
 
         const debugEnabled =
             typeof process !== "undefined" && Boolean(process.env) && process.env.FFV_DEBUG_EXPORT_THEME === "1";

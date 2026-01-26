@@ -344,7 +344,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             const result = getUnitSymbol("distance");
             expect(result).toBe("km"); // Should fallback to default kilometers
             expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[UnitSymbol] Error reading localStorage key "chartjs_distanceUnits":',
+                '[UnitSymbol] Error reading setting "distanceUnits":',
                 expect.any(Error)
             );
         });
@@ -353,7 +353,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             const result = getUnitSymbol("temperature");
             expect(result).toBe("°C"); // Should fallback to celsius
             expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[UnitSymbol] Error reading localStorage key "chartjs_temperatureUnits":',
+                '[UnitSymbol] Error reading setting "temperatureUnits":',
                 expect.any(Error)
             );
         });
@@ -362,7 +362,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             const result = getUnitSymbol("anyField", "time");
             expect(result).toBe("s"); // Should fallback to seconds
             expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[UnitSymbol] Error reading localStorage key "chartjs_timeUnits":',
+                '[UnitSymbol] Error reading setting "timeUnits":',
                 expect.any(Error)
             );
         });
@@ -381,7 +381,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             // Should still return a value (default) because error is in try-catch
             expect(result).toBe("km"); // Still returns default value
             expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[UnitSymbol] Error reading localStorage key "chartjs_distanceUnits":',
+                '[UnitSymbol] Error reading setting "distanceUnits":',
                 expect.any(Error)
             );
 

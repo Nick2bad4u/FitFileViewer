@@ -4,6 +4,7 @@
  */
 
 import { chartColorSchemes } from "../../charts/theming/chartColorSchemes.js";
+import { getChartSetting, removeChartSetting, setChartSetting } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
@@ -58,6 +59,94 @@ const FALLBACK_POWER_ZONE_COLORS = [
 
 const zoneColorCache = new Map();
 const chartSpecificZoneColorCache = new Map();
+const COLOR_SCHEME_SUFFIX = "_color_scheme";
+
+const getChartColorSchemeKey = (chartField) => `${chartField}${COLOR_SCHEME_SUFFIX}`;
+const getChartSpecificZoneColorKey = (chartField, zoneIndex) => `${chartField}_zone_${zoneIndex + 1}_color`;
+const getZoneColorKey = (zoneType, zoneIndex) => `${zoneType}_zone_${zoneIndex + 1}_color`;
+
+/**
+ * Clear the chart color scheme for a field.
+ * @param {string} chartField
+ * @returns {boolean}
+ */
+export function clearChartColorScheme(chartField) {
+    return removeChartSetting(getChartColorSchemeKey(chartField));
+}
+
+/**
+ * Get the stored chart color scheme for a field.
+ * @param {string} chartField
+ * @returns {string}
+ */
+export function getChartColorScheme(chartField) {
+    const stored = getChartSetting(getChartColorSchemeKey(chartField));
+    return typeof stored === "string" && stored.trim() ? stored : "custom";
+}
+
+/**
+ * Read a chart-specific zone color from storage without applying fallbacks.
+ * @param {string} chartField
+ * @param {number} zoneIndex
+ * @returns {string | null}
+ */
+export function getStoredChartSpecificZoneColor(chartField, zoneIndex) {
+    const storageKey = getChartSpecificZoneColorKey(chartField, zoneIndex);
+    const savedColor = getChartSetting(storageKey);
+    const normalized = normalizeStoredColor(savedColor);
+
+    if (normalized) {
+        return normalized;
+    }
+
+    if (savedColor) {
+        try {
+            removeChartSetting(storageKey);
+        } catch {
+            /* ignore */
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Read a generic zone color from storage without applying fallbacks.
+ * @param {string} zoneType
+ * @param {number} zoneIndex
+ * @returns {string | null}
+ */
+export function getStoredZoneColor(zoneType, zoneIndex) {
+    const storageKey = getZoneColorKey(zoneType, zoneIndex);
+    const savedColor = getChartSetting(storageKey);
+    const normalized = normalizeStoredColor(savedColor);
+
+    if (normalized) {
+        return normalized;
+    }
+
+    if (savedColor) {
+        try {
+            removeChartSetting(storageKey);
+        } catch {
+            /* ignore */
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Persist the chart color scheme for a field.
+ * @param {string} chartField
+ * @param {string} scheme
+ * @returns {string}
+ */
+export function setChartColorScheme(chartField, scheme) {
+    const normalized = typeof scheme === "string" && scheme.trim() ? scheme.trim() : "custom";
+    setChartSetting(getChartColorSchemeKey(chartField), normalized);
+    return normalized;
+}
 
 /**
  * Conservative CSS color-token validation.
@@ -182,22 +271,10 @@ export function getChartSpecificZoneColor(chartField, zoneIndex) {
         return cachedValue;
     }
 
-    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
-    const savedColor = localStorage.getItem(storageKey);
-    const normalized = normalizeStoredColor(savedColor);
-
-    if (normalized) {
-        chartSpecificZoneColorCache.set(cacheKey, normalized);
-        return normalized;
-    }
-
-    // Self-heal corrupted values.
-    if (savedColor) {
-        try {
-            localStorage.removeItem(storageKey);
-        } catch {
-            /* ignore */
-        }
+    const storedColor = getStoredChartSpecificZoneColor(chartField, zoneIndex);
+    if (storedColor) {
+        chartSpecificZoneColorCache.set(cacheKey, storedColor);
+        return storedColor;
     }
 
     // Fallback to generic zone color if chart-specific color doesn't exist
@@ -279,21 +356,10 @@ export function getZoneColor(zoneType, zoneIndex) {
         return /** @type {string} */ (zoneColorCache.get(cacheKey));
     }
 
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
-    const savedColor = localStorage.getItem(storageKey);
-    const normalized = normalizeStoredColor(savedColor);
-
-    if (normalized) {
-        zoneColorCache.set(cacheKey, normalized);
-        return normalized;
-    }
-
-    if (savedColor) {
-        try {
-            localStorage.removeItem(storageKey);
-        } catch {
-            /* ignore */
-        }
+    const storedColor = getStoredZoneColor(zoneType, zoneIndex);
+    if (storedColor) {
+        zoneColorCache.set(cacheKey, storedColor);
+        return storedColor;
     }
 
     // Return default color
@@ -339,12 +405,33 @@ export function getZoneTypeFromField(field) {
  */
 export function hasChartSpecificColors(chartField, zoneCount) {
     for (let i = 0; i < zoneCount; i++) {
-        const storageKey = `chartjs_${chartField}_zone_${i + 1}_color`;
-        if (localStorage.getItem(storageKey)) {
+        if (getStoredChartSpecificZoneColor(chartField, i)) {
             return true;
         }
     }
     return false;
+}
+
+/**
+ * Remove a chart-specific zone color entry and clear cache.
+ * @param {string} chartField
+ * @param {number} zoneIndex
+ */
+export function removeChartSpecificZoneColor(chartField, zoneIndex) {
+    const storageKey = getChartSpecificZoneColorKey(chartField, zoneIndex);
+    removeChartSetting(storageKey);
+    clearCachedChartZoneColor(chartField, zoneIndex);
+}
+
+/**
+ * Remove a generic zone color entry and clear cache.
+ * @param {string} zoneType
+ * @param {number} zoneIndex
+ */
+export function removeZoneColor(zoneType, zoneIndex) {
+    const storageKey = getZoneColorKey(zoneType, zoneIndex);
+    removeChartSetting(storageKey);
+    clearCachedZoneColor(zoneType, zoneIndex);
 }
 
 /**
@@ -357,7 +444,7 @@ export function resetChartSpecificZoneColors(chartField, zoneCount) {
         defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
 
     // Set color scheme to custom when resetting zone colors
-    localStorage.setItem(`chartjs_${chartField}_color_scheme`, "custom");
+    setChartColorScheme(chartField, "custom");
 
     for (let i = 0; i < zoneCount; i++) {
         const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length] || "#808080";
@@ -392,10 +479,10 @@ export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
         return;
     }
 
-    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
-    const existing = localStorage.getItem(storageKey);
+    const storageKey = getChartSpecificZoneColorKey(chartField, zoneIndex);
+    const existing = getChartSetting(storageKey);
     if (existing !== normalized) {
-        localStorage.setItem(storageKey, normalized);
+        setChartSetting(storageKey, normalized);
     }
     chartSpecificZoneColorCache.set(`${chartField}:${zoneIndex}`, normalized);
 }
@@ -413,10 +500,10 @@ export function saveZoneColor(zoneType, zoneIndex, color) {
         return;
     }
 
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
-    const existing = localStorage.getItem(storageKey);
+    const storageKey = getZoneColorKey(zoneType, zoneIndex);
+    const existing = getChartSetting(storageKey);
     if (existing !== normalized) {
-        localStorage.setItem(storageKey, normalized);
+        setChartSetting(storageKey, normalized);
     }
     zoneColorCache.set(`${zoneType}:${zoneIndex}`, normalized);
 }

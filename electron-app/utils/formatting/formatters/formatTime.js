@@ -10,6 +10,7 @@
  */
 
 import { CONVERSION_FACTORS, TIME_UNITS } from "../../config/index.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 // No imports needed from errorHandling for current implementation
 import { convertTimeUnits } from "../converters/convertTimeUnits.js";
 
@@ -18,7 +19,6 @@ import { convertTimeUnits } from "../converters/convertTimeUnits.js";
  * @readonly
  */
 const TIME_FORMAT_CONSTANTS = {
-    DEFAULT_TIME_UNITS_KEY: "chartjs_timeUnits",
     FALLBACK_VALUE: "0:00",
     PAD_CHAR: "0",
     PAD_LENGTH: 2,
@@ -107,7 +107,7 @@ function formatTimeInternal(seconds, useUserUnits) {
 }
 
 /**
- * Formats time using user's preferred units from localStorage
+ * Formats time using user's preferred units from settings state
  * @param {number} seconds - Time in seconds
  * @returns {string} Formatted time string with units
  * @private
@@ -117,44 +117,12 @@ function formatWithUserUnits(seconds) {
     let timeUnits = TIME_UNITS.SECONDS;
 
     try {
-        // Attempt to read from multiple storage locations to honor whichever
-        // The runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
-        /** @type {any} */
-        const storages = [];
-        try {
-            if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
-                storages.push(/** @type {any} */ (globalThis).localStorage);
-        } catch {
-            /* Ignore errors */
-        }
-        try {
-            if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
-                storages.push(/** @type {any} */ (globalThis).localStorage);
-        } catch {
-            /* Ignore errors */
-        }
-        try {
-            if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
-        } catch {
-            /* Ignore errors */
-        }
-
-        for (const storage of storages) {
-            if (storage && typeof storage.getItem === "function") {
-                try {
-                    const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
-                    if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
-                        timeUnits = stored;
-                        break;
-                    }
-                } catch (error) {
-                    console.error("[formatTime] Error reading from localStorage:", error);
-                    throw error; // Re-throw to be caught by outer try-catch
-                }
-            }
+        const stored = getChartSetting("timeUnits");
+        if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+            timeUnits = stored;
         }
     } catch (error) {
-        console.error("[formatTime] Error accessing localStorage:", error);
+        console.error("[formatTime] Error accessing time unit setting:", error);
         throw error; // Re-throw to be caught by formatTimeInternal
     }
 

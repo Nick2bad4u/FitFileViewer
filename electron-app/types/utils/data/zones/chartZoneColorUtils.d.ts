@@ -13,6 +13,12 @@ export function applyZoneColors(zoneData: ZoneData[], zoneType: string): ZoneDat
  */
 export function getChartSpecificZoneColor(chartField: string, zoneIndex: number): string;
 /**
+ * Read a chart-specific zone color without applying fallbacks.
+ * @param {string} chartField
+ * @param {number} zoneIndex
+ */
+export function getStoredChartSpecificZoneColor(chartField: string, zoneIndex: number): string | null;
+/**
  * Gets an array of colors for all zones of a specific chart type
  * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
  * @param {number} zoneCount - Number of zones
@@ -48,12 +54,34 @@ export function getDisplayZoneColors(zoneType: string, zoneCount: number, colorS
  */
 export function getZoneColor(zoneType: string, zoneIndex: number): string;
 /**
+ * Read a generic zone color without applying fallbacks.
+ * @param {string} zoneType
+ * @param {number} zoneIndex
+ */
+export function getStoredZoneColor(zoneType: string, zoneIndex: number): string | null;
+/**
  * Gets an array of colors for all zones of a given type
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
  * @returns {string[]} Array of hex color codes
  */
 export function getZoneColors(zoneType: string, zoneCount: number): string[];
+/**
+ * Get the stored chart color scheme for a field.
+ * @param {string} chartField
+ */
+export function getChartColorScheme(chartField: string): string;
+/**
+ * Persist the chart color scheme for a field.
+ * @param {string} chartField
+ * @param {string} scheme
+ */
+export function setChartColorScheme(chartField: string, scheme: string): string;
+/**
+ * Clear the chart color scheme for a field.
+ * @param {string} chartField
+ */
+export function clearChartColorScheme(chartField: string): boolean;
 /**
  * Determines zone type from field name
  * @param {string} field - Field name (e.g., zone chart identifiers)
@@ -80,19 +108,31 @@ export function resetChartSpecificZoneColors(chartField: string, zoneCount: numb
  */
 export function resetZoneColors(zoneType: string, zoneCount: number): void;
 /**
- * Saves a zone color for a specific chart type to localStorage
+ * Saves a zone color for a specific chart type to settings storage
  * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
  * @param {number} zoneIndex - 0-based zone index
  * @param {string} color - Hex color code
  */
 export function saveChartSpecificZoneColor(chartField: string, zoneIndex: number, color: string): void;
 /**
- * Saves a zone color to localStorage
+ * Saves a zone color to settings storage
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneIndex - 0-based zone index
  * @param {string} color - Hex color code
  */
 export function saveZoneColor(zoneType: string, zoneIndex: number, color: string): void;
+/**
+ * Remove a chart-specific zone color entry and clear cache.
+ * @param {string} chartField
+ * @param {number} zoneIndex
+ */
+export function removeChartSpecificZoneColor(chartField: string, zoneIndex: number): void;
+/**
+ * Remove a generic zone color entry and clear cache.
+ * @param {string} zoneType
+ * @param {number} zoneIndex
+ */
+export function removeZoneColor(zoneType: string, zoneIndex: number): void;
 export function clearCachedChartZoneColor(chartField: any, zoneIndex: any): void;
 export function clearCachedZoneColor(zoneType: any, zoneIndex: any): void;
 export function clearCachedZoneColors(field: any, zoneCount: any): void;

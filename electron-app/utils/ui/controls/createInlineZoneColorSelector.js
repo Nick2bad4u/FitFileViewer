@@ -7,17 +7,22 @@ import { chartStateManager } from "../../charts/core/chartStateManager.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
-    clearCachedChartZoneColor,
-    clearCachedZoneColor,
+    clearChartColorScheme,
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
+    getChartColorScheme,
     getChartSpecificZoneColor,
     getChartZoneColors,
+    getStoredChartSpecificZoneColor,
+    getStoredZoneColor,
     getZoneTypeFromField,
+    removeChartSpecificZoneColor,
+    removeZoneColor,
     resetChartSpecificZoneColors,
     resetZoneColors,
     saveChartSpecificZoneColor,
     saveZoneColor,
+    setChartColorScheme,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -32,20 +37,18 @@ export function clearZoneColorData(field, zoneCount) {
         console.log(`[ZoneColorSelector] Clearing all zone color data for ${field}`);
 
         // Clear color scheme preference
-        localStorage.removeItem(`chartjs_${field}_color_scheme`);
+        clearChartColorScheme(field);
 
         // Clear chart-specific colors
         for (let i = 0; i < zoneCount; i++) {
-            localStorage.removeItem(`chartjs_${field}_zone_${i + 1}_color`);
-            clearCachedChartZoneColor(field, i);
+            removeChartSpecificZoneColor(field, i);
         }
 
         // Clear generic zone colors
         const zoneType =
             field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone" ? "hr" : "power";
         for (let i = 0; i < zoneCount; i++) {
-            localStorage.removeItem(`chartjs_${zoneType}_zone_${i + 1}_color`);
-            clearCachedZoneColor(zoneType, i);
+            removeZoneColor(zoneType, i);
         }
 
         console.log(`[ZoneColorSelector] Cleared all zone color data for ${field}`);
@@ -129,9 +132,8 @@ export function createInlineZoneColorSelector(field, container) {
             color: var(--color-fg);
             font-size: 14px;
             font-weight: 600;
-        `; // Track current scheme state - load from localStorage if available
-        const savedScheme = localStorage.getItem(`chartjs_${field}_color_scheme`);
-        let currentScheme = savedScheme || "custom";
+        `; // Track current scheme state via settings state manager
+        let currentScheme = getChartColorScheme(field);
 
         console.log(`[ZoneColorSelector] Loaded color scheme '${currentScheme}' for ${field}`);
 
@@ -147,7 +149,7 @@ export function createInlineZoneColorSelector(field, container) {
         function updateZoneColorDisplay() {
             // Get current color scheme from storage
             const schemeSelector = /** @type {HTMLSelectElement|null} */ (selectorContainer.querySelector("select"));
-            const storedScheme = localStorage.getItem(`chartjs_${field}_color_scheme`) || "custom";
+            const storedScheme = getChartColorScheme(field);
             if (schemeSelector && schemeSelector.value !== storedScheme) {
                 schemeSelector.value = storedScheme;
                 currentScheme = storedScheme;
@@ -393,7 +395,7 @@ export function createInlineZoneColorSelector(field, container) {
  * @returns {string} Current color scheme ("custom", "classic", "vibrant", "monochrome")
  */
 export function getCurrentColorScheme(field) {
-    return localStorage.getItem(`chartjs_${field}_color_scheme`) || "custom";
+    return getChartColorScheme(field);
 }
 
 /**
@@ -508,7 +510,7 @@ function createColorSchemeSelector(
     console.log(`[ZoneColorSelector] Set initial scheme to '${select.value}' for ${field}`);
     select.addEventListener("change", (e) => {
         const scheme = /** @type {HTMLSelectElement} */ (e.target).value;
-        localStorage.setItem(`chartjs_${field}_color_scheme`, scheme);
+        setChartColorScheme(field, scheme);
         if (onSchemeSelect) {
             onSchemeSelect(scheme);
         }
@@ -516,14 +518,11 @@ function createColorSchemeSelector(
         if (scheme === "custom") {
             // Restore custom colors from chart-specific storage or fallback
             for (let i = 0; i < zoneCount; i++) {
-                let colorToUse = localStorage.getItem(`chartjs_${field}_zone_${i + 1}_color`);
-                if (!colorToUse) {
-                    // Fallback to generic or default
-                    colorToUse =
-                        localStorage.getItem(`chartjs_${zoneType}_zone_${i + 1}_color`) ||
-                        defaultColors[i] ||
-                        defaultColors[i % defaultColors.length];
-                }
+                const colorToUse =
+                    getStoredChartSpecificZoneColor(field, i) ||
+                    getStoredZoneColor(zoneType, i) ||
+                    defaultColors[i] ||
+                    defaultColors[i % defaultColors.length];
                 // Restore both storages for consistency
                 if (colorToUse) {
                     saveChartSpecificZoneColor(field, i, colorToUse);
@@ -778,7 +777,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         colorPreview.style.backgroundColor = newColor;
 
         // Set color scheme to custom when manually changing a zone color
-        localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+        setChartColorScheme(field, "custom");
 
         // Save color to both chart-specific and generic zone storage
         // Chart-specific storage (for the inline selector consistency)
@@ -848,7 +847,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 }
 
 /**
- * Ensures zone colors are properly persisted to localStorage
+ * Ensures zone colors are properly persisted through settings state manager
  * @param {string} field - Chart field
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
@@ -863,7 +862,7 @@ function ensureZoneColorPersistence(field, zoneType, zoneCount) {
 
         for (let i = 0; i < zoneCount; i++) {
             const chartSpecificColor = getChartSpecificZoneColor(field, i),
-                genericColor = localStorage.getItem(`chartjs_${zoneType}_zone_${i + 1}_color`);
+                genericColor = getStoredZoneColor(zoneType, i);
 
             // Sync colors between chart-specific and generic storage
             if (chartSpecificColor && !genericColor) {

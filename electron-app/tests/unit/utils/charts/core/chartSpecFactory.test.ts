@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { buildChartConfigFromSpec, buildChartSpecFromDefinition } from "../../../../../utils/charts/core/chartSpecFactory.js";
+import {
+    buildChartConfigFromSpec,
+    buildChartSpecFromDefinition,
+} from "../../../../../utils/charts/core/chartSpecFactory.js";
 import { createManagedChart } from "../../../../../utils/charts/core/createManagedChart.js";
 
 type ChartSpecFromFactory = Parameters<typeof buildChartConfigFromSpec>[0];

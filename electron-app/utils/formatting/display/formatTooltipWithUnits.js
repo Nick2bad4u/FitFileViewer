@@ -1,6 +1,7 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
-import { convertDistanceUnits } from "../converters/convertDistanceUnits.js";
-import { convertTemperatureUnits } from "../converters/convertTemperatureUnits.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+import { convertDistanceUnits, DISTANCE_UNITS } from "../converters/convertDistanceUnits.js";
+import { convertTemperatureUnits, TEMPERATURE_UNITS } from "../converters/convertTemperatureUnits.js";
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
 
 /**
@@ -12,7 +13,10 @@ import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.j
 export function formatTooltipWithUnits(value, field) {
     // Distance fields - show both metric and imperial
     if (field === "distance" || field === "altitude" || field === "enhancedAltitude") {
-        const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
+        const distanceUnitsSetting = getChartSetting("distanceUnits");
+        const distanceUnits = Object.values(DISTANCE_UNITS).includes(distanceUnitsSetting)
+            ? distanceUnitsSetting
+            : DISTANCE_UNITS.KILOMETERS;
         const km = convertDistanceUnits(value, "kilometers");
         const miles = convertDistanceUnits(value, "miles");
 
@@ -24,7 +28,10 @@ export function formatTooltipWithUnits(value, field) {
 
     // Temperature fields - show both scales
     if (field === "temperature") {
-        const temperatureUnits = localStorage.getItem("chartjs_temperatureUnits") || "celsius";
+        const temperatureUnitsSetting = getChartSetting("temperatureUnits");
+        const temperatureUnits = Object.values(TEMPERATURE_UNITS).includes(temperatureUnitsSetting)
+            ? temperatureUnitsSetting
+            : TEMPERATURE_UNITS.CELSIUS;
         const celsius = value; // Assuming input is Celsius
         const fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
 

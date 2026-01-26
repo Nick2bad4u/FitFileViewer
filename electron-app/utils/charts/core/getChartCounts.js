@@ -74,7 +74,7 @@ export function getChartCounts() {
                 counts.categories.metrics.available++;
 
                 // Check visibility
-                    const visibility = getChartFieldVisibility(field);
+                const visibility = getChartFieldVisibility(field);
                 if (visibility !== "hidden") {
                     counts.visible++;
                     counts.categories.metrics.visible++;

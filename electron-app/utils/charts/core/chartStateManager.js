@@ -6,9 +6,9 @@
  */
 
 import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
+import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
-import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 
 /**
  * @typedef {Object} FitGlobalData
@@ -24,26 +24,6 @@ import { subscribeToChartSettings } from "../../state/domain/settingsStateManage
  * @property {number|undefined} [lastRenderTime]
  * @property {number} instanceCount
  */
-
-/**
- * Shallow compare two objects, treating null/undefined as empty objects.
- *
- * @param {Record<string, unknown> | null | undefined} first
- * @param {Record<string, unknown> | null | undefined} second
- * @returns {boolean}
- */
-function areObjectsShallowEqual(first, second) {
-    const left = first && typeof first === "object" ? first : {};
-    const right = second && typeof second === "object" ? second : {};
-    const leftKeys = Object.keys(left);
-    const rightKeys = Object.keys(right);
-
-    if (leftKeys.length !== rightKeys.length) {
-        return false;
-    }
-
-    return leftKeys.every((key) => Object.is(left[key], right[key]));
-}
 
 /**
  * Chart State Manager - handles all chart-related state and reactive updates
@@ -246,7 +226,7 @@ class ChartStateManager {
         subscribe("charts.controlsVisible", (/** @type {boolean} */ visible) => {
             this.updateControlsVisibility(visible);
         });
-        
+
         subscribeToChartSettings((nextSettings, previousSettings) => {
             const hasChanges =
                 !areObjectsShallowEqual(nextSettings, previousSettings) ||
@@ -344,6 +324,26 @@ class ChartStateManager {
             controlsPanel.style.display = visible ? "block" : "none";
         }
     }
+}
+
+/**
+ * Shallow compare two objects, treating null/undefined as empty objects.
+ *
+ * @param {Record<string, unknown> | null | undefined} first
+ * @param {Record<string, unknown> | null | undefined} second
+ * @returns {boolean}
+ */
+function areObjectsShallowEqual(first, second) {
+    const left = first && typeof first === "object" ? first : {};
+    const right = second && typeof second === "object" ? second : {};
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+
+    return leftKeys.every((key) => Object.is(left[key], right[key]));
 }
 
 // Create and export singleton instance

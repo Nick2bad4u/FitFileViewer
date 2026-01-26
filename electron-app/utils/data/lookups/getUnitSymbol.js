@@ -2,15 +2,16 @@
  * @fileoverview Unit symbol utility for FitFileViewer
  *
  * Provides functions for getting appropriate unit symbols for display based on
- * field types and user preferences stored in localStorage. Supports distance,
+ * field types and user preferences stored in settings state. Supports distance,
  * temperature, speed, time, and various fitness metrics.
  *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
 
-// LocalStorage keys for user unit preferences
-// NOTE: Uses "chartjs_" prefix for historical reasons - consider refactoring if decoupling from Chart.js
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+
+// Settings keys for user unit preferences
 const // Default unit preferences
     DEFAULT_UNITS = {
         DISTANCE: "kilometers",
@@ -34,10 +35,10 @@ const // Default unit preferences
         power: "W",
         resistance: "",
     },
-    STORAGE_KEYS = {
-        DISTANCE_UNITS: "chartjs_distanceUnits",
-        TEMPERATURE_UNITS: "chartjs_temperatureUnits",
-        TIME_UNITS: "chartjs_timeUnits",
+    SETTING_KEYS = {
+        DISTANCE_UNITS: "distanceUnits",
+        TEMPERATURE_UNITS: "temperatureUnits",
+        TIME_UNITS: "timeUnits",
     },
     // Unit symbol mappings
     UNIT_SYMBOLS = {
@@ -68,7 +69,7 @@ const // Default unit preferences
  *
  * Determines the correct unit symbol to display for various data fields based on:
  * - Field type (distance, temperature, speed, time, fitness metrics)
- * - User unit preferences stored in localStorage
+ * - User unit preferences stored in settings state
  * - Unit context (e.g., time axis vs. time field)
  *
  * @param {string} field - Field name (e.g., "distance", "temperature", "speed", "heartRate")
@@ -107,7 +108,7 @@ export function getUnitSymbol(field, unitType) {
 
         // Handle speed fields
         if (isSpeedField(field)) {
-            const distanceUnits = getUserPreference(STORAGE_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
+            const distanceUnits = getUserPreference(SETTING_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
             if (distanceUnits === "miles" || distanceUnits === "feet") {
                 return UNIT_SYMBOLS.SPEED.mph;
             }
@@ -127,7 +128,7 @@ export function getUnitSymbol(field, unitType) {
  * @returns {string} Distance unit symbol
  */
 function getDistanceUnitSymbol() {
-    const distanceUnits = getUserPreference(STORAGE_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
+    const distanceUnits = getUserPreference(SETTING_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
     return /** @type {any} */ (UNIT_SYMBOLS.DISTANCE)[distanceUnits] || UNIT_SYMBOLS.DISTANCE.meters;
 }
 
@@ -136,7 +137,7 @@ function getDistanceUnitSymbol() {
  * @returns {string} Temperature unit symbol
  */
 function getTemperatureUnitSymbol() {
-    const temperatureUnits = getUserPreference(STORAGE_KEYS.TEMPERATURE_UNITS, DEFAULT_UNITS.TEMPERATURE);
+    const temperatureUnits = getUserPreference(SETTING_KEYS.TEMPERATURE_UNITS, DEFAULT_UNITS.TEMPERATURE);
     return /** @type {any} */ (UNIT_SYMBOLS.TEMPERATURE)[temperatureUnits] || UNIT_SYMBOLS.TEMPERATURE.celsius;
 }
 
@@ -145,31 +146,22 @@ function getTemperatureUnitSymbol() {
  * @returns {string} Time unit symbol
  */
 function getTimeUnitSymbol() {
-    const timeUnits = getUserPreference(STORAGE_KEYS.TIME_UNITS, DEFAULT_UNITS.TIME);
+    const timeUnits = getUserPreference(SETTING_KEYS.TIME_UNITS, DEFAULT_UNITS.TIME);
     return /** @type {any} */ (UNIT_SYMBOLS.TIME)[timeUnits] || UNIT_SYMBOLS.TIME.seconds;
 }
 
 /**
- * Gets user preference from localStorage with fallback
- * @param {string} key - Storage key
+ * Gets user preference from settings manager with fallback
+ * @param {string} key - Setting key
  * @param {string} fallback - Default value if not found
  * @returns {string} User preference or fallback
  */
 function getUserPreference(key, fallback) {
     try {
-        // Prefer window.localStorage when available for jsdom/test environments
-        /** @type {any} */
-        const w = globalThis.window === undefined ? /** @type {any} */ undefined : globalThis;
-        /** @type {Storage|undefined} */
-        const storage =
-            w && w.localStorage ? w.localStorage : typeof localStorage === "undefined" ? undefined : localStorage;
-        if (!storage || typeof storage.getItem !== "function") {
-            return fallback;
-        }
-        const val = storage.getItem(key);
-        return val == null ? fallback : val;
+        const value = getChartSetting(key);
+        return typeof value === "string" && value ? value : fallback;
     } catch (error) {
-        console.warn(`[UnitSymbol] Error reading localStorage key "${key}":`, error);
+        console.warn(`[UnitSymbol] Error reading setting "${key}":`, error);
         return fallback;
     }
 }

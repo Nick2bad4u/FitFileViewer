@@ -3,7 +3,7 @@
  *
  * Determines the correct unit symbol to display for various data fields based on:
  * - Field type (distance, temperature, speed, time, fitness metrics)
- * - User unit preferences stored in localStorage
+ * - User unit preferences stored in settings state
  * - Unit context (e.g., time axis vs. time field)
  *
  * @param {string} field - Field name (e.g., "distance", "temperature", "speed", "heartRate")

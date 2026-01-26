@@ -2,12 +2,13 @@ import { chartStateManager } from "../../charts/core/chartStateManager.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
-    clearCachedChartZoneColor,
-    clearCachedZoneColor,
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
     getChartSpecificZoneColor,
+    removeChartSpecificZoneColor,
+    removeZoneColor,
     saveChartSpecificZoneColor,
+    setChartColorScheme,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
@@ -291,7 +292,7 @@ export function openZoneColorPicker(field) {
                 colorPreview.style.background = newColor;
 
                 // Set color scheme to custom when manually changing a zone color
-                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+                setChartColorScheme(field, "custom");
 
                 saveChartSpecificZoneColor(field, zoneIndex, newColor);
 
@@ -345,7 +346,7 @@ export function openZoneColorPicker(field) {
                     colorPreview.style.background = defaultColor;
 
                     // Set color scheme to custom when manually resetting a zone color
-                    localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+                    setChartColorScheme(field, "custom");
 
                     saveChartSpecificZoneColor(field, zoneIndex, defaultColor);
                     updateZoneColorPreview(field, zoneIndex, defaultColor);
@@ -420,10 +421,10 @@ export function openZoneColorPicker(field) {
                     "power_lap_zone_individual",
                 ];
                 for (const f of zoneFields) {
-                    localStorage.setItem(`chartjs_${f}_color_scheme`, "custom");
+                    setChartColorScheme(f, "custom");
                 }
                 // Also set for the current field in case it's not in the above list
-                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+                setChartColorScheme(field, "custom");
 
                 // Clear all saved zone color data for this field
                 if (globalThis.clearZoneColorData) {
@@ -432,10 +433,8 @@ export function openZoneColorPicker(field) {
                     // Fallback: remove per-zone color keys
                     const fallbackZoneType = field.includes("hr") ? "hr" : "power";
                     for (let i = 0; i < zoneData.length; i++) {
-                        localStorage.removeItem(`chartjs_${field}_zone_${i + 1}_color`);
-                        clearCachedChartZoneColor(field, i);
-                        localStorage.removeItem(`chartjs_${fallbackZoneType}_zone_${i + 1}_color`);
-                        clearCachedZoneColor(fallbackZoneType, i);
+                        removeChartSpecificZoneColor(field, i);
+                        removeZoneColor(fallbackZoneType, i);
                     }
                 }
 

@@ -47,7 +47,7 @@ export const maxPointsOptions: (number | string)[];
 /**
  * Chart option configuration object
  * @typedef {Object} ChartOption
- * @property {string} id - Unique identifier for the option (used as localStorage key)
+ * @property {string} id - Unique identifier for the option (used as settings key)
  * @property {string} label - Human-readable label for UI display
  * @property {string} type - Option type: "select", "toggle", "range"
  * @property {Array<*>} [options] - Allowed values for "select" or "toggle" types
@@ -79,7 +79,7 @@ export const chartOptionsConfig: ChartOption[];
  */
 export type ChartOption = {
     /**
-     * - Unique identifier for the option (used as localStorage key)
+     * - Unique identifier for the option (used as settings key)
      */
     id: string;
     /**

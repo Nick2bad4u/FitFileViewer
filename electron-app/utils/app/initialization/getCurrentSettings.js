@@ -2,7 +2,7 @@
  * @fileoverview Chart settings management utility for FitFileViewer
  *
  * Provides functions for getting, setting, and resetting chart configuration
- * settings. Handles localStorage persistence and UI synchronization for
+ * settings. Handles centralized settings persistence and UI synchronization for
  * chart options including toggles, selects, ranges, and color settings.
  *
  * @author FitFileViewer Team
@@ -15,6 +15,7 @@ import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { isHTMLElement, query, queryAll, setChecked, setValue } from "../../dom/index.js";
 import { fieldColors, formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { setState } from "../../state/core/stateManager.js";
+import { getChartSettings, resetChartSettings } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -31,30 +32,8 @@ function isResettable(el) {
     return Boolean(el && isHTMLElement(el) && typeof el._updateFromReset === "function");
 }
 
-// Storage key prefixes
-const LOG_PREFIX = "[ChartSettings]",
-    MAX_ZONE_COUNT = 5,
-    STORAGE_PREFIXES = {
-        CHART_OPTION: "chartjs_",
-        FIELD_COLOR: "chartjs_color_",
-        FIELD_VISIBILITY: "chartjs_field_",
-        HR_ZONE_COLOR: "chartjs_hr_zone_",
-        POWER_ZONE_COLOR: "chartjs_power_zone_",
-    },
-    UNIT_TYPES = ["timeUnits", "distanceUnits", "temperatureUnits"],
-    // Special field types for zone charts
-    ZONE_CHART_FIELDS = [
-        "gps_track",
-        "speed_vs_distance",
-        "power_vs_hr",
-        "altitude_profile",
-        "hr_zone_doughnut",
-        "power_zone_doughnut",
-        "hr_lap_zone_stacked",
-        "hr_lap_zone_individual",
-        "power_lap_zone_stacked",
-        "power_lap_zone_individual",
-    ];
+// Storage/logging prefix
+const LOG_PREFIX = "[ChartSettings]";
 
 /**
  * @typedef {Object} ChartOptionConfig
@@ -77,9 +56,9 @@ const LOG_PREFIX = "[ChartSettings]",
  */
 
 /**
- * Gets current settings from localStorage and DOM
+ * Gets current settings from settings state and DOM
  *
- * Retrieves all chart settings from localStorage with fallbacks to
+ * Retrieves all chart settings from the settings state manager with fallbacks to
  * default values. Handles type conversion and validation for different
  * setting types (select, toggle, range, colors).
  *
@@ -91,11 +70,13 @@ export function getCurrentSettings() {
             settings = { colors: {} },
             themeConfig = getThemeConfig();
 
+        const chartSettings = getChartSettings();
+
         // Get chart option settings
         for (const opt of chartOptionsConfig || []) {
-            const stored = localStorage.getItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
+            const storedValue = chartSettings?.[opt.id];
             // @ts-ignore opt shape
-            settings[opt.id] = parseStoredValue(stored, opt);
+            settings[opt.id] = parseStoredValue(storedValue, opt);
         }
 
         // Get color settings
@@ -103,10 +84,10 @@ export function getCurrentSettings() {
         /** @type {any[]} */
         const fields = Array.isArray(formatChartFields) ? formatChartFields : [];
         for (const field of fields) {
-            const stored = localStorage.getItem(`${STORAGE_PREFIXES.FIELD_COLOR}${field}`);
+            const stored = chartSettings?.[`color_${field}`];
             // @ts-ignore dynamic field key
             settings.colors[field] =
-                stored ||
+                (typeof stored === "string" && stored) ||
                 /** @type {any} */ (fieldColors)[field] ||
                 (themeConfig && themeConfig.colors ? themeConfig.colors.primaryAlpha : "#3b82f6");
         }
@@ -165,7 +146,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
 
         // CRITICAL: Clear cached settings from state management
-        // This ensures the chart rendering will read fresh settings from localStorage
+        // This ensures the chart rendering will read fresh settings from state manager
         if (typeof setState === "function") {
             setState("settings.charts", null, { source: "reRenderChartsAfterSettingChange" });
             console.log(`${LOG_PREFIX} Cleared cached chart settings from state`);
@@ -253,7 +234,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
 /**
  * Resets all chart settings to their default values
  *
- * Clears all chart-related settings from localStorage, resets UI controls
+ * Clears all chart-related settings from the settings state manager, resets UI controls
  * to default values, and re-renders charts with the default configuration.
  * Shows a success notification when complete.
  *
@@ -300,36 +281,11 @@ export function resetAllSettings() {
 }
 
 /**
- * Clears all chart-related localStorage items
+ * Clears all chart-related settings entries
  */
 function clearAllStorageItems() {
     try {
-        // Clear chart option settings
-        for (const opt of chartOptionsConfig || []) {
-            localStorage.removeItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
-        }
-
-        // Clear field visibility and color settings
-        for (const field of Array.isArray(formatChartFields) ? formatChartFields : []) {
-            localStorage.removeItem(`${STORAGE_PREFIXES.FIELD_COLOR}${field}`);
-            localStorage.removeItem(`${STORAGE_PREFIXES.FIELD_VISIBILITY}${field}`);
-        }
-
-        // Clear zone chart field settings
-        for (const field of ZONE_CHART_FIELDS) {
-            localStorage.removeItem(`${STORAGE_PREFIXES.FIELD_VISIBILITY}${field}`);
-        }
-
-        // Clear zone color settings
-        for (let i = 1; i <= MAX_ZONE_COUNT; i++) {
-            localStorage.removeItem(`${STORAGE_PREFIXES.HR_ZONE_COLOR}${i}_color`);
-            localStorage.removeItem(`${STORAGE_PREFIXES.POWER_ZONE_COLOR}${i}_color`);
-        }
-
-        // Clear unit settings
-        for (const unit of UNIT_TYPES) {
-            localStorage.removeItem(`${STORAGE_PREFIXES.CHART_OPTION}${unit}`);
-        }
+        resetChartSettings({ silent: true });
 
         console.log(`${LOG_PREFIX} All storage items cleared`);
     } catch (error) {
@@ -340,7 +296,7 @@ function clearAllStorageItems() {
 
 /**
  * Parses stored value based on option type
- * @param {string|null} stored - Stored value from localStorage
+ * @param {string|number|boolean|null|undefined} stored - Stored setting value
  * @param {Object} option - Chart option configuration
  * @returns {*} Parsed value with correct type
  */
@@ -352,20 +308,31 @@ function parseStoredValue(stored, option) {
     /** @type {ChartOptionConfig} */
     // @ts-ignore - runtime trusted from config import
     const opt = option;
-    if (stored === null) {
+    if (stored === null || stored === undefined) {
         return opt.default;
     }
 
     switch (opt.type) {
         case "range": {
-            return Number.parseFloat(stored);
+            if (typeof stored === "number" && Number.isFinite(stored)) {
+                return stored;
+            }
+            const parsed = Number.parseFloat(String(stored));
+            return Number.isFinite(parsed) ? parsed : opt.default;
         }
 
         case "select": {
             if (opt.id === "maxpoints") {
-                return stored === "all" ? "all" : Number.parseInt(stored, 10);
+                if (stored === "all") {
+                    return "all";
+                }
+                if (typeof stored === "number" && Number.isFinite(stored)) {
+                    return stored;
+                }
+                const parsed = Number.parseInt(String(stored), 10);
+                return Number.isFinite(parsed) ? parsed : opt.default;
             }
-            return stored;
+            return String(stored);
         }
 
         case "toggle": {
@@ -373,7 +340,10 @@ function parseStoredValue(stored, option) {
             if (typeof stored === "boolean") {
                 return stored;
             }
-            return stored === "true" || stored === "on";
+            if (typeof stored === "string") {
+                return stored === "true" || stored === "on";
+            }
+            return Boolean(stored);
         }
 
         default: {
@@ -464,7 +434,7 @@ function reRenderChartsAfterReset() {
 
         console.log(`${LOG_PREFIX} Re-rendering charts after settings reset`);
 
-        // CRITICAL: Clear cached settings so chart rendering re-reads fresh defaults from localStorage.
+        // CRITICAL: Clear cached settings so chart rendering re-reads fresh defaults from state manager.
         // This mirrors the behavior of reRenderChartsAfterSettingChange.
         if (typeof setState === "function") {
             setState("settings.charts", null, { source: "reRenderChartsAfterReset" });

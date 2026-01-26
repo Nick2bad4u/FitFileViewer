@@ -1146,6 +1146,24 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 		position: relative;
 	`;
 
+    const defaultRaw = option.defaultValue ?? option.default ?? 0;
+    const defaultNumber = typeof defaultRaw === "number" ? defaultRaw : Number(defaultRaw);
+    const fallbackValue = Number.isFinite(defaultNumber) ? defaultNumber : 0;
+    const storedValue = getChartSetting(option.id);
+    const resolvedValue = (() => {
+        if (storedValue === null || storedValue === undefined) {
+            return fallbackValue;
+        }
+        if (typeof storedValue === "number" && Number.isFinite(storedValue)) {
+            return storedValue;
+        }
+        if (typeof storedValue === "string") {
+            const parsed = Number(storedValue);
+            return Number.isFinite(parsed) ? parsed : fallbackValue;
+        }
+        return fallbackValue;
+    })();
+
     const slider = /** @type {HTMLInputElementExtended} */ (document.createElement("input"));
     slider.type = "range";
     slider.id = `chartjs-${option.id}-slider`;
@@ -1155,13 +1173,7 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 
     const minVal = typeof option.min === "number" ? option.min : 0;
     const maxVal = typeof option.max === "number" ? option.max : 100;
-    const rawDefault = option.defaultValue ?? option.default ?? 0;
-    const defaultNum = typeof rawDefault === "number" ? rawDefault : Number(rawDefault);
-    const safeDefault = Number.isFinite(defaultNum) ? defaultNum : 0;
-    const stored = localStorage.getItem(`chartjs_${option.id}`);
-    const storedNum = stored === null ? Number.NaN : Number(stored);
-    const initial = Number.isFinite(storedNum) ? storedNum : safeDefault;
-    const clamped = Math.min(maxVal, Math.max(minVal, initial));
+    const clamped = Math.min(maxVal, Math.max(minVal, resolvedValue));
     slider.value = String(clamped);
 
     slider.style.cssText = `
@@ -1222,7 +1234,7 @@ function createRangeControl(/** @type {ChartOption} */ option) {
             const safeValue = String(safeCurrent);
 
             valueDisplay.textContent = safeValue;
-            localStorage.setItem(`chartjs_${option.id}`, safeValue);
+            setChartSetting(option.id, safeCurrent);
 
             // Update slider background
             const range = maxVal - minVal;
@@ -1294,10 +1306,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
             select.append(optionEl);
         }
 
-    const stored = localStorage.getItem(`chartjs_${option.id}`);
+    const storedValue = getChartSetting(option.id);
     const allowed = Array.isArray(option.options) ? new Set(option.options.map(String)) : null;
     const fallback = option.default === undefined ? String(option.options?.[0] ?? "") : String(option.default);
-    const candidate = stored === null ? fallback : String(stored);
+    const candidate = storedValue === null || storedValue === undefined ? fallback : String(storedValue);
     select.value = allowed && !allowed.has(candidate) ? fallback : candidate;
 
     // Mouse wheel support for maxpoints
@@ -1324,8 +1336,9 @@ function createSelectControl(/** @type {ChartOption} */ option) {
     select.addEventListener("change", (/** @type {Event} */ e) => {
         const { target } = /** @type {HTMLSelectElement} */ (e);
         if (target) {
-            localStorage.setItem(`chartjs_${option.id}`, target.value);
-            reRenderChartsAfterSettingChange(option.id, target.value);
+            const nextValue = option.id === "maxpoints" && target.value !== "all" ? Number(target.value) : target.value;
+            setChartSetting(option.id, nextValue);
+            reRenderChartsAfterSettingChange(option.id, nextValue);
         }
     });
 
@@ -1375,12 +1388,17 @@ function createToggleControl(/** @type {ChartOption} */ option) {
 
     // Get current value with proper boolean conversion
     function getCurrentValue() {
-        const stored = localStorage.getItem(`chartjs_${option.id}`);
-        if (stored === null) {
+        const stored = getChartSetting(option.id);
+        if (stored === null || stored === undefined) {
             return option.default; // Use default from config (boolean)
         }
-        // Handle both string and boolean representations
-        return stored === "true" || stored === "on";
+        if (typeof stored === "boolean") {
+            return stored;
+        }
+        if (typeof stored === "string") {
+            return stored === "true" || stored === "on";
+        }
+        return Boolean(stored);
     }
 
     const statusText = document.createElement("span");
@@ -1419,7 +1437,7 @@ function createToggleControl(/** @type {ChartOption} */ option) {
         isOn = !isOn;
 
         // Store as string for consistency with existing system
-        localStorage.setItem(`chartjs_${option.id}`, isOn ? "true" : "false");
+        setChartSetting(option.id, isOn);
 
         // Update visual state
         updateVisualState(isOn);

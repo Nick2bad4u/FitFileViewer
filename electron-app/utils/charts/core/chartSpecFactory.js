@@ -62,7 +62,9 @@
 
 /**
  * @typedef {Object} ChartSpec
+ * @property {string} [id] - Chart identifier
  * @property {"line"|"bar"|"scatter"|"doughnut"} type - Chart type
+ * @property {Array<string|number>} [labels] - Label values for chart data
  * @property {ChartDatasetSpec[]} datasets - Dataset specifications
  * @property {ChartAxisSpec[]} [axes] - Axis specifications
  * @property {ChartPluginSpec} [plugins] - Plugin configuration
@@ -181,8 +183,8 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
             const rawValue = dataset.valueSelector
                 ? dataset.valueSelector(record, recordIndex)
                 : dataset.dataKey
-                ? /** @type {number | null} */ (record?.[dataset.dataKey])
-                : null;
+                  ? /** @type {number | null} */ (record?.[dataset.dataKey])
+                  : null;
 
             return dataset.transform ? dataset.transform(rawValue, record, recordIndex) : rawValue;
         });
@@ -198,7 +200,7 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
             borderColor: color,
             yAxisID: dataset.yAxisId,
             hidden: isHidden,
-            ...(dataset.datasetOptions || {}),
+            ...dataset.datasetOptions,
         };
     });
 
@@ -221,4 +223,51 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
                 : undefined,
         },
     });
+}
+
+/**
+ * Create a chart spec from a declarative definition payload.
+ *
+ * @param {{
+ *   id: string,
+ *   title?: string,
+ *   chartType: string,
+ *   labels: Array<string|number>,
+ *   datasets: ChartDatasetSpec[],
+ *   axes?: { x?: { label?: string }, y?: { label?: string } }
+ * }} input
+ * @returns {ChartSpec & { labels: Array<string|number> }}
+ */
+function createChartSpec(input) {
+    const labels = Array.isArray(input.labels) ? input.labels : [];
+    const labelIsNumeric = labels.length > 0 && labels.every((label) => typeof label === "number");
+    const chartType = input.chartType === "area" ? "line" : input.chartType;
+
+    /** @type {ChartAxisSpec[]} */
+    const axes = [];
+    if (input.axes?.x?.label) {
+        axes.push({
+            id: "x",
+            type: labelIsNumeric ? "linear" : "category",
+            label: input.axes.x.label,
+            display: true,
+        });
+    }
+    if (input.axes?.y?.label) {
+        axes.push({
+            id: "y",
+            type: "linear",
+            label: input.axes.y.label,
+            display: true,
+        });
+    }
+
+    return {
+        id: input.id,
+        labels,
+        datasets: Array.isArray(input.datasets) ? input.datasets : [],
+        title: input.title,
+        type: /** @type {ChartSpec["type"]} */ (chartType),
+        axes: axes.length ? axes : undefined,
+    };
 }

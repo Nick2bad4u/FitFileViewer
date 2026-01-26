@@ -4,12 +4,12 @@
  * out of the total available charts, helping users understand their chart selection status
  */
 
+import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicatorFromCounts.js";
 import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
-import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 /** @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts */
 
 /**

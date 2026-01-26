@@ -16,9 +16,9 @@
  * @property {Object.<string, any>} [extra]
  */
 /**
- * Gets current settings from localStorage and DOM
+ * Gets current settings from settings state and DOM
  *
- * Retrieves all chart settings from localStorage with fallbacks to
+ * Retrieves all chart settings from the settings state manager with fallbacks to
  * default values. Handles type conversion and validation for different
  * setting types (select, toggle, range, colors).
  *
@@ -43,7 +43,7 @@ export function reRenderChartsAfterSettingChange(settingName: string, newValue: 
 /**
  * Resets all chart settings to their default values
  *
- * Clears all chart-related settings from localStorage, resets UI controls
+ * Clears all chart-related settings from the settings state manager, resets UI controls
  * to default values, and re-renders charts with the default configuration.
  * Shows a success notification when complete.
  *

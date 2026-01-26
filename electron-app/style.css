@@ -117,7 +117,11 @@
 
 .file-calendar__day--hasActivities {
     border-color: rgb(var(--color-accent-rgb) / 70%);
-    background: linear-gradient(135deg, rgb(var(--color-accent-rgb) / 20%), rgb(var(--color-secondary-accent-rgb) / 10%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 20%),
+        rgb(var(--color-secondary-accent-rgb) / 10%)
+    );
     box-shadow:
         0 0 0 1px rgb(var(--color-accent-rgb) / 10%),
         0 14px 28px rgb(0 0 0 / 18%);
@@ -187,7 +191,6 @@
     font-weight: 700;
     margin-bottom: 2px;
 }
-
 
 @media (width <= 760px) {
     .file-library__grid {
@@ -2746,7 +2749,6 @@ body[data-has-fit-file="true"] .header-brand {
 }
 
 /* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
-
 
 @keyframes filename-scroll {
     0%,

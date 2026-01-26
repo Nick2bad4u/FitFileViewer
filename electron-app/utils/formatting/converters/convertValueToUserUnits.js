@@ -1,3 +1,4 @@
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import { convertDistanceUnits, DISTANCE_UNITS } from "./convertDistanceUnits.js";
 import { convertMpsToKmh } from "./convertMpsToKmh.js";
 import { convertMpsToMph } from "./convertMpsToMph.js";
@@ -16,10 +17,15 @@ const /**
         TEMPERATURE: ["temperature"],
         SPEED: ["speed", "enhancedSpeed"],
     },
-    UNIT_STORAGE_KEYS = {
-        DISTANCE: "chartjs_distanceUnits",
-        TEMPERATURE: "chartjs_temperatureUnits",
+    UNIT_SETTING_KEYS = {
+        DISTANCE: "distanceUnits",
+        TEMPERATURE: "temperatureUnits",
     };
+
+const resolveDistanceUnits = (value) =>
+    Object.values(DISTANCE_UNITS).includes(value) ? value : DISTANCE_UNITS.KILOMETERS;
+const resolveTemperatureUnits = (value) =>
+    Object.values(TEMPERATURE_UNITS).includes(value) ? value : TEMPERATURE_UNITS.CELSIUS;
 
 /**
  * Converts values according to user's preferred units based on field type
@@ -50,19 +56,19 @@ export function convertValueToUserUnits(value, field) {
         // Distance-related fields (assuming input is in meters)
         // Note: Altitude and enhancedAltitude are treated as distance for unit conversion
         if (FIELD_CATEGORIES.DISTANCE.includes(field)) {
-            const distanceUnits = localStorage.getItem(UNIT_STORAGE_KEYS.DISTANCE) || DISTANCE_UNITS.KILOMETERS;
+            const distanceUnits = resolveDistanceUnits(getChartSetting(UNIT_SETTING_KEYS.DISTANCE));
             return convertDistanceUnits(value, distanceUnits);
         }
 
         // Temperature fields (assuming input is in Celsius)
         if (FIELD_CATEGORIES.TEMPERATURE.includes(field)) {
-            const temperatureUnits = localStorage.getItem(UNIT_STORAGE_KEYS.TEMPERATURE) || TEMPERATURE_UNITS.CELSIUS;
+            const temperatureUnits = resolveTemperatureUnits(getChartSetting(UNIT_SETTING_KEYS.TEMPERATURE));
             return convertTemperatureUnits(value, temperatureUnits);
         }
 
         // Speed fields (assuming input is in m/s)
         if (FIELD_CATEGORIES.SPEED.includes(field)) {
-            const distanceUnits = localStorage.getItem(UNIT_STORAGE_KEYS.DISTANCE) || DISTANCE_UNITS.KILOMETERS;
+            const distanceUnits = resolveDistanceUnits(getChartSetting(UNIT_SETTING_KEYS.DISTANCE));
             if (distanceUnits === "miles" || distanceUnits === "feet") {
                 return convertMpsToMph(value);
             }
