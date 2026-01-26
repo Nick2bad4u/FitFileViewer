@@ -1,4 +1,5 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
+import { escapeHtml } from "../../dom/index.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
 import { setState } from "../../state/core/stateManager.js";
 import { createMetricFilter, getMetricDefinition } from "../filters/mapMetricFilter.js";
@@ -135,7 +136,8 @@ export function drawOverlayForFitFile({
 
             let tooltip = formatTooltipData ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs) : "";
             if (fileName) {
-                tooltip = `<b>${fileName}</b><br>${tooltip}`;
+                const safeFileName = escapeHtml(fileName);
+                tooltip = `<b>${safeFileName}</b><br>${tooltip}`;
             }
             marker.bindTooltip(tooltip, { direction: "top", sticky: true });
         }

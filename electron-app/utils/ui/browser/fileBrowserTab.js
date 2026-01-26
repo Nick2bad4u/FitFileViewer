@@ -849,7 +849,8 @@ function renderCalendarResults(root, payload) {
     // Selected-day panel
     const selectedItems = itemsByDay.get(selectedDayKey) ?? [];
     if (selectedItems.length === 0) {
-        panelEl.innerHTML = `<div class="file-calendar__panelTitle">${selectedDayKey}</div><div class="file-calendar__panelEmpty">No activities.</div>`;
+        const safeDayKey = escapeHtml(selectedDayKey);
+        panelEl.innerHTML = `<div class="file-calendar__panelTitle">${safeDayKey}</div><div class="file-calendar__panelEmpty">No activities.</div>`;
         return;
     }
 
@@ -875,7 +876,8 @@ function renderCalendarResults(root, payload) {
         })
         .join("\n");
 
-    panelEl.innerHTML = `<div class="file-calendar__panelTitle">${selectedDayKey}</div><div class="file-library__rows">${rows}</div>`;
+    const safeDayKey = escapeHtml(selectedDayKey);
+    panelEl.innerHTML = `<div class="file-calendar__panelTitle">${safeDayKey}</div><div class="file-library__rows">${rows}</div>`;
 
     for (const btn of panelEl.querySelectorAll(".file-library__row")) {
         btn.addEventListener("click", async () => {
@@ -1015,11 +1017,12 @@ function renderLibraryResults(root, payload) {
             .map((it) => {
                 const date = it.startTime.toLocaleString();
                 const dist = fmt(it.totalDistanceM);
-                const sport = it.sport ? ` — ${it.sport}` : "";
+                const safeSport = it.sport ? ` — ${escapeHtml(it.sport)}` : "";
+                const safeFileName = escapeHtml(it.fileName);
                 return `
                     <button type="button" class="file-library__row" data-fullpath="${encodeURIComponent(it.fullPath)}">
-                        <span class="file-library__rowMain">${it.fileName}</span>
-                        <span class="file-library__rowMeta">${date} • ${dist} ${unitLabel}${sport}</span>
+                        <span class="file-library__rowMain">${safeFileName}</span>
+                        <span class="file-library__rowMeta">${date} • ${dist} ${unitLabel}${safeSport}</span>
                     </button>
                 `;
             })
