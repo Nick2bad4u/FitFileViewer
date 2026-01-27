@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run High Altitude Test",
+			"type": "shell",
+			"command": "npm run test -- tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts > ../temp/task_test_output.txt 2>&1",
+			"isBackground": false,
+			"group": "test"
+		}
+	]
+}

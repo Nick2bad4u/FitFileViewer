@@ -214,7 +214,7 @@ function airDensityFromAltitude(altitudeM) {
     // Scale height approximation.
     const rho0 = 1.225;
     const rho = rho0 * Math.exp(-Math.max(-500, Math.min(9000, altitudeM)) / 8500);
-    return Math.max(0.9, Math.min(1.3, rho));
+    return Math.max(0.5, Math.min(1.3, rho));
 }
 
 /**

@@ -223,13 +223,7 @@ describe("handleOpenFile.js", () => {
             expect(uiElements.isOpeningFileRef.value).toBe(true);
         });
 
-        it.skip("should call setState for UI state management", () => {
-            // Mock setState for this test
-            const setStateSpy = vi.fn();
-            vi.doMock("../../state/core/stateManager.js", () => ({
-                setState: setStateSpy,
-            }));
-
+        it("should call setState for UI state management", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
@@ -240,8 +234,8 @@ describe("handleOpenFile.js", () => {
 
             updateUIState(uiElements, true, true);
 
-            expect(setStateSpy).toHaveBeenCalledWith("ui.isOpeningFile", true, { source: "handleOpenFile" });
-            expect(setStateSpy).toHaveBeenCalledWith("ui.isLoading", true, { source: "handleOpenFile" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.isOpeningFile", true, { source: "handleOpenFile" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.isLoading", true, { source: "handleOpenFile" });
         });
 
         it("should handle errors gracefully", () => {

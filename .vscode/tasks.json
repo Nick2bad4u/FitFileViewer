@@ -1,30 +1,83 @@
 {
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "watch",
-            "problemMatcher": "$tsc-watch",
-            "isBackground": true,
-            "presentation": {
-                "reveal": "never"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "run vitest in electron-app",
-            "type": "shell",
-            "command": "npm",
-            "args": ["test"],
-            "options": {
-                "cwd": "${workspaceFolder}/electron-app"
-            },
-            "isBackground": false,
-            "problemMatcher": ["$eslint-stylish"],
-            "group": "build"
-        }
-    ],
-    "version": "2.0.0"
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": "$tsc-watch",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "run vitest in electron-app",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/electron-app"
+			},
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run High Altitude Test Root",
+			"type": "shell",
+			"command": "cd electron-app; npm run test -- tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts > ../temp/task_test_output.txt 2>&1",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Run High Altitude Test Verbose",
+			"type": "shell",
+			"command": "cd electron-app; npx vitest run tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts --no-color > ../temp/test_output_verbose.txt 2>&1",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Run Verify Fix Script",
+			"type": "shell",
+			"command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_task_output.txt 2>&1",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run Verify Fix Script 2",
+			"type": "shell",
+			"command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_task_output_2.txt 2>&1",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run Final Verification",
+			"type": "shell",
+			"command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_final_output.txt 2>&1",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Delete Verify Fix Script",
+			"type": "shell",
+			"command": "del electron-app\\verify-fix.mjs",
+			"args": [],
+			"isBackground": false,
+			"group": "none"
+		}
+	],
+	"version": "2.0.0"
 }
