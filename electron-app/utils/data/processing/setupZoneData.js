@@ -34,7 +34,11 @@ export function setupZoneData(globalData) {
             return { hasHRZoneData, hasPowerZoneData, heartRateZones, powerZones };
         }
 
-        console.log("[ChartJS] Setting up zone data from globalData:", globalData);
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartJS] Setting up zone data from globalData:", globalData);
+        }
 
         /** Helper to build zone entries from a numeric array (skipping index 0) */
         /**
@@ -49,10 +53,15 @@ export function setupZoneData(globalData) {
 
         // Primary source: timeInZoneMesgs (session-level aggregate)
         if (Array.isArray(globalData.timeInZoneMesgs)) {
-            console.log("[ChartJS] Found timeInZoneMesgs:", globalData.timeInZoneMesgs.length);
-            for (const [index, zoneMsg] of globalData.timeInZoneMesgs.entries()) {
-                console.log(`[ChartJS] TimeInZone ${index} fields:`, Object.keys(zoneMsg || {}));
-                console.log(`[ChartJS] TimeInZone ${index} data:`, zoneMsg);
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] Found timeInZoneMesgs:", globalData.timeInZoneMesgs.length);
+                for (const [index, zoneMsg] of globalData.timeInZoneMesgs.entries()) {
+                    console.log(`[ChartJS] TimeInZone ${index} fields:`, Object.keys(zoneMsg || {}));
+                    // Intentionally do not log the full zoneMsg payload by default; it's large.
+                    if (isDebugLoggingEnabled && Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose)) {
+                        console.log(`[ChartJS] TimeInZone ${index} data:`, zoneMsg);
+                    }
+                }
             }
             const sessionZoneData = globalData.timeInZoneMesgs.find((z) => z && z.referenceMesg === "session");
             if (sessionZoneData) {
@@ -62,7 +71,9 @@ export function setupZoneData(globalData) {
                         heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
                         globalThis.heartRateZones = heartRateZones;
                         hasHRZoneData = true;
-                        console.log("[ChartJS] Heart rate zones data set:", heartRateZones);
+                        if (isDebugLoggingEnabled) {
+                            console.log("[ChartJS] Heart rate zones data set:", heartRateZones);
+                        }
                     }
                 }
                 if (Array.isArray(sessionZoneData.timeInPowerZone)) {
@@ -71,7 +82,9 @@ export function setupZoneData(globalData) {
                         powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
                         globalThis.powerZones = powerZones;
                         hasPowerZoneData = true;
-                        console.log("[ChartJS] Power zones data set:", powerZones);
+                        if (isDebugLoggingEnabled) {
+                            console.log("[ChartJS] Power zones data set:", powerZones);
+                        }
                     }
                 }
             }
@@ -86,7 +99,9 @@ export function setupZoneData(globalData) {
                     heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
                     globalThis.heartRateZones = heartRateZones;
                     hasHRZoneData = true;
-                    console.log("[ChartJS] HR zones from sessionMesgs:", heartRateZones);
+                    if (isDebugLoggingEnabled) {
+                        console.log("[ChartJS] HR zones from sessionMesgs:", heartRateZones);
+                    }
                 }
             }
         }
@@ -98,7 +113,9 @@ export function setupZoneData(globalData) {
                     powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
                     globalThis.powerZones = powerZones;
                     hasPowerZoneData = true;
-                    console.log("[ChartJS] Power zones from sessionMesgs:", powerZones);
+                    if (isDebugLoggingEnabled) {
+                        console.log("[ChartJS] Power zones from sessionMesgs:", powerZones);
+                    }
                 }
             }
         }
@@ -110,7 +127,9 @@ export function setupZoneData(globalData) {
             Array.isArray(globalData.lapMesgs) &&
             globalData.lapMesgs.length > 0
         ) {
-            console.log("[ChartJS] Aggregating zone data from lapMesgs");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] Aggregating zone data from lapMesgs");
+            }
             /** @type {number[]} */ const hrZoneTimes = [],
                 /** @type {number[]} */ powerZoneTimes = [];
             for (const lap of globalData.lapMesgs) {
@@ -131,7 +150,9 @@ export function setupZoneData(globalData) {
                     heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
                     globalThis.heartRateZones = heartRateZones;
                     hasHRZoneData = true;
-                    console.log("[ChartJS] HR zones from laps:", heartRateZones);
+                    if (isDebugLoggingEnabled) {
+                        console.log("[ChartJS] HR zones from laps:", heartRateZones);
+                    }
                 }
             }
             if (powerZoneTimes.length > 1 && powerZoneTimes.slice(1).some((t) => t > 0)) {
@@ -140,7 +161,9 @@ export function setupZoneData(globalData) {
                     powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
                     globalThis.powerZones = powerZones;
                     hasPowerZoneData = true;
-                    console.log("[ChartJS] Power zones from laps:", powerZones);
+                    if (isDebugLoggingEnabled) {
+                        console.log("[ChartJS] Power zones from laps:", powerZones);
+                    }
                 }
             }
         }

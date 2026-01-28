@@ -59,7 +59,7 @@ describe("estimateCyclingPower.js - High Altitude", () => {
             { timestamp: 1002, speed: 10.0, altitude: 5000, distance: 20 },
         ];
 
-         applyEstimatedPowerToRecords({
+        applyEstimatedPowerToRecords({
             recordMesgs: extremeAltitudeRecords,
             sessionMesgs: [{ sport: "cycling" }],
             settings: commonSettings,

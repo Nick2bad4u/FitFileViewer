@@ -67,9 +67,13 @@ export function createEnhancedChart(canvas, options) {
         // Get theme using robust detection
         // If theme param is provided and not 'auto', use it. Otherwise detect.
         const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
-        console.log("[ChartJS] Theme debugging for field:", field);
-        console.log("[ChartJS] - theme param:", theme);
-        console.log("[ChartJS] - resolved theme:", currentTheme);
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartJS] Theme debugging for field:", field);
+            console.log("[ChartJS] - theme param:", theme);
+            console.log("[ChartJS] - resolved theme:", currentTheme);
+        }
 
         // Configure dataset interpolation
         let tension = smoothing / 100;

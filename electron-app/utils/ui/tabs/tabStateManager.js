@@ -7,6 +7,7 @@
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { ensureChartSettingsDropdowns } from "../components/ensureChartSettingsDropdowns.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 
@@ -219,6 +220,68 @@ class TabStateManager {
     }
 
     /**
+     * Move pre-rendered charts from the background container into the visible chart tab.
+     * This avoids a full re-render when charts were preloaded in the background.
+     * @returns {boolean} True if charts were moved into view.
+     */
+    attachPreRenderedCharts() {
+        const doc = getDoc();
+        const bgContainer = doc.getElementById("background-chart-container");
+        const visibleContainer = doc.getElementById("content-chartjs") || doc.getElementById("content-chart");
+
+        if (!bgContainer || !visibleContainer) {
+            return false;
+        }
+
+        const preRenderedContainer = bgContainer.querySelector("#chartjs-chart-container");
+        if (!preRenderedContainer) {
+            return false;
+        }
+
+        if (visibleContainer.querySelector("#chartjs-chart-container")) {
+            return false;
+        }
+
+        visibleContainer.append(preRenderedContainer);
+
+        try {
+            ensureChartSettingsDropdowns(visibleContainer);
+        } catch {
+            /* ignore */
+        }
+
+        const instances = (() => {
+            try {
+                const g = /** @type {any} */ (globalThis);
+                const w = /** @type {any} */ (g.window);
+                const arr = (g && g._chartjsInstances) || (w && w._chartjsInstances) || [];
+                return Array.isArray(arr) ? arr : [];
+            } catch {
+                return [];
+            }
+        })();
+        if (instances.length > 0) {
+            const schedule = typeof requestAnimationFrame === "function" ? requestAnimationFrame : setTimeout;
+            schedule(() => {
+                for (const chart of instances) {
+                    try {
+                        if (chart && typeof chart.resize === "function") {
+                            chart.resize();
+                        }
+                        if (chart && typeof chart.update === "function") {
+                            chart.update("none");
+                        }
+                    } catch {
+                        /* ignore */
+                    }
+                }
+            }, 0);
+        }
+
+        return true;
+    }
+
+    /**
      * Cleanup resources (placeholder for future unsubscribe logic)
      */
     cleanup() {
@@ -358,6 +421,8 @@ class TabStateManager {
                     return null;
                 }
 
+                const movedPreRendered = this.attachPreRenderedCharts();
+
                 // Let the chart state manager handle the rendering with proper state integration
                 const chartState = getStateMgr().getState("charts");
 
@@ -379,7 +444,7 @@ class TabStateManager {
                     return null;
                 }
 
-                return true;
+                return movedPreRendered ? "preRendered" : true;
             },
             { debounce: true, skipIfRecent: true }
         );

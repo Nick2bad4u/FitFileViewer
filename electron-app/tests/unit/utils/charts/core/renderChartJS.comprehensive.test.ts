@@ -444,11 +444,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const result = chartSettingsManager.getFieldVisibility("speed");
 
             expect(mocks.settingsStateManager.getChartFieldVisibility).toHaveBeenCalledWith("speed", "visible");
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "settings.charts.fieldVisibility.speed",
-                "visible",
-                expect.objectContaining({ silent: false, source: "chartSettingsManager.getFieldVisibility" })
-            );
             expect(result).toBe("visible");
         });
 
@@ -480,11 +475,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             chartSettingsManager.setFieldVisibility("power", "hidden");
 
             expect(mocks.settingsStateManager.setChartFieldVisibility).toHaveBeenCalledWith("power", "hidden");
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "settings.charts.fieldVisibility.power",
-                "hidden",
-                expect.objectContaining({ silent: false, source: "chartSettingsManager.setFieldVisibility" })
-            );
             expect(mocks.computedStateManager.computedStateManager.invalidateComputed).toHaveBeenCalledWith(
                 "charts.renderableFieldCount"
             );

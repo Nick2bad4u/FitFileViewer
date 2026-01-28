@@ -31,6 +31,18 @@ import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 class ChartStateManager {
     isInitialized = false;
 
+    /**
+     * Internal render lock to prevent concurrent renderChartJS() calls.
+     * State also tracks charts.isRendering, but we need a synchronous in-process guard.
+     */
+    isRendering = false;
+
+    /**
+     * If a render is requested while one is already running, store the reason here.
+     * When the current render completes, we will run exactly one follow-up render.
+     */
+    pendingRenderReason = null;
+
     renderDebounceTime = 250;
 
     renderTimeout = null;
@@ -76,6 +88,13 @@ class ChartStateManager {
      * @param {string} reason - Reason for the render request
      */
     debouncedRender(reason = "State change") {
+        // If we're currently rendering, do not schedule another timer.
+        // Queue one follow-up render instead (collapsed).
+        if (this.isRendering) {
+            this.pendingRenderReason = reason;
+            return;
+        }
+
         // Clear existing timeout
         if (this.renderTimeout) {
             clearTimeout(this.renderTimeout);
@@ -171,9 +190,35 @@ class ChartStateManager {
         // Set chart tab as active in state
         setState("charts.tabActive", true, { source: "ChartStateManager.handleTabActivation" });
 
-        // Render charts if we have data but charts aren't rendered yet
-        if (globalData && !chartState?.isRendered) {
-            this.debouncedRender("Tab activation with data available");
+        // If a render is already in progress (e.g., another trigger fired recently),
+        // do not enqueue another render.
+        if (chartState && typeof chartState === "object" && /** @type {any} */ (chartState).isRendering === true) {
+            console.log("[ChartStateManager] Render already in progress - skipping activation render");
+            return;
+        }
+
+        // Render charts if we have data but charts aren't rendered yet.
+        // Safety: if state claims rendered but we don't have any Chart.js instances or canvases,
+        // treat it as not-rendered to avoid a blank Charts tab.
+        if (globalData) {
+            const isRendered = Boolean(chartState?.isRendered);
+            let hasRenderableOutput = false;
+
+            try {
+                const g = /** @type {any} */ (globalThis);
+                const w = /** @type {any} */ (g.window);
+                const instances = (g && g._chartjsInstances) || (w && w._chartjsInstances) || [];
+                const instanceCount = Array.isArray(instances) ? instances.length : 0;
+                const container = document.querySelector("#chartjs-chart-container");
+                const canvasCount = container ? container.querySelectorAll("canvas").length : 0;
+                hasRenderableOutput = instanceCount > 0 && canvasCount > 0;
+            } catch {
+                hasRenderableOutput = false;
+            }
+
+            if (!isRendered || !hasRenderableOutput) {
+                this.debouncedRender("Tab activation with data available");
+            }
         }
     }
 
@@ -262,6 +307,17 @@ class ChartStateManager {
     async performChartRender(reason) {
         console.log(`[ChartStateManager] Rendering charts: ${reason}`);
 
+        // Prevent concurrent renders. This is critical to avoid the UX where the
+        // Charts tab appears to "reload" multiple times while settings/theme/data
+        // subscriptions are firing.
+        if (this.isRendering) {
+            this.pendingRenderReason = reason;
+            console.log(`[ChartStateManager] Render in progress - queued follow-up render: ${reason}`);
+            return;
+        }
+
+        this.isRendering = true;
+
         try {
             // Set rendering state
             setState("charts.isRendering", true, { source: "ChartStateManager.performChartRender" });
@@ -312,6 +368,23 @@ class ChartStateManager {
             showNotification("Failed to render charts", "error");
         } finally {
             setState("charts.isRendering", false, { source: "ChartStateManager.performChartRender" });
+
+            // Release lock
+            this.isRendering = false;
+
+            // If a render was requested during this render, run one follow-up render.
+            if (typeof this.pendingRenderReason === "string" && this.pendingRenderReason.length > 0) {
+                const followUpReason = this.pendingRenderReason;
+                this.pendingRenderReason = null;
+
+                // Only render if we're still on the chart tab.
+                if (this.isChartTabActive()) {
+                    // Run the follow-up render after yielding to the event loop.
+                    setTimeout(() => {
+                        this.debouncedRender(`Follow-up: ${followUpReason}`);
+                    }, 0);
+                }
+            }
         }
     }
     /**

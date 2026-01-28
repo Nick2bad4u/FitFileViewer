@@ -2,7 +2,43 @@
 name: BeastMode
 description: Beast Mode 3.1 (Custom)
 argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
-tools: ['execute/testFailure', 'execute/getTerminalOutput', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'execute/runTests', 'read/problems', 'read/readFile', 'read/getTaskOutput', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/codebase', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'search/searchSubagent', 'tavily-remote-mcp-system/*', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'agent', 'updateUserPreferences', 'memory', 'todo']
+tools:
+ [
+  "vscode/runCommand",
+  "vscode/askQuestions",
+  "execute/getTerminalOutput",
+  "execute/awaitTerminal",
+  "execute/killTerminal",
+  "execute/runTask",
+  "execute/createAndRunTask",
+  "execute/runInTerminal",
+  "execute/testFailure",
+  "execute/runTests",
+  "read/getTaskOutput",
+  "read/problems",
+  "read/readFile",
+  "agent/runSubagent",
+  "tavily-remote-mcp-system/tavily_crawl",
+  "tavily-remote-mcp-system/tavily_extract",
+  "tavily-remote-mcp-system/tavily_map",
+  "tavily-remote-mcp-system/tavily_search",
+  "vscode-mcp/get_diagnostics",
+  "vscode-mcp/get_references",
+  "vscode-mcp/get_symbol_lsp_info",
+  "vscode-mcp/rename_symbol",
+  "edit/createDirectory",
+  "edit/createFile",
+  "edit/editFiles",
+  "search/changes",
+  "search/codebase",
+  "search/fileSearch",
+  "search/listDirectory",
+  "search/textSearch",
+  "search/usages",
+  "search/searchSubagent",
+  "updateUserPreferences",
+  "todo",
+ ]
 handoffs:
  - label: Consistency
    agent: BeastMode

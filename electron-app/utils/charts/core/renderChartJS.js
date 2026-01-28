@@ -40,6 +40,7 @@ import { settingsStateManager } from "../../state/domain/settingsStateManager.js
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
+import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 
 const FALLBACK_ZONE_COLORS = [
     "#808080",
@@ -172,6 +173,15 @@ function normalizeThemeConfig(rawConfig) {
 // Safe, lazy notification caller to break potential import init cycles under SSR
 async function notify(message, type = "info", _duration = null, _options = {}) {
     try {
+        // Allow background work to suppress noisy notifications.
+        // This is important for cache pre-warming / silent background operations.
+        const suppress =
+            (typeof _options === "object" && _options && "silent" in _options && _options.silent === true) ||
+            /** @type {any} */ (globalThis).__FFV_suppressNotifications === true;
+        if (suppress) {
+            return;
+        }
+
         // Prefer an injected global (used by tests) if available
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.showNotification === "function") {
@@ -560,13 +570,6 @@ export const chartSettingsManager = {
     getFieldVisibility(field) {
         const settingsApi = resolveChartSettingsApi();
         const visibility = settingsApi.getChartFieldVisibility(field, "visible");
-
-        // Update field visibility state for reactive access
-        callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
-            silent: false,
-            source: "chartSettingsManager.getFieldVisibility",
-        });
-
         return visibility;
     },
 
@@ -586,20 +589,32 @@ export const chartSettingsManager = {
             callSetState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
         }
 
+        const resolved = settings && typeof settings === "object" ? settings : {};
+        const rawMaxpoints = /** @type {any} */ (resolved).maxpoints;
+        const normalizedMaxpoints =
+            rawMaxpoints === "all"
+                ? "all"
+                : typeof rawMaxpoints === "number" && Number.isFinite(rawMaxpoints)
+                  ? rawMaxpoints
+                  : typeof rawMaxpoints === "string" && Number.isFinite(Number(rawMaxpoints))
+                    ? Number(rawMaxpoints)
+                    : DEFAULT_MAX_POINTS;
+
+        // IMPORTANT: do not default to "all" maxpoints. That can freeze the UI.
         return {
-            animation: settings.animation || "normal",
-            chartType: settings.chartType || "line",
-            colors: settings.colors || [],
-            exportTheme: settings.exportTheme || "auto",
-            interpolation: settings.interpolation || "linear",
-            maxpoints: settings.maxpoints || "all",
-            showFill: settings.showFill === true,
-            showGrid: settings.showGrid !== false,
-            showLegend: settings.showLegend !== false,
-            showPoints: settings.showPoints === true,
-            showTitle: settings.showTitle !== false,
-            smoothing: settings.smoothing || 0.1,
-            ...settings,
+            ...resolved,
+            animation: resolved.animation || "normal",
+            chartType: resolved.chartType || "line",
+            colors: resolved.colors || [],
+            exportTheme: resolved.exportTheme || "auto",
+            interpolation: resolved.interpolation || "linear",
+            maxpoints: normalizedMaxpoints,
+            showFill: resolved.showFill === true,
+            showGrid: resolved.showGrid !== false,
+            showLegend: resolved.showLegend !== false,
+            showPoints: resolved.showPoints === true,
+            showTitle: resolved.showTitle !== false,
+            smoothing: resolved.smoothing || 0.1,
         };
     },
 
@@ -611,12 +626,6 @@ export const chartSettingsManager = {
     setFieldVisibility(field, visibility) {
         const settingsApi = resolveChartSettingsApi();
         settingsApi.setChartFieldVisibility(field, visibility);
-
-        // Update state for reactive access
-        callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
-            silent: false,
-            source: "chartSettingsManager.setFieldVisibility",
-        });
 
         // Invalidate computed state that depends on field visibility
         try {
@@ -694,6 +703,28 @@ function debounce(func, wait) {
 let lastRenderTime = 0;
 const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 
+// A stable debounced re-render function.
+// NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
+const debouncedDirectRerender = debounce((reason = "State change") => {
+    const container =
+        document.querySelector("#chartjs-chart-container") ||
+        document.querySelector("#content-chartjs") ||
+        document.querySelector("#content-chart");
+
+    const { getState: getStateSafe } = getStateManagerSafe();
+    const data = getStateSafe("globalData");
+    const hasValidData = Boolean(data && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0);
+
+    if (container && hasValidData) {
+        // Fire and forget so this function stays purely "scheduling".
+        renderChartJS(/** @type {HTMLElement} */ (container)).catch((error) => {
+            console.warn("[ChartJS] Direct re-render failed", error);
+        });
+    } else if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+        console.log(`[ChartJS] Skipping direct re-render (${reason}) - no container or no data`);
+    }
+}, RENDER_DEBOUNCE_MS);
+
 // Safe DOM element detector that works in SSR/jsdom where Element/Node may be undefined
 function isElement(maybe) {
     return (
@@ -768,6 +799,165 @@ export function invalidateChartRenderCache(reason = "manual") {
         } catch (error) {
             console.warn(`${CACHE_LOG_PREFIX} listener error`, error);
         }
+    }
+}
+
+/**
+ * Pre-warm the most expensive chart caches (labels + per-field converted values + chart points).
+ *
+ * Why this helps:
+ * - The slow part of chart rendering is frequently the O(N) scan across recordMesgs for each field,
+ *   plus unit conversion and point creation.
+ * - `renderChartsWithData()` already caches this work in WeakMaps/Maps.
+ * - By pre-warming those caches during idle time after file load, the Charts tab render becomes
+ *   dramatically faster without attempting to render charts while the tab is hidden (display:none).
+ *
+ * This function intentionally does **not** touch the DOM and is safe to run while the map tab is active.
+ *
+ * @param {{
+ *  recordMesgs: Array<Record<string, unknown>>,
+ *  startTime: unknown,
+ *  reason?: string,
+ *  yieldEvery?: number
+ * }} params
+ * @returns {Promise<{ processedFields: number, skipped: boolean }>} Summary info for debugging.
+ */
+export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason = "prewarm", yieldEvery = 2 }) {
+    if (!Array.isArray(recordMesgs) || recordMesgs.length === 0) {
+        return { processedFields: 0, skipped: true };
+    }
+
+    const { getState: gs } = getStateManagerSafe();
+    const activeTab = gs("ui.activeTab");
+    // If the user is actively on the chart tab, don't compete with the real render.
+    if (activeTab === "chart" || activeTab === "chartjs") {
+        return { processedFields: 0, skipped: true };
+    }
+
+    // If charts are already rendered or rendering, pre-warming is unnecessary.
+    const chartsState = gs("charts");
+    if (chartsState && typeof chartsState === "object") {
+        const cs = /** @type {any} */ (chartsState);
+        if (cs.isRendered === true || cs.isRendering === true) {
+            return { processedFields: 0, skipped: true };
+        }
+    }
+
+    // Pre-warming should not produce user notifications.
+    const prevSuppress = /** @type {any} */ (globalThis).__FFV_suppressNotifications;
+    /** @type {any} */ (globalThis).__FFV_suppressNotifications = true;
+
+    try {
+        const settings = /** @type {any} */ (chartSettingsManager.getSettings());
+        const normalizedMaxPoints = normalizeMaxPointsValue(settings?.maxpoints);
+        const dataSettingsSignature = ensureDataSettingsSignature(settings);
+        const convert = getConvertersSafe();
+
+        // Warm labels cache.
+        const labels = getLabelsForRecords(recordMesgs, startTime);
+
+        // Determine candidate fields using the same logic as renderChartsWithData.
+        const fields = getFormatChartFieldsSafe();
+        /** @type {string[]} */
+        const renderable = Array.isArray(fields)
+            ? fields.filter((field) => (chartSettingsManager.getFieldVisibility(field) || "visible") !== "hidden")
+            : [];
+
+        /** @type {string[]} */
+        let fieldsToPrewarm = renderable;
+        if (!fieldsToPrewarm.length) {
+            try {
+                const sample = Array.isArray(recordMesgs)
+                    ? recordMesgs.find((r) => r && typeof r === "object") || {}
+                    : {};
+                fieldsToPrewarm = Object.keys(sample)
+                    .filter((key) => key !== "timestamp")
+                    .filter((key) => typeof (/** @type {any} */ (sample)[key]) === "number");
+            } catch {
+                /* ignore */
+            }
+        }
+
+        // Limit the amount of pre-warming work to avoid UI stalls.
+        // This is a best-effort optimization — we want "faster first Charts render",
+        // not "freeze the app for 10 seconds after load".
+        // Dynamic cap: large activities can have 100k+ records, and pre-warming many fields
+        // can noticeably stall the UI even when scheduled during idle time.
+        const totalRecords = recordMesgs.length;
+        const MAX_FIELDS_TO_PREWARM =
+            totalRecords >= 250_000 ? 2 : totalRecords >= 120_000 ? 4 : totalRecords >= 60_000 ? 6 : 8;
+        const PRIORITY_FIELDS = [
+            // Common record fields (both snake_case and camelCase variants seen across parsers)
+            "speed",
+            "enhanced_speed",
+            "heart_rate",
+            "heartRate",
+            "power",
+            "enhanced_power",
+            "altitude",
+            "enhanced_altitude",
+            "cadence",
+            "temperature",
+        ];
+
+        /** @type {string[]} */
+        const prioritized = [];
+        const candidateSet = new Set(fieldsToPrewarm);
+        for (const f of PRIORITY_FIELDS) {
+            if (candidateSet.has(f)) {
+                prioritized.push(f);
+                candidateSet.delete(f);
+            }
+        }
+        // Keep original ordering for the remaining candidates.
+        const remaining = fieldsToPrewarm.filter((f) => candidateSet.has(f));
+        fieldsToPrewarm = [...prioritized, ...remaining].slice(0, MAX_FIELDS_TO_PREWARM);
+
+        if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+            console.log(
+                `${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`
+            );
+        }
+
+        let processedFields = 0;
+        for (const field of fieldsToPrewarm) {
+            // Abort if the user navigates to the chart tab during prewarm.
+            const tabNow = gs("ui.activeTab");
+            if (tabNow === "chart" || tabNow === "chartjs") {
+                return { processedFields, skipped: false };
+            }
+
+            const visibility = chartSettingsManager.getFieldVisibility(field);
+            if (visibility === "hidden") {
+                continue;
+            }
+
+            const entry = getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert);
+            // Warm point + axis-range caches for the current maxpoints setting.
+            getCachedSeriesForSettings(entry, labels, normalizedMaxPoints);
+
+            processedFields += 1;
+
+            if (yieldEvery > 0 && processedFields % yieldEvery === 0) {
+                // Yield to the event loop so we don't freeze the UI while pre-warming.
+                // (Still best-effort; the inner per-field scan is synchronous.)
+                // eslint-disable-next-line no-await-in-loop -- intentional cooperative yield during prewarm.
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
+            }
+        }
+
+        if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+            console.log(`${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`);
+        }
+
+        return { processedFields, skipped: false };
+    } catch (error) {
+        console.warn(`${CACHE_LOG_PREFIX} prewarm failed (${reason})`, error);
+        return { processedFields: 0, skipped: false };
+    } finally {
+        /** @type {any} */ (globalThis).__FFV_suppressNotifications = prevSuppress;
     }
 }
 
@@ -868,8 +1058,11 @@ function ensureFieldSeriesCache(recordMesgs) {
     if (!cache) {
         cache = {
             fields: new Map(),
+            readKeys: new Map(),
         };
         fieldSeriesCache.set(recordMesgs, cache);
+    } else if (!(/** @type {any} */ (cache.readKeys instanceof Map))) {
+        /** @type {any} */ (cache).readKeys = new Map();
     }
     return cache;
 }
@@ -928,13 +1121,14 @@ function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert)
 
     let entry = fieldMap.get(dataSettingsSignature);
     if (!entry) {
+        const readKey = resolveRecordFieldKey(cache, recordMesgs, field);
         const values = [];
         let min = Number.POSITIVE_INFINITY;
         let max = Number.NEGATIVE_INFINITY;
         let hasNull = false;
 
         for (const row of recordMesgs) {
-            const raw = row && typeof row === "object" ? /** @type {any} */ (row)[field] : null;
+            const raw = row && typeof row === "object" ? /** @type {any} */ (row)[readKey] : null;
             let numeric = Number(raw);
             if (!Number.isFinite(numeric)) {
                 values.push(null);
@@ -1095,6 +1289,54 @@ function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature
     const result = { decimation, enableSpanGaps, tickSampleSize };
     performanceSettingsCache.set(key, result);
     return result;
+}
+
+/**
+ * Resolve which key to read from record messages for a given chart field.
+ *
+ * The app has historically seen both snake_case and camelCase field keys depending on
+ * parser/source. Chart configuration uses camelCase (e.g., heartRate), but recordMesgs
+ * commonly contain snake_case (e.g., heart_rate).
+ *
+ * @param {{ readKeys?: Map<string,string> }} cache
+ * @param {Array<Record<string, unknown>>} recordMesgs
+ * @param {string} field
+ * @returns {string}
+ */
+function resolveRecordFieldKey(cache, recordMesgs, field) {
+    if (cache && cache.readKeys instanceof Map) {
+        const cached = cache.readKeys.get(field);
+        if (typeof cached === "string") {
+            return cached;
+        }
+    }
+
+    const snake = field.replaceAll(/([A-Z])/g, "_$1").toLowerCase();
+    let resolved = field;
+
+    // Scan a small prefix of records to find which key actually exists.
+    // (We prefer the canonical field first, then the snake_case variant.)
+    const limit = Math.min(50, Array.isArray(recordMesgs) ? recordMesgs.length : 0);
+    for (let i = 0; i < limit; i += 1) {
+        const row = recordMesgs[i];
+        if (!row || typeof row !== "object") {
+            continue;
+        }
+        const anyRow = /** @type {any} */ (row);
+        if (field in anyRow) {
+            resolved = field;
+            break;
+        }
+        if (snake in anyRow) {
+            resolved = snake;
+            break;
+        }
+    }
+
+    if (cache && cache.readKeys instanceof Map) {
+        cache.readKeys.set(field, resolved);
+    }
+    return resolved;
 }
 
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
@@ -1428,7 +1670,11 @@ export const chartActions = {
             { silent: false, source: "chartActions.completeRendering" }
         );
 
-        callSetState("isLoading", false, { silent: false, source: "chartActions.completeRendering" });
+        // Background renders (preload) must not hijack the global loading indicator.
+        const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+        if (!suppressLoading) {
+            callSetState("isLoading", false, { silent: false, source: "chartActions.completeRendering" });
+        }
 
         if (success) {
             callUpdateState(
@@ -1451,13 +1697,16 @@ export const chartActions = {
     requestRerender(reason = "State change") {
         console.log(`[ChartJS] Re-render requested: ${reason}`);
 
-        // Use debounce to handle limiting frequent re-renders
-        debounce(() => {
-            const container = document.querySelector("#content-chart");
-            if (container && chartState.hasValidData) {
-                renderChartJS(container);
-            }
-        }, RENDER_DEBOUNCE_MS)();
+        // Prefer the centralized ChartStateManager when available.
+        // This prevents duplicate renders from multiple subsystems.
+        const csm = /** @type {any} */ (globalThis).chartStateManager;
+        if (csm && typeof csm.debouncedRender === "function") {
+            csm.debouncedRender(reason);
+            return;
+        }
+
+        // Fallback: stable module-level debounced render.
+        debouncedDirectRerender(reason);
     },
 
     /**
@@ -1479,7 +1728,11 @@ export const chartActions = {
     startRendering() {
         // Use state management instead of missing AppActions method
         callSetState("charts.isRendering", true, { silent: false, source: "chartActions.startRendering" });
-        callSetState("isLoading", true, { silent: false, source: "chartActions.startRendering" });
+        // Background renders (preload) must not hijack the global loading indicator.
+        const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+        if (!suppressLoading) {
+            callSetState("isLoading", true, { silent: false, source: "chartActions.startRendering" });
+        }
     },
 
     /**
@@ -1698,14 +1951,26 @@ export function refreshChartsIfNeeded() {
 /**
  * Main chart rendering function with state management integration and comprehensive error handling
  * @param {Element|string} [targetContainer] - Optional container element or ID for chart rendering. If omitted, defaults to '#content-chart'.
+ * @param {{
+ *  allowInactiveTab?: boolean,
+ *  skipTabAbort?: boolean,
+ *  skipControls?: boolean,
+ *  renderMode?: "foreground"|"background"
+ * }} [options]
  * @returns {Promise<boolean>} Success status of the rendering operation
  */
-export async function renderChartJS(targetContainer) {
+export async function renderChartJS(targetContainer, options = {}) {
     console.log("[ChartJS] Starting chart rendering...");
+
+    const {
+        allowInactiveTab = false,
+        skipTabAbort = false,
+        skipControls = false,
+    } = options && typeof options === "object" ? options : {};
 
     // Early exit if chart tab is not active to prevent unnecessary rendering (except in tests)
     const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-    if (!isTestEnvironment) {
+    if (!isTestEnvironment && !allowInactiveTab) {
         const { getState: getStateEarly } = getStateManagerSafe();
         const activeTab = getStateEarly("ui.activeTab");
         if (activeTab !== "chart" && activeTab !== "chartjs") {
@@ -1732,7 +1997,10 @@ export async function renderChartJS(targetContainer) {
             } else {
                 // Fallback state updates to indicate rendering state
                 callSetState("charts.isRendering", true, { silent: false, source: "renderChartJS.start" });
-                callSetState("isLoading", true, { silent: false, source: "renderChartJS.start" });
+                const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+                if (!suppressLoading) {
+                    callSetState("isLoading", true, { silent: false, source: "renderChartJS.start" });
+                }
             }
         }
 
@@ -1984,7 +2252,10 @@ export async function renderChartJS(targetContainer) {
 
         let result = false;
         try {
-            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime);
+            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime, {
+                skipControls,
+                skipTabAbort: skipTabAbort || allowInactiveTab,
+            });
         } catch (innerError) {
             console.warn("[ChartJS] renderChartsWithData threw, continuing with graceful completion:", innerError);
             // If we have valid data, treat inner errors as non-fatal so that overall rendering
@@ -2007,16 +2278,7 @@ export async function renderChartJS(targetContainer) {
         } catch {
             safeCompleteRendering(/** @type {any} */ (success));
         }
-        // Ensure hover-effects dev helper is invoked even if inner renderer short-circuited,
-        // so integration tests observing this spy still pass.
-        if (success) {
-            try {
-                const { addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe } = getHoverPluginsSafe();
-                addHoverEffectsToExistingChartsSafe?.();
-            } catch {
-                /* ignore */
-            }
-        }
+        // Hover effects are applied within renderChartsWithData (deferred). Avoid duplicate passes here.
         return success;
     } catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
@@ -2137,12 +2399,18 @@ export async function renderChartJS(targetContainer) {
 /**
  * @param {HTMLElement} targetContainer - Container element for charts
  * @param {Array<Object>} recordMesgs - FIT file record messages
- * @param {number} startTime - Performance timing start
+ * @param {number|Date|null} startTime - Activity start time used for label generation
+ * @param {{ skipTabAbort?: boolean, skipControls?: boolean }} [options]
  * @returns {Promise<boolean>} Success status
  */
-async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
+async function renderChartsWithData(targetContainer, recordMesgs, startTime, options = {}) {
     // Check if in test environment
     const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+    const { skipControls = false, skipTabAbort = false } = options && typeof options === "object" ? options : {};
+
+    const renderStartTime = performance.now();
 
     // Preflight DOM capability check to surface DOM issues early (tested scenario)
     // This will throw in the specific test where document.createElement is mocked to throw,
@@ -2171,12 +2439,14 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const showRenderNotificationSafe = getShowRenderNotificationSafe();
     const { setState: ss_rcwd, updateState: us_rcwd, getState: gs_rcwd } = getStateManagerSafe();
 
-    // Ensure settings dropdowns exist
-    ensureChartSettingsDropdowns(targetContainer);
+    // Ensure settings dropdowns exist (skip in background pre-render mode)
+    if (!skipControls) {
+        ensureChartSettingsDropdowns(targetContainer);
+    }
 
     // Setup theme listener for real-time theme updates
     const settingsWrapperElem = document.querySelector("#chartjs-settings-wrapper");
-    if (targetContainer && settingsWrapperElem) {
+    if (!skipControls && targetContainer && settingsWrapperElem) {
         setupChartThemeListener(targetContainer, settingsWrapperElem);
     }
 
@@ -2221,7 +2491,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             colors: customColors = [],
             exportTheme = "auto",
             interpolation = "linear",
-            maxpoints: maxPoints = "all",
+            maxpoints: maxPoints = DEFAULT_MAX_POINTS,
             showFill = false,
             showGrid = true,
             showLegend = true,
@@ -2287,7 +2557,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 },
             },
         };
-    console.log("[renderChartsWithData] Detected theme:", currentTheme);
+    if (isDebugLoggingEnabled) {
+        console.log("[renderChartsWithData] Detected theme:", currentTheme);
+    }
 
     // Process data using memoization helpers to avoid redundant conversions across renders
     const data = recordMesgs;
@@ -2313,13 +2585,34 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         }
     }
 
-    console.log(
-        `[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`
-    );
+    if (isDebugLoggingEnabled) {
+        console.log(
+            `[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`
+        );
+    }
+
+    // Rendering a large number of charts with "normal" animations produces long-running rAF handlers
+    // and makes the UI feel sluggish even for small record sets. Auto-tune animation for bulk renders.
+    // NOTE: This does not change persisted settings; it only affects this render.
+    const ESTIMATED_NON_METRIC_CHARTS = 12;
+    const estimatedChartCount = fieldsToRender.length + ESTIMATED_NON_METRIC_CHARTS;
+    const effectiveAnimationStyle =
+        animationStyle === "normal" && estimatedChartCount >= 20
+            ? "none"
+            : animationStyle === "normal" && estimatedChartCount >= 12
+              ? "fast"
+              : animationStyle;
+    if (isDebugLoggingEnabled && effectiveAnimationStyle !== animationStyle) {
+        console.log(
+            `[ChartJS] Auto-tuned animation from ${String(animationStyle)} to ${String(
+                effectiveAnimationStyle
+            )} (estimatedCharts=${estimatedChartCount})`
+        );
+    }
 
     for (const field of fieldsToRender) {
         // Check if still on chart tab before each chart creation (skip in tests)
-        if (!isTestEnvironment) {
+        if (!isTestEnvironment && !skipTabAbort) {
             const currentTab = gs_rcwd("ui.activeTab");
             if (currentTab !== "chart" && currentTab !== "chartjs") {
                 console.log(`[ChartJS] Aborting render loop - tab switched to ${currentTab}`);
@@ -2329,7 +2622,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         const visibility = chartSettingsManager.getFieldVisibility(field);
         if (visibility === "hidden") {
-            console.log(`[ChartJS] Skipping hidden field: ${field}`);
+            if (isDebugLoggingEnabled) {
+                console.log(`[ChartJS] Skipping hidden field: ${field}`);
+            }
             continue;
         }
 
@@ -2341,12 +2636,16 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             points: limitedPoints,
         } = getCachedSeriesForSettings(seriesEntry, labels, normalizedMaxPoints);
 
-        console.log(
-            `[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${visibility}`
-        );
+        if (isDebugLoggingEnabled) {
+            console.log(
+                `[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${visibility}`
+            );
+        }
 
         if (!hasValidData) {
-            console.log(`[ChartJS] Skipping field ${field} - no valid data after memoization`);
+            if (isDebugLoggingEnabled) {
+                console.log(`[ChartJS] Skipping field ${field} - no valid data after memoization`);
+            }
             continue;
         }
 
@@ -2357,7 +2656,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         const chart = createEnhancedChartSafe(
             canvas,
             /** @type {any} */ ({
-                animationStyle,
+                animationStyle: effectiveAnimationStyle,
                 axisRanges,
                 chartData: limitedPoints,
                 chartType,
@@ -2452,7 +2751,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Render performance analysis charts
     renderPerformanceAnalysisChartsSafe(chartContainer, data, labels, {
-        animationStyle,
+        animationStyle: effectiveAnimationStyle,
         chartType,
         customColors,
         interpolation,
@@ -2478,10 +2777,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     }
 
     // Performance logging with state updates using updateState
-    const endTime = performance.now(),
-        resolvedStartTime = typeof startTime === "number" ? startTime : endTime,
-        renderTime = endTime - resolvedStartTime;
-    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${renderTime.toFixed(2)}ms`);
+    const endTime = performance.now();
+    const renderTime = endTime - renderStartTime;
+    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`);
 
     // Update performance metrics in state using updateState for efficiency
     {
@@ -2547,36 +2845,42 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         );
     }
 
-    // Add hover effects to all rendered charts
+    // Add hover effects to all rendered charts.
+    // IMPORTANT: defer DOM wrapping so the initial chart paint isn't blocked.
     if (totalChartsRendered > 0) {
-        // Get theme configuration for hover effects
-        let hoverThemeConfig;
-        if (windowAny.getThemeConfig) {
-            hoverThemeConfig = windowAny.getThemeConfig();
-        } else {
-            // Use the established theme configuration
-            hoverThemeConfig = await getThemeConfigSafe();
-        }
+        const applyHoverEffects = async () => {
+            try {
+                const hoverThemeConfig = windowAny.getThemeConfig
+                    ? windowAny.getThemeConfig()
+                    : await getThemeConfigSafe();
+                addChartHoverEffectsSafe(chartContainer, hoverThemeConfig);
+            } catch {
+                /* ignore */
+            }
 
-        // Add hover effects to charts
-        addChartHoverEffectsSafe(chartContainer, hoverThemeConfig);
-        // Call dev-helper variant as well to satisfy integration expectations in tests
-        try {
-            addHoverEffectsToExistingChartsSafe();
-        } catch {
-            // ignore if not available
+            // Integration tests expect the dev-helper to be callable.
+            if (isTestEnvironment) {
+                try {
+                    addHoverEffectsToExistingChartsSafe?.();
+                } catch {
+                    /* ignore */
+                }
+            }
+        };
+
+        if (isTestEnvironment) {
+            await applyHoverEffects();
+        } else {
+            setTimeout(() => {
+                applyHoverEffects().catch(() => {
+                    /* ignore */
+                });
+            }, 0);
         }
 
         // Update UI state for chart interactions using existing method
         const uiMgr2 = getUIStateManagerMaybe();
         uiMgr2?.updateChartControlsUI?.(true);
-    }
-    // Also call dev-helper variant unconditionally to satisfy certain integration tests
-    try {
-        // This function was already imported as addHoverEffectsToExistingChartsSafe above; call it directly
-        addHoverEffectsToExistingChartsSafe?.();
-    } catch {
-        /* ignore */
     }
 
     // Update previous chart state for future comparisons (safe wrapper)

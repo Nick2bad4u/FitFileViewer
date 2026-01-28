@@ -18,6 +18,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     // Find all chart canvases in the container
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
 
+    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+
+    let appliedCount = 0;
     for (const canvas of chartCanvases) {
         if (!(canvas instanceof HTMLElement)) {
             continue;
@@ -30,7 +34,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         // Mark as having hover effects
         if (canvas.dataset) {
             canvas.dataset.hoverEffectsAdded = "true";
-        } // Create a wrapper div for the chart to handle hover effects properly
+        }
+        appliedCount += 1;
+
+        // Create a wrapper div for the chart to handle hover effects properly
         const wrapper = document.createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = /** @type {any} */ (themeConfig.colors || {});
@@ -183,7 +190,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             }, 600);
         });
 
-        console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
+        if (isDebugLoggingEnabled) {
+            console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
+        }
     }
 
     // Inject CSS keyframes for ripple effect if not already added
@@ -224,7 +233,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         document.head.append(style);
     }
 
-    console.log(`[ChartHoverEffects] Added hover effects to ${chartCanvases.length} chart(s)`);
+    if (isDebugLoggingEnabled) {
+        console.log(`[ChartHoverEffects] Added hover effects to ${appliedCount} chart(s)`);
+    }
 }
 
 export function addHoverEffectsToExistingCharts() {

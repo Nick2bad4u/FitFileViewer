@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setState } from "../../../../utils/state/core/stateManager.js";
 
 vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+    getState: vi.fn(() => undefined),
     setState: vi.fn(),
     subscribe: vi.fn(() => () => {}),
 }));
