@@ -16,9 +16,16 @@ let originalConsoleWarn;
 /** @type {any} */
 let originalConsoleError;
 
-// Mock the state manager module to an empty object so getStateMgr() must use the
-// __vitest_effective_stateManager__ fallback branch.
-vi.mock("../../../../../utils/state/core/stateManager.js", () => ({}));
+// Mock the state manager module with missing/non-functional `subscribe` so getStateMgr() must use
+// the __vitest_effective_stateManager__ fallback branch, while still providing the named exports
+// required by transitive imports.
+vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
+    getState: undefined,
+    setState: undefined,
+    updateState: undefined,
+    // Intentionally non-function so tabStateManager's getStateMgr() does not accept module exports.
+    subscribe: () => () => {},
+}));
 
 describe("tabStateManager.fallback", () => {
     beforeEach(() => {

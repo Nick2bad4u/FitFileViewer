@@ -3,7 +3,14 @@ const { CONSTANTS } = require("../constants");
 const { logWithContext } = require("../logging/logWithContext");
 const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu");
 const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../oauth/gyazoOAuthServer");
-const { appRef, browserWindowRef, dialogRef, shellRef } = require("../runtime/electronAccess");
+const {
+    appRef,
+    browserWindowRef,
+    clipboardRef,
+    dialogRef,
+    nativeImageRef,
+    shellRef,
+} = require("../runtime/electronAccess");
 const { ensureFitParserStateIntegration } = require("../runtime/fitParserIntegration");
 const { fs, path } = require("../runtime/nodeModules");
 const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
@@ -11,6 +18,7 @@ const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
 const { registerIpcHandle, registerIpcListener } = require("./ipcRegistry");
 const { registerBrowserHandlers } = require("./registerBrowserHandlers");
+const { registerClipboardHandlers } = require("./registerClipboardHandlers");
 const { registerDialogHandlers } = require("./registerDialogHandlers");
 const { registerExternalHandlers } = require("./registerExternalHandlers");
 const { registerFileSystemHandlers } = require("./registerFileSystemHandlers");
@@ -76,6 +84,13 @@ function setupIPCHandlers(mainWindow) {
         shellRef,
         startGyazoOAuthServer,
         stopGyazoOAuthServer,
+    });
+
+    registerClipboardHandlers({
+        registerIpcHandle,
+        clipboardRef,
+        nativeImageRef,
+        logWithContext,
     });
 
     registerIpcListener("fit-file-loaded", async (event, filePath) => {

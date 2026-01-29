@@ -70,7 +70,9 @@ export function showColModal({
     header.append(title, closeBtn);
     modal.append(header);
 
-    const prefsKeyForFile = getStorageKey(/** @type {any} */ (globalThis).globalData || {}, allKeys);
+    const globalData =
+        /** @type {any} */ (globalThis.window)?.globalData ?? /** @type {any} */ (globalThis).globalData ?? {};
+    const prefsKeyForFile = getStorageKey(globalData, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 
     const updateVisibleColumns = (cols) => {
@@ -210,7 +212,7 @@ export function showColModal({
 
     /**
      * @param {string[]|null} a
-     * @param {string[]} b
+     * @param {string[]|null} b
      * @returns {boolean}
      */
     const sameCols = (a, b) => {
@@ -221,6 +223,44 @@ export function showColModal({
             if (element !== bb[i]) return false;
         }
         return true;
+    };
+
+    /**
+     * Returns the "baseline" selection used when no per-file override exists.
+     * Baseline = global default (if set), otherwise built-in default (all keys, named-first).
+     *
+     * @returns {string[]}
+     */
+    const getBaselineCols = () => {
+        const globalCols = getGlobalDefaultCols();
+        const baselineRaw = globalCols && globalCols.length > 0 ? globalCols : orderSummaryColumnsNamedFirst(allKeys);
+        return orderSummaryColumnsNamedFirst(allKeys).filter((k) => baselineRaw.includes(k));
+    };
+
+    /**
+     * Persist the current selection for the current file.
+     *
+     * Important UX detail:
+     * If the current selection matches the baseline (global default when set, otherwise the built-in default),
+     * we remove the per-file key instead of saving it. This ensures that "switching off" a file override
+     * actually stays off across tab switches and app restarts.
+     *
+     * @param {string[]} cols
+     */
+    const persistFileSelection = (cols) => {
+        const baseline = getBaselineCols();
+
+        // If selection matches baseline, clear per-file key to avoid a "phantom" override.
+        if (sameCols(baseline, cols)) {
+            try {
+                localStorage.removeItem(prefsKeyForFile);
+            } catch {
+                /* ignore */
+            }
+            return;
+        }
+
+        saveColPrefs(prefsKeyForFile, cols);
     };
 
     /**
@@ -253,28 +293,31 @@ export function showColModal({
     modal.append(statusBar);
 
     const updateStatus = () => {
-        const globalCols = getGlobalDefaultCols();
-        const fileCols = getFileSavedCols();
+        const globalCols = normalizeCols(getGlobalDefaultCols());
+        const baseline = getBaselineCols();
+        const fileCols = normalizeCols(getFileSavedCols());
 
-        const isGlobalActive = globalCols && sameCols(globalCols, visibleColumns);
-        const isFileActive = fileCols && sameCols(fileCols, visibleColumns);
+        const hasGlobalDefault = globalCols.length > 0;
+        const fileOverrideActive = fileCols.length > 0 && !sameCols(fileCols, baseline);
 
-        if (isGlobalActive) {
-            statusBar.dataset.mode = "global";
-            statusText.textContent = "Currently using: Global default";
-            statusHint.textContent = "";
+        const isDefaultSelection = sameCols(baseline, visibleColumns);
+        const isSavedFileSelection = fileOverrideActive && sameCols(fileCols, visibleColumns);
+
+        if (isDefaultSelection) {
+            statusBar.dataset.mode = hasGlobalDefault ? "global" : "custom";
+            statusText.textContent = hasGlobalDefault
+                ? "This file is using: Default (Global)"
+                : "This file is using: Default";
+            statusHint.textContent = fileOverrideActive ? "(a file override existed and was cleared)" : "";
             return;
         }
-        if (isFileActive) {
-            statusBar.dataset.mode = "file";
-            statusText.textContent = "Currently using: This file saved";
-            statusHint.textContent = "";
-            return;
-        }
 
-        statusBar.dataset.mode = "custom";
-        statusText.textContent = "Currently using: Custom selection";
-        if (globalCols) {
+        statusBar.dataset.mode = "file";
+        statusText.textContent = isSavedFileSelection
+            ? "This file is using: Saved selection"
+            : "This file is using: Custom selection";
+
+        if (hasGlobalDefault) {
             const { added, removed } = diffCounts(globalCols, visibleColumns);
             const parts = [];
             if (added > 0) parts.push(`+${added}`);
@@ -293,7 +336,7 @@ export function showColModal({
         columns: getGlobalDefaultCols(),
     });
     const fileBadge = createBadge({
-        label: "This file saved",
+        label: "This file override",
         variant: getFileSavedCols() ? "warn" : "off",
         columns: getFileSavedCols(),
     });
@@ -317,46 +360,57 @@ export function showColModal({
     };
 
     wireBadgeTooltip(globalBadge, "Global default columns", getGlobalDefaultCols);
-    wireBadgeTooltip(fileBadge, "Saved columns for this file", getFileSavedCols);
+    wireBadgeTooltip(fileBadge, "Saved override columns for this file", getFileSavedCols);
 
     badges.append(globalBadge, fileBadge);
 
-    const setDefaultBtn = document.createElement("button");
-    setDefaultBtn.className = "themed-btn";
-    setDefaultBtn.textContent = "Set Global Default";
-    setDefaultBtn.title = "Use this column selection as the default for all future files";
-    setDefaultBtn.addEventListener("click", () => {
-        saveColPrefs(prefsKeyGlobal, visibleColumns);
-        // Also refresh current file prefs so the current file behaves consistently.
-        saveColPrefs(prefsKeyForFile, visibleColumns);
-        globalBadge.className = "summary-col-badge summary-col-badge--ok";
-        globalBadge.disabled = false;
-        updateSelectedCount();
-        updateStatus();
-        reRenderTable();
-    });
+    // Help text + simplified actions
+    const help = document.createElement("div");
+    help.className = "summary-col-presets-help";
+    help.append(
+        document.createTextNode(
+            "How this works: your Global default is used for files with no saved selection. Any changes you make here are saved for this file automatically."
+        )
+    );
 
-    const useDefaultBtn = document.createElement("button");
-    useDefaultBtn.className = "themed-btn";
-    useDefaultBtn.textContent = "Use Global Default";
-    useDefaultBtn.title = "Replace the current selection with the global default columns";
-    useDefaultBtn.addEventListener("click", () => {
-        const cols = getGlobalDefaultCols();
-        if (!cols || cols.length === 0) return;
-        const ordered = orderSummaryColumnsNamedFirst(allKeys).filter((k) => cols.includes(k));
+    const actionsWrap = document.createElement("div");
+    actionsWrap.className = "summary-col-presets-actions-wrap";
+
+    const resetBtn = document.createElement("button");
+    resetBtn.className = "themed-btn";
+    resetBtn.textContent = "Reset to Default";
+    resetBtn.title = "Stop overriding this file and go back to the default column selection";
+    resetBtn.addEventListener("click", () => {
+        hideTooltip();
+        const ordered = getBaselineCols();
         updateVisibleColumns(ordered);
         updateColList();
         updateSelectedCount();
+        persistFileSelection(ordered);
         updateStatus();
         reRenderTable();
-        saveColPrefs(prefsKeyForFile, ordered);
     });
 
-    const clearDefaultBtn = document.createElement("button");
-    clearDefaultBtn.className = "themed-btn";
-    clearDefaultBtn.textContent = "Clear Default";
-    clearDefaultBtn.title = "Remove the global default column selection";
-    clearDefaultBtn.addEventListener("click", () => {
+    const makeGlobalDefaultBtn = document.createElement("button");
+    makeGlobalDefaultBtn.className = "themed-btn";
+    makeGlobalDefaultBtn.textContent = "Make Global Default";
+    makeGlobalDefaultBtn.title = "Use this selection as the default for future files";
+    makeGlobalDefaultBtn.addEventListener("click", () => {
+        saveColPrefs(prefsKeyGlobal, visibleColumns);
+        // Now that the global default matches the selection, clear redundant per-file override.
+        persistFileSelection(visibleColumns);
+        globalBadge.className = "summary-col-badge summary-col-badge--ok";
+        globalBadge.disabled = false;
+        hideTooltip();
+        updateStatus();
+        reRenderTable();
+    });
+
+    const clearGlobalDefaultBtn = document.createElement("button");
+    clearGlobalDefaultBtn.className = "themed-btn";
+    clearGlobalDefaultBtn.textContent = "Clear Global Default";
+    clearGlobalDefaultBtn.title = "Remove the saved global default";
+    clearGlobalDefaultBtn.addEventListener("click", () => {
         try {
             localStorage.removeItem(prefsKeyGlobal);
         } catch {
@@ -365,15 +419,15 @@ export function showColModal({
         globalBadge.className = "summary-col-badge summary-col-badge--off";
         globalBadge.disabled = true;
         hideTooltip();
+        // Clearing global default can change the baseline; ensure file override state is normalized.
+        persistFileSelection(visibleColumns);
         updateStatus();
         reRenderTable();
     });
 
-    const actionsLeft = document.createElement("div");
-    actionsLeft.className = "summary-col-presets-actions";
-    actionsLeft.append(useDefaultBtn, setDefaultBtn, clearDefaultBtn);
+    actionsWrap.append(resetBtn, makeGlobalDefaultBtn, clearGlobalDefaultBtn);
 
-    presetsBar.append(badges, actionsLeft);
+    presetsBar.append(badges, help, actionsWrap);
     modal.append(presetsBar);
 
     const colList = document.createElement("div");
@@ -381,7 +435,7 @@ export function showColModal({
     modal.append(colList);
 
     const selectAllBtn = document.createElement("button");
-    selectAllBtn.className = "themed-btn";
+    selectAllBtn.className = "themed-btn summary-col-selectall-btn";
     selectAllBtn.textContent = "Select All";
 
     /**
@@ -415,7 +469,7 @@ export function showColModal({
                 updateColList();
                 updateStatus();
                 reRenderTable();
-                saveColPrefs(prefsKeyForFile, newCols);
+                persistFileSelection(newCols);
             }
         };
     }
@@ -448,7 +502,7 @@ export function showColModal({
             updateColList();
             updateStatus();
             reRenderTable();
-            saveColPrefs(prefsKeyForFile, newCols);
+            persistFileSelection(newCols);
         };
     }
 
@@ -511,7 +565,7 @@ export function showColModal({
         updateColList();
         updateStatus();
         reRenderTable();
-        saveColPrefs(prefsKeyForFile, newCols);
+        persistFileSelection(newCols);
     });
 
     const selectAllWrap = document.createElement("div");
@@ -524,20 +578,12 @@ export function showColModal({
     // Actions
     const actions = document.createElement("div");
     actions.className = "modal-actions";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.className = "themed-btn";
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.addEventListener("click", () => overlay.remove());
-    const okBtn = document.createElement("button");
-    okBtn.className = "themed-btn";
-    okBtn.textContent = "OK";
-    okBtn.addEventListener("click", () => {
-        overlay.remove();
-        reRenderTable();
-        saveColPrefs(prefsKeyForFile, visibleColumns);
-    });
-    actions.append(cancelBtn);
-    actions.append(okBtn);
+    const closeActionBtn = document.createElement("button");
+    closeActionBtn.className = "themed-btn";
+    closeActionBtn.textContent = "Close";
+    closeActionBtn.title = "Changes are saved automatically";
+    closeActionBtn.addEventListener("click", () => overlay.remove());
+    actions.append(closeActionBtn);
     modal.append(actions);
     overlay.append(modal);
     document.body.append(overlay);

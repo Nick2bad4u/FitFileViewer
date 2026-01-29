@@ -193,6 +193,111 @@ describe("estimateCyclingPower.js", () => {
         }
     });
 
+    it("produces plausible power for flat road at 36 km/h (sanity check)", async () => {
+        const { applyEstimatedPowerToRecords } =
+            await import("../../../../../utils/data/processing/estimateCyclingPower.js");
+
+        // Flat, steady speed, sea level.
+        const records: Array<FitMesg> = [
+            { timestamp: 1000, speed: 10.0, altitude: 0, distance: 0 },
+            { timestamp: 1001, speed: 10.0, altitude: 0, distance: 10 },
+            { timestamp: 1002, speed: 10.0, altitude: 0, distance: 20 },
+        ];
+
+        const res = applyEstimatedPowerToRecords({
+            recordMesgs: records,
+            sessionMesgs: [{ sport: "cycling" }],
+            settings: {
+                enabled: true,
+                riderWeightKg: 75,
+                bikeWeightKg: 10,
+                crr: 0.004,
+                cda: 0.32,
+                drivetrainEfficiency: 0.97,
+                windSpeedMps: 0,
+                gradeWindowMeters: 35,
+                maxPowerW: 2000,
+            },
+        });
+
+        expect(res.applied).toBe(true);
+        const p = records[1].estimatedPower as number;
+        expect(Number.isFinite(p)).toBe(true);
+
+        // Expected ballpark is ~200-300 W for these parameters.
+        // Keep the bounds wide to avoid false failures if constants are tweaked.
+        expect(p).toBeGreaterThan(120);
+        expect(p).toBeLessThan(450);
+    });
+
+    it("uphill (positive grade) should require more power than flat at same speed", async () => {
+        const { applyEstimatedPowerToRecords } =
+            await import("../../../../../utils/data/processing/estimateCyclingPower.js");
+
+        // Construct an approximate 5% grade by increasing altitude proportional to distance.
+        const flat: Array<FitMesg> = [
+            { timestamp: 1000, speed: 5.0, altitude: 0, distance: 0 },
+            { timestamp: 1001, speed: 5.0, altitude: 0, distance: 5 },
+            { timestamp: 1002, speed: 5.0, altitude: 0, distance: 10 },
+        ];
+
+        const uphill: Array<FitMesg> = [
+            { timestamp: 1000, speed: 5.0, altitude: 0, distance: 0 },
+            { timestamp: 1001, speed: 5.0, altitude: 0.25, distance: 5 }, // 0.25m / 5m = 5%
+            { timestamp: 1002, speed: 5.0, altitude: 0.5, distance: 10 },
+        ];
+
+        const settings = {
+            enabled: true,
+            riderWeightKg: 75,
+            bikeWeightKg: 10,
+            crr: 0.004,
+            cda: 0.32,
+            drivetrainEfficiency: 0.97,
+            windSpeedMps: 0,
+            gradeWindowMeters: 5,
+            maxPowerW: 2000,
+        };
+
+        applyEstimatedPowerToRecords({ recordMesgs: flat, sessionMesgs: [{ sport: "cycling" }], settings });
+        applyEstimatedPowerToRecords({ recordMesgs: uphill, sessionMesgs: [{ sport: "cycling" }], settings });
+
+        const pFlat = flat[1].estimatedPower as number;
+        const pUp = uphill[1].estimatedPower as number;
+        expect(Number.isFinite(pFlat)).toBe(true);
+        expect(Number.isFinite(pUp)).toBe(true);
+        expect(pUp).toBeGreaterThan(pFlat);
+    });
+
+    it("zero speed should yield ~0 estimated power", async () => {
+        const { applyEstimatedPowerToRecords } =
+            await import("../../../../../utils/data/processing/estimateCyclingPower.js");
+
+        const records: Array<FitMesg> = [
+            { timestamp: 1000, speed: 0, altitude: 0, distance: 0 },
+            { timestamp: 1001, speed: 0, altitude: 0, distance: 0 },
+        ];
+
+        applyEstimatedPowerToRecords({
+            recordMesgs: records,
+            sessionMesgs: [{ sport: "cycling" }],
+            settings: {
+                enabled: true,
+                riderWeightKg: 75,
+                bikeWeightKg: 10,
+                crr: 0.004,
+                cda: 0.32,
+                drivetrainEfficiency: 0.97,
+                windSpeedMps: 0,
+                gradeWindowMeters: 35,
+                maxPowerW: 2000,
+            },
+        });
+
+        expect(records[0].estimatedPower).toBe(0);
+        expect(records[1].estimatedPower).toBe(0);
+    });
+
     it("applyEstimatedPowerToRecords should fall back to GPS haversine when distance is missing", async () => {
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../utils/data/processing/estimateCyclingPower.js");

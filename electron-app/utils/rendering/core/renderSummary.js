@@ -54,7 +54,11 @@ export function renderSummary(data) {
     const perFilePrefs = loadColPrefs(fileKey, allKeys);
     const globalPrefs = loadColPrefs(getGlobalStorageKey(), allKeys);
     // Always render named columns before numbered-only columns.
-    let visibleColumns = orderSummaryColumnsNamedFirst(perFilePrefs || globalPrefs || [...allKeys]);
+    const initialPrefs = perFilePrefs ?? globalPrefs ?? [...allKeys];
+    // Preferences can come from a different activity, so they may include keys that do not exist
+    // in the current file. Filter them out so we don't render empty/blank columns.
+    const normalizedPrefs = orderSummaryColumnsNamedFirst(allKeys).filter((k) => initialPrefs.includes(k));
+    let visibleColumns = normalizedPrefs;
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";

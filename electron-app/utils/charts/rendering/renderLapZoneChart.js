@@ -171,6 +171,12 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                     max: "original",
                                     min: "original",
                                 },
+                                // Prevent panning/zooming into negative time values.
+                                // Original min is 0 (beginAtZero + all-positive stacked bars).
+                                y: {
+                                    max: "original",
+                                    min: "original",
+                                },
                             },
                             pan: {
                                 enabled: true,
@@ -221,7 +227,13 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                 /** @param {number|string} value */
                                 callback(value) {
                                     const num = typeof value === "number" ? value : Number(value);
-                                    return formatTime(Number.isFinite(num) ? num : 0, true);
+                                    if (!Number.isFinite(num)) {
+                                        return formatTime(0, true);
+                                    }
+
+                                    // Chart.js zoom/pan can generate negative ticks when panned below 0.
+                                    // Clamp so we don't spam warnings and don't show nonsense labels.
+                                    return formatTime(Math.max(num, 0), true);
                                 },
                                 color: themeConfig?.colors?.textPrimary || "#000",
                             },

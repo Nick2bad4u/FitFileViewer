@@ -285,12 +285,23 @@ describe("ChartStateManager", () => {
             const debouncedRenderSpy = vi.spyOn(chartStateManager, "debouncedRender").mockImplementation(() => {});
             vi.mocked(getState).mockReturnValueOnce({ isRendered: true }).mockReturnValueOnce({ recordMesgs: [] });
 
+            // The implementation treats "rendered" as valid only when we have actual render output.
+            // Provide both a Chart.js instance and at least one canvas in the expected container.
+            const container = document.getElementById("chartjs-chart-container") as HTMLElement;
+            expect(container).toBeTruthy();
+            const canvas = document.createElement("canvas");
+            container.appendChild(canvas);
+            (globalThis as any)._chartjsInstances = [{ destroy: vi.fn() }];
+
             chartStateManager.handleTabActivation();
 
             expect(setState).toHaveBeenCalledWith("charts.tabActive", true, {
                 source: "ChartStateManager.handleTabActivation",
             });
             expect(debouncedRenderSpy).not.toHaveBeenCalled();
+
+            canvas.remove();
+            (globalThis as any)._chartjsInstances = [];
 
             debouncedRenderSpy.mockRestore();
         });

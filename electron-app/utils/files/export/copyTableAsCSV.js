@@ -8,7 +8,7 @@ const CSV_CONFIG = {
         CLIPBOARD_ERROR: "Failed to copy CSV:",
         FALLBACK_ERROR: "Failed to copy CSV using fallback:",
         FALLBACK_SUCCESS: "Copied CSV to clipboard using fallback!",
-        FALLBACK_WARNING: "Clipboard API unavailable or denied. Using fallback.",
+        FALLBACK_WARNING: "Clipboard write fell back to legacy copy.",
         INVALID_TABLE: "Invalid table object: missing objects method",
         SUCCESS: "Copied CSV to clipboard!",
     },
@@ -117,11 +117,17 @@ async function copyToClipboard(text) {
         const { electronAPI } = /** @type {any} */ (globalThis);
         if (electronAPI && typeof electronAPI.writeClipboardText === "function") {
             const { writeClipboardText } = electronAPI;
-            const ok = Boolean(writeClipboardText(text));
+            const ok = Boolean(await writeClipboardText(text));
             if (ok) {
                 console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
                 return;
             }
+
+            // If we have the Electron bridge but it failed, skip navigator.clipboard (commonly denied)
+            // and use the legacy fallback directly.
+            console.error("[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback.");
+            copyToClipboardFallback(text);
+            return;
         }
     } catch {
         /* ignore */
@@ -139,8 +145,8 @@ async function copyToClipboard(text) {
         }
     }
 
-    // Fallback to legacy method.
-    console.warn(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_WARNING}`);
+    // Fallback to legacy method (mainly for tests / non-Electron contexts).
+    // Do not warn here; Electron file:// contexts frequently deny navigator.clipboard.
     copyToClipboardFallback(text);
 }
 

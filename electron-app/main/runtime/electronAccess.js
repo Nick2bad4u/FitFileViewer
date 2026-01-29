@@ -82,14 +82,26 @@ const menuRef = () => /** @type {any} */ (getElectron().Menu);
  */
 const shellRef = () => /** @type {any} */ (getElectron().shell);
 
+/**
+ * @returns {any} Electron clipboard API reference.
+ */
+const clipboardRef = () => /** @type {any} */ (getElectron().clipboard);
+
+/**
+ * @returns {any} Electron nativeImage API reference.
+ */
+const nativeImageRef = () => /** @type {any} */ (getElectron().nativeImage);
+
 module.exports = {
     appRef,
     browserWindowRef,
+    clipboardRef,
     dialogRef,
     getElectron,
     getElectronOverride,
     ipcMainRef,
     menuRef,
+    nativeImageRef,
     setElectronOverride,
     shellRef,
 };

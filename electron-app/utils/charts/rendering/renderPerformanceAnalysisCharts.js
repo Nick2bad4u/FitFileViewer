@@ -13,7 +13,11 @@ import { renderSpeedVsDistanceChart } from "./renderSpeedVsDistanceChart.js";
  */
 export function renderPerformanceAnalysisCharts(container, data, labels, options) {
     try {
-        console.log("[ChartJS] renderPerformanceAnalysisCharts called");
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartJS] renderPerformanceAnalysisCharts called");
+        }
 
         // Render speed vs distance chart
         renderSpeedVsDistanceChart(container, data, options);

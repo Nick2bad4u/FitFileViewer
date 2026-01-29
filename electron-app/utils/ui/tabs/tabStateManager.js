@@ -12,74 +12,60 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 
 // Resolve document by preferring the canonical test-provided document
-// (`__vitest_effective_document__`) first, then falling back to the
-// Active global/window document. This avoids cross-realm mismatches
-// Across the full test suite.
+// (`__vitest_effective_document__`) first, then falling back to the active
+// global/window document. This avoids cross-realm mismatches across the full
+// test suite.
 /**
  * @returns {Document}
  */
 const getDoc = () => {
-    /** @type {any} */
-    let d;
-    // Prefer the current test's document first
+    /** @type {any[]} */
+    const candidates = [];
+
+    // Canonical Vitest document (preferred)
     try {
         // @ts-ignore
-        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+        if (typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
             // @ts-ignore
-            d = /** @type {any} */ (document);
+            candidates.push(__vitest_effective_document__);
         }
     } catch {
-        /* Ignore errors */
+        /* ignore */
     }
-    try {
-        if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
-    } catch {
-        /* Ignore errors */
-    }
-    try {
-        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
-            d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    // Fallback to canonical test harness document
+
+    // Local realm document (JSDOM/Electron)
     try {
         // @ts-ignore
-        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
+        if (typeof document !== "undefined" && document) {
             // @ts-ignore
-            d = /** @type {any} */ (__vitest_effective_document__);
+            candidates.push(document);
         }
     } catch {
-        /* Ignore errors */
+        /* ignore */
     }
-    if (!d) {
-        // @ts-ignore JSDOM provides document
-        d = /** @type {any} */ (document);
-    }
+
+    // Global document (other realms)
     try {
-        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
-            // Prefer current doc/window, then global, then canonical
-            // @ts-ignore
-            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
-                // @ts-ignore
-                d = /** @type {any} */ (document);
-            } else if (globalThis.window !== undefined && globalThis.document) {
-                d = /** @type {any} */ (globalThis.document);
-            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
-                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
-            } else if (
-                typeof __vitest_effective_document__ !== "undefined" &&
-                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
-            ) {
-                // @ts-ignore
-                d = /** @type {any} */ (__vitest_effective_document__);
-            }
+        if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+            candidates.push(/** @type {any} */ (globalThis).document);
         }
     } catch {
-        /* Ignore errors */
+        /* ignore */
     }
-    return /** @type {Document} */ (d);
+
+    for (const candidate of candidates) {
+        if (
+            candidate &&
+            typeof candidate.getElementById === "function" &&
+            typeof candidate.querySelectorAll === "function"
+        ) {
+            return /** @type {Document} */ (candidate);
+        }
+    }
+
+    // Final fallback (should exist in JSDOM/Electron)
+    // @ts-ignore
+    return /** @type {Document} */ (document);
 };
 import { showNotification } from "../notifications/showNotification.js";
 

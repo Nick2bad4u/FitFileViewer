@@ -23,9 +23,13 @@ vi.mock("../../theming/core/theme.js", () => ({
     })),
 }));
 
-// Mock console methods
-const mockConsoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
-const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+/** @type {ReturnType<typeof vi.spyOn>} */
+let mockConsoleWarn;
+/** @type {ReturnType<typeof vi.spyOn>} */
+let mockConsoleLog;
+
+/** @type {string|undefined} */
+let originalNodeEnv;
 
 describe("addChartHoverEffects", () => {
     let mockContainer: HTMLElement;
@@ -33,6 +37,16 @@ describe("addChartHoverEffects", () => {
     let mockThemeConfig: any;
 
     beforeEach(() => {
+        // Ensure debug logging is enabled for deterministic log assertions.
+        // The implementation only logs when NODE_ENV=development and __FFV_debugCharts is truthy.
+        originalNodeEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = "development";
+        (globalThis as any).__FFV_debugCharts = true;
+
+        // Spy console methods *after* Vitest has patched them.
+        mockConsoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+
         // Reset DOM
         document.body.innerHTML = "";
         document.head.innerHTML = "";
@@ -67,50 +81,38 @@ describe("addChartHoverEffects", () => {
     });
 
     afterEach(() => {
+        mockConsoleWarn?.mockRestore();
+        mockConsoleLog?.mockRestore();
+        process.env.NODE_ENV = originalNodeEnv;
+        // eslint-disable-next-line no-underscore-dangle
+        delete (globalThis as any).__FFV_debugCharts;
+
         vi.clearAllMocks();
     });
 
     describe("Parameter Validation", () => {
         it("should warn and return when chartContainer is missing", () => {
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
             // @ts-ignore - Testing null input
             addChartHoverEffects(null, mockThemeConfig);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
-            expect(consoleLogSpy).not.toHaveBeenCalled();
-
-            consoleWarnSpy.mockRestore();
-            consoleLogSpy.mockRestore();
+            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleLog).not.toHaveBeenCalled();
         });
 
         it("should warn and return when themeConfig is missing", () => {
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
             // @ts-ignore - Testing null input
             addChartHoverEffects(mockContainer, null);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
-            expect(consoleLogSpy).not.toHaveBeenCalled();
-
-            consoleWarnSpy.mockRestore();
-            consoleLogSpy.mockRestore();
+            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleLog).not.toHaveBeenCalled();
         });
 
         it("should warn and return when both parameters are missing", () => {
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
             // @ts-ignore - Testing null inputs
             addChartHoverEffects(null, null);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
-            expect(consoleLogSpy).not.toHaveBeenCalled();
-
-            consoleWarnSpy.mockRestore();
-            consoleLogSpy.mockRestore();
+            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleLog).not.toHaveBeenCalled();
         });
     });
 

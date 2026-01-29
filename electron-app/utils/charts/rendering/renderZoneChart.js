@@ -16,6 +16,11 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
  * @returns {void}
  */
 export function renderZoneChart(container, title, zoneData, chartId, options = {}) {
+    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+    const isVerboseDebugLoggingEnabled =
+        isDebugLoggingEnabled && Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
+
     if (!(container instanceof HTMLElement)) {
         console.warn("renderZoneChart: invalid container", container);
         return;
@@ -24,7 +29,9 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         console.warn("renderZoneChart: zoneData not array", zoneData);
         return;
     }
-    console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+    if (isVerboseDebugLoggingEnabled) {
+        console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+    }
 
     /** @type {any} */
     const // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
@@ -54,11 +61,15 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     } // Create chart configuration based on type
     const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
-    console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
+    if (isVerboseDebugLoggingEnabled) {
+        console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
+    }
     const ChartCtor = /** @type {any} */ (globalThis.Chart),
         chart = ChartCtor ? new ChartCtor(canvas, config) : null;
     if (chart && Array.isArray(globalThis._chartjsInstances)) {
-        console.log(`[ChartJS] Zone chart created successfully for ${title}`);
+        if (isDebugLoggingEnabled) {
+            console.log(`[ChartJS] Zone chart created successfully for ${title}`);
+        }
         globalThis._chartjsInstances.push(chart);
     } else {
         console.error(`[ChartJS] Failed to create zone chart for ${title}`);

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
 const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
 
 describe("showColModal interactions", () => {
@@ -21,8 +22,9 @@ describe("showColModal interactions", () => {
         (global.navigator as any).clipboard = origClipboard;
     });
 
-    it("toggles Select All / Deselect All, persists on OK, and discards on Cancel", async () => {
-        const { showColModal, getStorageKey, loadColPrefs } = await import(HELPERS);
+    it("toggles Select All / Deselect All and persists immediately (auto-save)", async () => {
+        const { showColModal } = await import(MODAL);
+        const { getStorageKey, loadColPrefs } = await import(HELPERS);
 
         const allKeys = ["Speed", "Distance", "HeartRate"];
         let visible: string[] = ["Speed"]; // start with 1 selected
@@ -38,7 +40,7 @@ describe("showColModal interactions", () => {
         expect(overlay).toBeTruthy();
 
         // The button text should be "Select All" initially (not all selected)
-        const selectAllBtn = overlay.querySelector(".select-all-btn") as HTMLButtonElement;
+        const selectAllBtn = overlay.querySelector(".summary-col-selectall-btn") as HTMLButtonElement;
         expect(selectAllBtn).toBeTruthy();
         expect(selectAllBtn.textContent).toMatch(/Select All/i);
 
@@ -49,32 +51,39 @@ describe("showColModal interactions", () => {
         expect(visible).toEqual(allKeys);
         expect(reRender).toHaveBeenCalledTimes(1);
 
-        // Click OK persists to localStorage
-        const okBtn = Array.from(overlay.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => (b.textContent || "").trim().toLowerCase() === "ok"
+        // Selecting all columns matches the baseline (built-in default), so the per-file key is cleared.
+        const key = getStorageKey((global as any).window.globalData, allKeys);
+        const storedAfterSelectAll = loadColPrefs(key, allKeys);
+        expect(storedAfterSelectAll).toBeNull();
+
+        // Uncheck one column to create a non-baseline override that *should* persist.
+        const labels = Array.from(overlay.querySelectorAll<HTMLLabelElement>(".col-list label"));
+        const distanceLabel = labels.find((l) => (l.textContent || "").trim() === "Distance");
+        expect(distanceLabel).toBeTruthy();
+        const distanceInput = distanceLabel?.querySelector("input") as HTMLInputElement;
+        expect(distanceInput).toBeTruthy();
+        distanceInput.click();
+
+        expect(selectAllBtn.textContent).toMatch(/Select All/i);
+        expect(visible).toEqual(["Speed", "HeartRate"]);
+        expect(reRender).toHaveBeenCalledTimes(2);
+
+        const storedAfterUncheck = loadColPrefs(key, allKeys);
+        expect(storedAfterUncheck).toEqual(["Speed", "HeartRate"]);
+
+        // Close modal
+        const closeBtn = Array.from(overlay.querySelectorAll<HTMLButtonElement>("button")).find(
+            (b) => (b.textContent || "").trim().toLowerCase() === "close"
         );
-        expect(okBtn).toBeTruthy();
-        okBtn?.click();
+        expect(closeBtn).toBeTruthy();
+        closeBtn?.click();
         // Overlay removed
         expect(document.querySelector(".summary-col-modal-overlay")).toBeNull();
-
-        const key = getStorageKey((global as any).window.globalData, allKeys);
-        const stored = loadColPrefs(key, allKeys);
-        expect(stored).toEqual(allKeys);
-
-        // Open again and then Cancel should not change stored value
-        showColModal({ allKeys, visibleColumns: ["Speed"], setVisibleColumns, renderTable: reRender });
-        const overlay2 = document.querySelector(".summary-col-modal-overlay") as HTMLElement;
-        const cancelBtn = Array.from(overlay2.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => (b.textContent || "").trim().toLowerCase() === "cancel"
-        );
-        cancelBtn?.click();
-        const storedAfterCancel = loadColPrefs(key, allKeys);
-        expect(storedAfterCancel).toEqual(allKeys); // unchanged
     });
 
     it("shift-click selects a range and persists immediately via saveColPrefs in handlers", async () => {
-        const { showColModal, getStorageKey, loadColPrefs } = await import(HELPERS);
+        const { showColModal } = await import(MODAL);
+        const { getStorageKey, loadColPrefs } = await import(HELPERS);
 
         const allKeys = ["A", "B", "C", "D", "E"];
         let visible: string[] = [];

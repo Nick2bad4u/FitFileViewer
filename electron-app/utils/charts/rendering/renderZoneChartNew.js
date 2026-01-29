@@ -37,7 +37,14 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
             return;
         }
 
-        console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        const isVerboseDebugLoggingEnabled =
+            isDebugLoggingEnabled && Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
+
+        if (isVerboseDebugLoggingEnabled) {
+            console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+        }
 
         /** @type {any} */
         const // Second arg expects numeric index; provide 0 as default order
@@ -75,9 +82,11 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         // Create chart configuration based on type
         const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
-        console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
+        if (isVerboseDebugLoggingEnabled) {
+            console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
+        }
         const chart = createManagedChart(canvas, config);
-        if (chart) {
+        if (chart && isDebugLoggingEnabled) {
             console.log(`[ChartJS] Zone chart created successfully for ${title}`);
         }
     } catch (error) {

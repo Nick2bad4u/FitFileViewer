@@ -20,6 +20,8 @@ const // Constants for better maintainability
             FILE_READ: "file:read",
             FIT_DECODE: "fit:decode",
             FIT_PARSE: "fit:parse",
+            CLIPBOARD_WRITE_TEXT: "clipboard:writeText",
+            CLIPBOARD_WRITE_PNG_DATA_URL: "clipboard:writePngDataUrl",
             // Gyazo OAuth server channels
             GYAZO_SERVER_START: "gyazo:server:start",
             GYAZO_SERVER_STOP: "gyazo:server:stop",
@@ -561,23 +563,16 @@ const electronAPI = {
      * Write text to the system clipboard using Electron's clipboard module.
      * This avoids browser Clipboard API permission issues in file:// contexts.
      *
+     * Important: the renderer is sandboxed (sandbox: true). Clipboard writes are executed
+     * in the main process via IPC.
+     *
      * @param {string} text
-     * @returns {boolean} true if the write succeeded
+     * @returns {Promise<boolean>} true if the write succeeded
      */
-    writeClipboardText: (text) => {
+    writeClipboardText: async (text) => {
         try {
-            // Support Vitest mocks (CJS/ESM interop) the same way we do for contextBridge/ipcRenderer.
-            const mod =
-                __electronOverride && /** @type {any} */ (__electronOverride).clipboard
-                    ? /** @type {any} */ (__electronOverride)
-                    : /** @type {any} */ (require("electron"));
-            const m = mod && mod.clipboard ? mod : mod && mod.default ? mod.default : mod;
-            if (!m || !m.clipboard || typeof m.clipboard.writeText !== "function") {
-                return false;
-            }
-
-            m.clipboard.writeText(String(text));
-            return true;
+            const ok = await ipcRenderer.invoke(CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT, String(text));
+            return Boolean(ok);
         } catch (error) {
             console.error("[preload.js] writeClipboardText failed:", error);
             return false;
@@ -591,27 +586,12 @@ const electronAPI = {
      * Using Electron's clipboard avoids Chromium permission issues for navigator.clipboard.
      *
      * @param {string} pngDataUrl
-     * @returns {boolean} true if the write succeeded
+     * @returns {Promise<boolean>} true if the write succeeded
      */
-    writeClipboardPngDataUrl: (pngDataUrl) => {
+    writeClipboardPngDataUrl: async (pngDataUrl) => {
         try {
-            const mod =
-                __electronOverride && /** @type {any} */ (__electronOverride).clipboard
-                    ? /** @type {any} */ (__electronOverride)
-                    : /** @type {any} */ (require("electron"));
-            const m = mod && mod.clipboard ? mod : mod && mod.default ? mod.default : mod;
-            const { clipboard, nativeImage } = m || {};
-
-            if (!clipboard || typeof clipboard.writeImage !== "function") {
-                return false;
-            }
-            if (!nativeImage || typeof nativeImage.createFromDataURL !== "function") {
-                return false;
-            }
-
-            const img = nativeImage.createFromDataURL(String(pngDataUrl));
-            clipboard.writeImage(img);
-            return true;
+            const ok = await ipcRenderer.invoke(CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL, String(pngDataUrl));
+            return Boolean(ok);
         } catch (error) {
             console.error("[preload.js] writeClipboardPngDataUrl failed:", error);
             return false;

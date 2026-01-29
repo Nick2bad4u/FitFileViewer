@@ -79,6 +79,26 @@ describe("createTables", () => {
         // No Arquero required
     });
 
+    it("orders numeric-only table keys last", () => {
+        const container = getContainer();
+
+        const dataFrames = {
+            "141": [{ n: 141 }],
+            sessionMesgs: [{ s: 1 }],
+            recordMesgs: [{ r: 1 }],
+            activityMesgs: [{ a: 1 }],
+            "140": [{ n: 140 }],
+        };
+
+        createTables(dataFrames, container);
+
+        const expectedOrder = ["recordMesgs", "activityMesgs", "sessionMesgs", "140", "141"];
+        expect(renderTable).toHaveBeenCalledTimes(expectedOrder.length);
+        expectedOrder.forEach((key, idx) => {
+            expect(vi.mocked(renderTable).mock.calls[idx]?.[1]).toBe(key);
+        });
+    });
+
     it("continues gracefully when renderTable throws for a table", () => {
         const container = getContainer();
         vi.mocked(renderTable)

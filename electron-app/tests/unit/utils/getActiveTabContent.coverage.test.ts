@@ -58,6 +58,37 @@ describe("getActiveTabContent.js - coverage uplift", () => {
         expect(console.error).not.toHaveBeenCalled();
     });
 
+    it("returns .tab-content.active when visible via CSS class (no inline display)", () => {
+        const inactive = document.createElement("div");
+        inactive.className = "tab-content";
+
+        const active = document.createElement("div");
+        active.id = "content-map";
+        active.className = "tab-content active";
+
+        document.body.append(inactive, active);
+
+        const result = getActiveTabContent();
+        expect(result).toBe(active);
+        expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it("derives active content from .tab-button.active id when needed", () => {
+        const btn = document.createElement("button");
+        btn.id = "tab-summary";
+        btn.className = "tab-button active";
+        document.body.appendChild(btn);
+
+        const content = document.createElement("div");
+        content.id = "content-summary";
+        content.className = "tab-content";
+        document.body.appendChild(content);
+
+        const result = getActiveTabContent();
+        expect(result).toBe(content);
+        expect(console.error).not.toHaveBeenCalled();
+    });
+
     it("handles querySelectorAll throwing and returns null", () => {
         const spy = vi.spyOn(document, "querySelectorAll").mockImplementation(() => {
             throw new Error("boom");

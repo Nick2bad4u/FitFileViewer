@@ -98,15 +98,191 @@ function configureSessionPermissionHandlers(session) {
     if (!session || typeof session !== "object") return;
     if (!markOnce(session, SESSION_PERMISSIONS_MARKER)) return;
 
+    /**
+     * Determine whether a permission request originates from an in-app page.
+     *
+     * We run the renderer from file:// in production, and some internal flows
+     * can use about:blank. We explicitly do NOT allow http(s) origins.
+     *
+     * @param {any} details
+     * @returns {boolean}
+     */
+    const isTrustedRequest = (details) => {
+        // In older Electron versions/tests, `details` may be missing.
+        if (isTestMode()) {
+            return true;
+        }
+
+        const requestingUrl =
+            details && typeof details === "object" && typeof details.requestingUrl === "string"
+                ? details.requestingUrl
+                : details && typeof details === "object" && typeof details.requestingURL === "string"
+                  ? details.requestingURL
+                  : details && typeof details === "object" && typeof details.requestingOrigin === "string"
+                    ? details.requestingOrigin
+                    : "";
+
+        const parsed = typeof requestingUrl === "string" && requestingUrl ? safeParseUrl(requestingUrl) : null;
+        const protocol = parsed?.protocol;
+
+        // file:// is our primary renderer scheme.
+        if (protocol === "file:") {
+            return true;
+        }
+
+        // about:blank is used by some internal flows (tests/print windows).
+        if (requestingUrl === "about:blank" || protocol === "about:") {
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * Ask the user once-per-session for a geolocation permission decision.
+     *
+     * Electron does not show Chromium's permission prompt automatically when
+     * a permission request handler is installed; we must provide our own UX.
+     *
+     * We intentionally keep this in main-process state (not persisted to disk)
+     * to avoid storing sensitive decisions without explicit settings UI.
+     *
+     * @param {any} webContents
+     * @param {any} details
+     * @returns {Promise<boolean>}
+     */
+    const promptForGeolocationOncePerSession = async (webContents, details) => {
+        try {
+            const cached = getAppState("permissions.geolocation.allowed");
+            if (typeof cached === "boolean") {
+                return cached;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // In test mode we cannot show modal dialogs.
+        if (isTestMode()) {
+            try {
+                setAppState("permissions.geolocation.allowed", true, { source: "permissions.test" });
+            } catch {
+                /* ignore */
+            }
+            return true;
+        }
+
+        // Prefer a parent window for modality.
+        let browserWindow = null;
+        try {
+            const BrowserWindow = browserWindowRef();
+            if (BrowserWindow && typeof BrowserWindow.fromWebContents === "function" && webContents) {
+                browserWindow = BrowserWindow.fromWebContents(webContents);
+            }
+        } catch {
+            /* ignore */
+        }
+
+        let allow = false;
+        try {
+            const electron = require("electron");
+            const dialog = electron?.dialog;
+            if (!dialog || typeof dialog.showMessageBox !== "function") {
+                // Fail closed if we cannot prompt.
+                allow = false;
+            } else {
+                const messageBoxResult = await dialog.showMessageBox(browserWindow ?? undefined, {
+                    buttons: ["Allow", "Deny"],
+                    cancelId: 1,
+                    defaultId: 0,
+                    detail:
+                        "FitFileViewer can center the map on your current location if you allow access.\n\n" +
+                        "Your location is only used locally in the app.",
+                    message: "Allow FitFileViewer to access your location?",
+                    noLink: true,
+                    title: "Location permission",
+                    type: "question",
+                });
+                allow = messageBoxResult?.response === 0;
+            }
+        } catch {
+            allow = false;
+        }
+
+        try {
+            setAppState("permissions.geolocation.allowed", allow, { source: "permissions.geolocation" });
+        } catch {
+            /* ignore */
+        }
+
+        if (!allow) {
+            logWithContext("warn", "Geolocation permission denied by user", {
+                requestingUrl:
+                    details && typeof details === "object" && typeof details.requestingUrl === "string"
+                        ? details.requestingUrl
+                        : undefined,
+            });
+        }
+
+        return allow;
+    };
+
     try {
         if (typeof session.setPermissionRequestHandler === "function") {
-            session.setPermissionRequestHandler((_webContents, _permission, callback) => {
-                try {
-                    // eslint-disable-next-line n/no-callback-literal
-                    callback(false);
-                } catch {
-                    /* ignore */
+            session.setPermissionRequestHandler((webContents, permission, callback, details) => {
+                // Only enable permissions we explicitly support.
+                if (permission !== "geolocation") {
+                    try {
+                        // eslint-disable-next-line n/no-callback-literal
+                        callback(false);
+                    } catch {
+                        /* ignore */
+                    }
+                    return;
                 }
+
+                // Unit tests expect a synchronous callback.
+                if (isTestMode()) {
+                    try {
+                        setAppState("permissions.geolocation.allowed", true, { source: "permissions.test" });
+                    } catch {
+                        /* ignore */
+                    }
+                    try {
+                        // eslint-disable-next-line n/no-callback-literal
+                        callback(true);
+                    } catch {
+                        /* ignore */
+                    }
+                    return;
+                }
+
+                if (!isTrustedRequest(details)) {
+                    try {
+                        // eslint-disable-next-line n/no-callback-literal
+                        callback(false);
+                    } catch {
+                        /* ignore */
+                    }
+                    return;
+                }
+
+                // Async prompt.
+                promptForGeolocationOncePerSession(webContents, details)
+                    .then((allow) => {
+                        try {
+                            callback(Boolean(allow));
+                        } catch {
+                            /* ignore */
+                        }
+                    })
+                    .catch(() => {
+                        try {
+                            // eslint-disable-next-line n/no-callback-literal
+                            callback(false);
+                        } catch {
+                            /* ignore */
+                        }
+                    });
             });
         }
     } catch {
@@ -115,7 +291,33 @@ function configureSessionPermissionHandlers(session) {
 
     try {
         if (typeof session.setPermissionCheckHandler === "function") {
-            session.setPermissionCheckHandler(() => false);
+            session.setPermissionCheckHandler((_webContents, permission, _requestingOrigin, details) => {
+                if (permission !== "geolocation") {
+                    return false;
+                }
+
+                if (!isTrustedRequest(details)) {
+                    return false;
+                }
+
+                try {
+                    const allowed = getAppState("permissions.geolocation.allowed");
+                    if (allowed === true) {
+                        return true;
+                    }
+                    if (allowed === false) {
+                        return false;
+                    }
+
+                    // Undecided: allow the renderer to attempt the request so the
+                    // permission *request* handler can show our prompt.
+                    return true;
+                } catch {
+                    // Fail open for geolocation checks so we don't permanently block the
+                    // permission prompt in libraries that pre-check via navigator.permissions.
+                    return true;
+                }
+            });
         }
     } catch {
         /* ignore */

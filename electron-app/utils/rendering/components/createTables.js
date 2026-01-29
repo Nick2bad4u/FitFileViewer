@@ -13,17 +13,11 @@ import { renderTable } from "../core/renderTable.js";
  * Note: The `renderTable` function receives an additional `index` parameter, which represents the order of the table being rendered.
  */
 export function createTables(dataFrames, containerOverride) {
-    console.log("[DEBUG] createTables called", dataFrames);
-
     const container = containerOverride || document.querySelector("#content-data");
     if (!container) {
         console.error(
             '[ERROR] Container element with id "content-data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
         );
-        return;
-    }
-    if (!container) {
-        console.error('[ERROR] Container element with id "content-data" not found.');
         return;
     }
 
@@ -41,25 +35,33 @@ export function createTables(dataFrames, containerOverride) {
         // Some datasets can contain occasional null entries; render what we can instead of dropping the entire table.
         return Array.isArray(rows) && rows.some((row) => isRowObject(row));
     });
-    console.log("[DEBUG] Table keys:", keys);
 
-    // Debug: print first *valid* row of each table
-    for (const key of keys) {
-        const rows = /** @type {unknown[]} */ (/** @type {any} */ (dataFrames)[key]);
-        const firstValid = Array.isArray(rows) ? rows.find((row) => isRowObject(row)) : null;
-        if (firstValid) {
-            console.log(`[DEBUG] First row for ${key}:`, firstValid, "Type:", typeof firstValid);
-        }
-    }
+    /**
+     * Treat message tables with numeric-only keys (e.g. "140", "141") as
+     * low-priority / misc device data. Keep them at the bottom of the Raw Data tab.
+     *
+     * This mirrors the Summary tab behavior where numbered-only columns are placed last.
+     *
+     * @param {string} key
+     */
+    const isNumericOnlyKey = (key) => /^\d+$/u.test(key);
 
-    // Sort keys so 'recordMesgs' appears first, then alphabetically
+    // Sort keys so 'recordMesgs' appears first, then named tables, then numeric-only tables.
     keys.sort((a, b) => {
-        if (a === "recordMesgs") {
-            return -1;
+        if (a === "recordMesgs") return -1;
+        if (b === "recordMesgs") return 1;
+
+        const aNumeric = isNumericOnlyKey(a);
+        const bNumeric = isNumericOnlyKey(b);
+        if (aNumeric !== bNumeric) {
+            return aNumeric ? 1 : -1;
         }
-        if (b === "recordMesgs") {
-            return 1;
+
+        // Within the numeric-only group, order numerically for readability.
+        if (aNumeric && bNumeric) {
+            return Number(a) - Number(b);
         }
+
         return a.localeCompare(b);
     });
 
@@ -79,7 +81,6 @@ export function createTables(dataFrames, containerOverride) {
             // IMPORTANT (CSP): Avoid Arquero for raw table rendering.
             // Arquero's `toHTML()` / `objects()` use runtime Function generation in some builds,
             // which is blocked by our CSP (no unsafe-eval). Render tables directly from raw rows instead.
-            console.log(`[DEBUG] Rendering table for key: ${key}, rows:`, validRows.length);
             renderTable(container, key, { rows: validRows }, index);
         } catch (error) {
             console.error(

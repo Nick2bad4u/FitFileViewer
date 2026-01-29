@@ -211,7 +211,7 @@ export function drawOverlayForFitFile({
 export function mapDrawLaps(
     lapIdx,
     {
-        baseLayers,
+        baseLayers: _baseLayers,
         endIcon,
         formatTooltipData,
         getLapColor,
@@ -225,8 +225,67 @@ export function mapDrawLaps(
     // Resolve L dynamically for this invocation
     const L = getLeaflet();
 
-    // --- Always reset overlay polylines and main polyline at the start of a redraw ---
-    /** @type {any} */ (getWin())._overlayPolylines = {};
+    /**
+     * Keep the activity track (polyline + start/end + breadcrumb points) isolated from
+     * other map layers (measurements, user drawings, overlays, plugin UI).
+     *
+     * Historically, we removed *all* non-basemap layers on every redraw. That broke:
+     * - Leaflet.draw shapes (they vanished right after finishing)
+     * - Leaflet-measure results (they vanished when lap/filter/theme triggered redraw)
+     * - Overlay polylines (drawn before the main track) and their highlight behavior
+     *
+     * By using a dedicated FeatureGroup, we can clear/redraw only the activity layers
+     * while preserving map tools and overlays.
+     */
+    /** @type {any} */
+    const win = getWin();
+    /** @type {any} */
+    let activityGroup = win._ffvActivityLayerGroup;
+
+    if (!activityGroup || typeof activityGroup.clearLayers !== "function") {
+        try {
+            if (typeof L.featureGroup === "function") {
+                activityGroup = L.featureGroup();
+            } else if (typeof L.layerGroup === "function") {
+                activityGroup = L.layerGroup();
+            } else {
+                activityGroup = null;
+            }
+        } catch {
+            activityGroup = null;
+        }
+
+        if (activityGroup) {
+            win._ffvActivityLayerGroup = activityGroup;
+        }
+    }
+
+    // Ensure the group is attached to this map instance and clear previous activity layers.
+    if (activityGroup) {
+        try {
+            if (typeof map.hasLayer === "function") {
+                if (!map.hasLayer(activityGroup) && typeof activityGroup.addTo === "function") {
+                    activityGroup.addTo(map);
+                }
+            } else if (typeof activityGroup.addTo === "function") {
+                // Best-effort for tests/mocks.
+                activityGroup.addTo(map);
+            }
+        } catch {
+            /* ignore */
+        }
+
+        try {
+            activityGroup.clearLayers();
+        } catch {
+            /* ignore */
+        }
+    }
+
+    // Use the activity group when available; fall back to map for defensive behavior in mocks.
+    const activityLayerTarget = activityGroup || map;
+
+    // --- Always reset main polyline state at the start of a redraw ---
     /** @type {any} */ (getWin())._mainPolylineOriginalBounds = undefined;
     /** @type {any} */ (getWin())._mainPolyline = undefined;
     /**
@@ -268,14 +327,8 @@ export function mapDrawLaps(
         }
     };
 
-    // Remove all layers except base layers and controls
-    // @ts-expect-error - Leaflet map method with dynamic layer checking
-    map.eachLayer((layer) => {
-        if (!Object.values(baseLayers).includes(layer)) {
-            map.removeLayer(layer);
-        }
-    });
-    if (markerClusterGroup) {
+    // Clear clustered markers if used (the cluster layer itself should remain on the map).
+    if (markerClusterGroup && typeof markerClusterGroup.clearLayers === "function") {
         markerClusterGroup.clearLayers();
     }
 
@@ -445,7 +498,7 @@ export function mapDrawLaps(
                 })
             );
             // Avoid relying on addTo return value for mock compatibility
-            polyline.addTo(map);
+            polyline.addTo(activityLayerTarget);
 
             // Note: do not add main track to _overlayPolylines; only overlays belong there.
             /** @type {any} */ (getWin())._mainPolyline = polyline;
@@ -474,14 +527,14 @@ export function mapDrawLaps(
                     title: "Start",
                     zIndexOffset: 2000,
                 });
-                startMarker.addTo(map);
+                startMarker.addTo(activityLayerTarget);
                 startMarker.bindPopup("Start");
                 const endMarker = L.marker([end[0], end[1]], {
                     icon: endIcon,
                     title: "End",
                     zIndexOffset: 2000,
                 });
-                endMarker.addTo(map);
+                endMarker.addTo(activityLayerTarget);
                 endMarker.bindPopup("End");
             }
 
@@ -510,7 +563,7 @@ export function mapDrawLaps(
                     weight: 2,
                     zIndexOffset: 1500,
                 });
-                markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(activityLayerTarget);
                 // Always keep points above the track.
                 try {
                     marker.bringToFront?.();
@@ -649,7 +702,7 @@ export function mapDrawLaps(
                         weight: 4,
                     })
                 );
-                polyline.addTo(map);
+                polyline.addTo(activityLayerTarget);
                 /** @type {any} */ (getWin())._mainPolyline = polyline;
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
@@ -677,14 +730,14 @@ export function mapDrawLaps(
                         title: "Start",
                         zIndexOffset: 2000,
                     });
-                    startMarker2.addTo(map);
+                    startMarker2.addTo(activityLayerTarget);
                     startMarker2.bindPopup("Start");
                     const endMarker2 = L.marker([end[0], end[1]], {
                         icon: endIcon,
                         title: "End",
                         zIndexOffset: 2000,
                     });
-                    endMarker2.addTo(map);
+                    endMarker2.addTo(activityLayerTarget);
                     endMarker2.bindPopup("End");
                 }
 
@@ -707,7 +760,7 @@ export function mapDrawLaps(
                         weight: 2,
                         zIndexOffset: 1500,
                     });
-                    markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                    markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(activityLayerTarget);
                     try {
                         marker.bringToFront?.();
                     } catch {
@@ -836,7 +889,7 @@ export function mapDrawLaps(
                                     opacity: 0.9,
                                     weight: 4,
                                 })
-                            ).addTo(map);
+                            ).addTo(activityLayerTarget);
                         if (bounds) {
                             bounds.extend(polyline.getBounds());
                         } else {
@@ -847,10 +900,10 @@ export function mapDrawLaps(
                         const [start] = lapCoords;
                         if (showIcons && start && end) {
                             L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 })
-                                .addTo(map)
+                                .addTo(activityLayerTarget)
                                 .bindPopup("Start");
                             L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 })
-                                .addTo(map)
+                                .addTo(activityLayerTarget)
                                 .bindPopup("End");
                         }
 
@@ -873,7 +926,9 @@ export function mapDrawLaps(
                                 weight: 2,
                                 zIndexOffset: 1500,
                             });
-                            markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                            markerClusterGroup
+                                ? markerClusterGroup.addLayer(marker)
+                                : marker.addTo(activityLayerTarget);
                             try {
                                 marker.bringToFront?.();
                             } catch {
@@ -1054,10 +1109,10 @@ export function mapDrawLaps(
         );
         console.log("[mapDrawLaps] DEBUG L.polyline() returned:", polylineResult);
 
-        const polylineWithMap = polylineResult.addTo(map);
-        console.log("[mapDrawLaps] DEBUG .addTo(map) returned:", polylineWithMap);
+        const polylineWithTarget = polylineResult.addTo(activityLayerTarget);
+        console.log("[mapDrawLaps] DEBUG .addTo(activityLayerTarget) returned:", polylineWithTarget);
 
-        const polyline = polylineWithMap;
+        const polyline = polylineWithTarget;
         /** @type {any} */ (getWin())._mainPolyline = polyline;
         console.log("[mapDrawLaps] DEBUG final polyline:", polyline);
         console.log("[mapDrawLaps] DEBUG polyline.getBounds exists?", typeof polyline?.getBounds);
@@ -1082,9 +1137,11 @@ export function mapDrawLaps(
         const [start] = coords;
         if (start && end) {
             L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 })
-                .addTo(map)
+                .addTo(activityLayerTarget)
                 .bindPopup("Start");
-            L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 }).addTo(map).bindPopup("End");
+            L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 })
+                .addTo(activityLayerTarget)
+                .bindPopup("End");
         }
 
         const markerCoords = selectMarkerCoordinatesForDataset(coords);
@@ -1106,7 +1163,7 @@ export function mapDrawLaps(
                 weight: 2,
                 zIndexOffset: 1500,
             });
-            markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+            markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(activityLayerTarget);
             try {
                 marker.bringToFront?.();
             } catch {

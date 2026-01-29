@@ -202,88 +202,81 @@ class SettingsStateManager {
      * @returns {any}
      */
     getSetting(category, key = null) {
-        // Use bracket access to satisfy exactOptionalPropertyTypes / index signature rules
         const schema = SETTINGS_SCHEMA[category];
         if (!schema) {
             console.warn(`[SettingsState] Unknown setting category: ${category}`);
             return;
         }
 
+        const storage = globalThis?.localStorage;
+        if (!storage || typeof storage.getItem !== "function") {
+            return schema.default;
+        }
+
         try {
             if (schema.type === "object") {
-                // Handle object-type settings (chart, ui, export, units)
-                /** @type {Record<string, any>} */
-                const prefix = schema.key,
-                    settings = {};
+                const prefix = schema.key;
 
-                const storage = globalThis?.localStorage;
-                if (!storage || typeof storage.getItem !== "function") {
+                // PERFORMANCE CRITICAL:
+                // When a specific key is requested we must NOT iterate all of localStorage.
+                // This path is hit many thousands of times during chart conversions.
+                if (key) {
+                    const rawValue = storage.getItem(`${prefix}${key}`);
+                    if (rawValue == null) {
+                        return schema.default && typeof schema.default === "object" ? schema.default[key] : undefined;
+                    }
+                    try {
+                        return JSON.parse(rawValue);
+                    } catch {
+                        return rawValue;
+                    }
+                }
+
+                // Whole-category read
+                const canIterate = typeof storage.length === "number" && typeof storage.key === "function";
+                if (!canIterate) {
                     return schema.default;
                 }
 
-                const canIterate = typeof storage.length === "number" && typeof storage.key === "function";
-                if (!canIterate) {
-                    if (!key) {
-                        return schema.default;
-                    }
-                    try {
-                        const rawValue = storage.getItem(`${prefix}${key}`);
-                        if (rawValue == null) {
-                            return schema.default && typeof schema.default === "object"
-                                ? schema.default[key]
-                                : undefined;
-                        }
-                        try {
-                            return JSON.parse(rawValue);
-                        } catch {
-                            return rawValue;
-                        }
-                    } catch (error) {
-                        console.error(`[SettingsState] Error getting setting ${category}:`, error);
-                        return schema.default;
-                    }
-                }
-
-                // Get all localStorage keys with this prefix
-                for (let i = 0; i < localStorage.length; i++) {
-                    const storageKey = localStorage.key(i);
+                /** @type {Record<string, unknown>} */
+                const settings = {};
+                for (let i = 0; i < storage.length; i++) {
+                    const storageKey = storage.key(i);
                     if (storageKey && storageKey.startsWith(prefix)) {
-                        const settingKey = storageKey.replace(prefix, ""),
-                            value = localStorage.getItem(storageKey);
-
+                        const settingKey = storageKey.slice(prefix.length);
+                        const rawValue = storage.getItem(storageKey);
+                        if (rawValue == null) {
+                            settings[settingKey] = null;
+                            continue;
+                        }
                         try {
-                            // Try to parse as JSON, fallback to string
-                            settings[settingKey] = value == null ? null : JSON.parse(value);
+                            settings[settingKey] = JSON.parse(rawValue);
                         } catch {
-                            settings[settingKey] = value;
+                            settings[settingKey] = rawValue;
                         }
                     }
-                }
-
-                // Return specific key or entire object
-                if (key) {
-                    return settings[key] === undefined
-                        ? schema.default && typeof schema.default === "object"
-                            ? schema.default[key]
-                            : undefined
-                        : settings[key];
                 }
 
                 return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
             }
-            // Handle simple settings (theme, mapTheme)
-            const value = localStorage.getItem(schema.key);
-            if (value === null) {
+
+            // Simple scalar settings
+            const rawValue = storage.getItem(schema.key);
+            if (rawValue == null) {
                 return schema.default;
             }
 
-            // Convert to correct type
             if (schema.type === "boolean") {
-                return value === "true";
-            } else if (schema.type === "number") {
-                return Number.parseFloat(value);
+                return rawValue === "true";
             }
-            return value;
+
+            if (schema.type === "number") {
+                const numeric = Number(rawValue);
+                return Number.isFinite(numeric) ? numeric : schema.default;
+            }
+
+            // string
+            return rawValue;
         } catch (error) {
             console.error(`[SettingsState] Error getting setting ${category}:`, error);
             return schema.default;
@@ -291,35 +284,48 @@ class SettingsStateManager {
     }
 
     /**
-     * Import settings from JSON
-     * @param {Object} settingsData - Settings data to import
-     * @returns {boolean} Success status
-     */
-    /**
-     * Import settings from exported data
-     * @param {any} settingsData
+     * Import settings from an exported payload.
+     *
+     * The export format is produced by {@link exportSettings}.
+     *
+     * @param {unknown} settingsData
      * @returns {boolean}
      */
     importSettings(settingsData) {
         try {
-            if (!settingsData || !settingsData.settings) {
-                console.error("[SettingsState] Invalid settings data for import");
+            if (!settingsData || typeof settingsData !== "object") {
                 return false;
             }
 
-            // Validate and import each category
-            for (const category of Object.keys(settingsData.settings)) {
-                const cat = /** @type {SettingCategory} */ (category);
-                if (SETTINGS_SCHEMA[cat]) {
-                    this.setSetting(cat, settingsData.settings[category]);
+            const payload = /** @type {{ settings?: Record<string, any> }} */ (settingsData);
+            const nextSettings = payload.settings;
+
+            if (!nextSettings || typeof nextSettings !== "object") {
+                return false;
+            }
+
+            let allOk = true;
+
+            for (const [rawCategory, value] of Object.entries(nextSettings)) {
+                const category = /** @type {SettingCategory} */ (rawCategory);
+                if (!SETTINGS_SCHEMA[category]) {
+                    // Ignore unknown categories to allow forward-compatible imports.
+                    continue;
+                }
+
+                const ok = this.setSetting(category, value);
+                if (!ok) {
+                    allOk = false;
                 }
             }
 
-            showNotification("Settings imported successfully", "success");
-            return true;
+            if (allOk) {
+                showNotification("Settings imported successfully", "success");
+            }
+
+            return allOk;
         } catch (error) {
             console.error("[SettingsState] Error importing settings:", error);
-            showNotification("Failed to import settings", "error");
             return false;
         }
     }

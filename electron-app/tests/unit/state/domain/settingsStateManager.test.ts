@@ -214,12 +214,15 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should get specific key from ui setting", () => {
+                const keySpy = vi.spyOn(mockLocalStorage, "key");
+
                 mockLocalStorage.data["ui_specificKey"] = '"specificValue"';
                 mockLocalStorage.keys = ["ui_specificKey"];
 
                 const result = settingsStateManager.getSetting("ui", "specificKey");
 
                 expect(result).toBe("specificValue");
+                expect(keySpy).not.toHaveBeenCalled();
             });
 
             it("should return undefined for missing object setting key", () => {

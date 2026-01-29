@@ -38,7 +38,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         vi.restoreAllMocks();
     });
 
-    it("registers deny-by-default permission handlers on web-contents-created", async () => {
+    it("registers permission handlers on web-contents-created (geolocation allowed in test mode)", async () => {
         const handlers = new Map<string, Function>();
 
         const mockApp = {
@@ -73,13 +73,13 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         expect(mockSession.setPermissionRequestHandler).toHaveBeenCalledTimes(1);
         expect(mockSession.setPermissionCheckHandler).toHaveBeenCalledTimes(1);
 
-        // Ensure the request handler denies.
+        // Ensure the request handler allows geolocation in test mode (no dialog).
         const requestHandler = mockSession.setPermissionRequestHandler.mock.calls[0]?.[0];
         expect(typeof requestHandler).toBe("function");
 
         const callback = vi.fn();
         requestHandler({}, "geolocation", callback);
-        expect(callback).toHaveBeenCalledWith(false);
+        expect(callback).toHaveBeenCalledWith(true);
 
         const checkHandler = mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
         expect(typeof checkHandler).toBe("function");

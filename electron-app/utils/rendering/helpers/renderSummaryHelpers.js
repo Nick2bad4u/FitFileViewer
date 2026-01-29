@@ -143,7 +143,7 @@ export function loadColPrefs(key, _allKeys) {
         const v = localStorage.getItem(key);
         if (v) {
             const arr = JSON.parse(v);
-            if (Array.isArray(arr) && arr.length > 0 && arr.every((x) => typeof x === "string")) {
+            if (Array.isArray(arr) && arr.every((x) => typeof x === "string")) {
                 return /** @type {string[]} */ (arr);
             }
         }

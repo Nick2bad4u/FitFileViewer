@@ -573,7 +573,7 @@ export const exportUtils = {
         try {
             const api = /** @type {any} */ (globalThis).electronAPI;
             if (api && typeof api.writeClipboardText === "function") {
-                const ok = Boolean(api.writeClipboardText(text));
+                const ok = Boolean(await api.writeClipboardText(text));
                 if (ok) return true;
             }
         } catch {
@@ -620,7 +620,7 @@ export const exportUtils = {
         try {
             const api = /** @type {any} */ (globalThis).electronAPI;
             if (api && typeof api.writeClipboardPngDataUrl === "function") {
-                const ok = Boolean(api.writeClipboardPngDataUrl(pngDataUrl));
+                const ok = Boolean(await api.writeClipboardPngDataUrl(pngDataUrl));
                 if (ok) return true;
             }
         } catch {

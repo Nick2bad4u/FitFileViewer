@@ -14,13 +14,20 @@ import { getEffectiveTheme } from "../../theming/core/theme.js";
  * @returns {string} Current theme ('dark' or 'light')
  */
 export function detectCurrentTheme() {
+    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+
     // Method 1: Check body classes (primary method used by the app)
     if (document.body.classList.contains("theme-dark")) {
-        console.log("[ChartThemeUtils] Detected theme via body class: dark");
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartThemeUtils] Detected theme via body class: dark");
+        }
         return "dark";
     }
     if (document.body.classList.contains("theme-light")) {
-        console.log("[ChartThemeUtils] Detected theme via body class: light");
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartThemeUtils] Detected theme via body class: light");
+        }
         return "light";
     }
 
@@ -28,7 +35,9 @@ export function detectCurrentTheme() {
     try {
         const effectiveTheme = getEffectiveTheme();
         if (effectiveTheme) {
-            console.log("[ChartThemeUtils] Detected theme via getEffectiveTheme:", effectiveTheme);
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartThemeUtils] Detected theme via getEffectiveTheme:", effectiveTheme);
+            }
             return effectiveTheme;
         }
     } catch (error) {
@@ -39,16 +48,22 @@ export function detectCurrentTheme() {
     try {
         const savedTheme = localStorage.getItem("ffv-theme");
         if (savedTheme && (savedTheme === "dark" || savedTheme === "light")) {
-            console.log("[ChartThemeUtils] Detected theme via localStorage:", savedTheme);
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartThemeUtils] Detected theme via localStorage:", savedTheme);
+            }
             return savedTheme;
         }
         // Handle "auto" theme by resolving to system preference
         if (savedTheme === "auto") {
             if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
-                console.log("[ChartThemeUtils] Auto theme resolved to: dark");
+                if (isDebugLoggingEnabled) {
+                    console.log("[ChartThemeUtils] Auto theme resolved to: dark");
+                }
                 return "dark";
             }
-            console.log("[ChartThemeUtils] Auto theme resolved to: light");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartThemeUtils] Auto theme resolved to: light");
+            }
             return "light";
         }
     } catch (error) {
@@ -58,7 +73,9 @@ export function detectCurrentTheme() {
     // Method 4: System preference fallback
     try {
         if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
-            console.log("[ChartThemeUtils] System preference fallback: dark");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartThemeUtils] System preference fallback: dark");
+            }
             return "dark";
         }
     } catch (error) {
@@ -66,6 +83,8 @@ export function detectCurrentTheme() {
     }
 
     // Final fallback
-    console.log("[ChartThemeUtils] Using final fallback: light");
+    if (isDebugLoggingEnabled) {
+        console.log("[ChartThemeUtils] Using final fallback: light");
+    }
     return "light";
 }

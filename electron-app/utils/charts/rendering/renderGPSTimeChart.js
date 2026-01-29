@@ -15,7 +15,13 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  */
 export function renderGPSTimeChart(container, data, options) {
     try {
-        console.log("[ChartJS] renderGPSTimeChart called");
+        const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled =
+            isTestEnvironment || (isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartJS] renderGPSTimeChart called");
+        }
 
         // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
         const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
@@ -26,7 +32,9 @@ export function renderGPSTimeChart(container, data, options) {
             hasTimestamp = safeData.some((row) => row.timestamp !== undefined && row.timestamp !== null);
 
         if (!hasLatitude || !hasLongitude || !hasTimestamp) {
-            console.log("[ChartJS] No GPS position or timestamp data available");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] No GPS position or timestamp data available");
+            }
             return;
         }
 
@@ -42,7 +50,9 @@ export function renderGPSTimeChart(container, data, options) {
         // Find the first valid timestamp to use as reference time
         const firstTimestamp = safeData.find((row) => row.timestamp)?.timestamp;
         if (!firstTimestamp) {
-            console.log("[ChartJS] No valid timestamp found");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] No valid timestamp found");
+            }
             return;
         }
 
@@ -83,7 +93,9 @@ export function renderGPSTimeChart(container, data, options) {
         }
 
         if (latitudeData.length === 0 || longitudeData.length === 0) {
-            console.log("[ChartJS] No valid GPS time data points found");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] No valid GPS time data points found");
+            }
             return;
         }
 
@@ -97,7 +109,9 @@ export function renderGPSTimeChart(container, data, options) {
             }
         }
 
-        console.log(`[ChartJS] Creating GPS time chart with ${latitudeData.length} points`);
+        if (isDebugLoggingEnabled) {
+            console.log(`[ChartJS] Creating GPS time chart with ${latitudeData.length} points`);
+        }
 
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-time", 0));
         if (themeConfig?.colors) {

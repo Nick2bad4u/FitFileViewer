@@ -62,11 +62,23 @@ export async function renderFileBrowserTab() {
                     </div>
                     <div class="file-browser__header">
                         <div class="file-browser__controls">
-                            <button type="button" class="file-browser__btn" id="fit-browser-pick-folder">Choose Folder</button>
+                            <button type="button" class="file-browser__btn" id="fit-browser-pick-folder">
+                                <span class="file-browser__btn-icon" aria-hidden="true">📁</span>
+                                <span class="file-browser__btn-label">Choose Folder</span>
+                            </button>
                             <div class="file-browser__segmented" role="tablist" aria-label="Browser view">
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-files" role="tab" aria-selected="true">Files</button>
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-library" role="tab" aria-selected="false">Library</button>
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-calendar" role="tab" aria-selected="false">Calendar</button>
+                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-files" role="tab" aria-selected="true">
+                                    <span class="file-browser__seg-icon" aria-hidden="true">📄</span>
+                                    <span class="file-browser__seg-label">Files</span>
+                                </button>
+                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-library" role="tab" aria-selected="false">
+                                    <span class="file-browser__seg-icon" aria-hidden="true">📚</span>
+                                    <span class="file-browser__seg-label">Library</span>
+                                </button>
+                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-calendar" role="tab" aria-selected="false">
+                                    <span class="file-browser__seg-icon" aria-hidden="true">🗓️</span>
+                                    <span class="file-browser__seg-label">Calendar</span>
+                                </button>
                             </div>
                         </div>
                         <div class="file-browser__path" id="fit-browser-current-path"></div>

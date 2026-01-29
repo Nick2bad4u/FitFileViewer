@@ -106,6 +106,10 @@ describe("mapDrawLaps", () => {
         };
 
         mockLeaflet = {
+            featureGroup: vi.fn(() => ({
+                addTo: vi.fn().mockReturnThis(),
+                clearLayers: vi.fn(),
+            })),
             polyline: vi.fn().mockReturnValue(mockPolyline),
             marker: vi.fn().mockReturnValue(mockMarker),
             circleMarker: vi.fn().mockReturnValue(mockCircleMarker),
@@ -124,6 +128,7 @@ describe("mapDrawLaps", () => {
         // Initialize global state
         (globalThis as any)._overlayPolylines = {};
         (globalThis as any)._mainPolylineOriginalBounds = undefined;
+        (globalThis as any)._ffvActivityLayerGroup = undefined;
         (globalThis as any).loadedFitFiles = [];
         (globalThis as any)._activeMainFileIdx = 0;
         (globalThis as any).mapMarkerCount = 10;
@@ -256,7 +261,7 @@ describe("mapDrawLaps", () => {
     });
 
     describe("mapDrawLaps", () => {
-        test("should clear existing overlays", () => {
+        test("should not clear overlay state (overlays/tool layers persist)", () => {
             (globalThis as any)._overlayPolylines = { existing: "data" };
             (globalThis as any)._mainPolylineOriginalBounds = { existing: "bounds" };
 
@@ -272,16 +277,11 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: vi.fn(),
             });
 
-            expect((globalThis as any)._overlayPolylines).toEqual({});
+            expect((globalThis as any)._overlayPolylines).toEqual({ existing: "data" });
             expect((globalThis as any)._mainPolylineOriginalBounds).toBeUndefined();
         });
 
-        test("should remove existing overlays from map", () => {
-            mockMap.eachLayer.mockImplementation((callback: any) => {
-                callback({ options: { overlayIdx: 1 } });
-                callback({ options: { overlayIdx: 2 } });
-            });
-
+        test("should not remove non-activity layers from map", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
@@ -294,7 +294,8 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: vi.fn(),
             });
 
-            expect(mockMap.removeLayer).toHaveBeenCalledTimes(2);
+            // We no longer bulk-remove layers via map.eachLayer/removeLayer.
+            expect(mockMap.removeLayer).not.toHaveBeenCalled();
         });
 
         test("should handle missing fitFile gracefully", () => {
@@ -327,7 +328,7 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: vi.fn(),
             });
 
-            // The function should execute without error and clear overlays
+            // The function should execute without error and not clear overlays
             expect((globalThis as any)._overlayPolylines).toEqual({});
         });
 
@@ -441,7 +442,9 @@ describe("mapDrawLaps", () => {
 
             // Verify polyline creation
             expect(mockLeaflet.polyline).toHaveBeenCalled();
-            expect(mockPolyline.addTo).toHaveBeenCalledWith(mockMap);
+            const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+            expect(activityGroup).toBeTruthy();
+            expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
 
             // Verify bounds handling
             expect(mockPolyline.getBounds).toHaveBeenCalled();
@@ -519,7 +522,11 @@ describe("mapDrawLaps", () => {
 
             // Verify single lap polyline creation
             expect(mockLeaflet.polyline).toHaveBeenCalled();
-            expect(mockPolyline.addTo).toHaveBeenCalledWith(mockMap);
+            {
+                const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+                expect(activityGroup).toBeTruthy();
+                expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
+            }
         });
 
         test("should handle lapIdx=[0,1] for multi-lap selection", () => {
@@ -596,7 +603,11 @@ describe("mapDrawLaps", () => {
 
             // Verify multiple polylines created (one for each lap)
             expect(mockLeaflet.polyline).toHaveBeenCalled();
-            expect(mockPolyline.addTo).toHaveBeenCalledWith(mockMap);
+            {
+                const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+                expect(activityGroup).toBeTruthy();
+                expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
+            }
         });
 
         test('should handle lapIdx=["all"] same as string "all"', () => {

@@ -12,7 +12,13 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  */
 export function renderGPSTrackChart(container, data, options) {
     try {
-        console.log("[ChartJS] renderGPSTrackChart called");
+        const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled =
+            isTestEnvironment || (isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+        if (isDebugLoggingEnabled) {
+            console.log("[ChartJS] renderGPSTrackChart called");
+        }
 
         // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
         const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
@@ -22,7 +28,9 @@ export function renderGPSTrackChart(container, data, options) {
             hasLongitude = safeData.some((row) => row.positionLong !== undefined && row.positionLong !== null);
 
         if (!hasLatitude || !hasLongitude) {
-            console.log("[ChartJS] No GPS position data available");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] No GPS position data available");
+            }
             return;
         }
 
@@ -59,7 +67,9 @@ export function renderGPSTrackChart(container, data, options) {
             .filter((point) => point !== null);
 
         if (gpsData.length === 0) {
-            console.log("[ChartJS] No valid GPS data points found");
+            if (isDebugLoggingEnabled) {
+                console.log("[ChartJS] No valid GPS data points found");
+            }
             return;
         }
 
@@ -69,7 +79,9 @@ export function renderGPSTrackChart(container, data, options) {
             gpsData = gpsData.filter((_, i) => i % step === 0);
         }
 
-        console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
+        if (isDebugLoggingEnabled) {
+            console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
+        }
 
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-track", 0));
         if (themeConfig?.colors) {

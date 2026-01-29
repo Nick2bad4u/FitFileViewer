@@ -366,28 +366,48 @@ function handleFullscreenStateChange() {
  * @param {Event} event - The click event
  * @private
  */
-function handleFullscreenToggle(event) {
+async function handleFullscreenToggle(event) {
     try {
         event.stopPropagation();
 
+        // Always attempt to toggle fullscreen even if we cannot reliably determine the active tab.
+        // In those cases, fall back to the document root.
         const activeContent = getActiveTabContent();
-        if (!activeContent) {
-            logWithContext("No active tab content found for fullscreen toggle", "warn");
-            return;
-        }
+        const target = /** @type {any} */ (activeContent ?? document.documentElement);
 
         const screenfull = getScreenfullInstance();
-        if (!screenfull || !screenfull.isEnabled) {
-            logWithContext("Screenfull not available for toggle operation", "warn");
+        const isScreenfullEnabled = Boolean(screenfull && screenfull.isEnabled);
+
+        if (!isScreenfullEnabled) {
+            if (!activeContent) {
+                logWithContext("No active content found; using document root for native fullscreen", "warn");
+            }
+            nativeToggleFullscreen(target);
             return;
         }
 
-        if (screenfull.isFullscreen) {
-            screenfull.exit();
-            logWithContext("Exiting fullscreen mode");
-        } else {
-            screenfull.request(activeContent);
-            logWithContext(`Entering fullscreen for: ${activeContent.id}`);
+        try {
+            if (screenfull.isFullscreen) {
+                const result = screenfull.exit();
+                if (result && typeof result.then === "function") {
+                    await result;
+                }
+                logWithContext("Exiting fullscreen mode");
+            } else {
+                const result = screenfull.request(target);
+                if (result && typeof result.then === "function") {
+                    await result;
+                }
+                logWithContext(`Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`);
+            }
+        } catch (error) {
+            // Some environments can report screenfull as enabled but still reject the request.
+            // Fall back to the native DOM fullscreen API.
+            logWithContext(
+                `Screenfull toggle failed; falling back to native: ${/** @type {any} */ (error).message}`,
+                "warn"
+            );
+            nativeToggleFullscreen(target);
         }
     } catch (error) {
         logWithContext(`Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`, "error");
@@ -405,28 +425,32 @@ function handleKeyboardShortcuts(event) {
             event.preventDefault();
 
             const activeContent = getActiveTabContent();
+            const target = /** @type {any} */ (activeContent ?? document.documentElement);
             const screenfull = getScreenfullInstance();
             const isScreenfullEnabled = Boolean(screenfull && screenfull.isEnabled);
 
             if (!isScreenfullEnabled) {
-                if (!activeContent) {
+                if (!activeContent)
                     logWithContext("No active content for F11 fullscreen toggle; using document root", "warn");
+                nativeToggleFullscreen(target);
+                return;
+            }
+
+            // Even when screenfull is enabled, ensure we have a stable target.
+            try {
+                if (screenfull.isFullscreen) {
+                    screenfull.exit();
+                    logWithContext("F11: Exiting fullscreen mode");
+                } else {
+                    screenfull.request(target);
+                    logWithContext(`F11: Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`);
                 }
-                nativeToggleFullscreen(activeContent ?? document.documentElement);
-                return;
-            }
-
-            if (!activeContent) {
-                logWithContext("No active tab content found for fullscreen toggle", "warn");
-                return;
-            }
-
-            if (screenfull.isFullscreen) {
-                screenfull.exit();
-                logWithContext("F11: Exiting fullscreen mode");
-            } else {
-                screenfull.request(activeContent);
-                logWithContext(`F11: Entering fullscreen for: ${activeContent.id}`);
+            } catch (error) {
+                logWithContext(
+                    `F11: Screenfull request failed; using native fallback: ${/** @type {any} */ (error).message}`,
+                    "warn"
+                );
+                nativeToggleFullscreen(target);
             }
         }
     } catch (error) {

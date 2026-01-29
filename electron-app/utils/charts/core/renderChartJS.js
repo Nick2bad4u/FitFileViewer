@@ -2209,9 +2209,9 @@ export async function renderChartJS(targetContainer, options = {}) {
             { silent: false, source: "renderChartJS" }
         );
 
-        const // Log performance timing
-            performanceEnd = performance.now(),
-            renderTime = performanceEnd - performanceStart;
+        // Measure total render time including the expensive chart creation path.
+        // (Previously this was computed before renderChartsWithData ran, producing misleading ~0ms logs.)
+        let renderTime = 0;
 
         // Ensure renderer modules are referenced in tests to satisfy integration spies, even if the
         // internal renderer short-circuits later. These are no-ops in production and mocked in tests.
@@ -2262,6 +2262,7 @@ export async function renderChartJS(targetContainer, options = {}) {
             // lifecycle and performance updates still occur (tests expect success in these cases)
             result = Array.isArray(recordMesgs) && recordMesgs.length > 0;
         }
+        renderTime = performance.now() - performanceStart;
         console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
 
         // Complete rendering process through state actions

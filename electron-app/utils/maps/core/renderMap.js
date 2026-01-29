@@ -1076,16 +1076,101 @@ export function renderMap() {
         windowExt._drawControl = drawControl;
 
         // Add drawn shapes to the layer so they persist.
-        // Use the string event name as the most reliable option across Leaflet.draw builds.
+        // Register exactly once (L.Draw.Event.CREATED is typically "draw:created").
         const onDrawCreated = (/** @type {any} */ e) => {
             const { layer } = e;
             drawnItems.addLayer(layer);
         };
 
-        map.on("draw:created", onDrawCreated);
-        // Keep the constant-based subscription as a secondary fallback (some builds rely on it).
-        if (L.Draw && L.Draw.Event && L.Draw.Event.CREATED) {
-            map.on(L.Draw.Event.CREATED, onDrawCreated);
+        {
+            const createdEventName =
+                L.Draw && L.Draw.Event && typeof L.Draw.Event.CREATED === "string"
+                    ? L.Draw.Event.CREATED
+                    : "draw:created";
+            map.on(createdEventName, onDrawCreated);
+        }
+
+        // UX fix: Leaflet.draw's tooltip says "Click last point to finish line", but in practice
+        // the click target (vertex marker) is tiny. If the user clicks *near* the last point, we
+        // proactively finish the line so the workflow matches the tooltip.
+        {
+            /** @type {any} */
+            let activeHandler = null;
+            /** @type {(e: any) => void} */
+            let preclickListener;
+
+            const detach = () => {
+                try {
+                    if (preclickListener) {
+                        map.off("preclick", preclickListener);
+                    }
+                } catch {
+                    /* ignore */
+                }
+                activeHandler = null;
+                preclickListener = undefined;
+            };
+
+            map.on("draw:drawstart", (evt) => {
+                try {
+                    const type = evt && typeof evt === "object" ? evt.layerType : null;
+                    if (type !== "polyline") {
+                        detach();
+                        return;
+                    }
+
+                    // Leaflet.draw stores the active mode handler here.
+                    activeHandler = drawControl?._toolbars?.draw?._activeMode?.handler ?? null;
+
+                    preclickListener = (e) => {
+                        try {
+                            if (!activeHandler || typeof activeHandler._finishShape !== "function") {
+                                return;
+                            }
+
+                            const markers = Array.isArray(activeHandler._markers) ? activeHandler._markers : [];
+                            if (markers.length < 2) {
+                                return;
+                            }
+
+                            const lastMarker = markers.at(-1);
+                            if (!lastMarker || typeof lastMarker.getLatLng !== "function" || !e?.latlng) {
+                                return;
+                            }
+
+                            // Pixel tolerance around the vertex marker.
+                            const tolPx = 14;
+                            const lastPt = map.latLngToContainerPoint(lastMarker.getLatLng());
+                            const clickPt = map.latLngToContainerPoint(e.latlng);
+                            const dist =
+                                lastPt && clickPt && typeof lastPt.distanceTo === "function"
+                                    ? lastPt.distanceTo(clickPt)
+                                    : null;
+                            if (typeof dist === "number" && dist >= 0 && dist <= tolPx) {
+                                // Finish and stop the underlying click from adding another vertex.
+                                try {
+                                    if (e.originalEvent) {
+                                        e.originalEvent.preventDefault?.();
+                                        e.originalEvent.stopPropagation?.();
+                                    }
+                                } catch {
+                                    /* ignore */
+                                }
+                                activeHandler._finishShape();
+                            }
+                        } catch {
+                            /* ignore */
+                        }
+                    };
+
+                    map.off("preclick", preclickListener);
+                    map.on("preclick", preclickListener);
+                } catch {
+                    /* ignore */
+                }
+            });
+
+            map.on("draw:drawstop", detach);
         }
 
         // Store reference to drawn items for persistence

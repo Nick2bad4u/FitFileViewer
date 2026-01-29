@@ -43,11 +43,50 @@ export function getActiveTabContent() {
             return null;
         }
 
-        // Find the first visible tab content element
+        // Primary strategy (legacy + test-friendly): Find the first visible tab content element
+        // by checking its *inline* display style.
         for (const element of tabContents) {
             if (/** @type {HTMLElement} */ (element).style.display === DISPLAY_STATES.VISIBLE) {
                 return element;
             }
+        }
+
+        // Secondary strategy (modern CSS-driven tabs): a tab may be "visible" via classes/ARIA
+        // rather than an inline style. These fallbacks intentionally do not use getComputedStyle
+        // because JSDOM defaults can cause false positives in unit tests.
+        try {
+            const activeByClass = document.querySelector(`${SELECTORS.TAB_CONTENT}.active`);
+            if (activeByClass) {
+                return activeByClass;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        try {
+            const activeByAria = document.querySelector(`${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`);
+            if (activeByAria) {
+                return activeByAria;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // Final strategy: derive active content from the active tab button id (tab-*)
+        // and map to content-*.
+        try {
+            const activeBtn = document.querySelector(".tab-button.active");
+            const activeId = activeBtn && typeof (/** @type {any} */ (activeBtn).id) === "string" ? activeBtn.id : "";
+            if (activeId && activeId.startsWith("tab-")) {
+                const tabName = activeId.slice("tab-".length);
+                const contentId = `content-${tabName}`;
+                const contentEl = document.getElementById(contentId);
+                if (contentEl) {
+                    return contentEl;
+                }
+            }
+        } catch {
+            /* ignore */
         }
 
         // No active tab found

@@ -269,6 +269,243 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* =====================================================
+   Browser Tab: Library + Calendar
+   ===================================================== */
+
+.file-library {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-library__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.file-library__title {
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--color-fg);
+}
+
+.file-library__controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.file-library__control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+}
+
+.file-library__controlLabel {
+    color: var(--color-fg-muted);
+    font-weight: 700;
+}
+
+.file-library__daysInput,
+.file-library__unitSelect {
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: rgb(var(--color-bg-rgb, 18 26 38) / 35%);
+    color: var(--color-fg);
+    font-weight: 800;
+    padding: 0 8px;
+}
+
+.file-library__daysInput {
+    width: 84px;
+}
+
+body.theme-dark .file-library__unitSelect {
+    color-scheme: dark;
+}
+
+body.theme-light .file-library__unitSelect,
+body[data-theme="light"] .file-library__unitSelect,
+html[data-theme="light"] body .file-library__unitSelect {
+    color-scheme: light;
+}
+
+.file-library__status {
+    color: var(--color-fg-muted);
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-library__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.file-library__card {
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.file-library__cardLabel {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-fg-muted);
+}
+
+.file-library__cardValue {
+    margin-top: 2px;
+    font-weight: 900;
+    font-size: 1.25rem;
+    color: var(--color-fg);
+}
+
+.file-library__list {
+    min-height: 0;
+}
+
+.file-library__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-library__row {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.file-library__row:hover {
+    background: var(--color-glass-hover);
+    border-color: var(--color-accent);
+}
+
+.file-library__row:focus-visible {
+    outline: 2px solid rgb(var(--color-accent-rgb) / 80%);
+    outline-offset: 2px;
+}
+
+.file-library__rowMeta {
+    display: block;
+    color: var(--color-fg-muted);
+    font-size: 0.9rem;
+}
+
+.file-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.file-calendar__title {
+    font-weight: 900;
+    color: var(--color-fg);
+}
+
+.file-calendar__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.file-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(48px, 1fr));
+    gap: 8px;
+    align-items: stretch;
+}
+
+.file-calendar__weekday {
+    text-align: center;
+    font-weight: 900;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    padding: 4px 0;
+}
+
+.file-calendar__day {
+    position: relative;
+    text-align: left;
+    border-radius: 10px;
+    border: 1px solid rgb(var(--color-fg-rgb) / 14%);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    padding: 8px 8px 6px;
+    min-height: 68px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.file-calendar__day:hover {
+    background: var(--color-glass-hover);
+}
+
+.file-calendar__dayMeta {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: rgb(var(--color-fg-rgb) / 72%);
+    font-size: 0.78rem;
+}
+
+.file-calendar__dayDistance {
+    font-weight: 800;
+    color: rgb(var(--color-fg-rgb) / 86%);
+}
+
+.file-calendar__dayCount {
+    color: var(--color-fg-muted);
+}
+
+.file-calendar__panel {
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.file-calendar__panelTitle {
+    font-weight: 900;
+    color: var(--color-fg);
+    margin-bottom: 10px;
+}
+
+.file-calendar__panelEmpty {
+    color: var(--color-fg-muted);
+}
+
 .font-xsmall table,
 .font-xsmall th,
 .font-xsmall td,
@@ -423,10 +660,6 @@ body {
     opacity: 0.85;
 }
 
-.file-library__row:hover {
-    border-color: var(--color-accent);
-}
-
 .file-library__rowMain {
     display: block;
     font-weight: 700;
@@ -457,6 +690,57 @@ body {
     margin-bottom: 12px;
 }
 
+.file-browser__controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.file-browser__btn-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.file-browser__segmented {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.file-browser__seg-btn {
+    border: 0;
+    background: transparent;
+    color: var(--color-fg);
+    padding: 8px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.file-browser__seg-btn + .file-browser__seg-btn {
+    border-left: 1px solid var(--color-glass-border);
+}
+
+.file-browser__seg-btn[aria-selected="true"] {
+    background: rgb(var(--color-accent-rgb) / 18%);
+    color: rgb(var(--color-accent-rgb));
+}
+
+.file-browser__seg-btn:hover {
+    background: var(--color-glass-hover);
+}
+
+.file-browser__seg-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
 .file-browser__path {
     flex: 1;
     overflow: hidden;
@@ -468,6 +752,9 @@ body {
 }
 
 .file-browser__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     border: 1px solid var(--color-glass-border);
     background: var(--color-glass);
     color: var(--color-fg);
@@ -4008,8 +4295,13 @@ body .custom-maptype-btn:focus {
 
 /* Leaflet tooltips (used for markers/hover labels) */
 body .leaflet-tooltip {
-    background: var(--color-glass);
-    color: var(--color-fg);
+    /*
+        Force these with !important because Leaflet's default tooltip CSS uses
+        a white background. If our background override is ever missed (ordering,
+        plugin CSS, etc.), dark mode can become "white-on-white".
+    */
+    background: var(--color-glass) !important;
+    color: var(--color-fg) !important;
     border: 1px solid var(--color-glass-border);
     box-shadow: var(--color-box-shadow-light);
     backdrop-filter: var(--backdrop-blur);
@@ -4869,9 +5161,15 @@ body .custom-zoom-slider-bar input[type="range"] {
     margin-left: 2px;
     padding: 0 6px;
     border-radius: 4px;
-    border: 1px solid var(--c_hex888);
-    background: inherit;
-    color: inherit;
+    border: 1px solid var(--color-glass-border);
+
+    /*
+        Do NOT inherit background/color here.
+        This control is often rendered inside a Leaflet popup that can be white in dark mode.
+        If we inherit/transparent, we end up with white text on a white popup.
+    */
+    background: var(--color-glass);
+    color: var(--color-fg);
     display: inline-block;
     vertical-align: middle;
     line-height: 1.2;
@@ -4879,13 +5177,24 @@ body .custom-zoom-slider-bar input[type="range"] {
     font-weight: 600;
 }
 
+/* Hint the UA to render native select dropdown UI using the correct color palette. */
+body.theme-dark .marker-count-select {
+    color-scheme: dark;
+}
+
+body.theme-light .marker-count-select,
+body[data-theme="light"] .marker-count-select,
+html[data-theme="light"] body .marker-count-select {
+    color-scheme: light;
+}
+
 .marker-count-select option {
     margin-left: 2px;
     padding: 0 6px;
     border-radius: 4px;
-    background: var(--c_hex888);
-    border: 1px solid var(--c_hex888);
-    color: inherit;
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-fg);
     display: inline-block;
     vertical-align: middle;
     line-height: 1.2;
@@ -5475,6 +5784,14 @@ body.theme-light .data-point-filter-control__range-values {
     margin-bottom: 14px;
 }
 
+.summary-col-presets-help {
+    flex: 1 1 420px;
+    min-width: 260px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    color: rgb(var(--color-fg-rgb) / 78%);
+}
+
 .summary-col-badges {
     display: inline-flex;
     align-items: center;
@@ -5530,6 +5847,32 @@ body.theme-light .data-point-filter-control__range-values {
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+.summary-col-presets-actions-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.summary-col-presets-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    border-radius: var(--border-radius-small);
+    border: 1px dashed rgb(var(--color-fg-rgb) / 18%);
+    background: rgb(var(--color-bg-rgb) / 12%);
+}
+
+.summary-col-presets-group-title {
+    font-weight: 900;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-fg-rgb) / 72%);
 }
 
 .summary-col-modal .col-list {
