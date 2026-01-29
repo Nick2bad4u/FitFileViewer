@@ -4,30 +4,642 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [29.8.0] - 2026-01-29
 
-### ✨ Features
 
-- ⚡ Estimated ("virtual") cycling power for FIT files without power meter data (Map tooltip + configurable settings)
+[[a317a6a](https://github.com/Nick2bad4u/FitFileViewer/commit/a317a6a8767a75cfa227e5bc39d048d12ea36b99)...
+[e639803](https://github.com/Nick2bad4u/FitFileViewer/commit/e6398033f3055aae9b14039270aa4a3abbd40536)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a317a6a8767a75cfa227e5bc39d048d12ea36b99...e6398033f3055aae9b14039270aa4a3abbd40536))
 
-### 🎨 UI
 
-- Fix dark-mode readability issues (calendar day numbers + activity list)
-- Improve map control theming (Leaflet layer selector + map style button)
+### 💼 Other
 
-### 🧰 Developer Experience
+- 🔧 [build] Update macOS build configurations
 
-- Add `lint:css`, `lint:css:fix`, `lint:all`, and `lint:all:fix` scripts in `electron-app`
+ - Changed macOS version from 13 to 15-intel for improved compatibility
+ - Adjusted build steps to reflect new macOS architecture
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a317a6a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a317a6a8767a75cfa227e5bc39d048d12ea36b99)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* V29.8.0 [skip ci] [`(e639803)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e6398033f3055aae9b14039270aa4a3abbd40536)
+
+
+
+
+
+
+## [29.7.0] - 2026-01-29
 
 
 [[482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)...
-[482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482ed734601d19030b1dbd3da60d32c278b274eb...482ed734601d19030b1dbd3da60d32c278b274eb))
+[ff8f5bb](https://github.com/Nick2bad4u/FitFileViewer/commit/ff8f5bb6caea4a7fea726cfb052e7a587db2e17c)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482ed734601d19030b1dbd3da60d32c278b274eb...ff8f5bb6caea4a7fea726cfb052e7a587db2e17c))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
+
+* 'main' of https://github.com/nick2bad4u/FitFileViewer:
+  [dependency] Update qs in /docusaurus in the npm_and_yarn group across 1 directory (#171)
+  [ci](deps): [dependency] Update dependency group (#170)
+  Update metrics.repository.svg - [Skip GitHub Action]
+  Update build-win7.yml
+  chore: update changelogs for v29.6.0 [skip ci]
+  [dependency] Update version 29.6.0
+  Update Build.yml
+  [dependency] Update version 29.5.0
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e719fdf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e719fdfde0aab39308c30c507f08e10f68caccb4)
+
+
+
+### 🛠️ GitHub Actions
+
+- Update build-win7.yml [`(ceace10)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ceace1091e7533a359def3192cee3f6404b3d7e7)
+
+
+
+### 💼 Other
+
+- ✨ [feat] Adds geolocation prompt and clipboard IPC
+
+✨ [feat] Adds session-scoped geolocation prompts with trusted origin checks to avoid exposing permissions to non-app pages
+✨ [feat] Routes clipboard writes through the main process with payload validation and async bridge behavior for sandboxed renderers
+🛠️ [fix] Preserves map tool layers by isolating activity tracks and finishing polylines when clicks land near the last vertex
+🛠️ [fix] Improves column preset UX with auto-save baseline clearing plus sturdier active-tab and fullscreen fallbacks
+⚡ [perf] Avoids full storage scans for single-key reads and tightens chart timing/logging to debug mode while clamping invalid ticks
+🎨 [style] Refines browser tab controls and theme styling for library/calendar panels, tooltips, and select widgets
+🧪 [test] Adds coverage for clipboard IPC, chart sanity checks, data ordering, map layers, and column preset persistence
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e12e20a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e12e20a76dd647c914598627bd86addbad3375ba)
+
+
+- ⚡ [perf] Improve chart render stability
+
+⚡ [perf] Adds render locking and queued follow-up work to avoid concurrent chart updates and tab flicker
+⚡ [perf] Defers hover effects, suppresses background loading/notifications, and auto-tunes animations to keep rendering responsive
+⚡ [perf] Introduces cache prewarming and safer max-point defaults to speed first chart view without UI freezes
+🛠️ [fix] Resolves mixed-case record keys and gates verbose chart logging behind a dev flag
+🧹 [chore] Updates dependencies, scripts, formatting, and adjusts tests/mocks
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3079611)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3079611766a5616e9b56cd0d6c23445813e49d08)
+
+
+- ✨ [feat] Enhance high altitude power estimation and testing
+
+ - 🛠️ Update air density calculation to allow lower values at high altitudes
+ - 🧪 Add unit tests for high altitude power estimation scenarios
+ - 🧪 Implement tests to verify power estimation at various altitudes
+ - 🧪 Mock chart settings manager for improved test isolation
+ - 🧪 Refactor existing tests for better clarity and functionality
+ - 🧹 Create new task configurations for running tests in Electron app
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(eea25c7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/eea25c73d7b16522bba0efad5337f0c8a8a75857)
+
+
+- 🎨 [style] Update CSS variables for dark and light themes
+ - Add new font families and color variables for improved theming
+ - Define background gradients and color schemes for both themes
+ - Introduce CSS variables for button and modal styling
+
+🛠️ [fix] Escape HTML in tooltips and calendar results
+ - Ensure file names and day keys are safely escaped to prevent XSS
+ - Update tooltip rendering in map overlays to use escaped file names
+ - Modify calendar results rendering to escape selected day keys
+
+🧪 [test] Add tests for CSS variable definitions and body styles
+ - Verify existence and order of theme variables in the stylesheet
+ - Check for light theme overrides and background styling
+ - Ensure base body styles and font size helpers are defined correctly
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(771cd7e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/771cd7e9eb99b5d61111d8aea5835becd8ac4dd5)
+
+
+- 🧪 [test] Aligns tests with settings state
+
+🧪 [test] 🧭 Updates unit and UI tests to use settings state for preferences, improving determinism
+🧹 [chore] ⚙️ Runs Vitest via node with single worker and caps Windows workers to reduce flakiness
+🧪 [test] 🧰 Loads env setup before workers to ensure safe globals
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9212990)`](https://github.com/Nick2bad4u/FitFileViewer/commit/92129906754c30230552025b1bb45989b2712d71)
+
+
+- 🚜 [refactor] Moves chart settings to state
+
+🚜 [refactor] Routes chart options, unit preferences, and export theme through centralized settings to reduce direct storage access
+ - 🚜 [refactor] Adds helpers for zone color schemes, stored color reads, and removal flows to keep caches consistent
+ - 🚜 [refactor] Improves settings parsing, control defaults, and silent resets for safer numeric/toggle handling
+ - 🚜 [refactor] Adds declarative chart spec metadata for ids, labels, and axes
+🧪 [test] Updates unit symbol warning expectations for settings-based reads
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c99e602)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c99e602b9a9a188aaabc88b811882c5ca8942684)
+
+
+- 🚜 [refactor] Centralizes chart settings state
+
+🚜 [refactor] Centralizes chart visibility and settings in shared state to prevent drift between controls and renders
+ - 🔄 Migrates legacy per-field storage into normalized settings and triggers reactive updates for status indicators
+
+✨ [feat] Adds declarative chart spec building with dataset hiding to respect visibility preferences
+ - 🎯 Supports optional label/axis mapping and default color injection for consistent output
+
+🎨 [style] Standardizes homepage class naming and streamlines app styling for maintainability
+ - 🧹 Cleans legacy CSS rules and tweaks overflow, shadows, and control visuals for stability
+
+🧪 [test] Aligns chart and configuration tests with the centralized settings flow
+ - ✅ Extends coverage for declarative spec generation and visibility handling
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(60f4157)`](https://github.com/Nick2bad4u/FitFileViewer/commit/60f4157dc5588692d20fee0163c16a3387c33b90)
+
+
+- 🛠️ [fix] Improves CSP-safe exports and tables
+
+🛠️ [fix] Improves clipboard/export reliability in file contexts
+ - Adds a native clipboard bridge for text/images with fallbacks
+ - Converts data URLs locally to avoid CSP-blocked fetches
+ - Updates share notifications when clipboard copy is blocked
+
+🚜 [refactor] Renders tables and CSV without unsafe evaluation
+ - Builds headers/body from row data and sanitizes cell values
+ - Initializes data tables on expand with a safe fallback renderer
+ - Accepts sparse row arrays instead of dropping tables
+
+✨ [feat] Expands summary column controls and ordering
+ - Moves modal UI into a dedicated helper with search, presets, and status
+ - Keeps named columns ahead of numbered columns for readability
+
+✨ [feat] Surfaces estimated power across views
+ - Adds estimated power labels/colors and summary stats
+ - Applies estimates on load and refreshes charts, summaries, and tables
+
+🛠️ [fix] Improves map tools and overlays
+ - Enhances help tooltip behavior and measurement control UX
+ - Uses imperial draw units, adjusts smoothing, and preserves last markers
+ - Clears measurements on global reset and refreshes after edits
+
+🛠️ [fix] Keeps embedded views loading without sandbox blocks
+ - Allows inline scripts and removes iframe sandboxing that caused opaque origins
+
+🎨 [style] Refreshes modal, credits, and control styling
+ - Adds layout, badges, tooltip, and separators for clarity
+
+🧪 [test] Aligns tests with updated clipboard and table flows
+ - Updates mocks and expectations for revised export behavior
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(0418aa9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0418aa9dc5aa8382e816b569a86f523954a2390c)
+
+
+- ✨ [feat] Enhance map measure and calendar UX
+
+✨ [feat] Improves map measurement feedback and completion
+ - 📏 Adds per-segment and total distance labels in dual units
+ - 🖱️ Enables finish via double/right click or closing point
+ - 🧾 Shows segment breakdown in the results panel
+✨ [feat] Enriches activity calendar scanning and details
+ - 🗓️ Highlights activity days and multi-activity counts
+ - 🏷️ Adds sport icons plus day/row tooltips for quick context
+ - 🧭 Adds navigation button tooltips for calendar controls
+🎨 [style] Refreshes map markers, tabs, and label polish
+ - 📍 Adds themeable start/end pins and breadcrumb glow
+ - 🎯 Emphasizes the active tab with the current accent color
+ - 💬 Improves tooltip and label styling for readability
+🛠️ [fix] Hardens validation and safe rendering
+ - ✅ Enforces sensible ranges for power estimation inputs
+ - 🧼 Escapes user-facing labels in activity listings
+ - ⏱️ Initializes tables only when visible to avoid glitches
+🛠️ [fix] Stabilizes map controls on touch devices
+ - 🧰 Avoids duplicate measure controls and restores toggle access
+📝 [docs] Updates measurement instructions to match gestures
+🧹 [chore] Ignores vendored code in linting
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(081bbef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/081bbef07d4b2ae22acfb62dcc5c70ba0be713db)
+
+
+- 🛠️ [fix] Improve map theming and UI polish
+
+🛠️ [fix] Apply dark-map filtering to tiles only and install explicit theme listeners, keeping controls readable while syncing theme changes
+ - Persist map theme preference via centralized settings and expose inverted state for styling
+🎨 [style] Refresh map controls, tooltips, minimap, lap/fullscreen widgets, and data tables for consistent glass theming, clearer borders, and better spacing
+ - Improve lap selector accessibility with hidden label, aria text, and a help tooltip
+🛠️ [fix] Harden filename marquee clipping and data table layout timing to avoid overlap and collapsed columns
+🚜 [refactor] Apply accent color variables on both root and body to respect light-theme overrides
+📝 [docs] Clarify map theme event flow and tile-only filtering behavior
+🧹 [chore] Relax stylelint rules to allow updated styling patterns
+🧪 [test] Add unit coverage for power estimation, tooltip formatting, map theming listeners, and power estimation UI flows
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7078027)`](https://github.com/Nick2bad4u/FitFileViewer/commit/707802729bf7ecaee993aed2a6046bca7ca80299)
+
+
+- ✨ [feat] Adds estimated power on maps
+
+✨ [feat] Adds physics-based estimated cycling power with map control, settings UI, and tooltip output for activities without power data
+🛠️ [fix] Ensures chart field visibility persists through local storage for consistent display state
+🎨 [style] Improves dark-mode contrast and map control theming for readability
+🧹 [chore] Adds CSS linting workflows, ignores generated assets, and updates tooling dependencies
+🧪 [test] Extends settings state coverage to include power estimation defaults
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(26d840f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/26d840f0ea067c8a18a21d5a964bd32bcca7c5ff)
+
+
+- ✨ [feat] Enable experimental browser by default
+
+✨ [feat] Default-enable the experimental browser to reduce friction
+ - 🎨 [style] Surface an in-app notice and improve text styling for clarity
+🚜 [refactor] Use shared settings storage for chart field visibility
+ - 🧹 [chore] Align small import ordering for consistencyt
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(dd19efa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd19efa494312bfb5278db4c3713c9ceab0312dd)
+
+
+- ✨ [feat] Adds browser library views
+
+✨ [feat] Adds segmented browser views with library and calendar summaries for quick activity insights and opens
+ - ✨ [feat] Caches decoded activity scans per folder with unit and date-range preferences plus calendar navigation
+ - 🎨 [style] Adds styling for browser controls, library cards, calendar grid, and default badges
+🚜 [refactor] Routes chart visibility and color settings through managed state to preserve legacy storage behavior
+✨ [feat] Adds global default summary column presets with ordered display for numeric fields
+🛠️ [fix] Handles notification and feature-toggle IPC signatures safely to avoid empty messages
+🧪 [test] Updates modal and IPC unit tests to match new behaviors
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3fd9303)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3fd93032d861132e0e3ddf46863a39a9aa05159f)
+
+
+- ✨ [feat] Improves map style selector UX
+
+✨ [feat] Improves map style selector UX
+ - Adds friendly labels, ordering, and extra basemap options
+ - Hides the default toggle, refines the button, and supports hover open
+ - Keeps the selector panel within view with scrolling and resize layout
+ - Preserves preferences by mapping legacy and label-based values
+🛠️ [fix] Keeps map data points above track overlays
+ - Reasserts marker stacking after highlight changes
+🛠️ [fix] Replaces the concurrency limiter for legacy runtimes
+ - Avoids newer runtime requirements while keeping parallel file loads
+🛠️ [fix] Aligns notification handling with event payloads
+🧹 [chore] Updates app and docs dependencies
+ - Refreshes runtime, lint, and tooling packages
+🧹 [chore] Adds editor style linting checks
+ - Enables reporting for invalid or needless disables
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(351168d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/351168ded3cd6f466bfd9391c268b8883bbc5ae9)
+
+
+- ✨ [feat] Add screenshot gallery to homepage
+
+ - Introduced a new ScreenshotGallery component showcasing three key features: Interactive Map, Data Table, and Charts.
+ - Implemented responsive design for the screenshot grid, adapting to different screen sizes.
+ - Added styles for the screenshot section, including layout, hover effects, and action buttons.
+ - Updated favicon configuration to use a root-level favicon for better browser compatibility.
+ - Included new favicon and screenshot images in the static assets.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(72909cb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/72909cb9bb0d252280d25d8150abfd01c6e86471)
+
+
+- 🚜 [refactor] Improve type safety and map UI layering
+
+🚜 [refactor] Modernize code syntax and strengthen type definitions
+- 🎨 Use array destructuring for cleaner hex color parsing in color picker components
+- 🏷️ Replace generic casts with specific record types for theme and file metadata
+🎨 [style] Resolve visual layering issues between Leaflet map components
+- 🗺️ Override the minimap's default high z-index to allow expanded layer controls to render on top
+- 🪜 Enforce explicit stacking orders to fix UI overlap bugs in the map interface
+🛠️ [fix] Stabilize modal interactions and event cleanup
+- ⌨️ Hoist keyboard event handlers in the Gyazo auth modal to ensure reliable removal
+- 🧹 Refine server shutdown and state cleanup logic when users cancel authentication
+🧹 [chore] Reduce linting noise in legacy modules
+- 🔇 Add pending refactor candidates to ESLint ignore lists for line-count restrictions
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9ca821d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9ca821d9feed35b1258d901958fa5e9dd24d17a3)
+
+
+- 🛠️ [fix] Harden export utilities and network calls
+
+🛠️ [fix] Implement `fetchWithTimeout` utility to prevent export requests from hanging indefinitely
+- 🛡️ Add `validateImgurEndpointUrl` and `validateGyazoEndpointUrl` to enforce HTTPS and restricted hostnames
+- 📝 Improve error reporting by truncating verbose API response bodies in error messages
+- 📦 Abstract storage access into safe helpers to handle environments where `localStorage` might be restricted
+- 🧹 Remove excessive debug logging in the Imgur upload flow and replace with environment-aware logging
+- 🧪 [test] Fix `URL` stubbing logic to preserve native constructor functionality required for hostname parsing
+- 🧪 [test] Add regression tests for timeout handling, AbortErrors, and unauthorized endpoint URLs
+- 🧪 [test] Refactor fetch assertions to use `expect.objectContaining` for more resilient API testing
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c5b09eb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c5b09eb30e10c84e42724ce413cc00a6a5de0e8f)
+
+
+- 🛠️ [fix] Remove source map references from TypeScript declaration files
+ - 🔧 Removed source mapping URL comments from multiple TypeScript declaration files including `updateActiveTab.d.ts`, `updateTabVisibility.d.ts`, `unifiedControlBar.d.ts`, `screenfull-global.d.ts`, `vitest.config.d.ts`, and `windowStateUtils.d.ts`.
+ - 🧹 Deleted corresponding `.d.ts.map` files to clean up unused artifacts.
+
+✨ [feat] Enhance Gyazo configuration validation
+ - 🔧 Updated `GyazoConfigSchema` to validate URLs as non-empty strings instead of using URL constructor validation to improve compatibility with unit tests.
+ - 🛠️ Added `getStorage` method to safely access local storage, ensuring it handles potential errors gracefully.
+
+🚜 [refactor] Improve overlay file loading logic
+ - ⚡ Introduced `scheduleOverlayLoad` function to encapsulate the logic for loading overlay files, enhancing readability and maintainability.
+ - 🔧 Simplified the loop in `loadOverlayFiles` to utilize the new scheduling function, improving code clarity.
+
+🎨 [style] Clean up external link handler code
+ - 🔧 Refactored `attachExternalLinkHandlers` to streamline event handling and reduce redundancy in cleanup function management.
+
+✨ [feat] Add UI initialization on document load
+ - 📝 Created `initStartup.js` to handle UI initializations such as quick color switcher and unified control bar setup on DOM content loaded event.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(939c22f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/939c22fe95d697a02a8f187b6468ff76d11b6f0a)
+
+
+- 🔧 [build] Reorder tools in BeastMode agent configuration for improved clarity
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(4512679)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4512679b3858142ffc14a7ce689a0341f987d701)
+
+
+- 🔧 [build] Upgrade dependencies in package.json
+
+ - 🔄 Update electron from version ^39.2.7 to ^40.0.0 for improved performance and new features.
+ - 🔄 Upgrade prettier from version ^3.7.4 to ^3.8.0 to benefit from the latest formatting improvements.
+ - 🔄 Change stylelint-config-standard from version ^39.0.1 to ^40.0.0 to ensure compatibility with the latest stylelint features.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c150142)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c150142f90557c6f1cb080b69d892b4f0eced5ca)
+
+
+- ✨ [feat] Improve IPC registration handling for idempotency
+ - Enhance `registerIpcHandle` to prevent listener leaks when `removeHandler` is unavailable
+ - Add error handling for duplicate handler registration
+ - Update `registerIpcListener` to ensure no duplicate listeners are registered when `removeListener` is unavailable
+ - Implement `resetIpcRegistries` to clean up IPC registrations during tests
+🧪 [test] Add idempotency tests for IPC registration
+ - Create tests to verify that handlers and listeners do not leak when removal APIs are absent
+ - Ensure `resetIpcRegistries` correctly removes handlers and listeners when APIs exist
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6a7ab52)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6a7ab52e89d6ef94b9dc2d1936d74163b3bcfad6)
+
+
+- ✨ [feat] Enhance file access policy and recent file handling
+ - 📝 [docs] Update fileAccessPolicy.d.ts to include global state management for file access
+ - 🔧 [build] Add isValidFitFilePathCandidate function to validate .fit file paths without mutating state
+ - 🔧 [build] Introduce approveRecentFile method in ElectronAPI for recent file approval
+ - 🛠️ [fix] Implement file access approval checks in setupListeners and attachRecentFilesContextMenu functions
+ - ⚡ [perf] Optimize chart rendering logic by delegating to chartStateManager when available
+ - 🚜 [refactor] Clean up chart rendering logic to avoid unnecessary re-renders
+ - 🎨 [style] Update map base layers attribution links to include data-external-link attribute for better UX
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6d2108c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6d2108c8857bedf73fa9f0126adc5714627e0c5f)
+
+
+- 🔧 [build] Update CI workflow for version bump and release process
+ - 🛠️ Enhance version bumping logic to commit and push changes to the repository
+ - 🔄 Modify checkout step to fetch tags and use the correct commit SHA for subsequent jobs
+ - 📦 Update Node.js version to 24 in the setup step
+ - 📝 Improve release notes generation by fetching previous tags and logging commits since the last release
+ - 🚀 Ensure release job uses the correct commit SHA for tagging and release notes
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(64cc7a6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64cc7a6e8040a9692a65242eb27b356f7c66e65e)
+
+
+- ✨ [feat] Enhance configuration handling and color normalization
+ - Introduced `safeConfGet` function to safely read values from `electron-conf`, preventing crashes on errors.
+ - Added normalization functions for theme and map tab values to ensure valid configurations.
+ - Updated IPC handlers to utilize `safeConfGet` for retrieving `selectedMapTab` and `theme`, improving error resilience.
+ - Implemented color normalization functions to validate and sanitize color inputs across various components.
+ - Enhanced color handling in UI components to prevent injection attacks and ensure valid color formats.
+ - Added tests to verify normalization of corrupted persisted theme/map-tab values.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6f8bd57)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6f8bd57f31dba60f1c8c910357e70f0deffb6262)
+
+
+- ✨ [feat] Revise BeastMode agent instructions for clarity and structure
+ - Updated rules and planning sections to enhance clarity and organization
+ - Improved tool usage guidelines for better task execution
+ - Streamlined command output handling and debugging instructions
+ - Added structured formatting for easier navigation and comprehension
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(259347a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/259347a32ccb5aa1f4d61f20e82fc3241f18b073)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(b8c65e3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b8c65e315d2f26d146bd4779f68e16baaf712fa8)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* V29.7.0 [skip ci] [`(ff8f5bb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff8f5bb6caea4a7fea726cfb052e7a587db2e17c)
+
+
+- Update changelogs for v29.6.0 [skip ci] [`(76fff1f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/76fff1f3b064c0d95ba4b6cf0e62159d1fe0deba)
+
 
 
 ### 📦 Dependencies
 
+- [dependency] Update qs in /docusaurus in the npm_and_yarn group across 1 directory (#171)
+
+[dependency] Updates the npm_and_yarn group with 1 update in the /docusaurus directory: [qs](https://github.com/ljharb/qs).
+
+
+Updates `qs` from 6.13.0 to 6.14.1
+- [Changelog](https://github.com/ljharb/qs/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/ljharb/qs/compare/v6.13.0...v6.14.1)
+
+---
+updated-dependencies:
+- dependency-name: qs
+  dependency-version: 6.14.1
+  dependency-type: indirect
+  dependency-group: npm_and_yarn
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> [`(1ad1af5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad1af535bf49061978615b3dd0d4dc965b4b180)
+
+
+- *(deps)* [dependency] Update dependency group (#170) [`(b5358c4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b5358c4980b3ab77bac2d8e503b4a17df91ce5e8)
+
+
 - [dependency] Update version 29.6.0 [`(482ed73)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)
+
+
+
+### 🛡️ Security
+
+- ✨ [feat] Add experimental folder-based FIT browser
+
+✨ [feat] Introduce an experimental "Browser" tab for direct folder navigation and activity selection
+ - 📂 Implementation of a dedicated file list UI with directory traversal and `.fit` file filtering
+ - ⚙️ Registration of new IPC handlers for persistent root folder management and secure path validation
+ - 🕹️ Addition of a feature toggle in the application menu to enable/disable the experimental browser tab
+🛡️ [security] Implement network request interception to block unwanted telemetry and reduce console errors
+ - 🛑 Integration of a main-process protocol blocker for known analytics hostnames
+ - 🧩 Addition of a renderer-side fetch/XHR patch to prevent noisy network failures in "Alternative View"
+🗺️ [map] Enhance map session persistence and improve layer control interactions
+ - 💾 Persistence of the selected Leaflet base layer across application restarts
+ - 🔼 Reorganization of layer picker priority and correction of OpenTopoMap attribution
+ - 🏗️ Optimization of z-index layering to prevent overlapping between minimaps and expanded controls
+📂 [file] Add utility for programmatic file loading from absolute paths to support browser-based opening
+🛠️ [fix] Improve context menu positioning by implementing viewport clamping and focus management
+🧪 [test] Update unit tests across tab state management to account for new UI regions
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(756cf25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/756cf25dcd348d6a6a0eac63195e9296f9a0ec87)
+
+
+- 🚜 [refactor] Harden IPC, security, and state management
+
+🚜 [refactor] Modularize IPC registration by extracting handlers into domain-specific modules for file systems, Fit files, and application info
+ - 🔒 Enhance `MainProcessState` and IPC bridge with strict dot-path validation and depth limits to prevent malicious access
+ - 🚿 Implement unsubscribe patterns for all renderer-side event listeners to ensure proper resource cleanup
+ - 🛡️ Harden Content Security Policy by adding script hashes and removing `unsafe-eval` dependencies
+ ✨ [feat] Introduce a robust main-process state synchronization bridge supporting granular path subscriptions and serializable metrics
+ - 🗺️ Replace `leaflet-measure` with a custom, CSP-compliant `leaflet-measure-lite.js` implementation
+ - 🧬 Standardize `IpcSerializable` types across the preload bridge for improved type safety
+ - 🔌 Centralize network and storage operations into safe utility modules that handle restricted environments gracefully
+ 🐞 [fix] Resolve memory leaks and DOM bloat in chart status indicators by using stable element IDs and listener cleanups
+ - 🖱️ Improve tooltip ergonomics with dynamic cursor-relative positioning and viewport clamping
+ 🎨 [style] Refactor HTML sanitization to prioritize global `DOMPurify` and enforce a strict tag allowlist that overrides caller configurations
+ 🧪 [test] Expand test coverage for hardened sanitization logic, external link handlers, and tooltip re-rendering stability
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(bfa59f3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bfa59f38541d1ed262ea60910c02fa405900206a)
+
+
+- 🛠️ [fix] Enhances security and import performance
+
+- 🛠️ [fix] Harden HTML sanitization in `sanitizeHtmlAllowlist` by integrating `DOMPurify`
+ - 🛡️ Provides a robust defense against XSS by leveraging a battle-tested sanitization engine
+ - 🧹 Preserves custom style-attribute filtering to block unsafe CSS constructs like `url()` and `expression()`
+- 🛠️ [fix] Secure service configuration via `Zod` runtime schema validation for Gyazo exports
+ - ✅ Ensures endpoints and credentials retrieved from `localStorage` conform to strict URL and string requirements
+ - 🛡️ Automatically falls back to safe static defaults if malformed or malicious configuration data is detected
+- ⚡ [perf] Optimize overlay file processing with a managed concurrent loading pipeline
+ - 🚀 Utilizes `p-limit` to process multiple files in parallel, significantly reducing wait times for bulk imports
+ - ⚙️ Implements intelligent concurrency scaling based on `hardwareConcurrency` to prevent CPU starvation
+ - 🔄 Adopts `Promise.allSettled` patterns to ensure individual decoding failures do not block the entire batch
+- 🔍 [chore] Enhance diagnostic logging in `recentFilesContextMenu` for better troubleshooting of DOM attachment
+- 🧪 [test] Implement property-based testing using `fast-check` to verify CSS token sanitization robustness
+- 🧪 [test] Modernize UI interaction tests using Testing Library and `user-event` for high-fidelity browser simulation
+- 🔧 [build] Update `package.json` dependencies to include `dompurify`, `zod`, `p-limit`, and `fast-check`
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8bd62d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8bd62d4d97622cef8f261fc026c30867f6e043c3)
+
+
+- ✨ [feat] Harden security and improve app robustness
+
+- 🔒 [feat] Implement strict response headers and a restricted Content Security Policy for the internal OAuth server to prevent MIME sniffing and cross-origin framing
+- 🛡️ [feat] Introduce cryptographically-strong state tokens and comprehensive URL validation for Gyazo OAuth flows to mitigate CSRF and potential injection attacks
+- 🙈 [feat] Add credential redaction logic to ensure sensitive username and password information is stripped from URI strings before logging updater feeds
+- 🚦 [fix] Restrict handled HTTP methods to GET and HEAD on the local callback listener to minimize the application attack surface
+- 🚜 [refactor] Consolidate renderer event listener logic by replacing redundant legacy modules with a unified lifecycle proxy to prevent code drift
+- ✅ [feat] Enhance IPC safety by implementing stricter validation for optional and required non-empty strings in the preload script
+- 🏗️ [fix] Improve recent file handling with mandatory path approval checks and implement more resilient DOM attachment logic for UI context menus
+- ⚡ [perf] Optimize overlay file loading with early preflight checks for size and extension limits and short-circuit coordinate validation
+- 🧪 [test] Expand unit test coverage for OAuth servers, auto-updating logic, and IPC validation while filtering noisy JSDOM environment warnings
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(5567f86)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5567f86bb160f5f763dbf0ed2bc57d47938bad56)
+
+
+- 🔧 [build] Refactor map measurement tool and UI components
+
+ - 🛠️ [fix] Sanitize theme colors in mapMeasureTool.js to prevent CSS injection
+ - 🛠️ [fix] Improve Escape key handler in mapMeasureTool.js to avoid duplicate event listeners
+ - 🚜 [refactor] Change zoom slider implementation in renderMap.js to use DOM methods for better readability
+ - 🚜 [refactor] Enhance renderSummaryHelpers.js by creating a reusable function to add options to select elements
+ - 🔒 [security] Implement dot-path hardening in mainProcessStateManager.js to prevent prototype pollution
+ - 🛠️ [fix] Sanitize theme colors in createElevationProfileButton.js for consistent styling
+ - 🔒 [security] Validate external URLs in externalLinkHandlers.js to enhance security against malicious links
+ - 🚜 [refactor] Improve filename auto-scroll logic in unifiedControlBar.js to ensure proper cleanup of event listeners
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6c964cf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6c964cf3af5fc40a5d5e482517fa6d9a9ce3210e)
+
+
+- 🛠️ [fix] Harden security and robustify IPC
+
+🛠️ [fix] Harden IPC communication by enforcing strict channel allowlists for renderer-to-main messaging and event subscriptions
+ - 🔒 Secure local file access through centralized authorization and stricter validation of Windows path prefixes
+ - 📝 Implement safe logging that automatically redacts secrets and handles circular references
+ - 🧱 Replace unsafe `innerHTML` usage with standard DOM APIs for UI components to mitigate injection risks
+ - 🌐 Protect export and OAuth flows via consistent HTML escaping and conservative CSS token sanitization
+ - 🛡️ Validate input data types for FIT file decoding to prevent payload manipulation
+ - ⚡ Fix potential memory leaks in the test environment by deduplicating heartbeat listeners
+✨ [feat] Add a dedicated handler for the application's restart-and-update menu functionality
+🧪 [test] Expand test coverage for security boundaries and update existing tests to match new API return types
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ce72c94)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ce72c9407b2a393aac767cc7d07caaa73300fa27)
+
+
+- ✨ [feat] Implement recent files context menu and HTML sanitization
+
+ - ✨ [feat] Add recent files context menu functionality to the Open File button
+   - Extracted from listeners.js to reduce complexity
+   - Displays recent files with hover and click interactions
+   - Handles loading and error notifications
+   - Implements keyboard navigation for accessibility
+
+ - ✨ [feat] Introduce HTML sanitization utility
+   - Added sanitizeHtmlAllowlist.js to safely process untrusted HTML
+   - Allows specific tags and attributes while stripping unsafe elements
+
+ - 🔧 [build] Update exportUtils to enhance security
+   - Assign external URLs and stored values via DOM properties to prevent injection
+
+ - 🚜 [refactor] Improve mapDrawLaps error handling
+   - Replaced innerHTML with safe rendering methods to prevent XSS
+   - Created renderMapInfoMessage function for consistent error messaging
+
+ - 🎨 [style] Update createUserDeviceInfoBox and renderTable for security
+   - Sanitize HTML before inserting into the DOM to avoid markup injection
+
+ - 🧹 [chore] Centralize external link handling
+   - Created externalLinkHandlers.js to manage external link clicks
+   - Replaced inline event handlers in modals with centralized logic
+
+ - 🔧 [build] Disable webview usage in Electron for security
+   - Explicitly set webviewTag to false in windowStateUtils.js
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8d53607)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8d5360783aca9d3c3c0e36dc8545f77f5e798492)
+
+
+- ✨ [feat] Implement file access policy for enhanced security
+ - Introduced a main-process allowlist for renderer-initiated file reads to prevent arbitrary file disclosure.
+ - Added functions to approve file paths and assert read permissions, ensuring only approved files can be accessed.
+ - Integrated file access policy checks into dialog handlers and recent file handlers to enforce security during file operations.
+ - Updated IPC handlers to validate and authorize file reads, blocking unauthorized access.
+ - Enhanced menu creation to approve recent file selections, ensuring compliance with the new security model.
+🧪 [test] Add tests for file access policy functionality
+ - Implemented tests to validate the approval and assertion mechanisms of the file access policy.
+ - Ensured that tests can mock state management for reliable unit testing of file access features.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a4dc227)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a4dc227f1698c97a9aed9732446764553a79330e)
+
+
+- ✨ [feat] Enhance map rendering and theme management
+ - 🛠️ [fix] Implement defensive cleanup for overlay filename tooltips during map re-renders
+ - 🛠️ [fix] Clear old Leaflet control references to prevent memory leaks
+ - 🛠️ [fix] Ensure proper cleanup of drawn items and controls before rendering new map instances
+ - ⚡ [perf] Optimize map type button updates with global reference for shared document listener
+ - 🛠️ [fix] Remove redundant mouse event listeners for collapsing controls
+ - 🛠️ [fix] Improve zoom slider interaction handling to prevent jank during user input
+ - ✨ [feat] Introduce singleton subscription for state changes to prevent leaks during UI re-renders
+ - 🛠️ [fix] Migrate legacy theme storage keys to a canonical format for consistency
+ - ✨ [feat] Normalize theme values across the application for better state management
+ - 🎨 [style] Refactor theme toggle button creation to avoid innerHTML for improved security
+ - 🧹 [chore] Update Vitest configuration to refine coverage thresholds and exclude non-essential files
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c96b9f1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c96b9f148b240b3b46baae2ad391c29f5e22a1d4)
+
+
+- 🛠️ [fix] Update recent files and rendering components
+
+ - 🔧 [build] Fix missing newline in recentFiles.d.ts.map and createShownFilesList.d.ts.map
+ - 🛠️ [fix] Add optional performance timestamps to Operation type in mainProcessStateManager.d.ts
+ - 🛠️ [fix] Update mainProcessStateManager.js to utilize performance timestamps for duration calculations
+ - 🛠️ [fix] Ensure safe data handling in getChartCounts.js and renderGPSTimeChart.js to filter out null entries
+ - 🛠️ [fix] Improve chart rendering functions to handle potential null values in GPS data
+ - 🛠️ [fix] Sanitize HTML in aboutModal.js to prevent XSS vulnerabilities
+ - 🛠️ [fix] Adjust createElevationProfileButton.js to safely pass serialized data to popups
+ - 🛠️ [fix] Update windowStateUtils.js to conditionally enable web security based on environment variables
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(089d5e6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/089d5e63359340ba599e3066854997bdfe40835a)
 
 
 
@@ -60,6 +672,42 @@ All notable changes to this project will be documented in this file.
 
 
 ### 💼 Other
+
+- 🔧 [build] Update dependencies and package configurations
+ - Updated "@garmin/fitsdk" from "^21.178.0" to "^21.188.0"
+ - Updated "@vitest/ui" from "^4.0.15" to "^4.0.17"
+ - Updated "datatables.net" and "datatables.net-dt" from "^2.3.5" to "^2.3.6"
+ - Updated "electron-updater" from "^6.7.1" to "^6.7.3"
+ - Updated "leaflet.fullscreen" from "^5.1.0" to "^5.2.1"
+ - Updated "leaflet.locatecontrol" from "^0.85.1" to "^0.86.0"
+ - Updated "maplibre-gl" from "^5.14.0" to "^5.16.0"
+ - Updated dev dependencies including "@actions/artifact", "@actions/core", and others to their latest versions
+ - Updated "eslint" from "^9.39.1" to "^9.39.2"
+ - Updated "electron-builder" and "electron-builder-squirrel-windows" from "^26.2.0" to "^26.4.0"
+ - Updated "git-cliff" from "^2.10.1" to "^2.11.0"
+ - Updated "prettier-plugin-jsdoc" from "^1.7.0" to "^1.8.0"
+ - Updated "vitest" from "^4.0.15" to "^4.0.17"
+ - Updated package manager from "npm@11.6.4" to "npm@11.7.0"
+
+🧪 [test] Add unit tests for IPC file system handlers
+ - Created tests for "registerFileSystemHandlers" to ensure proper IPC registration and error handling
+ - Added tests for "registerFitFileHandlers" to validate handler registration and decoding functionality
+ - Implemented tests for "registerInfoHandlers" to check metadata retrieval and error logging
+
+🛠️ [fix] Enhance type definitions for IPC handlers
+ - Updated "registerFitFileHandlers.d.ts" to include optional fitParserModule parameter for testing
+ - Enhanced "registerInfoHandlers.d.ts" to include optional confModule parameter for testing
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d74e85b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d74e85b47aee11c8a582ac127b4816bce5e9d408)
+
+
+- ✨ [feat] Enhance BeastMode agent with new tools and handoff prompts
+ - 🛠️ [fix] Add 'execute/createAndRunTask' to tools for improved task execution
+ - 📝 [docs] Introduce new handoff prompts for context summarization and code review
+ - 🔧 [build] Ensure seamless transition between agent conversations with detailed context
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c1fd3d6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c1fd3d66bab1e83c43e26dfed3c8806e4eb47033)
+
 
 - Merge PR #169
 
@@ -8038,7 +8686,7 @@ Updates `netlify-cli` from 20.1.1 to 21.5.0
 ---
 updated-dependencies:
 - dependency-name: fastify
-  dependency-version:
+  dependency-version: 
   dependency-type: indirect
   dependency-group: npm_and_yarn
 - dependency-name: netlify-cli
