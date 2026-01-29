@@ -1,7 +1,7 @@
 {
     "name": "fitfileviewer",
     "displayName": "Fit File Viewer",
-    "version": "29.6.0",
+    "version": "29.7.0",
     "private": false,
     "description": "Fit File Viewer is a cross-platform application for parsing, visualizing, and analyzing .fit files using charts, maps, tables, and other data visualization tools for Garmin and fitness activities.",
     "categories": [
