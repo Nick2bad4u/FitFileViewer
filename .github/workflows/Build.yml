@@ -272,6 +272,39 @@ jobs:
               id: build_app
               shell: bash
               run: |
+                  set -euo pipefail
+
+                  retry_macos_build() {
+                    local -r max_attempts="$1"
+                    shift
+
+                    local attempt=1
+                    local delay_seconds=15
+
+                    while true; do
+                      echo "Running: $* (attempt ${attempt}/${max_attempts})"
+
+                      # When the flake hits, electron-builder may have partially written dist files.
+                      # Clean dist so retries start from a known-good state.
+                      rm -rf dist || true
+
+                      if "$@"; then
+                        return 0
+                      fi
+
+                      local exit_code=$?
+                      if [ "$attempt" -ge "$max_attempts" ]; then
+                        echo "Command failed after ${attempt} attempts (exit code ${exit_code})."
+                        return "$exit_code"
+                      fi
+
+                      echo "Command failed (exit code ${exit_code}). Retrying in ${delay_seconds}s..."
+                      sleep "$delay_seconds"
+                      attempt=$((attempt + 1))
+                      delay_seconds=$((delay_seconds * 2))
+                    done
+                  }
+
                   if [[ "${{ runner.os }}" == "Windows" ]]; then
                     if [[ "${{ matrix.arch }}" == "x64" ]]; then
                       npx electron-builder --win
@@ -279,11 +312,12 @@ jobs:
                       npx electron-builder --win --ia32
                     fi
                   elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
-                    npx electron-builder --arm64
+                    # DMG creation is occasionally flaky on GitHub-hosted macOS runners.
+                    retry_macos_build 3 npx electron-builder --arm64
                   elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-                    npx electron-builder --universal
+                    retry_macos_build 3 npx electron-builder --universal
                   elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
-                    npx electron-builder --mac --${{ matrix.arch }}
+                    retry_macos_build 3 npx electron-builder --mac --${{ matrix.arch }}
                   elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
                     if [[ "${{ matrix.arch }}" == "x64" ]]; then
                       npx electron-builder --win
