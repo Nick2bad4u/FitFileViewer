@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for formatHeight.js utility
+ * @file Comprehensive test suite for formatHeight.js utility
  *
- * Tests all aspects of the height formatting utility including:
- * - Input validation and error handling
- * - Height conversions (meters to feet/inches)
- * - Metric and imperial formatting
- * - Edge cases and boundary conditions
- * - Rounding and precision handling
- * - Real-world height scenarios
+ *   Tests all aspects of the height formatting utility including:
+ *
+ *   - Input validation and error handling
+ *   - Height conversions (meters to feet/inches)
+ *   - Metric and imperial formatting
+ *   - Edge cases and boundary conditions
+ *   - Rounding and precision handling
+ *   - Real-world height scenarios
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -68,7 +69,10 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         it("should return empty string for negative height and log warning", () => {
             const result = formatHeight(-1.75);
             expect(result).toBe("");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatHeight] Negative height value:", -1.75);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatHeight] Negative height value:",
+                -1.75
+            );
         });
 
         it("should format zero height correctly", () => {
@@ -152,7 +156,11 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         });
 
         it("should round inches to nearest whole number", () => {
-            const results = [1.75, 1.76, 1.77].map((h) => formatHeight(h));
+            const results = [
+                1.75,
+                1.76,
+                1.77,
+            ].map((h) => formatHeight(h));
             results.forEach((result) => {
                 expect(result).toMatch(/\d+'(\d{1,2})"/); // Should have whole number inches
             });
@@ -204,7 +212,14 @@ describe("formatHeight.js - Height Formatter Utility", () => {
 
         it("should maintain consistency in conversion factors", () => {
             // Test that our conversion factors are consistent
-            const testHeights = [1.5, 1.6, 1.7, 1.8, 1.9, 2.0];
+            const testHeights = [
+                1.5,
+                1.6,
+                1.7,
+                1.8,
+                1.9,
+                2.0,
+            ];
             const results = testHeights.map((h) => formatHeight(h));
 
             results.forEach((result, index) => {
@@ -231,7 +246,12 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         });
 
         it("should handle decimal values near boundaries", () => {
-            const results = [0.999, 1.001, 1.999, 2.001].map((h) => formatHeight(h));
+            const results = [
+                0.999,
+                1.001,
+                1.999,
+                2.001,
+            ].map((h) => formatHeight(h));
             results.forEach((result) => {
                 expect(result).toMatch(/^\d+\.\d{2} m \(\d+'(\d{1,2})"\)$/);
             });
@@ -292,7 +312,12 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         });
 
         it("should use consistent format structure", () => {
-            const results = [1.5, 1.7, 1.9, 2.1].map((h) => formatHeight(h));
+            const results = [
+                1.5,
+                1.7,
+                1.9,
+                2.1,
+            ].map((h) => formatHeight(h));
             results.forEach((result) => {
                 expect(result).toMatch(/^\d+\.\d{2} m \(\d+'(\d{1,2})"\)$/);
             });
@@ -362,7 +387,13 @@ describe("formatHeight.js - Height Formatter Utility", () => {
 
     describe("Performance and Consistency", () => {
         it("should handle rapid successive calls", () => {
-            const heights = [1.6, 1.7, 1.8, 1.9, 2.0];
+            const heights = [
+                1.6,
+                1.7,
+                1.8,
+                1.9,
+                2.0,
+            ];
             const results = heights.map((h) => formatHeight(h));
 
             expect(results).toHaveLength(5);
@@ -382,7 +413,10 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         });
 
         it("should handle batch processing efficiently", () => {
-            const heights = Array.from({ length: 100 }, (_, i) => 1.5 + i * 0.01);
+            const heights = Array.from(
+                { length: 100 },
+                (_, i) => 1.5 + i * 0.01
+            );
             const results = heights.map((h) => formatHeight(h));
 
             expect(results).toHaveLength(100);

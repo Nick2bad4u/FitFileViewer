@@ -1,27 +1,39 @@
 /**
- * @fileoverview Weight formatting utility for FitFileViewer
+ * @version 2.0.0 - Updated to use centralized configuration and unified error
+ *   handling
  *
- * Provides functions for converting and formatting weights from kilograms
- * to human-readable strings with both metric and imperial units.
+ * @file Weight formatting utility for FitFileViewer
+ *
+ *   Provides functions for converting and formatting weights from kilograms to
+ *   human-readable strings with both metric and imperial units.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
- * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
 import { CONVERSION_FACTORS } from "../../config/index.js";
 
 /**
- * Converts weight from kilograms to pounds with both metric and imperial display
- * @param {number} kg - Weight in kilograms
- * @returns {string} Formatted weight string with both metric and imperial
+ * Converts weight from kilograms to pounds with both metric and imperial
+ * display
+ *
  * @example
- * // Convert 70kg to imperial format
- * const weight = formatWeight(70); // "70 kg (154 lbs)"
+ *     // Convert 70kg to imperial format
+ *     const weight = formatWeight(70); // "70 kg (154 lbs)"
+ *
+ * @param {number} kg - Weight in kilograms
+ *
+ * @returns {string} Formatted weight string with both metric and imperial
  */
 export function formatWeight(kg) {
     // Handle invalid inputs with warnings
-    if (kg === null || kg === undefined || typeof kg !== "number" || !Number.isFinite(kg)) {
+    if (
+        kg === null ||
+        kg === undefined ||
+        typeof kg !== "number" ||
+        !Number.isFinite(kg)
+    ) {
         console.warn("[formatWeight] Invalid weight value:", kg);
         return "";
     }

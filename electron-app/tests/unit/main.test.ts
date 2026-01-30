@@ -86,9 +86,14 @@ const mockFitParser = {
 // Mock fs module
 vi.mock("node:fs", () => ({
     default: {
-        readFile: vi.fn((path: string, callback: (error: Error | null, data?: Buffer) => void) => {
-            callback(null, Buffer.from("test file content"));
-        }),
+        readFile: vi.fn(
+            (
+                path: string,
+                callback: (error: Error | null, data?: Buffer) => void
+            ) => {
+                callback(null, Buffer.from("test file content"));
+            }
+        ),
         writeFile: vi.fn(),
         existsSync: vi.fn(() => true),
         createReadStream: vi.fn(),
@@ -245,7 +250,9 @@ describe("main.js - Electron Main Process", () => {
 
         it("should complete early sync path when window exists", async () => {
             // Mock an existing window scenario
-            mockElectron.BrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
+            mockElectron.BrowserWindow.getAllWindows.mockReturnValue([
+                mockWindow,
+            ]);
 
             await import("../../main.js");
 
@@ -289,11 +296,13 @@ describe("main.js - Electron Main Process", () => {
 
         it("should handle server creation errors", async () => {
             // Mock server error
-            mockServer.listen.mockImplementation((port: number, callback?: (error?: Error) => void) => {
-                const error = new Error("Port in use") as any;
-                error.code = "EADDRINUSE";
-                if (callback) callback(error);
-            });
+            mockServer.listen.mockImplementation(
+                (port: number, callback?: (error?: Error) => void) => {
+                    const error = new Error("Port in use") as any;
+                    error.code = "EADDRINUSE";
+                    if (callback) callback(error);
+                }
+            );
 
             await import("../../main.js");
 
@@ -313,7 +322,11 @@ describe("main.js - Electron Main Process", () => {
         it("should handle development flag", async () => {
             // Mock command line arguments
             const originalArgv = process.argv;
-            process.argv = ["node", "app.js", "--dev"];
+            process.argv = [
+                "node",
+                "app.js",
+                "--dev",
+            ];
 
             await import("../../main.js");
 

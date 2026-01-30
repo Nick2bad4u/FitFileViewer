@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for data/processing
- * @description Re-exports all modules in the data/processing category
+ * Re-exports all modules in the data/processing category
+ *
+ * @file Barrel Export for data/processing
  */
 export * from "./extractDeveloperFieldsList.js";
 export * from "./getLapNumForIdx.js";

@@ -1,27 +1,38 @@
 /**
- * @fileoverview Height formatting utility for FitFileViewer
+ * @version 2.0.0 - Updated to use centralized configuration and unified error
+ *   handling
  *
- * Provides functions for converting and formatting heights from meters
- * to human-readable strings with both metric and imperial units.
+ * @file Height formatting utility for FitFileViewer
+ *
+ *   Provides functions for converting and formatting heights from meters to
+ *   human-readable strings with both metric and imperial units.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
- * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
 import { CONVERSION_FACTORS } from "../../config/index.js";
 
 /**
  * Converts height from meters to feet and inches with metric display
- * @param {number} meters - Height in meters
- * @returns {string} Formatted height string with both metric and imperial
+ *
  * @example
- * // Convert 1.75m to imperial format
- * const height = formatHeight(1.75); // "1.75 m (5'9\")"
+ *     // Convert 1.75m to imperial format
+ *     const height = formatHeight(1.75); // "1.75 m (5'9\")"
+ *
+ * @param {number} meters - Height in meters
+ *
+ * @returns {string} Formatted height string with both metric and imperial
  */
 export function formatHeight(meters) {
     // Handle invalid inputs with warnings
-    if (meters === null || meters === undefined || typeof meters !== "number" || !Number.isFinite(meters)) {
+    if (
+        meters === null ||
+        meters === undefined ||
+        typeof meters !== "number" ||
+        !Number.isFinite(meters)
+    ) {
         console.warn("[formatHeight] Invalid height value:", meters);
         return "";
     }
@@ -34,8 +45,12 @@ export function formatHeight(meters) {
 
     try {
         const totalInches = meters * CONVERSION_FACTORS.METERS_TO_INCHES;
-        const feet = Math.floor(totalInches / CONVERSION_FACTORS.INCHES_PER_FOOT);
-        let inches = Math.round(totalInches % CONVERSION_FACTORS.INCHES_PER_FOOT);
+        const feet = Math.floor(
+            totalInches / CONVERSION_FACTORS.INCHES_PER_FOOT
+        );
+        let inches = Math.round(
+            totalInches % CONVERSION_FACTORS.INCHES_PER_FOOT
+        );
 
         // Handle rounding up to 12 inches (e.g., 5'12" -> 6'0")
         let adjustedFeet = feet;

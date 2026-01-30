@@ -1,6 +1,6 @@
 const /**
-       * Constants for better maintainability.
-       */
+     * Constants for better maintainability.
+     */
     CONSTANTS = {
         DEFAULTS: {
             WINDOW: {
@@ -32,7 +32,9 @@ const /**
 const fs = require("node:fs");
 /**
  * Window state shape.
+ *
  * @typedef {object} WindowState
+ *
  * @property {number} width
  * @property {number} height
  * @property {number} [x]
@@ -40,9 +42,20 @@ const fs = require("node:fs");
  */
 /**
  * @typedef {object} DevHelpers
- * @property {() => {constants: typeof CONSTANTS, settingsPath: string, currentState: WindowState}} getConfig
+ *
+ * @property {() => {
+ *     constants: typeof CONSTANTS;
+ *     settingsPath: string;
+ *     currentState: WindowState;
+ * }} getConfig
  * @property {() => boolean} resetState
- * @property {() => {isValid: boolean, state?: WindowState, path: string, exists: boolean, error?: string}} validateSettings
+ * @property {() => {
+ *     isValid: boolean;
+ *     state?: WindowState;
+ *     path: string;
+ *     exists: boolean;
+ *     error?: string;
+ * }} validateSettings
  */
 const path = require("node:path");
 
@@ -52,6 +65,7 @@ const { logWithContext } = require("./main/logging/logWithContext");
 
 /**
  * Resolve the path to the window state settings file.
+ *
  * @returns {string}
  */
 function getSettingsPath() {
@@ -60,24 +74,33 @@ function getSettingsPath() {
         return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        console.error("[windowStateUtils] Error getting settings path:", errMsg);
+        console.error(
+            "[windowStateUtils] Error getting settings path:",
+            errMsg
+        );
         // Fallback to current directory in case of error
         return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
     }
 }
 
 /**
- * Determine whether webSecurity should remain enabled.
- * Web security must stay enabled in production to prevent navigation and resource load risks.
- * It can be explicitly disabled for local debugging via FFV_DISABLE_WEB_SECURITY=true.
+ * Determine whether webSecurity should remain enabled. Web security must stay
+ * enabled in production to prevent navigation and resource load risks. It can
+ * be explicitly disabled for local debugging via
+ * FFV_DISABLE_WEB_SECURITY=true.
+ *
  * @returns {boolean}
  */
 function resolveWebSecuritySetting() {
     const isProduction = process.env.NODE_ENV === "production";
-    const disableWebSecurity = !isProduction && process.env.FFV_DISABLE_WEB_SECURITY === "true";
+    const disableWebSecurity =
+        !isProduction && process.env.FFV_DISABLE_WEB_SECURITY === "true";
 
     if (disableWebSecurity) {
-        logWithContext("warn", "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)");
+        logWithContext(
+            "warn",
+            "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)"
+        );
     }
 
     return !disableWebSecurity;
@@ -87,6 +110,7 @@ const settingsPath = getSettingsPath();
 
 /**
  * Creates a new BrowserWindow with enhanced configuration and error handling.
+ *
  * @returns {BrowserWindow} The created BrowserWindow instance.
  */
 
@@ -120,7 +144,9 @@ function createWindow() {
                 },
             };
 
-        logWithContext("info", "Creating window with configuration", { config: windowConfig });
+        logWithContext("info", "Creating window with configuration", {
+            config: windowConfig,
+        });
 
         const win = new BrowserWindow(windowConfig);
 
@@ -132,7 +158,9 @@ function createWindow() {
             try {
                 saveWindowState(win);
             } catch (error) {
-                logWithContext("error", "Error in window close handler:", { error: safeErrorMessage(error) });
+                logWithContext("error", "Error in window close handler:", {
+                    error: safeErrorMessage(error),
+                });
             }
         });
 
@@ -152,19 +180,25 @@ function createWindow() {
                 logWithContext("info", "Main HTML file loaded successfully");
             })
             .catch((error) => {
-                logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
+                logWithContext("error", "Error loading main HTML file:", {
+                    error: safeErrorMessage(error),
+                });
             });
 
         return win;
     } catch (error) {
-        logWithContext("error", "Error creating window:", { error: safeErrorMessage(error) });
+        logWithContext("error", "Error creating window:", {
+            error: safeErrorMessage(error),
+        });
         throw error;
     }
 }
 
 /**
  * Retrieves the saved window state from disk with enhanced error handling.
- * @returns {object} Window state object with width, height, and optional x, y coordinates.
+ *
+ * @returns {object} Window state object with width, height, and optional x, y
+ *   coordinates.
  */
 
 /**
@@ -173,20 +207,28 @@ function createWindow() {
 function getWindowState() {
     try {
         if (!fs.existsSync(settingsPath)) {
-            logWithContext("info", "Window state file does not exist, using defaults");
+            logWithContext(
+                "info",
+                "Window state file does not exist, using defaults"
+            );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
 
         const data = fs.readFileSync(settingsPath, "utf8");
         if (!data.trim()) {
-            logWithContext("warn", "Window state file is empty, using defaults");
+            logWithContext(
+                "warn",
+                "Window state file is empty, using defaults"
+            );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
 
         const state = JSON.parse(data),
             sanitizedState = sanitizeWindowState(state);
 
-        logWithContext("info", "Window state loaded successfully", { state: sanitizedState });
+        logWithContext("info", "Window state loaded successfully", {
+            state: sanitizedState,
+        });
         return sanitizedState;
     } catch (error) {
         logWithContext("error", "Error reading window state, using defaults:", {
@@ -201,7 +243,9 @@ function getWindowState() {
 
 /**
  * Safe error message extraction.
+ *
  * @param {unknown} error
+ *
  * @returns {string}
  */
 function safeErrorMessage(error) {
@@ -210,7 +254,9 @@ function safeErrorMessage(error) {
 
 /**
  * Sanitize and normalize persisted window state.
+ *
  * @param {Partial<WindowState>} state
+ *
  * @returns {WindowState}
  */
 function sanitizeWindowState(state) {
@@ -234,29 +280,37 @@ function sanitizeWindowState(state) {
 }
 
 /**
- * Saves the current window state to disk with enhanced validation and error handling.
+ * Saves the current window state to disk with enhanced validation and error
+ * handling.
+ *
  * @param {BrowserWindow} win - The Electron BrowserWindow instance.
  */
 
 /**
  * @param {BrowserWindow} win
+ *
  * @returns {void}
  */
 function saveWindowState(win) {
     if (!validateWindow(win)) {
-        logWithContext("error", "Invalid window object provided to saveWindowState");
+        logWithContext(
+            "error",
+            "Invalid window object provided to saveWindowState"
+        );
         return;
     }
 
     try {
         // Don't save state if window is minimized or maximized
         if (win.isMinimized() || win.isMaximized()) {
-            logWithContext("info", "Skipping window state save - window is minimized or maximized");
+            logWithContext(
+                "info",
+                "Skipping window state save - window is minimized or maximized"
+            );
             return;
         }
 
         const bounds = win.getBounds(),
-
             /**
              * Ensure directory exists.
              */
@@ -278,6 +332,7 @@ function saveWindowState(win) {
 
 /**
  * @param {unknown} win
+ *
  * @returns {win is BrowserWindow}
  */
 function validateWindow(win) {
@@ -293,7 +348,9 @@ function validateWindow(win) {
 
 /**
  * Type guard validating a window state object.
+ *
  * @param {unknown} state
+ *
  * @returns {state is WindowState}
  */
 function validateWindowState(state) {
@@ -345,7 +402,9 @@ const devHelpers = {
             }
             return false;
         } catch (error) {
-            logWithContext("error", "Error resetting window state:", { error: safeErrorMessage(error) });
+            logWithContext("error", "Error resetting window state:", {
+                error: safeErrorMessage(error),
+            });
             return false;
         }
     },

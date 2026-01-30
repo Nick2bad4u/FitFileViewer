@@ -21,7 +21,9 @@ vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
     subscribe: vi.fn(() => () => {}),
-    initializeStateManager: vi.fn(() => console.log("mock initializeStateManager called")),
+    initializeStateManager: vi.fn(() =>
+        console.log("mock initializeStateManager called")
+    ),
 }));
 vi.mock("../../../../../utils/state/domain/uiStateManager.js", () => ({
     uiStateManager: { initialize: vi.fn() },
@@ -31,11 +33,15 @@ vi.mock("../../../../../utils/app/lifecycle/appActions.js", () => ({
 }));
 
 // Get references to the mocked functions
-const mockStateManager = vi.mocked(await import("../../../../../utils/state/core/stateManager.js"));
+const mockStateManager = vi.mocked(
+    await import("../../../../../utils/state/core/stateManager.js")
+);
 const mockUIStateManager = vi.mocked(
     await import("../../../../../utils/state/domain/uiStateManager.js")
 ).uiStateManager;
-const mockAppActions = vi.mocked(await import("../../../../../utils/app/lifecycle/appActions.js")).AppActions;
+const mockAppActions = vi.mocked(
+    await import("../../../../../utils/app/lifecycle/appActions.js")
+).AppActions;
 
 import { initializeAppState } from "../../../../../utils/state/integration/stateIntegration.js";
 
@@ -120,7 +126,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("StateMigrationHelper class", () => {
         it("should create instance and manage migrations correctly", async () => {
-            const { StateMigrationHelper } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { StateMigrationHelper } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const helper = new StateMigrationHelper();
 
@@ -140,7 +147,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should run all migrations successfully", async () => {
-            const { StateMigrationHelper } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { StateMigrationHelper } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const helper = new StateMigrationHelper();
             const migration1 = vi.fn().mockResolvedValue(undefined);
@@ -156,12 +164,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle migration errors gracefully", async () => {
-            const { StateMigrationHelper } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { StateMigrationHelper } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             const helper = new StateMigrationHelper();
-            const failingMigration = vi.fn().mockRejectedValue(new Error("Migration failed"));
+            const failingMigration = vi
+                .fn()
+                .mockRejectedValue(new Error("Migration failed"));
             const successMigration = vi.fn().mockResolvedValue(undefined);
 
             helper.addMigration(failingMigration);
@@ -171,7 +184,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             expect(failingMigration).toHaveBeenCalledOnce();
             expect(successMigration).toHaveBeenCalledOnce();
-            expect(consoleSpy).toHaveBeenCalledWith("[StateMigration] Migration failed:", expect.any(Error));
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateMigration] Migration failed:",
+                expect.any(Error)
+            );
 
             consoleSpy.mockRestore();
         });
@@ -179,14 +195,22 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Main initialization functions", () => {
         it("should initialize app state in production mode (smoke)", async () => {
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             initializeAppState();
 
-            expect(mockStateManager.initializeStateManager).toHaveBeenCalledOnce();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] Initializing application state management...");
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] Application state management initialized");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] Initializing application state management..."
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] Application state management initialized"
+            );
 
             consoleSpy.mockRestore();
         });
@@ -195,19 +219,28 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             // Set development mode
             globalThis.__DEVELOPMENT__ = true;
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             initializeAppState();
 
             console.log(
                 "initializeStateManager calls:",
-                (mockStateManager.initializeStateManager as any).mock?.calls ?? []
+                (mockStateManager.initializeStateManager as any).mock?.calls ??
+                    []
             );
-            console.log("uiStateManager.initialize calls:", (mockUIStateManager.initialize as any).mock?.calls ?? []);
+            console.log(
+                "uiStateManager.initialize calls:",
+                (mockUIStateManager.initialize as any).mock?.calls ?? []
+            );
 
-            expect(mockStateManager.initializeStateManager).toHaveBeenCalledOnce();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
 
             // Should set up debugging in development mode
@@ -220,11 +253,15 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { initializeCompleteStateSystem } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             initializeCompleteStateSystem();
 
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] Complete state system initialized");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] Complete state system initialized"
+            );
 
             consoleSpy.mockRestore();
         });
@@ -243,27 +280,39 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 getGlobalData: mockGetGlobalData,
             };
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             integrateWithRendererUtils();
 
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] Integrating with rendererUtils...");
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] rendererUtils integration completed");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] Integrating with rendererUtils..."
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] rendererUtils integration completed"
+            );
 
             // Test wrapped setGlobalData
             const testData = { test: "value" };
             globalThis.rendererUtils.setGlobalData(testData);
 
-            expect(mockStateManager.setState).toHaveBeenCalledWith("globalData", testData, {
-                source: "rendererUtils.setGlobalData",
-            });
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "globalData",
+                testData,
+                {
+                    source: "rendererUtils.setGlobalData",
+                }
+            );
             expect(mockSetGlobalData).toHaveBeenCalledWith(testData);
 
             // Test wrapped getGlobalData
             mockStateManager.getState.mockReturnValue({ test: "fromState" });
             const result = globalThis.rendererUtils.getGlobalData();
 
-            expect(mockStateManager.getState).toHaveBeenCalledWith("globalData");
+            expect(mockStateManager.getState).toHaveBeenCalledWith(
+                "globalData"
+            );
             expect(result).toEqual({ test: "fromState" });
 
             consoleSpy.mockRestore();
@@ -286,25 +335,39 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             globalThis.chartControlsState = { isVisible: true };
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             migrateChartControlsState();
 
-            expect(consoleSpy).toHaveBeenCalledWith("[StateMigration] Migrating chartControlsState...");
-            expect(consoleSpy).toHaveBeenCalledWith("[StateMigration] chartControlsState migrated");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateMigration] Migrating chartControlsState..."
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateMigration] chartControlsState migrated"
+            );
 
-            expect(mockStateManager.setState).toHaveBeenCalledWith("charts.controlsVisible", true, {
-                source: "migration",
-            });
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "charts.controlsVisible",
+                true,
+                {
+                    source: "migration",
+                }
+            );
 
             // Test getter/setter functionality
             mockStateManager.getState.mockReturnValue(false);
             expect(globalThis.chartControlsState.isVisible).toBe(false);
 
             globalThis.chartControlsState.isVisible = true;
-            expect(mockStateManager.setState).toHaveBeenCalledWith("charts.controlsVisible", true, {
-                source: "chartControlsState",
-            });
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "charts.controlsVisible",
+                true,
+                {
+                    source: "chartControlsState",
+                }
+            );
 
             consoleSpy.mockRestore();
         });
@@ -328,7 +391,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             let subscribeCallback: any;
 
             mockStateManager.subscribe.mockImplementation((path, callback) => {
@@ -337,7 +402,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             });
 
             setupStatePerformanceMonitoring();
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith("", expect.any(Function));
+            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
+                "",
+                expect.any(Function)
+            );
 
             // Simulate state changes
             subscribeCallback?.();
@@ -383,7 +451,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 tables: { pageSize: 50 },
             };
 
-            mockLocalStorage.getItem.mockReturnValue(JSON.stringify(savedState));
+            mockLocalStorage.getItem.mockReturnValue(
+                JSON.stringify(savedState)
+            );
             mockStateManager.getState.mockImplementation((path) => {
                 if (path === "ui.theme") return "dark";
                 if (path === "charts.controlsVisible") return false;
@@ -393,28 +463,44 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { setupStatePersistence } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             setupStatePersistence();
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("fitFileViewer_uiState");
-            expect(mockStateManager.setState).toHaveBeenCalledWith("ui.theme", "dark", {
-                silent: true,
-                source: "localStorage",
-            });
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] UI state loaded from localStorage");
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+                "fitFileViewer_uiState"
+            );
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "ui.theme",
+                "dark",
+                {
+                    silent: true,
+                    source: "localStorage",
+                }
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] UI state loaded from localStorage"
+            );
 
             // Test persistence on state change
-            const subscribeCallback = mockStateManager.subscribe.mock.calls.find(
-                (call: any) => call[0] === "ui.theme"
-            )?.[1];
+            const subscribeCallback =
+                mockStateManager.subscribe.mock.calls.find(
+                    (call: any) => call[0] === "ui.theme"
+                )?.[1];
             subscribeCallback?.();
 
             // Fast forward to trigger debounced persistence
             vi.advanceTimersByTime(600);
 
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith("fitFileViewer_uiState", expect.any(String));
-            expect(consoleSpy).toHaveBeenCalledWith("[StateIntegration] UI state persisted to localStorage");
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+                "fitFileViewer_uiState",
+                expect.any(String)
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[StateIntegration] UI state persisted to localStorage"
+            );
 
             consoleSpy.mockRestore();
             vi.useRealTimers();
@@ -428,7 +514,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { setupStatePersistence } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             setupStatePersistence();
 
@@ -446,7 +534,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { setupStatePersistence } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             setupStatePersistence();
 
@@ -494,7 +584,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -505,7 +596,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         it("should detect development mode correctly - dev flag", async () => {
             globalThis.__DEVELOPMENT__ = true;
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -525,7 +617,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -542,7 +635,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -553,7 +647,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Backward compatibility", () => {
         it("should set up globalData property correctly (smoke)", async () => {
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -571,7 +666,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should set up isChartRendered property correctly (smoke)", async () => {
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 
@@ -581,13 +677,18 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             // Test isChartRendered setter
             globalThis.isChartRendered = false;
-            expect(mockStateManager.setState).toHaveBeenCalledWith("charts.isRendered", false, {
-                source: "window.isChartRendered",
-            });
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "charts.isRendered",
+                false,
+                {
+                    source: "window.isChartRendered",
+                }
+            );
         });
 
         it("should set up AppState compatibility layer (smoke)", async () => {
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Set mock before calling initializeAppState
             mockStateManager.getState.mockImplementation((path) => {
@@ -605,7 +706,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             expect(globalThis.AppState).toBeDefined();
 
             // Check if globalData is a getter
-            const descriptor = Object.getOwnPropertyDescriptor(globalThis.AppState, "globalData");
+            const descriptor = Object.getOwnPropertyDescriptor(
+                globalThis.AppState,
+                "globalData"
+            );
             expect(descriptor).toBeDefined();
             expect(descriptor!.get).toBeDefined();
 
@@ -630,9 +734,13 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             expect(globalThis.AppState.eventListeners).toBe(mockMap);
 
             globalThis.AppState.eventListeners = new Map();
-            expect(mockStateManager.setState).toHaveBeenCalledWith("eventListeners", expect.any(Map), {
-                source: "AppState.eventListeners",
-            });
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "eventListeners",
+                expect.any(Map),
+                {
+                    source: "AppState.eventListeners",
+                }
+            );
         });
 
         it("should not override existing properties", async () => {
@@ -640,7 +748,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             globalThis.globalData = { existing: "data" };
             globalThis.AppState = { existing: "appstate" };
 
-            const { initializeAppState } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             initializeAppState();
 

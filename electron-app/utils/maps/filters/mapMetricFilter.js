@@ -5,6 +5,7 @@
 
 /**
  * @typedef {Object} MetricRecord
+ *
  * @property {number} [speed]
  * @property {number} [power]
  * @property {number} [cadence]
@@ -13,11 +14,12 @@
  */
 
 /**
- * @typedef {"topPercent"|"valueRange"} MapFilterMode
+ * @typedef {"topPercent" | "valueRange"} MapFilterMode
  */
 
 /**
  * @typedef {Object} MapDataPointFilterConfig
+ *
  * @property {boolean} enabled
  * @property {string} metric
  * @property {MapFilterMode} [mode]
@@ -28,13 +30,15 @@
 
 /**
  * @typedef {Object} MetricDefinition
+ *
  * @property {string} key
  * @property {string} label
- * @property {(row:MetricRecord)=>number|null} resolver
+ * @property {(row: MetricRecord) => number | null} resolver
  */
 
 /**
  * Available metrics that can be filtered on. Keep in sync with UI control.
+ *
  * @type {MetricDefinition[]}
  */
 export const MAP_FILTER_METRICS = [
@@ -51,50 +55,56 @@ export const MAP_FILTER_METRICS = [
     {
         key: "cadence",
         label: "Cadence",
-        resolver: (row) => (typeof row?.cadence === "number" ? row.cadence : null),
+        resolver: (row) =>
+            typeof row?.cadence === "number" ? row.cadence : null,
     },
     {
         key: "heartRate",
         label: "Heart Rate",
-        resolver: (row) => (typeof row?.heartRate === "number" ? row.heartRate : null),
+        resolver: (row) =>
+            typeof row?.heartRate === "number" ? row.heartRate : null,
     },
     {
         key: "altitude",
         label: "Altitude",
-        resolver: (row) => (typeof row?.altitude === "number" ? row.altitude : null),
+        resolver: (row) =>
+            typeof row?.altitude === "number" ? row.altitude : null,
     },
 ];
 
 /**
  * @typedef {Object} MetricFilterResult
+ *
  * @property {boolean} isActive
- * @property {string|null} metric
- * @property {string|null} metricLabel
+ * @property {string | null} metric
+ * @property {string | null} metricLabel
  * @property {MapFilterMode} mode
  * @property {number} percent
- * @property {number|null} threshold
+ * @property {number | null} threshold
  * @property {number} totalCandidates
  * @property {number} selectedCount
  * @property {Set<number>} allowedIndices
  * @property {number[]} orderedIndices
- * @property {string|null} reason
- * @property {number|null} minCandidate
- * @property {number|null} maxCandidate
- * @property {number|null} appliedMin
- * @property {number|null} appliedMax
+ * @property {string | null} reason
+ * @property {number | null} minCandidate
+ * @property {number | null} maxCandidate
+ * @property {number | null} appliedMin
+ * @property {number | null} appliedMax
  */
 
 /**
  * @typedef {Object} MetricFilterOptions
- * @property {(row:any)=>number|null} [valueExtractor]
+ *
+ * @property {(row: any) => number | null} [valueExtractor]
  */
 
 /**
- * Convenience helper returning a predicate for whether a record index should
- * be displayed, based on the provided metric filter result.
+ * Convenience helper returning a predicate for whether a record index should be
+ * displayed, based on the provided metric filter result.
  *
  * @param {MetricFilterResult} result
- * @returns {(recordIndex:number)=>boolean}
+ *
+ * @returns {(recordIndex: number) => boolean}
  */
 export function buildMetricFilterPredicate(result) {
     if (!result.isActive || result.allowedIndices.size === 0) {
@@ -105,10 +115,21 @@ export function buildMetricFilterPredicate(result) {
 
 /**
  * Compute descriptive statistics for a metric across record messages.
- * @param {Array<any>} recordMesgs
+ *
+ * @param {any[]} recordMesgs
  * @param {string} metricKey
  * @param {MetricFilterOptions} [options]
- * @returns {{metric:string,metricLabel:string,min:number,max:number,average:number,count:number,decimals:number,step:number}|null}
+ *
+ * @returns {{
+ *     metric: string;
+ *     metricLabel: string;
+ *     min: number;
+ *     max: number;
+ *     average: number;
+ *     count: number;
+ *     decimals: number;
+ *     step: number;
+ * } | null}
  */
 export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
     const metricDef = getMetricDefinition(metricKey);
@@ -116,7 +137,10 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
         return null;
     }
 
-    const valueExtractor = typeof options.valueExtractor === "function" ? options.valueExtractor : metricDef.resolver;
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
 
     /** @type {number[]} */
     const values = [];
@@ -138,7 +162,10 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
 
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const sum = values.reduce((accumulator, current) => accumulator + current, 0);
+    const sum = values.reduce(
+        (accumulator, current) => accumulator + current,
+        0
+    );
     const average = sum / values.length;
     const decimals = hasDecimal ? 2 : 0;
     const range = Math.abs(max - min);
@@ -150,7 +177,9 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
         const base = range / 200;
         const minimumStep = 1 / 10 ** decimals;
         step = Number(
-            Number.isFinite(base) && base > minimumStep ? base.toFixed(decimals) : minimumStep.toFixed(decimals)
+            Number.isFinite(base) && base > minimumStep
+                ? base.toFixed(decimals)
+                : minimumStep.toFixed(decimals)
         );
     }
 
@@ -169,9 +198,10 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
 /**
  * Compute the indices belonging to the requested top percentile for a metric.
  *
- * @param {Array<any>} recordMesgs
+ * @param {any[]} recordMesgs
  * @param {MapDataPointFilterConfig | undefined | null} config
  * @param {MetricFilterOptions} [options]
+ *
  * @returns {MetricFilterResult}
  */
 export function createMetricFilter(recordMesgs, config, options = {}) {
@@ -207,9 +237,12 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
         };
     }
 
-    const valueExtractor = typeof options.valueExtractor === "function" ? options.valueExtractor : metricDef.resolver;
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
 
-    /** @type {{ index:number, value:number }[]} */
+    /** @type {{ index: number; value: number }[]} */
     const entries = [];
     for (const [idx, row] of recordMesgs.entries()) {
         const value = valueExtractor(row);
@@ -232,12 +265,16 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
 
     if (mode === "valueRange") {
         const appliedMin = clampValue(
-                typeof config?.minValue === "number" ? config.minValue : minCandidate,
+                typeof config?.minValue === "number"
+                    ? config.minValue
+                    : minCandidate,
                 minCandidate,
                 maxCandidate
             ),
             appliedMax = clampValue(
-                typeof config?.maxValue === "number" ? config.maxValue : maxCandidate,
+                typeof config?.maxValue === "number"
+                    ? config.maxValue
+                    : maxCandidate,
                 minCandidate,
                 maxCandidate
             );
@@ -300,14 +337,19 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
     const requestedCount = Math.ceil((entries.length * pct) / 100);
     const selectionCount = clamp(requestedCount, 1, entries.length);
     const thresholdEntry = entries.at(selectionCount - 1) ?? entries.at(-1);
-    const thresholdValue = thresholdEntry ? thresholdEntry.value : entries[0].value;
+    const thresholdValue = thresholdEntry
+        ? thresholdEntry.value
+        : entries[0].value;
 
     /** @type {number[]} */
     const orderedIndices = [];
     const allowedIndices = new Set();
 
     for (const entry of entries) {
-        if (orderedIndices.length >= selectionCount && entry.value < thresholdValue) {
+        if (
+            orderedIndices.length >= selectionCount &&
+            entry.value < thresholdValue
+        ) {
             break;
         }
         allowedIndices.add(entry.index);
@@ -335,11 +377,15 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
 
 /**
  * Resolve metric definition by key.
+ *
  * @param {string} metricKey
- * @returns {MetricDefinition|null}
+ *
+ * @returns {MetricDefinition | null}
  */
 export function getMetricDefinition(metricKey) {
-    return MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null;
+    return (
+        MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null
+    );
 }
 
 function clamp(value, min, max) {

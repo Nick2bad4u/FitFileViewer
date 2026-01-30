@@ -1,10 +1,12 @@
 /**
- * Field color mapping configuration for charts and visualizations
- * Provides consistent color schemes across the FitFileViewer application
+ * Field color mapping configuration for charts and visualizations Provides
+ * consistent color schemes across the FitFileViewer application
+ *
  * @readonly
  */
 const /**
      * Default color for unmapped fields
+     *
      * @readonly
      */
     DEFAULT_FIELD_COLOR = "#6B7280", // Gray
@@ -29,10 +31,12 @@ const /**
 
 /**
  * Gets all available field colors as an object
- * @returns {Object} Object containing all field color mappings
+ *
  * @example
- * // Get all available colors
- * const allColors = getAllFieldColors();
+ *     // Get all available colors
+ *     const allColors = getAllFieldColors();
+ *
+ * @returns {Object} Object containing all field color mappings
  */
 export function getAllFieldColors() {
     return { ...FIELD_COLOR_MAP };
@@ -44,20 +48,25 @@ export function getAllFieldColors() {
  * Provides consistent color mapping for chart visualizations and data displays.
  * Returns a default gray color for unmapped field types.
  *
- * @param {string} field - The field name to get color for
- * @returns {string} Hex color code for the field
- * @throws {TypeError} If field is not a string
  * @example
- * // Get color for heart rate data
- * const heartRateColor = getFieldColor("heartRate"); // "#EF4444"
+ *     // Get color for heart rate data
+ *     const heartRateColor = getFieldColor("heartRate"); // "#EF4444"
  *
- * // Get color for unknown field
- * const unknownColor = getFieldColor("unknownField"); // "#6B7280"
+ *     // Get color for unknown field
+ *     const unknownColor = getFieldColor("unknownField"); // "#6B7280"
+ *
+ * @param {string} field - The field name to get color for
+ *
+ * @returns {string} Hex color code for the field
+ *
+ * @throws {TypeError} If field is not a string
  */
 export function getFieldColor(field) {
     // Input validation
     if (typeof field !== "string") {
-        console.warn(`[getFieldColor] Field must be a string, received ${typeof field}`);
+        console.warn(
+            `[getFieldColor] Field must be a string, received ${typeof field}`
+        );
         return DEFAULT_FIELD_COLOR;
     }
 
@@ -68,11 +77,14 @@ export function getFieldColor(field) {
 
     try {
         // Return mapped color or default
-        const color = /** @type {any} */ (FIELD_COLOR_MAP)[field] || DEFAULT_FIELD_COLOR;
+        const color =
+            /** @type {any} */ (FIELD_COLOR_MAP)[field] || DEFAULT_FIELD_COLOR;
 
         // Log debug info for unmapped fields in development
         if (color === DEFAULT_FIELD_COLOR && field !== "") {
-            console.debug(`[getFieldColor] Using default color for unmapped field: ${field}`);
+            console.debug(
+                `[getFieldColor] Using default color for unmapped field: ${field}`
+            );
         }
 
         return color;
@@ -84,11 +96,14 @@ export function getFieldColor(field) {
 
 /**
  * Checks if a field has a defined color mapping
- * @param {string} field - The field name to check
- * @returns {boolean} True if field has a defined color
+ *
  * @example
- * // Check if field has color mapping
- * const hasColor = hasFieldColor("heartRate"); // true
+ *     // Check if field has color mapping
+ *     const hasColor = hasFieldColor("heartRate"); // true
+ *
+ * @param {string} field - The field name to check
+ *
+ * @returns {boolean} True if field has a defined color
  */
 export function hasFieldColor(field) {
     return typeof field === "string" && field in FIELD_COLOR_MAP;

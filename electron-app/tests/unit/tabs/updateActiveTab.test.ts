@@ -1,16 +1,21 @@
 /**
- * Tests for tab button disabled state functionality
- * These tests verify that disabled tab buttons do not respond to clicks
+ * Tests for tab button disabled state functionality These tests verify that
+ * disabled tab buttons do not respond to clicks
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { createDisabledTabButtons, cleanupDOM, mockStateManager } from "../../fixtures/tabFixtures.js";
+import {
+    createDisabledTabButtons,
+    cleanupDOM,
+    mockStateManager,
+} from "../../fixtures/tabFixtures.js";
 
 // Mock the state manager before importing tab modules
 const mockState = mockStateManager();
 vi.mock("../../../utils/state/core/stateManager.js", () => mockState);
 
 // Import tab modules after mocking
-const { updateActiveTab, initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+const { updateActiveTab, initializeActiveTabState } =
+    await import("../../../utils/ui/tabs/updateActiveTab.js");
 
 describe("Tab Button Disabled State", () => {
     /** @type {HTMLElement} */
@@ -37,16 +42,26 @@ describe("Tab Button Disabled State", () => {
         it("should update active tab when called programmatically", () => {
             updateActiveTab("tab-chart");
 
-            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
-            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
+            const summaryTab =
+                /** @type {HTMLElement} */ document.getElementById(
+                    "tab-summary"
+                );
+            const chartTab =
+                /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
-            expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockState.setState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "chart",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should handle invalid tab IDs gracefully", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             updateActiveTab("");
             updateActiveTab(/** @type {any} */ null);
@@ -64,63 +79,95 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with disabled property", () => {
-            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
+            const chartTab =
+                /** @type {HTMLButtonElement} */ document.getElementById(
+                    "tab-chart"
+                );
             if (chartTab) {
                 chartTab.disabled = true;
 
                 const clickEvent = new MouseEvent("click", { bubbles: true });
-                const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault");
-                const stopPropagationSpy = vi.spyOn(clickEvent, "stopPropagation");
+                const preventDefaultSpy = vi.spyOn(
+                    clickEvent,
+                    "preventDefault"
+                );
+                const stopPropagationSpy = vi.spyOn(
+                    clickEvent,
+                    "stopPropagation"
+                );
 
                 chartTab.dispatchEvent(clickEvent);
 
                 // Tab should remain on summary
-                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chart", {
-                    source: "tabButtonClick",
-                });
+                expect(mockState.setState).not.toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    "chart",
+                    {
+                        source: "tabButtonClick",
+                    }
+                );
                 expect(preventDefaultSpy).toHaveBeenCalled();
                 expect(stopPropagationSpy).toHaveBeenCalled();
             }
         });
 
         it("should prevent clicks on buttons with disabled attribute", () => {
-            const mapTab = /** @type {HTMLElement} */ document.getElementById("tab-map");
+            const mapTab =
+                /** @type {HTMLElement} */ document.getElementById("tab-map");
             if (mapTab) {
                 mapTab.setAttribute("disabled", "true");
 
                 const clickEvent = new MouseEvent("click", { bubbles: true });
-                const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault");
+                const preventDefaultSpy = vi.spyOn(
+                    clickEvent,
+                    "preventDefault"
+                );
 
                 mapTab.dispatchEvent(clickEvent);
 
                 // Tab should remain on summary
-                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "map", {
-                    source: "tabButtonClick",
-                });
+                expect(mockState.setState).not.toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    "map",
+                    {
+                        source: "tabButtonClick",
+                    }
+                );
                 expect(preventDefaultSpy).toHaveBeenCalled();
             }
         });
 
         it("should prevent clicks on buttons with tab-disabled class", () => {
-            const tableTab = /** @type {HTMLElement} */ document.getElementById("tab-table");
+            const tableTab =
+                /** @type {HTMLElement} */ document.getElementById("tab-table");
             if (tableTab) {
                 tableTab.classList.add("tab-disabled");
 
                 const clickEvent = new MouseEvent("click", { bubbles: true });
-                const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault");
+                const preventDefaultSpy = vi.spyOn(
+                    clickEvent,
+                    "preventDefault"
+                );
 
                 tableTab.dispatchEvent(clickEvent);
 
                 // Tab should remain on summary
-                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "table", {
-                    source: "tabButtonClick",
-                });
+                expect(mockState.setState).not.toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    "table",
+                    {
+                        source: "tabButtonClick",
+                    }
+                );
                 expect(preventDefaultSpy).toHaveBeenCalled();
             }
         });
 
         it("should allow clicks on enabled buttons", () => {
-            const summaryTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-summary");
+            const summaryTab =
+                /** @type {HTMLButtonElement} */ document.getElementById(
+                    "tab-summary"
+                );
             if (summaryTab) {
                 // Ensure summary tab is enabled
                 summaryTab.disabled = false;
@@ -131,23 +178,34 @@ describe("Tab Button Disabled State", () => {
                 summaryTab.dispatchEvent(clickEvent);
 
                 // Should update to summary tab
-                expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "summary", {
-                    source: "tabButtonClick",
-                });
+                expect(mockState.setState).toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    "summary",
+                    {
+                        source: "tabButtonClick",
+                    }
+                );
             }
         });
 
         it("should log disabled button clicks for debugging", () => {
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
-            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
+            const chartTab =
+                /** @type {HTMLButtonElement} */ document.getElementById(
+                    "tab-chart"
+                );
             if (chartTab) {
                 chartTab.disabled = true;
 
                 const clickEvent = new MouseEvent("click", { bubbles: true });
                 chartTab.dispatchEvent(clickEvent);
 
-                expect(consoleSpy).toHaveBeenCalledWith("[ActiveTab] Ignoring click on disabled button: tab-chart");
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    "[ActiveTab] Ignoring click on disabled button: tab-chart"
+                );
             }
             consoleSpy.mockRestore();
         });
@@ -162,8 +220,12 @@ describe("Tab Button Disabled State", () => {
             // Change state programmatically
             mockState.setState("ui.activeTab", "chart");
 
-            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
-            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
+            const summaryTab =
+                /** @type {HTMLElement} */ document.getElementById(
+                    "tab-summary"
+                );
+            const chartTab =
+                /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(summaryTab?.getAttribute("aria-selected")).toBe("false");
@@ -216,7 +278,11 @@ describe("Tab Button Disabled State", () => {
                 button.dispatchEvent(clickEvent);
 
                 // Check that setState was called with correct tab name (don't check source parameter)
-                expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", expectedName, expect.any(Object));
+                expect(mockState.setState).toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    expectedName,
+                    expect.any(Object)
+                );
             });
         });
     });

@@ -46,25 +46,43 @@ export type ElectronAPI = {
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;
     onSetTheme: (callback: (theme: string) => void) => () => void;
     onOpenSummaryColumnSelector: (callback: () => void) => () => void;
-    onUpdateEvent: (eventName: string, callback: (...args: any[]) => void) => () => void;
+    onUpdateEvent: (
+        eventName: string,
+        callback: (...args: any[]) => void
+    ) => () => void;
     checkForUpdates: () => void;
     installUpdate: () => void;
     setFullScreen: (flag: boolean) => void;
-    onIpc: (channel: string, callback: (event: object, ...args: any[]) => void) => (() => void) | undefined;
+    onIpc: (
+        channel: string,
+        callback: (event: object, ...args: any[]) => void
+    ) => (() => void) | undefined;
     send: (channel: string, ...args: any[]) => void;
     invoke: (channel: string, ...args: any[]) => Promise<any>;
     notifyFitFileLoaded: (filePath: string | null) => void;
-    injectMenu: (theme?: string | null, fitFilePath?: string | null) => Promise<boolean>;
+    injectMenu: (
+        theme?: string | null,
+        fitFilePath?: string | null
+    ) => Promise<boolean>;
     /** Main-process state: get a value or the entire state when path is omitted. */
     getMainState: (path?: string) => Promise<any>;
     /** Main-process state: set a value at a specific path. */
     setMainState: (path: string, value: any, options?: any) => Promise<boolean>;
     /** Main-process state: register a listener for changes at a path. */
-    listenToMainState: (path: string, callback: (change: any) => void) => Promise<boolean>;
+    listenToMainState: (
+        path: string,
+        callback: (change: any) => void
+    ) => Promise<boolean>;
     /** Main-process state: remove a previously registered listener. */
-    unlistenFromMainState: (path: string, callback: (change: any) => void) => Promise<boolean>;
+    unlistenFromMainState: (
+        path: string,
+        callback: (change: any) => void
+    ) => Promise<boolean>;
     /** Convenience: listenToMainState + returns unsubscribe function. */
-    subscribeToMainState: (path: string, callback: (change: any) => void) => Promise<() => Promise<boolean>>;
+    subscribeToMainState: (
+        path: string,
+        callback: (change: any) => void
+    ) => Promise<() => Promise<boolean>>;
     /** Main-process operations: get one operation by id. */
     getOperation: (operationId: string) => Promise<any>;
     /** Main-process operations: get all operations. */

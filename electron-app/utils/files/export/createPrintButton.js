@@ -3,6 +3,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
  * Creates a print/export button for the map
+ *
  * @returns {HTMLButtonElement} The configured print button
  */
 
@@ -24,7 +25,8 @@ export function createPrintButton() {
         svg.setAttribute("focusable", "false");
 
         const primary = themeColors.primary || "#3b82f6";
-        const primaryAlpha = themeColors.primaryAlpha || "rgba(59, 130, 246, 0.2)";
+        const primaryAlpha =
+            themeColors.primaryAlpha || "rgba(59, 130, 246, 0.2)";
         const surface = themeColors.surface || "#ffffff";
 
         const rect1 = document.createElementNS(svgNS, "rect");
@@ -82,7 +84,10 @@ export function createPrintButton() {
 
         return printBtn;
     } catch (error) {
-        console.error("[MapActions][createPrintButton] Failed to create print button:", error);
+        console.error(
+            "[MapActions][createPrintButton] Failed to create print button:",
+            error
+        );
         throw error;
     }
 }

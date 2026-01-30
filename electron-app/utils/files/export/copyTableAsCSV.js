@@ -1,5 +1,6 @@
 /**
  * CSV export constants and configuration
+ *
  * @readonly
  */
 const CSV_CONFIG = {
@@ -24,20 +25,24 @@ const CSV_CONFIG = {
 
 /**
  * @typedef {Object} RowsTable
+ *
  * @property {TableRow[]} rows
  */
 
 /**
  * Copies the contents of a table as a CSV string to the clipboard
  *
- * This function serializes each row of the table, handling nested objects by stringifying them.
- * It attempts to use the modern Clipboard API and falls back to the legacy method if necessary.
+ * This function serializes each row of the table, handling nested objects by
+ * stringifying them. It attempts to use the modern Clipboard API and falls back
+ * to the legacy method if necessary.
  *
- * @param {TableRow[]|RowsTable|{ objects: () => TableRow[] }} table - The table data to copy.
- * Prefer passing a plain array of row objects (CSP-safe).
  * @example
- * // Copy a DataTable to clipboard as CSV
- * copyTableAsCSV(myDataTable);
+ *     // Copy a DataTable to clipboard as CSV
+ *     copyTableAsCSV(myDataTable);
+ *
+ * @param {TableRow[] | RowsTable | { objects: () => TableRow[] }} table - The
+ *   table data to copy. Prefer passing a plain array of row objects
+ *   (CSP-safe).
  */
 export async function copyTableAsCSV(table) {
     /** @type {TableRow[] | null} */
@@ -45,10 +50,18 @@ export async function copyTableAsCSV(table) {
 
     if (Array.isArray(table)) {
         rows = table;
-    } else if (table && typeof table === "object" && Array.isArray(/** @type {any} */ (table).rows)) {
+    } else if (
+        table &&
+        typeof table === "object" &&
+        Array.isArray(/** @type {any} */ (table).rows)
+    ) {
         const { rows: tableRows } = /** @type {any} */ (table);
         rows = tableRows;
-    } else if (table && typeof table === "object" && typeof (/** @type {any} */ (table).objects) === "function") {
+    } else if (
+        table &&
+        typeof table === "object" &&
+        typeof (/** @type {any} */ (table).objects) === "function"
+    ) {
         // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
         try {
             const { objects } = /** @type {any} */ (table);
@@ -72,7 +85,9 @@ export async function copyTableAsCSV(table) {
         const processedRows = processTableRows(rows);
 
         // Convert to CSV format (CSP-safe).
-        const csvString = buildCsvString(processedRows, { includeHeader: CSV_CONFIG.HEADER_ENABLED });
+        const csvString = buildCsvString(processedRows, {
+            includeHeader: CSV_CONFIG.HEADER_ENABLED,
+        });
 
         // Attempt clipboard copy
         await copyToClipboard(csvString);
@@ -84,8 +99,10 @@ export async function copyTableAsCSV(table) {
 
 /**
  * Build a CSV string from row objects.
+ *
  * @param {TableRow[]} rows
  * @param {{ includeHeader: boolean }} options
+ *
  * @returns {string}
  */
 function buildCsvString(rows, { includeHeader }) {
@@ -107,15 +124,21 @@ function buildCsvString(rows, { includeHeader }) {
 
 /**
  * Attempts to copy text to clipboard using modern API with fallback
- * @param {string} text - Text to copy to clipboard
- * @returns {Promise<void>} Resolves when copy operation completes
+ *
  * @private
+ *
+ * @param {string} text - Text to copy to clipboard
+ *
+ * @returns {Promise<void>} Resolves when copy operation completes
  */
 async function copyToClipboard(text) {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
         const { electronAPI } = /** @type {any} */ (globalThis);
-        if (electronAPI && typeof electronAPI.writeClipboardText === "function") {
+        if (
+            electronAPI &&
+            typeof electronAPI.writeClipboardText === "function"
+        ) {
             const { writeClipboardText } = electronAPI;
             const ok = Boolean(await writeClipboardText(text));
             if (ok) {
@@ -125,7 +148,9 @@ async function copyToClipboard(text) {
 
             // If we have the Electron bridge but it failed, skip navigator.clipboard (commonly denied)
             // and use the legacy fallback directly.
-            console.error("[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback.");
+            console.error(
+                "[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback."
+            );
             copyToClipboardFallback(text);
             return;
         }
@@ -152,8 +177,10 @@ async function copyToClipboard(text) {
 
 /**
  * Legacy clipboard copy using textarea element
- * @param {string} text - Text to copy to clipboard
+ *
  * @private
+ *
+ * @param {string} text - Text to copy to clipboard
  */
 function copyToClipboardFallback(text) {
     const textarea = document.createElement("textarea");
@@ -169,12 +196,17 @@ function copyToClipboardFallback(text) {
     try {
         const successful = document.execCommand("copy");
         if (successful) {
-            console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`);
+            console.log(
+                `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`
+            );
         } else {
             throw new Error("execCommand('copy') returned false");
         }
     } catch (error) {
-        console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`, error);
+        console.error(
+            `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`,
+            error
+        );
         throw error;
     } finally {
         textarea.remove();
@@ -183,7 +215,9 @@ function copyToClipboardFallback(text) {
 
 /**
  * Escape a value for CSV.
+ *
  * @param {unknown} value
+ *
  * @returns {string}
  */
 function escapeCsvValue(value) {
@@ -206,6 +240,7 @@ function escapeCsvValue(value) {
 
 /**
  * @param {TableRow[]} rows
+ *
  * @returns {string[]}
  */
 function getCsvColumns(rows) {
@@ -240,9 +275,12 @@ function getCsvColumns(rows) {
 
 /**
  * Processes table rows, handling nested objects with caching for performance
- * @param {TableRow[]} rows - Array of row objects from the table
- * @returns {TableRow[]} Processed rows with serialized objects
+ *
  * @private
+ *
+ * @param {TableRow[]} rows - Array of row objects from the table
+ *
+ * @returns {TableRow[]} Processed rows with serialized objects
  */
 function processTableRows(rows) {
     const cache = new Map();

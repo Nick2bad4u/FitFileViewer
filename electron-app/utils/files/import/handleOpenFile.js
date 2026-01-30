@@ -1,6 +1,6 @@
 /**
- * File open handling utility for FitFileViewer
- * Provides secure file opening with comprehensive error handling and state management integration
+ * File open handling utility for FitFileViewer Provides secure file opening
+ * with comprehensive error handling and state management integration
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
@@ -26,45 +26,61 @@ const FILE_OPEN_CONSTANTS = {
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
 const resolveFitFileStateManager = () => {
-    const candidate = /** @type {unknown} */ (globalThis.__FFV_fitFileStateManager);
+    const candidate = /** @type {unknown} */ (
+        globalThis.__FFV_fitFileStateManager
+    );
 
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoadingError" in candidate &&
-        typeof (/** @type {{ handleFileLoadingError?: unknown }} */ (candidate).handleFileLoadingError) === "function"
+        typeof (
+            /** @type {{ handleFileLoadingError?: unknown }} */ (candidate)
+                .handleFileLoadingError
+        ) === "function"
     ) {
-        return /** @type {{ handleFileLoadingError: (error: Error) => void }} */ (candidate);
+        return /** @type {{ handleFileLoadingError: (error: Error) => void }} */ (
+            candidate
+        );
     }
 
     return null;
 };
 
 /**
- * Handles file opening logic with comprehensive error handling and state management
+ * Handles file opening logic with comprehensive error handling and state
+ * management
+ *
+ * @example
+ *     // Basic usage
+ *     const success = await handleOpenFile({
+ *         isOpeningFileRef: { value: false },
+ *         openFileBtn: document.getElementById("openFileBtn"),
+ *         setLoading: (loading) => showLoadingSpinner(loading),
+ *         showNotification: (msg, type) => displayMessage(msg, type),
+ *     });
  *
  * @param {Object} params - Configuration object for file opening
- * @param {Object} params.isOpeningFileRef - Reference object to track opening state
+ * @param {Object} params.isOpeningFileRef - Reference object to track opening
+ *   state
  * @param {HTMLElement} params.openFileBtn - Open file button element
  * @param {Function} params.setLoading - Function to set loading state
  * @param {Function} params.showNotification - Function to show notifications
- * @param {Object} [options={}] - Additional options
- * @param {number} [options.timeout=30000] - Timeout for file operations in milliseconds
- * @param {boolean} [options.validateFileSize=true] - Whether to validate file size
- * @returns {Promise<boolean>} True if file was successfully opened and processed
+ * @param {Object} [options={}] - Additional options. Default is `{}`
+ * @param {number} [options.timeout=30000] - Timeout for file operations in
+ *   milliseconds. Default is `30000`
+ * @param {boolean} [options.validateFileSize=true] - Whether to validate file
+ *   size. Default is `true`
  *
- * @example
- * // Basic usage
- * const success = await handleOpenFile({
- *   isOpeningFileRef: { value: false },
- *   openFileBtn: document.getElementById('openFileBtn'),
- *   setLoading: (loading) => showLoadingSpinner(loading),
- *   showNotification: (msg, type) => displayMessage(msg, type)
- * });
+ * @returns {Promise<boolean>} True if file was successfully opened and
+ *   processed
  *
  * @public
  */
-async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }, options = {}) {
+async function handleOpenFile(
+    { isOpeningFileRef, openFileBtn, setLoading, showNotification },
+    options = {}
+) {
     const config = {
         timeout: 30_000,
         validateFileSize: true,
@@ -76,7 +92,10 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
     if (openingRef?.value) {
         log("warn", "File opening already in progress");
         if (typeof showNotification === "function") {
-            showNotification("File opening is already in progress. Please wait.", "warning");
+            showNotification(
+                "File opening is already in progress. Please wait.",
+                "warning"
+            );
         }
         return false;
     }
@@ -86,7 +105,11 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         return false;
     }
 
-    const uiElements = { isOpeningFileRef: openingRef, openFileBtn, setLoading };
+    const uiElements = {
+        isOpeningFileRef: openingRef,
+        openFileBtn,
+        setLoading,
+    };
 
     try {
         AppActions.setFileOpening(true);
@@ -108,9 +131,13 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         try {
             filePath = await globalThis.electronAPI.openFile();
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+                error instanceof Error ? error.message : String(error);
             log("error", "Failed to open file dialog", { error: message });
-            showNotification(`Unable to open the file dialog. Please try again. Error details: ${message}`, "error");
+            showNotification(
+                `Unable to open the file dialog. Please try again. Error details: ${message}`,
+                "error"
+            );
             updateUIState(uiElements, false, false);
             return false;
         }
@@ -131,8 +158,12 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             }
             arrayBuffer = await globalThis.electronAPI.readFile(filePathString);
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            log("error", "Failed to read file", { error: message, filePath: filePathString });
+            const message =
+                error instanceof Error ? error.message : String(error);
+            log("error", "Failed to read file", {
+                error: message,
+                filePath: filePathString,
+            });
             showNotification(`Error reading file: ${message}`, "error");
             notifyFileLoadError(error);
             updateUIState(uiElements, false, false);
@@ -148,13 +179,16 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             return false;
         }
 
-        log("info", "File read successfully", { bytes: arrayBuffer.byteLength });
+        log("info", "File read successfully", {
+            bytes: arrayBuffer.byteLength,
+        });
 
         let result;
         try {
             result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+                error instanceof Error ? error.message : String(error);
             log("error", "Failed to parse FIT file", { error: message });
             showNotification(`Error parsing FIT file: ${message}`, "error");
             notifyFileLoadError(error);
@@ -171,10 +205,16 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             return false;
         }
 
-        if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
+        if (
+            typeof process !== "undefined" &&
+            process.env &&
+            process.env.NODE_ENV !== "production"
+        ) {
             console.log("[DEBUG] FIT parse result:", result);
             const sessionCount = result.data?.sessions?.length || 0;
-            console.log(`[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`);
+            console.log(
+                `[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`
+            );
         }
 
         try {
@@ -182,11 +222,14 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
                 globalThis.showFitData(result?.data || result, filePathString);
             }
 
-            if (/** @type {*} */ (globalThis).sendFitFileToAltFitReader) {
-                /** @type {*} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
+            if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
+                /** @type {any} */ (globalThis).sendFitFileToAltFitReader(
+                    arrayBuffer
+                );
             }
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+                error instanceof Error ? error.message : String(error);
             log("error", "Failed to display FIT data", { error: message });
             showNotification(`Error displaying FIT data: ${message}`, "error");
             notifyFileLoadError(error);
@@ -199,7 +242,10 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log("error", "Unexpected error during file open", { error: message });
-        showNotification(`Unexpected error during file open: ${message}`, "error");
+        showNotification(
+            `Unexpected error during file open: ${message}`,
+            "error"
+        );
         notifyFileLoadError(error);
         updateUIState(uiElements, false, false);
         return false;
@@ -217,20 +263,38 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
 
 function logWithContext(message, level = "info", context = {}) {
     const normalizedLevel =
-        level === "error" ? "error" : level === "warn" ? "warn" : level === "debug" ? "debug" : "info";
+        level === "error"
+            ? "error"
+            : level === "warn"
+              ? "warn"
+              : level === "debug"
+                ? "debug"
+                : "info";
     try {
-        log(normalizedLevel, message, context && typeof context === "object" ? context : {});
+        log(
+            normalizedLevel,
+            message,
+            context && typeof context === "object" ? context : {}
+        );
     } catch (error) {
         const safeMessage = `[${FILE_OPEN_CONSTANTS.LOG_PREFIX}] ${message}`;
         try {
-            const consoleMethod = normalizedLevel in console ? normalizedLevel : "log";
+            const consoleMethod =
+                normalizedLevel in console ? normalizedLevel : "log";
             console[consoleMethod](safeMessage);
         } catch (innerError) {
-            console.error(`[${FILE_OPEN_CONSTANTS.LOG_PREFIX}] Failed to log message`, {
-                error: innerError instanceof Error ? innerError.message : innerError,
-                originalError: error instanceof Error ? error.message : error,
-                message,
-            });
+            console.error(
+                `[${FILE_OPEN_CONSTANTS.LOG_PREFIX}] Failed to log message`,
+                {
+                    error:
+                        innerError instanceof Error
+                            ? innerError.message
+                            : innerError,
+                    originalError:
+                        error instanceof Error ? error.message : error,
+                    message,
+                }
+            );
         }
     }
 }
@@ -242,12 +306,16 @@ function notifyFileLoadError(error) {
         if (!manager || typeof manager.handleFileLoadingError !== "function") {
             return false;
         }
-        const safeError = error instanceof Error ? error : new Error(String(error));
+        const safeError =
+            error instanceof Error ? error : new Error(String(error));
         manager.handleFileLoadingError(safeError);
         return true;
     } catch (notifyError) {
         log("warn", "Failed to propagate file loading error", {
-            error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+            error:
+                notifyError instanceof Error
+                    ? notifyError.message
+                    : String(notifyError),
         });
         return false;
     }
@@ -255,14 +323,17 @@ function notifyFileLoadError(error) {
 
 /**
  * Updates UI state during file opening process
+ *
+ * @private
+ *
  * @param {Object} uiElements - UI elements to update
  * @param {boolean} isLoading - Whether to show loading state
  * @param {boolean} isOpening - Whether file opening is in progress
- * @private
  */
 function updateUIState(uiElements, isLoading, isOpening) {
     try {
-        const { isOpeningFileRef, openFileBtn, setLoading } = /** @type {*} */ (uiElements);
+        const { isOpeningFileRef, openFileBtn, setLoading } =
+            /** @type {any} */ (uiElements);
 
         if (openFileBtn) {
             openFileBtn.disabled = isLoading;
@@ -283,12 +354,17 @@ function updateUIState(uiElements, isLoading, isOpening) {
         log("info", "Updated UI state", { isLoading, isOpening });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log("error", "Error updating UI state", { error: message, isLoading, isOpening });
+        log("error", "Error updating UI state", {
+            error: message,
+            isLoading,
+            isOpening,
+        });
     }
 }
 
 /**
  * Validates that all required Electron API methods are available.
+ *
  * @returns {boolean}
  */
 function validateElectronAPI() {
@@ -301,11 +377,14 @@ function validateElectronAPI() {
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
         /** @param {string} method */ (method) =>
-            typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
+            typeof (/** @type {any} */ (globalThis.electronAPI)[method]) !==
+            "function"
     );
 
     if (missingMethods.length > 0) {
-        log("error", "Missing Electron API methods", { methods: missingMethods });
+        log("error", "Missing Electron API methods", {
+            methods: missingMethods,
+        });
         return false;
     }
 

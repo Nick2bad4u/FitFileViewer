@@ -1,21 +1,37 @@
-import { aL as R, bi as v, bj as D, aS as r, aO as E, b7 as L, be as k } from "./index-LvWRIhnC.js";
+import {
+    aL as R,
+    bi as v,
+    bj as D,
+    aS as r,
+    aO as E,
+    b7 as L,
+    be as k,
+} from "./index-LvWRIhnC.js";
 (function () {
     try {
-        var s = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var s =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             f = new Error().stack;
         f &&
             ((s._sentryDebugIds = s._sentryDebugIds || {}),
             (s._sentryDebugIds[f] = "a6de48fa-3e3d-4f59-a396-228a80aac06c"),
-            (s._sentryDebugIdIdentifier = "sentry-dbid-a6de48fa-3e3d-4f59-a396-228a80aac06c"));
+            (s._sentryDebugIdIdentifier =
+                "sentry-dbid-a6de48fa-3e3d-4f59-a396-228a80aac06c"));
     } catch {
         /* Ignore errors */
     }
 })();
 /**
- * @license lucide-react v0.396.0 - ISC
+ * @license Lucide-react v0.396.0 - ISC
  *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
+ *   This source code is licensed under the ISC license. See the LICENSE file in
+ *   the root directory of this source tree.
  */ const F = R("Download", [
     ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
     ["polyline", { points: "7 10 12 15 17 10", key: "2ggqvy" }],
@@ -31,8 +47,14 @@ var j = { exports: {} };
                 typeof t > "u"
                     ? (t = { autoBom: !1 })
                     : typeof t != "object" &&
-                      (console.warn("Deprecated: Expected third argument to be a object"), (t = { autoBom: !t })),
-                t.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)
+                      (console.warn(
+                          "Deprecated: Expected third argument to be a object"
+                      ),
+                      (t = { autoBom: !t })),
+                t.autoBom &&
+                /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(
+                    e.type
+                )
                     ? new Blob(["\uFEFF", e], { type: e.type })
                     : e
             );
@@ -64,7 +86,23 @@ var j = { exports: {} };
                 e.dispatchEvent(new MouseEvent("click"));
             } catch {
                 var t = document.createEvent("MouseEvents");
-                (t.initMouseEvent("click", !0, !0, window, 0, 0, 0, 80, 20, !1, !1, !1, !1, 0, null),
+                (t.initMouseEvent(
+                    "click",
+                    !0,
+                    !0,
+                    window,
+                    0,
+                    0,
+                    0,
+                    80,
+                    20,
+                    !1,
+                    !1,
+                    !1,
+                    !1,
+                    0,
+                    null
+                ),
                     e.dispatchEvent(t));
             }
         }
@@ -109,7 +147,10 @@ var j = { exports: {} };
                         }
                       : "msSaveOrOpenBlob" in navigator
                         ? function (e, t, o) {
-                              if (((t = t || e.name || "download"), typeof e != "string"))
+                              if (
+                                  ((t = t || e.name || "download"),
+                                  typeof e != "string")
+                              )
                                   navigator.msSaveOrOpenBlob(l(e, o), t);
                               else if (w(e)) c(e, t, o);
                               else {
@@ -124,19 +165,34 @@ var j = { exports: {} };
                         : function (e, t, o, n) {
                               if (
                                   ((n = n || open("", "_blank")),
-                                  n && (n.document.title = n.document.body.innerText = "downloading..."),
+                                  n &&
+                                      (n.document.title =
+                                          n.document.body.innerText =
+                                              "downloading..."),
                                   typeof e == "string")
                               )
                                   return c(e, t, o);
                               var a = e.type === "application/octet-stream",
-                                  x = /constructor/i.test(i.HTMLElement) || i.safari,
+                                  x =
+                                      /constructor/i.test(i.HTMLElement) ||
+                                      i.safari,
                                   b = /CriOS\/[\d]+/.test(navigator.userAgent);
-                              if ((b || (a && x) || y) && typeof FileReader < "u") {
+                              if (
+                                  (b || (a && x) || y) &&
+                                  typeof FileReader < "u"
+                              ) {
                                   var m = new FileReader();
                                   ((m.onloadend = function () {
                                       var p = m.result;
-                                      ((p = b ? p : p.replace(/^data:[^;]*;/, "data:attachment/file;")),
-                                          n ? (n.location.href = p) : (location = p),
+                                      ((p = b
+                                          ? p
+                                          : p.replace(
+                                                /^data:[^;]*;/,
+                                                "data:attachment/file;"
+                                            )),
+                                          n
+                                              ? (n.location.href = p)
+                                              : (location = p),
                                           (n = null));
                                   }),
                                       m.readAsDataURL(e));
@@ -168,7 +224,9 @@ function T(s) {
             category: e,
         } = s,
         t = async (o) => {
-            (o.stopPropagation(), o.preventDefault(), k("Download", { category: e, message: i }));
+            (o.stopPropagation(),
+                o.preventDefault(),
+                k("Download", { category: e, message: i }));
             const n = await f();
             S.saveAs(n, l);
         };

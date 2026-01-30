@@ -31,7 +31,11 @@ describe("eventListenerManager.js - coverage uplift", () => {
 
     it("returns no-op when given invalid element", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const cleanup = addEventListenerWithCleanup(null as any, "click", (() => {}) as any);
+        const cleanup = addEventListenerWithCleanup(
+            null as any,
+            "click",
+            (() => {}) as any
+        );
         expect(typeof cleanup).toBe("function");
         cleanup(); // should be safe no-op
         expect(warn).toHaveBeenCalled();
@@ -39,7 +43,11 @@ describe("eventListenerManager.js - coverage uplift", () => {
 
     it("returns no-op when given invalid handler", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const cleanup = addEventListenerWithCleanup(window, "click", null as any);
+        const cleanup = addEventListenerWithCleanup(
+            window,
+            "click",
+            null as any
+        );
         expect(typeof cleanup).toBe("function");
         cleanup();
         expect(warn).toHaveBeenCalled();
@@ -62,7 +70,10 @@ describe("eventListenerManager.js - coverage uplift", () => {
         const onDragLeave = vi.fn();
         const onDragOver = vi.fn();
         const onDrop = vi.fn();
-        const cleanup = addDragDropListeners({ onDragEnter, onDragLeave, onDragOver, onDrop }, window);
+        const cleanup = addDragDropListeners(
+            { onDragEnter, onDragLeave, onDragOver, onDrop },
+            window
+        );
         // Sanity: should track 4 listeners
         expect(getListenerCount()).toBeGreaterThanOrEqual(4);
 

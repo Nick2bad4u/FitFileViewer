@@ -1,8 +1,11 @@
 /**
- * @fileoverview Accent Color Picker Modal
- * @description Interactive modal for selecting and customizing accent colors
- * @author FitFileViewer Development Team
+ * Interactive modal for selecting and customizing accent colors
+ *
  * @version 1.0.0
+ *
+ * @file Accent Color Picker Modal
+ *
+ * @author FitFileViewer Development Team
  */
 
 import {
@@ -11,10 +14,14 @@ import {
     resetAccentColor,
     setAccentColor,
 } from "../../utils/theming/core/accentColor.js";
-import { getEffectiveTheme, loadTheme } from "../../utils/theming/core/theme.js";
+import {
+    getEffectiveTheme,
+    loadTheme,
+} from "../../utils/theming/core/theme.js";
 
 /**
  * Preset accent colors for quick selection
+ *
  * @private
  */
 const PRESET_COLORS = [
@@ -53,6 +60,7 @@ export function openAccentColorPicker() {
 
 /**
  * Adds CSS styles for the modal
+ *
  * @private
  */
 function addModalStyles() {
@@ -303,8 +311,10 @@ function addModalStyles() {
 
 /**
  * Applies a color and updates the preview
- * @param {string} color - The hex color code
+ *
  * @private
+ *
+ * @param {string} color - The hex color code
  */
 function applyColor(color) {
     const currentTheme = loadTheme();
@@ -316,8 +326,10 @@ function applyColor(color) {
 
 /**
  * Creates the modal element and its content
- * @returns {HTMLElement} The modal element
+ *
  * @private
+ *
+ * @returns {HTMLElement} The modal element
  */
 function createModal() {
     const modal = document.createElement("div");
@@ -375,8 +387,10 @@ function createModal() {
 
 /**
  * Renders the preset color buttons
- * @param {HTMLElement} modal - The modal element
+ *
  * @private
+ *
+ * @param {HTMLElement} modal - The modal element
  */
 function renderPresetColors(modal) {
     const container = modal.querySelector("#preset-colors");
@@ -396,9 +410,12 @@ function renderPresetColors(modal) {
 
 /**
  * Converts RGB color to hex
- * @param {string} rgb - RGB color string
- * @returns {string} Hex color
+ *
  * @private
+ *
+ * @param {string} rgb - RGB color string
+ *
+ * @returns {string} Hex color
  */
 function rgbToHex(rgb) {
     if (rgb.startsWith("#")) {
@@ -416,8 +433,10 @@ function rgbToHex(rgb) {
 
 /**
  * Sets up event listeners for the modal
- * @param {HTMLElement} modal - The modal element
+ *
  * @private
+ *
+ * @param {HTMLElement} modal - The modal element
  */
 function setupEventListeners(modal) {
     const closeBtn = modal.querySelector("#accent-picker-close");
@@ -473,6 +492,7 @@ function setupEventListeners(modal) {
 
 /**
  * Updates the preview with the current accent color
+ *
  * @private
  */
 function updatePreview() {
@@ -513,7 +533,10 @@ function updatePreview() {
     // Highlight selected preset
     const presetButtons = document.querySelectorAll(".preset-color");
     for (const button of presetButtons) {
-        button.classList.toggle("selected", button.style.backgroundColor === rgbToHex(color));
+        button.classList.toggle(
+            "selected",
+            button.style.backgroundColor === rgbToHex(color)
+        );
     }
 
     // Update reset button state

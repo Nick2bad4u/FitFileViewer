@@ -26,7 +26,9 @@ describe("preload.js - Basic API Validation", () => {
 
         // Mock console methods
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Mock process object
         const mockProcess = {
@@ -60,8 +62,14 @@ describe("preload.js - Basic API Validation", () => {
         // Temporarily restore console.log to see what's happening
         consoleLogSpy.mockRestore();
 
-        console.log("[TEST] Total console.log calls that were captured:", consoleLogSpy.mock?.calls?.length || 0);
-        console.log("[TEST] contextBridge calls:", electronMock.contextBridge.exposeInMainWorld.mock.calls.length);
+        console.log(
+            "[TEST] Total console.log calls that were captured:",
+            consoleLogSpy.mock?.calls?.length || 0
+        );
+        console.log(
+            "[TEST] contextBridge calls:",
+            electronMock.contextBridge.exposeInMainWorld.mock.calls.length
+        );
 
         // Re-mock console.log for remaining tests
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -71,12 +79,17 @@ describe("preload.js - Basic API Validation", () => {
 
     it("should expose APIs if validation passes", () => {
         // Check if contextBridge.exposeInMainWorld was called
-        const exposeCalls = electronMock.contextBridge.exposeInMainWorld.mock.calls;
+        const exposeCalls =
+            electronMock.contextBridge.exposeInMainWorld.mock.calls;
 
         if (exposeCalls.length > 0) {
             // APIs were exposed successfully
-            const electronAPICall = exposeCalls.find((call: any) => call[0] === "electronAPI");
-            const devToolsCall = exposeCalls.find((call: any) => call[0] === "devTools");
+            const electronAPICall = exposeCalls.find(
+                (call: any) => call[0] === "electronAPI"
+            );
+            const devToolsCall = exposeCalls.find(
+                (call: any) => call[0] === "devTools"
+            );
 
             expect(electronAPICall).toBeDefined();
             expect(devToolsCall).toBeDefined();
@@ -94,7 +107,8 @@ describe("preload.js - Basic API Validation", () => {
 
             // Check for validation failure in logs
             const validationCall = consoleLogSpy.mock.calls.find(
-                (call: any) => call[0] && call[0].includes("[preload.js] API Validation:")
+                (call: any) =>
+                    call[0] && call[0].includes("[preload.js] API Validation:")
             );
 
             if (validationCall && validationCall[1]) {
@@ -111,7 +125,10 @@ describe("preload.js - Basic API Validation", () => {
     it("should register beforeExit handler", () => {
         // Check if process.once was called with beforeExit
         const mockProcess = globalThis.process as any;
-        expect(mockProcess.once).toHaveBeenCalledWith("beforeExit", expect.any(Function));
+        expect(mockProcess.once).toHaveBeenCalledWith(
+            "beforeExit",
+            expect.any(Function)
+        );
     });
 
     it("should log initialization message", () => {

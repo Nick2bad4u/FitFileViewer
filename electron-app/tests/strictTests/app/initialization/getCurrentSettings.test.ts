@@ -3,9 +3,21 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // Mocks for dependencies used by getCurrentSettings.js
 vi.mock("../../../../utils/charts/plugins/chartOptionsConfig.js", () => ({
     chartOptionsConfig: [
-        { id: "maxpoints", label: "Max Points", type: "select", default: "all" },
+        {
+            id: "maxpoints",
+            label: "Max Points",
+            type: "select",
+            default: "all",
+        },
         { id: "showgrid", label: "Show Grid", type: "toggle", default: true },
-        { id: "smoothness", label: "Smoothness", type: "range", default: 5, min: 0, max: 10 },
+        {
+            id: "smoothness",
+            label: "Smoothness",
+            type: "range",
+            default: 5,
+            min: 0,
+            max: 10,
+        },
     ],
 }));
 vi.mock("../../../../utils/formatting/display/formatChartFields.js", () => ({
@@ -13,10 +25,20 @@ vi.mock("../../../../utils/formatting/display/formatChartFields.js", () => ({
     formatChartFields: ["speed", "power"],
 }));
 vi.mock("../../../../utils/theming/core/theme.js", () => ({
-    getThemeConfig: () => ({ colors: { primaryAlpha: "#abcdef", accent: "#123456", borderLight: "#eeeeee" } }),
+    getThemeConfig: () => ({
+        colors: {
+            primaryAlpha: "#abcdef",
+            accent: "#123456",
+            borderLight: "#eeeeee",
+        },
+    }),
 }));
-vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({ renderChartJS: vi.fn() }));
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showNotification: vi.fn() }));
+vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
+    renderChartJS: vi.fn(),
+}));
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
+}));
 vi.mock("../../../../utils/charts/components/chartStatusIndicator.js", () => ({
     updateAllChartStatusIndicators: vi.fn(),
 }));
@@ -66,7 +88,10 @@ describe("getCurrentSettings module", () => {
         expect(def.maxpoints).toBe("all");
         expect(def.showgrid).toBe(true);
         expect(def.smoothness).toBe(5);
-        expect(def.colors).toMatchObject({ speed: "#111111", power: "#222222" });
+        expect(def.colors).toMatchObject({
+            speed: "#111111",
+            power: "#222222",
+        });
     });
 
     it("getCurrentSettings parses stored values and falls back to theme", async () => {
@@ -102,8 +127,10 @@ describe("getCurrentSettings module", () => {
 
     it("reRenderChartsAfterSettingChange clears caches and triggers render", async () => {
         const { reRenderChartsAfterSettingChange } = await import(modPath);
-        const { setState } = await import("../../../../utils/state/core/stateManager.js");
-        const { chartStateManager } = await import("../../../../utils/charts/core/chartStateManager.js");
+        const { setState } =
+            await import("../../../../utils/state/core/stateManager.js");
+        const { chartStateManager } =
+            await import("../../../../utils/charts/core/chartStateManager.js");
 
         // Create some fake canvases to be purged
         const c1 = document.createElement("canvas");
@@ -118,8 +145,12 @@ describe("getCurrentSettings module", () => {
         reRenderChartsAfterSettingChange("showgrid", true);
 
         // Should clear cached chart settings and delegate to chartStateManager.
-        expect(setState).toHaveBeenCalledWith("settings.charts", null, { source: "reRenderChartsAfterSettingChange" });
-        expect(chartStateManager.debouncedRender).toHaveBeenCalledWith("Setting change: showgrid");
+        expect(setState).toHaveBeenCalledWith("settings.charts", null, {
+            source: "reRenderChartsAfterSettingChange",
+        });
+        expect(chartStateManager.debouncedRender).toHaveBeenCalledWith(
+            "Setting change: showgrid"
+        );
 
         // No destructive teardown in the manager path.
         vi.runAllTimers();

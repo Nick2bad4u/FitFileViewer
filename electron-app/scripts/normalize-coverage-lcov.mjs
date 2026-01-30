@@ -9,13 +9,16 @@ const repoRootPosix = repoRoot.replaceAll("\\", "/");
 const coverageTargetDir = path.join(electronAppDir, "coverage");
 
 const candidateDirs = [
-    process.env.VITEST_COVERAGE_DIR ? path.resolve(process.env.VITEST_COVERAGE_DIR) : null,
+    process.env.VITEST_COVERAGE_DIR
+        ? path.resolve(process.env.VITEST_COVERAGE_DIR)
+        : null,
     path.join(os.tmpdir(), "ffv-vitest-coverage"),
     coverageTargetDir,
 ].filter(Boolean);
 
 /**
  * Determine the directory that actually contains the generated lcov report.
+ *
  * @returns {string | null}
  */
 function findSourceDir() {
@@ -33,7 +36,10 @@ function findSourceDir() {
             }
         } catch (error) {
             if (error?.code !== "ENOENT") {
-                console.warn(`normalize-coverage-lcov: failed to inspect ${dir}:`, error);
+                console.warn(
+                    `normalize-coverage-lcov: failed to inspect ${dir}:`,
+                    error
+                );
             }
         }
     }
@@ -44,7 +50,9 @@ function normalizeCoverage() {
     const sourceDir = findSourceDir();
 
     if (!sourceDir) {
-        console.warn("normalize-coverage-lcov: no coverage directory found. Skipping normalization.");
+        console.warn(
+            "normalize-coverage-lcov: no coverage directory found. Skipping normalization."
+        );
         return;
     }
 
@@ -53,12 +61,17 @@ function normalizeCoverage() {
     }
 
     if (path.resolve(sourceDir) !== path.resolve(coverageTargetDir)) {
-        fs.cpSync(sourceDir, coverageTargetDir, { recursive: true, force: true });
+        fs.cpSync(sourceDir, coverageTargetDir, {
+            recursive: true,
+            force: true,
+        });
     }
 
     const lcovPath = path.join(coverageTargetDir, "lcov.info");
     if (!fs.existsSync(lcovPath)) {
-        console.warn(`normalize-coverage-lcov: ${lcovPath} not found. Nothing to normalize.`);
+        console.warn(
+            `normalize-coverage-lcov: ${lcovPath} not found. Nothing to normalize.`
+        );
         return;
     }
 
@@ -71,8 +84,13 @@ function normalizeCoverage() {
             }
 
             const filePath = line.slice(3).replaceAll("\\", "/");
-            const absolutePosixPath = path.resolve(repoRoot, filePath).replaceAll("\\", "/");
-            const relativePath = path.posix.relative(repoRootPosix, absolutePosixPath);
+            const absolutePosixPath = path
+                .resolve(repoRoot, filePath)
+                .replaceAll("\\", "/");
+            const relativePath = path.posix.relative(
+                repoRootPosix,
+                absolutePosixPath
+            );
             const normalizedPosixPath = path.posix.normalize(relativePath);
 
             return `SF:${normalizedPosixPath}`;
@@ -85,7 +103,10 @@ function normalizeCoverage() {
 try {
     normalizeCoverage();
 } catch (error) {
-    console.error("normalize-coverage-lcov: failed to normalize coverage report", error);
+    console.error(
+        "normalize-coverage-lcov: failed to normalize coverage report",
+        error
+    );
     process.exitCode = 1;
 }
 ``;

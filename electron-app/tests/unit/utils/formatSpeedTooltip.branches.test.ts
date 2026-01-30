@@ -15,7 +15,9 @@ describe("formatSpeedTooltip.js - conversion error branch", () => {
     let consoleErrorSpy: any;
 
     beforeEach(async () => {
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -25,7 +27,8 @@ describe("formatSpeedTooltip.js - conversion error branch", () => {
     });
 
     it("returns safe default string when converter throws", async () => {
-        const { formatSpeedTooltip } = await import("../../../utils/formatting/display/formatSpeedTooltip.js");
+        const { formatSpeedTooltip } =
+            await import("../../../utils/formatting/display/formatSpeedTooltip.js");
         const out = formatSpeedTooltip(5);
         expect(out).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
         expect(consoleErrorSpy).toHaveBeenCalled();

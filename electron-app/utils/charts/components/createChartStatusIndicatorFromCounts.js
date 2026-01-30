@@ -1,6 +1,8 @@
 /**
  * Creates chart status indicator from pre-calculated counts
- * @param {import('../core/getChartCounts.js').ChartCounts} counts - Pre-calculated chart counts
+ *
+ * @param {import("../core/getChartCounts.js").ChartCounts} counts -
+ *   Pre-calculated chart counts
  */
 export function createChartStatusIndicatorFromCounts(counts) {
     try {
@@ -193,7 +195,10 @@ export function createChartStatusIndicatorFromCounts(counts) {
         indicator.addEventListener("click", () => {
             const fieldsSection = document.querySelector(".fields-section");
             if (fieldsSection instanceof HTMLElement) {
-                fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                fieldsSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
                 setTimeout(() => {
@@ -212,7 +217,10 @@ export function createChartStatusIndicatorFromCounts(counts) {
 
         return indicator;
     } catch (error) {
-        console.error("[ChartStatus] Error creating chart status indicator from counts:", error);
+        console.error(
+            "[ChartStatus] Error creating chart status indicator from counts:",
+            error
+        );
         // Return a minimal fallback element
         const fallback = document.createElement("div");
         fallback.className = "chart-status-indicator";

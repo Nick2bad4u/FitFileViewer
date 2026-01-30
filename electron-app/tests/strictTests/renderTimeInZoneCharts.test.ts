@@ -27,8 +27,12 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         };
 
         renderZoneChartMock = vi.fn();
-        getHRZoneVisibilitySettingsMock = vi.fn(() => ({ doughnutVisible: true }));
-        getPowerZoneVisibilitySettingsMock = vi.fn(() => ({ doughnutVisible: true }));
+        getHRZoneVisibilitySettingsMock = vi.fn(() => ({
+            doughnutVisible: true,
+        }));
+        getPowerZoneVisibilitySettingsMock = vi.fn(() => ({
+            doughnutVisible: true,
+        }));
 
         vi.doMock("../../utils/ui/controls/createHRZoneControls.js", () => ({
             getHRZoneVisibilitySettings: getHRZoneVisibilitySettingsMock,
@@ -40,7 +44,8 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
             renderZoneChart: renderZoneChartMock,
         }));
 
-        const module = await import("../../utils/charts/rendering/renderTimeInZoneCharts.js");
+        const module =
+            await import("../../utils/charts/rendering/renderTimeInZoneCharts.js");
         renderTimeInZoneCharts = module.renderTimeInZoneCharts;
     });
 
@@ -93,10 +98,14 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
 
     it("should honor visibility toggles and skip missing datasets", () => {
         const container = document.createElement("div");
-        (globalThis as any).heartRateZones = [{ zone: 1, label: "Z1", time: 120 }];
+        (globalThis as any).heartRateZones = [
+            { zone: 1, label: "Z1", time: 120 },
+        ];
         (globalThis as any).powerZones = undefined;
 
-        getHRZoneVisibilitySettingsMock.mockReturnValueOnce({ doughnutVisible: false });
+        getHRZoneVisibilitySettingsMock.mockReturnValueOnce({
+            doughnutVisible: false,
+        });
 
         renderTimeInZoneCharts(container, {});
 

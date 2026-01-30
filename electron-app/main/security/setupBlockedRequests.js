@@ -2,12 +2,13 @@
  * Block known-unwanted network requests (telemetry / broken cert endpoints).
  *
  * Why:
- * - Some bundled views attempt to POST to ua.harryonline.net which currently fails with
- *   ERR_CERT_COMMON_NAME_INVALID and adds noisy console output.
+ *
+ * - Some bundled views attempt to POST to ua.harryonline.net which currently
+ *   fails with ERR_CERT_COMMON_NAME_INVALID and adds noisy console output.
  * - This app does not require that endpoint to function.
  *
- * This is a best-effort guard and is safe to call in tests (it no-ops when Electron session is
- * unavailable).
+ * This is a best-effort guard and is safe to call in tests (it no-ops when
+ * Electron session is unavailable).
  */
 
 const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
@@ -20,7 +21,11 @@ function setupBlockedRequests() {
         // Prefer direct electron require so this module stays independent of runtime helpers.
         const electron = require("electron");
         const session = electron?.session?.defaultSession;
-        if (!session || !session.webRequest || typeof session.webRequest.onBeforeRequest !== "function") {
+        if (
+            !session ||
+            !session.webRequest ||
+            typeof session.webRequest.onBeforeRequest !== "function"
+        ) {
             return;
         }
 

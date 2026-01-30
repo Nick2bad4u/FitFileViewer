@@ -1,6 +1,6 @@
 /**
- * Window Setup and Initialization
- * Modernized to use centralized state management and remove hardcoded logic
+ * Window Setup and Initialization Modernized to use centralized state
+ * management and remove hardcoded logic
  */
 
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
@@ -26,11 +26,14 @@ export function cleanup() {
 
 /**
  * Initialize the application window with modern state management
+ *
  * @returns {Promise<void>}
  */
 export async function setupWindow() {
     try {
-        console.log("[setupWindow] Initializing with modern state management...");
+        console.log(
+            "[setupWindow] Initializing with modern state management..."
+        );
 
         // Initialize theme system first
         await setupTheme(applyTheme, listenForThemeChange);
@@ -43,7 +46,11 @@ export async function setupWindow() {
         tabStateManager.switchToTab("summary");
 
         // Show initialization complete notification
-        showNotification("Application initialized successfully", "success", 2000);
+        showNotification(
+            "Application initialized successfully",
+            "success",
+            2000
+        );
 
         console.log("[setupWindow] Modern initialization complete");
     } catch (error) {

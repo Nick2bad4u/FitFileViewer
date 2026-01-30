@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for formatting/formatters
- * @description Re-exports all modules in the formatting/formatters category
+ * Re-exports all modules in the formatting/formatters category
+ *
+ * @file Barrel Export for formatting/formatters
  */
 export * from "./formatDistance.js";
 export * from "./formatDuration.js";

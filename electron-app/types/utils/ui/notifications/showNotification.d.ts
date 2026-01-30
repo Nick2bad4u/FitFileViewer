@@ -1,6 +1,6 @@
 /**
- * Test-only helper to reset internal notification state between tests.
- * Not intended for production use.
+ * Test-only helper to reset internal notification state between tests. Not
+ * intended for production use.
  */
 export function __testResetNotifications(): void;
 /**
@@ -9,21 +9,26 @@ export function __testResetNotifications(): void;
 export function clearAllNotifications(): void;
 /**
  * Enhanced notification display with animations, icons, and queue management
+ *
  * @param {string} message - The message to display in the notification
- * @param {string} [type='info'] - The type of notification ('info', 'error', 'success', 'warning')
- * @param {number} [duration] - Duration in milliseconds (uses type default if not specified)
+ * @param {string} [type='info'] - The type of notification ('info', 'error',
+ *   'success', 'warning'). Default is `'info'`
+ * @param {number} [duration] - Duration in milliseconds (uses type default if
+ *   not specified)
  * @param {Object} [options] - Additional options
  * @param {string} [options.icon] - Custom icon to override default
  * @param {boolean} [options.persistent] - If true, notification won't auto-hide
  * @param {Function} [options.onClick] - Callback when notification is clicked
  * @param {NotificationAction[]} [options.actions] - Action buttons
+ *
  * @returns {Promise<void>} Promise that resolves when notification is shown
  */
 /**
  * @param {string} message
- * @param {keyof typeof NOTIFICATION_TYPES} [type="info"]
+ * @param {keyof typeof NOTIFICATION_TYPES} [type="info"] Default is `"info"`
  * @param {number} [duration]
  * @param {NotificationOptions} [options]
+ *
  * @returns {Promise<void>}
  */
 export function showNotification(
@@ -33,11 +38,31 @@ export function showNotification(
     options?: NotificationOptions
 ): Promise<void>;
 export namespace notify {
-    function error(message: string, duration?: number, options?: Object): Promise<void>;
-    function info(message: string, duration?: number, options?: Object): Promise<void>;
-    function persistent(message: string, type?: string, options?: Object): Promise<void>;
-    function success(message: string, duration?: number, options?: Object): Promise<void>;
-    function warning(message: string, duration?: number, options?: Object): Promise<void>;
+    function error(
+        message: string,
+        duration?: number,
+        options?: Object
+    ): Promise<void>;
+    function info(
+        message: string,
+        duration?: number,
+        options?: Object
+    ): Promise<void>;
+    function persistent(
+        message: string,
+        type?: string,
+        options?: Object
+    ): Promise<void>;
+    function success(
+        message: string,
+        duration?: number,
+        options?: Object
+    ): Promise<void>;
+    function warning(
+        message: string,
+        duration?: number,
+        options?: Object
+    ): Promise<void>;
     function withActions(
         message: string,
         type?: string,
@@ -77,7 +102,13 @@ export type NotificationElement = HTMLElement & {
 };
 /**
  * Notification type map
- * @type {{info:NotificationTypeConfig,success:NotificationTypeConfig,error:NotificationTypeConfig,warning:NotificationTypeConfig}}
+ *
+ * @type {{
+ *     info: NotificationTypeConfig;
+ *     success: NotificationTypeConfig;
+ *     error: NotificationTypeConfig;
+ *     warning: NotificationTypeConfig;
+ * }}
  */
 declare const NOTIFICATION_TYPES: {
     info: NotificationTypeConfig;
@@ -87,18 +118,21 @@ declare const NOTIFICATION_TYPES: {
 };
 /**
  * @typedef {Object} NotificationTypeConfig
+ *
  * @property {string} icon
  * @property {number} duration
  * @property {string} ariaLabel
  */
 /**
  * @typedef {Object} NotificationAction
+ *
  * @property {string} text
- * @property {()=>void} [onClick]
+ * @property {() => void} [onClick]
  * @property {string} [className]
  */
 /**
  * @typedef {Object} NotificationOptions
+ *
  * @property {string} [icon]
  * @property {boolean} [persistent]
  * @property {Function} [onClick]
@@ -106,12 +140,13 @@ declare const NOTIFICATION_TYPES: {
  */
 /**
  * @typedef {Object} QueuedNotification
+ *
  * @property {string} message
  * @property {keyof typeof NOTIFICATION_TYPES} type
- * @property {number|null} duration
+ * @property {number | null} duration
  * @property {string} icon
  * @property {string} ariaLabel
- * @property {Function|undefined} onClick
+ * @property {Function | undefined} onClick
  * @property {NotificationAction[]} actions
  * @property {number} timestamp
  * @property {(() => void) | undefined} resolveShown

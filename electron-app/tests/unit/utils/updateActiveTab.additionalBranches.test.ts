@@ -9,7 +9,11 @@ const setupStateMocks = () => {
     const setState = vi.fn();
     const getState = vi.fn().mockReturnValue("summary");
     const subscribe = vi.fn();
-    vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+    vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+        setState,
+        getState,
+        subscribe,
+    }));
     return { setState, getState, subscribe };
 };
 
@@ -21,7 +25,9 @@ describe("updateActiveTab.js - additional branches", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         document.body.innerHTML = "";
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     });
@@ -42,14 +48,21 @@ describe("updateActiveTab.js - additional branches", () => {
       <button id="tab-other" class="tab-button">Other</button>
     `;
 
-        const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { updateActiveTab } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         const result = updateActiveTab("tab-fast");
 
         expect(result).toBe(true);
-        expect(setState).toHaveBeenCalledWith("ui.activeTab", "fast", { source: "updateActiveTab" });
+        expect(setState).toHaveBeenCalledWith("ui.activeTab", "fast", {
+            source: "updateActiveTab",
+        });
         // Ensure classes remain consistent
-        expect(document.getElementById("tab-fast")!.classList.contains("active")).toBe(true);
-        expect(document.getElementById("tab-other")!.classList.contains("active")).toBe(false);
+        expect(
+            document.getElementById("tab-fast")!.classList.contains("active")
+        ).toBe(true);
+        expect(
+            document.getElementById("tab-other")!.classList.contains("active")
+        ).toBe(false);
     });
 
     it("logs error and returns false when element exists without classList", async () => {
@@ -65,7 +78,8 @@ describe("updateActiveTab.js - additional branches", () => {
             id === "tab-noclass" ? { id: "tab-noclass" } : originalGetById(id)
         );
 
-        const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { updateActiveTab } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         const ok = updateActiveTab("tab-noclass");
 
         expect(ok).toBe(false);
@@ -82,7 +96,8 @@ describe("updateActiveTab.js - additional branches", () => {
       <button id="tab-disabled-prop" class="tab-button" disabled>Disabled</button>
     `;
 
-        const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
         // Dispatch a real click event; handler should prevent state update
@@ -96,7 +111,8 @@ describe("updateActiveTab.js - additional branches", () => {
       <button id="tab-disabled-class" class="tab-button tab-disabled">Disabled</button>
     `;
 
-        const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
         document.getElementById("tab-disabled-class")!.click();

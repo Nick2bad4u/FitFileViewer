@@ -12,11 +12,16 @@ const h = vi.hoisted(() => {
         chartSettings[key] = value;
         return true;
     });
-    const getChartFieldVisibility = vi.fn((field: string, fallback = "visible") => fieldVisibility[field] ?? fallback);
-    const setChartFieldVisibility = vi.fn((field: string, visibility: string) => {
-        fieldVisibility[field] = visibility;
-        return { [field]: visibility };
-    });
+    const getChartFieldVisibility = vi.fn(
+        (field: string, fallback = "visible") =>
+            fieldVisibility[field] ?? fallback
+    );
+    const setChartFieldVisibility = vi.fn(
+        (field: string, visibility: string) => {
+            fieldVisibility[field] = visibility;
+            return { [field]: visibility };
+        }
+    );
 
     return {
         state: {} as Record<string, any>,
@@ -103,9 +108,27 @@ vi.mock("../../utils/app/initialization/getCurrentSettings.js", () => ({
 
 vi.mock("../../utils/charts/plugins/chartOptionsConfig.js", () => ({
     chartOptionsConfig: [
-        { id: "alpha", label: "Alpha", type: "range", min: 0, max: 100, step: 5, default: 10 },
+        {
+            id: "alpha",
+            label: "Alpha",
+            type: "range",
+            min: 0,
+            max: 100,
+            step: 5,
+            default: 10,
+        },
         { id: "smoothing", label: "Smoothing", type: "toggle", default: true },
-        { id: "maxpoints", label: "Max Points", type: "select", options: ["all", 100, 500], default: "all" },
+        {
+            id: "maxpoints",
+            label: "Max Points",
+            type: "select",
+            options: [
+                "all",
+                100,
+                500,
+            ],
+            default: "all",
+        },
     ],
 }));
 
@@ -203,18 +226,45 @@ function seedGlobalData() {
             },
         ],
         timeInZoneMesgs: [
-            { referenceMesg: "lap", timeInHrZone: [1, 2, 3] },
-            { referenceMesg: "lap", timeInPowerZone: [1, 2, 3] },
+            {
+                referenceMesg: "lap",
+                timeInHrZone: [
+                    1,
+                    2,
+                    3,
+                ],
+            },
+            {
+                referenceMesg: "lap",
+                timeInPowerZone: [
+                    1,
+                    2,
+                    3,
+                ],
+            },
         ],
         eventMesgs: [{ type: "pause" }],
     };
 }
 
 function seedCharts(count = 2) {
-    (window as any)._chartjsInstances = Array.from({ length: count }).map((_, i) => ({
-        data: { datasets: [{ label: `Field ${i + 1}`, data: [1, 2, 3] }] },
-        config: { type: "line" },
-    }));
+    (window as any)._chartjsInstances = Array.from({ length: count }).map(
+        (_, i) => ({
+            data: {
+                datasets: [
+                    {
+                        label: `Field ${i + 1}`,
+                        data: [
+                            1,
+                            2,
+                            3,
+                        ],
+                    },
+                ],
+            },
+            config: { type: "line" },
+        })
+    );
 }
 
 beforeEach(() => {
@@ -255,7 +305,9 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Toggle button exists and points to wrapper
         const toggleBtn = document.getElementById("chart-controls-toggle");
         expect(toggleBtn).toBeTruthy();
-        expect(toggleBtn?.getAttribute("aria-controls")).toBe("chartjs-settings-wrapper");
+        expect(toggleBtn?.getAttribute("aria-controls")).toBe(
+            "chartjs-settings-wrapper"
+        );
 
         // Wrapper and sections exist
         const wrapper = document.getElementById("chartjs-settings-wrapper");
@@ -287,30 +339,48 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
 
         // Range slider
-        const alphaSlider = wrapper.querySelector("#chartjs-alpha-slider") as HTMLInputElement;
+        const alphaSlider = wrapper.querySelector(
+            "#chartjs-alpha-slider"
+        ) as HTMLInputElement;
         expect(alphaSlider).toBeTruthy();
         alphaSlider.value = "25";
         alphaSlider.dispatchEvent(new Event("input", { bubbles: true }));
         expect(chartSettings.alpha).toBe(25);
         // Debounce 300ms
-        expect(spies.reRenderChartsAfterSettingChange).not.toHaveBeenCalledWith("alpha", "25");
+        expect(spies.reRenderChartsAfterSettingChange).not.toHaveBeenCalledWith(
+            "alpha",
+            "25"
+        );
         vi.advanceTimersByTime(300);
-        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("alpha", "25");
+        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
+            "alpha",
+            "25"
+        );
 
         // Toggle control
-        const toggleSwitch = wrapper.querySelector(".toggle-switch") as HTMLElement;
+        const toggleSwitch = wrapper.querySelector(
+            ".toggle-switch"
+        ) as HTMLElement;
         expect(toggleSwitch).toBeTruthy();
         toggleSwitch.click();
         expect(chartSettings.smoothing).toBe(false); // default true -> toggled to false
-        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("smoothing", false);
+        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
+            "smoothing",
+            false
+        );
 
         // Select control
-        const maxpoints = wrapper.querySelector("#chartjs-maxpoints-dropdown") as HTMLSelectElement;
+        const maxpoints = wrapper.querySelector(
+            "#chartjs-maxpoints-dropdown"
+        ) as HTMLSelectElement;
         expect(maxpoints).toBeTruthy();
         maxpoints.value = "100";
         maxpoints.dispatchEvent(new Event("change", { bubbles: true }));
         expect(chartSettings.maxpoints).toBe(100);
-        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("maxpoints", 100);
+        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
+            "maxpoints",
+            100
+        );
     });
 
     it("field toggle hides/shows and triggers state render and status updates; color picker updates", () => {
@@ -321,9 +391,13 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
 
         // Regular field has color picker
-        const speedCheckbox = wrapper.querySelector("#field-toggle-speed") as HTMLInputElement;
+        const speedCheckbox = wrapper.querySelector(
+            "#field-toggle-speed"
+        ) as HTMLInputElement;
         expect(speedCheckbox).toBeTruthy();
-        const speedColor = speedCheckbox.parentElement?.querySelector('input[type="color"]') as HTMLInputElement;
+        const speedColor = speedCheckbox.parentElement?.querySelector(
+            'input[type="color"]'
+        ) as HTMLInputElement;
         expect(speedColor).toBeTruthy();
 
         // Toggle off
@@ -338,12 +412,19 @@ describe("ensureChartSettingsDropdowns integration", () => {
         speedColor.value = "#abcdef";
         speedColor.dispatchEvent(new Event("change", { bubbles: true }));
         expect(chartSettings.color_speed).toBe("#abcdef");
-        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith("speed_color", "#abcdef");
+        expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
+            "speed_color",
+            "#abcdef"
+        );
 
         // Zone chart has no color picker
-        const hrZone = wrapper.querySelector("#field-toggle-hr_zone_doughnut") as HTMLInputElement;
+        const hrZone = wrapper.querySelector(
+            "#field-toggle-hr_zone_doughnut"
+        ) as HTMLInputElement;
         expect(hrZone).toBeTruthy();
-        const hasPicker = hrZone.parentElement?.querySelector('input[type="color"]');
+        const hasPicker = hrZone.parentElement?.querySelector(
+            'input[type="color"]'
+        );
         expect(hasPicker).toBeNull();
     });
 
@@ -355,25 +436,31 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
-        const enableAll = Array.from(wrapper.querySelectorAll("button")).find((b) =>
-            b.textContent?.includes("Enable All")
+        const enableAll = Array.from(wrapper.querySelectorAll("button")).find(
+            (b) => b.textContent?.includes("Enable All")
         ) as HTMLButtonElement;
-        const disableAll = Array.from(wrapper.querySelectorAll("button")).find((b) =>
-            b.textContent?.includes("Disable All")
+        const disableAll = Array.from(wrapper.querySelectorAll("button")).find(
+            (b) => b.textContent?.includes("Disable All")
         ) as HTMLButtonElement;
 
         expect(enableAll).toBeTruthy();
         expect(disableAll).toBeTruthy();
 
         enableAll.click();
-        expect(spies.showNotification).toHaveBeenCalledWith("All charts enabled", "success");
+        expect(spies.showNotification).toHaveBeenCalledWith(
+            "All charts enabled",
+            "success"
+        );
         // spot check a couple of keys
         expect(getChartFieldVisibility("speed")).toBe("visible");
         expect(getChartFieldVisibility("heartRate")).toBe("visible");
         expect(spies.debouncedRender).toHaveBeenCalled();
 
         disableAll.click();
-        expect(spies.showNotification).toHaveBeenCalledWith("All charts disabled", "success");
+        expect(spies.showNotification).toHaveBeenCalledWith(
+            "All charts disabled",
+            "success"
+        );
         expect(getChartFieldVisibility("speed")).toBe("hidden");
         expect(getChartFieldVisibility("heartRate")).toBe("hidden");
 
@@ -390,19 +477,24 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         // No charts path
         delete (window as any)._chartjsInstances;
-        const exportZipBtn = Array.from(wrapper.querySelectorAll("button")).find((b) =>
+        const exportZipBtn = Array.from(
+            wrapper.querySelectorAll("button")
+        ).find((b) =>
             b.textContent?.includes("Export ZIP")
         ) as HTMLButtonElement;
         expect(exportZipBtn).toBeTruthy();
         exportZipBtn.click();
-        expect(spies.showNotification).toHaveBeenCalledWith("No charts available to export", "warning");
+        expect(spies.showNotification).toHaveBeenCalledWith(
+            "No charts available to export",
+            "warning"
+        );
         expect(exportUtils.exportAllAsZip).not.toHaveBeenCalled();
 
         // Seed charts and click Save PNG and Combined
         seedCharts(2);
 
-        const savePngBtn = Array.from(wrapper.querySelectorAll("button")).find((b) =>
-            b.textContent?.includes("Save PNG")
+        const savePngBtn = Array.from(wrapper.querySelectorAll("button")).find(
+            (b) => b.textContent?.includes("Save PNG")
         ) as HTMLButtonElement;
         expect(savePngBtn).toBeTruthy();
 
@@ -411,9 +503,9 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Modal should exist with chart buttons and combined
         const overlay = document.querySelector('div[style*="position: fixed"]');
         expect(overlay).toBeTruthy();
-        const chartButtons = Array.from(overlay!.querySelectorAll("button")).filter((b) =>
-            b.textContent?.startsWith("📊")
-        );
+        const chartButtons = Array.from(
+            overlay!.querySelectorAll("button")
+        ).filter((b) => b.textContent?.startsWith("📊"));
         expect(chartButtons.length).toBeGreaterThanOrEqual(2);
 
         // Click first chart -> downloadChartAsPNG called
@@ -422,7 +514,9 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         // Reopen and click combined
         savePngBtn.click();
-        const combinedBtn = Array.from(document.querySelectorAll("button")).find((b) =>
+        const combinedBtn = Array.from(
+            document.querySelectorAll("button")
+        ).find((b) =>
             b.textContent?.startsWith("🔗 All Charts Combined")
         ) as HTMLButtonElement;
         expect(combinedBtn).toBeTruthy();
@@ -436,8 +530,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const header = document.querySelector(".settings-header")!;
-        const resetBtn = Array.from(header.querySelectorAll("button")).find((b) =>
-            b.textContent?.includes("Reset")
+        const resetBtn = Array.from(header.querySelectorAll("button")).find(
+            (b) => b.textContent?.includes("Reset")
         ) as HTMLButtonElement;
         expect(resetBtn).toBeTruthy();
 

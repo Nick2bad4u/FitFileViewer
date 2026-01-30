@@ -29,14 +29,21 @@ vi.mock("../../../../utils/theming/core/theme.js", () => ({
         },
     })),
 }));
-vi.mock("../../../../utils/formatting/formatters/formatHeight.js", () => ({ formatHeight: vi.fn((v) => `${v}cm`) }));
-vi.mock("../../../../utils/formatting/formatters/formatWeight.js", () => ({ formatWeight: vi.fn((v) => `${v}kg`) }));
+vi.mock("../../../../utils/formatting/formatters/formatHeight.js", () => ({
+    formatHeight: vi.fn((v) => `${v}cm`),
+}));
+vi.mock("../../../../utils/formatting/formatters/formatWeight.js", () => ({
+    formatWeight: vi.fn((v) => `${v}kg`),
+}));
 vi.mock("../../../../utils/formatting/formatters/formatSensorName.js", () => ({
     formatSensorName: vi.fn(() => "Garmin Foo"),
 }));
-vi.mock("../../../../utils/formatting/formatters/formatManufacturer.js", () => ({
-    formatManufacturer: vi.fn(() => "Garmin"),
-}));
+vi.mock(
+    "../../../../utils/formatting/formatters/formatManufacturer.js",
+    () => ({
+        formatManufacturer: vi.fn(() => "Garmin"),
+    })
+);
 vi.mock("../../../../utils/formatting/display/formatCapitalize.js", () => ({
     formatCapitalize: vi.fn((s) => String(s)),
 }));
@@ -63,10 +70,21 @@ describe("createUserDeviceInfoBox", () => {
         const container = makeContainer();
         // @ts-ignore
         window.globalData = {
-            userProfileMesgs: [{ friendlyName: "nick", age: 30, height: 180, weight: 80 }],
+            userProfileMesgs: [
+                { friendlyName: "nick", age: 30, height: 180, weight: 80 },
+            ],
             deviceInfoMesgs: [
-                { sourceType: "local", deviceIndex: "creator", manufacturer: "garmin", garminProduct: "123" },
-                { sourceType: "antplus", manufacturer: "garmin", garminProduct: "456" },
+                {
+                    sourceType: "local",
+                    deviceIndex: "creator",
+                    manufacturer: "garmin",
+                    garminProduct: "123",
+                },
+                {
+                    sourceType: "antplus",
+                    manufacturer: "garmin",
+                    garminProduct: "456",
+                },
             ],
         };
 
@@ -129,7 +147,12 @@ describe("createUserDeviceInfoBox", () => {
                 },
             ],
             deviceInfoMesgs: [
-                { sourceType: "local", deviceIndex: "creator", manufacturer: "garmin", garminProduct: "x" },
+                {
+                    sourceType: "local",
+                    deviceIndex: "creator",
+                    manufacturer: "garmin",
+                    garminProduct: "x",
+                },
             ],
         };
 
@@ -181,7 +204,12 @@ describe("createUserDeviceInfoBox", () => {
                     serialNumber: "SN-XYZ-123456",
                     softwareVersion: 9,
                 },
-                { sourceType: "antplus", deviceIndex: 2, manufacturer: "garmin", garminProduct: "HRM" },
+                {
+                    sourceType: "antplus",
+                    deviceIndex: 2,
+                    manufacturer: "garmin",
+                    garminProduct: "HRM",
+                },
             ],
         };
 
@@ -201,7 +229,12 @@ describe("createUserDeviceInfoBox", () => {
         window.globalData = {
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
-                { sourceType: "local", deviceIndex: "creator", manufacturer: "garmin", garminProduct: "500" },
+                {
+                    sourceType: "local",
+                    deviceIndex: "creator",
+                    manufacturer: "garmin",
+                    garminProduct: "500",
+                },
                 // Valid sensor: should render
                 { sourceType: "antplus", manufacturer: "garmin" },
                 // Invalid sensor (no manufacturer/garminProduct): should not render pill
@@ -222,7 +255,9 @@ describe("createUserDeviceInfoBox", () => {
 
         // @ts-ignore
         window.globalData = {
-            userProfileMesgs: [{ friendlyName: "<img src=x onerror=alert(1)>bad" }],
+            userProfileMesgs: [
+                { friendlyName: "<img src=x onerror=alert(1)>bad" },
+            ],
             deviceInfoMesgs: [],
         };
 
@@ -244,12 +279,20 @@ describe("createUserDeviceInfoBox", () => {
         // @ts-ignore
         window.globalData = {
             userProfileMesgs: [{}],
-            deviceInfoMesgs: [{ sourceType: "local", deviceIndex: "creator", manufacturer: "garmin" }],
+            deviceInfoMesgs: [
+                {
+                    sourceType: "local",
+                    deviceIndex: "creator",
+                    manufacturer: "garmin",
+                },
+            ],
         };
 
         createUserDeviceInfoBox(container);
 
-        const infoBox = container.querySelector<HTMLDivElement>(".user-device-info-box");
+        const infoBox = container.querySelector<HTMLDivElement>(
+            ".user-device-info-box"
+        );
         expect(infoBox).toBeTruthy();
 
         // Simulate hover events on the infoBox to exercise event listeners
@@ -270,7 +313,9 @@ describe("createUserDeviceInfoBox", () => {
 
     it("does not throw and logs error when an exception occurs", () => {
         const container = makeContainer();
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const consoleSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Force an error by making append throw (not appendChild)
         const originalAppend = container.append.bind(container);

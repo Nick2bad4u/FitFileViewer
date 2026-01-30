@@ -1,8 +1,13 @@
 /**
- * @fileoverview Chart Tab Integration - Clean integration between chart state and tab management
- * @description Provides a clean interface for chart tab functionality without hacky implementations
- * @author FitFileViewer Development Team
+ * Provides a clean interface for chart tab functionality without hacky
+ * implementations
+ *
  * @version 3.0.0
+ *
+ * @file Chart Tab Integration - Clean integration between chart state and tab
+ *   management
+ *
+ * @author FitFileViewer Development Team
  */
 
 import { getState, subscribe } from "../../state/core/stateManager.js";
@@ -11,7 +16,8 @@ import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
 
 /**
- * Chart Tab Integration - manages the interaction between chart rendering and tab system
+ * Chart Tab Integration - manages the interaction between chart rendering and
+ * tab system
  */
 class ChartTabIntegration {
     isInitialized = false;
@@ -27,15 +33,23 @@ class ChartTabIntegration {
         const globalData = getState("globalData");
 
         if (!globalData || !globalData.recordMesgs) {
-            console.log("[ChartTabIntegration] No data available for chart rendering");
+            console.log(
+                "[ChartTabIntegration] No data available for chart rendering"
+            );
             return;
         }
 
         if (this.isChartTabActive()) {
-            console.log("[ChartTabIntegration] Chart tab is active, requesting render");
-            chartStateManager.debouncedRender("Integration check after file load");
+            console.log(
+                "[ChartTabIntegration] Chart tab is active, requesting render"
+            );
+            chartStateManager.debouncedRender(
+                "Integration check after file load"
+            );
         } else {
-            console.log("[ChartTabIntegration] Chart tab not active, skipping render");
+            console.log(
+                "[ChartTabIntegration] Chart tab not active, skipping render"
+            );
         }
     }
 
@@ -80,7 +94,8 @@ class ChartTabIntegration {
 
     /**
      * Get the chart tab button element
-     * @returns {HTMLElement|null} Chart tab button or null if not found
+     *
+     * @returns {HTMLElement | null} Chart tab button or null if not found
      */
     getChartTabButton() {
         return (
@@ -92,6 +107,7 @@ class ChartTabIntegration {
 
     /**
      * Get integration status information
+     *
      * @returns {Object} Status information
      */
     getStatus() {
@@ -106,10 +122,13 @@ class ChartTabIntegration {
 
     /**
      * Handle new data being loaded
+     *
      * @param {Object} newData - The new global data
      */
     handleDataChange(newData) {
-        console.log("[ChartTabIntegration] Data changed, updating availability");
+        console.log(
+            "[ChartTabIntegration] Data changed, updating availability"
+        );
 
         if (newData && /** @type {any} */ (newData).recordMesgs) {
             // Enable chart tab
@@ -117,7 +136,9 @@ class ChartTabIntegration {
 
             // If chart tab is active, render charts
             if (this.isChartTabActive()) {
-                chartStateManager.debouncedRender("New data loaded via integration");
+                chartStateManager.debouncedRender(
+                    "New data loaded via integration"
+                );
             }
         } else {
             // Disable chart tab and clear charts
@@ -143,6 +164,7 @@ class ChartTabIntegration {
 
     /**
      * Check if chart tab is currently active
+     *
      * @returns {boolean} True if chart tab is active
      */
     isChartTabActive() {
@@ -152,13 +174,17 @@ class ChartTabIntegration {
 
     /**
      * Force chart refresh (for external calls)
+     *
      * @param {string} reason - Reason for the refresh
      */
     refreshCharts(reason = "Manual refresh") {
         const globalData = getState("globalData");
 
         if (!globalData || !globalData.recordMesgs) {
-            showNotification("No data available for chart rendering", "warning");
+            showNotification(
+                "No data available for chart rendering",
+                "warning"
+            );
             return false;
         }
 
@@ -171,11 +197,14 @@ class ChartTabIntegration {
      */
     setupIntegration() {
         // Subscribe to file loading events to trigger chart updates
-        subscribe("globalData", (/** @type {any} */ newData, /** @type {any} */ oldData) => {
-            if (newData !== oldData) {
-                this.handleDataChange(newData);
+        subscribe(
+            "globalData",
+            (/** @type {any} */ newData, /** @type {any} */ oldData) => {
+                if (newData !== oldData) {
+                    this.handleDataChange(newData);
+                }
             }
-        });
+        );
 
         // Subscribe to file loading state
         subscribe("app.isOpeningFile", (/** @type {any} */ isOpening) => {
@@ -190,6 +219,7 @@ class ChartTabIntegration {
     }
     /**
      * Switch to chart tab
+     *
      * @returns {boolean} True if switch was successful
      */
     switchToChartTab() {
@@ -200,7 +230,10 @@ class ChartTabIntegration {
             return false;
         }
 
-        return tabStateManager.switchToTab("chartjs") || tabStateManager.switchToTab("chart");
+        return (
+            tabStateManager.switchToTab("chartjs") ||
+            tabStateManager.switchToTab("chart")
+        );
     }
 }
 

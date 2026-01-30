@@ -1,8 +1,10 @@
 /**
  * Comprehensive test suite for formatSensorName utility function
  *
- * Tests the function that formats sensor names for consistent display across the application.
- * Uses multiple formatting strategies depending on available sensor data:
+ * Tests the function that formats sensor names for consistent display across
+ * the application. Uses multiple formatting strategies depending on available
+ * sensor data:
+ *
  * 1. Manufacturer + Product combination (preferred)
  * 2. Garmin product name formatting
  * 3. Manufacturer name only
@@ -74,7 +76,10 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         it("should return fallback for null sensor", () => {
             const result = formatSensorName(null as any);
             expect(result).toBe("Unknown Sensor");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[formatSensorName] Invalid sensor object provided:", null);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[formatSensorName] Invalid sensor object provided:",
+                null
+            );
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
         });
@@ -104,7 +109,10 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         it("should return fallback for non-object sensor (number)", () => {
             const result = formatSensorName(123 as any);
             expect(result).toBe("Unknown Sensor");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[formatSensorName] Invalid sensor object provided:", 123);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[formatSensorName] Invalid sensor object provided:",
+                123
+            );
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
         });
@@ -112,7 +120,10 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         it("should return fallback for non-object sensor (boolean)", () => {
             const result = formatSensorName(true as any);
             expect(result).toBe("Unknown Sensor");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[formatSensorName] Invalid sensor object provided:", true);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[formatSensorName] Invalid sensor object provided:",
+                true
+            );
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
         });
@@ -470,11 +481,14 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
         it("should handle sensor with very long product names", () => {
             const sensor = {
-                garminProduct: "this_is_a_very_long_product_name_with_many_words",
+                garminProduct:
+                    "this_is_a_very_long_product_name_with_many_words",
             };
             const result = formatSensorName(sensor);
 
-            expect(result).toBe("This Is A Very Long Product Name With Many Words");
+            expect(result).toBe(
+                "This Is A Very Long Product Name With Many Words"
+            );
         });
 
         it("should handle sensor with special characters in garmin product", () => {
@@ -514,7 +528,14 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle array as manufacturer", () => {
-            const sensor = { manufacturer: [1, 2, 3] as any, product: 1735 };
+            const sensor = {
+                manufacturer: [
+                    1,
+                    2,
+                    3,
+                ] as any,
+                product: 1735,
+            };
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Unknown Sensor");
@@ -545,7 +566,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
             const sensor = { manufacturer: 1, product: 1735 };
             formatSensorName(sensor);
 
-            expect(formatManufacturer).toHaveBeenCalledBefore(formatProduct as any);
+            expect(formatManufacturer).toHaveBeenCalledBefore(
+                formatProduct as any
+            );
         });
 
         it("should handle multiple calls efficiently", () => {

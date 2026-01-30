@@ -20,18 +20,27 @@ const pngDataUrlSchema = z
 /**
  * Registers IPC handlers that write to the OS clipboard.
  *
- * Why IPC is required:
- * FitFileViewer uses `sandbox: true` renderers. In sandboxed renderers, the preload script
- * cannot reliably access Electron's `clipboard` / `nativeImage` modules directly.
- * Therefore, clipboard writes must be performed in the main process.
+ * Why IPC is required: FitFileViewer uses `sandbox: true` renderers. In
+ * sandboxed renderers, the preload script cannot reliably access Electron's
+ * `clipboard` / `nativeImage` modules directly. Therefore, clipboard writes
+ * must be performed in the main process.
  *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {() => any} options.clipboardRef
  * @param {() => any} options.nativeImageRef
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  */
-function registerClipboardHandlers({ registerIpcHandle, clipboardRef, nativeImageRef, logWithContext }) {
+function registerClipboardHandlers({
+    registerIpcHandle,
+    clipboardRef,
+    nativeImageRef,
+    logWithContext,
+}) {
     if (typeof registerIpcHandle !== "function") {
         return;
     }
@@ -58,32 +67,38 @@ function registerClipboardHandlers({ registerIpcHandle, clipboardRef, nativeImag
         }
     });
 
-    registerIpcHandle("clipboard:writePngDataUrl", async (_event, pngDataUrl) => {
-        try {
-            const parsed = pngDataUrlSchema.safeParse(String(pngDataUrl));
-            if (!parsed.success) {
-                return false;
-            }
+    registerIpcHandle(
+        "clipboard:writePngDataUrl",
+        async (_event, pngDataUrl) => {
+            try {
+                const parsed = pngDataUrlSchema.safeParse(String(pngDataUrl));
+                if (!parsed.success) {
+                    return false;
+                }
 
-            const clipboard = clipboardRef?.();
-            const nativeImage = nativeImageRef?.();
-            if (!clipboard || typeof clipboard.writeImage !== "function") {
-                return false;
-            }
-            if (!nativeImage || typeof nativeImage.createFromDataURL !== "function") {
-                return false;
-            }
+                const clipboard = clipboardRef?.();
+                const nativeImage = nativeImageRef?.();
+                if (!clipboard || typeof clipboard.writeImage !== "function") {
+                    return false;
+                }
+                if (
+                    !nativeImage ||
+                    typeof nativeImage.createFromDataURL !== "function"
+                ) {
+                    return false;
+                }
 
-            const image = nativeImage.createFromDataURL(parsed.data);
-            clipboard.writeImage(image);
-            return true;
-        } catch (error) {
-            logWithContext?.("warn", "clipboard:writePngDataUrl failed", {
-                error: /** @type {Error} */ (error)?.message,
-            });
-            return false;
+                const image = nativeImage.createFromDataURL(parsed.data);
+                clipboard.writeImage(image);
+                return true;
+            } catch (error) {
+                logWithContext?.("warn", "clipboard:writePngDataUrl failed", {
+                    error: /** @type {Error} */ (error)?.message,
+                });
+                return false;
+            }
         }
-    });
+    );
 }
 
 module.exports = { registerClipboardHandlers };

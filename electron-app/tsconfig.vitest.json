@@ -1,6 +1,5 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
-    "extends": "./tsconfig.json",
     "compilerOptions": {
         // Vitest's typecheck runner uses `tsc` directly and can trigger emission if
         // the base tsconfig enables declarations. Enforce noEmit here so running
@@ -16,9 +15,20 @@
         "noUnusedParameters": false,
         "checkJs": false,
         "allowJs": true,
-        "types": ["vitest", "node", "jsdom"],
+        "types": [
+            "vitest",
+            "node",
+            "jsdom"
+        ],
         "isolatedModules": false
     },
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage",
+        "libs"
+    ],
+    "extends": "./tsconfig.json",
     "include": [
         "tests/**/*.ts",
         "tests/**/*.tsx",
@@ -26,6 +36,5 @@
         "tests/**/*.cts",
         "global.d.ts",
         "tests/**/*.d.ts"
-    ],
-    "exclude": ["node_modules", "dist", "coverage", "libs"]
+    ]
 }

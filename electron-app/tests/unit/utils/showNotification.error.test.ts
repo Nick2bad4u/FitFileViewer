@@ -23,7 +23,8 @@ describe("showNotification.js - error handling coverage", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {
@@ -56,14 +57,18 @@ describe("showNotification.js - error handling coverage", () => {
         };
 
         // Ensure element exists so displayNotification path is taken
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
 
         // Queue and process
         notificationQueue.push(notification);
         await processNotificationQueue();
 
         // Error should be logged and queue processing should not crash
-        expect(console.error).toHaveBeenCalledWith("Error displaying notification:", expect.any(Error));
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification:",
+            expect.any(Error)
+        );
 
         // Reset state
         __testResetNotifications();
@@ -85,7 +90,9 @@ describe("showNotification.js - error handling coverage", () => {
         // Error should be caught and logged
         expect(console.error).toHaveBeenCalledWith(
             "Error displaying notification:",
-            expect.objectContaining({ message: "Simulated error in displayNotification" })
+            expect.objectContaining({
+                message: "Simulated error in displayNotification",
+            })
         );
     });
 
@@ -138,7 +145,9 @@ describe("showNotification.js - error handling coverage", () => {
 
         await p;
         const el = document.getElementById("notification")!;
-        const btn = el.querySelector(".notification-actions button") as HTMLButtonElement;
+        const btn = el.querySelector(
+            ".notification-actions button"
+        ) as HTMLButtonElement;
 
         // Instead of clicking, we'll verify the button exists with the right class
         expect(btn).toBeTruthy();

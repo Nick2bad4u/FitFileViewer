@@ -5,6 +5,7 @@ const { getAppState } = require("../state/appState");
  * Determines whether the provided BrowserWindow is still usable.
  *
  * @param {any} win - Candidate BrowserWindow instance.
+ *
  * @returns {boolean} True when the window and its webContents remain alive.
  */
 function isWindowUsable(win) {
@@ -12,30 +13,42 @@ function isWindowUsable(win) {
     try {
         const hasWebContents = Boolean(win.webContents);
         const webContentsDestroyed =
-            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
-        const windowDestroyed = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
-        return Boolean(!windowDestroyed && hasWebContents && !webContentsDestroyed);
+            hasWebContents && typeof win.webContents.isDestroyed === "function"
+                ? win.webContents.isDestroyed()
+                : true;
+        const windowDestroyed =
+            typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
+        return Boolean(
+            !windowDestroyed && hasWebContents && !webContentsDestroyed
+        );
     } catch {
         return false;
     }
 }
 
 /**
- * Validates that a BrowserWindow is usable and logs a structured warning when it is not.
+ * Validates that a BrowserWindow is usable and logs a structured warning when
+ * it is not.
  *
  * @param {any} win - Target BrowserWindow instance.
- * @param {string} [context="unknown operation"] - Description of the operation requiring the window.
+ * @param {string} [context="unknown operation"] - Description of the operation
+ *   requiring the window. Default is `"unknown operation"`
+ *
  * @returns {boolean} True when the window can be used.
  */
 function validateWindow(win, context = "unknown operation") {
     if (!isWindowUsable(win)) {
         if (!getAppState("appIsQuitting")) {
-            logWithContext("warn", `Window validation failed during ${context}`, {
-                hasWebContents: Boolean(win?.webContents),
-                hasWindow: Boolean(win),
-                isDestroyed: win?.isDestroyed?.(),
-                webContentsDestroyed: win?.webContents?.isDestroyed?.(),
-            });
+            logWithContext(
+                "warn",
+                `Window validation failed during ${context}`,
+                {
+                    hasWebContents: Boolean(win?.webContents),
+                    hasWindow: Boolean(win),
+                    isDestroyed: win?.isDestroyed?.(),
+                    webContentsDestroyed: win?.webContents?.isDestroyed?.(),
+                }
+            );
         }
         return false;
     }

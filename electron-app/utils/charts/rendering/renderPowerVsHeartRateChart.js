@@ -10,7 +10,15 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 /**
  * @param {HTMLElement} container
  * @param {any[]} data
- * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, animationStyle?: string, theme?: string }} options
+ * @param {{
+ *     maxPoints: number | "all";
+ *     showPoints?: boolean;
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ *     animationStyle?: string;
+ *     theme?: string;
+ * }} options
  */
 export function renderPowerVsHeartRateChart(container, data, options) {
     try {
@@ -24,20 +32,26 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             showTitle,
         } = options;
 
-        const hasHeartRate = data.some(({ heartRate }) => heartRate !== undefined && heartRate !== null),
-            hasPower = data.some(({ power }) => power !== undefined && power !== null);
+        const hasHeartRate = data.some(
+                ({ heartRate }) => heartRate !== undefined && heartRate !== null
+            ),
+            hasPower = data.some(
+                ({ power }) => power !== undefined && power !== null
+            );
 
         if (!hasPower || !hasHeartRate) {
             return;
         }
 
-        const visibility = chartSettingsManager.getFieldVisibility("power_vs_hr");
+        const visibility =
+            chartSettingsManager.getFieldVisibility("power_vs_hr");
         if (visibility === "hidden") {
             return;
         }
 
         // Determine theme
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
         const { colors } = themeConfig || {};
@@ -48,7 +62,12 @@ export function renderPowerVsHeartRateChart(container, data, options) {
 
         let chartData = data
             .map(({ heartRate, power }) => {
-                if (power !== undefined && power !== null && heartRate !== undefined && heartRate !== null) {
+                if (
+                    power !== undefined &&
+                    power !== null &&
+                    heartRate !== undefined &&
+                    heartRate !== null
+                ) {
                     return {
                         x: heartRate,
                         y: power,
@@ -68,7 +87,9 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("power-vs-hr", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas("power-vs-hr", 0)
+        );
         canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
         if (colors?.shadow) {
@@ -124,7 +145,10 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         callbacks: {
                             /** @param {any} context */
                             label(context) {
-                                return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
+                                return [
+                                    `Heart Rate: ${context.parsed.x} bpm`,
+                                    `Power: ${context.parsed.y} W`,
+                                ];
                             },
                         },
                         titleColor: textColor,
@@ -202,9 +226,14 @@ export function renderPowerVsHeartRateChart(container, data, options) {
 
         const chart = createManagedChart(canvas, config);
         if (chart) {
-            console.log("[ChartJS] Power vs Heart Rate chart created successfully");
+            console.log(
+                "[ChartJS] Power vs Heart Rate chart created successfully"
+            );
         }
     } catch (error) {
-        console.error("[ChartJS] Error rendering power vs heart rate chart:", error);
+        console.error(
+            "[ChartJS] Error rendering power vs heart rate chart:",
+            error
+        );
     }
 }

@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for files
- * @description Re-exports all subcategories in the files category
+ * Re-exports all subcategories in the files category
+ *
+ * @file Main Category Barrel Export for files
  */
 import * as fileExport from "./export/index.js";
 import * as fileImport from "./import/index.js";

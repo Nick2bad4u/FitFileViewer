@@ -16,13 +16,18 @@ type PowerEstimationSettings = {
     maxPowerW: number;
 };
 
-vi.mock("../../../../../utils/data/processing/powerEstimationSettings.js", () => ({
-    getPowerEstimationSettings: () => mockGetSettings(),
-    setPowerEstimationSettings: (s: PowerEstimationSettings) => mockSetSettings(s),
-}));
+vi.mock(
+    "../../../../../utils/data/processing/powerEstimationSettings.js",
+    () => ({
+        getPowerEstimationSettings: () => mockGetSettings(),
+        setPowerEstimationSettings: (s: PowerEstimationSettings) =>
+            mockSetSettings(s),
+    })
+);
 
 vi.mock("../../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: (msg: string, level: string) => mockShowNotification(msg, level),
+    showNotification: (msg: string, level: string) =>
+        mockShowNotification(msg, level),
 }));
 
 describe("openPowerEstimationSettingsModal.js", () => {
@@ -59,7 +64,10 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        openPowerEstimationSettingsModal({ hasRealPower: true, onApply: vi.fn() });
+        openPowerEstimationSettingsModal({
+            hasRealPower: true,
+            onApply: vi.fn(),
+        });
 
         expect(document.body.textContent).toContain("contains real power data");
     });
@@ -72,17 +80,22 @@ describe("openPowerEstimationSettingsModal.js", () => {
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
         // The first number input in the grid is rider weight.
-        const inputs = Array.from(document.querySelectorAll<HTMLInputElement>("input[type='number']"));
+        const inputs = Array.from(
+            document.querySelectorAll<HTMLInputElement>("input[type='number']")
+        );
         expect(inputs.length).toBeGreaterThan(0);
         inputs[0].value = "-1";
 
-        const applyBtn = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => b.textContent === "Apply"
-        );
+        const applyBtn = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button")
+        ).find((b) => b.textContent === "Apply");
         expect(applyBtn).toBeTruthy();
         applyBtn?.click();
 
-        expect(mockShowNotification).toHaveBeenCalledWith(expect.stringContaining("Rider weight"), "error");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.stringContaining("Rider weight"),
+            "error"
+        );
         expect(mockSetSettings).not.toHaveBeenCalled();
         expect(onApply).not.toHaveBeenCalled();
 
@@ -97,22 +110,27 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const checkbox = document.querySelector<HTMLInputElement>("input[type='checkbox']");
+        const checkbox = document.querySelector<HTMLInputElement>(
+            "input[type='checkbox']"
+        );
         expect(checkbox).toBeTruthy();
         checkbox!.checked = false;
 
-        const inputs = Array.from(document.querySelectorAll<HTMLInputElement>("input[type='number']"));
+        const inputs = Array.from(
+            document.querySelectorAll<HTMLInputElement>("input[type='number']")
+        );
         // rider weight
         inputs[0].value = "80";
 
-        const applyBtn = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => b.textContent === "Apply"
-        );
+        const applyBtn = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button")
+        ).find((b) => b.textContent === "Apply");
         expect(applyBtn).toBeTruthy();
         applyBtn?.click();
 
         expect(mockSetSettings).toHaveBeenCalledTimes(1);
-        const saved = mockSetSettings.mock.calls[0][0] as PowerEstimationSettings;
+        const saved = mockSetSettings.mock
+            .calls[0][0] as PowerEstimationSettings;
         expect(saved.enabled).toBe(false);
         expect(saved.riderWeightKg).toBe(80);
 
@@ -124,11 +142,14 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        openPowerEstimationSettingsModal({ hasRealPower: false, onApply: vi.fn() });
+        openPowerEstimationSettingsModal({
+            hasRealPower: false,
+            onApply: vi.fn(),
+        });
 
-        const cancelBtn = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => b.textContent === "Cancel"
-        );
+        const cancelBtn = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button")
+        ).find((b) => b.textContent === "Cancel");
         expect(cancelBtn).toBeTruthy();
         cancelBtn?.click();
 
@@ -142,17 +163,22 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const inputs = Array.from(document.querySelectorAll<HTMLInputElement>("input[type='number']"));
+        const inputs = Array.from(
+            document.querySelectorAll<HTMLInputElement>("input[type='number']")
+        );
         // CRR is the third number input in the form.
         inputs[2].value = "abc";
 
-        const applyBtn = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => b.textContent === "Apply"
-        );
+        const applyBtn = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button")
+        ).find((b) => b.textContent === "Apply");
         expect(applyBtn).toBeTruthy();
         applyBtn?.click();
 
-        expect(mockShowNotification).toHaveBeenCalledWith(expect.stringContaining("Rolling Resistance"), "error");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.stringContaining("Rolling Resistance"),
+            "error"
+        );
         expect(mockSetSettings).not.toHaveBeenCalled();
         expect(onApply).not.toHaveBeenCalled();
         expect(document.body.textContent).toContain("Estimated Power");
@@ -162,7 +188,10 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        openPowerEstimationSettingsModal({ hasRealPower: false, onApply: vi.fn() });
+        openPowerEstimationSettingsModal({
+            hasRealPower: false,
+            onApply: vi.fn(),
+        });
         const overlay = document.body.querySelector("div");
         expect(overlay).toBeTruthy();
 
@@ -180,9 +209,9 @@ describe("openPowerEstimationSettingsModal.js", () => {
 
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const applyBtn = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-            (b) => b.textContent === "Apply"
-        );
+        const applyBtn = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button")
+        ).find((b) => b.textContent === "Apply");
         expect(applyBtn).toBeTruthy();
         applyBtn?.click();
 

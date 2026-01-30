@@ -8,7 +8,10 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
     beforeEach(() => {
         // Ensure console object exists and has the required methods
-        if (!globalThis.console || typeof globalThis.console.log !== "function") {
+        if (
+            !globalThis.console ||
+            typeof globalThis.console.log !== "function"
+        ) {
             // Create a minimal console implementation for testing
             const mockConsole = {
                 log: vi.fn(),
@@ -36,9 +39,15 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         }
 
         // Now safely spy on console methods
-        consoleLogSpy = vi.spyOn(globalThis.console, "log").mockImplementation(() => {});
-        consoleWarnSpy = vi.spyOn(globalThis.console, "warn").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(globalThis.console, "error").mockImplementation(() => {});
+        consoleLogSpy = vi
+            .spyOn(globalThis.console, "log")
+            .mockImplementation(() => {});
+        consoleWarnSpy = vi
+            .spyOn(globalThis.console, "warn")
+            .mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(globalThis.console, "error")
+            .mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -47,7 +56,11 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
     describe("Array Input Tests", () => {
         it("should format array of valid numbers with default digits", () => {
-            const result = formatArray([1.234, 2.567, 3.891]);
+            const result = formatArray([
+                1.234,
+                2.567,
+                3.891,
+            ]);
             expect(result).toBe("1.23, 2.57, 3.89");
         });
 
@@ -57,7 +70,14 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should format array with zero decimal digits", () => {
-            const result = formatArray([1.234, 2.567, 3.891], 0);
+            const result = formatArray(
+                [
+                    1.234,
+                    2.567,
+                    3.891,
+                ],
+                0
+            );
             expect(result).toBe("1, 3, 4");
         });
 
@@ -72,12 +92,26 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should format integer values correctly", () => {
-            const result = formatArray([1, 2, 3], 2);
+            const result = formatArray(
+                [
+                    1,
+                    2,
+                    3,
+                ],
+                2
+            );
             expect(result).toBe("1, 2, 3");
         });
 
         it("should handle zero values", () => {
-            const result = formatArray([0, 0.0, -0], 3);
+            const result = formatArray(
+                [
+                    0,
+                    0.0,
+                    -0,
+                ],
+                3
+            );
             expect(result).toBe("0, 0, 0");
         });
 
@@ -97,40 +131,99 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should throw error for invalid numbers with strict validation (default)", () => {
-            expect(() => formatArray(["invalid", 2.5])).toThrow("Invalid number: invalid");
+            expect(() => formatArray(["invalid", 2.5])).toThrow(
+                "Invalid number: invalid"
+            );
         });
 
         it("should handle invalid numbers with strict validation disabled", () => {
-            const result = formatArray(["invalid", 2.5, "notanumber"], 2, { strictValidation: false });
+            const result = formatArray(
+                [
+                    "invalid",
+                    2.5,
+                    "notanumber",
+                ],
+                2,
+                {
+                    strictValidation: false,
+                }
+            );
             expect(result).toBe("invalid, 2.5, notanumber");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[FormatUtils] Invalid number: invalid");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[FormatUtils] Invalid number: notanumber");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[FormatUtils] Invalid number: invalid"
+            );
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[FormatUtils] Invalid number: notanumber"
+            );
         });
 
         it("should handle mixed valid and invalid numbers with strict validation disabled", () => {
-            const result = formatArray([1.23, "invalid", 4.56], 1, { strictValidation: false });
+            const result = formatArray(
+                [
+                    1.23,
+                    "invalid",
+                    4.56,
+                ],
+                1,
+                {
+                    strictValidation: false,
+                }
+            );
             expect(result).toBe("1.2, invalid, 4.6");
         });
 
         it("should handle array with NaN values in strict mode", () => {
-            expect(() => formatArray([1.2, NaN, 3.4])).toThrow("Invalid number: NaN");
+            expect(() =>
+                formatArray([
+                    1.2,
+                    NaN,
+                    3.4,
+                ])
+            ).toThrow("Invalid number: NaN");
         });
 
         it("should handle array with Infinity values in strict mode", () => {
-            expect(() => formatArray([1.2, Infinity, 3.4])).toThrow("Invalid number: Infinity");
+            expect(() =>
+                formatArray([
+                    1.2,
+                    Infinity,
+                    3.4,
+                ])
+            ).toThrow("Invalid number: Infinity");
         });
 
         it("should handle array with null/undefined values in strict mode", () => {
             // null is treated as 0 by Number(), so it doesn't throw
-            const result1 = formatArray([1.2, null, 3.4]);
+            const result1 = formatArray([
+                1.2,
+                null,
+                3.4,
+            ]);
             expect(result1).toBe("1.2, 0, 3.4");
 
             // undefined becomes invalid and throws with original value
-            expect(() => formatArray([1.2, undefined, 3.4])).toThrow("Invalid number: undefined");
+            expect(() =>
+                formatArray([
+                    1.2,
+                    undefined,
+                    3.4,
+                ])
+            ).toThrow("Invalid number: undefined");
         });
 
         it("should handle array with NaN/Infinity values with strict validation disabled", () => {
-            const result = formatArray([1.2, NaN, Infinity, -Infinity], 2, { strictValidation: false });
+            const result = formatArray(
+                [
+                    1.2,
+                    NaN,
+                    Infinity,
+                    -Infinity,
+                ],
+                2,
+                {
+                    strictValidation: false,
+                }
+            );
             expect(result).toBe("1.2, NaN, Infinity, -Infinity");
         });
     });
@@ -167,13 +260,19 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should throw error for invalid numbers in comma-separated string with strict validation", () => {
-            expect(() => formatArray("1.23,invalid,4.56")).toThrow("Invalid number in string: invalid");
+            expect(() => formatArray("1.23,invalid,4.56")).toThrow(
+                "Invalid number in string: invalid"
+            );
         });
 
         it("should handle invalid numbers in comma-separated string with strict validation disabled", () => {
-            const result = formatArray("1.23,invalid,4.56", 2, { strictValidation: false });
+            const result = formatArray("1.23,invalid,4.56", 2, {
+                strictValidation: false,
+            });
             expect(result).toBe("1.23, invalid, 4.56");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[FormatUtils] Invalid number in string: invalid");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[FormatUtils] Invalid number in string: invalid"
+            );
         });
 
         it("should handle comma-separated string with negative numbers", () => {
@@ -187,7 +286,9 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should handle comma-separated string with scientific notation", () => {
-            const result = formatArray("1e-3,2.5e2", 4, { strictValidation: false });
+            const result = formatArray("1e-3,2.5e2", 4, {
+                strictValidation: false,
+            });
             expect(result).toBe("0.0010, 250.0000");
         });
     });
@@ -223,11 +324,15 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should respect explicit strict validation true", () => {
-            expect(() => formatArray(["invalid", 1.2], 2, { strictValidation: true })).toThrow();
+            expect(() =>
+                formatArray(["invalid", 1.2], 2, { strictValidation: true })
+            ).toThrow();
         });
 
         it("should respect strict validation false", () => {
-            const result = formatArray(["invalid", 1.2], 2, { strictValidation: false });
+            const result = formatArray(["invalid", 1.2], 2, {
+                strictValidation: false,
+            });
             expect(result).toBe("invalid, 1.2");
         });
 
@@ -289,7 +394,9 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
         it("should handle negative digit values by throwing error", () => {
             // JavaScript toFixed() throws RangeError for negative digits
-            expect(() => formatArray([1.23456], -1)).toThrow("toFixed() digits argument must be between 0 and 100");
+            expect(() => formatArray([1.23456], -1)).toThrow(
+                "toFixed() digits argument must be between 0 and 100"
+            );
         });
 
         it("should throw and log error when internal error occurs", () => {
@@ -300,7 +407,9 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
             });
 
             expect(() => formatArray([1.23])).toThrow("Mocked toFixed error");
-            expect(consoleErrorSpy).toHaveBeenCalledWith("[FormatUtils] Error formatting array: Mocked toFixed error");
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[FormatUtils] Error formatting array: Mocked toFixed error"
+            );
 
             // Restore original method
             Number.prototype.toFixed = originalToFixed;
@@ -347,7 +456,17 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should handle mixed types in non-strict mode", () => {
-            const result = formatArray([1.23, "2.45", 3], 1, { strictValidation: false });
+            const result = formatArray(
+                [
+                    1.23,
+                    "2.45",
+                    3,
+                ],
+                1,
+                {
+                    strictValidation: false,
+                }
+            );
             expect(result).toBe("1.2, 2.5, 3"); // parseFloat removes trailing zeros for integers
         });
     });
@@ -375,7 +494,9 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
             try {
                 // This should trigger the catch block in logWithContext
-                const result = formatArray([1, "invalid"], 2, { strictValidation: false });
+                const result = formatArray([1, "invalid"], 2, {
+                    strictValidation: false,
+                });
                 // Should still return a result despite logging error
                 expect(result).toBe("1, invalid");
             } finally {
@@ -393,25 +514,70 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
         it("should handle specific parseFloat edge cases for coverage", () => {
             // Test specific conditions that might trigger uncovered branches
-            const result = formatArray(["0.0", "00.00", "+1.23", " 2.34 "], 2, { strictValidation: false });
+            const result = formatArray(
+                [
+                    "0.0",
+                    "00.00",
+                    "+1.23",
+                    " 2.34 ",
+                ],
+                2,
+                {
+                    strictValidation: false,
+                }
+            );
             expect(result).toBe("0, 0, 1.23, 2.34");
         });
 
         it("should trigger all validation paths in strict mode", () => {
             // Test various invalid inputs to ensure all validation paths are covered
             // null is converted to 0 by Number(), so it's actually valid, but undefined and 'NaN' are invalid
-            expect(() => formatArray([1, undefined, 3], 2, { strictValidation: true })).toThrow();
-            expect(() => formatArray([1, "NaN", 3], 2, { strictValidation: true })).toThrow();
-            expect(() => formatArray([1, "invalid", 3], 2, { strictValidation: true })).toThrow();
+            expect(() =>
+                formatArray(
+                    [
+                        1,
+                        undefined,
+                        3,
+                    ],
+                    2,
+                    { strictValidation: true }
+                )
+            ).toThrow();
+            expect(() =>
+                formatArray(
+                    [
+                        1,
+                        "NaN",
+                        3,
+                    ],
+                    2,
+                    { strictValidation: true }
+                )
+            ).toThrow();
+            expect(() =>
+                formatArray(
+                    [
+                        1,
+                        "invalid",
+                        3,
+                    ],
+                    2,
+                    { strictValidation: true }
+                )
+            ).toThrow();
         });
 
         it("should handle string parsing edge cases for full branch coverage", () => {
             // Test string processing to ensure all branches are covered
-            const result1 = formatArray("1.0,2.0,3.0", 0, { strictValidation: false });
+            const result1 = formatArray("1.0,2.0,3.0", 0, {
+                strictValidation: false,
+            });
             expect(result1).toBe("1, 2, 3");
 
             // Empty strings are converted to 0 by Number(), so they become valid numbers
-            const result2 = formatArray("1,,,4", 1, { strictValidation: false });
+            const result2 = formatArray("1,,,4", 1, {
+                strictValidation: false,
+            });
             expect(result2).toBe("1.0, 0.0, 0.0, 4.0"); // Empty strings become 0.0
         });
 

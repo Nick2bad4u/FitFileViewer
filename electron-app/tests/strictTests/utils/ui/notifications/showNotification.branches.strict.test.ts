@@ -23,7 +23,8 @@ describe("showNotification.js - branches (strict)", () => {
             // jsdom doesn't care about the return value; 0 is fine
             return 0 as unknown as number;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
         __testResetNotifications();
     });
 
@@ -58,21 +59,28 @@ describe("showNotification.js - branches (strict)", () => {
         // async functions always return a Promise, even on early return
         expect(res1).toBeInstanceOf(Promise);
         await res1;
-        expect(console.warn).toHaveBeenCalledWith("showNotification: Invalid message provided");
+        expect(console.warn).toHaveBeenCalledWith(
+            "showNotification: Invalid message provided"
+        );
 
         // Empty string should also warn and return
         const res2 = showNotification("");
         expect(res2).toBeInstanceOf(Promise);
         await res2;
         expect(
-            (console.warn as any).mock.calls.filter((c: any[]) => c[0] === "showNotification: Invalid message provided")
-                .length
+            (console.warn as any).mock.calls.filter(
+                (c: any[]) =>
+                    c[0] === "showNotification: Invalid message provided"
+            ).length
         ).toBeGreaterThanOrEqual(2);
     });
 
     it("triggers onClick when clicking outside actions and hides", async () => {
         const onClick = vi.fn();
-        const p = showNotification("Clickable", "info", undefined, { onClick, persistent: true });
+        const p = showNotification("Clickable", "info", undefined, {
+            onClick,
+            persistent: true,
+        });
         await p;
         const el = document.getElementById("notification")!;
         // Dispatch a click with target as the element itself (outside actions)
@@ -87,7 +95,9 @@ describe("showNotification.js - branches (strict)", () => {
         const p = notify.persistent("Persistent one");
         await p;
         const el = document.getElementById("notification")!;
-        const closeBtn = el.querySelector(".notification-close") as HTMLButtonElement;
+        const closeBtn = el.querySelector(
+            ".notification-close"
+        ) as HTMLButtonElement;
         expect(closeBtn).toBeTruthy();
         closeBtn.click();
         vi.advanceTimersByTime(300);
@@ -95,7 +105,9 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("omits icon element when options.icon is an empty string", async () => {
-        const p = showNotification("No icon please", "info", undefined, { icon: "" });
+        const p = showNotification("No icon please", "info", undefined, {
+            icon: "",
+        });
         await p;
         const el = document.getElementById("notification")!;
         expect(el.querySelector(".notification-icon")).toBeNull();
@@ -103,7 +115,9 @@ describe("showNotification.js - branches (strict)", () => {
 
     it("action with onClick executes and clears hideTimeout before transition hides", async () => {
         const onAction = vi.fn();
-        const p = showNotification("With action", "info", 500, { actions: [{ text: "Do it", onClick: onAction }] });
+        const p = showNotification("With action", "info", 500, {
+            actions: [{ text: "Do it", onClick: onAction }],
+        });
         await p;
         const el = document.getElementById("notification")! as any;
         const spyClear = vi.spyOn(window, "clearTimeout");
@@ -111,12 +125,17 @@ describe("showNotification.js - branches (strict)", () => {
         el.hideTimeout = setTimeout(() => {
             /* no-op */
         }, 999_999);
-        const btn = el.querySelector(".notification-actions button") as HTMLButtonElement;
+        const btn = el.querySelector(
+            ".notification-actions button"
+        ) as HTMLButtonElement;
         btn.click();
         expect(onAction).toHaveBeenCalledTimes(1);
         expect(spyClear).toHaveBeenCalled();
         vi.advanceTimersByTime(300);
-        expect((document.getElementById("notification") as HTMLElement).style.display).toBe("none");
+        expect(
+            (document.getElementById("notification") as HTMLElement).style
+                .display
+        ).toBe("none");
         spyClear.mockRestore();
     });
 
@@ -159,7 +178,9 @@ describe("showNotification.js - branches (strict)", () => {
         });
         await p;
         const el = document.getElementById("notification")!;
-        const btn = el.querySelector(".notification-actions button") as HTMLButtonElement;
+        const btn = el.querySelector(
+            ".notification-actions button"
+        ) as HTMLButtonElement;
         btn.click();
         // onClick is guarded by target.closest('.notification-actions'); ensure it didn't fire
         expect(onContainerClick).not.toHaveBeenCalled();
@@ -208,7 +229,11 @@ describe("showNotification.js - branches (strict)", () => {
 
         // At least one console.error call should include the prefix
         const errorCalls = (console.error as any).mock.calls as any[];
-        expect(errorCalls.some((args) => String(args[0]).includes("Error displaying notification"))).toBe(true);
+        expect(
+            errorCalls.some((args) =>
+                String(args[0]).includes("Error displaying notification")
+            )
+        ).toBe(true);
 
         // Restore explicitly to avoid cross-test effects
         spy.mockRestore();

@@ -1,6 +1,6 @@
 /**
- * Initialize the complete state management system
- * Call this once during application startup
+ * Initialize the complete state management system Call this once during
+ * application startup
  */
 export function initializeAppState(): void;
 export function initializeCompleteStateSystem(): void;
@@ -22,6 +22,7 @@ export function setupStatePerformanceMonitoring(): void;
 export function setupStatePersistence(): void;
 /**
  * @typedef {Object} DebugUtilities
+ *
  * @property {Function} getState - Get state by path
  * @property {Function} setState - Set state value
  * @property {Object} AppActions - Application action functions
@@ -32,6 +33,7 @@ export function setupStatePersistence(): void;
  */
 /**
  * @typedef {Object} AppStateMigration
+ *
  * @property {Function[]} migrations - Array of migration functions
  */
 /**
@@ -42,6 +44,7 @@ export class StateMigrationHelper {
     migrations: Function[];
     /**
      * Add a migration function
+     *
      * @param {Function} migrationFn - Function to run migration
      */
     addMigration(migrationFn: Function): void;

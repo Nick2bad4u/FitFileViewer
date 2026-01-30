@@ -53,7 +53,11 @@ describe("mapMeasureTool.js", () => {
                 const lng2 = p2.lng;
 
                 // Simple Euclidean distance (not real-world, just for testing)
-                return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2)) * 111000; // Rough meters
+                return (
+                    Math.sqrt(
+                        Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2)
+                    ) * 111000
+                ); // Rough meters
             }),
         };
 
@@ -118,13 +122,18 @@ describe("mapMeasureTool.js", () => {
         const button = controlsDiv.querySelector("button.map-action-btn");
         expect(button).not.toBeNull();
         expect(button?.textContent?.trim().includes("Measure")).toBe(true);
-        expect(/** @type {HTMLButtonElement} */ button?.title).toContain("Click, then click two points");
+        expect(/** @type {HTMLButtonElement} */ button?.title).toContain(
+            "Click, then click two points"
+        );
     });
 
     it("should enable measurement mode when button is clicked", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
         expect(button).not.toBeNull();
 
         // Click the button to enable measurement
@@ -150,19 +159,27 @@ describe("mapMeasureTool.js", () => {
     it("should handle map clicks in measurement mode", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
 
         // Enable measurement mode
         button.click();
 
         // Get the click handler
-        const clickHandler = mockMap.on.mock.calls.find(/** @param {any} call */ (call) => call[0] === "click")[1];
+        const clickHandler = mockMap.on.mock.calls.find(
+            /** @param {any} call */ (call) => call[0] === "click"
+        )[1];
 
         // Simulate first point click
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
         // Should have added a marker
-        expect(global.L.marker).toHaveBeenCalledWith({ lat: 0, lng: 0 }, { draggable: false });
+        expect(global.L.marker).toHaveBeenCalledWith(
+            { lat: 0, lng: 0 },
+            { draggable: false }
+        );
         expect(mockMap.addLayer).toHaveBeenCalled();
 
         // Reset mock counts to distinguish second click calls
@@ -173,7 +190,10 @@ describe("mapMeasureTool.js", () => {
         clickHandler({ latlng: { lat: 1, lng: 1 } });
 
         // Should have added another marker
-        expect(global.L.marker).toHaveBeenCalledWith({ lat: 1, lng: 1 }, { draggable: false });
+        expect(global.L.marker).toHaveBeenCalledWith(
+            { lat: 1, lng: 1 },
+            { draggable: false }
+        );
         expect(mockMap.addLayer).toHaveBeenCalled();
 
         // Should have created a polyline and distance label
@@ -187,13 +207,18 @@ describe("mapMeasureTool.js", () => {
     it("should clear measurement when clicking twice in measure mode", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
 
         // Enable measurement mode
         button.click();
 
         // Get the click handler
-        const clickHandler = mockMap.on.mock.calls.find((call) => call[0] === "click")[1];
+        const clickHandler = mockMap.on.mock.calls.find(
+            (call) => call[0] === "click"
+        )[1];
 
         // Add two points to complete a measurement
         clickHandler({ latlng: { lat: 0, lng: 0 } });
@@ -212,13 +237,18 @@ describe("mapMeasureTool.js", () => {
     it("should handle Escape key to cancel measurement", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
 
         // Enable measurement mode
         button.click();
 
         // Get the click handler and make a point
-        const clickHandler = mockMap.on.mock.calls.find(/** @param {any} call */ (call) => call[0] === "click")[1];
+        const clickHandler = mockMap.on.mock.calls.find(
+            /** @param {any} call */ (call) => call[0] === "click"
+        )[1];
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
         // Reset mocks
@@ -239,7 +269,10 @@ describe("mapMeasureTool.js", () => {
     it("should disable and re-enable measurement mode when button is clicked twice", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
 
         // Enable measurement mode
         button.click();
@@ -281,19 +314,25 @@ describe("mapMeasureTool.js", () => {
 
                     // Override the addEventListener to capture handlers
                     const originalAddEventListener = el.addEventListener;
-                    /** @type {HTMLDivElement} */ el.addEventListener = function (
-                        /** @type {string} */ type,
-                        /** @type {EventListenerOrEventListenerObject} */ listener,
-                        /** @type {boolean | AddEventListenerOptions | undefined} */ options
-                    ) {
-                        // Capture the click listener for testing
-                        if (type === "click") {
-                            // We're not using this anymore but keeping the override
-                            // to demonstrate what the real code does
-                        }
-                        // Call the original method
-                        return originalAddEventListener.call(this, type, listener, options);
-                    };
+                    /** @type {HTMLDivElement} */ el.addEventListener =
+                        function (
+                            /** @type {string} */ type,
+                            /** @type {EventListenerOrEventListenerObject} */ listener,
+                            /** @type {boolean | AddEventListenerOptions | undefined} */ options
+                        ) {
+                            // Capture the click listener for testing
+                            if (type === "click") {
+                                // We're not using this anymore but keeping the override
+                                // to demonstrate what the real code does
+                            }
+                            // Call the original method
+                            return originalAddEventListener.call(
+                                this,
+                                type,
+                                listener,
+                                options
+                            );
+                        };
 
                     return el;
                 }),
@@ -304,13 +343,18 @@ describe("mapMeasureTool.js", () => {
         // Now initialize the measurement tool and create a measurement
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button = /** @type {HTMLButtonElement} */ controlsDiv.querySelector("button.map-action-btn");
+        const button =
+            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
+                "button.map-action-btn"
+            );
 
         // Enable measurement mode
         button.click();
 
         // Get the click handler
-        const mapClickHandler = mockMap.on.mock.calls.find(/** @param {any} call */ (call) => call[0] === "click")[1];
+        const mapClickHandler = mockMap.on.mock.calls.find(
+            /** @param {any} call */ (call) => call[0] === "click"
+        )[1];
 
         // Add two points to complete a measurement
         mapClickHandler({ latlng: { lat: 0, lng: 0 } });

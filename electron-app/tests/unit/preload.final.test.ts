@@ -1,7 +1,9 @@
 /**
- * @file preload.final.test.ts
- * @description Comprehensive test file for preload.js using module cache injection
- * Based on the successful module cache injection technique that achieved 74.55% coverage
+ * Comprehensive test file for preload.js using module cache injection Based on
+ * the successful module cache injection technique that achieved 74.55%
+ * coverage
+ *
+ * @file Preload.final.test.ts
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -138,7 +140,9 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
                 })
             );
 
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(2);
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(
+                2
+            );
         });
 
         it("should expose complete electronAPI structure", () => {
@@ -147,9 +151,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
 
             expect(electronAPICall).toBeDefined();
             const electronAPI = electronAPICall![1];
@@ -180,9 +185,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test validateAPI function
@@ -199,14 +205,17 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test getAppVersion method
             electronAPI.getAppVersion();
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("getAppVersion");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "getAppVersion"
+            );
         });
 
         it("should test event handling methods", () => {
@@ -215,20 +224,27 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test event registration
             const mockCallback = vi.fn();
             electronAPI.onMenuOpenFile(mockCallback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "menu-open-file",
+                expect.any(Function)
+            );
 
             const overlayCallback = vi.fn();
             electronAPI.onMenuOpenOverlay(overlayCallback);
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "menu-open-overlay",
+                expect.any(Function)
+            );
         });
 
         it("should test development tools API", () => {
@@ -237,7 +253,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const devToolsCall = mockContextBridge.exposeInMainWorld.mock.calls.find((call) => call[0] === "devTools");
+            const devToolsCall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "devTools"
+                );
 
             expect(devToolsCall).toBeDefined();
             const devTools = devToolsCall![1];
@@ -267,13 +286,21 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             require("../../preload.js");
 
             // Verify electronAPI was exposed
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.any(Object)
+            );
 
             // Verify devTools was NOT exposed in production mode
-            const devToolsCall = mockContextBridge.exposeInMainWorld.mock.calls.find((call) => call[0] === "devTools");
+            const devToolsCall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "devTools"
+                );
             expect(devToolsCall).toBeUndefined();
 
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(1);
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(
+                1
+            );
         });
 
         it("should have consistent API in production mode", () => {
@@ -282,9 +309,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
 
             expect(electronAPICall).toBeDefined();
             const electronAPI = electronAPICall![1];
@@ -363,9 +391,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test Gyazo server methods
@@ -381,9 +410,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test file operation methods
@@ -394,7 +424,9 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             // Test file dialog
             electronAPI.openFileDialog();
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("dialog:openFile");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "dialog:openFile"
+            );
         });
 
         it("should test theme management", () => {
@@ -403,9 +435,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test theme methods
@@ -424,9 +457,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall = mockContextBridge.exposeInMainWorld.mock.calls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
             const electronAPI = electronAPICall![1];
 
             // Test recent files methods
@@ -435,7 +469,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             // Test recent files operations
             electronAPI.addRecentFile("/test/path.fit");
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("recentFiles:add", "/test/path.fit");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "recentFiles:add",
+                "/test/path.fit"
+            );
         });
     });
 });

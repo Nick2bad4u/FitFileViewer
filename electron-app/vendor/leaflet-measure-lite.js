@@ -21,7 +21,9 @@
     function getLeaflet() {
         const { L } = /** @type {any} */ (globalThis);
         if (!L) {
-            throw new Error("Leaflet (global L) must be loaded before leaflet-measure-lite.js");
+            throw new Error(
+                "Leaflet (global L) must be loaded before leaflet-measure-lite.js"
+            );
         }
         return L;
     }
@@ -30,18 +32,21 @@
 
     /**
      * @typedef {{
-     *  position?: string;
-     *  activeColor?: string;
-     *  completedColor?: string;
-     *  popupOptions?: { className?: string; autoPanPadding?: [number, number] };
-     *  primaryLengthUnit?: 'meters'|'miles';
-     *  secondaryLengthUnit?: 'meters'|'miles'|null;
-     *  primaryAreaUnit?: 'sqmeters'|'acres';
-     *  secondaryAreaUnit?: 'sqmeters'|'acres'|null;
-     *  autoStart?: boolean; // When true, clicking the ruler button immediately starts a measurement.
-     *  finishClickToleranceMeters?: number; // Finish-click distance tolerance (meters) for existing points.
-     *  decPoint?: string;
-     *  thousandsSep?: string;
+     *     position?: string;
+     *     activeColor?: string;
+     *     completedColor?: string;
+     *     popupOptions?: {
+     *         className?: string;
+     *         autoPanPadding?: [number, number];
+     *     };
+     *     primaryLengthUnit?: "meters" | "miles";
+     *     secondaryLengthUnit?: "meters" | "miles" | null;
+     *     primaryAreaUnit?: "sqmeters" | "acres";
+     *     secondaryAreaUnit?: "sqmeters" | "acres" | null;
+     *     autoStart?: boolean; // When true, clicking the ruler button immediately starts a measurement.
+     *     finishClickToleranceMeters?: number; // Finish-click distance tolerance (meters) for existing points.
+     *     decPoint?: string;
+     *     thousandsSep?: string;
      * }} MeasureLiteOptions
      */
 
@@ -51,7 +56,10 @@
         completedColor: "#1976d2",
         decPoint: ".",
         finishClickToleranceMeters: 12,
-        popupOptions: { className: "leaflet-measure-resultpopup", autoPanPadding: [10, 10] },
+        popupOptions: {
+            className: "leaflet-measure-resultpopup",
+            autoPanPadding: [10, 10],
+        },
         position: "topright",
         primaryAreaUnit: "sqmeters",
         primaryLengthUnit: "meters",
@@ -65,21 +73,26 @@
      * @param {number} decimals
      * @param {string} decPoint
      * @param {string} thousandsSep
+     *
      * @returns {string}
      */
     function formatNumber(n, decimals, decPoint, thousandsSep) {
         const safe = Number.isFinite(n) ? n : 0;
         const fixed = safe.toFixed(decimals);
         const parts = fixed.split(".");
-        const intPart = parts[0].replaceAll(/\B(?=(\d{3})+(?!\d))/gu, thousandsSep);
+        const intPart = parts[0].replaceAll(
+            /\B(?=(\d{3})+(?!\d))/gu,
+            thousandsSep
+        );
         return parts.length > 1 ? `${intPart}${decPoint}${parts[1]}` : intPart;
     }
 
     /**
      * @param {number} meters
-     * @param {'meters'|'miles'} unit
+     * @param {"meters" | "miles"} unit
      * @param {string} decPoint
      * @param {string} thousandsSep
+     *
      * @returns {string}
      */
     function formatDistance(meters, unit, decPoint, thousandsSep) {
@@ -96,24 +109,42 @@
 
     /**
      * @param {number} meters
-     * @param {'meters'|'miles'} primary
-     * @param {'meters'|'miles'|null|undefined} secondary
+     * @param {"meters" | "miles"} primary
+     * @param {"meters" | "miles" | null | undefined} secondary
      * @param {string} decPoint
      * @param {string} thousandsSep
+     *
      * @returns {string}
      */
-    function formatDistanceDual(meters, primary, secondary, decPoint, thousandsSep) {
-        const primaryStr = formatDistance(meters, primary, decPoint, thousandsSep);
+    function formatDistanceDual(
+        meters,
+        primary,
+        secondary,
+        decPoint,
+        thousandsSep
+    ) {
+        const primaryStr = formatDistance(
+            meters,
+            primary,
+            decPoint,
+            thousandsSep
+        );
         if (!secondary || secondary === primary) return primaryStr;
-        const secondaryStr = formatDistance(meters, secondary, decPoint, thousandsSep);
+        const secondaryStr = formatDistance(
+            meters,
+            secondary,
+            decPoint,
+            thousandsSep
+        );
         return `${primaryStr} (${secondaryStr})`;
     }
 
     /**
      * @param {number} sqMeters
-     * @param {'sqmeters'|'acres'} unit
+     * @param {"sqmeters" | "acres"} unit
      * @param {string} decPoint
      * @param {string} thousandsSep
+     *
      * @returns {string}
      */
     function formatArea(sqMeters, unit, decPoint, thousandsSep) {
@@ -127,6 +158,7 @@
     /**
      * @param {any[]} latlngs
      * @param {(a: any, b: any) => number} distanceFn
+     *
      * @returns {number}
      */
     function computeTotalDistance(latlngs, distanceFn) {
@@ -139,6 +171,7 @@
 
     /**
      * @param {any[]} latlngs
+     *
      * @returns {number}
      */
     function computeAreaSqMeters(latlngs) {
@@ -185,7 +218,10 @@
             this._map = map;
 
             // Root container
-            const container = (this._container = L.DomUtil.create("div", "leaflet-control-measure leaflet-bar"));
+            const container = (this._container = L.DomUtil.create(
+                "div",
+                "leaflet-control-measure leaflet-bar"
+            ));
 
             // Toggle
             const toggle = (this.$toggle = L.DomUtil.create(
@@ -234,11 +270,21 @@
                 '<h3>Measure distances and areas</h3><p class="js-starthelp">Start creating a measurement by adding points to the map</p><div class="js-results results"></div><ul class="js-measuretasks tasks"><li><a href="#" class="js-cancel cancel">Cancel</a></li><li><a href="#" class="js-finish finish">Finish measurement</a></li></ul>';
 
             // Cache elements
-            this.$results = /** @type {HTMLElement} */ (measuringPrompt.querySelector(".js-results"));
-            this.$startHelp = /** @type {HTMLElement} */ (measuringPrompt.querySelector(".js-starthelp"));
-            this.$start = /** @type {HTMLAnchorElement} */ (interaction.querySelector(".js-start"));
-            this.$cancel = /** @type {HTMLAnchorElement} */ (interaction.querySelector(".js-cancel"));
-            this.$finish = /** @type {HTMLAnchorElement} */ (interaction.querySelector(".js-finish"));
+            this.$results = /** @type {HTMLElement} */ (
+                measuringPrompt.querySelector(".js-results")
+            );
+            this.$startHelp = /** @type {HTMLElement} */ (
+                measuringPrompt.querySelector(".js-starthelp")
+            );
+            this.$start = /** @type {HTMLAnchorElement} */ (
+                interaction.querySelector(".js-start")
+            );
+            this.$cancel = /** @type {HTMLAnchorElement} */ (
+                interaction.querySelector(".js-cancel")
+            );
+            this.$finish = /** @type {HTMLAnchorElement} */ (
+                interaction.querySelector(".js-finish")
+            );
 
             // Default collapsed
             this._collapse();
@@ -356,7 +402,10 @@
         _removeEscapeKeyHandler: function _removeEscapeKeyHandler() {
             try {
                 if (this._escapeHandler) {
-                    document.removeEventListener("keydown", this._escapeHandler);
+                    document.removeEventListener(
+                        "keydown",
+                        this._escapeHandler
+                    );
                 }
             } catch {
                 /* ignore */
@@ -365,8 +414,8 @@
         },
 
         /**
-         * Clear all completed measurements and reset the control UI.
-         * This is used by FitFileViewer's "Clear All" overlay action.
+         * Clear all completed measurements and reset the control UI. This is
+         * used by FitFileViewer's "Clear All" overlay action.
          */
         clearMeasurements: function clearMeasurements() {
             this._locked = false;
@@ -377,7 +426,10 @@
             this._measurementRunningTotal = 0;
 
             try {
-                if (this._resultLayer && typeof this._resultLayer.clearLayers === "function") {
+                if (
+                    this._resultLayer &&
+                    typeof this._resultLayer.clearLayers === "function"
+                ) {
                     this._resultLayer.clearLayers();
                 }
             } catch {
@@ -446,26 +498,45 @@
             if (!this._map) return;
 
             const latlngs = this._latlngs.slice();
-            const lengthMeters = computeTotalDistance(latlngs, this._map.distance.bind(this._map));
-            const areaSqMeters = latlngs.length >= 3 ? computeAreaSqMeters(latlngs) : 0;
+            const lengthMeters = computeTotalDistance(
+                latlngs,
+                this._map.distance.bind(this._map)
+            );
+            const areaSqMeters =
+                latlngs.length >= 3 ? computeAreaSqMeters(latlngs) : 0;
 
             // Commit a final shape to the map layer.
             if (latlngs.length >= 2) {
                 const shape =
                     latlngs.length >= 3
-                        ? L.polygon(latlngs, { color: this.options.completedColor, weight: 2, opacity: 0.9 })
-                        : L.polyline(latlngs, { color: this.options.completedColor, weight: 3, opacity: 0.9 });
+                        ? L.polygon(latlngs, {
+                              color: this.options.completedColor,
+                              weight: 2,
+                              opacity: 0.9,
+                          })
+                        : L.polyline(latlngs, {
+                              color: this.options.completedColor,
+                              weight: 3,
+                              opacity: 0.9,
+                          });
                 shape.addTo(this._resultLayer);
 
                 // Add permanent per-segment labels to the completed measurement.
                 try {
-                    const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
-                    const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+                    const primaryUnit =
+                        /** @type {any} */ (this.options.primaryLengthUnit) ||
+                        "meters";
+                    const secondaryUnit = /** @type {any} */ (
+                        this.options.secondaryLengthUnit
+                    );
                     for (let i = 1; i < latlngs.length; i += 1) {
                         const a = latlngs[i - 1];
                         const b = latlngs[i];
                         const segMeters = this._map.distance(a, b);
-                        const mid = L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
+                        const mid = L.latLng(
+                            (a.lat + b.lat) / 2,
+                            (a.lng + b.lng) / 2
+                        );
                         const label = formatDistanceDual(
                             segMeters,
                             primaryUnit,
@@ -485,8 +556,13 @@
                     /* ignore */
                 }
 
-                const popupHtml = this._buildPopupHtml(lengthMeters, areaSqMeters);
-                const popup = L.popup(this.options.popupOptions).setContent(popupHtml);
+                const popupHtml = this._buildPopupHtml(
+                    lengthMeters,
+                    areaSqMeters
+                );
+                const popup = L.popup(this.options.popupOptions).setContent(
+                    popupHtml
+                );
                 shape.bindPopup(popup);
             }
 
@@ -529,7 +605,8 @@
             if (this._onClick) this._map.off("click", this._onClick);
             if (this._onMove) this._map.off("mousemove", this._onMove);
             if (this._onDblClick) this._map.off("dblclick", this._onDblClick);
-            if (this._onContextMenu) this._map.off("contextmenu", this._onContextMenu);
+            if (this._onContextMenu)
+                this._map.off("contextmenu", this._onContextMenu);
         },
 
         _handleMapContextMenu: function _handleMapContextMenu(evt) {
@@ -552,16 +629,27 @@
             // Finishing by clicking an existing point.
             // Users expect "click last point to finish" (and sometimes Leaflet doesn't
             // deliver the marker click reliably), so we also handle this at the map level.
-            if (this._latlngs.length >= 2 && this._map && typeof this._map.distance === "function") {
+            if (
+                this._latlngs.length >= 2 &&
+                this._map &&
+                typeof this._map.distance === "function"
+            ) {
                 const tol =
-                    typeof this.options.finishClickToleranceMeters === "number" &&
+                    typeof this.options.finishClickToleranceMeters ===
+                        "number" &&
                     Number.isFinite(this.options.finishClickToleranceMeters)
                         ? this.options.finishClickToleranceMeters
                         : 12;
                 try {
                     const last = this._latlngs.at(-1);
-                    const distToLast = last ? this._map.distance(last, evt.latlng) : null;
-                    if (typeof distToLast === "number" && distToLast >= 0 && distToLast <= tol) {
+                    const distToLast = last
+                        ? this._map.distance(last, evt.latlng)
+                        : null;
+                    if (
+                        typeof distToLast === "number" &&
+                        distToLast >= 0 &&
+                        distToLast <= tol
+                    ) {
                         this._finishMeasure();
                         return;
                     }
@@ -569,8 +657,15 @@
                     // For polygons, clicking near the first point is also a common expectation.
                     if (this._latlngs.length >= 3) {
                         const first = this._latlngs[0];
-                        const distToFirst = this._map.distance(first, evt.latlng);
-                        if (typeof distToFirst === "number" && distToFirst >= 0 && distToFirst <= tol) {
+                        const distToFirst = this._map.distance(
+                            first,
+                            evt.latlng
+                        );
+                        if (
+                            typeof distToFirst === "number" &&
+                            distToFirst >= 0 &&
+                            distToFirst <= tol
+                        ) {
                             this._finishMeasure();
                             return;
                         }
@@ -581,11 +676,19 @@
             }
 
             // Track per-segment distance (between consecutive points).
-            if (this._latlngs.length >= 1 && this._map && typeof this._map.distance === "function") {
+            if (
+                this._latlngs.length >= 1 &&
+                this._map &&
+                typeof this._map.distance === "function"
+            ) {
                 try {
                     const prev = this._latlngs.at(-1);
                     const seg = this._map.distance(prev, evt.latlng);
-                    if (typeof seg === "number" && Number.isFinite(seg) && seg > 0) {
+                    if (
+                        typeof seg === "number" &&
+                        Number.isFinite(seg) &&
+                        seg > 0
+                    ) {
                         this._segmentMeters ||= [];
                         this._segmentMeters.push(seg);
                     }
@@ -623,14 +726,26 @@
                 });
 
                 // Add a segment label for the most recent segment.
-                if (this._latlngs.length >= 2 && Array.isArray(this._segmentMeters) && this._segmentMeters.length > 0) {
+                if (
+                    this._latlngs.length >= 2 &&
+                    Array.isArray(this._segmentMeters) &&
+                    this._segmentMeters.length > 0
+                ) {
                     try {
-                        const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
-                        const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+                        const primaryUnit =
+                            /** @type {any} */ (
+                                this.options.primaryLengthUnit
+                            ) || "meters";
+                        const secondaryUnit = /** @type {any} */ (
+                            this.options.secondaryLengthUnit
+                        );
                         const segMeters = this._segmentMeters.at(-1) || 0;
                         const prev = this._latlngs.at(-2);
                         const curr = this._latlngs.at(-1);
-                        const mid = L.latLng((prev.lat + curr.lat) / 2, (prev.lng + curr.lng) / 2);
+                        const mid = L.latLng(
+                            (prev.lat + curr.lat) / 2,
+                            (prev.lng + curr.lng) / 2
+                        );
                         const label = formatDistanceDual(
                             segMeters,
                             primaryUnit,
@@ -710,13 +825,20 @@
             if (!this._map || !this.$results) return;
 
             const latlngs = this._latlngs;
-            const lengthMeters = computeTotalDistance(latlngs, this._map.distance.bind(this._map));
-            const areaSqMeters = latlngs.length >= 3 ? computeAreaSqMeters(latlngs) : 0;
+            const lengthMeters = computeTotalDistance(
+                latlngs,
+                this._map.distance.bind(this._map)
+            );
+            const areaSqMeters =
+                latlngs.length >= 3 ? computeAreaSqMeters(latlngs) : 0;
 
             this._measurementRunningTotal = lengthMeters;
 
-            const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
-            const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+            const primaryUnit =
+                /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+            const secondaryUnit = /** @type {any} */ (
+                this.options.secondaryLengthUnit
+            );
 
             const primaryLength = formatDistanceDual(
                 lengthMeters,
@@ -736,7 +858,8 @@
             const hasArea = latlngs.length >= 3;
 
             const segmentsHtml =
-                Array.isArray(this._segmentMeters) && this._segmentMeters.length > 0
+                Array.isArray(this._segmentMeters) &&
+                this._segmentMeters.length > 0
                     ? `
                     <div class="group">
                         <p><span class="heading">Segments</span></p>
@@ -771,9 +894,11 @@
 
             if (this.$startHelp) {
                 if (latlngs.length === 0) {
-                    this.$startHelp.textContent = "Start creating a measurement by adding points to the map";
+                    this.$startHelp.textContent =
+                        "Start creating a measurement by adding points to the map";
                 } else {
-                    this.$startHelp.textContent = "Double-click, right-click, or click an existing point to finish";
+                    this.$startHelp.textContent =
+                        "Double-click, right-click, or click an existing point to finish";
                 }
             }
         },
@@ -781,14 +906,18 @@
         /**
          * @param {number} lengthMeters
          * @param {number} areaSqMeters
+         *
          * @returns {HTMLElement}
          */
         _buildPopupHtml: function _buildPopupHtml(lengthMeters, areaSqMeters) {
             const wrap = document.createElement("div");
             wrap.className = "leaflet-measure-resultpopup";
 
-            const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
-            const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+            const primaryUnit =
+                /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+            const secondaryUnit = /** @type {any} */ (
+                this.options.secondaryLengthUnit
+            );
             const length = formatDistanceDual(
                 lengthMeters,
                 primaryUnit,
@@ -816,7 +945,9 @@
 
     /**
      * Leaflet factory.
+     *
      * @param {MeasureLiteOptions} [options]
+     *
      * @returns {any}
      */
     L.control.measure = function measure(options) {

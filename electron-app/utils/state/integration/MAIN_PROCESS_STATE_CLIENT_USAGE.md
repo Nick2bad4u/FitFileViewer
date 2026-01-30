@@ -52,14 +52,17 @@ await mainProcessStateClient.setLoadedFilePath("/path/to/file.fit");
 
 ```javascript
 // Listen for changes to a specific path
-const unsubscribe = await mainProcessStateClient.listen("loadedFitFilePath", (change) => {
- console.log("File path changed:", {
-  path: change.path,
-  newValue: change.value,
-  oldValue: change.oldValue,
-  metadata: change.metadata,
- });
-});
+const unsubscribe = await mainProcessStateClient.listen(
+ "loadedFitFilePath",
+ (change) => {
+  console.log("File path changed:", {
+   path: change.path,
+   newValue: change.value,
+   oldValue: change.oldValue,
+   metadata: change.metadata,
+  });
+ }
+);
 
 // Later, when you want to stop listening:
 unsubscribe();
@@ -176,7 +179,10 @@ class AppStateSync {
   }
 
   // Listen for file path changes
-  const unsubFile = await mainProcessStateClient.listen("loadedFitFilePath", (change) => this.onFilePathChange(change));
+  const unsubFile = await mainProcessStateClient.listen(
+   "loadedFitFilePath",
+   (change) => this.onFilePathChange(change)
+  );
   this.unsubscribers.push(unsubFile);
 
   // Get initial state

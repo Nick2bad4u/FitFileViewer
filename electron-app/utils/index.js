@@ -1,9 +1,13 @@
 // @ts-nocheck
 /**
- * @fileoverview Central Utils Barrel Export
- * @description Main entry point for all utility modules - provides organized access to all utilities
- * @author FitFileViewer Development Team
+ * Main entry point for all utility modules - provides organized access to all
+ * utilities
+ *
  * @version 1.0.0
+ *
+ * @file Central Utils Barrel Export
+ *
+ * @author FitFileViewer Development Team
  */
 
 export * from "./app/index.js";
@@ -12,8 +16,8 @@ export { renderChartJS } from "./charts/core/renderChartJS.js";
 // Re-export all utility categories for easy importing
 export * from "./charts/index.js";
 /**
- * Utility categories for organized imports
- * Allows imports like: import { charts, state } from './utils';
+ * Utility categories for organized imports Allows imports like: import {
+ * charts, state } from './utils';
  */
 export { default as charts } from "./charts/index.js";
 // New consistency utilities

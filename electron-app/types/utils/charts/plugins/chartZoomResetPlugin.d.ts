@@ -1,20 +1,28 @@
 /**
  * Minimal shape description to avoid importing chart.js types.
+ *
  * @typedef {Object} MinimalChart
+ *
  * @property {HTMLCanvasElement} canvas
  * @property {CanvasRenderingContext2D} ctx
  * @property {Function} [isZoomedOrPanned]
  * @property {Function} [resetZoom]
- * @property {Object.<string,any>} [_zoomResetBtnBounds]
- * @property {Object.<string,any>} [options]
+ * @property {Object<string, any>} [_zoomResetBtnBounds]
+ * @property {Object<string, any>} [options]
  */
 /**
  * @typedef {Object} ChartEventArgs
- * @property {{ type:string, native?: any }} event
+ *
+ * @property {{ type: string; native?: any }} event
  */
 /**
  * Zoom reset plugin with defensive guards and minimal typing.
- * @type {{ id:string, afterDraw:(chart:MinimalChart)=>void, afterEvent:(chart:MinimalChart, args:ChartEventArgs)=>void }}
+ *
+ * @type {{
+ *     id: string;
+ *     afterDraw: (chart: MinimalChart) => void;
+ *     afterEvent: (chart: MinimalChart, args: ChartEventArgs) => void;
+ * }}
  */
 export const chartZoomResetPlugin: {
     id: string;

@@ -4,11 +4,13 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 
 /**
  * Generic dictionary record
+ *
  * @typedef {Record<string, any>} GenericRecord
  */
 
 /**
  * @typedef {Object} FitSummaryData
+ *
  * @property {string} [cachedFilePath]
  * @property {GenericRecord[]} [lapMesgs]
  * @property {GenericRecord[]} [sessionMesgs]
@@ -17,6 +19,7 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 
 /**
  * @typedef {Object} SummaryStats
+ *
  * @property {number} [total_records]
  * @property {any} [start_time]
  * @property {any} [end_time]
@@ -26,8 +29,8 @@ import { exportUtils } from "../../files/export/exportUtils.js";
  * @property {number} [max_speed]
  * @property {number} [min_altitude_ft]
  * @property {number} [max_altitude_ft]
- * @property {number|string} [total_ascent]
- * @property {number|string} [total_descent]
+ * @property {number | string} [total_ascent]
+ * @property {number | string} [total_descent]
  * @property {string} [total_ascent_ft]
  * @property {string} [total_descent_ft]
  * @property {any} [startTime]
@@ -35,6 +38,7 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 
 /**
  * Column selection localStorage key prefix constant
+ *
  * @type {string}
  */
 // (legacy prefix documented for clarity)
@@ -42,17 +46,24 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 
 /**
  * Augment window types (runtime only, JSDoc helps TS inference)
- * @typedef {Window & { globalData?: any; activeFitFileName?: string; aq?: any }} AugmentedWindow
+ *
+ * @typedef {Window & {
+ *     globalData?: any;
+ *     activeFitFileName?: string;
+ *     aq?: any;
+ * }} AugmentedWindow
  */
 
 export const LABEL_COL = "__row_label__";
 
 /**
- * Determine whether a Summary column key is a "numbered column" (e.g. "0", "1", "2").
+ * Determine whether a Summary column key is a "numbered column" (e.g. "0", "1",
+ * "2").
  *
  * Important: this classifies by key name (not by the value type).
  *
  * @param {string} key
+ *
  * @returns {boolean}
  */
 export function isNumberedSummaryColumnKey(key) {
@@ -60,9 +71,11 @@ export function isNumberedSummaryColumnKey(key) {
 }
 
 /**
- * Always order named columns before numbered-only columns while keeping relative order stable.
+ * Always order named columns before numbered-only columns while keeping
+ * relative order stable.
  *
  * @param {string[]} keys
+ *
  * @returns {string[]}
  */
 export function orderSummaryColumnsNamedFirst(keys) {
@@ -81,8 +94,8 @@ export function orderSummaryColumnsNamedFirst(keys) {
 /**
  * Global default key for summary column preferences.
  *
- * If a per-file key has no saved preferences, we fall back to this key.
- * This enables a "remember my columns" experience across all files.
+ * If a per-file key has no saved preferences, we fall back to this key. This
+ * enables a "remember my columns" experience across all files.
  */
 export const SUMMARY_COL_GLOBAL_DEFAULT_KEY = "summaryColSel_global_default";
 
@@ -95,8 +108,10 @@ export function getGlobalStorageKey() {
 
 /**
  * Return the label for a given row index.
+ *
  * @param {number} rowIdx
  * @param {boolean} isLap
+ *
  * @returns {string}
  */
 export function getRowLabel(rowIdx, isLap) {
@@ -104,11 +119,13 @@ export function getRowLabel(rowIdx, isLap) {
 }
 
 /**
- * Build a stable storage key for column visibility preferences for a given file path.
- * Accepts an unused second parameter to remain backwards compatible with older callers
- * passing (data, allKeys).
- * @param {FitSummaryData|GenericRecord|null|undefined} data
- * @param {string[]|undefined} [_allKeys] - Ignored (legacy compatibility)
+ * Build a stable storage key for column visibility preferences for a given file
+ * path. Accepts an unused second parameter to remain backwards compatible with
+ * older callers passing (data, allKeys).
+ *
+ * @param {FitSummaryData | GenericRecord | null | undefined} data
+ * @param {string[] | undefined} [_allKeys] - Ignored (legacy compatibility)
+ *
  * @returns {string}
  */
 export function getStorageKey(data, _allKeys) {
@@ -117,7 +134,11 @@ export function getStorageKey(data, _allKeys) {
         const w = /** @type {AugmentedWindow} */ (globalThis);
         if (globalThis.window !== undefined && w?.globalData?.cachedFilePath) {
             fpath = w.globalData.cachedFilePath;
-        } else if (data && typeof data === "object" && /** @type {any} */ (data)?.cachedFilePath) {
+        } else if (
+            data &&
+            typeof data === "object" &&
+            /** @type {any} */ (data)?.cachedFilePath
+        ) {
             fpath = /** @type {any} */ (data).cachedFilePath;
         } else if (globalThis.window !== undefined && w?.activeFitFileName) {
             fpath = w.activeFitFileName;
@@ -132,11 +153,13 @@ export function getStorageKey(data, _allKeys) {
 }
 
 /**
- * Load persisted visible column preferences.
- * Accepts unused second parameter allKeys for legacy compatibility (old signature loadColPrefs(key, allKeys)).
+ * Load persisted visible column preferences. Accepts unused second parameter
+ * allKeys for legacy compatibility (old signature loadColPrefs(key, allKeys)).
+ *
  * @param {string} key
- * @param {string[]|undefined} [_allKeys]
- * @returns {string[]|null}
+ * @param {string[] | undefined} [_allKeys]
+ *
+ * @returns {string[] | null}
  */
 export function loadColPrefs(key, _allKeys) {
     try {
@@ -155,17 +178,25 @@ export function loadColPrefs(key, _allKeys) {
 
 /**
  * Render the summary / laps table into the provided container.
+ *
  * @param {{
- *  container: HTMLElement,
- *  data: FitSummaryData,
- *  visibleColumns: string[],
- *  setVisibleColumns: (cols: string[]) => void,
- *  gearBtn: HTMLElement
+ *     container: HTMLElement;
+ *     data: FitSummaryData;
+ *     visibleColumns: string[];
+ *     setVisibleColumns: (cols: string[]) => void;
+ *     gearBtn: HTMLElement;
  * }} params
+ *
  * @returns {void}
  */
-export function renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns }) {
-    /** @type {HTMLElement|null} */
+export function renderTable({
+    container,
+    data,
+    gearBtn,
+    setVisibleColumns,
+    visibleColumns,
+}) {
+    /** @type {HTMLElement | null} */
     let section = container.querySelector(".summary-section");
     if (!section) {
         section = document.createElement("div");
@@ -205,12 +236,19 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     }
     // --- Persist filter value on container ---
     // @ts-ignore - augmenting DOM element with cached filter value
-    const filterValue = /** @type {any} */ (container)._summaryFilterValue || "All";
+    const filterValue =
+        /** @type {any} */ (container)._summaryFilterValue || "All";
     filterSelect.value = filterValue;
     filterSelect.addEventListener("change", () => {
         // @ts-ignore
         container._summaryFilterValue = filterSelect.value;
-        renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
+        renderTable({
+            container,
+            data,
+            gearBtn,
+            setVisibleColumns,
+            visibleColumns,
+        });
     });
     // Add scroll wheel support for changing selection
     filterSelect.addEventListener(
@@ -218,7 +256,9 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         (e) => {
             e.preventDefault();
             const options = [...filterSelect.options];
-            let idx = options.findIndex((opt) => opt.value === filterSelect.value);
+            let idx = options.findIndex(
+                (opt) => opt.value === filterSelect.value
+            );
             if (e.deltaY > 0 && idx < options.length - 1) {
                 idx++;
             } else if (e.deltaY < 0 && idx > 0) {
@@ -229,7 +269,13 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
                 filterSelect.value = opt.value;
                 // @ts-ignore
                 container._summaryFilterValue = filterSelect.value;
-                renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
+                renderTable({
+                    container,
+                    data,
+                    gearBtn,
+                    setVisibleColumns,
+                    visibleColumns,
+                });
             }
         },
         { passive: false }
@@ -253,31 +299,53 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
             const rows = [],
                 orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
                 sortedVisible = [LABEL_COL, ...orderedVisible];
-            rows.push(sortedVisible.map((k) => (k === LABEL_COL ? "Type" : k)).join(","));
+            rows.push(
+                sortedVisible
+                    .map((k) => (k === LABEL_COL ? "Type" : k))
+                    .join(",")
+            );
             // Summary row
             if (filterValue === "All" || filterValue === "Summary") {
                 const summaryRows = getSummaryRows(data),
-                    summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
+                    summary =
+                        summaryRows && summaryRows[0] ? summaryRows[0] : {};
                 rows.push(
                     sortedVisible
                         .map((k) =>
-                            k === LABEL_COL ? "Summary" : summary && summary[k] !== undefined ? summary[k] : ""
+                            k === LABEL_COL
+                                ? "Summary"
+                                : summary && summary[k] !== undefined
+                                  ? summary[k]
+                                  : ""
                         )
                         .join(",")
                 );
             }
             // Lap rows
-            if (data.lapMesgs && data.lapMesgs.length > 0 && (filterValue === "All" || filterValue.startsWith("Lap"))) {
+            if (
+                data.lapMesgs &&
+                data.lapMesgs.length > 0 &&
+                (filterValue === "All" || filterValue.startsWith("Lap"))
+            ) {
                 const patchedLaps = data.lapMesgs.map((lap) => {
                     const patched = { ...lap };
                     patchSummaryFields(patched);
                     return patched;
                 });
                 for (const [i, lap] of patchedLaps.entries()) {
-                    if (filterValue === "All" || filterValue === `Lap ${i + 1}`) {
+                    if (
+                        filterValue === "All" ||
+                        filterValue === `Lap ${i + 1}`
+                    ) {
                         rows.push(
                             sortedVisible
-                                .map((k) => (k === LABEL_COL ? `Lap ${i + 1}` : lap[k] === undefined ? "" : lap[k]))
+                                .map((k) =>
+                                    k === LABEL_COL
+                                        ? `Lap ${i + 1}`
+                                        : lap[k] === undefined
+                                          ? ""
+                                          : lap[k]
+                                )
                                 .join(",")
                         );
                     }
@@ -285,9 +353,14 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
             }
             const csvText = rows.join("\n");
             // Prefer the Electron clipboard bridge to avoid permission denials in file:// contexts.
-            Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch((error) => {
-                console.warn("[renderSummary] Failed to copy summary CSV:", error);
-            });
+            Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch(
+                (error) => {
+                    console.warn(
+                        "[renderSummary] Failed to copy summary CSV:",
+                        error
+                    );
+                }
+            );
         } catch {
             /* Ignore copy errors */
         }
@@ -315,7 +388,12 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
             summaryRow = document.createElement("tr");
         for (const [idx, key] of sortedVisible.entries()) {
             const td = document.createElement("td");
-            td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] === undefined ? "" : summaryRec[key];
+            td.textContent =
+                key === LABEL_COL
+                    ? "Summary"
+                    : summaryRec[key] === undefined
+                      ? ""
+                      : summaryRec[key];
             if (idx === 0) {
                 td.classList.add("summary-row");
             }
@@ -324,7 +402,11 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         tbody.append(summaryRow);
     }
     // Lap rows
-    if (data.lapMesgs && data.lapMesgs.length > 0 && (filterValue === "All" || filterValue.startsWith("Lap"))) {
+    if (
+        data.lapMesgs &&
+        data.lapMesgs.length > 0 &&
+        (filterValue === "All" || filterValue.startsWith("Lap"))
+    ) {
         const patchedLaps = data.lapMesgs.map((lap) => {
             const patched = { ...lap };
             patchSummaryFields(patched);
@@ -354,11 +436,13 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
 }
 
 /**
- * Persist visible column preferences.
- * Accepts an unused third parameter (allKeys) for legacy call compatibility.
+ * Persist visible column preferences. Accepts an unused third parameter
+ * (allKeys) for legacy call compatibility.
+ *
  * @param {string} key
  * @param {string[]} visibleColumns
- * @param {string[]|undefined} [_allKeys]
+ * @param {string[] | undefined} [_allKeys]
+ *
  * @returns {void}
  */
 export function saveColPrefs(key, visibleColumns, _allKeys) {
@@ -371,13 +455,15 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
 
 /**
  * Show modal dialog to pick visible summary columns.
+ *
  * @param {{
- *  allKeys: string[],
- *  data?: FitSummaryData,
- *  visibleColumns: string[],
- *  setVisibleColumns: (cols: string[]) => void,
- *  renderTable: () => void
+ *     allKeys: string[];
+ *     data?: FitSummaryData;
+ *     visibleColumns: string[];
+ *     setVisibleColumns: (cols: string[]) => void;
+ *     renderTable: () => void;
  * }} params
+ *
  * @returns {void}
  */
 export function showColModal({
@@ -406,6 +492,7 @@ export function showColModal({
     // Determine display order: show named/non-numeric keys first, numeric keys last.
     /**
      * @param {string} key
+     *
      * @returns {boolean}
      */
     const isNumericKey = (key) => {
@@ -491,7 +578,8 @@ export function showColModal({
     const setDefaultBtn = document.createElement("button");
     setDefaultBtn.className = "themed-btn";
     setDefaultBtn.textContent = "Set as Default";
-    setDefaultBtn.title = "Use this column selection as the default for all future files";
+    setDefaultBtn.title =
+        "Use this column selection as the default for all future files";
     setDefaultBtn.addEventListener("click", () => {
         saveColPrefs(prefsKeyGlobal, visibleColumns);
         // Also refresh current file prefs so the current file behaves consistently.
@@ -520,12 +608,13 @@ export function showColModal({
     const colList = document.createElement("div");
     colList.className = "col-list";
     modal.append(colList);
-    /** @type {number|null} */
+    /** @type {number | null} */
     let lastCheckedIndex = null;
 
     // Handlers factory to avoid declaring functions within the loop (no-loop-func)
     /**
      * Create a mousedown handler for range selection with Shift.
+     *
      * @param {number} idx
      * @param {string} key
      */
@@ -561,12 +650,13 @@ export function showColModal({
 
     /**
      * Create a change handler for single checkbox toggle.
+     *
      * @param {number} idx
      * @param {string} key
      * @param {HTMLInputElement} loopCheckbox
      */
     function createChangeHandler(idx, key, loopCheckbox) {
-        /** @param {Event & { shiftKey?: boolean}} e */
+        /** @param {Event & { shiftKey?: boolean }} e */
         return (e) => {
             if (e.shiftKey && lastCheckedIndex !== null) {
                 return; // handled in mousedown
@@ -582,7 +672,10 @@ export function showColModal({
             }
             newCols = allKeys.filter((k) => newCols.includes(k));
             updateVisibleColumns(newCols);
-            selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
+            selectAllBtn.textContent =
+                newCols.length === allKeys.length
+                    ? "Deselect All"
+                    : "Select All";
             updateColList();
             reRenderTable();
             saveColPrefs(prefsKeyForFile, newCols);
@@ -590,6 +683,7 @@ export function showColModal({
     }
     /**
      * Refresh checkbox list based on current visibleColumns
+     *
      * @returns {void}
      */
     function updateColList() {
@@ -610,18 +704,31 @@ export function showColModal({
             loopCheckbox.checked = visibleColumns.includes(key);
             loopCheckbox.tabIndex = 0;
             // Use factory-created handlers to avoid declaring functions in the loop
-            loopCheckbox.addEventListener("mousedown", createMouseDownHandler(idx, key));
-            loopCheckbox.addEventListener("change", createChangeHandler(idx, key, loopCheckbox));
+            loopCheckbox.addEventListener(
+                "mousedown",
+                createMouseDownHandler(idx, key)
+            );
+            loopCheckbox.addEventListener(
+                "change",
+                createChangeHandler(idx, key, loopCheckbox)
+            );
             loopLabel.append(loopCheckbox);
             loopLabel.append(document.createTextNode(key));
             colList.append(loopLabel);
         }
-        selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
+        selectAllBtn.textContent =
+            visibleColumns.length === allKeys.length
+                ? "Deselect All"
+                : "Select All";
     }
-    selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
+    selectAllBtn.textContent =
+        visibleColumns.length === allKeys.length
+            ? "Deselect All"
+            : "Select All";
     selectAllBtn.addEventListener("click", () => {
         /** @type {string[]} */
-        const newCols = visibleColumns.length === allKeys.length ? [] : [...allKeys];
+        const newCols =
+            visibleColumns.length === allKeys.length ? [] : [...allKeys];
         updateVisibleColumns(newCols);
         updateColList();
         reRenderTable();
@@ -652,9 +759,12 @@ export function showColModal({
 }
 
 /**
- * Compute summary rows (one row either from sessionMesgs or derived from recordMesgs)
+ * Compute summary rows (one row either from sessionMesgs or derived from
+ * recordMesgs)
+ *
  * @param {FitSummaryData} data
- * @returns {GenericRecord[]} single element array (or [{}])
+ *
+ * @returns {GenericRecord[]} Single element array (or [{}])
  */
 function getSummaryRows(data) {
     if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
@@ -664,8 +774,13 @@ function getSummaryRows(data) {
         // If this activity has estimated power (and no real power), surface basic stats.
         // This lets the Summary tab reflect the Estimated Power feature without altering FIT semantics.
         try {
-            const recs = Array.isArray(data.recordMesgs) ? data.recordMesgs : [];
-            if (recs.length > 0 && !hasPowerData(/** @type {Array<Record<string, unknown>>} */ (recs))) {
+            const recs = Array.isArray(data.recordMesgs)
+                ? data.recordMesgs
+                : [];
+            if (
+                recs.length > 0 &&
+                !hasPowerData(/** @type {Record<string, unknown>[]} */ (recs))
+            ) {
                 /** @type {number[]} */
                 const values = [];
                 for (const r of recs) {
@@ -707,10 +822,15 @@ function getSummaryRows(data) {
                     total_records: table.numRows(),
                 };
             if (table.columnNames().includes("distance")) {
-                stats.total_distance = table.get(table.numRows() - 1, "distance");
+                stats.total_distance = table.get(
+                    table.numRows() - 1,
+                    "distance"
+                );
             }
             if (table.columnNames().includes("timestamp")) {
-                const endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime(),
+                const endTs = new Date(
+                        table.get(table.numRows() - 1, "timestamp")
+                    ).getTime(),
                     startTs = new Date(table.get(0, "timestamp")).getTime();
                 if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
                     const sec = Math.round((endTs - startTs) / 1000);

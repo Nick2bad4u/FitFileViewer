@@ -1,5 +1,6 @@
 /**
  * Color palette for file overlays with good visual separation
+ *
  * @type {string[]}
  */
 
@@ -7,6 +8,7 @@
  * Returns a shuffled and filtered color palette with good visual separation.
  *
  * @param {string[]} inputArray - Array of color hex strings.
+ *
  * @returns {string[]} Filtered and shuffled palette.
  */
 export function getChartOverlayColorPalette(inputArray) {
@@ -16,15 +18,19 @@ export function getChartOverlayColorPalette(inputArray) {
     // Helper to compute color distance in RGB space
     /**
      * Compute Euclidean distance between two hex colors in RGB space.
+     *
      * @param {string} c1 - First color (e.g. "#ff00aa" or "#f0a").
      * @param {string} c2 - Second color.
+     *
      * @returns {number}
      */
     function colorDistance(c1, c2) {
         /**
-         * Convert a hex color string to an RGB tuple.
-         * Returns black [0,0,0] if parsing fails.
+         * Convert a hex color string to an RGB tuple. Returns black [0,0,0] if
+         * parsing fails.
+         *
          * @param {string} hex
+         *
          * @returns {[number, number, number]}
          */
         function hexToRgb(hex) {
@@ -37,15 +43,31 @@ export function getChartOverlayColorPalette(inputArray) {
                     .join("");
             }
             if (!/^[\da-f]{6}$/.test(cleaned)) {
-                return [0, 0, 0];
+                return [
+                    0,
+                    0,
+                    0,
+                ];
             }
             const num = Number.parseInt(cleaned, 16),
                 /** @type {[number, number, number]} */
-                rgb = [num >> 16, (num >> 8) & 255, num & 255];
+                rgb = [
+                    num >> 16,
+                    (num >> 8) & 255,
+                    num & 255,
+                ];
             return rgb;
         }
-        const [r1, g1, b1] = hexToRgb(c1),
-            [r2, g2, b2] = hexToRgb(c2);
+        const [
+                r1,
+                g1,
+                b1,
+            ] = hexToRgb(c1),
+            [
+                r2,
+                g2,
+                b2,
+            ] = hexToRgb(c2);
         return Math.hypot(r1 - r2, g1 - g2, b1 - b2);
     }
 
@@ -53,7 +75,12 @@ export function getChartOverlayColorPalette(inputArray) {
     /** @type {string[]} */
     const filtered = [];
     for (const color of unique) {
-        if (filtered.every((/** @type {string} */ existing) => colorDistance(color, existing) >= 80)) {
+        if (
+            filtered.every(
+                (/** @type {string} */ existing) =>
+                    colorDistance(color, existing) >= 80
+            )
+        ) {
             filtered.push(color);
         }
     }
@@ -61,8 +88,10 @@ export function getChartOverlayColorPalette(inputArray) {
     // Deterministic shuffle using a seeded algorithm for reproducibility
     /**
      * Deterministically shuffle an array of colors.
+     *
      * @param {string[]} array
-     * @param {number} [seed=42]
+     * @param {number} [seed=42] Default is `42`
+     *
      * @returns {string[]}
      */
     function seededShuffle(array, seed = 42) {
@@ -90,6 +119,7 @@ export function getChartOverlayColorPalette(inputArray) {
 
 /**
  * Base color list for chart overlays, chosen for visual separation.
+ *
  * @type {string[]}
  */
 export const baseChartOverlayColors = [
@@ -122,8 +152,12 @@ export const baseChartOverlayColors = [
 ];
 
 /**
- * Chart overlay color palette with visually distinct colors for overlaying multiple data series.
- * Intended for use in chart visualizations to ensure overlays are easily distinguishable.
+ * Chart overlay color palette with visually distinct colors for overlaying
+ * multiple data series. Intended for use in chart visualizations to ensure
+ * overlays are easily distinguishable.
+ *
  * @type {string[]}
  */
-export const chartOverlayColorPalette = getChartOverlayColorPalette(baseChartOverlayColors);
+export const chartOverlayColorPalette = getChartOverlayColorPalette(
+    baseChartOverlayColors
+);

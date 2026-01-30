@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for data/lookups
- * @description Re-exports all modules in the data/lookups category
+ * Re-exports all modules in the data/lookups category
+ *
+ * @file Barrel Export for data/lookups
  */
 export * from "./dataAntManufacturerIDs.js";
 export * from "./dataAntProductIds.js";

@@ -15,13 +15,16 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
     vi.resetModules();
     const require = createRequire(import.meta.url);
 
-    /** @type {{ fs: any; path: typeof import('node:path') }} */
+    /** @type {{ fs: any; path: typeof import("node:path") }} */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const nodeModules = require("../../../../main/runtime/nodeModules.js");
 
-    const realpathSync = Object.assign(((p: string) => realpathImpl(p)) as (p: string) => string, {
-        native: (p: string) => realpathImpl(p),
-    });
+    const realpathSync = Object.assign(
+        ((p: string) => realpathImpl(p)) as (p: string) => string,
+        {
+            native: (p: string) => realpathImpl(p),
+        }
+    );
 
     // Replace fs with a minimal stub for this test.
     nodeModules.fs = { realpathSync };
@@ -35,18 +38,24 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
 
 describe("fileAccessPolicy", () => {
     it("rejects URI-like file paths", async () => {
-        const mod = await import("../../../../main/security/fileAccessPolicy.js");
+        const mod =
+            await import("../../../../main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
 
-        expect(() => mod.approveFilePath("file:///tmp/a.fit")).toThrow(/Invalid file path/iu);
+        expect(() => mod.approveFilePath("file:///tmp/a.fit")).toThrow(
+            /Invalid file path/iu
+        );
         expect(mod.isApprovedFilePath("file:///tmp/a.fit")).toBe(false);
     });
 
     it("rejects Windows extended-length/device path prefixes", async () => {
-        const mod = await import("../../../../main/security/fileAccessPolicy.js");
+        const mod =
+            await import("../../../../main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
 
-        expect(() => mod.approveFilePath("\\\\?\\C:\\a.fit")).toThrow(/Invalid file path/iu);
+        expect(() => mod.approveFilePath("\\\\?\\C:\\a.fit")).toThrow(
+            /Invalid file path/iu
+        );
         expect(mod.isApprovedFilePath("\\\\.\\C:\\a.fit")).toBe(false);
     });
 

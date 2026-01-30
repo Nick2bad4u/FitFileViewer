@@ -2,8 +2,8 @@
 // The global Leaflet object (L) is provided via a script include; minimal typing provided via global.d.ts.
 
 /**
- * @typedef {readonly [number, number]} PointTuple
- * A fixed two-number tuple used for icon size/anchor specification.
+ * @typedef {readonly [number, number]} PointTuple A fixed two-number tuple
+ *   used for icon size/anchor specification.
  */
 
 /** @type {PointTuple} */
@@ -16,7 +16,9 @@ const // Base path for asset URLs (ensure single trailing slash)
     POPUP_ANCHOR = [0, -32];
 
 /**
- * Safely obtain the Leaflet global. If unavailable (e.g. during test without DOM), returns a no-op shim.
+ * Safely obtain the Leaflet global. If unavailable (e.g. during test without
+ * DOM), returns a no-op shim.
+ *
  * @returns {any}
  */
 function getLeaflet() {
@@ -36,6 +38,7 @@ const LRef = getLeaflet();
 
 /**
  * Creates a Leaflet icon for the end marker.
+ *
  * @returns {any} A Leaflet icon configured for the end marker.
  */
 export function createEndIcon() {
@@ -49,6 +52,7 @@ export function createEndIcon() {
 
 /**
  * Creates a Leaflet icon for the start marker.
+ *
  * @returns {any} A Leaflet icon configured for the start marker.
  */
 export function createStartIcon() {

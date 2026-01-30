@@ -1,6 +1,6 @@
 /**
- * @fileoverview Guards for core theme CSS variables and base body styles.
- * Ensures theme variables exist so the UI does not render unstyled.
+ * @file Guards for core theme CSS variables and base body styles. Ensures theme
+ *   variables exist so the UI does not render unstyled.
  */
 
 import { readFileSync } from "node:fs";
@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Load the main stylesheet used by the renderer.
+ *
  * @returns {string}
  */
 const loadStyleSheet = () => {

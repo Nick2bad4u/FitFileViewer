@@ -2,11 +2,16 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
-import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "./gpxExport.js";
+import {
+    buildGpxFromRecords,
+    resolveTrackNameFromLoadedFiles,
+} from "./gpxExport.js";
 
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
- * The button uses the current theme colors and exports the track from globalData.
+ * The button uses the current theme colors and exports the track from
+ * globalData.
+ *
  * @returns {HTMLButtonElement} The configured Export GPX button element
  */
 export function createExportGPXButton() {
@@ -18,17 +23,25 @@ export function createExportGPXButton() {
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
         const windowCtx = /** @type {any} */ (globalThis);
-        const records = Array.isArray(windowCtx?.globalData?.recordMesgs) ? windowCtx.globalData.recordMesgs : null;
+        const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
+            ? windowCtx.globalData.recordMesgs
+            : null;
 
         if (!records || records.length === 0) {
             showNotification("No data available for GPX export.", "info", 3000);
             return;
         }
 
-        const trackName = resolveTrackNameFromLoadedFiles(windowCtx?.loadedFitFiles);
+        const trackName = resolveTrackNameFromLoadedFiles(
+            windowCtx?.loadedFitFiles
+        );
         const gpx = buildGpxFromRecords(records, { trackName });
         if (!gpx) {
-            showNotification("No valid coordinates found for GPX export.", "info", 3000);
+            showNotification(
+                "No valid coordinates found for GPX export.",
+                "info",
+                3000
+            );
             return;
         }
 
@@ -37,7 +50,9 @@ export function createExportGPXButton() {
             fallbackBase: "track",
         });
 
-        const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
+        const blob = new Blob([gpx], {
+            type: "application/gpx+xml;charset=utf-8",
+        });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = downloadName;

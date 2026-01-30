@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { XMLParser } from "fast-xml-parser";
 
-import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "../../../../utils/files/export/gpxExport.js";
+import {
+    buildGpxFromRecords,
+    resolveTrackNameFromLoadedFiles,
+} from "../../../../utils/files/export/gpxExport.js";
 
 describe("gpxExport", () => {
     it("returns null when the input list is empty or lacks coordinates", () => {
         expect(buildGpxFromRecords(null as unknown as any[])).toBeNull();
         expect(buildGpxFromRecords([])).toBeNull();
         expect(
-            buildGpxFromRecords([{ positionLat: undefined, positionLong: undefined }, { positionLat: 10 }])
+            buildGpxFromRecords([
+                { positionLat: undefined, positionLong: undefined },
+                { positionLat: 10 },
+            ])
         ).toBeNull();
     });
 
@@ -39,7 +45,9 @@ describe("gpxExport", () => {
         }
         expect(gpx).toContain('version="1.1"');
         expect(gpx).toContain('xmlns="http://www.topografix.com/GPX/1/1"');
-        expect(gpx).toContain('xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"');
+        expect(gpx).toContain(
+            'xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"'
+        );
 
         const parser = new XMLParser({ ignoreAttributes: false });
         const parsed = parser.parse(gpx);
@@ -59,9 +67,21 @@ describe("gpxExport", () => {
         expect(firstPt["@_lon"]).toBe("0.0000000");
         expect(Number(firstPt.ele)).toBeCloseTo(125.43, 2);
         expect(firstPt.time).toBe(timestamp.toISOString());
-        expect(Number(firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"])).toBeCloseTo(148);
-        expect(Number(firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"])).toBeCloseTo(82);
-        expect(Number(firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:power"])).toBeCloseTo(255);
+        expect(
+            Number(
+                firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"]
+            )
+        ).toBeCloseTo(148);
+        expect(
+            Number(
+                firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"]
+            )
+        ).toBeCloseTo(82);
+        expect(
+            Number(
+                firstPt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:power"]
+            )
+        ).toBeCloseTo(255);
 
         const secondPt = trackpoints[1];
         expect(secondPt["@_lat"]).toBe("90.0000000");
@@ -75,7 +95,11 @@ describe("gpxExport", () => {
             { filePath: "C:/rides/extra.fit" },
         ];
         expect(resolveTrackNameFromLoadedFiles(loaded)).toBe("Morning Loop");
-        expect(resolveTrackNameFromLoadedFiles([{ filePath: "/tmp/ride.fit" }])).toBe("ride");
-        expect(resolveTrackNameFromLoadedFiles([], "Fallback")).toBe("Fallback");
+        expect(
+            resolveTrackNameFromLoadedFiles([{ filePath: "/tmp/ride.fit" }])
+        ).toBe("ride");
+        expect(resolveTrackNameFromLoadedFiles([], "Fallback")).toBe(
+            "Fallback"
+        );
     });
 });

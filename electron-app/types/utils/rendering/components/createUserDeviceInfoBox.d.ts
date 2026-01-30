@@ -1,5 +1,6 @@
 /**
  * @typedef {Object} UserProfileData
+ *
  * @property {string} [friendlyName] - Friendly name or device name
  * @property {string} [gender] - User gender
  * @property {number} [age] - User age in years
@@ -10,7 +11,8 @@
  * @property {string} [weightSetting] - Weight unit setting
  * @property {number} [restingHeartRate] - Resting heart rate in BPM
  * @property {number} [defaultMaxHeartRate] - Maximum heart rate in BPM
- * @property {number} [defaultMaxRunningHeartRate] - Max running heart rate in BPM
+ * @property {number} [defaultMaxRunningHeartRate] - Max running heart rate in
+ *   BPM
  * @property {number} [defaultMaxBikingHeartRate] - Max biking heart rate in BPM
  * @property {string} [hrSetting] - Heart rate setting preference
  * @property {string} [speedSetting] - Speed unit setting
@@ -24,14 +26,17 @@
  * @property {string} [wakeTime] - Wake time setting
  * @property {string} [sleepTime] - Sleep time setting
  * @property {string} [heightSetting] - Height unit setting
- * @property {number} [userRunningStepLength] - Running step length in millimeters
- * @property {number} [userWalkingStepLength] - Walking step length in millimeters
+ * @property {number} [userRunningStepLength] - Running step length in
+ *   millimeters
+ * @property {number} [userWalkingStepLength] - Walking step length in
+ *   millimeters
  * @property {string} [depthSetting] - Depth unit setting
  * @property {number} [diveCount] - Number of dives recorded
  */
 /**
  * @typedef {Object} DeviceInfo
- * @property {string|number} [deviceIndex] - Device index
+ *
+ * @property {string | number} [deviceIndex] - Device index
  * @property {string} [deviceType] - Type of device
  * @property {string} [manufacturer] - Device manufacturer
  * @property {string} [product] - Product name
@@ -48,13 +53,16 @@
  */
 /**
  * @typedef {Object} FitGlobalData
- * @property {UserProfileData[]} [userProfileMesgs] - Array of user profile messages
+ *
+ * @property {UserProfileData[]} [userProfileMesgs] - Array of user profile
+ *   messages
  * @property {DeviceInfo[]} [deviceInfoMesgs] - Array of device info messages
  * @property {Object[]} [recordMesgs] - Array of record messages
  * @property {string} [cachedFilePath] - Cached file path
  */
 /**
  * @typedef {Object} ThemeColors
+ *
  * @property {string} primary - Primary theme color
  * @property {string} accent - Accent theme color
  * @property {string} background - Background color
@@ -75,11 +83,13 @@
  */
 /**
  * @typedef {Object} ThemeConfig
+ *
  * @property {ThemeColors} colors - Theme color configuration
  * @property {string} [name] - Theme name
  */
 /**
  * Creates an info box displaying user profile and device information
+ *
  * @param {HTMLElement} container - Container to append the info box to
  */
 export function createUserDeviceInfoBox(container: HTMLElement): void;

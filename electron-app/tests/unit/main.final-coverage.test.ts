@@ -1,13 +1,23 @@
 /**
- * Final comprehensive test suite for main.js targeting 100% code coverage
- * This test builds on the successful 44.75% coverage and targets the remaining uncovered functions:
+ * Final comprehensive test suite for main.js targeting 100% code coverage This
+ * test builds on the successful 44.75% coverage and targets the remaining
+ * uncovered functions:
+ *
  * - Gyazo OAuth server functions (startGyazoOAuthServer, stopGyazoOAuthServer)
  * - IPC handlers and menu setup functions
  * - Application lifecycle functions
  * - Error handling paths
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
+import {
+    describe,
+    test,
+    expect,
+    vi,
+    beforeEach,
+    afterEach,
+    beforeAll,
+} from "vitest";
 import { createRequire } from "module";
 const __nodeRequire = createRequire(import.meta.url);
 import { EventEmitter } from "events";
@@ -31,7 +41,10 @@ function createComprehensiveMock() {
         once: vi.fn(),
         removeAllListeners: vi.fn(function (this: any, event?: string) {
             // Delegate to EventEmitter implementation to actually clear listeners
-            return EventEmitter.prototype.removeAllListeners.call(this, event as any);
+            return EventEmitter.prototype.removeAllListeners.call(
+                this,
+                event as any
+            );
         }),
         setWindowOpenHandler: vi.fn(),
     });
@@ -65,7 +78,10 @@ function createComprehensiveMock() {
         }),
         removeListener: vi.fn(),
         removeAllListeners: vi.fn(function (this: any, event?: string) {
-            return EventEmitter.prototype.removeAllListeners.call(this, event as any);
+            return EventEmitter.prototype.removeAllListeners.call(
+                this,
+                event as any
+            );
         }),
     });
 
@@ -87,13 +103,22 @@ function createComprehensiveMock() {
         }),
         removeHandler: vi.fn(),
         removeAllListeners: vi.fn(function (this: any, event?: string) {
-            return EventEmitter.prototype.removeAllListeners.call(this, event as any);
+            return EventEmitter.prototype.removeAllListeners.call(
+                this,
+                event as any
+            );
         }),
     });
 
     const mockDialog = {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/export.csv" }),
+        showOpenDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePaths: ["/test/file.fit"],
+        }),
+        showSaveDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePath: "/test/export.csv",
+        }),
         showMessageBox: vi.fn().mockResolvedValue({ response: 0 }),
     };
 
@@ -187,20 +212,22 @@ function createNodeMocks() {
             };
             server._handler = handler;
             server._port = undefined;
-            server.listen = vi.fn((port: number, host: string, callback: any) => {
-                server._port = port;
-                // If a specific error is configured for this port, emit it immediately
-                const configuredError = mockHttp._autoErrorOnPorts?.[port];
-                if (configuredError) {
-                    // Emit synchronously to guarantee it precedes the deferred callback
-                    server.emit("error", { code: configuredError });
+            server.listen = vi.fn(
+                (port: number, host: string, callback: any) => {
+                    server._port = port;
+                    // If a specific error is configured for this port, emit it immediately
+                    const configuredError = mockHttp._autoErrorOnPorts?.[port];
+                    if (configuredError) {
+                        // Emit synchronously to guarantee it precedes the deferred callback
+                        server.emit("error", { code: configuredError });
+                    }
+                    // Defer the callback slightly to allow tests to emit 'error' first when needed
+                    setTimeout(() => {
+                        // Only invoke the listen callback if no error has been emitted
+                        if (!server._errored && callback) callback();
+                    }, 150);
                 }
-                // Defer the callback slightly to allow tests to emit 'error' first when needed
-                setTimeout(() => {
-                    // Only invoke the listen callback if no error has been emitted
-                    if (!server._errored && callback) callback();
-                }, 150);
-            });
+            );
             server.close = vi.fn((callback: any) => {
                 setTimeout(() => callback && callback(), 0);
             });
@@ -211,12 +238,18 @@ function createNodeMocks() {
                 if (!handler) return;
                 // 1) Successful callback
                 handler(
-                    { method: "GET", url: "/gyazo/callback?code=test_code&state=test_state" },
+                    {
+                        method: "GET",
+                        url: "/gyazo/callback?code=test_code&state=test_state",
+                    },
                     { setHeader: vi.fn(), writeHead: vi.fn(), end: vi.fn() }
                 );
                 // 2) Error callback
                 handler(
-                    { method: "GET", url: "/gyazo/callback?error=access_denied" },
+                    {
+                        method: "GET",
+                        url: "/gyazo/callback?error=access_denied",
+                    },
                     { setHeader: vi.fn(), writeHead: vi.fn(), end: vi.fn() }
                 );
                 // 3) OPTIONS preflight
@@ -230,7 +263,10 @@ function createNodeMocks() {
                     { setHeader: vi.fn(), writeHead: vi.fn(), end: vi.fn() }
                 );
                 // 5) 404 path
-                handler({ method: "GET", url: "/unknown" }, { setHeader: vi.fn(), writeHead: vi.fn(), end: vi.fn() });
+                handler(
+                    { method: "GET", url: "/unknown" },
+                    { setHeader: vi.fn(), writeHead: vi.fn(), end: vi.fn() }
+                );
             }, 10);
 
             mockHttp._servers.push(server);
@@ -285,7 +321,8 @@ function createStateMocks() {
             if (path === "autoUpdaterInitialized") return false;
             if (path === "appIsQuitting") return false;
             if (path === "gyazoServer") return mockState.gyazoServer || null;
-            if (path === "gyazoServerPort") return mockState.gyazoServerPort || null;
+            if (path === "gyazoServerPort")
+                return mockState.gyazoServerPort || null;
             return mockState[path];
         }),
         set: vi.fn((path: string, value: any, options?: any) => {
@@ -325,7 +362,9 @@ beforeAll(() => {
     // Mock it as well to ensure our HTTP server mock is always used.
     vi.mock("node:http", () => globalMocks.mockHttp);
     vi.mock("electron-log", () => globalMocks.mockElectronLog);
-    vi.mock("electron-updater", () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
+    vi.mock("electron-updater", () => ({
+        autoUpdater: globalMocks.mockAutoUpdater,
+    }));
     vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
 
     // Mock utility modules
@@ -345,7 +384,10 @@ beforeAll(() => {
 
     vi.mock("../../utils/files/recent/recentFiles", () => ({
         addRecentFile: vi.fn(),
-        loadRecentFiles: vi.fn(() => ["/test/recent1.fit", "/test/recent2.fit"]),
+        loadRecentFiles: vi.fn(() => [
+            "/test/recent1.fit",
+            "/test/recent2.fit",
+        ]),
     }));
 
     // Mock Gyazo utilities if they exist
@@ -409,7 +451,9 @@ afterEach(() => {
 
 describe("main.js - Final Coverage Push to 100%", () => {
     test("should achieve maximum coverage through comprehensive initialization", async () => {
-        console.log("[TEST] Starting final comprehensive main.js coverage test");
+        console.log(
+            "[TEST] Starting final comprehensive main.js coverage test"
+        );
 
         // Import main.js to trigger initialization
         await import("../../main.js");
@@ -445,12 +489,17 @@ describe("main.js - Final Coverage Push to 100%", () => {
     test("should escalate ports on EADDRINUSE and then reject after 3010", async () => {
         await import("../../main.js");
         const ipc = (globalMocks as any).mockIpcMain;
-        const startHandlers = (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const startHandler = startHandlers[0] || (ipc as any)._events?.["handle:gyazo:server:start"];
+        const startHandlers =
+            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
+        const startHandler =
+            startHandlers[0] ||
+            (ipc as any)._events?.["handle:gyazo:server:start"];
 
         // Invoke handler to start at port 3009
         const startPromise =
-            typeof startHandler === "function" ? startHandler({}, 3009) : Promise.reject(new Error("no handler"));
+            typeof startHandler === "function"
+                ? startHandler({}, 3009)
+                : Promise.reject(new Error("no handler"));
 
         // Wait for first server to be created, then emit EADDRINUSE to force escalation to 3010
         const servers = (globalMocks as any).mockHttp._servers as any[];
@@ -460,7 +509,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
                 if (servers.length >= n) return;
                 await new Promise((r) => setTimeout(r, 5));
             }
-            throw new Error(`Timeout waiting for ${n} servers to be created (have ${servers.length})`);
+            throw new Error(
+                `Timeout waiting for ${n} servers to be created (have ${servers.length})`
+            );
         };
 
         await waitForServers(1);
@@ -479,15 +530,22 @@ describe("main.js - Final Coverage Push to 100%", () => {
     test("should reject on non-EADDRINUSE server error", async () => {
         await import("../../main.js");
         const ipc = (globalMocks as any).mockIpcMain;
-        const startHandlers = (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const startHandler = startHandlers[0] || (ipc as any)._events?.["handle:gyazo:server:start"];
-        const p = typeof startHandler === "function" ? startHandler({}, 3005) : Promise.reject(new Error("no handler"));
+        const startHandlers =
+            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
+        const startHandler =
+            startHandlers[0] ||
+            (ipc as any)._events?.["handle:gyazo:server:start"];
+        const p =
+            typeof startHandler === "function"
+                ? startHandler({}, 3005)
+                : Promise.reject(new Error("no handler"));
         // Wait for server creation then emit a non-EADDR error to force rejection
         const servers = (globalMocks as any).mockHttp._servers as any[];
         for (let i = 0; i < 50 && servers.length < 1; i++) {
             await new Promise((r) => setTimeout(r, 5));
         }
-        if (servers.length < 1) throw new Error("Server was not created in time");
+        if (servers.length < 1)
+            throw new Error("Server was not created in time");
         servers[servers.length - 1].emit("error", { code: "ECONNRESET" });
         await expect(p).rejects.toMatchObject({ code: "ECONNRESET" });
     });
@@ -499,12 +557,18 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         // Our mock stored handlers via addListener on channel names prefixed by 'handle:'
         // Extract the two handlers
-        const startHandlers = (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const stopHandlers = (ipc as any).rawListeners?.("handle:gyazo:server:stop") || [];
+        const startHandlers =
+            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
+        const stopHandlers =
+            (ipc as any).rawListeners?.("handle:gyazo:server:stop") || [];
 
         // Fallback: our vi.fn wrapper added via handle just stores listener; access internal map if necessary
-        const startHandler = startHandlers[0] || (ipc as any)._events?.["handle:gyazo:server:start"];
-        const stopHandler = stopHandlers[0] || (ipc as any)._events?.["handle:gyazo:server:stop"];
+        const startHandler =
+            startHandlers[0] ||
+            (ipc as any)._events?.["handle:gyazo:server:start"];
+        const stopHandler =
+            stopHandlers[0] ||
+            (ipc as any)._events?.["handle:gyazo:server:stop"];
 
         // Call start with explicit port
         if (typeof startHandler === "function") {
@@ -545,7 +609,11 @@ describe("main.js - Final Coverage Push to 100%", () => {
         globalMocks.mockApp.emit("before-quit", { preventDefault: vi.fn() });
         globalMocks.mockApp.emit("window-all-closed");
         globalMocks.mockApp.emit("activate");
-        globalMocks.mockApp.emit("browser-window-focus", {}, globalMocks.mockWindow);
+        globalMocks.mockApp.emit(
+            "browser-window-focus",
+            {},
+            globalMocks.mockWindow
+        );
 
         // Test web-contents-created for security handlers
         const mockWebContents = new EventEmitter();
@@ -558,7 +626,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         // Minimal assertion to satisfy assertion requirements
         expect(globalMocks.mockApp.emit).toBeDefined();
-        console.log("[TEST] Application event handlers and lifecycle exercised");
+        console.log(
+            "[TEST] Application event handlers and lifecycle exercised"
+        );
     });
 
     test("should exercise auto-updater functionality and error paths", async () => {
@@ -589,7 +659,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         // Minimal assertion
         expect(globalMocks.mockAutoUpdater.emit).toBeTypeOf("function");
-        console.log("[TEST] Auto-updater functionality and error paths exercised");
+        console.log(
+            "[TEST] Auto-updater functionality and error paths exercised"
+        );
     });
 
     test("should exercise theme management and WebContents events", async () => {
@@ -600,11 +672,15 @@ describe("main.js - Final Coverage Push to 100%", () => {
         globalMocks.mockWebContents.emit("did-finish-load");
 
         // Test theme execution with both success and error cases
-        globalMocks.mockWindow.webContents.executeJavaScript.mockResolvedValueOnce("dark");
+        globalMocks.mockWindow.webContents.executeJavaScript.mockResolvedValueOnce(
+            "dark"
+        );
         globalMocks.mockWebContents.emit("did-finish-load");
 
         // Test error case
-        globalMocks.mockWindow.webContents.executeJavaScript.mockRejectedValueOnce(new Error("Theme error"));
+        globalMocks.mockWindow.webContents.executeJavaScript.mockRejectedValueOnce(
+            new Error("Theme error")
+        );
         globalMocks.mockWebContents.emit("did-finish-load");
 
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -623,9 +699,11 @@ describe("main.js - Final Coverage Push to 100%", () => {
         });
 
         // Test file read callback errors
-        globalMocks.mockFs.readFile.mockImplementationOnce((path: string, callback: any) => {
-            callback(new Error("Async file error"), null);
-        });
+        globalMocks.mockFs.readFile.mockImplementationOnce(
+            (path: string, callback: any) => {
+                callback(new Error("Async file error"), null);
+            }
+        );
 
         await new Promise((resolve) => setTimeout(resolve, 50));
         // Minimal assertion
@@ -644,24 +722,38 @@ describe("main.js - Final Coverage Push to 100%", () => {
         const originalPlatform = process.platform;
 
         // Test Linux
-        Object.defineProperty(process, "platform", { value: "linux", writable: true });
+        Object.defineProperty(process, "platform", {
+            value: "linux",
+            writable: true,
+        });
         globalMocks.mockApp.emit("window-all-closed");
 
         // Test macOS
-        Object.defineProperty(process, "platform", { value: "darwin", writable: true });
+        Object.defineProperty(process, "platform", {
+            value: "darwin",
+            writable: true,
+        });
         globalMocks.mockApp.emit("window-all-closed");
 
         // Test Windows
-        Object.defineProperty(process, "platform", { value: "win32", writable: true });
+        Object.defineProperty(process, "platform", {
+            value: "win32",
+            writable: true,
+        });
         globalMocks.mockApp.emit("window-all-closed");
 
         // Restore platform
-        Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
+        Object.defineProperty(process, "platform", {
+            value: originalPlatform,
+            writable: true,
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 50));
         // Minimal assertion
         expect(process.env.NODE_ENV).toBe("development");
-        console.log("[TEST] Development mode and platform-specific code exercised");
+        console.log(
+            "[TEST] Development mode and platform-specific code exercised"
+        );
     });
 
     test("should exercise comprehensive error conditions and edge cases", async () => {
@@ -676,7 +768,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
             },
         };
 
-        globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([brokenWindow]);
+        globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([
+            brokenWindow,
+        ]);
         globalMocks.mockApp.emit("activate");
 
         // Test various error conditions
@@ -701,7 +795,11 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         await new Promise((resolve) => setTimeout(resolve, 150));
         // Minimal assertion: verify function exists
-        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe("function");
-        console.log("[TEST] Comprehensive error conditions and edge cases exercised");
+        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe(
+            "function"
+        );
+        console.log(
+            "[TEST] Comprehensive error conditions and edge cases exercised"
+        );
     });
 });

@@ -1,5 +1,6 @@
 /**
  * Create or reuse the main application window and wire core lifecycle handlers.
+ *
  * @param {Object} options
  * @param {Function} options.browserWindowRef
  * @param {Function} options.getAppState
@@ -11,6 +12,7 @@
  * @param {Function} options.resolveAutoUpdater
  * @param {Function} options.setupAutoUpdater
  * @param {Function} options.logWithContext
+ *
  * @returns {Promise<any>}
  */
 async function initializeMainWindow({
@@ -59,14 +61,19 @@ async function initializeMainWindow({
             } catch {
                 /* Ignore errors */
             }
-            if ((!list || list.length === 0) && BW && typeof BW.getAllWindows === "function") {
+            if (
+                (!list || list.length === 0) &&
+                BW &&
+                typeof BW.getAllWindows === "function"
+            ) {
                 try {
                     list = BW.getAllWindows();
                 } catch {
                     /* Ignore errors */
                 }
             }
-            mainWindow = Array.isArray(list) && list.length > 0 ? list[0] : undefined;
+            mainWindow =
+                Array.isArray(list) && list.length > 0 ? list[0] : undefined;
         } catch {
             /* Ignore errors */
         }
@@ -89,12 +96,26 @@ async function initializeMainWindow({
 
     setAppState("mainWindow", mainWindow);
 
-    logWithContext("info", "Calling createAppMenu after window selection/creation");
-    safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+    logWithContext(
+        "info",
+        "Calling createAppMenu after window selection/creation"
+    );
+    safeCreateAppMenu(
+        mainWindow,
+        CONSTANTS.DEFAULT_THEME,
+        getAppState("loadedFitFilePath")
+    );
 
-    if (mainWindow && mainWindow.webContents && typeof mainWindow.webContents.on === "function") {
+    if (
+        mainWindow &&
+        mainWindow.webContents &&
+        typeof mainWindow.webContents.on === "function"
+    ) {
         mainWindow.webContents.on("did-finish-load", async () => {
-            logWithContext("info", "did-finish-load event fired, syncing theme");
+            logWithContext(
+                "info",
+                "did-finish-load event fired, syncing theme"
+            );
 
             if (!getAppState("autoUpdaterInitialized")) {
                 try {
@@ -111,15 +132,33 @@ async function initializeMainWindow({
 
             try {
                 const theme = await getThemeFromRenderer(mainWindow);
-                logWithContext("info", "Retrieved theme from renderer", { theme });
-                safeCreateAppMenu(mainWindow, theme, getAppState("loadedFitFilePath"));
+                logWithContext("info", "Retrieved theme from renderer", {
+                    theme,
+                });
+                safeCreateAppMenu(
+                    mainWindow,
+                    theme,
+                    getAppState("loadedFitFilePath")
+                );
                 sendToRenderer(mainWindow, "set-theme", theme);
             } catch (error) {
-                logWithContext("warn", "Failed to get theme from renderer, using fallback", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
-                sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
+                logWithContext(
+                    "warn",
+                    "Failed to get theme from renderer, using fallback",
+                    {
+                        error: /** @type {Error} */ (error).message,
+                    }
+                );
+                safeCreateAppMenu(
+                    mainWindow,
+                    CONSTANTS.DEFAULT_THEME,
+                    getAppState("loadedFitFilePath")
+                );
+                sendToRenderer(
+                    mainWindow,
+                    "set-theme",
+                    CONSTANTS.DEFAULT_THEME
+                );
             }
         });
     }

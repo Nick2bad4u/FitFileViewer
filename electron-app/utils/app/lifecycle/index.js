@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for app/lifecycle
- * @description Re-exports all modules in the app/lifecycle category
+ * Re-exports all modules in the app/lifecycle category
+ *
+ * @file Barrel Export for app/lifecycle
  */
 export * from "./appActions.js";
 export * from "./listeners.js";

@@ -1,11 +1,15 @@
 /**
  * @typedef {Object} ChartDatasetSpec
+ *
  * @property {string} id - Identifier for the dataset
  * @property {string} label - Label for legend/tooltips
  * @property {any[]} data - Data points for the dataset
- * @property {string} [colorRole] - Optional theme color role (e.g. "primary", "success")
- * @property {string} [borderColor] - Explicit border color (overrides colorRole)
- * @property {string} [backgroundColor] - Explicit background color (overrides colorRole)
+ * @property {string} [colorRole] - Optional theme color role (e.g. "primary",
+ *   "success")
+ * @property {string} [borderColor] - Explicit border color (overrides
+ *   colorRole)
+ * @property {string} [backgroundColor] - Explicit background color (overrides
+ *   colorRole)
  * @property {boolean} [fill] - Whether to fill area under line
  * @property {boolean} [showLine] - Whether to draw line (for scatter charts)
  * @property {number} [pointRadius] - Point radius
@@ -16,20 +20,24 @@
  */
 /**
  * @typedef {Object} ChartAxisSpec
+ *
  * @property {string} id - Axis ID (e.g. "x", "y", "y1")
- * @property {"linear"|"category"|"logarithmic"} type - Axis type
+ * @property {"linear" | "category" | "logarithmic"} type - Axis type
  * @property {string} [position] - Position (e.g. "left", "right")
  * @property {string} [label] - Axis label text
  * @property {boolean} [display] - Whether to display the axis
  */
 /**
  * @typedef {Object} ChartPluginSpec
+ *
  * @property {boolean} [useZoomReset] - Whether to include zoom reset plugin
- * @property {boolean} [useBackground] - Whether to include chart background plugin
+ * @property {boolean} [useBackground] - Whether to include chart background
+ *   plugin
  */
 /**
  * @typedef {Object} ChartSpec
- * @property {"line"|"bar"|"scatter"|"doughnut"} type - Chart type
+ *
+ * @property {"line" | "bar" | "scatter" | "doughnut"} type - Chart type
  * @property {ChartDatasetSpec[]} datasets - Dataset specifications
  * @property {ChartAxisSpec[]} [axes] - Axis specifications
  * @property {ChartPluginSpec} [plugins] - Plugin configuration
@@ -38,7 +46,8 @@
  * @property {boolean} [showGrid] - Whether to show grid lines
  */
 /**
- * Build a Chart.js configuration object from a declarative spec and theme config.
+ * Build a Chart.js configuration object from a declarative spec and theme
+ * config.
  *
  * This helper is intentionally minimal and focuses on the common configuration
  * shared by FitFileViewer charts. It is primarily used in tests and as a
@@ -46,15 +55,20 @@
  *
  * @param {ChartSpec} spec - Declarative chart specification
  * @param {any} themeConfig - Theme configuration (colors etc.)
+ *
  * @returns {any} Chart.js configuration object
  */
-export function buildChartConfigFromSpec(spec: ChartSpec, themeConfig: any): any;
+export function buildChartConfigFromSpec(
+    spec: ChartSpec,
+    themeConfig: any
+): any;
 /**
  * Build a ChartSpec from a declarative definition and record data.
  *
  * @param {ChartDefinition} definition - Declarative chart definition
- * @param {Array<Record<string, unknown>>} records - Raw record data
+ * @param {Record<string, unknown>[]} records - Raw record data
  * @param {ChartDefinitionOptions} [options] - Optional settings injection
+ *
  * @returns {ChartSpec} Chart specification
  */
 export function buildChartSpecFromDefinition(
@@ -132,11 +146,18 @@ export type ChartDatasetDefinition = {
     /**
      * - Selector for values
      */
-    valueSelector?: (record: Record<string, unknown>, index: number) => number | null;
+    valueSelector?: (
+        record: Record<string, unknown>,
+        index: number
+    ) => number | null;
     /**
      * - Optional transform applied to each value
      */
-    transform?: (value: number | null, record: Record<string, unknown>, index: number) => number | null;
+    transform?: (
+        value: number | null,
+        record: Record<string, unknown>,
+        index: number
+    ) => number | null;
     /**
      * - Explicit dataset color
      */
@@ -174,7 +195,10 @@ export type ChartDefinition = {
     /**
      * - Label selector for x-axis values
      */
-    labelSelector?: (record: Record<string, unknown>, index: number) => string | number;
+    labelSelector?: (
+        record: Record<string, unknown>,
+        index: number
+    ) => string | number;
     /**
      * - X-axis label
      */

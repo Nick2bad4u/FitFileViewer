@@ -42,7 +42,11 @@ describe("logWithLevel.js - additional branch coverage", () => {
 
     it("logs with 'error' level and ignores array context (not plain object)", () => {
         // Arrays should not be treated as context objects
-        logWithLevel("error", "array ctx", [1, 2, 3] as any);
+        logWithLevel("error", "array ctx", [
+            1,
+            2,
+            3,
+        ] as any);
         expect(errorSpy).toHaveBeenCalledTimes(1);
         expect(errorSpy.mock.calls[0].length).toBe(1);
     });
@@ -69,7 +73,9 @@ describe("logWithLevel.js - additional branch coverage", () => {
         logWithLevel("warn", "trigger fallback");
         // Fallback uses console.log with a specific marker
         expect(logSpy).toHaveBeenCalled();
-        const joined = logSpy.mock.calls.map((c: any[]) => c.join(" ")).join("\n");
+        const joined = logSpy.mock.calls
+            .map((c: any[]) => c.join(" "))
+            .join("\n");
         expect(joined).toContain("[FFV][logWithLevel] Logging failure");
     });
 
@@ -78,6 +84,8 @@ describe("logWithLevel.js - additional branch coverage", () => {
         // Start with any state; after call it must be false
         (globalThis as any).__vitest_object_keys_allow_throw = true;
         logWithLevel("info", "finalize flag");
-        expect((globalThis as any).__vitest_object_keys_allow_throw).toBe(false);
+        expect((globalThis as any).__vitest_object_keys_allow_throw).toBe(
+            false
+        );
     });
 });

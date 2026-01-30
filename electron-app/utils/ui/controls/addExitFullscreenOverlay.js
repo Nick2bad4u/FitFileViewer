@@ -1,5 +1,6 @@
 /**
  * Fullscreen overlay configuration and constants
+ *
  * @readonly
  */
 const FULLSCREEN_CONFIG = {
@@ -25,14 +26,18 @@ const FULLSCREEN_CONFIG = {
 /**
  * Adds an exit fullscreen overlay button to the specified container
  *
- * The button allows users to exit fullscreen mode and is styled according to the app's theme.
- * Uses CSS classes for consistent styling and handles fullscreen API errors gracefully.
+ * The button allows users to exit fullscreen mode and is styled according to
+ * the app's theme. Uses CSS classes for consistent styling and handles
+ * fullscreen API errors gracefully.
  *
- * @param {HTMLElement} container - The DOM element to which the overlay button will be added
- * @throws {TypeError} If container is not a valid DOM element
  * @example
- * // Add exit fullscreen overlay to a chart container
- * addExitFullscreenOverlay(document.getElementById('chart-container'));
+ *     // Add exit fullscreen overlay to a chart container
+ *     addExitFullscreenOverlay(document.getElementById("chart-container"));
+ *
+ * @param {HTMLElement} container - The DOM element to which the overlay button
+ *   will be added
+ *
+ * @throws {TypeError} If container is not a valid DOM element
  */
 export function addExitFullscreenOverlay(container) {
     // Input validation
@@ -41,9 +46,13 @@ export function addExitFullscreenOverlay(container) {
     }
 
     // Prevent duplicate overlays
-    const existingOverlay = container.querySelector(`.${FULLSCREEN_CONFIG.CSS_CLASSES.OVERLAY}`);
+    const existingOverlay = container.querySelector(
+        `.${FULLSCREEN_CONFIG.CSS_CLASSES.OVERLAY}`
+    );
     if (existingOverlay) {
-        console.debug("[addExitFullscreenOverlay] Overlay already exists, skipping creation");
+        console.debug(
+            "[addExitFullscreenOverlay] Overlay already exists, skipping creation"
+        );
         return;
     }
 
@@ -51,15 +60,20 @@ export function addExitFullscreenOverlay(container) {
         const exitButton = createExitButton();
         container.append(exitButton);
     } catch (error) {
-        console.error("[addExitFullscreenOverlay] Failed to create overlay:", error);
+        console.error(
+            "[addExitFullscreenOverlay] Failed to create overlay:",
+            error
+        );
         throw error;
     }
 }
 
 /**
  * Creates the HTML content for the exit fullscreen button
- * @returns {string} The HTML string for the button content
+ *
  * @private
+ *
+ * @returns {string} The HTML string for the button content
  */
 function createButtonHTML() {
     const { HEIGHT, STROKE_WIDTH, WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
@@ -79,9 +93,12 @@ function createButtonHTML() {
 }
 
 /**
- * Creates the exit fullscreen button element with proper styling and event handling
- * @returns {HTMLButtonElement} The configured exit button element
+ * Creates the exit fullscreen button element with proper styling and event
+ * handling
+ *
  * @private
+ *
+ * @returns {HTMLButtonElement} The configured exit button element
  */
 function createExitButton() {
     const button = document.createElement("button");
@@ -104,8 +121,10 @@ function createExitButton() {
 
 /**
  * Handles the exit fullscreen button click event
- * @param {Event} event - The click event
+ *
  * @private
+ *
+ * @param {Event} event - The click event
  */
 function handleExitFullscreen(event) {
     event.stopPropagation();
@@ -113,12 +132,20 @@ function handleExitFullscreen(event) {
     try {
         if (document.fullscreenElement) {
             document.exitFullscreen().catch((error) => {
-                console.error(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`, error);
+                console.error(
+                    `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`,
+                    error
+                );
             });
         } else {
-            console.warn(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.NO_FULLSCREEN_WARNING}`);
+            console.warn(
+                `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.NO_FULLSCREEN_WARNING}`
+            );
         }
     } catch (error) {
-        console.error(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`, error);
+        console.error(
+            `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`,
+            error
+        );
     }
 }

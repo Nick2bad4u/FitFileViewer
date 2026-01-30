@@ -150,13 +150,19 @@ describe("preload.js electronAPI exposure and behavior", () => {
         await importPreloadFresh();
         // @ts-ignore
         expect((window as any).electronAPI).toBeUndefined();
-        expect(errors.join("\n")).toMatch(/API validation failed - not exposing/);
+        expect(errors.join("\n")).toMatch(
+            /API validation failed - not exposing/
+        );
     });
 
     it("catches errors thrown by exposeInMainWorld (catch branch)", async () => {
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        const ipcRenderer = { invoke: vi.fn(), send: vi.fn(), on: vi.fn() } as any;
+        const ipcRenderer = {
+            invoke: vi.fn(),
+            send: vi.fn(),
+            on: vi.fn(),
+        } as any;
         vi.doMock("electron", () => ({
             contextBridge: {
                 exposeInMainWorld: vi.fn(() => {
@@ -168,7 +174,9 @@ describe("preload.js electronAPI exposure and behavior", () => {
         await importPreloadFresh();
         // Depending on which electron mock is active, either the validation else-branch or the catch branch may log.
         const errStr = errors.join("\n");
-        expect(errStr).toMatch(/(Failed to expose electronAPI|API validation failed - not exposing)/);
+        expect(errStr).toMatch(
+            /(Failed to expose electronAPI|API validation failed - not exposing)/
+        );
     });
 
     it("exposes devTools in development and supports helpers", async () => {
@@ -198,10 +206,12 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         // Intercept process.once to capture cleanup callback
         let beforeExitCb: (() => void) | null = null;
-        const onceSpy = vi.spyOn(process, "once").mockImplementation((evt: any, cb: any) => {
-            if (evt === "beforeExit") beforeExitCb = cb;
-            return process as any;
-        });
+        const onceSpy = vi
+            .spyOn(process, "once")
+            .mockImplementation((evt: any, cb: any) => {
+                if (evt === "beforeExit") beforeExitCb = cb;
+                return process as any;
+            });
 
         await importPreloadFresh();
         const dev = exposed.devTools || (window as any).devTools;

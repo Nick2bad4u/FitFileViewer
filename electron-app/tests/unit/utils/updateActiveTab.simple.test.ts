@@ -12,8 +12,16 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
 }));
 
 // Then import the modules
-import { updateActiveTab, initializeActiveTabState, getActiveTab } from "../../../utils/ui/tabs/updateActiveTab.js";
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
+import {
+    updateActiveTab,
+    initializeActiveTabState,
+    getActiveTab,
+} from "../../../utils/ui/tabs/updateActiveTab.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager.js";
 
 // Get the mocked functions
 const mockGetState = vi.mocked(getState);
@@ -45,7 +53,9 @@ describe("updateActiveTab.js - Basic Tests", () => {
         document.body.appendChild(button);
 
         updateActiveTab("tab-summary");
-        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
+            source: "updateActiveTab",
+        });
     });
 
     it("should call getState when getActiveTab is called", () => {

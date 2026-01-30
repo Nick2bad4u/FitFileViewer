@@ -1,12 +1,15 @@
 /**
- * @fileoverview Allowlist-based HTML sanitizer.
+ * @file Allowlist-based HTML sanitizer.
  *
- * This module exists to safely consume HTML strings produced from untrusted/derived sources
- * (e.g., FIT-derived strings formatted into template literals or third-party helpers like Arquero).
+ *   This module exists to safely consume HTML strings produced from
+ *   untrusted/derived sources (e.g., FIT-derived strings formatted into
+ *   template literals or third-party helpers like Arquero).
  *
- * IMPORTANT:
- * - This is not a full HTML sanitizer like DOMPurify.
- * - It is intentionally conservative and should be used with very small, known-safe allowlists.
+ *   IMPORTANT:
+ *
+ *   - This is not a full HTML sanitizer like DOMPurify.
+ *   - It is intentionally conservative and should be used with very small,
+ *       known-safe allowlists.
  */
 
 // NOTE:
@@ -16,9 +19,9 @@
 
 /**
  * @typedef {{
- *  allowedTags: ReadonlyArray<string>;
- *  allowedAttributes: ReadonlyArray<string>;
- *  stripUrlInStyle?: boolean;
+ *     allowedTags: ReadonlyArray<string>;
+ *     allowedAttributes: ReadonlyArray<string>;
+ *     stripUrlInStyle?: boolean;
  * }} SanitizeAllowlistOptions
  */
 
@@ -48,30 +51,50 @@ const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
  * Tags that are never allowed regardless of the caller allowlist.
  *
  * Rationale:
- * - This sanitizer is used for UI fragments; we do not want it to be a general HTML renderer.
- * - Some tags (script/style/svg/iframe/...) significantly expand the attack surface.
+ *
+ * - This sanitizer is used for UI fragments; we do not want it to be a general
+ *   HTML renderer.
+ * - Some tags (script/style/svg/iframe/...) significantly expand the attack
+ *   surface.
  */
-const ALWAYS_FORBID_TAGS = new Set(["embed", "iframe", "link", "math", "meta", "object", "script", "style", "svg"]);
+const ALWAYS_FORBID_TAGS = new Set([
+    "embed",
+    "iframe",
+    "link",
+    "math",
+    "meta",
+    "object",
+    "script",
+    "style",
+    "svg",
+]);
 
 /**
  * Sanitise an HTML string into a safe DocumentFragment.
  *
  * Strategy:
+ *
  * - Remove any element whose tagName is not in the allowlist.
  * - Remove any attribute not in the allowlist.
  * - Always strip inline event handlers (`on*`).
  * - Always strip common URL-bearing attributes (href/src/xlink:href).
  * - Optionally strip style attributes containing `url(` or `expression(`.
  *
- * Disallowed elements are replaced with their textContent so user-visible text remains.
+ * Disallowed elements are replaced with their textContent so user-visible text
+ * remains.
  *
  * @param {string} html
  * @param {SanitizeAllowlistOptions} options
+ *
  * @returns {DocumentFragment}
  */
 export function sanitizeHtmlAllowlist(html, options) {
-    const allowedTagsInput = Array.isArray(options?.allowedTags) ? options.allowedTags : [];
-    const allowedAttributesInput = Array.isArray(options?.allowedAttributes) ? options.allowedAttributes : [];
+    const allowedTagsInput = Array.isArray(options?.allowedTags)
+        ? options.allowedTags
+        : [];
+    const allowedAttributesInput = Array.isArray(options?.allowedAttributes)
+        ? options.allowedAttributes
+        : [];
 
     // Prefer DOMPurify when available. It provides far more robust HTML parsing and
     // sanitization edge-case handling than a hand-rolled tree walker.
@@ -83,7 +106,10 @@ export function sanitizeHtmlAllowlist(html, options) {
     const purifier = (() => {
         try {
             const globalPurifier = /** @type {any} */ (globalThis).DOMPurify;
-            if (globalPurifier && typeof globalPurifier.sanitize === "function") {
+            if (
+                globalPurifier &&
+                typeof globalPurifier.sanitize === "function"
+            ) {
                 return globalPurifier;
             }
         } catch {
@@ -93,8 +119,12 @@ export function sanitizeHtmlAllowlist(html, options) {
     })();
 
     if (purifier) {
-        const allowedTags = allowedTagsInput.map((t) => String(t).toLowerCase());
-        const allowedAttributes = allowedAttributesInput.map((a) => String(a).toLowerCase());
+        const allowedTags = allowedTagsInput.map((t) =>
+            String(t).toLowerCase()
+        );
+        const allowedAttributes = allowedAttributesInput.map((a) =>
+            String(a).toLowerCase()
+        );
         const stripUrlInStyle = options.stripUrlInStyle !== false;
         const forbidTags = Array.from(ALWAYS_FORBID_TAGS);
 
@@ -112,11 +142,17 @@ export function sanitizeHtmlAllowlist(html, options) {
         });
 
         if (stripUrlInStyle) {
-            const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+            const walker = document.createTreeWalker(
+                fragment,
+                NodeFilter.SHOW_ELEMENT
+            );
             while (walker.nextNode()) {
                 const el = /** @type {Element} */ (walker.currentNode);
                 const styleValue = el.getAttribute("style");
-                if (typeof styleValue === "string" && containsUnsafeCss(styleValue)) {
+                if (
+                    typeof styleValue === "string" &&
+                    containsUnsafeCss(styleValue)
+                ) {
                     el.removeAttribute("style");
                 }
             }
@@ -130,12 +166,21 @@ export function sanitizeHtmlAllowlist(html, options) {
 
     // DOM Element.tagName is always uppercase in HTML documents.
     // Normalizing here makes the sanitizer resilient to caller-provided casing.
-    const forbiddenTagsUpper = new Set(Array.from(ALWAYS_FORBID_TAGS, (t) => t.toUpperCase()));
-    const allowedTags = new Set(allowedTagsInput.map((t) => String(t).toUpperCase()));
-    const allowedAttributes = new Set(allowedAttributesInput.map((a) => String(a).toLowerCase()));
+    const forbiddenTagsUpper = new Set(
+        Array.from(ALWAYS_FORBID_TAGS, (t) => t.toUpperCase())
+    );
+    const allowedTags = new Set(
+        allowedTagsInput.map((t) => String(t).toUpperCase())
+    );
+    const allowedAttributes = new Set(
+        allowedAttributesInput.map((a) => String(a).toLowerCase())
+    );
     const stripUrlInStyle = options.stripUrlInStyle !== false;
 
-    const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
+    const walker = document.createTreeWalker(
+        template.content,
+        NodeFilter.SHOW_ELEMENT
+    );
     /** @type {Element[]} */
     const nodesToReplace = [];
     /** @type {Element[]} */
@@ -175,7 +220,11 @@ export function sanitizeHtmlAllowlist(html, options) {
                 continue;
             }
 
-            if (stripUrlInStyle && name === "style" && containsUnsafeCss(value)) {
+            if (
+                stripUrlInStyle &&
+                name === "style" &&
+                containsUnsafeCss(value)
+            ) {
                 el.removeAttribute(attr.name);
             }
         }
@@ -209,6 +258,7 @@ export function sanitizeHtmlAllowlist(html, options) {
  * Conservative check for URL-capable primitives within a style attribute.
  *
  * @param {string} styleValue
+ *
  * @returns {boolean}
  */
 function containsUnsafeCss(styleValue) {
@@ -229,12 +279,15 @@ function containsUnsafeCss(styleValue) {
 }
 
 /**
- * Decode CSS escape sequences so string-scans can't be bypassed via e.g. `u\\72l(...)`.
+ * Decode CSS escape sequences so string-scans can't be bypassed via e.g.
+ * `u\\72l(...)`.
  *
- * This is not a full CSS parser; it's a best-effort canonicalization specifically
- * for detecting dangerous URL-capable constructs inside style attributes.
+ * This is not a full CSS parser; it's a best-effort canonicalization
+ * specifically for detecting dangerous URL-capable constructs inside style
+ * attributes.
  *
  * @param {string} input
+ *
  * @returns {string}
  */
 function decodeCssEscapesForScan(input) {
@@ -242,18 +295,25 @@ function decodeCssEscapesForScan(input) {
     // - \HHHHHH[whitespace]? (1-6 hex digits)
     // - \<any char>
     // Ref: CSS Syntax Level 3.
-    return input.replaceAll(/\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu, (_match, hex, single) => {
-        if (hex) {
-            const codePoint = Number.parseInt(hex, 16);
-            if (!Number.isFinite(codePoint) || codePoint <= 0 || codePoint > 0x10_ff_ff) {
-                return "";
+    return input.replaceAll(
+        /\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu,
+        (_match, hex, single) => {
+            if (hex) {
+                const codePoint = Number.parseInt(hex, 16);
+                if (
+                    !Number.isFinite(codePoint) ||
+                    codePoint <= 0 ||
+                    codePoint > 0x10_ff_ff
+                ) {
+                    return "";
+                }
+                try {
+                    return String.fromCodePoint(codePoint);
+                } catch {
+                    return "";
+                }
             }
-            try {
-                return String.fromCodePoint(codePoint);
-            } catch {
-                return "";
-            }
+            return typeof single === "string" ? single : "";
         }
-        return typeof single === "string" ? single : "";
-    });
+    );
 }

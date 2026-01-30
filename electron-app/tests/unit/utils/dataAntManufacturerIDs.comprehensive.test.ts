@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 // Import the data object under test
-const { dataAntManufacturerIDs } = await import("../../../utils/data/lookups/dataAntManufacturerIDs.js");
+const { dataAntManufacturerIDs } =
+    await import("../../../utils/data/lookups/dataAntManufacturerIDs.js");
 
 describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
     describe("Data Structure Validation", () => {
@@ -156,7 +157,9 @@ describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
         describe("Naming Convention Validation", () => {
             it("should use mostly lowercase manufacturer names", () => {
                 const values = Object.values(dataAntManufacturerIDs);
-                const lowercaseCount = values.filter((value) => value === value.toLowerCase()).length;
+                const lowercaseCount = values.filter(
+                    (value) => value === value.toLowerCase()
+                ).length;
                 const totalCount = values.length;
                 // Most names should be lowercase (allowing some exceptions like "MiPulse")
                 expect(lowercaseCount / totalCount).toBeGreaterThan(0.9);
@@ -164,7 +167,9 @@ describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
 
             it("should use underscores instead of spaces in most names", () => {
                 const values = Object.values(dataAntManufacturerIDs);
-                const spaceCount = values.filter((value) => value.includes(" ")).length;
+                const spaceCount = values.filter((value) =>
+                    value.includes(" ")
+                ).length;
                 expect(spaceCount).toBe(0); // No spaces should be found
 
                 // Check that names with underscores follow general pattern (allowing mixed case)
@@ -269,7 +274,9 @@ describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
             it("should be enumerable with Object.values()", () => {
                 const values = Object.values(dataAntManufacturerIDs);
                 expect(values.length).toBeGreaterThan(0);
-                expect(values.every((value) => typeof value === "string")).toBe(true);
+                expect(values.every((value) => typeof value === "string")).toBe(
+                    true
+                );
             });
 
             it("should be enumerable with Object.entries()", () => {
@@ -319,19 +326,34 @@ describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
         describe("Integration with Other Utilities", () => {
             it("should provide consistent data for manufacturer formatting", () => {
                 // Test that common manufacturer IDs exist for integration
-                const commonIds = [1, 6, 7, 9, 23, 32, 40, 41];
+                const commonIds = [
+                    1,
+                    6,
+                    7,
+                    9,
+                    23,
+                    32,
+                    40,
+                    41,
+                ];
                 commonIds.forEach((id) => {
                     expect(dataAntManufacturerIDs[id]).toBeDefined();
                     expect(typeof dataAntManufacturerIDs[id]).toBe("string");
-                    expect(dataAntManufacturerIDs[id].length).toBeGreaterThan(0);
+                    expect(dataAntManufacturerIDs[id].length).toBeGreaterThan(
+                        0
+                    );
                 });
             });
 
             it("should support reverse lookup functionality", () => {
                 // Verify that we can find IDs by manufacturer name
                 const entries = Object.entries(dataAntManufacturerIDs);
-                const garminEntry = entries.find(([id, name]) => name === "garmin");
-                const wahooEntry = entries.find(([id, name]) => name === "wahoo_fitness");
+                const garminEntry = entries.find(
+                    ([id, name]) => name === "garmin"
+                );
+                const wahooEntry = entries.find(
+                    ([id, name]) => name === "wahoo_fitness"
+                );
 
                 expect(garminEntry).toBeDefined();
                 expect(garminEntry?.[0]).toBe("1");
@@ -435,11 +457,13 @@ describe("dataAntManufacturerIDs.js - ANT+ Manufacturer ID Data", () => {
             });
 
             it("should maintain type consistency", () => {
-                Object.entries(dataAntManufacturerIDs).forEach(([key, value]) => {
-                    expect(typeof key).toBe("string"); // Object keys are always strings
-                    expect(typeof value).toBe("string");
-                    expect(!isNaN(Number(key))).toBe(true); // But should be numeric strings
-                });
+                Object.entries(dataAntManufacturerIDs).forEach(
+                    ([key, value]) => {
+                        expect(typeof key).toBe("string"); // Object keys are always strings
+                        expect(typeof value).toBe("string");
+                        expect(!isNaN(Number(key))).toBe(true); // But should be numeric strings
+                    }
+                );
             });
         });
     });

@@ -5,8 +5,12 @@ import { EventEmitter } from "node:events";
 const requireCjs = createRequire(import.meta.url);
 
 function clearMainRequireCache() {
-    const electronAccessPath = requireCjs.resolve("../../../../main/runtime/electronAccess");
-    const setupHandlersPath = requireCjs.resolve("../../../../main/app/setupApplicationEventHandlers");
+    const electronAccessPath = requireCjs.resolve(
+        "../../../../main/runtime/electronAccess"
+    );
+    const setupHandlersPath = requireCjs.resolve(
+        "../../../../main/app/setupApplicationEventHandlers"
+    );
     // eslint-disable-next-line security/detect-object-injection
     delete requireCjs.cache[electronAccessPath];
     // eslint-disable-next-line security/detect-object-injection
@@ -28,7 +32,9 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         try {
             // Ensure no stale override leaks into other suites.
-            const electronAccess = requireCjs("../../../../main/runtime/electronAccess");
+            const electronAccess = requireCjs(
+                "../../../../main/runtime/electronAccess"
+            );
             electronAccess.setElectronOverride?.(null);
         } catch {
             /* ignore */
@@ -53,10 +59,17 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             setPermissionCheckHandler: vi.fn(),
         };
 
-        const electronAccess = requireCjs("../../../../main/runtime/electronAccess");
-        electronAccess.setElectronOverride({ app: mockApp, shell: { openExternal: vi.fn() } });
+        const electronAccess = requireCjs(
+            "../../../../main/runtime/electronAccess"
+        );
+        electronAccess.setElectronOverride({
+            app: mockApp,
+            shell: { openExternal: vi.fn() },
+        });
 
-        const { setupApplicationEventHandlers } = requireCjs("../../../../main/app/setupApplicationEventHandlers");
+        const { setupApplicationEventHandlers } = requireCjs(
+            "../../../../main/app/setupApplicationEventHandlers"
+        );
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
@@ -70,18 +83,22 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         webContentsCreatedHandler?.({}, contents);
 
-        expect(mockSession.setPermissionRequestHandler).toHaveBeenCalledTimes(1);
+        expect(mockSession.setPermissionRequestHandler).toHaveBeenCalledTimes(
+            1
+        );
         expect(mockSession.setPermissionCheckHandler).toHaveBeenCalledTimes(1);
 
         // Ensure the request handler allows geolocation in test mode (no dialog).
-        const requestHandler = mockSession.setPermissionRequestHandler.mock.calls[0]?.[0];
+        const requestHandler =
+            mockSession.setPermissionRequestHandler.mock.calls[0]?.[0];
         expect(typeof requestHandler).toBe("function");
 
         const callback = vi.fn();
         requestHandler({}, "geolocation", callback);
         expect(callback).toHaveBeenCalledWith(true);
 
-        const checkHandler = mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
+        const checkHandler =
+            mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
         expect(typeof checkHandler).toBe("function");
         expect(checkHandler("camera")).toBe(false);
     });
@@ -95,10 +112,17 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         const appEmitter = new MockApp();
 
-        const electronAccess = requireCjs("../../../../main/runtime/electronAccess");
-        electronAccess.setElectronOverride({ app: appEmitter, shell: { openExternal: vi.fn() } });
+        const electronAccess = requireCjs(
+            "../../../../main/runtime/electronAccess"
+        );
+        electronAccess.setElectronOverride({
+            app: appEmitter,
+            shell: { openExternal: vi.fn() },
+        });
 
-        const { setupApplicationEventHandlers } = requireCjs("../../../../main/app/setupApplicationEventHandlers");
+        const { setupApplicationEventHandlers } = requireCjs(
+            "../../../../main/app/setupApplicationEventHandlers"
+        );
 
         setupApplicationEventHandlers();
         const activateCount1 = appEmitter.listenerCount("activate");

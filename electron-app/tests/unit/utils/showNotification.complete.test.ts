@@ -1,27 +1,35 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 // We need to mock the module before importing to handle the resolveShown error
-vi.mock("../../../utils/ui/notifications/showNotification.js", async (importOriginal) => {
-    // Get the original module
-    const originalModule = await importOriginal();
+vi.mock(
+    "../../../utils/ui/notifications/showNotification.js",
+    async (importOriginal) => {
+        // Get the original module
+        const originalModule = await importOriginal();
 
-    // Return a modified module with our testing hook
-    return {
-        ...originalModule,
-        // Add a hook for testing error case
-        __injectResolveShownError: (shouldThrow = true) => {
-            originalModule.__testResolveShownShouldThrow = shouldThrow;
-        },
-        // Export everything else as-is
-        showNotification: originalModule.showNotification,
-        notify: originalModule.notify,
-        clearAllNotifications: originalModule.clearAllNotifications,
-    };
-});
+        // Return a modified module with our testing hook
+        return {
+            ...originalModule,
+            // Add a hook for testing error case
+            __injectResolveShownError: (shouldThrow = true) => {
+                originalModule.__testResolveShownShouldThrow = shouldThrow;
+            },
+            // Export everything else as-is
+            showNotification: originalModule.showNotification,
+            notify: originalModule.notify,
+            clearAllNotifications: originalModule.clearAllNotifications,
+        };
+    }
+);
 
 // Import with special testing hook
-const mockModule = await import("../../../utils/ui/notifications/showNotification.js");
+const mockModule =
+    await import("../../../utils/ui/notifications/showNotification.js");
 
 describe("showNotification.js - resolveShown error handling", () => {
     const originalWarn = console.warn;
@@ -38,7 +46,8 @@ describe("showNotification.js - resolveShown error handling", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {

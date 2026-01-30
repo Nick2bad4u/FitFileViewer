@@ -1,20 +1,23 @@
 /**
- * @fileoverview Map action buttons utilities for FitFileViewer
+ * @file Map action buttons utilities for FitFileViewer
  *
- * This module provides functions to create interactive map controls and manage FIT file overlays.
- * Features include:
- * - Print/export buttons for map visualization
- * - Elevation profile modal with theme-aware styling
- * - FIT file overlay management with drag-and-drop support
- * - Marker count selector for performance optimization
- * - Loading overlays with progress tracking
- * - CSS-based theming that integrates with the application's theme system
+ *   This module provides functions to create interactive map controls and manage
+ *   FIT file overlays. Features include:
  *
- * All components use CSS custom properties and classes for theming, ensuring
- * consistent styling that automatically adapts to theme changes. The module
- * follows modern ES6+ patterns with proper JSDoc documentation and modular architecture.
+ *   - Print/export buttons for map visualization
+ *   - Elevation profile modal with theme-aware styling
+ *   - FIT file overlay management with drag-and-drop support
+ *   - Marker count selector for performance optimization
+ *   - Loading overlays with progress tracking
+ *   - CSS-based theming that integrates with the application's theme system
+ *
+ *   All components use CSS custom properties and classes for theming, ensuring
+ *   consistent styling that automatically adapts to theme changes. The module
+ *   follows modern ES6+ patterns with proper JSDoc documentation and modular
+ *   architecture.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -28,6 +31,7 @@ export function hideLoadingOverlay() {
 // Export loading functions for backward compatibility
 /**
  * Show a global loading overlay on the map.
+ *
  * @param {string} progressText
  * @param {string} [fileName]
  */
@@ -39,11 +43,13 @@ export function showLoadingOverlay(progressText, fileName = "") {
 
 /**
  * Centers the map on the main file's track
+ *
  * @private
  */
 /**
- * Center the map viewport on the main (index 0) polyline if available.
- * Provides fallbacks and defensive guards for optional globals.
+ * Center the map viewport on the main (index 0) polyline if available. Provides
+ * fallbacks and defensive guards for optional globals.
+ *
  * @private
  */
 function _centerMapOnMainFile() {
@@ -54,7 +60,10 @@ function _centerMapOnMainFile() {
         const MAX_ATTEMPTS = 8;
 
         const clearRetryTimer = () => {
-            if (w.__centerRetryHandle && typeof globalThis.clearTimeout === "function") {
+            if (
+                w.__centerRetryHandle &&
+                typeof globalThis.clearTimeout === "function"
+            ) {
                 globalThis.clearTimeout(w.__centerRetryHandle);
             }
             w.__centerRetryHandle = null;
@@ -74,12 +83,15 @@ function _centerMapOnMainFile() {
             }
         };
 
-        const attempts = Number.isInteger(w.__centerMainAttempts) ? w.__centerMainAttempts : 0;
+        const attempts = Number.isInteger(w.__centerMainAttempts)
+            ? w.__centerMainAttempts
+            : 0;
 
         let mainPolyline = /** @type {any} */ (w._mainPolyline);
         if (!mainPolyline && w._overlayPolylines) {
             const overlayCollection = /** @type {any} */ (w._overlayPolylines);
-            mainPolyline = overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
+            mainPolyline =
+                overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
         }
         const hasValidBounds = Boolean(
             w._mainPolylineOriginalBounds &&
@@ -105,7 +117,9 @@ function _centerMapOnMainFile() {
 
             const noMap = !w._leafletMapInstance;
             const logFn = noMap ? console.info : console.warn;
-            const message = noMap ? "Map not ready for centering" : "No main track to center on";
+            const message = noMap
+                ? "Map not ready for centering"
+                : "No main track to center on";
             logFn(`[mapActionButtons] ${message}`);
             showNotification(message, "warning");
             return;
@@ -124,7 +138,12 @@ function _centerMapOnMainFile() {
         }
 
         // Bring associated markers to front
-        if (w.L && w.L.CircleMarker && polyline?._map && polyline._map._layers) {
+        if (
+            w.L &&
+            w.L.CircleMarker &&
+            polyline?._map &&
+            polyline._map._layers
+        ) {
             for (const layer of Object.values(polyline._map._layers)) {
                 try {
                     if (
@@ -165,10 +184,14 @@ function _centerMapOnMainFile() {
 
             if (hasValidBounds) {
                 bounds = w._mainPolylineOriginalBounds;
-                console.log("[mapActionButtons] Using stored main polyline bounds");
+                console.log(
+                    "[mapActionButtons] Using stored main polyline bounds"
+                );
             } else if (polyline.getBounds) {
                 bounds = polyline.getBounds();
-                console.warn("[mapActionButtons] Using polyline getBounds as fallback");
+                console.warn(
+                    "[mapActionButtons] Using polyline getBounds as fallback"
+                );
             }
 
             if (bounds && bounds.isValid && bounds.isValid()) {
@@ -179,17 +202,25 @@ function _centerMapOnMainFile() {
                     try {
                         const center = w._leafletMapInstance.getCenter(),
                             zoom = w._leafletMapInstance.getZoom();
-                        console.log(`[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`);
+                        console.log(
+                            `[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`
+                        );
                     } catch {
-                        console.warn("[mapActionButtons] Error getting map state after centering (details suppressed)");
+                        console.warn(
+                            "[mapActionButtons] Error getting map state after centering (details suppressed)"
+                        );
                     }
                 }, 200);
             } else {
-                console.warn("[mapActionButtons] No valid bounds found for main polyline");
+                console.warn(
+                    "[mapActionButtons] No valid bounds found for main polyline"
+                );
                 showNotification("Could not determine track bounds", "warning");
             }
         } else {
-            console.warn("[mapActionButtons] Leaflet map instance not available");
+            console.warn(
+                "[mapActionButtons] Leaflet map instance not available"
+            );
             showNotification("Map not ready for centering", "warning");
         }
 
@@ -197,20 +228,24 @@ function _centerMapOnMainFile() {
             showNotification("Centered on main track.", "success");
         }
     } catch (error) {
-        console.error("[mapActionButtons] Error centering map on main file:", error);
+        console.error(
+            "[mapActionButtons] Error centering map on main file:",
+            error
+        );
         showNotification("Failed to center map on main file", "error");
     }
 }
 
 /**
- * Sets up interactive functionality for the active file name element
- * Makes the file name clickable to center map on the main file
+ * Sets up interactive functionality for the active file name element Makes the
+ * file name clickable to center map on the main file
+ *
  * @private
  */
 /**
- * Adds click/hover actions to the active file name element allowing centering and highlighting
- * on the primary (index 0) map overlay.
- * Safely guards all window global usages with casts to avoid type errors under checkJs.
+ * Adds click/hover actions to the active file name element allowing centering
+ * and highlighting on the primary (index 0) map overlay. Safely guards all
+ * window global usages with casts to avoid type errors under checkJs.
  */
 function setupActiveFileNameMapActions() {
     try {
@@ -246,11 +281,16 @@ function setupActiveFileNameMapActions() {
                     }, 100);
                 } else {
                     // If map tab button not found, still try to center
-                    console.warn("[mapActionButtons] Map tab button not found, attempting to center anyway");
+                    console.warn(
+                        "[mapActionButtons] Map tab button not found, attempting to center anyway"
+                    );
                     _centerMapOnMainFile();
                 }
             } catch (error) {
-                console.error("[mapActionButtons] Error in active filename click:", error);
+                console.error(
+                    "[mapActionButtons] Error in active filename click:",
+                    error
+                );
                 // Correct argument order: (message, type)
                 showNotification("Failed to center map on file", "error");
             }
@@ -285,7 +325,10 @@ function setupActiveFileNameMapActions() {
             }
         });
     } catch (error) {
-        console.error("[mapActionButtons] Error setting up active filename actions:", error);
+        console.error(
+            "[mapActionButtons] Error setting up active filename actions:",
+            error
+        );
     }
 }
 
@@ -296,17 +339,24 @@ function setupActiveFileNameMapActions() {
             parent = targetElement?.parentNode;
 
         if (!parent) {
-            console.log("[mapActionButtons] Active filename parent not found for observer");
+            console.log(
+                "[mapActionButtons] Active filename parent not found for observer"
+            );
             // Try again after DOM loads
             if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", initializeActiveFileName);
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    initializeActiveFileName
+                );
             }
             return;
         }
 
         // Set up mutation observer to handle dynamic content changes
         const observer = new MutationObserver(() => {
-            console.log("[mapActionButtons] Active filename element changed, reapplying setup");
+            console.log(
+                "[mapActionButtons] Active filename element changed, reapplying setup"
+            );
             setupActiveFileNameMapActions();
         });
 
@@ -315,13 +365,17 @@ function setupActiveFileNameMapActions() {
         // Initial setup
         setupActiveFileNameMapActions();
     } catch (error) {
-        console.error("[mapActionButtons] Error initializing active filename:", error);
+        console.error(
+            "[mapActionButtons] Error initializing active filename:",
+            error
+        );
     }
 })();
 
 // Export setup function for external use
 // Expose setup method on window for external triggers (cast for global augmentation safety)
-/** @type {any} */ (globalThis)._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
+/** @type {any} */ (globalThis)._setupActiveFileNameMapActions =
+    setupActiveFileNameMapActions;
 
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
@@ -334,14 +388,22 @@ function setupActiveFileNameMapActions() {
                 if (origUpdateShownFilesList) {
                     Reflect.apply(origUpdateShownFilesList, this, args);
                 }
-                console.log("[mapActionButtons] Files list updated, reapplying active filename setup");
+                console.log(
+                    "[mapActionButtons] Files list updated, reapplying active filename setup"
+                );
                 setupActiveFileNameMapActions();
             } catch (error) {
-                console.error("[mapActionButtons] Error in patched updateShownFilesList:", error);
+                console.error(
+                    "[mapActionButtons] Error in patched updateShownFilesList:",
+                    error
+                );
             }
         };
     } catch (error) {
-        console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
+        console.error(
+            "[mapActionButtons] Error patching updateShownFilesList:",
+            error
+        );
     }
 })();
 export { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";

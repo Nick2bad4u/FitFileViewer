@@ -1,10 +1,11 @@
 /**
- * @fileoverview Active tab content utility for FitFileViewer
+ * @file Active tab content utility for FitFileViewer
  *
- * Provides functions for finding the currently active (visible) tab content
- * element in the tabbed interface.
+ *   Provides functions for finding the currently active (visible) tab content
+ *   element in the tabbed interface.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -22,17 +23,18 @@ const // CSS display states
 /**
  * Gets the currently active (visible) tab content element
  *
- * Searches through all tab content elements to find the one that is
- * currently displayed (has display: block style). Returns the first
- * matching element or null if none are visible.
- *
- * @returns {Element|null} The active tab content element, or null if none found
+ * Searches through all tab content elements to find the one that is currently
+ * displayed (has display: block style). Returns the first matching element or
+ * null if none are visible.
  *
  * @example
- * const activeTab = getActiveTabContent();
- * if (activeTab) {
- *   console.log('Active tab ID:', activeTab.id);
- * }
+ *     const activeTab = getActiveTabContent();
+ *     if (activeTab) {
+ *         console.log("Active tab ID:", activeTab.id);
+ *     }
+ *
+ * @returns {Element | null} The active tab content element, or null if none
+ *   found
  */
 export function getActiveTabContent() {
     try {
@@ -46,7 +48,10 @@ export function getActiveTabContent() {
         // Primary strategy (legacy + test-friendly): Find the first visible tab content element
         // by checking its *inline* display style.
         for (const element of tabContents) {
-            if (/** @type {HTMLElement} */ (element).style.display === DISPLAY_STATES.VISIBLE) {
+            if (
+                /** @type {HTMLElement} */ (element).style.display ===
+                DISPLAY_STATES.VISIBLE
+            ) {
                 return element;
             }
         }
@@ -55,7 +60,9 @@ export function getActiveTabContent() {
         // rather than an inline style. These fallbacks intentionally do not use getComputedStyle
         // because JSDOM defaults can cause false positives in unit tests.
         try {
-            const activeByClass = document.querySelector(`${SELECTORS.TAB_CONTENT}.active`);
+            const activeByClass = document.querySelector(
+                `${SELECTORS.TAB_CONTENT}.active`
+            );
             if (activeByClass) {
                 return activeByClass;
             }
@@ -64,7 +71,9 @@ export function getActiveTabContent() {
         }
 
         try {
-            const activeByAria = document.querySelector(`${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`);
+            const activeByAria = document.querySelector(
+                `${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`
+            );
             if (activeByAria) {
                 return activeByAria;
             }
@@ -76,7 +85,11 @@ export function getActiveTabContent() {
         // and map to content-*.
         try {
             const activeBtn = document.querySelector(".tab-button.active");
-            const activeId = activeBtn && typeof (/** @type {any} */ (activeBtn).id) === "string" ? activeBtn.id : "";
+            const activeId =
+                activeBtn &&
+                typeof (/** @type {any} */ (activeBtn).id) === "string"
+                    ? activeBtn.id
+                    : "";
             if (activeId && activeId.startsWith("tab-")) {
                 const tabName = activeId.slice("tab-".length);
                 const contentId = `content-${tabName}`;

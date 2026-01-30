@@ -1,5 +1,5 @@
 /**
- * @fileoverview DOM element factory for the data point filter control.
+ * @file DOM element factory for the data point filter control.
  */
 
 import { MAP_FILTER_METRICS } from "../../../maps/filters/mapMetricFilter.js";
@@ -8,27 +8,28 @@ import { MAP_FILTER_METRICS } from "../../../maps/filters/mapMetricFilter.js";
  * Creates and wires the static DOM structure for the data point filter control.
  *
  * @param {number} instanceId Unique identifier for this control instance.
+ *
  * @returns {{
- *   container: HTMLDivElement;
- *   panel: HTMLDivElement;
- *   toggleButton: HTMLButtonElement;
- *   summary: HTMLParagraphElement;
- *   metricSelect: HTMLSelectElement;
- *   percentInput: HTMLInputElement;
- *   rangeSliderMin: HTMLInputElement;
- *   rangeSliderMax: HTMLInputElement;
- *   rangeValueDisplay: HTMLDivElement;
- *   topPercentRadio: HTMLInputElement;
- *   rangeRadio: HTMLInputElement;
- *   percentGroup: HTMLDivElement;
- *   rangeGroup: HTMLDivElement;
- *   topPercentOption: HTMLLabelElement;
- *   rangeOption: HTMLLabelElement;
- *   applyButton: HTMLButtonElement;
- *   resetButton: HTMLButtonElement;
- *   ids: {
- *     modeRadioName: string;
- *   };
+ *     container: HTMLDivElement;
+ *     panel: HTMLDivElement;
+ *     toggleButton: HTMLButtonElement;
+ *     summary: HTMLParagraphElement;
+ *     metricSelect: HTMLSelectElement;
+ *     percentInput: HTMLInputElement;
+ *     rangeSliderMin: HTMLInputElement;
+ *     rangeSliderMax: HTMLInputElement;
+ *     rangeValueDisplay: HTMLDivElement;
+ *     topPercentRadio: HTMLInputElement;
+ *     rangeRadio: HTMLInputElement;
+ *     percentGroup: HTMLDivElement;
+ *     rangeGroup: HTMLDivElement;
+ *     topPercentOption: HTMLLabelElement;
+ *     rangeOption: HTMLLabelElement;
+ *     applyButton: HTMLButtonElement;
+ *     resetButton: HTMLButtonElement;
+ *     ids: {
+ *         modeRadioName: string;
+ *     };
  * }}
  */
 export function createFilterControlElements(instanceId) {
@@ -83,7 +84,8 @@ export function createFilterControlElements(instanceId) {
     metricGroup.append(metricLabel, metricSelect);
 
     const modeGroup = document.createElement("div");
-    modeGroup.className = "data-point-filter-control__group data-point-filter-control__group--mode";
+    modeGroup.className =
+        "data-point-filter-control__group data-point-filter-control__group--mode";
 
     const modeLegend = document.createElement("span");
     modeLegend.className = "data-point-filter-control__mode-label";
@@ -136,11 +138,13 @@ export function createFilterControlElements(instanceId) {
     percentInput.value = "10";
 
     const percentGroup = document.createElement("div");
-    percentGroup.className = "data-point-filter-control__group data-point-filter-control__percent";
+    percentGroup.className =
+        "data-point-filter-control__group data-point-filter-control__percent";
     percentGroup.append(percentLabel, percentInput);
 
     const rangeGroup = document.createElement("div");
-    rangeGroup.className = "data-point-filter-control__group data-point-filter-control__range";
+    rangeGroup.className =
+        "data-point-filter-control__group data-point-filter-control__range";
 
     const rangeLabel = document.createElement("span");
     rangeLabel.className = "data-point-filter-control__range-label";
@@ -160,7 +164,12 @@ export function createFilterControlElements(instanceId) {
     rangeValueDisplay.className = "data-point-filter-control__range-values";
     rangeValueDisplay.textContent = "Range unavailable";
 
-    rangeGroup.append(rangeLabel, rangeSliderMin, rangeSliderMax, rangeValueDisplay);
+    rangeGroup.append(
+        rangeLabel,
+        rangeSliderMin,
+        rangeSliderMax,
+        rangeValueDisplay
+    );
 
     const summary = document.createElement("p");
     summary.className = "data-point-filter-control__summary";
@@ -180,7 +189,14 @@ export function createFilterControlElements(instanceId) {
     resetButton.textContent = "Clear";
 
     actions.append(applyButton, resetButton);
-    panel.append(metricGroup, modeGroup, percentGroup, rangeGroup, summary, actions);
+    panel.append(
+        metricGroup,
+        modeGroup,
+        percentGroup,
+        rangeGroup,
+        summary,
+        actions
+    );
 
     container.append(toggleButton);
 

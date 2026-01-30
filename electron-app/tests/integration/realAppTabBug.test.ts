@@ -1,6 +1,6 @@
 /**
- * Integration test that simulates the real app's initialization sequence
- * to identify where the disabled attribute bug occurs
+ * Integration test that simulates the real app's initialization sequence to
+ * identify where the disabled attribute bug occurs
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
@@ -27,7 +27,9 @@ mockStateManager.getState.mockImplementation((key) => globalState[key]);
 mockStateManager.setState.mockImplementation((key, value) => {
     globalState[key] = value;
     // Trigger subscribers
-    const callbacks = mockStateManager.subscribe.mock.calls.filter((call) => call[0] === key).map((call) => call[1]);
+    const callbacks = mockStateManager.subscribe.mock.calls
+        .filter((call) => call[0] === key)
+        .map((call) => call[1]);
     callbacks.forEach((callback) => callback(value));
 });
 
@@ -99,7 +101,8 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Dynamic import after mocks are set up
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
-        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../utils/ui/tabs/updateActiveTab.js");
 
         console.log("Starting real app simulation...");
 
@@ -117,7 +120,9 @@ describe("Real App Integration: Tab Button Bug", () => {
             const btn = /** @type {HTMLButtonElement} */ button;
             expect(btn.disabled).toBe(true);
             expect(btn.hasAttribute("disabled")).toBe(true);
-            console.log(`Initial: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`);
+            console.log(
+                `Initial: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`
+            );
         });
 
         // Step 3: Simulate file loading (like showFitData.js does)
@@ -158,14 +163,18 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Dynamic import after mocks are set up
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
-        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Set up mutation observer to track all changes
         /** @type {any[]} */
         const changes = [];
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "disabled"
+                ) {
                     const target = /** @type {HTMLElement} */ mutation.target;
                     changes.push({
                         target: target.id,
@@ -210,7 +219,9 @@ describe("Real App Integration: Tab Button Bug", () => {
         console.log("Attribute changes detected:", changes);
 
         // Look for patterns that might indicate the bug
-        const unexpectedDisables = changes.filter((change) => change.newValue === "" && change.oldValue === null);
+        const unexpectedDisables = changes.filter(
+            (change) => change.newValue === "" && change.oldValue === null
+        );
 
         // Assert that no unexpected disables occurred
         expect(Array.isArray(changes)).toBe(true);
@@ -221,7 +232,8 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Dynamic import after mocks are set up
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
-        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Initialize systems
         initializeTabButtonState();

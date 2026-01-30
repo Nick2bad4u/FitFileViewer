@@ -1,12 +1,14 @@
 /**
- * @fileoverview Recent files context menu wiring.
- * @description Extracted from utils/app/lifecycle/listeners.js to reduce complexity and file size.
+ * Extracted from utils/app/lifecycle/listeners.js to reduce complexity and file
+ * size.
+ *
+ * @file Recent files context menu wiring.
  */
 /**
  * Attach the “Recent Files” context menu behavior to the Open File button.
  *
- * This function intentionally preserves the original behavior (including debug logging)
- * because the menu behavior is heavily covered by strict tests.
+ * This function intentionally preserves the original behavior (including debug
+ * logging) because the menu behavior is heavily covered by strict tests.
  *
  * @param {Object} params
  * @param {HTMLButtonElement} params.openFileBtn
@@ -20,5 +22,9 @@ export function attachRecentFilesContextMenu({
 }: {
     openFileBtn: HTMLButtonElement;
     setLoading: (isLoading: boolean) => void;
-    showNotification: (message: string, type?: string, durationMs?: number) => void;
+    showNotification: (
+        message: string,
+        type?: string,
+        durationMs?: number
+    ) => void;
 }): void;

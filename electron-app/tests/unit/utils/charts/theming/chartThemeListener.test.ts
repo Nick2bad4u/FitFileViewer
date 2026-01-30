@@ -85,7 +85,14 @@ describe("chartThemeListener", () => {
         const statusOff = document.createElement("span");
         statusOff.textContent = "Off";
 
-        settings.append(slider1, slider2, toggleOn, statusOn, toggleOff, statusOff);
+        settings.append(
+            slider1,
+            slider2,
+            toggleOn,
+            statusOn,
+            toggleOff,
+            statusOff
+        );
         document.body.appendChild(settings);
         return settings;
     }
@@ -102,13 +109,19 @@ describe("chartThemeListener", () => {
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
 
-        const evt = new CustomEvent("themechange", { detail: { theme: "dark" } });
+        const evt = new CustomEvent("themechange", {
+            detail: { theme: "dark" },
+        });
         document.body.dispatchEvent(evt);
 
         // Should debounce and then call handleThemeChange
-        expect(mockedChartStateManager.handleThemeChange).not.toHaveBeenCalled();
+        expect(
+            mockedChartStateManager.handleThemeChange
+        ).not.toHaveBeenCalled();
         vi.advanceTimersByTime(160);
-        expect(mockedChartStateManager.handleThemeChange).toHaveBeenCalledTimes(1);
+        expect(mockedChartStateManager.handleThemeChange).toHaveBeenCalledTimes(
+            1
+        );
 
         // Settings UI should be updated
         const sliders = settings.querySelectorAll('input[type="range"]');
@@ -126,8 +139,12 @@ describe("chartThemeListener", () => {
         expect(t2.style.background).toBe("var(--color-border)");
 
         const statuses = settings.querySelectorAll(".toggle-switch + span");
-        expect(/** @type {HTMLElement} */ statuses[0].style.color).toBe("var(--color-success)");
-        expect(/** @type {HTMLElement} */ statuses[1].style.color).toBe("var(--color-fg)");
+        expect(/** @type {HTMLElement} */ statuses[0].style.color).toBe(
+            "var(--color-success)"
+        );
+        expect(/** @type {HTMLElement} */ statuses[1].style.color).toBe(
+            "var(--color-fg)"
+        );
     });
 
     it("does nothing chart-wise when globalData undefined", async () => {
@@ -136,15 +153,22 @@ describe("chartThemeListener", () => {
         const chartsContainer = document.createElement("div");
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(new CustomEvent("themechange", { detail: { theme: "light" } }));
+        document.body.dispatchEvent(
+            new CustomEvent("themechange", { detail: { theme: "light" } })
+        );
         vi.advanceTimersByTime(200);
-        expect(mockedChartStateManager.handleThemeChange).not.toHaveBeenCalled();
+        expect(
+            mockedChartStateManager.handleThemeChange
+        ).not.toHaveBeenCalled();
     });
 
     it("falls back to window.ChartUpdater when chartStateManager unavailable", async () => {
         vi.resetModules();
         // Remock chartStateManager to null for this import cycle
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const { setupChartThemeListener } = await importModule();
 
         const chartsContainer = document.createElement("div");
@@ -157,14 +181,19 @@ describe("chartThemeListener", () => {
 
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(new CustomEvent("themechange", { detail: { theme: "dark" } }));
+        document.body.dispatchEvent(
+            new CustomEvent("themechange", { detail: { theme: "dark" } })
+        );
         vi.advanceTimersByTime(200);
         expect(updateAll).toHaveBeenCalledWith("Theme change");
     });
 
     it("falls back to window.chartUpdater when both chartStateManager and ChartUpdater unavailable", async () => {
         vi.resetModules();
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const { setupChartThemeListener } = await importModule();
         const chartsContainer = document.createElement("div");
         const settings = buildSettingsDOM();
@@ -176,14 +205,19 @@ describe("chartThemeListener", () => {
 
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(new CustomEvent("themechange", { detail: { theme: "dark" } }));
+        document.body.dispatchEvent(
+            new CustomEvent("themechange", { detail: { theme: "dark" } })
+        );
         vi.advanceTimersByTime(200);
         expect(updateAll).toHaveBeenCalledWith("Theme change");
     });
 
     it("warns when no chart update mechanism is available", async () => {
         vi.resetModules();
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const warnSpy = vi.spyOn(console, "warn");
         const { setupChartThemeListener } = await importModule();
         const chartsContainer = document.createElement("div");
@@ -193,13 +227,18 @@ describe("chartThemeListener", () => {
 
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(new CustomEvent("themechange", { detail: { theme: "dark" } }));
+        document.body.dispatchEvent(
+            new CustomEvent("themechange", { detail: { theme: "dark" } })
+        );
         vi.advanceTimersByTime(200);
-        expect(warnSpy).toHaveBeenCalledWith("[ChartThemeListener] No chart update mechanism available");
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[ChartThemeListener] No chart update mechanism available"
+        );
     });
 
     it("removeChartThemeListener detaches handler", async () => {
-        const { setupChartThemeListener, removeChartThemeListener } = await importModule();
+        const { setupChartThemeListener, removeChartThemeListener } =
+            await importModule();
         const chartsContainer = document.createElement("div");
         const settings = buildSettingsDOM();
         // @ts-ignore
@@ -208,15 +247,22 @@ describe("chartThemeListener", () => {
         vi.useFakeTimers();
         setupChartThemeListener(chartsContainer, settings);
         removeChartThemeListener();
-        document.body.dispatchEvent(new CustomEvent("themechange", { detail: { theme: "dark" } }));
+        document.body.dispatchEvent(
+            new CustomEvent("themechange", { detail: { theme: "dark" } })
+        );
         vi.advanceTimersByTime(200);
-        expect(mockedChartStateManager.handleThemeChange).not.toHaveBeenCalled();
+        expect(
+            mockedChartStateManager.handleThemeChange
+        ).not.toHaveBeenCalled();
     });
 
     it("forceUpdateChartTheme triggers updates immediately and updates settings UI", async () => {
         // For this test, explicitly exercise the fallback path to ensure an update occurs
         vi.resetModules();
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const { forceUpdateChartTheme } = await importModule();
         const chartsContainer = document.createElement("div");
         const settings = buildSettingsDOM();
@@ -231,14 +277,21 @@ describe("chartThemeListener", () => {
 
         // Settings UI should be updated as well
         const sliders = settings.querySelectorAll('input[type="range"]');
-        expect(/** @type {HTMLInputElement} */ sliders[0].style.background).toContain("25%");
+        expect(
+            /** @type {HTMLInputElement} */ sliders[0].style.background
+        ).toContain("25%");
         const toggles = settings.querySelectorAll(".toggle-switch");
-        expect(/** @type {HTMLElement} */ toggles[0].style.background).toBe("var(--color-success)");
+        expect(/** @type {HTMLElement} */ toggles[0].style.background).toBe(
+            "var(--color-success)"
+        );
     });
 
     it("forceUpdateChartTheme falls back to window.chartUpdater when ChartUpdater is unavailable", async () => {
         vi.resetModules();
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const { forceUpdateChartTheme } = await importModule();
         const chartsContainer = document.createElement("div");
         // @ts-ignore
@@ -252,7 +305,10 @@ describe("chartThemeListener", () => {
 
     it("forceUpdateChartTheme warns when no chart update mechanism is available", async () => {
         vi.resetModules();
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: null }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({ chartStateManager: null })
+        );
         const { forceUpdateChartTheme } = await importModule();
         const chartsContainer = document.createElement("div");
         // @ts-ignore
@@ -278,7 +334,10 @@ describe("chartThemeListener", () => {
         // Pass a non-HTMLElement truthy object as settings to trigger catch in updateSettingsPanelTheme
         // @ts-ignore
         const bogusSettings = {};
-        forceUpdateChartTheme(chartsContainer, /** @type {any} */ bogusSettings);
+        forceUpdateChartTheme(
+            chartsContainer,
+            /** @type {any} */ bogusSettings
+        );
         expect(errorSpy).toHaveBeenCalled();
     });
 });

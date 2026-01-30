@@ -1,6 +1,6 @@
 /**
- * Inline Zone Color Selector Utility
- * Creates an inline color selector that shows all zone colors in a compact format
+ * Inline Zone Color Selector Utility Creates an inline color selector that
+ * shows all zone colors in a compact format
  */
 
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
@@ -29,12 +29,15 @@ import { showNotification } from "../notifications/showNotification.js";
 
 /**
  * Clears all saved zone color data for a specific field
+ *
  * @param {string} field - Chart field
  * @param {number} zoneCount - Number of zones
  */
 export function clearZoneColorData(field, zoneCount) {
     try {
-        console.log(`[ZoneColorSelector] Clearing all zone color data for ${field}`);
+        console.log(
+            `[ZoneColorSelector] Clearing all zone color data for ${field}`
+        );
 
         // Clear color scheme preference
         clearChartColorScheme(field);
@@ -46,25 +49,37 @@ export function clearZoneColorData(field, zoneCount) {
 
         // Clear generic zone colors
         const zoneType =
-            field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone" ? "hr" : "power";
+            field.includes("hr_zone") ||
+            field.includes("hr_lap_zone") ||
+            field === "hr_zone"
+                ? "hr"
+                : "power";
         for (let i = 0; i < zoneCount; i++) {
             removeZoneColor(zoneType, i);
         }
 
-        console.log(`[ZoneColorSelector] Cleared all zone color data for ${field}`);
+        console.log(
+            `[ZoneColorSelector] Cleared all zone color data for ${field}`
+        );
     } catch (error) {
-        console.error("[ZoneColorSelector] Error clearing zone color data:", error);
+        console.error(
+            "[ZoneColorSelector] Error clearing zone color data:",
+            error
+        );
     }
 }
 
 /**
  * Creates an inline zone color selector
+ *
  * @param {string} field - The chart field (e.g., "hr_zone", "power_zone")
  * @param {HTMLElement} container - Container to append the selector to
+ *
  * @returns {HTMLElement} The created selector element
  */
 /**
  * @typedef {Object} ZoneDataItem
+ *
  * @property {string} [label]
  * @property {number} [zone]
  * @property {number} [time]
@@ -77,30 +92,50 @@ export function clearZoneColorData(field, zoneCount) {
  */
 export function createInlineZoneColorSelector(field, container) {
     try {
-        console.log(`[ZoneColorSelector] Creating inline selector for field: ${field}`);
+        console.log(
+            `[ZoneColorSelector] Creating inline selector for field: ${field}`
+        );
 
         // Determine zone type and data
-        /** @type {ZoneDataItem[]|null} */
+        /** @type {ZoneDataItem[] | null} */
         let /** @type {string[]} */
             defaultColors = [],
             zoneData = null,
             zoneType = "";
-        if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
+        if (
+            field.includes("hr_zone") ||
+            field.includes("hr_lap_zone") ||
+            field === "hr_zone"
+        ) {
             zoneType = "hr";
-            zoneData = /** @type {ZoneDataItem[]|null} */ (globalThis.heartRateZones || null);
+            zoneData = /** @type {ZoneDataItem[] | null} */ (
+                globalThis.heartRateZones || null
+            );
             defaultColors = DEFAULT_HR_ZONE_COLORS;
-        } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
+        } else if (
+            field.includes("power_zone") ||
+            field.includes("power_lap_zone") ||
+            field === "power_zone"
+        ) {
             zoneType = "power";
-            zoneData = /** @type {ZoneDataItem[]|null} */ (globalThis.powerZones || null);
+            zoneData = /** @type {ZoneDataItem[] | null} */ (
+                globalThis.powerZones || null
+            );
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
-            console.log(`[ZoneColorSelector] Creating power zone selector with ${zoneData?.length || 0} zones`);
+            console.log(
+                `[ZoneColorSelector] Creating power zone selector with ${zoneData?.length || 0} zones`
+            );
         } else {
-            console.warn(`[ZoneColorSelector] Unknown zone field type: ${field}`);
+            console.warn(
+                `[ZoneColorSelector] Unknown zone field type: ${field}`
+            );
             return null;
         }
 
         if (!zoneData || !Array.isArray(zoneData) || zoneData.length === 0) {
-            console.warn(`[ZoneColorSelector] No zone data available for ${field}`);
+            console.warn(
+                `[ZoneColorSelector] No zone data available for ${field}`
+            );
             return null;
         }
 
@@ -135,7 +170,9 @@ export function createInlineZoneColorSelector(field, container) {
         `; // Track current scheme state via settings state manager
         let currentScheme = getChartColorScheme(field);
 
-        console.log(`[ZoneColorSelector] Loaded color scheme '${currentScheme}' for ${field}`);
+        console.log(
+            `[ZoneColorSelector] Loaded color scheme '${currentScheme}' for ${field}`
+        );
 
         // Zone colors grid (needs to be declared early for function references)
         const zoneGrid = document.createElement("div");
@@ -148,12 +185,16 @@ export function createInlineZoneColorSelector(field, container) {
         `; // Define update functions early (before they're used in callbacks)
         function updateZoneColorDisplay() {
             // Get current color scheme from storage
-            const schemeSelector = /** @type {HTMLSelectElement|null} */ (selectorContainer.querySelector("select"));
+            const schemeSelector = /** @type {HTMLSelectElement | null} */ (
+                selectorContainer.querySelector("select")
+            );
             const storedScheme = getChartColorScheme(field);
             if (schemeSelector && schemeSelector.value !== storedScheme) {
                 schemeSelector.value = storedScheme;
                 currentScheme = storedScheme;
-                console.log(`[ZoneColorSelector] Updated scheme selector to '${storedScheme}' for ${field}`);
+                console.log(
+                    `[ZoneColorSelector] Updated scheme selector to '${storedScheme}' for ${field}`
+                );
             }
 
             const zoneCount = Array.isArray(zoneData) ? zoneData.length : 0;
@@ -161,7 +202,8 @@ export function createInlineZoneColorSelector(field, container) {
                 currentScheme === "custom" || zoneCount === 0
                     ? null
                     : getChartZoneColors(zoneType, zoneCount, currentScheme);
-            const activeSchemeColors = schemeColors && schemeColors.length ? schemeColors : null;
+            const activeSchemeColors =
+                schemeColors && schemeColors.length ? schemeColors : null;
             const typedZoneData = /** @type {any[]} */ (zoneData || []);
             const normalizeZoneIndex = (value) => {
                 if (!Number.isFinite(value)) {
@@ -175,7 +217,9 @@ export function createInlineZoneColorSelector(field, container) {
                 }
                 const normalizedIndex = normalizeZoneIndex(zoneIndex);
                 return (
-                    defaultColors[normalizedIndex] || defaultColors[normalizedIndex % defaultColors.length] || "#000000"
+                    defaultColors[normalizedIndex] ||
+                    defaultColors[normalizedIndex % defaultColors.length] ||
+                    "#000000"
                 );
             };
 
@@ -184,25 +228,37 @@ export function createInlineZoneColorSelector(field, container) {
             for (const child of zoneItems) {
                 const item = /** @type {HTMLElement} */ (child);
                 const zoneIndex =
-                    ((typedZoneData[zoneItemIndex] && typedZoneData[zoneItemIndex].zone) || zoneItemIndex + 1) - 1;
+                    ((typedZoneData[zoneItemIndex] &&
+                        typedZoneData[zoneItemIndex].zone) ||
+                        zoneItemIndex + 1) - 1;
                 const activeZoneIndex = normalizeZoneIndex(zoneIndex);
 
                 let colorToShow;
                 if (activeSchemeColors) {
-                    colorToShow = activeSchemeColors[activeZoneIndex] || getDefaultColor(activeZoneIndex);
+                    colorToShow =
+                        activeSchemeColors[activeZoneIndex] ||
+                        getDefaultColor(activeZoneIndex);
                 } else {
-                    colorToShow = getChartSpecificZoneColor(field, activeZoneIndex) || getDefaultColor(activeZoneIndex);
+                    colorToShow =
+                        getChartSpecificZoneColor(field, activeZoneIndex) ||
+                        getDefaultColor(activeZoneIndex);
                 }
 
                 if (!colorToShow) {
                     colorToShow = getDefaultColor(activeZoneIndex);
                 }
 
-                const colorInput = /** @type {HTMLInputElement|null} */ (item.querySelector(".zone-color-input"));
-                const colorPreview = /** @type {HTMLElement|null} */ (item.querySelector(".zone-color-preview"));
+                const colorInput = /** @type {HTMLInputElement | null} */ (
+                    item.querySelector(".zone-color-input")
+                );
+                const colorPreview = /** @type {HTMLElement | null} */ (
+                    item.querySelector(".zone-color-preview")
+                );
                 if (colorInput) {
                     const colorForInput =
-                        colorToShow && colorToShow.length === 9 && colorToShow.startsWith("#")
+                        colorToShow &&
+                        colorToShow.length === 9 &&
+                        colorToShow.startsWith("#")
                             ? colorToShow.slice(0, 7)
                             : colorToShow;
                     colorInput.value = colorForInput;
@@ -237,7 +293,9 @@ export function createInlineZoneColorSelector(field, container) {
 
             for (const item of zoneItems) {
                 const el = /** @type {HTMLElement} */ (item),
-                    colorPreview = /** @type {HTMLElement|null} */ (el.querySelector(".zone-color-preview"));
+                    colorPreview = /** @type {HTMLElement | null} */ (
+                        el.querySelector(".zone-color-preview")
+                    );
 
                 if (isCustom) {
                     // Enable editing
@@ -253,7 +311,8 @@ export function createInlineZoneColorSelector(field, container) {
                     el.style.cursor = "not-allowed";
                     if (colorPreview) {
                         colorPreview.style.cursor = "not-allowed";
-                        colorPreview.title = "Switch to Custom scheme to edit colors";
+                        colorPreview.title =
+                            "Switch to Custom scheme to edit colors";
                     }
                 }
             }
@@ -265,12 +324,16 @@ export function createInlineZoneColorSelector(field, container) {
             defaultColors,
             () => {
                 // This callback is called after scheme changes to update the display
-                console.log(`[ZoneColorSelector] Scheme change callback triggered for ${field}`);
+                console.log(
+                    `[ZoneColorSelector] Scheme change callback triggered for ${field}`
+                );
                 updateZoneColorDisplay();
                 updateZoneEditability();
             },
-            (/** @type {*} */ scheme) => {
-                console.log(`[ZoneColorSelector] Scheme selected: ${scheme} for ${field}`);
+            (/** @type {any} */ scheme) => {
+                console.log(
+                    `[ZoneColorSelector] Scheme selected: ${scheme} for ${field}`
+                );
                 currentScheme = scheme;
                 updateZoneEditability();
             },
@@ -285,7 +348,12 @@ export function createInlineZoneColorSelector(field, container) {
         if (Array.isArray(zoneData)) {
             for (const [index, zone] of zoneData.entries()) {
                 const zoneIndex = ((zone && zone.zone) || index + 1) - 1, // Convert to 0-based index
-                    zoneItem = createZoneColorItem(field, zone, zoneIndex, getCurrentScheme);
+                    zoneItem = createZoneColorItem(
+                        field,
+                        zone,
+                        zoneIndex,
+                        getCurrentScheme
+                    );
                 zoneGrid.append(zoneItem);
             }
         }
@@ -313,34 +381,53 @@ export function createInlineZoneColorSelector(field, container) {
 
         // Sync any existing chart-specific colors to generic zone storage for chart rendering
         const zoneTypeForStorage =
-            field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone" ? "hr" : "power";
+            field.includes("hr_zone") ||
+            field.includes("hr_lap_zone") ||
+            field === "hr_zone"
+                ? "hr"
+                : "power";
 
         // Ensure comprehensive color persistence
         ensureZoneColorPersistence(field, zoneTypeForStorage, zoneData.length);
 
         const zoneArray = Array.isArray(zoneData) ? zoneData : [];
-        const defaultPalette = zoneTypeForStorage === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
+        const defaultPalette =
+            zoneTypeForStorage === "hr"
+                ? DEFAULT_HR_ZONE_COLORS
+                : DEFAULT_POWER_ZONE_COLORS;
         const paletteLength = defaultPalette.length;
         const resolveDefaultColor = (idx) => {
             if (!paletteLength) {
                 return "#000000";
             }
-            return defaultPalette[idx] || defaultPalette[idx % paletteLength] || "#000000";
+            return (
+                defaultPalette[idx] ||
+                defaultPalette[idx % paletteLength] ||
+                "#000000"
+            );
         };
 
         if (zoneArray.length) {
             for (const [index, zone] of zoneArray.entries()) {
                 const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
-                    chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
+                    chartSpecificColor = getChartSpecificZoneColor(
+                        field,
+                        zoneIndex
+                    ),
                     defaultColor = resolveDefaultColor(zoneIndex);
 
                 if (chartSpecificColor !== defaultColor) {
-                    saveZoneColor(zoneTypeForStorage, zoneIndex, chartSpecificColor);
+                    saveZoneColor(
+                        zoneTypeForStorage,
+                        zoneIndex,
+                        chartSpecificColor
+                    );
                 }
             }
         }
         // Store update function for external access
-        /** @type {any} */ (selectorContainer)._updateDisplay = updateZoneColorDisplay;
+        /** @type {any} */ (selectorContainer)._updateDisplay =
+            updateZoneColorDisplay;
 
         // Initialize with loaded scheme editability and colors
         setTimeout(() => {
@@ -350,14 +437,21 @@ export function createInlineZoneColorSelector(field, container) {
             if (currentScheme !== "custom") {
                 const hasCustomColors = zoneArray.some((zone, index) => {
                     const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
-                        chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
+                        chartSpecificColor = getChartSpecificZoneColor(
+                            field,
+                            zoneIndex
+                        ),
                         defaultColor = resolveDefaultColor(zoneIndex);
                     return chartSpecificColor !== defaultColor;
                 });
 
                 // If no custom colors are saved, apply the scheme colors
                 if (!hasCustomColors) {
-                    const schemeColors = getChartZoneColors(zoneType, zoneArray.length, currentScheme);
+                    const schemeColors = getChartZoneColors(
+                        zoneType,
+                        zoneArray.length,
+                        currentScheme
+                    );
                     for (const [index, color] of schemeColors.entries()) {
                         saveChartSpecificZoneColor(field, index, color);
                         saveZoneColor(zoneTypeForStorage, index, color);
@@ -380,10 +474,15 @@ export function createInlineZoneColorSelector(field, container) {
             container.append(selectorContainer);
         }
 
-        console.log(`[ZoneColorSelector] Inline selector created for ${zoneType} zones`);
+        console.log(
+            `[ZoneColorSelector] Inline selector created for ${zoneType} zones`
+        );
         return selectorContainer;
     } catch (error) {
-        console.error("[ZoneColorSelector] Error creating inline selector:", error);
+        console.error(
+            "[ZoneColorSelector] Error creating inline selector:",
+            error
+        );
         showNotification("Failed to create zone color selector", "error");
         return null;
     }
@@ -391,8 +490,11 @@ export function createInlineZoneColorSelector(field, container) {
 
 /**
  * Gets the current color scheme for a field
+ *
  * @param {string} field - Chart field
- * @returns {string} Current color scheme ("custom", "classic", "vibrant", "monochrome")
+ *
+ * @returns {string} Current color scheme ("custom", "classic", "vibrant",
+ *   "monochrome")
  */
 export function getCurrentColorScheme(field) {
     return getChartColorScheme(field);
@@ -400,6 +502,7 @@ export function getCurrentColorScheme(field) {
 
 /**
  * Removes existing inline zone color selectors from a container
+ *
  * @param {HTMLElement} container - Container to clean up
  */
 export function removeInlineZoneColorSelectors(container) {
@@ -413,6 +516,7 @@ export function removeInlineZoneColorSelectors(container) {
 
 /**
  * Updates all inline zone color selectors in a container
+ *
  * @param {HTMLElement} container - Container with selectors
  */
 export function updateInlineZoneColorSelectors(container) {
@@ -430,13 +534,16 @@ export function updateInlineZoneColorSelectors(container) {
 
 /**
  * Creates a color scheme selector dropdown
+ *
  * @param {string} field - Chart field
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
- * @param {*} defaultColors - Default color array for the zone type
+ * @param {any} defaultColors - Default color array for the zone type
  * @param {Function} onSchemeChange - Callback when scheme changes
- * @param {Function} onSchemeSelect - Callback when scheme is selected (gets scheme name)
+ * @param {Function} onSchemeSelect - Callback when scheme is selected (gets
+ *   scheme name)
  * @param {string} initialScheme - Initial scheme to select
+ *
  * @returns {HTMLElement} Scheme selector element
  */
 function createColorSchemeSelector(
@@ -476,7 +583,7 @@ function createColorSchemeSelector(
     `;
 
     // Add scheme options
-    /** @type {Record<string,string>} */
+    /** @type {Record<string, string>} */
     const schemes = {
         autumn: "Autumn",
         classic: "Classic",
@@ -506,8 +613,13 @@ function createColorSchemeSelector(
     }
 
     // Set initial scheme value
-    select.value = initialScheme && Object.hasOwn(schemes, initialScheme) ? initialScheme : "custom";
-    console.log(`[ZoneColorSelector] Set initial scheme to '${select.value}' for ${field}`);
+    select.value =
+        initialScheme && Object.hasOwn(schemes, initialScheme)
+            ? initialScheme
+            : "custom";
+    console.log(
+        `[ZoneColorSelector] Set initial scheme to '${select.value}' for ${field}`
+    );
     select.addEventListener("change", (e) => {
         const scheme = /** @type {HTMLSelectElement} */ (e.target).value;
         setChartColorScheme(field, scheme);
@@ -532,16 +644,24 @@ function createColorSchemeSelector(
             showNotification("Switched to custom color scheme", "info");
         } else {
             // Only apply scheme colors for display/chart, do NOT persist as custom
-            const schemeColors = getChartZoneColors(zoneType, zoneCount, scheme);
+            const schemeColors = getChartZoneColors(
+                zoneType,
+                zoneCount,
+                scheme
+            );
             for (let i = 0; i < zoneCount; i++) {
                 // Only update generic zone color for chart rendering
-                const c = schemeColors[i] || schemeColors[i % schemeColors.length];
+                const c =
+                    schemeColors[i] || schemeColors[i % schemeColors.length];
                 if (c) {
                     saveZoneColor(zoneType, i, c);
                 }
             }
             if (scheme in schemes) {
-                showNotification(`Applied ${schemes[scheme] || scheme} color scheme`, "success");
+                showNotification(
+                    `Applied ${schemes[scheme] || scheme} color scheme`,
+                    "success"
+                );
             }
         }
         // Always update UI and chart after scheme change
@@ -551,22 +671,34 @@ function createColorSchemeSelector(
         try {
             globalThis.dispatchEvent(
                 new CustomEvent("fieldToggleChanged", {
-                    detail: { field, scheme, type: "zone-scheme", value: scheme },
+                    detail: {
+                        field,
+                        scheme,
+                        type: "zone-scheme",
+                        value: scheme,
+                    },
                 })
             );
 
             // Trigger chart re-render through modern state management
             if (chartStateManager) {
-                chartStateManager.debouncedRender(`Zone scheme change: ${scheme}`);
+                chartStateManager.debouncedRender(
+                    `Zone scheme change: ${scheme}`
+                );
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
             } else {
                 globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-scheme-change" } })
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "zone-scheme-change" },
+                    })
                 );
             }
         } catch (error) {
-            console.error("[ZoneColorSelector] Error during scheme change re-render:", error);
+            console.error(
+                "[ZoneColorSelector] Error during scheme change re-render:",
+                error
+            );
         }
     });
 
@@ -577,11 +709,13 @@ function createColorSchemeSelector(
 
 /**
  * Creates a reset button for resetting all zone colors
+ *
  * @param {string} field - Chart field
  * @param {string} zoneType - "hr" or "power"
  * @param {ZoneDataItem[]} zoneData - Zone data array
  * @param {string[]} defaultColors - Default colors array
  * @param {Function} onReset - Callback when reset is clicked
+ *
  * @returns {HTMLElement} Reset button element
  */
 /**
@@ -616,14 +750,19 @@ function createResetButton(field, zoneType, zoneData, onReset) {
         resetZoneColors(zoneType, zoneData.length);
 
         onReset();
-        showNotification(`${zoneType.toUpperCase()} zone colors reset to defaults`, "success");
+        showNotification(
+            `${zoneType.toUpperCase()} zone colors reset to defaults`,
+            "success"
+        );
 
         // Update all inline zone color selector UIs to reflect the scheme change to custom
         updateInlineZoneColorSelectors(document.body);
 
         // Use the exact same mechanism as metrics color changes
         try {
-            console.log(`[ZoneColorSelector] Triggering chart re-render for reset (same mechanism as metrics)`);
+            console.log(
+                `[ZoneColorSelector] Triggering chart re-render for reset (same mechanism as metrics)`
+            );
 
             // Dispatch custom event for field toggle change (same as metrics)
             globalThis.dispatchEvent(
@@ -634,18 +773,27 @@ function createResetButton(field, zoneType, zoneData, onReset) {
 
             // Trigger chart re-render through modern state management
             if (chartStateManager) {
-                chartStateManager.debouncedRender(`Zone colors reset for ${zoneType}`);
+                chartStateManager.debouncedRender(
+                    `Zone colors reset for ${zoneType}`
+                );
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
             } else {
                 globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-reset" } })
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "zone-reset" },
+                    })
                 );
             }
 
-            console.log(`[ZoneColorSelector] Chart re-render triggered for ${field} reset using unified mechanism`);
+            console.log(
+                `[ZoneColorSelector] Chart re-render triggered for ${field} reset using unified mechanism`
+            );
         } catch (error) {
-            console.error("[ZoneColorSelector] Error during reset re-render:", error);
+            console.error(
+                "[ZoneColorSelector] Error during reset re-render:",
+                error
+            );
         }
     });
 
@@ -666,16 +814,18 @@ function createResetButton(field, zoneType, zoneData, onReset) {
 
 /**
  * Creates a zone color item with preview and picker
+ *
+ * @param {string} field - Chart field
  * @param {string} field - Chart field
  * @param {Object} zone - Zone data object
- * @param {number} zoneIndex - 0-based zone index
- * @param {Function} getCurrentScheme - Function that returns current scheme
- * @returns {HTMLElement} Zone color item element
- * Creates a zone color item with preview and picker
- * @param {string} field - Chart field
  * @param {Object} zone - Zone data object
  * @param {number} zoneIndex - 0-based zone index
+ * @param {number} zoneIndex - 0-based zone index
  * @param {Function} getCurrentScheme - Function that returns current scheme
+ * @param {Function} getCurrentScheme - Function that returns current scheme
+ *
+ * @returns {HTMLElement} Zone color item element Creates a zone color item with
+ *   preview and picker
  * @returns {HTMLElement} Zone color item element
  */
 function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
@@ -703,8 +853,12 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         font-weight: 500;
     `;
 
-    const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
-        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
+    const zoneName =
+            /** @type {any} */ (zone).label ||
+            `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
+        zoneTime = /** @type {any} */ (zone).time
+            ? formatTime(/** @type {any} */ (zone).time, true)
+            : "";
 
     // Security: do not use innerHTML with zone labels/times (these can be derived from file data).
     // Build DOM nodes and use textContent to prevent injection.
@@ -736,9 +890,12 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     colorPreview.style.backgroundColor = currentColor;
 
     /**
-     * Normalize stored zone colors into a format accepted by <input type="color">.
-     * Stored tokens may be #RRGGBBAA for alpha; the input only supports #RRGGBB.
+     * Normalize stored zone colors into a format accepted by <input
+     * type="color">. Stored tokens may be #RRGGBBAA for alpha; the input only
+     * supports #RRGGBB.
+     *
      * @param {string} value
+     *
      * @returns {string}
      */
     const toColorInputHex6 = (value) => {
@@ -746,11 +903,21 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         if (/^#[\da-f]{6}$/iu.test(v)) return v;
         if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
         if (/^#[\da-f]{3}$/iu.test(v)) {
-            const [, r, g, b] = v;
+            const [
+                ,
+                r,
+                g,
+                b,
+            ] = v;
             return `#${r}${r}${g}${g}${b}${b}`;
         }
         if (/^#[\da-f]{4}$/iu.test(v)) {
-            const [, r, g, b] = v;
+            const [
+                ,
+                r,
+                g,
+                b,
+            ] = v;
             return `#${r}${r}${g}${g}${b}${b}`;
         }
         return "#000000";
@@ -772,7 +939,9 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     // Color change handler
     colorInput.addEventListener("change", (e) => {
         const newColor = /** @type {HTMLInputElement} */ (e.target).value;
-        console.log(`[ZoneColorSelector] Color changed for ${field} zone ${zoneIndex + 1}: ${newColor}`);
+        console.log(
+            `[ZoneColorSelector] Color changed for ${field} zone ${zoneIndex + 1}: ${newColor}`
+        );
 
         colorPreview.style.backgroundColor = newColor;
 
@@ -785,7 +954,11 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 
         // Generic zone storage (for chart rendering functions to read)
         const zoneType =
-            field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone" ? "hr" : "power";
+            field.includes("hr_zone") ||
+            field.includes("hr_lap_zone") ||
+            field === "hr_zone"
+                ? "hr"
+                : "power";
         saveZoneColor(zoneType, zoneIndex, newColor);
 
         updateZoneColorPreview(field, zoneIndex, newColor);
@@ -795,27 +968,41 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 
         // Use the exact same mechanism as metrics color changes
         try {
-            console.log(`[ZoneColorSelector] Triggering chart re-render (same mechanism as metrics)`);
+            console.log(
+                `[ZoneColorSelector] Triggering chart re-render (same mechanism as metrics)`
+            );
 
             // Dispatch custom event for field toggle change (same as metrics)
             globalThis.dispatchEvent(
                 new CustomEvent("fieldToggleChanged", {
-                    detail: { field, type: "zone-color", value: newColor, zoneIndex },
+                    detail: {
+                        field,
+                        type: "zone-color",
+                        value: newColor,
+                        zoneIndex,
+                    },
                 })
             );
 
             // Trigger chart re-render through modern state management
             if (chartStateManager) {
-                chartStateManager.debouncedRender(`Zone color change: zone ${zoneIndex}`);
+                chartStateManager.debouncedRender(
+                    `Zone color change: zone ${zoneIndex}`
+                );
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
             } else {
                 globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-color" } })
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "zone-color" },
+                    })
                 );
             }
         } catch (error) {
-            console.error("[ZoneColorSelector] Error triggering chart re-render:", error);
+            console.error(
+                "[ZoneColorSelector] Error triggering chart re-render:",
+                error
+            );
         }
     });
 
@@ -848,13 +1035,16 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 
 /**
  * Ensures zone colors are properly persisted through settings state manager
+ *
  * @param {string} field - Chart field
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
  */
 function ensureZoneColorPersistence(field, zoneType, zoneCount) {
     try {
-        console.log(`[ZoneColorSelector] Ensuring color persistence for ${field}`);
+        console.log(
+            `[ZoneColorSelector] Ensuring color persistence for ${field}`
+        );
 
         if (!zoneCount) {
             return;
@@ -867,21 +1057,29 @@ function ensureZoneColorPersistence(field, zoneType, zoneCount) {
             // Sync colors between chart-specific and generic storage
             if (chartSpecificColor && !genericColor) {
                 saveZoneColor(zoneType, i, chartSpecificColor);
-                console.log(`[ZoneColorSelector] Synced chart-specific color to generic storage for zone ${i + 1}`);
+                console.log(
+                    `[ZoneColorSelector] Synced chart-specific color to generic storage for zone ${i + 1}`
+                );
             } else if (genericColor && chartSpecificColor !== genericColor) {
                 // If generic color exists but chart-specific is different, use the more recent one
                 // In this case, we'll prefer chart-specific as it's more targeted
                 saveZoneColor(zoneType, i, chartSpecificColor);
-                console.log(`[ZoneColorSelector] Updated generic storage with chart-specific color for zone ${i + 1}`);
+                console.log(
+                    `[ZoneColorSelector] Updated generic storage with chart-specific color for zone ${i + 1}`
+                );
             }
         }
     } catch (error) {
-        console.warn("[ZoneColorSelector] Error ensuring color persistence:", error);
+        console.warn(
+            "[ZoneColorSelector] Error ensuring color persistence:",
+            error
+        );
     }
 }
 
 /**
  * Updates zone color preview in real-time (if chart is visible)
+ *
  * @param {string} field - The field name
  * @param {number} zoneIndex - Zone index (0-based)
  * @param {string} newColor - New color value
@@ -889,7 +1087,10 @@ function ensureZoneColorPersistence(field, zoneType, zoneCount) {
 function updateZoneColorPreview(field, zoneIndex, newColor) {
     try {
         // Find all charts that might be affected by this zone color change
-        if (globalThis._chartjsInstances && Array.isArray(globalThis._chartjsInstances)) {
+        if (
+            globalThis._chartjsInstances &&
+            Array.isArray(globalThis._chartjsInstances)
+        ) {
             let chartsUpdated = 0;
 
             for (const chart of globalThis._chartjsInstances) {
@@ -905,7 +1106,9 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
                                 dataset.label &&
                                 (dataset.label.includes("Heart Rate") ||
                                     dataset.label.includes("HR Zone") ||
-                                    dataset.label.toLowerCase().includes("heart"))
+                                    dataset.label
+                                        .toLowerCase()
+                                        .includes("heart"))
                         ),
                     isPowerZoneChart =
                         field.includes("power_zone") &&
@@ -914,13 +1117,18 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
                                 dataset.label &&
                                 (dataset.label.includes("Power") ||
                                     dataset.label.includes("Power Zone") ||
-                                    dataset.label.toLowerCase().includes("watt"))
+                                    dataset.label
+                                        .toLowerCase()
+                                        .includes("watt"))
                         );
 
                 if (isHRZoneChart || isPowerZoneChart) {
                     // Update all datasets that might have zone colors
                     for (const dataset of chart.data.datasets) {
-                        if (Array.isArray(dataset.backgroundColor) && dataset.backgroundColor[zoneIndex]) {
+                        if (
+                            Array.isArray(dataset.backgroundColor) &&
+                            dataset.backgroundColor[zoneIndex]
+                        ) {
                             dataset.backgroundColor[zoneIndex] = newColor;
                             chartsUpdated++;
                         }
@@ -938,6 +1146,9 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
             }
         }
     } catch (error) {
-        console.error("[ZoneColorSelector] Error updating zone color preview:", error);
+        console.error(
+            "[ZoneColorSelector] Error updating zone color preview:",
+            error
+        );
     }
 }

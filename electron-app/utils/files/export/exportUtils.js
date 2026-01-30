@@ -2,20 +2,30 @@ import { z } from "zod";
 
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { fetchWithTimeout, isAbortError, truncateErrorText } from "../../net/networkUtils.js";
+import {
+    fetchWithTimeout,
+    isAbortError,
+    truncateErrorText,
+} from "../../net/networkUtils.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
-import { safeStorageGetItem, safeStorageRemoveItem, safeStorageSetItem } from "../../storage/storageUtils.js";
+import {
+    safeStorageGetItem,
+    safeStorageRemoveItem,
+    safeStorageSetItem,
+} from "../../storage/storageUtils.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 
 // In test environment, allow vi.mock to be honored even for modules this file imports statically
 // By consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
 // Or when no mock is registered, we simply use the real implementations.
-/** @type {(p: string) => any|null} */
+/** @type {(p: string) => any | null} */
 function __resolveManualMockBySuffix(p) {
     try {
         // @ts-ignore
-        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        const reg = /** @type {Map<string, any> | undefined} */ (
+            globalThis.__vitest_manual_mocks__
+        );
         if (reg && typeof reg.forEach === "function") {
             for (const [id, mod] of reg.entries()) {
                 const norm = String(id).replaceAll("\\", "/");
@@ -31,8 +41,12 @@ function __resolveManualMockBySuffix(p) {
 }
 
 // Resolve possibly-mocked dependencies
-const __notifMod = __resolveManualMockBySuffix("/utils/ui/notifications/showNotification.js");
-const __chartThemeMod = __resolveManualMockBySuffix("/utils/charts/theming/chartThemeUtils.js");
+const __notifMod = __resolveManualMockBySuffix(
+    "/utils/ui/notifications/showNotification.js"
+);
+const __chartThemeMod = __resolveManualMockBySuffix(
+    "/utils/charts/theming/chartThemeUtils.js"
+);
 
 // Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
 // but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
@@ -45,7 +59,9 @@ try {
 
     if (debugEnabled) {
         // @ts-ignore
-        const __dbgReg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        const __dbgReg = /** @type {Map<string, any> | undefined} */ (
+            globalThis.__vitest_manual_mocks__
+        );
         if (__dbgReg && typeof __dbgReg.forEach === "function") {
             /** @type {string[]} */
             const keys = [];
@@ -67,7 +83,9 @@ try {
 
 // Local call sites use these, which point to mocked versions in tests when available
 const showNotification = /** @type {typeof __realShowNotification} */ (
-    __notifMod && __notifMod.showNotification ? __notifMod.showNotification : __realShowNotification
+    __notifMod && __notifMod.showNotification
+        ? __notifMod.showNotification
+        : __realShowNotification
 );
 const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
     __chartThemeMod && __chartThemeMod.detectCurrentTheme
@@ -76,11 +94,14 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
 );
 
 /**
- * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob without using fetch().
+ * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
+ * without using fetch().
  *
- * Why: fetch(data:...) is treated as a network request and can be blocked by CSP connect-src.
+ * Why: fetch(data:...) is treated as a network request and can be blocked by
+ * CSP connect-src.
  *
  * @param {string} dataUrl
+ *
  * @returns {Blob}
  */
 function dataUrlToBlob(dataUrl) {
@@ -117,13 +138,15 @@ function dataUrlToBlob(dataUrl) {
 }
 
 /**
- * Escape text for safe embedding into HTML element content or quoted attributes.
+ * Escape text for safe embedding into HTML element content or quoted
+ * attributes.
  *
  * This module is renderer-side and can consume values derived from FIT files
  * (e.g., dataset labels). Those values must never be injected into HTML without
  * escaping.
  *
  * @param {string} value
+ *
  * @returns {string}
  */
 function escapeHtml(value) {
@@ -136,8 +159,8 @@ function escapeHtml(value) {
 }
 
 /**
- * Generate a cryptographically-strong OAuth state token when possible.
- * Falls back to Math.random in older or constrained environments.
+ * Generate a cryptographically-strong OAuth state token when possible. Falls
+ * back to Math.random in older or constrained environments.
  *
  * @returns {string}
  */
@@ -148,17 +171,23 @@ function generateOAuthState() {
             const bytes = new Uint8Array(16);
             cryptoObj.getRandomValues(bytes);
             // Hex encoding keeps this simple and deterministic across environments.
-            return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+            return Array.from(bytes, (b) =>
+                b.toString(16).padStart(2, "0")
+            ).join("");
         }
     } catch {
         /* ignore */
     }
 
-    return Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
+    return (
+        Math.random().toString(36).slice(2, 15) +
+        Math.random().toString(36).slice(2, 15)
+    );
 }
 
 /**
  * @param {unknown} error
+ *
  * @returns {boolean}
  */
 // fetchWithTimeout/isAbortError/truncateErrorText are imported.
@@ -167,8 +196,9 @@ function generateOAuthState() {
  * Runtime schema for Gyazo configuration.
  *
  * Notes:
- * - clientId/clientSecret are user-configurable via storage.
- * - endpoint URLs should always be HTTPS.
+ *
+ * - ClientId/clientSecret are user-configurable via storage.
+ * - Endpoint URLs should always be HTTPS.
  */
 const GyazoConfigSchema = z
     .object({
@@ -189,6 +219,7 @@ const GyazoConfigSchema = z
  *
  * @param {unknown} url
  * @param {ReadonlySet<string>} allowedHosts
+ *
  * @returns {string}
  */
 function validateGyazoEndpointUrl(url, allowedHosts) {
@@ -222,10 +253,11 @@ function validateGyazoEndpointUrl(url, allowedHosts) {
 }
 
 /**
- * Validate the redirect URI used in the Gyazo OAuth desktop flow.
- * We only allow http://localhost:<port>/gyazo/callback.
+ * Validate the redirect URI used in the Gyazo OAuth desktop flow. We only allow
+ * http://localhost:<port>/gyazo/callback.
  *
  * @param {unknown} redirectUri
+ *
  * @returns {string}
  */
 function validateGyazoRedirectUri(redirectUri) {
@@ -245,7 +277,11 @@ function validateGyazoRedirectUri(redirectUri) {
         throw new TypeError("Invalid redirect URI");
     }
 
-    if (parsed.protocol !== "http:" || parsed.hostname !== "localhost" || parsed.pathname !== "/gyazo/callback") {
+    if (
+        parsed.protocol !== "http:" ||
+        parsed.hostname !== "localhost" ||
+        parsed.pathname !== "/gyazo/callback"
+    ) {
         throw new Error("Invalid redirect URI");
     }
 
@@ -263,6 +299,7 @@ function validateGyazoRedirectUri(redirectUri) {
  *
  * @param {unknown} url
  * @param {ReadonlySet<string>} allowedHosts
+ *
  * @returns {string}
  */
 function validateImgurEndpointUrl(url, allowedHosts) {
@@ -298,9 +335,9 @@ function validateImgurEndpointUrl(url, allowedHosts) {
 // Internal dependency container, overridable in tests
 /**
  * @type {{
- *  showNotification: typeof __realShowNotification,
- *  detectCurrentTheme: typeof __realDetectCurrentTheme,
- *  getStorage: () => any
+ *     showNotification: typeof __realShowNotification;
+ *     detectCurrentTheme: typeof __realDetectCurrentTheme;
+ *     getStorage: () => any;
  * }}
  */
 let __deps = {
@@ -311,6 +348,7 @@ let __deps = {
 
 /**
  * Test-only: override internal dependencies (notifications, theme resolver)
+ *
  * @param {Partial<typeof __deps>} overrides
  */
 export function __setTestDeps(overrides) {
@@ -327,6 +365,7 @@ export function __setTestDeps(overrides) {
 
 /**
  * @typedef {Object} ChartJSInstance
+ *
  * @property {HTMLCanvasElement} canvas - Chart canvas element
  * @property {Object} data - Chart data object
  * @property {Object} options - Chart options object
@@ -337,6 +376,7 @@ export function __setTestDeps(overrides) {
 
 /**
  * @typedef {Object} GyazoConfig
+ *
  * @property {string} clientId - Gyazo client ID
  * @property {string} clientSecret - Gyazo client secret
  * @property {string} [redirectUri] - Gyazo redirect URI
@@ -347,6 +387,7 @@ export function __setTestDeps(overrides) {
 
 /**
  * @typedef {Object} WindowExtensions
+ *
  * @property {Object} _chartjsInstances - Chart.js instances array
  * @property {Function} showNotification - Notification function
  * @property {Object} electronAPI - Electron API object
@@ -355,6 +396,7 @@ export function __setTestDeps(overrides) {
 
 /**
  * @typedef {Object} ExportResult
+ *
  * @property {boolean} success - Whether export was successful
  * @property {string} [url] - URL if uploaded
  * @property {string} [error] - Error message if failed
@@ -364,6 +406,7 @@ export function __setTestDeps(overrides) {
 export const exportUtils = {
     /**
      * Helper method to add combined CSV data to ZIP
+     *
      * @param {any} zip - JSZip instance
      * @param {any[]} charts - Array of Chart.js instances
      */
@@ -373,7 +416,8 @@ export const exportUtils = {
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets;
                 if (dataset && dataset.data) {
-                    for (const point of dataset.data) allTimestamps.add(point.x);
+                    for (const point of dataset.data)
+                        allTimestamps.add(point.x);
                 }
             }
 
@@ -381,7 +425,8 @@ export const exportUtils = {
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets,
-                    fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
+                    fieldName =
+                        dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             }
 
@@ -390,7 +435,9 @@ export const exportUtils = {
                 const row = [timestamp];
                 for (const chart of charts) {
                     const [dataset] = /** @type {any} */ (chart.data).datasets,
-                        point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
+                        point = dataset?.data?.find(
+                            (/** @type {any} */ p) => p.x === timestamp
+                        );
                     row.push(point ? point.y : "");
                 }
                 rows.push(row.join(","));
@@ -405,14 +452,20 @@ export const exportUtils = {
 
     /**
      * Initiates Gyazo OAuth authentication
+     *
      * @returns {Promise<string>} Access token
      */
     async authenticateWithGyazo() {
         const config = exportUtils.getGyazoConfig();
 
-        if (!(/** @type {any} */ (config).clientId) || !(/** @type {any} */ (config).clientSecret)) {
+        if (
+            !(/** @type {any} */ (config).clientId) ||
+            !(/** @type {any} */ (config).clientSecret)
+        ) {
             exportUtils.showGyazoSetupGuide();
-            throw new Error("Gyazo credentials not configured. Please complete the setup first.");
+            throw new Error(
+                "Gyazo credentials not configured. Please complete the setup first."
+            );
         }
 
         const { electronAPI } = globalThis;
@@ -423,14 +476,18 @@ export const exportUtils = {
             typeof electronAPI.onIpc !== "function"
         ) {
             // This module is renderer-side; tests or non-Electron environments may not expose electronAPI.
-            throw new Error("Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)");
+            throw new Error(
+                "Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)"
+            );
         }
 
         try {
             // Start the OAuth callback server
             const serverResult = await electronAPI.startGyazoServer(3000);
             if (!serverResult.success) {
-                throw new Error(`Failed to start OAuth server: ${serverResult.message}`);
+                throw new Error(
+                    `Failed to start OAuth server: ${serverResult.message}`
+                );
             }
 
             return new Promise((resolve, reject) => {
@@ -438,7 +495,8 @@ export const exportUtils = {
                 const unsubscribeRef = { current: undefined };
 
                 /**
-                 * Cleanup function used by both success and cancellation/error paths.
+                 * Cleanup function used by both success and cancellation/error
+                 * paths.
                  *
                  * @returns {Promise<void>}
                  */
@@ -451,7 +509,10 @@ export const exportUtils = {
                         /* ignore */
                     }
 
-                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
+                    safeStorageRemoveItem(
+                        "gyazo_oauth_state",
+                        __deps.getStorage
+                    );
 
                     try {
                         await electronAPI.stopGyazoServer();
@@ -460,7 +521,9 @@ export const exportUtils = {
                     }
 
                     try {
-                        const existingModal = document.querySelector(".gyazo-auth-modal-overlay");
+                        const existingModal = document.querySelector(
+                            ".gyazo-auth-modal-overlay"
+                        );
                         if (existingModal) {
                             existingModal.remove();
                         }
@@ -471,10 +534,16 @@ export const exportUtils = {
 
                 // Generate a random state for CSRF protection
                 const state = generateOAuthState();
-                safeStorageSetItem("gyazo_oauth_state", state, __deps.getStorage);
+                safeStorageSetItem(
+                    "gyazo_oauth_state",
+                    state,
+                    __deps.getStorage
+                );
 
                 // Update redirect URI to use the actual server port
-                const redirectUri = validateGyazoRedirectUri(`http://localhost:${serverResult.port}/gyazo/callback`),
+                const redirectUri = validateGyazoRedirectUri(
+                        `http://localhost:${serverResult.port}/gyazo/callback`
+                    ),
                     // Construct the authorization URL
                     authParams = new URLSearchParams({
                         client_id: /** @type {any} */ (config).clientId,
@@ -487,30 +556,53 @@ export const exportUtils = {
                         new Set(["gyazo.com"])
                     )}?${authParams.toString()}`,
                     // Listen for the OAuth callback from the main process
-                    callbackHandler = async (/** @type {any} */ _event, /** @type {any} */ data) => {
+                    callbackHandler = async (
+                        /** @type {any} */ _event,
+                        /** @type {any} */ data
+                    ) => {
                         try {
                             // Ensure we only handle the callback once.
                             if (typeof unsubscribeRef.current === "function") {
                                 unsubscribeRef.current();
                             }
 
-                            if (!data || typeof data !== "object" || data.state !== state) {
-                                throw new Error("Invalid state parameter. Possible CSRF attack.");
+                            if (
+                                !data ||
+                                typeof data !== "object" ||
+                                data.state !== state
+                            ) {
+                                throw new Error(
+                                    "Invalid state parameter. Possible CSRF attack."
+                                );
                             }
 
                             // Exchange code for token
-                            const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
+                            const tokenData =
+                                await exportUtils.exchangeGyazoCodeForToken(
+                                    data.code,
+                                    redirectUri
+                                );
 
                             // Store the access token
-                            exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
+                            exportUtils.setGyazoAccessToken(
+                                /** @type {any} */ (tokenData).access_token
+                            );
 
                             // Update status in any open account manager modal
-                            const accountManagerModal = document.querySelector(".gyazo-account-manager-modal");
+                            const accountManagerModal = document.querySelector(
+                                ".gyazo-account-manager-modal"
+                            );
                             if (accountManagerModal) {
-                                exportUtils.updateGyazoAuthStatus(/** @type {HTMLElement} */ (accountManagerModal));
+                                exportUtils.updateGyazoAuthStatus(
+                                    /** @type {HTMLElement} */ (
+                                        accountManagerModal
+                                    )
+                                );
                             }
 
-                            resolve(/** @type {any} */ (tokenData).access_token);
+                            resolve(
+                                /** @type {any} */ (tokenData).access_token
+                            );
                         } catch (error) {
                             reject(error);
                         } finally {
@@ -519,7 +611,10 @@ export const exportUtils = {
                     };
 
                 // Set up the callback listener
-                unsubscribeRef.current = electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
+                unsubscribeRef.current = electronAPI.onIpc(
+                    "gyazo-oauth-callback",
+                    callbackHandler
+                );
 
                 // Create a modal with OAuth instructions and link
                 const modal = exportUtils.createGyazoAuthModal(
@@ -562,10 +657,11 @@ export const exportUtils = {
     },
 
     /**
-     * Copy plain text to clipboard.
-     * Prefers the Electron clipboard bridge to avoid Chromium permission prompts/denials.
+     * Copy plain text to clipboard. Prefers the Electron clipboard bridge to
+     * avoid Chromium permission prompts/denials.
      *
      * @param {string} text
+     *
      * @returns {Promise<boolean>}
      */
     async copyTextToClipboard(text) {
@@ -582,7 +678,10 @@ export const exportUtils = {
 
         // 2) Browser clipboard API
         try {
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText === "function"
+            ) {
                 await navigator.clipboard.writeText(text);
                 return true;
             }
@@ -609,10 +708,11 @@ export const exportUtils = {
     },
 
     /**
-     * Copy a PNG data URL to clipboard as an image.
-     * Prefers the Electron clipboard bridge.
+     * Copy a PNG data URL to clipboard as an image. Prefers the Electron
+     * clipboard bridge.
      *
      * @param {string} pngDataUrl
+     *
      * @returns {Promise<boolean>}
      */
     async copyPngDataUrlToClipboard(pngDataUrl) {
@@ -620,7 +720,9 @@ export const exportUtils = {
         try {
             const api = /** @type {any} */ (globalThis).electronAPI;
             if (api && typeof api.writeClipboardPngDataUrl === "function") {
-                const ok = Boolean(await api.writeClipboardPngDataUrl(pngDataUrl));
+                const ok = Boolean(
+                    await api.writeClipboardPngDataUrl(pngDataUrl)
+                );
                 if (ok) return true;
             }
         } catch {
@@ -635,7 +737,9 @@ export const exportUtils = {
                 typeof ClipboardItem === "function"
             ) {
                 const blob = dataUrlToBlob(pngDataUrl);
-                await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                await navigator.clipboard.write([
+                    new ClipboardItem({ "image/png": blob }),
+                ]);
                 return true;
             }
         } catch {
@@ -647,6 +751,7 @@ export const exportUtils = {
 
     /**
      * Copies chart image to clipboard with theme background
+     *
      * @param {ChartJSInstance} chart - Chart.js instance
      */ async copyChartToClipboard(chart) {
         try {
@@ -686,10 +791,16 @@ export const exportUtils = {
             if (ok) {
                 __deps.showNotification("Chart copied to clipboard", "success");
             } else {
-                __deps.showNotification("Failed to copy chart to clipboard", "error");
+                __deps.showNotification(
+                    "Failed to copy chart to clipboard",
+                    "error"
+                );
             }
         } catch (error) {
-            console.error("Error copying chart to clipboard:", /** @type {any} */ (error));
+            console.error(
+                "Error copying chart to clipboard:",
+                /** @type {any} */ (error)
+            );
             __deps.showNotification(
                 `Failed to copy chart to clipboard: ${/** @type {any} */ (error).message}`,
                 "error"
@@ -699,6 +810,7 @@ export const exportUtils = {
 
     /**
      * Copies combined charts image to clipboard
+     *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
     async copyCombinedChartsToClipboard(charts) {
@@ -730,7 +842,12 @@ export const exportUtils = {
                     ctx.fillStyle = backgroundColor;
                 }
                 if (ctx) {
-                    ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                    ctx.fillRect(
+                        0,
+                        0,
+                        combinedCanvas.width,
+                        combinedCanvas.height
+                    );
                 }
             }
 
@@ -761,7 +878,13 @@ export const exportUtils = {
                 /** @type {any} */
                 const chartAny = /** @type {any} */ (chart);
                 if (tempCtx) {
-                    tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight);
+                    tempCtx.drawImage(
+                        chartAny.canvas,
+                        0,
+                        0,
+                        chartWidth,
+                        chartHeight
+                    );
                 }
                 if (ctx) {
                     ctx.drawImage(tempCanvas, x, y);
@@ -772,13 +895,22 @@ export const exportUtils = {
             const ok = await exportUtils.copyPngDataUrlToClipboard(pngDataUrl);
 
             if (ok) {
-                __deps.showNotification("Combined charts copied to clipboard", "success");
+                __deps.showNotification(
+                    "Combined charts copied to clipboard",
+                    "success"
+                );
             } else {
-                __deps.showNotification("Failed to copy combined charts to clipboard", "error");
+                __deps.showNotification(
+                    "Failed to copy combined charts to clipboard",
+                    "error"
+                );
             }
         } catch (error) {
             console.error("Error copying combined charts to clipboard:", error);
-            __deps.showNotification("Failed to copy combined charts to clipboard", "error");
+            __deps.showNotification(
+                "Failed to copy combined charts to clipboard",
+                "error"
+            );
         }
     },
 
@@ -811,7 +943,12 @@ export const exportUtils = {
                     ctx.fillStyle = backgroundColor;
                 }
                 if (ctx) {
-                    ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                    ctx.fillRect(
+                        0,
+                        0,
+                        combinedCanvas.width,
+                        combinedCanvas.height
+                    );
                 }
             }
 
@@ -844,7 +981,13 @@ export const exportUtils = {
                 /** @type {any} */
                 const chartAny = /** @type {any} */ (chart);
                 if (tempCtx) {
-                    tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight);
+                    tempCtx.drawImage(
+                        chartAny.canvas,
+                        0,
+                        0,
+                        chartWidth,
+                        chartHeight
+                    );
                 }
 
                 // Draw temp canvas onto combined canvas
@@ -863,22 +1006,35 @@ export const exportUtils = {
 
             __deps.showNotification("Combined charts exported", "success");
         } catch (error) {
-            console.error("Error creating combined charts image:", /** @type {any} */ (error));
+            console.error(
+                "Error creating combined charts image:",
+                /** @type {any} */ (error)
+            );
             __deps.showNotification("Failed to create combined image", "error");
         }
     },
 
     /**
      * Creates the Gyazo OAuth authentication modal
+     *
      * @param {string} authUrl - OAuth authorization URL
      * @param {string} _state - CSRF protection state (unused)
      * @param {Function} resolve - Promise resolve function
      * @param {Function} reject - Promise reject function
      * @param {boolean} useServer - Whether to use server
-     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup hook invoked before rejecting
+     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup
+     *   hook invoked before rejecting
+     *
      * @returns {HTMLElement} Modal element
      */
-    createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer, onCancel) {
+    createGyazoAuthModal(
+        authUrl,
+        /** @type {any} */ _state,
+        resolve,
+        reject,
+        useServer,
+        onCancel
+    ) {
         const useServerFlag = useServer === true;
         // Create modal overlay
         const overlay = document.createElement("div");
@@ -1040,7 +1196,10 @@ export const exportUtils = {
         const authLink = modal.querySelector("#gyazo-open-auth");
         if (authLink) {
             try {
-                /** @type {HTMLAnchorElement} */ (authLink).setAttribute("href", String(authUrl));
+                /** @type {HTMLAnchorElement} */ (authLink).setAttribute(
+                    "href",
+                    String(authUrl)
+                );
             } catch {
                 /* ignore */
             }
@@ -1057,32 +1216,55 @@ export const exportUtils = {
         if (completeAuthBtn && codeInput) {
             // Manual mode - handle authentication button
             completeAuthBtn.addEventListener("click", async () => {
-                const code = /** @type {HTMLInputElement} */ (codeInput).value.trim();
+                const code = /** @type {HTMLInputElement} */ (
+                    codeInput
+                ).value.trim();
                 if (!code) {
-                    showNotification("Please enter the authorization code", "error");
+                    showNotification(
+                        "Please enter the authorization code",
+                        "error"
+                    );
                     return;
                 }
 
                 try {
-                    showNotification("Exchanging code for access token...", "info");
-                    const tokenData = await exportUtils.exchangeGyazoCodeForToken(
-                        code,
-                        /** @type {any} */ (exportUtils.getGyazoConfig()).redirectUri
+                    showNotification(
+                        "Exchanging code for access token...",
+                        "info"
                     );
-                    exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
+                    const tokenData =
+                        await exportUtils.exchangeGyazoCodeForToken(
+                            code,
+                            /** @type {any} */ (exportUtils.getGyazoConfig())
+                                .redirectUri
+                        );
+                    exportUtils.setGyazoAccessToken(
+                        /** @type {any} */ (tokenData).access_token
+                    );
 
                     overlay.remove();
-                    showNotification("Gyazo authentication successful!", "success");
+                    showNotification(
+                        "Gyazo authentication successful!",
+                        "success"
+                    );
                     resolve(/** @type {any} */ (tokenData).access_token);
                 } catch (error) {
-                    console.error("Error completing Gyazo authentication:", error);
-                    showNotification(`Authentication failed: ${/** @type {any} */ (error).message}`, "error");
+                    console.error(
+                        "Error completing Gyazo authentication:",
+                        error
+                    );
+                    showNotification(
+                        `Authentication failed: ${/** @type {any} */ (error).message}`,
+                        "error"
+                    );
                 }
             });
         }
 
         /**
-         * ESC key handler (hoisted for add/removeEventListener and eslint no-use-before-define).
+         * ESC key handler (hoisted for add/removeEventListener and eslint
+         * no-use-before-define).
+         *
          * @param {KeyboardEvent} e
          */
         async function handleEscape(e) {
@@ -1099,7 +1281,10 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
+                    safeStorageRemoveItem(
+                        "gyazo_oauth_state",
+                        __deps.getStorage
+                    );
                 }
 
                 overlay.remove();
@@ -1125,7 +1310,10 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
+                    safeStorageRemoveItem(
+                        "gyazo_oauth_state",
+                        __deps.getStorage
+                    );
                 }
 
                 overlay.remove();
@@ -1151,7 +1339,10 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
+                    safeStorageRemoveItem(
+                        "gyazo_oauth_state",
+                        __deps.getStorage
+                    );
                 }
 
                 overlay.remove();
@@ -1183,8 +1374,10 @@ export const exportUtils = {
 
     /**
      * Exchanges authorization code for access token
+     *
      * @param {string} code - Authorization code
      * @param {string} redirectUri - Redirect URI used in OAuth flow
+     *
      * @returns {Promise<Object>} Token data with access_token
      */
     async exchangeGyazoCodeForToken(code, redirectUri) {
@@ -1194,7 +1387,10 @@ export const exportUtils = {
 
         const safeRedirectUri = validateGyazoRedirectUri(redirectUri);
         const config = exportUtils.getGyazoConfig();
-        const tokenUrl = validateGyazoEndpointUrl(/** @type {any} */ (config).tokenUrl, new Set(["gyazo.com"]));
+        const tokenUrl = validateGyazoEndpointUrl(
+            /** @type {any} */ (config).tokenUrl,
+            new Set(["gyazo.com"])
+        );
         const tokenParams = new URLSearchParams({
             client_id: /** @type {any} */ (config).clientId,
             client_secret: /** @type {any} */ (config).clientSecret,
@@ -1214,7 +1410,9 @@ export const exportUtils = {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Token exchange failed: ${response.status} - ${truncateErrorText(errorText)}`);
+                throw new Error(
+                    `Token exchange failed: ${response.status} - ${truncateErrorText(errorText)}`
+                );
             }
 
             const data = await response.json();
@@ -1233,6 +1431,7 @@ export const exportUtils = {
 
     /**
      * Exports all charts and data as a ZIP file
+     *
      * @param {any[]} charts - Array of Chart.js instances
      */
     async exportAllAsZip(charts) {
@@ -1271,14 +1470,19 @@ export const exportUtils = {
                     ctx.drawImage(chart.canvas, 0, 0);
                 }
                 const [, imageData] = canvas.toDataURL("image/png").split(",");
-                zip.file(`${safeFieldName}-chart.png`, imageData, { base64: true });
+                zip.file(`${safeFieldName}-chart.png`, imageData, {
+                    base64: true,
+                });
 
                 // Add chart data as CSV
                 if (dataset && dataset.data) {
                     const headers = ["timestamp", fieldName],
                         csvContent = [
                             headers.join(","),
-                            ...dataset.data.map((/** @type {any} */ point) => `${point.x},${point.y}`),
+                            ...dataset.data.map(
+                                (/** @type {any} */ point) =>
+                                    `${point.x},${point.y}`
+                            ),
                         ].join("\n");
                     zip.file(`${safeFieldName}-data.csv`, csvContent);
                 }
@@ -1292,7 +1496,10 @@ export const exportUtils = {
                         field: fieldName,
                         totalPoints: dataset.data.length,
                     };
-                    zip.file(`${safeFieldName}-data.json`, JSON.stringify(jsonData, null, 2));
+                    zip.file(
+                        `${safeFieldName}-data.json`,
+                        JSON.stringify(jsonData, null, 2)
+                    );
                 }
             }
 
@@ -1307,14 +1514,20 @@ export const exportUtils = {
                     rows = Math.ceil(charts.length / cols);
 
                 combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
-                combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
+                combinedCanvas.height =
+                    rows * chartHeight + (rows - 1) * padding;
 
                 if (backgroundColor !== "transparent") {
                     if (ctx) {
                         ctx.fillStyle = backgroundColor;
                     }
                     if (ctx) {
-                        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                        ctx.fillRect(
+                            0,
+                            0,
+                            combinedCanvas.width,
+                            combinedCanvas.height
+                        );
                     }
                 }
 
@@ -1338,15 +1551,25 @@ export const exportUtils = {
                     }
 
                     if (tempCtx) {
-                        tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                        tempCtx.drawImage(
+                            chart.canvas,
+                            0,
+                            0,
+                            chartWidth,
+                            chartHeight
+                        );
                     }
                     if (ctx) {
                         ctx.drawImage(tempCanvas, x, y);
                     }
                 }
 
-                const [, combinedImageData] = combinedCanvas.toDataURL("image/png").split(",");
-                zip.file("combined-charts.png", combinedImageData, { base64: true });
+                const [, combinedImageData] = combinedCanvas
+                    .toDataURL("image/png")
+                    .split(",");
+                zip.file("combined-charts.png", combinedImageData, {
+                    base64: true,
+                });
             }
 
             // Add combined CSV data
@@ -1366,7 +1589,10 @@ export const exportUtils = {
                 exportedAt: new Date().toISOString(),
                 totalCharts: charts.length,
             };
-            zip.file("combined-data.json", JSON.stringify(allChartsData, null, 2));
+            zip.file(
+                "combined-data.json",
+                JSON.stringify(allChartsData, null, 2)
+            );
 
             // Generate and download ZIP
             const content = await zip.generateAsync({ type: "blob" }),
@@ -1377,7 +1603,10 @@ export const exportUtils = {
             link.click();
             link.remove();
 
-            showNotification(`ZIP file with ${charts.length} charts exported`, "success");
+            showNotification(
+                `ZIP file with ${charts.length} charts exported`,
+                "success"
+            );
         } catch (error) {
             console.error("Error creating ZIP export:", error);
             showNotification("Failed to create ZIP export", "error");
@@ -1386,18 +1615,27 @@ export const exportUtils = {
 
     /**
      * Exports chart data as CSV
+     *
      * @param {any[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
-    async exportChartDataAsCSV(chartData, fieldName, filename = "chart-data.csv") {
+    async exportChartDataAsCSV(
+        chartData,
+        fieldName,
+        filename = "chart-data.csv"
+    ) {
         try {
             const headers = ["timestamp", fieldName],
                 csvContent = [
                     headers.join(","),
-                    ...chartData.map((/** @type {any} */ point) => `${point.x},${point.y}`),
+                    ...chartData.map(
+                        (/** @type {any} */ point) => `${point.x},${point.y}`
+                    ),
                 ].join("\n"),
-                blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+                blob = new Blob([csvContent], {
+                    type: "text/csv;charset=utf-8;",
+                }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
@@ -1413,11 +1651,16 @@ export const exportUtils = {
 
     /**
      * Exports chart data as JSON
+     *
      * @param {any[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
-    async exportChartDataAsJSON(chartData, fieldName, filename = "chart-data.json") {
+    async exportChartDataAsJSON(
+        chartData,
+        fieldName,
+        filename = "chart-data.json"
+    ) {
         try {
             const jsonData = {
                     data: chartData,
@@ -1425,7 +1668,9 @@ export const exportUtils = {
                     field: fieldName,
                     totalPoints: chartData.length,
                 },
-                blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json;charset=utf-8;" }),
+                blob = new Blob([JSON.stringify(jsonData, null, 2)], {
+                    type: "application/json;charset=utf-8;",
+                }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
@@ -1441,10 +1686,14 @@ export const exportUtils = {
 
     /**
      * Exports combined chart data as CSV
+     *
      * @param {any[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */
-    async exportCombinedChartsDataAsCSV(charts, filename = "combined-charts-data.csv") {
+    async exportCombinedChartsDataAsCSV(
+        charts,
+        filename = "combined-charts-data.csv"
+    ) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
@@ -1455,7 +1704,8 @@ export const exportUtils = {
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets;
                 if (dataset && dataset.data) {
-                    for (const point of dataset.data) allTimestamps.add(point.x);
+                    for (const point of dataset.data)
+                        allTimestamps.add(point.x);
                 }
             }
 
@@ -1464,7 +1714,8 @@ export const exportUtils = {
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets,
-                    fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
+                    fieldName =
+                        dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             }
 
@@ -1474,14 +1725,18 @@ export const exportUtils = {
                 const row = [timestamp];
                 for (const chart of charts) {
                     const [dataset] = /** @type {any} */ (chart.data).datasets,
-                        point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
+                        point = dataset?.data?.find(
+                            (/** @type {any} */ p) => p.x === timestamp
+                        );
                     row.push(point ? point.y : "");
                 }
                 rows.push(row.join(","));
             }
 
             const csvContent = rows.join("\n"),
-                blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+                blob = new Blob([csvContent], {
+                    type: "text/csv;charset=utf-8;",
+                }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
@@ -1489,7 +1744,10 @@ export const exportUtils = {
             link.click();
             link.remove();
 
-            showNotification(`Combined data exported as ${filename}`, "success");
+            showNotification(
+                `Combined data exported as ${filename}`,
+                "success"
+            );
         } catch (error) {
             console.error("Error exporting combined chart data as CSV:", error);
             showNotification("Failed to export combined chart data", "error");
@@ -1498,13 +1756,16 @@ export const exportUtils = {
 
     /**
      * Gets the theme background color for exports
+     *
      * @returns {string} Background color based on export theme setting
      */
     getExportThemeBackground() {
         const exportTheme = getChartSetting("exportTheme");
 
         const debugEnabled =
-            typeof process !== "undefined" && Boolean(process.env) && process.env.FFV_DEBUG_EXPORT_THEME === "1";
+            typeof process !== "undefined" &&
+            Boolean(process.env) &&
+            process.env.FFV_DEBUG_EXPORT_THEME === "1";
         /** @param {...any[]} args */
         const debugLog = (...args) => {
             if (!debugEnabled) return;
@@ -1532,7 +1793,10 @@ export const exportUtils = {
         } else {
             // Use current app theme as fallback, or default to "light"
             const currentTheme = __deps.detectCurrentTheme();
-            debugLog("[exportUtils] detectCurrentTheme() returned:", currentTheme);
+            debugLog(
+                "[exportUtils] detectCurrentTheme() returned:",
+                currentTheme
+            );
             theme = currentTheme || "light";
             debugLog("[exportUtils] Final fallback theme:", theme);
         }
@@ -1559,7 +1823,8 @@ export const exportUtils = {
 
     /**
      * Gets the stored Gyazo access token
-     * @returns {string|null} Access token or null if not found
+     *
+     * @returns {string | null} Access token or null if not found
      */
     getGyazoAccessToken() {
         return safeStorageGetItem("gyazo_access_token", __deps.getStorage);
@@ -1567,37 +1832,129 @@ export const exportUtils = {
 
     /* C8 ignore start */
     /**
-     * Gets Gyazo configuration from user settings or defaults
-     * Gyazo OAuth/upload flows are excluded from coverage due to external auth, clipboard,
-     * and network side effects that are brittle in jsdom.
+     * Gets Gyazo configuration from user settings or defaults Gyazo
+     * OAuth/upload flows are excluded from coverage due to external auth,
+     * clipboard, and network side effects that are brittle in jsdom.
+     *
      * @returns {Object} Gyazo configuration object
      */
     getGyazoConfig() {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
         const GyazoAppData1 = [
-                0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b,
-                0x42, 0x6d, 0x50, 0x4a, 0x6c, 0x61, 0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37,
-                0x69, 0x79, 0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
+                0x6c,
+                0x63,
+                0x6f,
+                0x7a,
+                0x6f,
+                0x61,
+                0x6e,
+                0x44,
+                0x4a,
+                0x57,
+                0x76,
+                0x6f,
+                0x75,
+                0x39,
+                0x70,
+                0x6a,
+                0x6b,
+                0x42,
+                0x6d,
+                0x50,
+                0x4a,
+                0x6c,
+                0x61,
+                0x30,
+                0x62,
+                0x4e,
+                0x67,
+                0x72,
+                0x54,
+                0x37,
+                0x59,
+                0x62,
+                0x73,
+                0x37,
+                0x69,
+                0x79,
+                0x56,
+                0x77,
+                0x4f,
+                0x6c,
+                0x59,
+                0x45,
+                0x51,
             ],
             // Apply ROT13-like transformation as additional obfuscation layer
             /** @type {(arr: number[]) => string} */
-            transform = (arr) => arr.map((/** @type {number} */ code) => String.fromCodePoint(code)).join(""),
+            transform = (arr) =>
+                arr
+                    .map((/** @type {number} */ code) =>
+                        String.fromCodePoint(code)
+                    )
+                    .join(""),
             // Decode with multiple transformations
             defaultClientId = transform(GyazoAppData1),
             GyazoAppData2 = [
-                0x77, 0x63, 0x68, 0x52, 0x46, 0x7a, 0x46, 0x5a, 0x75, 0x4f, 0x71, 0x32, 0x33, 0x4f, 0x69, 0x70, 0x48,
-                0x6b, 0x63, 0x45, 0x49, 0x76, 0x51, 0x61, 0x31, 0x4b, 0x59, 0x30, 0x6c, 0x6a, 0x6f, 0x50, 0x66, 0x32,
-                0x71, 0x30, 0x4d, 0x55, 0x62, 0x45, 0x6f, 0x53, 0x30,
+                0x77,
+                0x63,
+                0x68,
+                0x52,
+                0x46,
+                0x7a,
+                0x46,
+                0x5a,
+                0x75,
+                0x4f,
+                0x71,
+                0x32,
+                0x33,
+                0x4f,
+                0x69,
+                0x70,
+                0x48,
+                0x6b,
+                0x63,
+                0x45,
+                0x49,
+                0x76,
+                0x51,
+                0x61,
+                0x31,
+                0x4b,
+                0x59,
+                0x30,
+                0x6c,
+                0x6a,
+                0x6f,
+                0x50,
+                0x66,
+                0x32,
+                0x71,
+                0x30,
+                0x4d,
+                0x55,
+                0x62,
+                0x45,
+                0x6f,
+                0x53,
+                0x30,
             ],
             /** @type {(str: string) => string} */
             reverseTransform = (str) => str.split("").toReversed().join(""),
-            defaultClientSecret = reverseTransform(transform(GyazoAppData2.toReversed()));
+            defaultClientSecret = reverseTransform(
+                transform(GyazoAppData2.toReversed())
+            );
 
         const candidate = {
             authUrl: "https://gyazo.com/oauth/authorize",
-            clientId: safeStorageGetItem("gyazo_client_id", __deps.getStorage) || defaultClientId,
-            clientSecret: safeStorageGetItem("gyazo_client_secret", __deps.getStorage) || defaultClientSecret,
+            clientId:
+                safeStorageGetItem("gyazo_client_id", __deps.getStorage) ||
+                defaultClientId,
+            clientSecret:
+                safeStorageGetItem("gyazo_client_secret", __deps.getStorage) ||
+                defaultClientSecret,
             redirectUri: "http://localhost:3000/gyazo/callback",
             tokenUrl: "https://gyazo.com/oauth/token",
             uploadUrl: "https://upload.gyazo.com/api/upload",
@@ -1611,7 +1968,10 @@ export const exportUtils = {
         // If storage contains an unexpected value, fall back to safe defaults.
         // This should never throw because the defaults are static.
         try {
-            console.warn("[Gyazo] Invalid Gyazo configuration detected; falling back to defaults", parsed.error);
+            console.warn(
+                "[Gyazo] Invalid Gyazo configuration detected; falling back to defaults",
+                parsed.error
+            );
         } catch {
             /* ignore */
         }
@@ -1628,17 +1988,23 @@ export const exportUtils = {
 
     /**
      * Checks if user is authenticated with Gyazo
+     *
      * @returns {boolean} True if authenticated, false otherwise
      */
     isGyazoAuthenticated() {
         const token = exportUtils.getGyazoAccessToken();
-        console.log("[Gyazo] Checking authentication status. Token exists:", Boolean(token));
+        console.log(
+            "[Gyazo] Checking authentication status. Token exists:",
+            Boolean(token)
+        );
         return Boolean(token);
     },
 
     /**
      * Validates a Chart.js instance
+     *
      * @param {ChartJSInstance} chart - Chart.js instance to validate
+     *
      * @returns {boolean} True if chart is valid, false otherwise
      */
     isValidChart(chart) {
@@ -1751,6 +2117,7 @@ export const exportUtils = {
 
     /**
      * Prints multiple charts in a combined format
+     *
      * @param {any[]} charts - Array of Chart.js instances
      */
     printCombinedCharts(charts) {
@@ -1764,7 +2131,8 @@ export const exportUtils = {
                 printWindow = window.open("", "_blank", "noopener,noreferrer");
             const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
             const bodyBg = bgSafe === "transparent" ? "#ffffff" : bgSafe;
-            const bodyText = bgSafe.toLowerCase() === "#1a1a1a" ? "#ffffff" : "#000000";
+            const bodyText =
+                bgSafe.toLowerCase() === "#1a1a1a" ? "#ffffff" : "#000000";
 
             if (printWindow) {
                 try {
@@ -1869,6 +2237,7 @@ export const exportUtils = {
 
     /**
      * Stores the Gyazo access token
+     *
      * @param {string} token - Access token to store
      */
     setGyazoAccessToken(token) {
@@ -1877,12 +2246,17 @@ export const exportUtils = {
 
     /**
      * Saves Gyazo configuration to user settings
+     *
      * @param {string} clientId - Gyazo client ID
      * @param {string} clientSecret - Gyazo client secret
      */
     setGyazoConfig(clientId, clientSecret) {
         safeStorageSetItem("gyazo_client_id", clientId, __deps.getStorage);
-        safeStorageSetItem("gyazo_client_secret", clientSecret, __deps.getStorage);
+        safeStorageSetItem(
+            "gyazo_client_secret",
+            clientSecret,
+            __deps.getStorage
+        );
     },
 
     /**
@@ -1901,7 +2275,8 @@ export const exportUtils = {
 
                     showNotification("Uploading chart to Imgur...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                    const backgroundColor =
+                            exportUtils.getExportThemeBackground(),
                         canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
                     canvas.height = chart.canvas.height;
@@ -1924,8 +2299,10 @@ export const exportUtils = {
                     // Try to upload to Imgur first, fall back to data URL if not configured
                     let shareableUrl;
                     try {
-                        shareableUrl = await exportUtils.uploadToImgur(base64Image);
-                        const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                        shareableUrl =
+                            await exportUtils.uploadToImgur(base64Image);
+                        const copied =
+                            await exportUtils.copyTextToClipboard(shareableUrl);
                         showNotification(
                             copied
                                 ? "Chart uploaded to Imgur! URL copied to clipboard"
@@ -1933,10 +2310,17 @@ export const exportUtils = {
                             copied ? "success" : "warning"
                         );
                     } catch (imgurError) {
-                        if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
+                        if (
+                            /** @type {any} */ (imgurError).message.includes(
+                                "Imgur client ID not configured"
+                            )
+                        ) {
                             // Fallback to data URL
                             shareableUrl = base64Image;
-                            const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                            const copied =
+                                await exportUtils.copyTextToClipboard(
+                                    shareableUrl
+                                );
                             showNotification(
                                 copied
                                     ? "Chart image copied to clipboard as data URL (Imgur not configured)."
@@ -1949,20 +2333,30 @@ export const exportUtils = {
                     }
                 } catch (error) {
                     console.error("Error sharing single chart as URL:", error);
-                    showNotification("Failed to share chart. Please try again.", "error");
+                    showNotification(
+                        "Failed to share chart. Please try again.",
+                        "error"
+                    );
                 }
             },
             // Combined charts callback
             async (/** @type {ChartJSInstance[]} */ charts) => {
                 try {
                     if (!charts || charts.length === 0) {
-                        showNotification("No charts available to share", "warning");
+                        showNotification(
+                            "No charts available to share",
+                            "warning"
+                        );
                         return;
                     }
 
-                    showNotification("Uploading combined charts to Imgur...", "info");
+                    showNotification(
+                        "Uploading combined charts to Imgur...",
+                        "info"
+                    );
 
-                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                    const backgroundColor =
+                            exportUtils.getExportThemeBackground(),
                         chartHeight = 400,
                         chartWidth = 800,
                         cols = Math.ceil(Math.sqrt(charts.length)),
@@ -1971,15 +2365,22 @@ export const exportUtils = {
                         padding = 20,
                         rows = Math.ceil(charts.length / cols);
 
-                    combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
-                    combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
+                    combinedCanvas.width =
+                        cols * chartWidth + (cols - 1) * padding;
+                    combinedCanvas.height =
+                        rows * chartHeight + (rows - 1) * padding;
 
                     if (backgroundColor !== "transparent") {
                         if (ctx) {
                             ctx.fillStyle = backgroundColor;
                         }
                         if (ctx) {
-                            ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                            ctx.fillRect(
+                                0,
+                                0,
+                                combinedCanvas.width,
+                                combinedCanvas.height
+                            );
                         }
                     }
 
@@ -2003,20 +2404,31 @@ export const exportUtils = {
                         }
 
                         if (tempCtx) {
-                            tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                            tempCtx.drawImage(
+                                chart.canvas,
+                                0,
+                                0,
+                                chartWidth,
+                                chartHeight
+                            );
                         }
                         if (ctx) {
                             ctx.drawImage(tempCanvas, x, y);
                         }
                     }
 
-                    const base64Image = combinedCanvas.toDataURL("image/png", 1);
+                    const base64Image = combinedCanvas.toDataURL(
+                        "image/png",
+                        1
+                    );
 
                     // Try to upload to Imgur first, fall back to data URL if not configured
                     let shareableUrl;
                     try {
-                        shareableUrl = await exportUtils.uploadToImgur(base64Image);
-                        const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                        shareableUrl =
+                            await exportUtils.uploadToImgur(base64Image);
+                        const copied =
+                            await exportUtils.copyTextToClipboard(shareableUrl);
                         showNotification(
                             copied
                                 ? "Combined charts uploaded to Imgur! URL copied to clipboard"
@@ -2024,10 +2436,17 @@ export const exportUtils = {
                             copied ? "success" : "warning"
                         );
                     } catch (imgurError) {
-                        if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
+                        if (
+                            /** @type {any} */ (imgurError).message.includes(
+                                "Imgur client ID not configured"
+                            )
+                        ) {
                             // Fallback to data URL
                             shareableUrl = base64Image;
-                            const copied = await exportUtils.copyTextToClipboard(shareableUrl);
+                            const copied =
+                                await exportUtils.copyTextToClipboard(
+                                    shareableUrl
+                                );
                             showNotification(
                                 copied
                                     ? "Combined charts image copied to clipboard as data URL (Imgur not configured)."
@@ -2039,8 +2458,14 @@ export const exportUtils = {
                         }
                     }
                 } catch (error) {
-                    console.error("Error sharing combined charts as URL:", error);
-                    showNotification("Failed to share charts. Please try again.", "error");
+                    console.error(
+                        "Error sharing combined charts as URL:",
+                        error
+                    );
+                    showNotification(
+                        "Failed to share charts. Please try again.",
+                        "error"
+                    );
                 }
             }
         );
@@ -2061,7 +2486,8 @@ export const exportUtils = {
 
                     showNotification("Uploading chart to Gyazo...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                    const backgroundColor =
+                            exportUtils.getExportThemeBackground(),
                         canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
                     canvas.height = chart.canvas.height;
@@ -2082,20 +2508,33 @@ export const exportUtils = {
                     const base64Image = canvas.toDataURL("image/png", 1),
                         gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
-                    const copied = await exportUtils.copyTextToClipboard(gyazoUrl);
+                    const copied =
+                        await exportUtils.copyTextToClipboard(gyazoUrl);
                     showNotification(
-                        copied ? "Chart uploaded to Gyazo! URL copied to clipboard" : "Chart uploaded to Gyazo!",
+                        copied
+                            ? "Chart uploaded to Gyazo! URL copied to clipboard"
+                            : "Chart uploaded to Gyazo!",
                         copied ? "success" : "warning"
                     );
                 } catch (error) {
-                    console.error("Error sharing single chart to Gyazo:", error);
-                    if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
+                    console.error(
+                        "Error sharing single chart to Gyazo:",
+                        error
+                    );
+                    if (
+                        /** @type {any} */ (error).message.includes(
+                            "Gyazo access token not configured"
+                        )
+                    ) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
                         );
                     } else {
-                        showNotification("Failed to share chart to Gyazo. Please try again.", "error");
+                        showNotification(
+                            "Failed to share chart to Gyazo. Please try again.",
+                            "error"
+                        );
                     }
                 }
             },
@@ -2103,13 +2542,20 @@ export const exportUtils = {
             async (/** @type {ChartJSInstance[]} */ charts) => {
                 try {
                     if (!charts || charts.length === 0) {
-                        showNotification("No charts available to share", "warning");
+                        showNotification(
+                            "No charts available to share",
+                            "warning"
+                        );
                         return;
                     }
 
-                    showNotification("Uploading combined charts to Gyazo...", "info");
+                    showNotification(
+                        "Uploading combined charts to Gyazo...",
+                        "info"
+                    );
 
-                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                    const backgroundColor =
+                            exportUtils.getExportThemeBackground(),
                         chartHeight = 400,
                         chartWidth = 1000,
                         cols = Math.ceil(Math.sqrt(charts.length)),
@@ -2118,15 +2564,22 @@ export const exportUtils = {
                         padding = 20,
                         rows = Math.ceil(charts.length / cols);
 
-                    combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
-                    combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
+                    combinedCanvas.width =
+                        cols * chartWidth + (cols - 1) * padding;
+                    combinedCanvas.height =
+                        rows * chartHeight + (rows - 1) * padding;
 
                     if (backgroundColor !== "transparent") {
                         if (ctx) {
                             ctx.fillStyle = backgroundColor;
                         }
                         if (ctx) {
-                            ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                            ctx.fillRect(
+                                0,
+                                0,
+                                combinedCanvas.width,
+                                combinedCanvas.height
+                            );
                         }
                     }
 
@@ -2150,17 +2603,27 @@ export const exportUtils = {
                         }
 
                         if (tempCtx) {
-                            tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                            tempCtx.drawImage(
+                                chart.canvas,
+                                0,
+                                0,
+                                chartWidth,
+                                chartHeight
+                            );
                         }
                         if (ctx) {
                             ctx.drawImage(tempCanvas, x, y);
                         }
                     }
 
-                    const base64Image = combinedCanvas.toDataURL("image/png", 1),
+                    const base64Image = combinedCanvas.toDataURL(
+                            "image/png",
+                            1
+                        ),
                         gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
-                    const copied = await exportUtils.copyTextToClipboard(gyazoUrl);
+                    const copied =
+                        await exportUtils.copyTextToClipboard(gyazoUrl);
                     showNotification(
                         copied
                             ? "Combined charts uploaded to Gyazo! URL copied to clipboard"
@@ -2168,14 +2631,24 @@ export const exportUtils = {
                         copied ? "success" : "warning"
                     );
                 } catch (error) {
-                    console.error("Error sharing combined charts to Gyazo:", error);
-                    if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
+                    console.error(
+                        "Error sharing combined charts to Gyazo:",
+                        error
+                    );
+                    if (
+                        /** @type {any} */ (error).message.includes(
+                            "Gyazo access token not configured"
+                        )
+                    ) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
                         );
                     } else {
-                        showNotification("Failed to share charts to Gyazo. Please try again.", "error");
+                        showNotification(
+                            "Failed to share charts to Gyazo. Please try again.",
+                            "error"
+                        );
                     }
                 }
             }
@@ -2190,7 +2663,8 @@ export const exportUtils = {
         const /** @type {GyazoConfig} */
             config = /** @type {any} */ (exportUtils.getGyazoConfig()),
             hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
+                /** @type {GyazoConfig} */ (config).clientId &&
+                /** @type {GyazoConfig} */ (config).clientSecret
             ),
             isAuthenticated = exportUtils.isGyazoAuthenticated(),
             // Create modal overlay
@@ -2416,7 +2890,9 @@ export const exportUtils = {
 
         // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
         if (clientIdInput) {
-            /** @type {HTMLInputElement} */ (clientIdInput).value = String(/** @type {any} */ (config).clientId ?? "");
+            /** @type {HTMLInputElement} */ (clientIdInput).value = String(
+                /** @type {any} */ (config).clientId ?? ""
+            );
         }
         if (clientSecretInput) {
             /** @type {HTMLInputElement} */ (clientSecretInput).value = String(
@@ -2427,16 +2903,26 @@ export const exportUtils = {
         // Save credentials
         if (saveCredsBtn) {
             saveCredsBtn.addEventListener("click", () => {
-                const clientId = /** @type {HTMLInputElement} */ (clientIdInput)?.value.trim(),
-                    clientSecret = /** @type {HTMLInputElement} */ (clientSecretInput)?.value.trim();
+                const clientId = /** @type {HTMLInputElement} */ (
+                        clientIdInput
+                    )?.value.trim(),
+                    clientSecret = /** @type {HTMLInputElement} */ (
+                        clientSecretInput
+                    )?.value.trim();
 
                 if (!clientId || !clientSecret) {
-                    showNotification("Please enter both Client ID and Client Secret", "error");
+                    showNotification(
+                        "Please enter both Client ID and Client Secret",
+                        "error"
+                    );
                     return;
                 }
 
                 exportUtils.setGyazoConfig(clientId, clientSecret);
-                showNotification("Gyazo credentials saved successfully!", "success");
+                showNotification(
+                    "Gyazo credentials saved successfully!",
+                    "success"
+                );
 
                 // Update the status in the current modal
                 exportUtils.updateGyazoAuthStatus(modal);
@@ -2450,9 +2936,15 @@ export const exportUtils = {
                     await exportUtils.authenticateWithGyazo();
                     // Update the status in the current modal
                     exportUtils.updateGyazoAuthStatus(modal);
-                    showNotification("Gyazo account connected successfully!", "success");
+                    showNotification(
+                        "Gyazo account connected successfully!",
+                        "success"
+                    );
                 } catch (error) {
-                    showNotification(`Failed to connect Gyazo account: ${/** @type {any} */ (error).message}`, "error");
+                    showNotification(
+                        `Failed to connect Gyazo account: ${/** @type {any} */ (error).message}`,
+                        "error"
+                    );
                 }
             });
         }
@@ -2631,7 +3123,9 @@ export const exportUtils = {
 
     /**
      * Updates the authentication status in the Gyazo account manager modal
-     * @param {HTMLElement} modal - The modal element containing status indicators
+     *
+     * @param {HTMLElement} modal - The modal element containing status
+     *   indicators
      */
     updateGyazoAuthStatus(modal) {
         const // Update auth status
@@ -2639,23 +3133,28 @@ export const exportUtils = {
             /** @type {GyazoConfig} */
             config = /** @type {any} */ (exportUtils.getGyazoConfig()),
             hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
+                /** @type {GyazoConfig} */ (config).clientId &&
+                /** @type {GyazoConfig} */ (config).clientSecret
             ),
             isAuthenticated = exportUtils.isGyazoAuthenticated();
         if (authStatus) {
-            /** @type {HTMLElement} */ (authStatus).style.background = isAuthenticated
-                ? "var(--color-success)"
-                : "var(--color-error)";
-            authStatus.textContent = isAuthenticated ? "✅ Connected" : "❌ Not Connected";
+            /** @type {HTMLElement} */ (authStatus).style.background =
+                isAuthenticated ? "var(--color-success)" : "var(--color-error)";
+            authStatus.textContent = isAuthenticated
+                ? "✅ Connected"
+                : "❌ Not Connected";
         }
 
         // Update credentials status
         const credsStatus = modal.querySelector("#creds-status");
         if (credsStatus) {
-            /** @type {HTMLElement} */ (credsStatus).style.background = hasCredentials
-                ? "var(--color-success)"
-                : "var(--color-warning)";
-            credsStatus.textContent = hasCredentials ? "🔑 Credentials Saved" : "⚠️ Credentials Needed";
+            /** @type {HTMLElement} */ (credsStatus).style.background =
+                hasCredentials
+                    ? "var(--color-success)"
+                    : "var(--color-warning)";
+            credsStatus.textContent = hasCredentials
+                ? "🔑 Credentials Saved"
+                : "⚠️ Credentials Needed";
         }
 
         // Update action buttons visibility
@@ -2668,15 +3167,23 @@ export const exportUtils = {
         }
 
         if (disconnectBtn) {
-            /** @type {HTMLElement} */ (disconnectBtn).style.display = isAuthenticated ? "block" : "none";
+            /** @type {HTMLElement} */ (disconnectBtn).style.display =
+                isAuthenticated ? "block" : "none";
         }
 
-        console.log("[Gyazo] Status updated - Auth:", isAuthenticated, "Creds:", hasCredentials);
+        console.log(
+            "[Gyazo] Status updated - Auth:",
+            isAuthenticated,
+            "Creds:",
+            hasCredentials
+        );
     },
 
     /**
      * Uploads image to Gyazo using the new API format
+     *
      * @param {string} base64Image - Base64 encoded image
+     *
      * @returns {Promise<string>} Gyazo URL
      */
     async uploadToGyazo(base64Image) {
@@ -2687,7 +3194,9 @@ export const exportUtils = {
             try {
                 accessToken = await exportUtils.authenticateWithGyazo();
             } catch (error) {
-                throw new Error(`Gyazo authentication required: ${/** @type {any} */ (error).message}`);
+                throw new Error(
+                    `Gyazo authentication required: ${/** @type {any} */ (error).message}`
+                );
             }
         }
 
@@ -2717,11 +3226,15 @@ export const exportUtils = {
                 // If unauthorized, clear the token and try to re-authenticate
                 if (uploadResponse.status === 401) {
                     exportUtils.clearGyazoAccessToken();
-                    throw new Error("Gyazo access token expired. Please re-authenticate.");
+                    throw new Error(
+                        "Gyazo access token expired. Please re-authenticate."
+                    );
                 }
 
                 const errorText = await uploadResponse.text();
-                throw new Error(`Gyazo upload failed: ${uploadResponse.status} - ${truncateErrorText(errorText)}`);
+                throw new Error(
+                    `Gyazo upload failed: ${uploadResponse.status} - ${truncateErrorText(errorText)}`
+                );
             }
 
             const data =
@@ -2754,19 +3267,23 @@ export const exportUtils = {
 
     /**
      * Gets Imgur configuration from storage with fallback
+     *
      * @returns {Object} Imgur configuration object
      */
     getImgurConfig() {
         const defaultClientId = "0046ee9e30ac578"; // Placeholder for demo
 
         return {
-            clientId: safeStorageGetItem("imgur_client_id", __deps.getStorage) || defaultClientId,
+            clientId:
+                safeStorageGetItem("imgur_client_id", __deps.getStorage) ||
+                defaultClientId,
             uploadUrl: "https://api.imgur.com/3/image",
         };
     },
 
     /**
      * Saves Imgur configuration to storage
+     *
      * @param {string} clientId - Imgur client ID
      */
     setImgurConfig(clientId) {
@@ -2782,6 +3299,7 @@ export const exportUtils = {
 
     /**
      * Checks if Imgur is properly configured with a non-default client ID
+     *
      * @returns {boolean} True if configured with custom client ID
      */
     isImgurConfigured() {
@@ -2793,18 +3311,24 @@ export const exportUtils = {
 
     /**
      * Uploads image to Imgur and returns URL
+     *
      * @param {string} base64Image - Base64 encoded image
+     *
      * @returns {Promise<string>} Imgur URL
      */
     async uploadToImgur(base64Image) {
         const debugUploads =
-            typeof process !== "undefined" && Boolean(process.env) && process.env.FFV_DEBUG_UPLOADS === "1";
+            typeof process !== "undefined" &&
+            Boolean(process.env) &&
+            process.env.FFV_DEBUG_UPLOADS === "1";
 
         const config = exportUtils.getImgurConfig();
 
         // Only reject if completely unconfigured (YOUR_IMGUR_CLIENT_ID)
         if (config.clientId === "YOUR_IMGUR_CLIENT_ID") {
-            throw new Error("Imgur client ID not configured. Please add your Imgur client ID in the settings.");
+            throw new Error(
+                "Imgur client ID not configured. Please add your Imgur client ID in the settings."
+            );
         }
 
         // Warn about shared usage but proceed
@@ -2815,10 +3339,14 @@ export const exportUtils = {
             );
         }
 
-        const uploadUrl = validateImgurEndpointUrl(config.uploadUrl, new Set(["api.imgur.com"]));
+        const uploadUrl = validateImgurEndpointUrl(
+            config.uploadUrl,
+            new Set(["api.imgur.com"])
+        );
 
         try {
-            const parts = typeof base64Image === "string" ? base64Image.split(",") : [];
+            const parts =
+                typeof base64Image === "string" ? base64Image.split(",") : [];
             const imageData = parts.length >= 2 ? parts[1] : "";
             if (!imageData) {
                 throw new Error("Invalid image data provided");
@@ -3033,10 +3561,16 @@ export const exportUtils = {
                 const clientId = clientIdInput.value.trim();
                 if (clientId) {
                     exportUtils.setImgurConfig(clientId);
-                    __deps.showNotification("Imgur configuration saved", "success");
+                    __deps.showNotification(
+                        "Imgur configuration saved",
+                        "success"
+                    );
                     exportUtils.updateImgurStatus(modal);
                 } else {
-                    __deps.showNotification("Please enter a valid Client ID", "error");
+                    __deps.showNotification(
+                        "Please enter a valid Client ID",
+                        "error"
+                    );
                 }
             });
         }
@@ -3227,15 +3761,21 @@ export const exportUtils = {
 
     /**
      * Updates the status display in the Imgur account manager modal
-     * @param {HTMLElement} modal - The modal element containing status indicators
+     *
+     * @param {HTMLElement} modal - The modal element containing status
+     *   indicators
      */
     updateImgurStatus(modal) {
         const isConfigured = exportUtils.isImgurConfigured();
         const statusElement = modal.querySelector("#imgur-status");
 
         if (statusElement) {
-            statusElement.style.background = isConfigured ? "var(--color-success)" : "var(--color-warning)";
-            statusElement.textContent = isConfigured ? "✅ Configured" : "⚠️ Using Default (Limited)";
+            statusElement.style.background = isConfigured
+                ? "var(--color-success)"
+                : "var(--color-warning)";
+            statusElement.textContent = isConfigured
+                ? "✅ Configured"
+                : "⚠️ Using Default (Limited)";
         }
 
         console.log("[Imgur] Status updated - Configured:", isConfigured);

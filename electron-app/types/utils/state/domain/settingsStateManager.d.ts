@@ -3,14 +3,17 @@
  */
 /**
  * Export all settings
+ *
  * @returns {Object} Settings export data
  */
-/** @returns {ExportedSettings|null} */
+/** @returns {ExportedSettings | null} */
 export function exportAllSettings(): ExportedSettings | null;
 /**
  * Get chart setting
+ *
  * @param {string} key - Chart setting key
- * @returns {*} Chart setting value
+ *
+ * @returns {any} Chart setting value
  */
 /** @param {string} key */
 export function getChartSetting(key: string): any;
@@ -24,6 +27,7 @@ export function getChartSettings(): ChartSettings;
 export function getUserChartSettings(): ChartSettings;
 /**
  * Get visibility for a chart field.
+ *
  * @param {string} fieldKey
  * @param {ChartFieldVisibility} [defaultVisibility]
  */
@@ -33,17 +37,21 @@ export function getChartFieldVisibility(
 ): ChartFieldVisibility;
 /**
  * Get map theme setting
+ *
  * @returns {boolean} Map theme inverted state
  */
 export function getMapThemeSetting(): boolean;
 /**
  * Get theme setting
+ *
  * @returns {string} Current theme
  */
 export function getThemeSetting(): string;
 /**
  * Import settings from data
+ *
  * @param {Object} settingsData - Settings data to import
+ *
  * @returns {boolean} Success status
  */
 /** @param {any} settingsData */
@@ -54,46 +62,64 @@ export function importAllSettings(settingsData: any): boolean;
 export function resetChartSettings(options?: { silent?: boolean }): boolean;
 /**
  * Set chart setting
+ *
  * @param {string} key - Chart setting key
- * @param {*} value - Chart setting value
+ * @param {any} value - Chart setting value
  */
 /** @param {string} key @param {any} value */
 export function setChartSetting(key: string, value: any): boolean;
 /**
  * Remove a chart setting (chartjs_* key).
+ *
  * @param {string} key
  */
 export function removeChartSetting(key: string): boolean;
 /**
  * Update chart settings by merging new values.
+ *
  * @param {ChartSettings} updates
  */
 export function updateChartSettings(updates: ChartSettings): ChartSettings;
 /**
  * Set visibility for a chart field.
+ *
  * @param {string} fieldKey
  * @param {ChartFieldVisibility} visibility
  */
-export function setChartFieldVisibility(fieldKey: string, visibility: ChartFieldVisibility): ChartFieldVisibilityMap;
+export function setChartFieldVisibility(
+    fieldKey: string,
+    visibility: ChartFieldVisibility
+): ChartFieldVisibilityMap;
 /**
  * Subscribe to chart settings changes.
+ *
  * @param {(next: ChartSettings, previous: ChartSettings) => void} callback
  */
-export function subscribeToChartSettings(callback: (next: ChartSettings, previous: ChartSettings) => void): () => void;
+export function subscribeToChartSettings(
+    callback: (next: ChartSettings, previous: ChartSettings) => void
+): () => void;
 /**
  * Set map theme setting
+ *
  * @param {boolean} inverted - Map theme inverted state
  */
 /** @param {boolean} inverted */
 export function setMapThemeSetting(inverted: boolean): boolean;
 /**
  * Set theme setting
+ *
  * @param {string} theme - Theme to set
  */
 /** @param {string} theme */
 export function setThemeSetting(theme: string): boolean;
 export const settingsStateManager: SettingsStateManager;
-export type SettingCategory = "theme" | "mapTheme" | "chart" | "ui" | "export" | "units";
+export type SettingCategory =
+    | "theme"
+    | "mapTheme"
+    | "chart"
+    | "ui"
+    | "export"
+    | "units";
 export type SettingSchema = {
     key: string;
     default: any;
@@ -116,7 +142,7 @@ export type ExportedSettings = {
  */
 declare class SettingsStateManager {
     initialized: boolean;
-    /** @type {Promise<void>|null} */
+    /** @type {Promise<void> | null} */
     initializePromise: Promise<void> | null;
     subscribers: Map<any, any>;
     migrationVersion: string;
@@ -129,43 +155,55 @@ declare class SettingsStateManager {
     cleanup(): void;
     /**
      * Export settings to JSON
+     *
      * @returns {Object} Settings export object
      */
     /**
      * Export all settings and metadata
-     * @returns {ExportedSettings|null}
+     *
+     * @returns {ExportedSettings | null}
      */
     exportSettings(): ExportedSettings | null;
     /**
      * Get all chart settings
+     *
      * @returns {Object} Chart settings object
      */
     /**
      * Return all chart (chartjs_) settings as object
+     *
      * @returns {Record<string, any>}
      */
     getChartSettings(): Record<string, any>;
     /**
      * Get a setting value with validation
+     *
      * @param {string} category - Setting category
      * @param {string} key - Setting key (optional for non-object settings)
-     * @returns {*} Setting value
+     *
+     * @returns {any} Setting value
      */
     /**
      * Get a setting (entire category or specific key for object categories)
+     *
      * @param {SettingCategory} category
-     * @param {string|null} [key=null]
+     * @param {string | null} [key=null] Default is `null`
+     *
      * @returns {any}
      */
     getSetting(category: SettingCategory, key?: string | null): any;
     /**
      * Import settings from JSON
+     *
      * @param {Object} settingsData - Settings data to import
+     *
      * @returns {boolean} Success status
      */
     /**
      * Import settings from exported data
+     *
      * @param {any} settingsData
+     *
      * @returns {boolean}
      */
     importSettings(settingsData: any): boolean;
@@ -189,11 +227,15 @@ declare class SettingsStateManager {
     migrateSettings(): Promise<void>;
     /**
      * Reset settings to defaults
-     * @param {string} category - Category to reset (optional, resets all if not provided)
+     *
+     * @param {string} category - Category to reset (optional, resets all if not
+     *   provided)
      */
     /**
      * Reset settings (single category or all)
-     * @param {SettingCategory|null} [category=null]
+     *
+     * @param {SettingCategory | null} [category=null] Default is `null`
+     *
      * @returns {boolean}
      */
     resetSettings(
@@ -204,18 +246,26 @@ declare class SettingsStateManager {
     ): boolean;
     /**
      * Set a setting value with validation
+     *
      * @param {string} category - Setting category
-     * @param {*} value - Setting value
+     * @param {any} value - Setting value
      * @param {string} key - Setting key (for object-type settings)
      */
     /**
-     * Set a setting value (entire category or specific key for object categories)
+     * Set a setting value (entire category or specific key for object
+     * categories)
+     *
      * @param {SettingCategory} category
      * @param {any} value
-     * @param {string|null} [key=null]
+     * @param {string | null} [key=null] Default is `null`
+     *
      * @returns {boolean}
      */
-    setSetting(category: SettingCategory, value: any, key?: string | null): boolean;
+    setSetting(
+        category: SettingCategory,
+        value: any,
+        key?: string | null
+    ): boolean;
     /**
      * Set up synchronization between state and localStorage
      */

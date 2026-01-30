@@ -5,7 +5,10 @@ export * from "./stateDevTools.js";
 declare const _default: {
     cleanupStateDevTools(): void;
     initializeStateDevTools(enableInProduction?: boolean): void;
-    measureStateOperation(operationName: string, operation: Function): Promise<any>;
+    measureStateOperation(
+        operationName: string,
+        operation: Function
+    ): Promise<any>;
     withPerformanceMonitoring(name: string, fn: Function): Function;
     performanceMonitor: {
         metrics: stateDevTools.PerformanceMetrics;
@@ -30,8 +33,15 @@ declare const _default: {
     debugUtilities: {
         isDebugMode: boolean;
         logLevel: string;
-        checkForUndefined(obj: any, path: string, validation: ValidationResult): void;
-        compareSnapshots(snapshot1: StateSnapshot, snapshot2: StateSnapshot): SnapshotComparison;
+        checkForUndefined(
+            obj: any,
+            path: string,
+            validation: ValidationResult
+        ): void;
+        compareSnapshots(
+            snapshot1: StateSnapshot,
+            snapshot2: StateSnapshot
+        ): SnapshotComparison;
         createSnapshot(): StateSnapshot;
         disableDebugMode(): void;
         enableDebugMode(): void;

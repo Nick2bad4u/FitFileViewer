@@ -1,9 +1,14 @@
 /**
  * Registers IPC handlers for filesystem operations.
+ *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {{ readFile?: Function }} options.fs
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  */
 function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
     if (typeof registerIpcHandle !== "function") {
@@ -25,15 +30,19 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         .string()
         .transform((s) => s.trim())
         .refine((s) => s.length > 0, { message: "Invalid file path provided" })
-        .refine((s) => s.length <= 4096, { message: "Invalid file path provided" });
+        .refine((s) => s.length <= 4096, {
+            message: "Invalid file path provided",
+        });
 
     /**
      * @param {unknown} value
+     *
      * @returns {string}
      */
     const safeLogValue = (value) => {
         try {
-            const text = typeof value === "string" ? value : JSON.stringify(value);
+            const text =
+                typeof value === "string" ? value : JSON.stringify(value);
             return text.length > 300 ? `${text.slice(0, 300)}…` : text;
         } catch {
             try {
@@ -61,7 +70,9 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
             try {
                 authorizedPath = assertFileReadAllowed(parsedPath.data);
             } catch (policyError) {
-                throw policyError instanceof Error ? policyError : new Error(String(policyError));
+                throw policyError instanceof Error
+                    ? policyError
+                    : new Error(String(policyError));
             }
 
             return await new Promise((resolve, reject) => {
@@ -78,7 +89,10 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                             read();
                             return;
                         }
-                        const size = stats && typeof stats.size === "number" ? stats.size : 0;
+                        const size =
+                            stats && typeof stats.size === "number"
+                                ? stats.size
+                                : 0;
                         if (size > MAX_FIT_FILE_BYTES) {
                             reject(new Error("File size exceeds 100MB limit"));
                             return;
@@ -98,19 +112,32 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                         }
 
                         // Node can return strings when an encoding is provided. We expect binary.
-                        if (!data || typeof data !== "object" || typeof data.byteLength !== "number") {
+                        if (
+                            !data ||
+                            typeof data !== "object" ||
+                            typeof data.byteLength !== "number"
+                        ) {
                             reject(new Error("Unexpected file read result"));
                             return;
                         }
 
-                        if (data && typeof data.byteLength === "number" && data.byteLength > MAX_FIT_FILE_BYTES) {
+                        if (
+                            data &&
+                            typeof data.byteLength === "number" &&
+                            data.byteLength > MAX_FIT_FILE_BYTES
+                        ) {
                             reject(new Error("File size exceeds 100MB limit"));
                             return;
                         }
 
                         // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
                         // @ts-ignore byteOffset exists on Buffer/Uint8Array
-                        resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+                        resolve(
+                            data.buffer.slice(
+                                data.byteOffset,
+                                data.byteOffset + data.byteLength
+                            )
+                        );
                     });
                 }
             });

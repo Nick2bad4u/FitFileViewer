@@ -1,6 +1,9 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
-import { setChartFieldVisibility, setChartSetting } from "../../state/domain/settingsStateManager.js";
+import {
+    setChartFieldVisibility,
+    setChartSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Function to load shared configuration from URL
@@ -17,7 +20,10 @@ export function loadSharedConfiguration() {
                 if (key === "visibleFields") {
                     for (const field of Object.keys(settings.visibleFields)) {
                         const rawValue = settings.visibleFields[field];
-                        const visibility = rawValue === "hidden" || rawValue === false ? "hidden" : "visible";
+                        const visibility =
+                            rawValue === "hidden" || rawValue === false
+                                ? "hidden"
+                                : "visible";
                         setChartFieldVisibility(field, visibility);
                     }
                 } else {
@@ -30,7 +36,9 @@ export function loadSharedConfiguration() {
             // Refresh the charts with new settings using modern state management
             setTimeout(() => {
                 if (chartStateManager) {
-                    chartStateManager.debouncedRender("Configuration loaded from URL");
+                    chartStateManager.debouncedRender(
+                        "Configuration loaded from URL"
+                    );
                 } else {
                     renderChartJS(); // Fallback for compatibility
                 }

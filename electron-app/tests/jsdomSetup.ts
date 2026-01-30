@@ -2,8 +2,9 @@
 // Enhanced JSDOM environment setup for tests
 
 /**
- * This module provides a reliable JSDOM setup for tests that require DOM manipulation.
- * It patches JSDOM's missing or incomplete functionality to ensure DOM tests work correctly.
+ * This module provides a reliable JSDOM setup for tests that require DOM
+ * manipulation. It patches JSDOM's missing or incomplete functionality to
+ * ensure DOM tests work correctly.
  */
 import "./shims/nodeWebStorage";
 import { vi } from "vitest";
@@ -177,7 +178,10 @@ export function setupJSDOMEnvironment() {
                     return true;
                 }
                 // Basic tag check
-                if (this.tagName && this.tagName.toLowerCase() === selector.toLowerCase()) {
+                if (
+                    this.tagName &&
+                    this.tagName.toLowerCase() === selector.toLowerCase()
+                ) {
                     return true;
                 }
                 return false;
@@ -196,8 +200,10 @@ export function setupJSDOMEnvironment() {
 
 /**
  * Creates a mock HTMLElement with configurable attributes and properties
+ *
  * @param {string} tagName - The HTML tag name (div, span, etc)
  * @param {object} props - Properties to set on the element
+ *
  * @returns {HTMLElement} The configured element
  */
 export function createMockElement(tagName, props = {}) {

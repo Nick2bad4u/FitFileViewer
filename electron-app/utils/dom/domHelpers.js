@@ -1,23 +1,30 @@
 /**
- * DOM Helper utilities
- * Centralized, typed query & assertion helpers used across renderer code to
- * reduce repeated null checks and implicit any / Element property errors.
+ * DOM Helper utilities Centralized, typed query & assertion helpers used across
+ * renderer code to reduce repeated null checks and implicit any / Element
+ * property errors.
  *
  * These are JSDoc-annotated so TypeScript (checkJs) can narrow results.
  */
 
-/** @template {Element} T
- *  @typedef {T & { [key:string]: any }} AnyElement */
+/**
+ * @template {Element} T
+ *
+ * @typedef {T & { [key: string]: any }} AnyElement
+ */
 
 /**
  * Add a class to an element if present.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} className
+ *
  * @throws {Error} If className is empty
  */
 export function addClass(el, className) {
     if (!className) {
-        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
+        throw new Error(
+            "Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty."
+        );
     }
     if (isHTMLElement(el)) {
         el.classList.add(className);
@@ -26,7 +33,8 @@ export function addClass(el, className) {
 
 /**
  * Remove all children from an element (no-op if invalid).
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  */
 export function clearElement(el) {
     if (isHTMLElement(el)) {
@@ -38,7 +46,8 @@ export function clearElement(el) {
 
 /**
  * Focus an element if possible.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  */
 export function focus(el) {
     if (isHTMLElement(el) && typeof el.focus === "function") {
@@ -48,8 +57,10 @@ export function focus(el) {
 
 /**
  * Get checked state for checkbox/radio if supported.
- * @param {Element|null|undefined} el
- * @returns {boolean|undefined}
+ *
+ * @param {Element | null | undefined} el
+ *
+ * @returns {boolean | undefined}
  */
 export function getChecked(el) {
     if (isHTMLElement(el) && "checked" in el) {
@@ -60,9 +71,11 @@ export function getChecked(el) {
 
 /**
  * Dataset convenience getter.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} key
- * @returns {string|undefined}
+ *
+ * @returns {string | undefined}
  */
 export function getData(el, key) {
     if (isHTMLElement(el) && el.dataset) {
@@ -72,8 +85,10 @@ export function getData(el, key) {
 
 /**
  * Get value for input-like elements (returns undefined if unavailable).
- * @param {Element|null|undefined} el
- * @returns {string|undefined}
+ *
+ * @param {Element | null | undefined} el
+ *
+ * @returns {string | undefined}
  */
 export function getValue(el) {
     if (isHTMLElement(el) && "value" in el) {
@@ -84,7 +99,9 @@ export function getValue(el) {
 
 /**
  * Type guard to assert a value is an HTMLElement (vs generic Element or null).
+ *
  * @param {any} el
+ *
  * @returns {el is HTMLElement}
  */
 export function isHTMLElement(el) {
@@ -93,7 +110,8 @@ export function isHTMLElement(el) {
 
 /**
  * Attach an event listener with automatic type narrowing and safe guard.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} type
  * @param {(ev: Event) => void} handler
  */
@@ -105,34 +123,46 @@ export function on(el, type, handler) {
 
 /**
  * Query a single element, returning a narrowed HTMLElement or null.
+ *
  * @param {string} selector
- * @param {ParentNode} [root=document]
- * @returns {HTMLElement|null}
+ * @param {ParentNode} [root=document] Default is `document`
+ *
+ * @returns {HTMLElement | null}
  */
 export function query(selector, root = document) {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior: throw on empty/invalid selector input
-        throw new Error('Failed to execute "querySelector" on "Document": The provided selector is empty.');
+        throw new Error(
+            'Failed to execute "querySelector" on "Document": The provided selector is empty.'
+        );
     }
     const el = root.querySelector(selector);
     return isHTMLElement(el) ? el : null;
 }
 
 /**
- * Query all matching elements as an array of HTMLElements (filters out non-HTMLElements).
+ * Query all matching elements as an array of HTMLElements (filters out
+ * non-HTMLElements).
+ *
  * @param {string} selector
- * @param {ParentNode} [root=document]
+ * @param {ParentNode} [root=document] Default is `document`
+ *
  * @returns {HTMLElement[]}
  */
 export function queryAll(selector, root = document) {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior and test expectation to throw on invalid selectors
-        throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
+        throw new Error(
+            'Failed to execute "querySelectorAll" on "Document": The provided selector is empty.'
+        );
     }
-    /** @type {NodeListOf<Element>|ArrayLike<Element>|null|undefined} */
+    /** @type {NodeListOf<Element> | ArrayLike<Element> | null | undefined} */
     let list;
     try {
-        if (root && typeof (/** @type {any} */ (root).querySelectorAll) === "function") {
+        if (
+            root &&
+            typeof (/** @type {any} */ (root).querySelectorAll) === "function"
+        ) {
             list = /** @type {any} */ (root).querySelectorAll(selector);
         } else {
             list = null;
@@ -163,13 +193,17 @@ export function queryAll(selector, root = document) {
 
 /**
  * Remove a class from an element if present.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} className
+ *
  * @throws {Error} If className is empty
  */
 export function removeClass(el, className) {
     if (!className) {
-        throw new Error("Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty.");
+        throw new Error(
+            "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
+        );
     }
     if (isHTMLElement(el)) {
         el.classList.remove(className);
@@ -177,10 +211,12 @@ export function removeClass(el, className) {
 }
 
 /**
- * Assert a required element exists and return it as HTMLElement.
- * Throws a descriptive error if not found.
+ * Assert a required element exists and return it as HTMLElement. Throws a
+ * descriptive error if not found.
+ *
  * @param {string} selector
- * @param {ParentNode} [root=document]
+ * @param {ParentNode} [root=document] Default is `document`
+ *
  * @returns {HTMLElement}
  */
 export function requireElement(selector, root = document) {
@@ -193,7 +229,8 @@ export function requireElement(selector, root = document) {
 
 /**
  * Set checked state for checkbox/radio if supported.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {boolean} checked
  */
 export function setChecked(el, checked) {
@@ -205,7 +242,8 @@ export function setChecked(el, checked) {
 
 /**
  * Dataset convenience setter.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} key
  * @param {string} value
  */
@@ -216,9 +254,10 @@ export function setData(el, key, value) {
 }
 
 /**
- * Toggle disabled flag for form controls (HTMLElement subset supporting disabled).
- * Silent no-op if element does not support the property.
- * @param {Element|null|undefined} el
+ * Toggle disabled flag for form controls (HTMLElement subset supporting
+ * disabled). Silent no-op if element does not support the property.
+ *
+ * @param {Element | null | undefined} el
  * @param {boolean} disabled
  */
 export function setDisabled(el, disabled) {
@@ -230,20 +269,26 @@ export function setDisabled(el, disabled) {
 
 /**
  * Apply a style property if possible.
- * @param {Element|null|undefined} el
+ *
+ * @param {Element | null | undefined} el
  * @param {string} prop
  * @param {string} value
  */
 export function setStyle(el, prop, value) {
-    if (isHTMLElement(el) && el.style && typeof el.style.setProperty === "function") {
+    if (
+        isHTMLElement(el) &&
+        el.style &&
+        typeof el.style.setProperty === "function"
+    ) {
         el.style.setProperty(prop, value);
     }
 }
 
 /**
  * Safely set textContent on an element if it exists.
- * @param {Element|null|undefined} el
- * @param {string|number|null|undefined} value
+ *
+ * @param {Element | null | undefined} el
+ * @param {string | number | null | undefined} value
  */
 export function setText(el, value) {
     if (isHTMLElement(el) && value != null) {
@@ -253,8 +298,9 @@ export function setText(el, value) {
 
 /**
  * Set value for input-like elements if possible.
- * @param {Element|null|undefined} el
- * @param {string|number|null|undefined} value
+ *
+ * @param {Element | null | undefined} el
+ * @param {string | number | null | undefined} value
  */
 export function setValue(el, value) {
     if (isHTMLElement(el) && "value" in el && value != null) {

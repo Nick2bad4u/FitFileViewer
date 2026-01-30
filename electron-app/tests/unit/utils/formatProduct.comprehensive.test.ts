@@ -8,7 +8,10 @@ vi.mock("../../../utils/formatting/display/formatAntNames.js", () => ({
 }));
 
 // Import the mocked functions
-import { getManufacturerIdFromName, getProductName } from "../../../utils/formatting/display/formatAntNames.js";
+import {
+    getManufacturerIdFromName,
+    getProductName,
+} from "../../../utils/formatting/display/formatAntNames.js";
 
 describe("formatProduct.js - Comprehensive Test Suite", () => {
     beforeEach(() => {
@@ -16,7 +19,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
         vi.clearAllMocks();
 
         // Set up default mock implementations
-        const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+        const mockGetManufacturerIdFromName = vi.mocked(
+            getManufacturerIdFromName
+        );
         const mockGetProductName = vi.mocked(getProductName);
 
         // Default behaviors
@@ -40,7 +45,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
                 "32_1537": "elemnt_bolt",
                 "7_1": "v800",
             };
-            return products[`${manufacturerId}_${productId}`] || String(productId);
+            return (
+                products[`${manufacturerId}_${productId}`] || String(productId)
+            );
         });
     });
 
@@ -104,7 +111,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             });
 
             it("should handle non-numeric string manufacturer", () => {
-                const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+                const mockGetManufacturerIdFromName = vi.mocked(
+                    getManufacturerIdFromName
+                );
                 mockGetManufacturerIdFromName.mockReturnValue(null);
 
                 const result = formatProduct("invalidname", 1735);
@@ -242,8 +251,12 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             });
 
             it("should handle getManufacturerIdFromName throwing error", () => {
-                const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-                const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+                const consoleSpy = vi
+                    .spyOn(console, "warn")
+                    .mockImplementation(() => {});
+                const mockGetManufacturerIdFromName = vi.mocked(
+                    getManufacturerIdFromName
+                );
                 mockGetManufacturerIdFromName.mockImplementation(() => {
                     throw new Error("Manufacturer lookup failed");
                 });
@@ -251,7 +264,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
                 const result = formatProduct("garmin", 1735);
                 expect(result).toBe("1735");
                 expect(consoleSpy).toHaveBeenCalledWith(
-                    expect.stringContaining("Error looking up manufacturer ID:"),
+                    expect.stringContaining(
+                        "Error looking up manufacturer ID:"
+                    ),
                     expect.any(Error)
                 );
 
@@ -259,7 +274,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             });
 
             it("should handle getProductName throwing error", () => {
-                const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                const consoleSpy = vi
+                    .spyOn(console, "warn")
+                    .mockImplementation(() => {});
                 const mockGetProductName = vi.mocked(getProductName);
                 mockGetProductName.mockImplementation(() => {
                     throw new Error("Product lookup failed");
@@ -276,10 +293,14 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             });
 
             it("should handle main function throwing error", () => {
-                const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                const consoleSpy = vi
+                    .spyOn(console, "warn")
+                    .mockImplementation(() => {});
 
                 // Force an error in manufacturer ID resolution
-                const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+                const mockGetManufacturerIdFromName = vi.mocked(
+                    getManufacturerIdFromName
+                );
                 mockGetManufacturerIdFromName.mockImplementation(() => {
                     throw new Error("Unexpected error");
                 });
@@ -287,7 +308,9 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
                 const result = formatProduct("garmin", 1735);
                 expect(result).toBe("1735"); // Falls back to productId when manufacturer resolution fails
                 expect(consoleSpy).toHaveBeenCalledWith(
-                    expect.stringContaining("Error looking up manufacturer ID:"),
+                    expect.stringContaining(
+                        "Error looking up manufacturer ID:"
+                    ),
                     expect.any(Error)
                 );
 
@@ -307,9 +330,14 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
         describe("Complex Scenarios", () => {
             it("should handle whitespace in manufacturer names", () => {
-                const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+                const mockGetManufacturerIdFromName = vi.mocked(
+                    getManufacturerIdFromName
+                );
                 mockGetManufacturerIdFromName.mockImplementation((name) => {
-                    if (typeof name === "string" && name.trim().toLowerCase() === "garmin") {
+                    if (
+                        typeof name === "string" &&
+                        name.trim().toLowerCase() === "garmin"
+                    ) {
                         return 1;
                     }
                     return null;
@@ -321,10 +349,14 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
             it("should handle very long product names", () => {
                 const mockGetProductName = vi.mocked(getProductName);
-                mockGetProductName.mockReturnValue("very_long_product_name_with_many_words_and_underscores");
+                mockGetProductName.mockReturnValue(
+                    "very_long_product_name_with_many_words_and_underscores"
+                );
 
                 const result = formatProduct(1, 999);
-                expect(result).toBe("Very Long Product Name With Many Words And Underscores");
+                expect(result).toBe(
+                    "Very Long Product Name With Many Words And Underscores"
+                );
             });
 
             it("should handle special characters in product names", () => {
@@ -382,9 +414,17 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
         it("should work with various manufacturer-product combinations", () => {
             const testCases = [
                 { manufacturer: 1, productId: 1735, expected: "Edge 520" },
-                { manufacturer: "garmin", productId: 1561, expected: "Edge 810" },
+                {
+                    manufacturer: "garmin",
+                    productId: 1561,
+                    expected: "Edge 810",
+                },
                 { manufacturer: 32, productId: 1537, expected: "Elemnt Bolt" },
-                { manufacturer: "wahoo", productId: 1537, expected: "Elemnt Bolt" },
+                {
+                    manufacturer: "wahoo",
+                    productId: 1537,
+                    expected: "Elemnt Bolt",
+                },
                 { manufacturer: 7, productId: 1, expected: "V800" },
             ];
 
@@ -433,8 +473,12 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
     describe("Error Recovery and Resilience", () => {
         it("should recover from dependency failures gracefully", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const mockGetManufacturerIdFromName = vi.mocked(
+                getManufacturerIdFromName
+            );
             const mockGetProductName = vi.mocked(getProductName);
 
             // First call fails, second succeeds
@@ -454,8 +498,12 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
         });
 
         it("should handle cascading dependency failures", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const mockGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const mockGetManufacturerIdFromName = vi.mocked(
+                getManufacturerIdFromName
+            );
             const mockGetProductName = vi.mocked(getProductName);
 
             mockGetManufacturerIdFromName.mockImplementation(() => {

@@ -32,8 +32,18 @@ describe("updateSystemInfo", () => {
             license: "MIT",
         } as any);
         expect(ok).toBe(true);
-        const values = Array.from(document.querySelectorAll(".system-info-value")).map((e) => e.textContent);
-        expect(values).toEqual(["1.0.0", "38.0.0", "22.0.0", "128.0", "win32 (x64)", "FitFileViewer Team", "MIT"]);
+        const values = Array.from(
+            document.querySelectorAll(".system-info-value")
+        ).map((e) => e.textContent);
+        expect(values).toEqual([
+            "1.0.0",
+            "38.0.0",
+            "22.0.0",
+            "128.0",
+            "win32 (x64)",
+            "FitFileViewer Team",
+            "MIT",
+        ]);
     });
 
     it("warns when DOM count mismatches and still sets available", async () => {
@@ -66,7 +76,9 @@ describe("updateSystemInfo", () => {
 
     it("clears cache and re-initializes on next call", async () => {
         createFields(7);
-        const { updateSystemInfo, clearSystemInfoCache } = await import(modPath);
+        const { updateSystemInfo, clearSystemInfoCache } = await import(
+            modPath
+        );
         updateSystemInfo({
             version: "A",
             electron: "B",
@@ -88,7 +100,9 @@ describe("updateSystemInfo", () => {
             author: "O",
             license: "N",
         } as any);
-        const values = Array.from(document.querySelectorAll(".system-info-value")).map((e) => e.textContent);
+        const values = Array.from(
+            document.querySelectorAll(".system-info-value")
+        ).map((e) => e.textContent);
         expect(values[0]).toBe("X");
     });
 });

@@ -36,8 +36,14 @@ export function computeRangeState(metricKey, currentRangeValues, options = {}) {
         }
 
         const preserveSelection = Boolean(options?.preserveSelection);
-        let minValue = preserveSelection && currentRangeValues?.min !== undefined ? currentRangeValues.min : stats.min;
-        let maxValue = preserveSelection && currentRangeValues?.max !== undefined ? currentRangeValues.max : stats.max;
+        let minValue =
+            preserveSelection && currentRangeValues?.min !== undefined
+                ? currentRangeValues.min
+                : stats.min;
+        let maxValue =
+            preserveSelection && currentRangeValues?.max !== undefined
+                ? currentRangeValues.max
+                : stats.max;
 
         minValue = clampRangeValue(minValue, stats);
         maxValue = clampRangeValue(maxValue, stats);
@@ -55,7 +61,10 @@ export function computeRangeState(metricKey, currentRangeValues, options = {}) {
             },
         };
     } catch (error) {
-        console.error("[dataPointFilter] Failed to compute metric statistics", error);
+        console.error(
+            "[dataPointFilter] Failed to compute metric statistics",
+            error
+        );
         return { stats: null, rangeValues: null, sliderValues: null };
     }
 }
@@ -86,20 +95,27 @@ export function formatPercent(value) {
 
 export function getGlobalRecords() {
     const win = /** @type {any} */ (globalThis);
-    const records = Array.isArray(win?.globalData?.recordMesgs) ? win.globalData.recordMesgs : [];
+    const records = Array.isArray(win?.globalData?.recordMesgs)
+        ? win.globalData.recordMesgs
+        : [];
     return records;
 }
 
 export function resolveInitialConfig(defaultMetric, defaultPercent) {
     const win = /** @type {any} */ (globalThis);
     const existing = win.mapDataPointFilter;
-    const metricKey = typeof existing?.metric === "string" ? existing.metric : defaultMetric;
+    const metricKey =
+        typeof existing?.metric === "string" ? existing.metric : defaultMetric;
     const mode = existing?.mode === "valueRange" ? "valueRange" : "topPercent";
     const percentValue = clampPercent(
-        typeof existing?.percent === "number" ? existing.percent : Number.parseInt(defaultPercent, 10) || 10
+        typeof existing?.percent === "number"
+            ? existing.percent
+            : Number.parseInt(defaultPercent, 10) || 10
     );
-    const minValue = typeof existing?.minValue === "number" ? existing.minValue : undefined;
-    const maxValue = typeof existing?.maxValue === "number" ? existing.maxValue : undefined;
+    const minValue =
+        typeof existing?.minValue === "number" ? existing.minValue : undefined;
+    const maxValue =
+        typeof existing?.maxValue === "number" ? existing.maxValue : undefined;
     return {
         enabled: Boolean(existing?.enabled),
         maxValue,

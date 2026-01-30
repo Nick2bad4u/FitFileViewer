@@ -3,7 +3,11 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { approveFilePath, isApprovedFilePath, __resetForTests } from "../../../../main/security/fileAccessPolicy.js";
+import {
+    approveFilePath,
+    isApprovedFilePath,
+    __resetForTests,
+} from "../../../../main/security/fileAccessPolicy.js";
 import { registerRecentFileHandlers } from "../../../../main/ipc/registerRecentFileHandlers.js";
 
 describe("registerRecentFileHandlers", () => {
@@ -13,7 +17,7 @@ describe("registerRecentFileHandlers", () => {
     /** @type {string[]} */
     let added;
 
-    /** @type {Array<{ level: string; message: string }>} */
+    /** @type {{ level: string; message: string }[]} */
     let logs;
 
     beforeEach(() => {
@@ -89,7 +93,9 @@ describe("registerRecentFileHandlers", () => {
 
         const handler = handlers.get("recentFiles:add");
         if (!handler) throw new Error("recentFiles:add handler not registered");
-        await expect(handler({}, "C:/unapproved.fit")).resolves.toEqual(["C:/a.fit"]);
+        await expect(handler({}, "C:/unapproved.fit")).resolves.toEqual([
+            "C:/a.fit",
+        ]);
         expect(added).toEqual([]);
     });
 
@@ -138,7 +144,8 @@ describe("registerRecentFileHandlers", () => {
         });
 
         const getHandler = handlers.get("recentFiles:get");
-        if (!getHandler) throw new Error("recentFiles:get handler not registered");
+        if (!getHandler)
+            throw new Error("recentFiles:get handler not registered");
 
         const list = await getHandler();
         expect(list).toEqual(["C:/a.fit"]);
@@ -163,9 +170,12 @@ describe("registerRecentFileHandlers", () => {
         });
 
         const approveHandler = handlers.get("recentFiles:approve");
-        if (!approveHandler) throw new Error("recentFiles:approve handler not registered");
+        if (!approveHandler)
+            throw new Error("recentFiles:approve handler not registered");
 
-        await expect(approveHandler({}, "C:/not-in-list.fit")).resolves.toBe(false);
+        await expect(approveHandler({}, "C:/not-in-list.fit")).resolves.toBe(
+            false
+        );
         expect(isApprovedFilePath("C:/not-in-list.fit")).toBe(false);
 
         await expect(approveHandler({}, "C:/a.fit")).resolves.toBe(true);

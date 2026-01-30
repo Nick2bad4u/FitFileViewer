@@ -1,11 +1,12 @@
 /**
- * @fileoverview System information display updater for FitFileViewer
+ * @file System information display updater for FitFileViewer
  *
- * Updates the system information display in the UI with application and
- * runtime version information. Caches DOM elements for performance and
- * validates expected structure.
+ *   Updates the system information display in the UI with application and runtime
+ *   version information. Caches DOM elements for performance and validates
+ *   expected structure.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -15,15 +16,24 @@ const DOM_SELECTORS = {
     },
     EXPECTED_INFO_FIELDS = 7,
     // System info field mapping (order matters - must match DOM structure)
-    INFO_FIELD_ORDER = ["version", "electron", "node", "chrome", "platform", "author", "license"],
+    INFO_FIELD_ORDER = [
+        "version",
+        "electron",
+        "node",
+        "chrome",
+        "platform",
+        "author",
+        "license",
+    ],
     LOG_PREFIX = "[SystemInfo]";
 
 // Cache for DOM elements (initialized once)
-/** @type {NodeList|null} */
+/** @type {NodeList | null} */
 let cachedSystemInfoItems = null;
 
 /**
  * Clears the cached DOM elements (useful for testing or DOM changes)
+ *
  * @returns {void}
  */
 export function clearSystemInfoCache() {
@@ -35,8 +45,19 @@ export function clearSystemInfoCache() {
  * Updates the system information display in the UI
  *
  * Takes a system information object and updates the corresponding DOM elements
- * with version, runtime, and platform information. Uses cached DOM elements
- * for performance and validates both input and DOM structure.
+ * with version, runtime, and platform information. Uses cached DOM elements for
+ * performance and validates both input and DOM structure.
+ *
+ * @example
+ *     updateSystemInfo({
+ *         version: "1.2.3",
+ *         electron: "28.0.0",
+ *         node: "18.17.1",
+ *         chrome: "120.0.6099.109",
+ *         platform: "win32",
+ *         author: "FitFileViewer Team",
+ *         license: "MIT",
+ *     });
  *
  * @param {Object} info - System information object
  * @param {string} [info.version] - Application version
@@ -46,18 +67,8 @@ export function clearSystemInfoCache() {
  * @param {string} [info.platform] - Platform name
  * @param {string} [info.author] - Application author
  * @param {string} [info.license] - Application license
- * @returns {boolean} True if update was successful, false otherwise
  *
- * @example
- * updateSystemInfo({
- *   version: "1.2.3",
- *   electron: "28.0.0",
- *   node: "18.17.1",
- *   chrome: "120.0.6099.109",
- *   platform: "win32",
- *   author: "FitFileViewer Team",
- *   license: "MIT"
- * });
+ * @returns {boolean} True if update was successful, false otherwise
  */
 export function updateSystemInfo(info) {
     try {
@@ -79,20 +90,28 @@ export function updateSystemInfo(info) {
         for (const [index, fieldName] of INFO_FIELD_ORDER.entries()) {
             if (index < systemInfoItems.length) {
                 const value = /** @type {any} */ (info)[fieldName];
-                updateSystemInfoField(/** @type {Element} */ (systemInfoItems[index]), value, fieldName);
+                updateSystemInfoField(
+                    /** @type {Element} */ (systemInfoItems[index]),
+                    value,
+                    fieldName
+                );
             }
         }
 
         console.log(`${LOG_PREFIX} System information updated successfully`);
         return true;
     } catch (error) {
-        console.error(`${LOG_PREFIX} Error updating system information:`, error);
+        console.error(
+            `${LOG_PREFIX} Error updating system information:`,
+            error
+        );
         return false;
     }
 }
 
 /**
  * Initializes and caches system info DOM elements
+ *
  * @returns {NodeList} Cached system info value elements
  */
 function initializeSystemInfoCache() {
@@ -100,7 +119,9 @@ function initializeSystemInfoCache() {
         return cachedSystemInfoItems;
     }
 
-    cachedSystemInfoItems = document.querySelectorAll(DOM_SELECTORS.SYSTEM_INFO_VALUE);
+    cachedSystemInfoItems = document.querySelectorAll(
+        DOM_SELECTORS.SYSTEM_INFO_VALUE
+    );
 
     // Validate expected DOM structure
     if (cachedSystemInfoItems.length !== EXPECTED_INFO_FIELDS) {
@@ -116,27 +137,35 @@ function initializeSystemInfoCache() {
 
 /**
  * Updates individual system info field in DOM
+ *
  * @param {Element} element - DOM element to update
  * @param {string} value - Value to set
  * @param {string} fieldName - Name of field for logging
  */
 function updateSystemInfoField(element, value, fieldName) {
     if (!element) {
-        console.warn(`${LOG_PREFIX} Missing DOM element for field: ${fieldName}`);
+        console.warn(
+            `${LOG_PREFIX} Missing DOM element for field: ${fieldName}`
+        );
         return;
     }
 
     try {
         element.textContent = value || "";
     } catch (error) {
-        console.error(`${LOG_PREFIX} Error updating field ${fieldName}:`, error);
+        console.error(
+            `${LOG_PREFIX} Error updating field ${fieldName}:`,
+            error
+        );
     }
 }
 
 /**
  * Validates system info object structure
+ *
  * @param {Object} info - System information object to validate
- * @returns {{isValid: boolean, missingFields?: string[]}} Validation result
+ *
+ * @returns {{ isValid: boolean; missingFields?: string[] }} Validation result
  */
 function validateSystemInfo(info) {
     if (!info || typeof info !== "object") {
@@ -144,11 +173,16 @@ function validateSystemInfo(info) {
     }
 
     const missingFields = INFO_FIELD_ORDER.filter(
-        (field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null
+        (field) =>
+            /** @type {any} */ (info)[field] === undefined ||
+            /** @type {any} */ (info)[field] === null
     );
 
     if (missingFields.length > 0) {
-        console.warn(`${LOG_PREFIX} Missing system info fields:`, missingFields);
+        console.warn(
+            `${LOG_PREFIX} Missing system info fields:`,
+            missingFields
+        );
     }
 
     return {

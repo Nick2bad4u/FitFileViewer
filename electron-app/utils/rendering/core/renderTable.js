@@ -2,22 +2,30 @@ import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
 
 /**
  * @typedef {Record<string, unknown>} TableRow
+ *
  * @typedef {{ rows: TableRow[] }} RenderTableData
  */
 
 /**
- * Renders a collapsible table section with a header, copy-to-CSV button, and optional DataTables integration.
+ * Renders a collapsible table section with a header, copy-to-CSV button, and
+ * optional DataTables integration.
  *
- * IMPORTANT (CSP): This function does NOT rely on Arquero's `toHTML()`/`objects()`.
- * Those paths can use runtime Function generation and are blocked by our CSP (no unsafe-eval).
+ * IMPORTANT (CSP): This function does NOT rely on Arquero's
+ * `toHTML()`/`objects()`. Those paths can use runtime Function generation and
+ * are blocked by our CSP (no unsafe-eval).
  *
- * @param {HTMLElement} container - The DOM element to which the table section will be appended.
+ * @param {HTMLElement} container - The DOM element to which the table section
+ *   will be appended.
  * @param {string} title - The title to display in the table header.
  * @param {RenderTableData} table - Data wrapper containing table rows.
- * @param {number} index - A unique index used to generate element IDs for the table and its content.
+ * @param {number} index - A unique index used to generate element IDs for the
+ *   table and its content.
  */
 export function renderTable(container, title, table, index) {
-    const rows = table && typeof table === "object" && Array.isArray(table.rows) ? table.rows : [];
+    const rows =
+        table && typeof table === "object" && Array.isArray(table.rows)
+            ? table.rows
+            : [];
     const normalized = normalizeRows(rows);
     const columns = getColumns(normalized);
 
@@ -82,10 +90,11 @@ export function renderTable(container, title, table, index) {
     content.append(tableElement);
 
     /**
-     * Initialize DataTables for the table (if jQuery + DataTables is available).
+     * Initialize DataTables for the table (if jQuery + DataTables is
+     * available).
      *
-     * IMPORTANT: We only initialize when the section is expanded.
-     * DataTables can compute incorrect widths when initialized under display:none.
+     * IMPORTANT: We only initialize when the section is expanded. DataTables
+     * can compute incorrect widths when initialized under display:none.
      *
      * @returns {void}
      */
@@ -105,14 +114,30 @@ export function renderTable(container, title, table, index) {
 
             const dt = jQ(tableSelector).DataTable({
                 data: normalized,
-                columns: columns.map((c) => ({ title: c, data: c, defaultContent: "" })),
+                columns: columns.map((c) => ({
+                    title: c,
+                    data: c,
+                    defaultContent: "",
+                })),
                 autoWidth: false,
                 scrollX: true,
                 scrollCollapse: true,
                 deferRender: true,
                 lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"],
+                    [
+                        10,
+                        25,
+                        50,
+                        100,
+                        -1,
+                    ],
+                    [
+                        10,
+                        25,
+                        50,
+                        100,
+                        "All",
+                    ],
                 ],
                 ordering: true,
                 pageLength: 25,
@@ -120,7 +145,10 @@ export function renderTable(container, title, table, index) {
                 searching: true,
             });
 
-            const raf = /** @type {typeof requestAnimationFrame | undefined} */ (globalThis.requestAnimationFrame);
+            const raf =
+                /** @type {typeof requestAnimationFrame | undefined} */ (
+                    globalThis.requestAnimationFrame
+                );
             if (typeof raf === "function") {
                 raf(() => {
                     try {
@@ -137,13 +165,17 @@ export function renderTable(container, title, table, index) {
                 }
             }
         } catch (error) {
-            console.error(`[ERROR] DataTable init failed for #${tableId}`, error);
+            console.error(
+                `[ERROR] DataTable init failed for #${tableId}`,
+                error
+            );
         }
     };
 
     /**
-     * Fallback renderer used when jQuery/DataTables is unavailable.
-     * Renders only a limited number of rows to avoid freezing the UI.
+     * Fallback renderer used when jQuery/DataTables is unavailable. Renders
+     * only a limited number of rows to avoid freezing the UI.
+     *
      * @returns {void}
      */
     const renderFallbackTableBody = () => {
@@ -165,7 +197,9 @@ export function renderTable(container, title, table, index) {
     };
 
     /**
-     * Schedule initialization on the next tick after the content becomes visible.
+     * Schedule initialization on the next tick after the content becomes
+     * visible.
+     *
      * @returns {void}
      */
     const scheduleDataTableInit = () => {
@@ -195,7 +229,8 @@ export function renderTable(container, title, table, index) {
     };
 
     header.addEventListener("click", () => {
-        const isHidden = globalThis.getComputedStyle(content).display === "none";
+        const isHidden =
+            globalThis.getComputedStyle(content).display === "none";
         content.style.display = isHidden ? "block" : "none";
         icon.textContent = isHidden ? "➖" : "➕";
 
@@ -216,7 +251,9 @@ export function renderTable(container, title, table, index) {
 
 /**
  * Compute stable column order.
+ *
  * @param {TableRow[]} rows
+ *
  * @returns {string[]}
  */
 function getColumns(rows) {
@@ -229,6 +266,7 @@ function getColumns(rows) {
 
     /**
      * @param {string} key
+     *
      * @returns {boolean}
      */
     const isNumberedKey = (key) => /^\d+$/u.test(key);
@@ -265,15 +303,22 @@ function getColumns(rows) {
 }
 
 /**
- * Convert non-primitive cell values to strings so DataTables renders them sensibly.
+ * Convert non-primitive cell values to strings so DataTables renders them
+ * sensibly.
+ *
  * @param {unknown} value
- * @returns {string|number|boolean}
+ *
+ * @returns {string | number | boolean}
  */
 function normalizeCellValue(value) {
     if (value === null || value === undefined) {
         return "";
     }
-    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+    ) {
         return value;
     }
     try {
@@ -285,6 +330,7 @@ function normalizeCellValue(value) {
 
 /**
  * @param {TableRow[]} rows
+ *
  * @returns {TableRow[]}
  */
 function normalizeRows(rows) {

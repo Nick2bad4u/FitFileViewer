@@ -1,14 +1,17 @@
 /**
- * @file updateTabVisibility.comprehensive.test.js
- * @description Comprehensive test suite for updateTabVisibility.js with 100% coverage and bug detection
+ * Comprehensive test suite for updateTabVisibility.js with 100% coverage and
+ * bug detection
  *
  * BUG HUNTING FOCUS:
+ *
  * - DOM element caching issues
  * - State synchronization problems
  * - Performance issues with element lookups
  * - Error handling gaps
  * - Memory leak potential in subscriptions
  * - Edge cases in tab name extraction
+ *
+ * @file UpdateTabVisibility.comprehensive.test.js
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -30,7 +33,11 @@ import {
 } from "../../../utils/ui/tabs/updateTabVisibility.js";
 
 // Get the mocked functions
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager.js";
 const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
@@ -113,12 +120,22 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             updateTabVisibility("content-summary");
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining("updateTabVisibility: Missing element in the DOM: content-summary")
+                expect.stringContaining(
+                    "updateTabVisibility: Missing element in the DOM: content-summary"
+                )
             );
         });
 
         it("BUG TEST: should handle invalid visibleTabId gracefully", () => {
-            const invalidIds = ["", "nonexistent-id", "content-invalid", 123, true, false, []];
+            const invalidIds = [
+                "",
+                "nonexistent-id",
+                "content-invalid",
+                123,
+                true,
+                false,
+                [],
+            ];
 
             invalidIds.forEach((invalidId) => {
                 expect(() => {
@@ -185,9 +202,21 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             updateTabVisibility("content-map");
 
             // Should call setState with correct tab names
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "chart", expect.any(Object)); // chartjs -> chart
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "map", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "summary",
+                expect.any(Object)
+            );
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "chart",
+                expect.any(Object)
+            ); // chartjs -> chart
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "map",
+                expect.any(Object)
+            );
         });
 
         it("BUG TEST: should handle edge cases in content ID patterns", () => {
@@ -225,8 +254,14 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // Should subscribe to ui.activeTab and globalData
             expect(mockSubscribe).toHaveBeenCalledTimes(2);
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
-            expect(mockSubscribe).toHaveBeenCalledWith("globalData", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "globalData",
+                expect.any(Function)
+            );
         });
 
         it("BUG TEST: should expose memory leak from multiple initializations", () => {
@@ -250,7 +285,9 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             initializeTabVisibilityState();
 
             // Test activeTab subscription with invalid data
-            const activeTabCallback = subscribedCallbacks.find((s) => s.key === "ui.activeTab")?.callback;
+            const activeTabCallback = subscribedCallbacks.find(
+                (s) => s.key === "ui.activeTab"
+            )?.callback;
 
             if (activeTabCallback) {
                 expect(() => {
@@ -271,11 +308,21 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             initializeTabVisibilityState();
 
-            const globalDataCallback = subscribedCallbacks.find((s) => s.key === "globalData")?.callback;
+            const globalDataCallback = subscribedCallbacks.find(
+                (s) => s.key === "globalData"
+            )?.callback;
 
             if (globalDataCallback) {
                 // Test with various data states
-                const testCases = [null, undefined, {}, [], "invalid", 0, false];
+                const testCases = [
+                    null,
+                    undefined,
+                    {},
+                    [],
+                    "invalid",
+                    0,
+                    false,
+                ];
 
                 testCases.forEach((testData) => {
                     expect(() => {
@@ -296,7 +343,15 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         });
 
         it("should handle invalid tab names in showTabContent", () => {
-            const invalidTabNames = [null, undefined, "", "invalid", 123, {}, []];
+            const invalidTabNames = [
+                null,
+                undefined,
+                "",
+                "invalid",
+                123,
+                {},
+                [],
+            ];
 
             invalidTabNames.forEach((tabName) => {
                 expect(() => {
@@ -357,7 +412,11 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             expect(consoleSpy).not.toHaveBeenCalled();
 
             // Should still update state with the extracted tab name
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "unknown-tab", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "unknown-tab",
+                expect.any(Object)
+            );
         });
     });
 
@@ -365,13 +424,21 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("should maintain state consistency between functions", () => {
             // Test sequence of operations
             showTabContent("summary");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "summary",
+                expect.any(Object)
+            );
 
             hideAllTabContent();
             // Should not update state when hiding all (no active content)
 
             showTabContent("map");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "map", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "map",
+                expect.any(Object)
+            );
         });
 
         it("BUG TEST: should expose race conditions in state updates", () => {
@@ -411,7 +478,11 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             summaryElement.setAttribute("aria-hidden", "true");
 
             // Should still update state correctly despite DOM changes
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "summary",
+                expect.any(Object)
+            );
         });
     });
 });

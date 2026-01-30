@@ -1,6 +1,8 @@
 /**
- * Creates a separate heart rate zone controls section that extracts existing HR zone controls
- * @fileoverview Dedicated heart rate zone chart controls section
+ * Creates a separate heart rate zone controls section that extracts existing HR
+ * zone controls
+ *
+ * @file Dedicated heart rate zone chart controls section
  */
 
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
@@ -8,7 +10,9 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
 
 /**
  * Creates the heart rate zone controls section by extracting existing controls
+ *
  * @param {HTMLElement} parentContainer - Parent container to append controls to
+ *
  * @returns {HTMLElement} The created heart rate zone controls section
  */
 export function createHRZoneControls(parentContainer) {
@@ -85,12 +89,16 @@ export function createHRZoneControls(parentContainer) {
     `;
 
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("hr-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("hr-zone-controls-collapsed") === "true";
     updateCollapseState();
 
     collapseBtn.addEventListener("click", () => {
         isCollapsed = !isCollapsed;
-        localStorage.setItem("hr-zone-controls-collapsed", isCollapsed.toString());
+        localStorage.setItem(
+            "hr-zone-controls-collapsed",
+            isCollapsed.toString()
+        );
         updateCollapseState();
     });
 
@@ -131,19 +139,23 @@ export function createHRZoneControls(parentContainer) {
 
 /**
  * Gets current heart rate zone chart visibility settings
+ *
  * @returns {Object} Visibility settings for HR zone charts
  */
 export function getHRZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
+        lapIndividualVisible:
+            getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
+        lapStackedVisible:
+            getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
     };
 }
 
 /**
- * Moves existing heart rate zone controls to the dedicated HR zone section
- * This should be called after the field toggles are created
+ * Moves existing heart rate zone controls to the dedicated HR zone section This
+ * should be called after the field toggles are created
  */
 export function moveHRZoneControlsToSection() {
     const hrZoneContent = document.querySelector("#hr-zone-content");
@@ -151,7 +163,11 @@ export function moveHRZoneControlsToSection() {
         console.warn("[HRZoneControls] HR zone content container not found");
         return;
     } // Find existing HR zone controls in the field toggles section
-    const hrZoneFields = ["hr_zone_doughnut", "hr_lap_zone_stacked", "hr_lap_zone_individual"],
+    const hrZoneFields = [
+            "hr_zone_doughnut",
+            "hr_lap_zone_stacked",
+            "hr_lap_zone_individual",
+        ],
         movedControls = [];
 
     for (const fieldName of hrZoneFields) {
@@ -164,11 +180,15 @@ export function moveHRZoneControlsToSection() {
             hrZoneContent.append(controlContainer);
             movedControls.push(fieldName);
 
-            console.log(`[HRZoneControls] Moved ${fieldName} control to HR zone section`);
+            console.log(
+                `[HRZoneControls] Moved ${fieldName} control to HR zone section`
+            );
         }
     }
     if (movedControls.length > 0) {
-        console.log(`[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`);
+        console.log(
+            `[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`
+        );
 
         // Add some spacing between the controls
         const controls = Array.from(hrZoneContent.children);
@@ -185,6 +205,7 @@ export function moveHRZoneControlsToSection() {
 
 /**
  * Updates HR zone controls visibility based on data availability
+ *
  * @param {boolean} hasData - Whether HR zone data is available
  */
 export function updateHRZoneControlsVisibility(hasData) {
@@ -204,6 +225,7 @@ export function updateHRZoneControlsVisibility(hasData) {
 
 /**
  * Adds a unified color picker button for all HR zone charts
+ *
  * @param {HTMLElement} container - Container to add the button to
  */
 function addUnifiedHRZoneColorPicker(container) {
@@ -223,7 +245,10 @@ function addUnifiedHRZoneColorPicker(container) {
     `;
 
     // Create the inline selector
-    const inlineSelector = createInlineZoneColorSelector("hr_zone", colorSelectorContainer);
+    const inlineSelector = createInlineZoneColorSelector(
+        "hr_zone",
+        colorSelectorContainer
+    );
 
     if (inlineSelector) {
         container.append(separator);

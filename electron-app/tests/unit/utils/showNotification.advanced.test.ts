@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - advanced coverage", () => {
     const originalWarn = console.warn;
@@ -16,7 +20,8 @@ describe("showNotification.js - advanced coverage", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {
@@ -36,7 +41,9 @@ describe("showNotification.js - advanced coverage", () => {
         showNotification("Test");
 
         // Just check that the warning was logged
-        expect(console.warn).toHaveBeenCalledWith("Notification element not found. Unable to display notification.");
+        expect(console.warn).toHaveBeenCalledWith(
+            "Notification element not found. Unable to display notification."
+        );
     });
 
     it("processes queue gracefully when element missing (smoke)", async () => {
@@ -44,7 +51,9 @@ describe("showNotification.js - advanced coverage", () => {
         document.body.innerHTML = "";
         const p = showNotification("No element present");
         await p;
-        expect(console.warn).toHaveBeenCalledWith("Notification element not found. Unable to display notification.");
+        expect(console.warn).toHaveBeenCalledWith(
+            "Notification element not found. Unable to display notification."
+        );
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
@@ -87,7 +96,9 @@ describe("showNotification.js - advanced coverage", () => {
     it("handles mouseover and mouseout events on close button", async () => {
         const p = notify.persistent("Hover test");
         await p;
-        const closeBtn = document.querySelector(".notification-close") as HTMLButtonElement;
+        const closeBtn = document.querySelector(
+            ".notification-close"
+        ) as HTMLButtonElement;
         expect(closeBtn).toBeTruthy();
 
         // Simulate mouseover and mouseout
@@ -102,10 +113,14 @@ describe("showNotification.js - advanced coverage", () => {
     });
 
     it("handles action button without onClick handler", async () => {
-        const p = notify.withActions("No action", "info", [{ text: "No handler" }]);
+        const p = notify.withActions("No action", "info", [
+            { text: "No handler" },
+        ]);
         await p;
         const el = document.getElementById("notification")!;
-        const btn = el.querySelector(".notification-actions button") as HTMLButtonElement;
+        const btn = el.querySelector(
+            ".notification-actions button"
+        ) as HTMLButtonElement;
         expect(btn).toBeTruthy();
 
         // Click should still hide notification even without handler
@@ -116,7 +131,10 @@ describe("showNotification.js - advanced coverage", () => {
 
     it("handles notification click on non-HTMLElement target", async () => {
         const onClick = vi.fn();
-        const p = showNotification("Click test", "info", undefined, { onClick, persistent: true });
+        const p = showNotification("Click test", "info", undefined, {
+            onClick,
+            persistent: true,
+        });
         await p;
         const el = document.getElementById("notification")!;
 
@@ -133,7 +151,10 @@ describe("showNotification.js - advanced coverage", () => {
 
     it("handles click target inside notification actions area", async () => {
         const onClick = vi.fn();
-        const p = showNotification("Action area test", "info", undefined, { onClick, persistent: true });
+        const p = showNotification("Action area test", "info", undefined, {
+            onClick,
+            persistent: true,
+        });
         await p;
 
         // Create a mock event with a target that would be inside the notification-actions area
@@ -175,7 +196,9 @@ describe("showNotification.js - advanced coverage", () => {
         // First should be displayed immediately
         await vi.advanceTimersByTimeAsync(10);
         let el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe("First");
+        expect(el.querySelector(".notification-message")!.textContent).toBe(
+            "First"
+        );
         expect(el.className).toContain("info");
 
         // Advance past first notification duration + hide animation
@@ -183,7 +206,9 @@ describe("showNotification.js - advanced coverage", () => {
 
         // Second should be displayed
         el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe("Second");
+        expect(el.querySelector(".notification-message")!.textContent).toBe(
+            "Second"
+        );
         expect(el.className).toContain("success");
 
         // Advance past second notification duration + hide animation
@@ -191,7 +216,9 @@ describe("showNotification.js - advanced coverage", () => {
 
         // Third should be displayed
         el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe("Third");
+        expect(el.querySelector(".notification-message")!.textContent).toBe(
+            "Third"
+        );
         expect(el.className).toContain("error");
 
         // Clear everything

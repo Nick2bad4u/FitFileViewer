@@ -1,17 +1,19 @@
 /**
- * GPX export utilities used across the renderer for generating standards-compliant GPX documents
- * from FIT record messages. Centralizing the GPX serialization ensures every export surface
- * produces identical output and avoids subtle incompatibilities reported by third-party viewers.
+ * GPX export utilities used across the renderer for generating
+ * standards-compliant GPX documents from FIT record messages. Centralizing the
+ * GPX serialization ensures every export surface produces identical output and
+ * avoids subtle incompatibilities reported by third-party viewers.
  *
  * GPX specification reference: https://www.topografix.com/gpx.asp
  */
 
-/** @typedef {import('../../state/domain/fitFileState.js').FitFileRecord} FitFileRecord */
+/** @typedef {import("../../state/domain/fitFileState.js").FitFileRecord} FitFileRecord */
 
 const GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
 const GPX_XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
 const GPX_SCHEMA_LOCATION = `${GPX_NAMESPACE} ${GPX_NAMESPACE}/gpx.xsd`;
-const GPX_TRACKPOINT_EXTENSION_NAMESPACE = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1";
+const GPX_TRACKPOINT_EXTENSION_NAMESPACE =
+    "http://www.garmin.com/xmlschemas/TrackPointExtension/v1";
 const SEMICIRCLE_TO_DEGREES = 180 / 2_147_483_648; // 2 ** 31 per FIT protocol
 const FIT_EPOCH_OFFSET_SECONDS = 631_065_600; // 1989-12-31T00:00:00Z
 
@@ -28,14 +30,18 @@ const XML_ESCAPE_MAP = Object.freeze({
 });
 
 /**
- * Builds a GPX 1.1 document string from FIT record messages. The generated markup includes
- * metadata, track segments, and optional extensions for heart rate, cadence, temperature, and
- * power when available. When no valid coordinates exist the function returns null, allowing
- * callers to surface user-friendly notifications.
+ * Builds a GPX 1.1 document string from FIT record messages. The generated
+ * markup includes metadata, track segments, and optional extensions for heart
+ * rate, cadence, temperature, and power when available. When no valid
+ * coordinates exist the function returns null, allowing callers to surface
+ * user-friendly notifications.
  *
- * @param {Array<Partial<FitFileRecord>>|undefined|null} records - Raw FIT record messages
+ * @param {Partial<FitFileRecord>[] | undefined | null} records - Raw FIT record
+ *   messages
  * @param {GpxBuildOptions} [options] - GPX document metadata options
- * @returns {string|null} GPX document compatible with third-party viewers or null when invalid
+ *
+ * @returns {string | null} GPX document compatible with third-party viewers or
+ *   null when invalid
  */
 export function buildGpxFromRecords(records, options = {}) {
     if (!Array.isArray(records) || records.length === 0) {
@@ -55,13 +61,25 @@ export function buildGpxFromRecords(records, options = {}) {
         if (!record) {
             continue;
         }
-        const lat = semicirclesToDegrees(/** @type {number|undefined} */ (record.positionLat));
-        const lon = semicirclesToDegrees(/** @type {number|undefined} */ (record.positionLong));
-        if (lat === null || lon === null || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+        const lat = semicirclesToDegrees(
+            /** @type {number | undefined} */ (record.positionLat)
+        );
+        const lon = semicirclesToDegrees(
+            /** @type {number | undefined} */ (record.positionLong)
+        );
+        if (
+            lat === null ||
+            lon === null ||
+            Math.abs(lat) > 90 ||
+            Math.abs(lon) > 180
+        ) {
             continue;
         }
 
-        const elevation = typeof record.enhancedAltitude === "number" ? record.enhancedAltitude : record.altitude;
+        const elevation =
+            typeof record.enhancedAltitude === "number"
+                ? record.enhancedAltitude
+                : record.altitude;
         const timestampIso = toIsoTimestamp(record.timestamp);
         if (!firstTimestamp && timestampIso) {
             firstTimestamp = timestampIso;
@@ -71,21 +89,31 @@ export function buildGpxFromRecords(records, options = {}) {
             typeof elevation === "number" && Number.isFinite(elevation)
                 ? [`  <ele>${formatElevation(elevation)}</ele>`]
                 : [];
-        const timeLines = timestampIso ? [`  <time>${timestampIso}</time>`] : [];
+        const timeLines = timestampIso
+            ? [`  <time>${timestampIso}</time>`]
+            : [];
 
         let extensionLines = [];
         if (includeExtensions) {
             const hr = normalizeMetric(record.heartRate);
-            const cadence = normalizeMetric(record.cadence ?? record.cadenceRunning ?? record.cadenceCycling);
-            const temperature = normalizeMetric(
-                record.temperature ?? record.bodyTemperature ?? record.ambientTemperature
+            const cadence = normalizeMetric(
+                record.cadence ?? record.cadenceRunning ?? record.cadenceCycling
             );
-            const power = normalizeMetric(record.power ?? record.instantPower ?? record.avgPower);
+            const temperature = normalizeMetric(
+                record.temperature ??
+                    record.bodyTemperature ??
+                    record.ambientTemperature
+            );
+            const power = normalizeMetric(
+                record.power ?? record.instantPower ?? record.avgPower
+            );
 
             const extensionValues = [
                 ...(hr ? [`    <gpxtpx:hr>${hr}</gpxtpx:hr>`] : []),
                 ...(cadence ? [`    <gpxtpx:cad>${cadence}</gpxtpx:cad>`] : []),
-                ...(temperature ? [`    <gpxtpx:atemp>${temperature}</gpxtpx:atemp>`] : []),
+                ...(temperature
+                    ? [`    <gpxtpx:atemp>${temperature}</gpxtpx:atemp>`]
+                    : []),
                 ...(power ? [`    <gpxtpx:power>${power}</gpxtpx:power>`] : []),
             ];
 
@@ -124,11 +152,14 @@ export function buildGpxFromRecords(records, options = {}) {
         `xsi:schemaLocation="${GPX_SCHEMA_LOCATION}"`,
     ];
     if (extensionsPresent && includeExtensions) {
-        rootAttributes.push(`xmlns:gpxtpx="${GPX_TRACKPOINT_EXTENSION_NAMESPACE}"`);
+        rootAttributes.push(
+            `xmlns:gpxtpx="${GPX_TRACKPOINT_EXTENSION_NAMESPACE}"`
+        );
     }
 
     const description =
-        typeof options.description === "string" && options.description.trim().length > 0
+        typeof options.description === "string" &&
+        options.description.trim().length > 0
             ? options.description.trim()
             : "";
 
@@ -163,12 +194,20 @@ export function buildGpxFromRecords(records, options = {}) {
 /**
  * Resolves a user-friendly track name based on loaded FIT file context.
  *
- * @param {Array<{ filePath?: string; displayName?: string; name?: string }> | undefined | null} loadedFitFiles -
- *        Array of loaded FIT file descriptors exposed on the window object
- * @param {string} [fallback="Exported Track"] - Fallback value when no contextual name exists
+ * @param {
+ *     | { filePath?: string; displayName?: string; name?: string }[]
+ *     | undefined
+ *     | null} loadedFitFiles
+ *   - Array of loaded FIT file descriptors exposed on the window object
+ * @param {string} [fallback="Exported Track"] - Fallback value when no
+ *   contextual name exists. Default is `"Exported Track"`
+ *
  * @returns {string} Resolved track name suitable for metadata
  */
-export function resolveTrackNameFromLoadedFiles(loadedFitFiles, fallback = "Exported Track") {
+export function resolveTrackNameFromLoadedFiles(
+    loadedFitFiles,
+    fallback = "Exported Track"
+) {
     if (!Array.isArray(loadedFitFiles) || loadedFitFiles.length === 0) {
         return fallback;
     }
@@ -184,7 +223,8 @@ export function resolveTrackNameFromLoadedFiles(loadedFitFiles, fallback = "Expo
             : "";
 
     const resolved = [...baseCandidates, fileName].find(
-        (candidate) => typeof candidate === "string" && candidate.trim().length > 0
+        (candidate) =>
+            typeof candidate === "string" && candidate.trim().length > 0
     );
 
     return resolved ? resolved.trim() : fallback;
@@ -194,6 +234,7 @@ export function resolveTrackNameFromLoadedFiles(loadedFitFiles, fallback = "Expo
  * Escapes XML special characters within a string.
  *
  * @param {string} value - Arbitrary text content
+ *
  * @returns {string} XML-safe string
  */
 function escapeXml(value) {
@@ -201,9 +242,11 @@ function escapeXml(value) {
 }
 
 /**
- * Formats a number as a coordinate string with 7 decimal places (≈1cm precision).
+ * Formats a number as a coordinate string with 7 decimal places (≈1cm
+ * precision).
  *
  * @param {number} value - Decimal degree coordinate
+ *
  * @returns {string} Formatted coordinate literal
  */
 function formatCoordinate(value) {
@@ -214,6 +257,7 @@ function formatCoordinate(value) {
  * Formats an elevation measurement in metres using two decimal places.
  *
  * @param {number} value - Elevation in metres
+ *
  * @returns {string} Elevation literal
  */
 function formatElevation(value) {
@@ -223,8 +267,9 @@ function formatElevation(value) {
 /**
  * Normalizes a potential track name or creator string into safe XML content.
  *
- * @param {string|undefined|null} value - Raw title string
+ * @param {string | undefined | null} value - Raw title string
  * @param {string} fallback - Fallback value when the input is empty
+ *
  * @returns {string} Sanitized string suitable for GPX metadata
  */
 function normalizeLabel(value, fallback) {
@@ -238,7 +283,8 @@ function normalizeLabel(value, fallback) {
  * Normalizes a numeric metric (e.g., HR, cadence) into an integer string.
  *
  * @param {unknown} value - Raw metric value
- * @returns {string|null} Rounded integer string or null when invalid
+ *
+ * @returns {string | null} Rounded integer string or null when invalid
  */
 function normalizeMetric(value) {
     if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -251,7 +297,8 @@ function normalizeMetric(value) {
  * Converts FIT semicircle coordinates to decimal degrees.
  *
  * @param {unknown} raw - Raw semicircle value
- * @returns {number|null} Decimal degrees or null when invalid
+ *
+ * @returns {number | null} Decimal degrees or null when invalid
  */
 function semicirclesToDegrees(raw) {
     if (typeof raw !== "number" || !Number.isFinite(raw)) {
@@ -265,12 +312,13 @@ function semicirclesToDegrees(raw) {
 }
 
 /**
- * Attempts to coerce a timestamp-like value into an ISO 8601 string for GPX output.
- * Supports Date instances, ISO8601 strings, UNIX epoch seconds/milliseconds, and
- * FIT epoch seconds (seconds since 1989-12-31).
+ * Attempts to coerce a timestamp-like value into an ISO 8601 string for GPX
+ * output. Supports Date instances, ISO8601 strings, UNIX epoch
+ * seconds/milliseconds, and FIT epoch seconds (seconds since 1989-12-31).
  *
  * @param {unknown} value - Raw timestamp value from FIT record messages
- * @returns {string|null} ISO8601 timestamp or null when conversion fails
+ *
+ * @returns {string | null} ISO8601 timestamp or null when conversion fails
  */
 function toIsoTimestamp(value) {
     if (!value) {
@@ -292,7 +340,9 @@ function toIsoTimestamp(value) {
             return new Date(value * 1000).toISOString();
         }
         if (value > 0) {
-            return new Date((value + FIT_EPOCH_OFFSET_SECONDS) * 1000).toISOString();
+            return new Date(
+                (value + FIT_EPOCH_OFFSET_SECONDS) * 1000
+            ).toISOString();
         }
     }
     return null;
@@ -300,10 +350,12 @@ function toIsoTimestamp(value) {
 
 /**
  * @typedef {Object} GpxBuildOptions
+ *
  * @property {string} [trackName] - Display name for the GPX track
  * @property {string} [creator] - Creator metadata for the GPX document
  * @property {string} [description] - Optional description appended to the track
- * @property {boolean} [includeExtensions=true] - Whether to emit Garmin TrackPoint extensions
+ * @property {boolean} [includeExtensions=true] - Whether to emit Garmin
+ *   TrackPoint extensions. Default is `true`
  */
 
 export const __testUtils = {

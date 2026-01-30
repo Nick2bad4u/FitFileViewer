@@ -12,8 +12,16 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
 }));
 
 // Then import the modules
-import { updateActiveTab, initializeActiveTabState, getActiveTab } from "../../../utils/ui/tabs/updateActiveTab.js";
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
+import {
+    updateActiveTab,
+    initializeActiveTabState,
+    getActiveTab,
+} from "../../../utils/ui/tabs/updateActiveTab.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager.js";
 
 // Get the mocked functions
 const mockGetState = vi.mocked(getState);
@@ -75,7 +83,11 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             expect(mapTab?.classList.contains("active")).toBe(false);
 
             // Verify state manager was called with extracted tab name
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should handle switching between different tabs", () => {
@@ -87,16 +99,28 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-chart");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "updateActiveTab",
+            });
 
             updateActiveTab("tab-summary");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "updateActiveTab" }
+            );
 
             updateActiveTab("tab-data");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "data", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "data", {
+                source: "updateActiveTab",
+            });
 
             updateActiveTab("tab-export");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "export", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "export",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should remove active class from multiple active tabs", () => {
@@ -112,9 +136,19 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             updateActiveTab("tab-chart");
 
-            expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(false);
-            expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(true);
-            expect(document.getElementById("tab-map")?.classList.contains("active")).toBe(false);
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.classList.contains("active")
+            ).toBe(false);
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(
+                document.getElementById("tab-map")?.classList.contains("active")
+            ).toBe(false);
         });
 
         it("should handle invalid tab IDs gracefully", () => {
@@ -158,20 +192,44 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-special-chars_123");
-            expect(document.getElementById("tab-special-chars_123")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "special-chars_123", {
-                source: "updateActiveTab",
-            });
+            expect(
+                document
+                    .getElementById("tab-special-chars_123")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "special-chars_123",
+                {
+                    source: "updateActiveTab",
+                }
+            );
 
             updateActiveTab("tab-with-dashes");
-            expect(document.getElementById("tab-with-dashes")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "with-dashes", { source: "updateActiveTab" });
+            expect(
+                document
+                    .getElementById("tab-with-dashes")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "with-dashes",
+                { source: "updateActiveTab" }
+            );
 
             updateActiveTab("tab_with_underscores");
-            expect(document.getElementById("tab_with_underscores")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "tab_with_underscores", {
-                source: "updateActiveTab",
-            });
+            expect(
+                document
+                    .getElementById("tab_with_underscores")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "tab_with_underscores",
+                {
+                    source: "updateActiveTab",
+                }
+            );
         });
 
         it("should handle case sensitivity in tab IDs", () => {
@@ -181,12 +239,26 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-Summary");
-            expect(document.getElementById("tab-Summary")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "Summary", { source: "updateActiveTab" });
+            expect(
+                document
+                    .getElementById("tab-Summary")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "Summary",
+                { source: "updateActiveTab" }
+            );
 
             updateActiveTab("tab-CHART");
-            expect(document.getElementById("tab-CHART")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "CHART", { source: "updateActiveTab" });
+            expect(
+                document
+                    .getElementById("tab-CHART")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "CHART", {
+                source: "updateActiveTab",
+            });
 
             // These should not match due to case sensitivity
             updateActiveTab("tab-summary");
@@ -204,7 +276,11 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             updateActiveTab("tab-summary");
 
             expect(mockSetState).toHaveBeenCalledTimes(3);
-            expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.classList.contains("active")
+            ).toBe(true);
         });
 
         it("should handle pattern extraction correctly", () => {
@@ -217,19 +293,35 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-summary");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "updateActiveTab" }
+            );
 
             updateActiveTab("summary-tab");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "updateActiveTab" }
+            );
 
             updateActiveTab("btn-chart");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "updateActiveTab",
+            });
 
             updateActiveTab("map-btn");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", {
+                source: "updateActiveTab",
+            });
 
             updateActiveTab("custom-element");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "custom-element", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "custom-element",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should handle elements without classList gracefully", () => {
@@ -264,7 +356,10 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             initializeActiveTabState();
 
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
         });
 
         it("should set up click listeners when tab buttons exist", () => {
@@ -275,13 +370,19 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             // Spy on addEventListener
             const buttons = testContainer.querySelectorAll(".tab-button");
-            const addEventListenerSpies = Array.from(buttons).map((btn) => vi.spyOn(btn, "addEventListener"));
+            const addEventListenerSpies = Array.from(buttons).map((btn) =>
+                vi.spyOn(btn, "addEventListener")
+            );
 
             initializeActiveTabState();
 
             // Verify each button got a click listener (with options parameter for cleanup)
             addEventListenerSpies.forEach((spy) => {
-                expect(spy).toHaveBeenCalledWith("click", expect.any(Function), expect.anything());
+                expect(spy).toHaveBeenCalledWith(
+                    "click",
+                    expect.any(Function),
+                    expect.anything()
+                );
             });
         });
 
@@ -305,7 +406,9 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             // Mock querySelectorAll to return array with invalid element
             const originalQuerySelectorAll = document.querySelectorAll;
-            document.querySelectorAll = vi.fn().mockReturnValue([invalidElement]);
+            document.querySelectorAll = vi
+                .fn()
+                .mockReturnValue([invalidElement]);
 
             const consoleWarnSpy = vi.spyOn(console, "warn");
 
@@ -333,7 +436,11 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             const summaryButton = document.getElementById("tab-summary");
             summaryButton?.click();
 
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "tabButtonClick" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "tabButtonClick" }
+            );
         });
 
         it("should ignore clicks on disabled buttons", () => {
@@ -360,7 +467,9 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             initializeActiveTabState();
 
-            expect(consoleLogSpy).toHaveBeenCalledWith("[ActiveTab] State management initialized");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[ActiveTab] State management initialized"
+            );
         });
     });
 
@@ -437,19 +546,40 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             // Initialize listeners
             initializeActiveTabState();
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
 
             // Switch to chart
             updateActiveTab("tab-chart");
-            expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(false);
-            expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.classList.contains("active")
+            ).toBe(false);
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "updateActiveTab",
+            });
 
             // Switch to map
             updateActiveTab("tab-map");
-            expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(false);
-            expect(document.getElementById("tab-map")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", { source: "updateActiveTab" });
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.classList.contains("active")
+            ).toBe(false);
+            expect(
+                document.getElementById("tab-map")?.classList.contains("active")
+            ).toBe(true);
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", {
+                source: "updateActiveTab",
+            });
 
             // Get current state
             mockGetState.mockReturnValue("map");
@@ -489,11 +619,23 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-summary");
-            expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(true);
-            expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(false);
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.classList.contains("active")
+            ).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.classList.contains("active")
+            ).toBe(false);
 
             updateActiveTab("tab-nested");
-            expect(document.getElementById("tab-nested")?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-nested")
+                    ?.classList.contains("active")
+            ).toBe(true);
         });
     });
 
@@ -527,15 +669,22 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             testContainer.innerHTML = `<button id="tab-${longId}" class="tab-button">Long</button>`;
 
             updateActiveTab(`tab-${longId}`);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", longId, { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", longId, {
+                source: "updateActiveTab",
+            });
         });
 
         it("should handle tab IDs with special regex characters", () => {
-            const specialId = "test.with+special*chars?and[brackets]and(parens)and{braces}";
+            const specialId =
+                "test.with+special*chars?and[brackets]and(parens)and{braces}";
             testContainer.innerHTML = `<button id="tab-${specialId}" class="tab-button">Special</button>`;
 
             updateActiveTab(`tab-${specialId}`);
-            expect(document.getElementById(`tab-${specialId}`)?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById(`tab-${specialId}`)
+                    ?.classList.contains("active")
+            ).toBe(true);
         });
 
         it("should handle concurrent tab updates", async () => {
@@ -572,7 +721,8 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             // Create many tab elements
             const tabsHtml = Array.from(
                 { length: 1000 },
-                (_, i) => `<button id="tab-item${i}" class="tab-button">Tab ${i}</button>`
+                (_, i) =>
+                    `<button id="tab-item${i}" class="tab-button">Tab ${i}</button>`
             ).join("");
 
             testContainer.innerHTML = tabsHtml;
@@ -584,7 +734,11 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             // Should complete quickly even with many elements
             // Note: Allow some headroom for slower CI/Windows runners to avoid flaky failures.
             expect(endTime - startTime).toBeLessThan(250); // <= 250ms threshold
-            expect(document.getElementById("tab-item500")?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-item500")
+                    ?.classList.contains("active")
+            ).toBe(true);
         });
 
         it("should handle rapid successive calls efficiently", () => {
@@ -613,10 +767,22 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             updateActiveTab("tab-chart");
 
             // Verify ARIA attributes are preserved
-            expect(document.getElementById("tab-summary")?.getAttribute("aria-selected")).toBe("true");
-            expect(document.getElementById("tab-chart")?.getAttribute("aria-selected")).toBe("false");
-            expect(document.getElementById("tab-summary")?.getAttribute("role")).toBe("tab");
-            expect(document.getElementById("tab-chart")?.getAttribute("role")).toBe("tab");
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.getAttribute("aria-selected")
+            ).toBe("true");
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.getAttribute("aria-selected")
+            ).toBe("false");
+            expect(
+                document.getElementById("tab-summary")?.getAttribute("role")
+            ).toBe("tab");
+            expect(
+                document.getElementById("tab-chart")?.getAttribute("role")
+            ).toBe("tab");
         });
 
         it("should work with various HTML5 button types", () => {
@@ -627,13 +793,23 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-summary");
-            expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-summary")
+                    ?.classList.contains("active")
+            ).toBe(true);
 
             updateActiveTab("tab-chart");
-            expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(true);
+            expect(
+                document
+                    .getElementById("tab-chart")
+                    ?.classList.contains("active")
+            ).toBe(true);
 
             updateActiveTab("tab-map");
-            expect(document.getElementById("tab-map")?.classList.contains("active")).toBe(true);
+            expect(
+                document.getElementById("tab-map")?.classList.contains("active")
+            ).toBe(true);
         });
     });
 });

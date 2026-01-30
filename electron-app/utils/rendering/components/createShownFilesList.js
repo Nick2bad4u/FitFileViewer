@@ -4,12 +4,14 @@ import { setState } from "../../state/core/stateManager.js";
 
 /**
  * @typedef {Object} LoadedFitFile
+ *
  * @property {any} data
  * @property {string} [filePath]
  */
 
 /**
  * Creates a list container for showing loaded FIT files on the map
+ *
  * @returns {HTMLElement} The files list container
  */
 export function createShownFilesList() {
@@ -55,13 +57,17 @@ export function createShownFilesList() {
     document.body.addEventListener("themechange", themeChangeHandler);
 
     /**
-     * Cleanup hook used by renderMap when it tears down the old map DOM.
-     * This prevents accumulating document/body listeners and any hovered-tooltip mousemove listeners.
+     * Cleanup hook used by renderMap when it tears down the old map DOM. This
+     * prevents accumulating document/body listeners and any hovered-tooltip
+     * mousemove listeners.
      */
     // @ts-expect-error - custom property for lifecycle management
     container._dispose = () => {
         try {
-            document.body.removeEventListener("themechange", themeChangeHandler);
+            document.body.removeEventListener(
+                "themechange",
+                themeChangeHandler
+            );
         } catch {
             /* ignore */
         }
@@ -77,7 +83,9 @@ export function createShownFilesList() {
             }
 
             // Call any active tooltip remover (removes global mousemove listener)
-            for (const li of Array.from(container.querySelectorAll("li[data-overlay-index]"))) {
+            for (const li of Array.from(
+                container.querySelectorAll("li[data-overlay-index]")
+            )) {
                 // @ts-expect-error - custom property on HTMLElement
                 if (li && typeof li._tooltipRemover === "function") {
                     // @ts-expect-error - custom property on HTMLElement
@@ -86,7 +94,9 @@ export function createShownFilesList() {
             }
 
             // Remove any orphaned tooltip elements
-            for (const el of document.querySelectorAll(".overlay-filename-tooltip")) {
+            for (const el of document.querySelectorAll(
+                ".overlay-filename-tooltip"
+            )) {
                 if (el instanceof HTMLElement) {
                     el.remove();
                 }
@@ -99,10 +109,17 @@ export function createShownFilesList() {
     let pendingStateSync = false;
     const syncOverlayState = () => {
         try {
-            const files = Array.isArray(globalThis.loadedFitFiles) ? [...globalThis.loadedFitFiles] : [];
-            setState("globalData.loadedFitFiles", files, { source: "createShownFilesList" });
+            const files = Array.isArray(globalThis.loadedFitFiles)
+                ? [...globalThis.loadedFitFiles]
+                : [];
+            setState("globalData.loadedFitFiles", files, {
+                source: "createShownFilesList",
+            });
         } catch (error) {
-            console.error("[createShownFilesList] Failed to sync overlay state:", error);
+            console.error(
+                "[createShownFilesList] Failed to sync overlay state:",
+                error
+            );
         }
     };
 
@@ -121,7 +138,8 @@ export function createShownFilesList() {
     const assignKeyboardFocus = (value) => {
         keyboardFocusIndex = value;
     };
-    const getOverlayItems = () => Array.from(container.querySelectorAll("li[data-overlay-index]"));
+    const getOverlayItems = () =>
+        Array.from(container.querySelectorAll("li[data-overlay-index]"));
 
     const focusOverlayItem = (index, options) => {
         const opts = options ?? { scrollIntoView: true };
@@ -148,7 +166,10 @@ export function createShownFilesList() {
             if (items.length === 0) {
                 return;
             }
-            const targetIndex = keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length ? keyboardFocusIndex : 0;
+            const targetIndex =
+                keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length
+                    ? keyboardFocusIndex
+                    : 0;
             focusOverlayItem(targetIndex, { scrollIntoView: false });
         }
     });
@@ -207,9 +228,15 @@ export function createShownFilesList() {
             return;
         }
 
-        if ((key === "Backspace" || key === "Delete") && keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length) {
+        if (
+            (key === "Backspace" || key === "Delete") &&
+            keyboardFocusIndex >= 0 &&
+            keyboardFocusIndex < items.length
+        ) {
             event.preventDefault();
-            const removeButton = items[keyboardFocusIndex].querySelector(".overlay-remove-btn");
+            const removeButton = items[keyboardFocusIndex].querySelector(
+                ".overlay-remove-btn"
+            );
             if (removeButton instanceof HTMLElement) {
                 removeButton.click();
             }
@@ -220,7 +247,8 @@ export function createShownFilesList() {
     /**
      * @param {string} fg - Foreground color
      * @param {string} bg - Background color
-     * @param {string} [filter=""] - CSS filter string
+     * @param {string} [filter=""] - CSS filter string. Default is `""`
+     *
      * @returns {boolean} True if color is accessible
      */
     function isColorAccessible(fg, bg, filter = "") {
@@ -228,6 +256,7 @@ export function createShownFilesList() {
         // Filter: CSS filter string (e.g., 'invert(0.92) ...')
         /**
          * @param {string} hex - Hex color string
+         *
          * @returns {number[]} RGB array
          */
         function hexToRgb(hex) {
@@ -239,10 +268,15 @@ export function createShownFilesList() {
                     .join("");
             }
             const num = Number.parseInt(hex, 16);
-            return [num >> 16, (num >> 8) & 255, num & 255];
+            return [
+                num >> 16,
+                (num >> 8) & 255,
+                num & 255,
+            ];
         }
         /**
          * @param {string} str - Color string to parse
+         *
          * @returns {number[]} RGB array
          */
         function parseColor(str) {
@@ -251,9 +285,17 @@ export function createShownFilesList() {
             }
             const m = str.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
             if (m && m[1] && m[2] && m[3]) {
-                return [Number.parseInt(m[1]), Number.parseInt(m[2]), Number.parseInt(m[3])];
+                return [
+                    Number.parseInt(m[1]),
+                    Number.parseInt(m[2]),
+                    Number.parseInt(m[3]),
+                ];
             }
-            return [255, 255, 255];
+            return [
+                255,
+                255,
+                255,
+            ];
         }
         // If a filter is provided, simulate the filtered color using a temp element
         let fgColor = fg;
@@ -266,21 +308,38 @@ export function createShownFilesList() {
             fgColor = getComputedStyle(temp).color;
             temp.remove();
         }
-        const [r1, g1, b1] = parseColor(fgColor),
-            [r2, g2, b2] = parseColor(bg);
+        const [
+                r1,
+                g1,
+                b1,
+            ] = parseColor(fgColor),
+            [
+                r2,
+                g2,
+                b2,
+            ] = parseColor(bg);
         // Relative luminance
         /**
          * @param {number} r - Red component
          * @param {number} g - Green component
          * @param {number} b - Blue component
+         *
          * @returns {number} Luminance value
          */
         function lum(r, g, b) {
-            const components = [r, g, b].map((v) => {
+            const components = [
+                r,
+                g,
+                b,
+            ].map((v) => {
                 v /= 255;
                 return v <= 0.039_28 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
             });
-            return 0.2126 * (components[0] || 0) + 0.7152 * (components[1] || 0) + 0.0722 * (components[2] || 0);
+            return (
+                0.2126 * (components[0] || 0) +
+                0.7152 * (components[1] || 0) +
+                0.0722 * (components[2] || 0)
+            );
         }
         const L1 = lum(r1 || 0, g1 || 0, b1 || 0) + 0.05,
             L2 = lum(r2 || 0, g2 || 0, b2 || 0) + 0.05,
@@ -317,7 +376,8 @@ export function createShownFilesList() {
                     isDark = document.body.classList.contains("theme-dark");
                 let filter = "";
                 if (isDark) {
-                    filter = "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)";
+                    filter =
+                        "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)";
                     li.style.filter = filter;
                 }
                 const bg = isDark ? "rgb(30,34,40)" : "#fff";
@@ -338,7 +398,10 @@ export function createShownFilesList() {
                     temp.remove();
                 }
                 const fullPath = f.originalPath || displayLabel,
-                    showWarning = !isColorAccessible(filteredColor || color, bg);
+                    showWarning = !isColorAccessible(
+                        filteredColor || color,
+                        bg
+                    );
                 li.style.cursor = "pointer";
                 li.setAttribute("aria-label", `Overlay ${fullPath}`);
                 li.setAttribute("aria-selected", "false");
@@ -359,7 +422,10 @@ export function createShownFilesList() {
                 removeBtn.style.cursor = "pointer";
                 removeBtn.style.opacity = "0";
                 removeBtn.style.transition = "opacity 0.15s";
-                removeBtn.setAttribute("aria-label", `Remove overlay ${fullPath}`);
+                removeBtn.setAttribute(
+                    "aria-label",
+                    `Remove overlay ${fullPath}`
+                );
                 removeBtn.style.display = "inline-block";
                 removeBtn.style.lineHeight = "1";
                 removeBtn.setAttribute("role", "button");
@@ -377,17 +443,23 @@ export function createShownFilesList() {
                     if (globalThis.loadedFitFiles) {
                         globalThis.loadedFitFiles.splice(overlayIndex, 1);
                         scheduleOverlayStateSync();
-                        const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
+                        const nextFocusIndex =
+                            overlayIndex > 1 ? overlayIndex - 1 : -1;
                         assignKeyboardFocus(nextFocusIndex);
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }
-                        if (/** @type {any} */ (globalThis).updateShownFilesList) {
+                        if (
+                            /** @type {any} */ (globalThis).updateShownFilesList
+                        ) {
                             /** @type {any} */ globalThis.updateShownFilesList();
                         }
                         setTimeout(() => {
-                            const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
-                            for (const t of tooltips) t.parentNode && t.parentNode.removeChild(t);
+                            const tooltips = document.querySelectorAll(
+                                ".overlay-filename-tooltip"
+                            );
+                            for (const t of tooltips)
+                                t.parentNode && t.parentNode.removeChild(t);
                         }, 10);
                     }
                 });
@@ -407,43 +479,66 @@ export function createShownFilesList() {
                     }
                     // Bring the overlay polyline to front and flash highlight
                     // @ts-expect-error - _overlayPolylines exists on window
-                    if (globalThis._overlayPolylines && globalThis._overlayPolylines[overlayIndex]) {
+                    if (
+                        globalThis._overlayPolylines &&
+                        globalThis._overlayPolylines[overlayIndex]
+                    ) {
                         // @ts-expect-error - _overlayPolylines exists on window
-                        const polyline = globalThis._overlayPolylines[overlayIndex];
+                        const polyline =
+                            globalThis._overlayPolylines[overlayIndex];
                         if (polyline.bringToFront) {
                             polyline.bringToFront();
                         }
                         // --- Also bring overlay markers to front ---
-                        if (globalThis.L && globalThis.L.CircleMarker && polyline._map && polyline._map._layers) {
-                            for (const layer of Object.values(polyline._map._layers)) {
+                        if (
+                            globalThis.L &&
+                            globalThis.L.CircleMarker &&
+                            polyline._map &&
+                            polyline._map._layers
+                        ) {
+                            for (const layer of Object.values(
+                                polyline._map._layers
+                            )) {
                                 if (
-                                    layer instanceof globalThis.L.CircleMarker &&
+                                    layer instanceof
+                                        globalThis.L.CircleMarker &&
                                     layer.options &&
                                     polyline.options &&
-                                    layer.options.color === polyline.options.color &&
+                                    layer.options.color ===
+                                        polyline.options.color &&
                                     layer.bringToFront
                                 ) {
                                     layer.bringToFront();
                                 }
                             }
                         }
-                        const polyElem = polyline.getElement && polyline.getElement();
+                        const polyElem =
+                            polyline.getElement && polyline.getElement();
                         if (polyElem) {
                             polyElem.style.transition = "filter 0.2s";
                             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
                             setTimeout(() => {
                                 // @ts-expect-error - _highlightedOverlayIdx exists on window
-                                if (globalThis._highlightedOverlayIdx === overlayIndex) {
+                                if (
+                                    globalThis._highlightedOverlayIdx ===
+                                    overlayIndex
+                                ) {
                                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                                 }
                             }, 250);
                             // Center and fit map to this overlay
                             // @ts-expect-error - _leafletMapInstance exists on window
-                            if (polyline.getBounds && globalThis._leafletMapInstance) {
+                            if (
+                                polyline.getBounds &&
+                                globalThis._leafletMapInstance
+                            ) {
                                 // @ts-expect-error - _leafletMapInstance exists on window
-                                globalThis._leafletMapInstance.fitBounds(polyline.getBounds(), {
-                                    padding: [20, 20],
-                                });
+                                globalThis._leafletMapInstance.fitBounds(
+                                    polyline.getBounds(),
+                                    {
+                                        padding: [20, 20],
+                                    }
+                                );
                             }
                         }
                     }
@@ -473,8 +568,11 @@ export function createShownFilesList() {
                         clearTimeout(globalThis._overlayTooltipTimeout);
                     }
                     // Remove any existing tooltip immediately
-                    const oldTooltips = document.querySelectorAll(".overlay-filename-tooltip");
-                    for (const t of oldTooltips) t.parentNode && t.parentNode.removeChild(t);
+                    const oldTooltips = document.querySelectorAll(
+                        ".overlay-filename-tooltip"
+                    );
+                    for (const t of oldTooltips)
+                        t.parentNode && t.parentNode.removeChild(t);
                     // @ts-expect-error - Custom property on HTMLElement
                     if (li._tooltipRemover) {
                         li._tooltipRemover();
@@ -484,7 +582,9 @@ export function createShownFilesList() {
                     globalThis._overlayTooltipTimeout = setTimeout(() => {
                         // Only show if still hovered
                         // @ts-expect-error - _highlightedOverlayIdx exists on window
-                        if (globalThis._highlightedOverlayIdx !== overlayIndex) {
+                        if (
+                            globalThis._highlightedOverlayIdx !== overlayIndex
+                        ) {
                             return;
                         }
                         const tooltip = document.createElement("div");
@@ -511,10 +611,16 @@ export function createShownFilesList() {
                             let x = evt.clientX + pad,
                                 y = evt.clientY + pad;
                             if (x + tooltip.offsetWidth > window.innerWidth) {
-                                x = window.innerWidth - tooltip.offsetWidth - pad;
+                                x =
+                                    window.innerWidth -
+                                    tooltip.offsetWidth -
+                                    pad;
                             }
                             if (y + tooltip.offsetHeight > window.innerHeight) {
-                                y = window.innerHeight - tooltip.offsetHeight - pad;
+                                y =
+                                    window.innerHeight -
+                                    tooltip.offsetHeight -
+                                    pad;
                             }
                             tooltip.style.left = `${x}px`;
                             tooltip.style.top = `${y}px`;
@@ -523,7 +629,10 @@ export function createShownFilesList() {
                         globalThis.addEventListener("mousemove", moveTooltip);
                         // @ts-expect-error - Custom property on HTMLElement
                         li._tooltipRemover = () => {
-                            globalThis.removeEventListener("mousemove", moveTooltip);
+                            globalThis.removeEventListener(
+                                "mousemove",
+                                moveTooltip
+                            );
                             if (tooltip.parentNode) {
                                 tooltip.remove();
                             }
@@ -551,18 +660,27 @@ export function createShownFilesList() {
                     }
                     // Remove any lingering tooltips from the DOM
                     setTimeout(() => {
-                        const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
-                        for (const t of tooltips) t.parentNode && t.parentNode.removeChild(t);
+                        const tooltips = document.querySelectorAll(
+                            ".overlay-filename-tooltip"
+                        );
+                        for (const t of tooltips)
+                            t.parentNode && t.parentNode.removeChild(t);
                     }, 10);
                 });
                 ul.append(li);
             }
 
             const overlayItems = getOverlayItems();
-            container.setAttribute("aria-disabled", overlayItems.length === 0 ? "true" : "false");
+            container.setAttribute(
+                "aria-disabled",
+                overlayItems.length === 0 ? "true" : "false"
+            );
             if (container.matches(":focus-within") && overlayItems.length > 0) {
                 const targetIndex =
-                    keyboardFocusIndex >= 0 && keyboardFocusIndex < overlayItems.length ? keyboardFocusIndex : 0;
+                    keyboardFocusIndex >= 0 &&
+                    keyboardFocusIndex < overlayItems.length
+                        ? keyboardFocusIndex
+                        : 0;
                 focusOverlayItem(targetIndex, { scrollIntoView: false });
             } else if (overlayItems.length === 0) {
                 assignKeyboardFocus(-1);
@@ -571,7 +689,11 @@ export function createShownFilesList() {
             }
 
             // Add Clear All button if overlays exist
-            if (anyOverlays && ul.parentNode && !ul.parentNode.querySelector(".overlay-clear-all-btn")) {
+            if (
+                anyOverlays &&
+                ul.parentNode &&
+                !ul.parentNode.querySelector(".overlay-clear-all-btn")
+            ) {
                 const clearAll = document.createElement("button");
                 clearAll.type = "button";
                 clearAll.textContent = "Clear All";
@@ -586,7 +708,10 @@ export function createShownFilesList() {
                 clearAll.style.cursor = "pointer";
                 clearAll.style.float = "right";
                 clearAll.title = "Remove all overlays from the map";
-                clearAll.setAttribute("aria-label", "Remove all overlays from the map");
+                clearAll.setAttribute(
+                    "aria-label",
+                    "Remove all overlays from the map"
+                );
                 /** @param {MouseEvent} ev */
                 clearAll.addEventListener("click", (ev) => {
                     ev.stopPropagation();
@@ -594,8 +719,13 @@ export function createShownFilesList() {
                     // Also clear any map measurement overlays (leaflet-measure-lite).
                     // Users expect "Clear All" to reset transient map overlays, not only file overlays.
                     try {
-                        const measureControl = /** @type {any} */ (globalThis)._measureControl;
-                        if (measureControl && typeof measureControl.clearMeasurements === "function") {
+                        const measureControl = /** @type {any} */ (globalThis)
+                            ._measureControl;
+                        if (
+                            measureControl &&
+                            typeof measureControl.clearMeasurements ===
+                                "function"
+                        ) {
                             measureControl.clearMeasurements();
                         }
                     } catch {
@@ -609,13 +739,18 @@ export function createShownFilesList() {
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }
-                        if (/** @type {any} */ (globalThis).updateShownFilesList) {
+                        if (
+                            /** @type {any} */ (globalThis).updateShownFilesList
+                        ) {
                             /** @type {any} */ globalThis.updateShownFilesList();
                         }
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(() => {
-                            const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
-                            for (const t of tooltips) t.parentNode && t.parentNode.removeChild(t);
+                            const tooltips = document.querySelectorAll(
+                                ".overlay-filename-tooltip"
+                            );
+                            for (const t of tooltips)
+                                t.parentNode && t.parentNode.removeChild(t);
                         }, 10);
                     }
                 });

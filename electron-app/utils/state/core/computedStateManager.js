@@ -1,6 +1,6 @@
 /**
- * Computed State Manager
- * Provides derived/computed state values that automatically update when dependencies change
+ * Computed State Manager Provides derived/computed state values that
+ * automatically update when dependencies change
  */
 
 import { getState, subscribe } from "./stateManager.js";
@@ -18,14 +18,19 @@ class ComputedStateManager {
 
     /**
      * Register a computed value
+     *
      * @param {string} key - Unique key for the computed value
      * @param {Function} computeFn - Function that computes the value
-     * @param {Array<string>} deps - Array of state paths this computed value depends on
+     * @param {string[]} deps - Array of state paths this computed value depends
+     *   on
+     *
      * @returns {Function} Cleanup function
      */
     addComputed(key, computeFn, deps = []) {
         if (this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" already exists, replacing...`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" already exists, replacing...`
+            );
             this.removeComputed(key);
         }
 
@@ -53,7 +58,10 @@ class ComputedStateManager {
         // Compute initial value
         this.computeValue(key);
 
-        console.log(`[ComputedState] Registered computed value "${key}" with dependencies:`, deps);
+        console.log(
+            `[ComputedState] Registered computed value "${key}" with dependencies:`,
+            deps
+        );
 
         // Return cleanup function
         return () => this.removeComputed(key);
@@ -83,6 +91,7 @@ class ComputedStateManager {
 
     /**
      * Compute the value for a computed state
+     *
      * @param {string} key - Key of computed value
      */
     computeValue(key) {
@@ -92,7 +101,9 @@ class ComputedStateManager {
 
         // Prevent circular dependencies
         if (this.isComputing.has(key)) {
-            console.error(`[ComputedState] Circular dependency detected for computed value "${key}"`);
+            console.error(
+                `[ComputedState] Circular dependency detected for computed value "${key}"`
+            );
             return;
         }
 
@@ -114,12 +125,19 @@ class ComputedStateManager {
 
             // Log slow computations
             if (duration > 10) {
-                console.warn(`[ComputedState] Slow computation for "${key}": ${duration.toFixed(2)}ms`);
+                console.warn(
+                    `[ComputedState] Slow computation for "${key}": ${duration.toFixed(2)}ms`
+                );
             }
 
-            console.log(`[ComputedState] Computed value "${key}" updated in ${duration.toFixed(2)}ms`);
+            console.log(
+                `[ComputedState] Computed value "${key}" updated in ${duration.toFixed(2)}ms`
+            );
         } catch (error) {
-            console.error(`[ComputedState] Error computing value for "${key}":`, error);
+            console.error(
+                `[ComputedState] Error computing value for "${key}":`,
+                error
+            );
             computed.error = error;
             computed.isValid = false;
         } finally {
@@ -129,9 +147,12 @@ class ComputedStateManager {
 
     /**
      * Alias for addComputed (for backward compatibility)
+     *
      * @param {string} key - Unique key for the computed value
      * @param {Function} computeFn - Function that computes the value
-     * @param {Array<string>} deps - Array of state paths this computed value depends on
+     * @param {string[]} deps - Array of state paths this computed value depends
+     *   on
+     *
      * @returns {Function} Cleanup function
      */
     define(key, computeFn, deps = []) {
@@ -140,6 +161,7 @@ class ComputedStateManager {
 
     /**
      * Get all computed values with their metadata
+     *
      * @returns {Object} All computed values and metadata
      */
     getAllComputed() {
@@ -161,12 +183,16 @@ class ComputedStateManager {
 
     /**
      * Get a computed value
+     *
      * @param {string} key - Key of computed value
-     * @returns {*} Computed value
+     *
+     * @returns {any} Computed value
      */
     getComputed(key) {
         if (!this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" does not exist`
+            );
             return;
         }
 
@@ -182,6 +208,7 @@ class ComputedStateManager {
 
     /**
      * Get dependency graph
+     *
      * @returns {Object} Dependency relationships
      */
     getDependencyGraph() {
@@ -197,6 +224,7 @@ class ComputedStateManager {
 
     /**
      * Invalidate a computed value (mark it for recomputation)
+     *
      * @param {string} key - Key of computed value to invalidate
      */
     invalidateComputed(key) {
@@ -225,11 +253,14 @@ class ComputedStateManager {
 
     /**
      * Remove a computed value
+     *
      * @param {string} key - Key of computed value to remove
      */
     removeComputed(key) {
         if (!this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" does not exist`
+            );
             return;
         }
 
@@ -256,9 +287,11 @@ export const computedStateManager = new ComputedStateManager();
 
 /**
  * Register a computed value (convenience function)
+ *
  * @param {string} key - Unique key for the computed value
  * @param {Function} computeFn - Function that computes the value
- * @param {Array<string>} deps - Array of state paths this computed value depends on
+ * @param {string[]} deps - Array of state paths this computed value depends on
+ *
  * @returns {Function} Cleanup function
  */
 export function addComputed(key, computeFn, deps = []) {
@@ -286,9 +319,11 @@ export function cleanupCommonComputedValues() {
 
 /**
  * Create a reactive computed value that can be used with property descriptors
+ *
  * @param {string} key - Computed value key
  * @param {Function} computeFn - Compute function
- * @param {Array<string>} deps - Dependencies
+ * @param {string[]} deps - Dependencies
+ *
  * @returns {Object} Property descriptor
  */
 export function createReactiveComputed(key, computeFn, deps = []) {
@@ -305,9 +340,11 @@ export function createReactiveComputed(key, computeFn, deps = []) {
 
 /**
  * Alias for addComputed (convenience function for backward compatibility)
+ *
  * @param {string} key - Unique key for the computed value
  * @param {Function} computeFn - Function that computes the value
- * @param {Array<string>} deps - Array of state paths this computed value depends on
+ * @param {string[]} deps - Array of state paths this computed value depends on
+ *
  * @returns {Function} Cleanup function
  */
 export function define(key, computeFn, deps = []) {
@@ -320,8 +357,10 @@ export function define(key, computeFn, deps = []) {
 
 /**
  * Get a computed value (convenience function)
+ *
  * @param {string} key - Key of computed value
- * @returns {*} Computed value
+ *
+ * @returns {any} Computed value
  */
 export function getComputed(key) {
     return computedStateManager.getComputed(key);
@@ -337,7 +376,9 @@ let commonComputedValuesInitialized = false;
  */
 export function initializeCommonComputedValues() {
     if (commonComputedValuesInitialized) {
-        console.log("[ComputedState] Common computed values already initialized, skipping...");
+        console.log(
+            "[ComputedState] Common computed values already initialized, skipping..."
+        );
         return;
     }
 
@@ -346,34 +387,43 @@ export function initializeCommonComputedValues() {
     // File loading state
     addComputed(
         "isFileLoaded",
-        /** @param {*} state */ (state) => Boolean(state.globalData && Object.keys(state.globalData).length > 0),
+        /** @param {any} state */ (state) =>
+            Boolean(
+                state.globalData && Object.keys(state.globalData).length > 0
+            ),
         ["globalData"]
     );
 
     // Application ready state
-    addComputed("isAppReady", /** @param {*} state */ (state) => state.app?.initialized && !state.app?.isOpeningFile, [
-        "app.initialized",
-        "app.isOpeningFile",
-    ]);
+    addComputed(
+        "isAppReady",
+        /** @param {any} state */ (state) =>
+            state.app?.initialized && !state.app?.isOpeningFile,
+        ["app.initialized", "app.isOpeningFile"]
+    );
 
     // Chart data available
     addComputed(
         "hasChartData",
-        /** @param {*} state */ (state) =>
-            Boolean(state.globalData?.recordMesgs && state.globalData.recordMesgs.length > 0),
+        /** @param {any} state */ (state) =>
+            Boolean(
+                state.globalData?.recordMesgs &&
+                state.globalData.recordMesgs.length > 0
+            ),
         ["globalData.recordMesgs"]
     );
 
     // Map data available
     addComputed(
         "hasMapData",
-        /** @param {*} state */ (state) => {
+        /** @param {any} state */ (state) => {
             const records = state.globalData?.recordMesgs;
             return Boolean(
                 records &&
                 records.some(
-                    /** @param {*} record */ (record) =>
-                        record.positionLat !== undefined && record.positionLong !== undefined
+                    /** @param {any} record */ (record) =>
+                        record.positionLat !== undefined &&
+                        record.positionLong !== undefined
                 )
             );
         },
@@ -383,7 +433,7 @@ export function initializeCommonComputedValues() {
     // Summary data
     addComputed(
         "summaryData",
-        /** @param {*} state */ (state) => {
+        /** @param {any} state */ (state) => {
             if (!state.globalData?.sessionMesgs) {
                 return null;
             }
@@ -412,26 +462,33 @@ export function initializeCommonComputedValues() {
     // Performance metrics
     addComputed(
         "performanceMetrics",
-        /** @param {*} state */ (state) => {
+        /** @param {any} state */ (state) => {
             const startTime = state.app?.startTime;
             if (!startTime) {
                 return null;
             }
 
             return {
-                isFileLoaded: Boolean(state.globalData && Object.keys(state.globalData).length > 0),
+                isFileLoaded: Boolean(
+                    state.globalData && Object.keys(state.globalData).length > 0
+                ),
                 lastActivity: state.system?.lastActivity || startTime,
                 tabsEnabled: state.ui?.tabs || {},
                 uptime: Date.now() - startTime,
             };
         },
-        ["app.startTime", "globalData", "ui.tabs", "system.lastActivity"]
+        [
+            "app.startTime",
+            "globalData",
+            "ui.tabs",
+            "system.lastActivity",
+        ]
     );
 
     // Theme information
     addComputed(
         "themeInfo",
-        /** @param {*} state */ (state) => {
+        /** @param {any} state */ (state) => {
             const mapTheme = state.settings?.mapTheme || true,
                 theme = state.settings?.theme || "dark";
 
@@ -441,12 +498,14 @@ export function initializeCommonComputedValues() {
                     theme === "dark" ||
                     (theme === "auto" &&
                         globalThis.matchMedia &&
-                        globalThis.matchMedia("(prefers-color-scheme: dark)").matches),
+                        globalThis.matchMedia("(prefers-color-scheme: dark)")
+                            .matches),
                 isLightTheme:
                     theme === "light" ||
                     (theme === "auto" &&
                         globalThis.matchMedia &&
-                        !globalThis.matchMedia("(prefers-color-scheme: dark)").matches),
+                        !globalThis.matchMedia("(prefers-color-scheme: dark)")
+                            .matches),
                 mapThemeInverted: mapTheme,
             };
         },
@@ -456,14 +515,20 @@ export function initializeCommonComputedValues() {
     // UI state summary
     addComputed(
         "uiStateSummary",
-        /** @param {*} state */ (state) => ({
+        /** @param {any} state */ (state) => ({
             activeTab: state.ui?.activeTab || "summary",
             controlsEnabled: state.ui?.controlsEnabled || false,
             loadingState: state.ui?.loading || false,
             notificationCount: state.ui?.notifications?.length || 0,
             tabsVisible: state.ui?.tabsVisible || false,
         }),
-        ["ui.activeTab", "ui.loading", "ui.notifications", "ui.controlsEnabled", "ui.tabsVisible"]
+        [
+            "ui.activeTab",
+            "ui.loading",
+            "ui.notifications",
+            "ui.controlsEnabled",
+            "ui.tabsVisible",
+        ]
     );
 
     commonComputedValuesInitialized = true;
@@ -472,6 +537,7 @@ export function initializeCommonComputedValues() {
 
 /**
  * Remove a computed value (convenience function)
+ *
  * @param {string} key - Key of computed value to remove
  */
 export function removeComputed(key) {

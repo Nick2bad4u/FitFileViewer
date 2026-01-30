@@ -1,19 +1,23 @@
 /**
  * @typedef {Object} LapMesg
+ *
  * @property {number} [zone] - Zone identifier
  * @property {string} [label] - Zone label
  * @property {number} [time] - Time value
  */
 /**
  * @typedef {Object} GlobalData
+ *
  * @property {LapMesg[]} lapMesgs - Array of lap messages
  */
 /**
  * @typedef {Object} WindowWithGlobalData
+ *
  * @property {GlobalData} globalData - Global data object
  */
 /**
  * @typedef {Object} ThemeColors
+ *
  * @property {string} surface - Surface color
  * @property {string} primary - Primary color
  * @property {string} accent - Accent color
@@ -22,16 +26,23 @@
  */
 /**
  * @typedef {Object} MapDrawLapsFunction
+ *
  * @property {Function} call - Function to draw laps on map
  */
 /**
  * Adds lap selector control to map
+ *
  * @param {any} _map - Leaflet map instance (unused in current implementation)
  * @param {HTMLElement} container - Container element for the control
  * @param {Function} mapDrawLaps - Function to draw laps on map
+ *
  * @returns {void}
  */
-export function addLapSelector(_map: any, container: HTMLElement, mapDrawLaps: Function): void;
+export function addLapSelector(
+    _map: any,
+    container: HTMLElement,
+    mapDrawLaps: Function
+): void;
 export type LapMesg = {
     /**
      * - Zone identifier

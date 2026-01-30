@@ -1,11 +1,15 @@
 /**
  * @typedef {Object} ChartDatasetSpec
+ *
  * @property {string} id - Identifier for the dataset
  * @property {string} label - Label for legend/tooltips
  * @property {any[]} data - Data points for the dataset
- * @property {string} [colorRole] - Optional theme color role (e.g. "primary", "success")
- * @property {string} [borderColor] - Explicit border color (overrides colorRole)
- * @property {string} [backgroundColor] - Explicit background color (overrides colorRole)
+ * @property {string} [colorRole] - Optional theme color role (e.g. "primary",
+ *   "success")
+ * @property {string} [borderColor] - Explicit border color (overrides
+ *   colorRole)
+ * @property {string} [backgroundColor] - Explicit background color (overrides
+ *   colorRole)
  * @property {boolean} [fill] - Whether to fill area under line
  * @property {boolean} [showLine] - Whether to draw line (for scatter charts)
  * @property {number} [pointRadius] - Point radius
@@ -17,11 +21,16 @@
 
 /**
  * @typedef {Object} ChartDatasetDefinition
+ *
  * @property {string} id
  * @property {string} label
  * @property {string} [dataKey]
  * @property {(record: Record<string, unknown>, index: number) => number | null} [valueSelector]
- * @property {(value: number | null, record: Record<string, unknown>, index: number) => number | null} [transform]
+ * @property {(
+ *     value: number | null,
+ *     record: Record<string, unknown>,
+ *     index: number
+ * ) => number | null} [transform]
  * @property {string} [color]
  * @property {string} [yAxisId]
  * @property {boolean} [hidden]
@@ -30,6 +39,7 @@
 
 /**
  * @typedef {Object} ChartDefinition
+ *
  * @property {string} id
  * @property {string} title
  * @property {string} chartType
@@ -41,14 +51,16 @@
 
 /**
  * @typedef {Object} ChartDefinitionOptions
+ *
  * @property {Record<string, unknown>} [chartSettings]
  * @property {string[]} [defaultColorPalette]
  */
 
 /**
  * @typedef {Object} ChartAxisSpec
+ *
  * @property {string} id - Axis ID (e.g. "x", "y", "y1")
- * @property {"linear"|"category"|"logarithmic"} type - Axis type
+ * @property {"linear" | "category" | "logarithmic"} type - Axis type
  * @property {string} [position] - Position (e.g. "left", "right")
  * @property {string} [label] - Axis label text
  * @property {boolean} [display] - Whether to display the axis
@@ -56,15 +68,18 @@
 
 /**
  * @typedef {Object} ChartPluginSpec
+ *
  * @property {boolean} [useZoomReset] - Whether to include zoom reset plugin
- * @property {boolean} [useBackground] - Whether to include chart background plugin
+ * @property {boolean} [useBackground] - Whether to include chart background
+ *   plugin
  */
 
 /**
  * @typedef {Object} ChartSpec
+ *
  * @property {string} [id] - Chart identifier
- * @property {"line"|"bar"|"scatter"|"doughnut"} type - Chart type
- * @property {Array<string|number>} [labels] - Label values for chart data
+ * @property {"line" | "bar" | "scatter" | "doughnut"} type - Chart type
+ * @property {(string | number)[]} [labels] - Label values for chart data
  * @property {ChartDatasetSpec[]} datasets - Dataset specifications
  * @property {ChartAxisSpec[]} [axes] - Axis specifications
  * @property {ChartPluginSpec} [plugins] - Plugin configuration
@@ -74,7 +89,8 @@
  */
 
 /**
- * Build a Chart.js configuration object from a declarative spec and theme config.
+ * Build a Chart.js configuration object from a declarative spec and theme
+ * config.
  *
  * This helper is intentionally minimal and focuses on the common configuration
  * shared by FitFileViewer charts. It is primarily used in tests and as a
@@ -82,6 +98,7 @@
  *
  * @param {ChartSpec} spec - Declarative chart specification
  * @param {any} themeConfig - Theme configuration (colors etc.)
+ *
  * @returns {any} Chart.js configuration object
  */
 export function buildChartConfigFromSpec(spec, themeConfig) {
@@ -104,7 +121,8 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
             label: dataset.label,
             pointHoverRadius: dataset.pointHoverRadius ?? 4,
             pointRadius: dataset.pointRadius ?? 2,
-            showLine: dataset.showLine ?? (spec.type === "scatter" ? false : true),
+            showLine:
+                dataset.showLine ?? (spec.type === "scatter" ? false : true),
             tension: dataset.tension ?? 0.1,
             yAxisID: dataset.yAxisID || "y",
         };
@@ -121,7 +139,9 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
                     color: colors.gridLines || "#e9ecef",
                     display: spec.showGrid !== false,
                 },
-                position: isX ? undefined : axis.position || (axis.id === "y1" ? "right" : "left"),
+                position: isX
+                    ? undefined
+                    : axis.position || (axis.id === "y1" ? "right" : "left"),
                 ticks: {
                     color: colors.textPrimary || "#000000",
                 },
@@ -161,20 +181,30 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
 }
 
 /**
- * Build a chart specification from a declarative definition and raw record data.
+ * Build a chart specification from a declarative definition and raw record
+ * data.
  *
  * @param {ChartDefinition} definition
- * @param {Array<Record<string, unknown>>} records
+ * @param {Record<string, unknown>[]} records
  * @param {ChartDefinitionOptions} [options]
+ *
  * @returns {ChartSpec}
  */
-export function buildChartSpecFromDefinition(definition, records, options = {}) {
+export function buildChartSpecFromDefinition(
+    definition,
+    records,
+    options = {}
+) {
     const { chartSettings = {}, defaultColorPalette = [] } = options;
     const fieldVisibility =
-        typeof chartSettings === "object" && chartSettings !== null ? chartSettings.fieldVisibility || {} : {};
+        typeof chartSettings === "object" && chartSettings !== null
+            ? chartSettings.fieldVisibility || {}
+            : {};
 
     const labels = definition.labelSelector
-        ? records.map((record, index) => definition.labelSelector(record, index))
+        ? records.map((record, index) =>
+              definition.labelSelector(record, index)
+          )
         : records.map((_, index) => index);
 
     const datasets = definition.datasets.map((dataset, datasetIndex) => {
@@ -186,11 +216,14 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
                   ? /** @type {number | null} */ (record?.[dataset.dataKey])
                   : null;
 
-            return dataset.transform ? dataset.transform(rawValue, record, recordIndex) : rawValue;
+            return dataset.transform
+                ? dataset.transform(rawValue, record, recordIndex)
+                : rawValue;
         });
 
         const visibilityOverride = fieldVisibility?.[dataset.id];
-        const isHidden = visibilityOverride === "hidden" || dataset.hidden === true;
+        const isHidden =
+            visibilityOverride === "hidden" || dataset.hidden === true;
 
         return {
             id: dataset.id,
@@ -229,18 +262,20 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
  * Create a chart spec from a declarative definition payload.
  *
  * @param {{
- *   id: string,
- *   title?: string,
- *   chartType: string,
- *   labels: Array<string|number>,
- *   datasets: ChartDatasetSpec[],
- *   axes?: { x?: { label?: string }, y?: { label?: string } }
+ *     id: string;
+ *     title?: string;
+ *     chartType: string;
+ *     labels: (string | number)[];
+ *     datasets: ChartDatasetSpec[];
+ *     axes?: { x?: { label?: string }; y?: { label?: string } };
  * }} input
- * @returns {ChartSpec & { labels: Array<string|number> }}
+ *
+ * @returns {ChartSpec & { labels: (string | number)[] }}
  */
 function createChartSpec(input) {
     const labels = Array.isArray(input.labels) ? input.labels : [];
-    const labelIsNumeric = labels.length > 0 && labels.every((label) => typeof label === "number");
+    const labelIsNumeric =
+        labels.length > 0 && labels.every((label) => typeof label === "number");
     const chartType = input.chartType === "area" ? "line" : input.chartType;
 
     /** @type {ChartAxisSpec[]} */

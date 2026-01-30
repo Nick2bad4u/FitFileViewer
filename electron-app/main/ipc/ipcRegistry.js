@@ -1,11 +1,11 @@
 const { ipcMainRef } = require("../runtime/electronAccess");
 
 /**
- * @typedef {{ ipcMain: unknown, handler: (...args: any[]) => any }} IpcHandleRegistryEntry
+ * @typedef {{ ipcMain: unknown; handler: (...args: any[]) => any }} IpcHandleRegistryEntry
  */
 
 /**
- * @typedef {{ ipcMain: unknown, listener: (...args: any[]) => any }} IpcListenerRegistryEntry
+ * @typedef {{ ipcMain: unknown; listener: (...args: any[]) => any }} IpcListenerRegistryEntry
  */
 
 /** @type {Map<string, IpcHandleRegistryEntry>} */
@@ -14,9 +14,11 @@ const IPC_HANDLE_REGISTRY = new Map();
 const IPC_EVENT_LISTENER_REGISTRY = new Map();
 
 /**
- * Registers an IPC handler ensuring any previous handler is safely removed first.
+ * Registers an IPC handler ensuring any previous handler is safely removed
+ * first.
  *
  * @template {(...args: any[]) => any} T
+ *
  * @param {string} channel - IPC channel name.
  * @param {T} handler - Handler to register.
  */
@@ -27,7 +29,9 @@ function registerIpcHandle(channel, handler) {
     }
 
     const existing = IPC_HANDLE_REGISTRY.get(channel);
-    const hasExistingForSameIpcMain = Boolean(existing && existing.ipcMain === ipcMain);
+    const hasExistingForSameIpcMain = Boolean(
+        existing && existing.ipcMain === ipcMain
+    );
 
     if (hasExistingForSameIpcMain && existing.handler === handler) {
         return;
@@ -66,9 +70,11 @@ function registerIpcHandle(channel, handler) {
 }
 
 /**
- * Registers an IPC event listener, guaranteeing previous listeners are removed to avoid duplicates.
+ * Registers an IPC event listener, guaranteeing previous listeners are removed
+ * to avoid duplicates.
  *
  * @template {(...args: any[]) => any} T
+ *
  * @param {string} channel - IPC channel to listen on.
  * @param {T} listener - Listener to register.
  */
@@ -79,7 +85,9 @@ function registerIpcListener(channel, listener) {
     }
 
     const existing = IPC_EVENT_LISTENER_REGISTRY.get(channel);
-    const hasExistingForSameIpcMain = Boolean(existing && existing.ipcMain === ipcMain);
+    const hasExistingForSameIpcMain = Boolean(
+        existing && existing.ipcMain === ipcMain
+    );
 
     if (hasExistingForSameIpcMain && existing.listener === listener) {
         return;
@@ -111,8 +119,8 @@ function registerIpcListener(channel, listener) {
 }
 
 /**
- * Clears all cached IPC registrations. Primarily used by tests when they need to reset state between
- * suites.
+ * Clears all cached IPC registrations. Primarily used by tests when they need
+ * to reset state between suites.
  */
 function resetIpcRegistries() {
     const ipcMain = ipcMainRef();
@@ -131,7 +139,10 @@ function resetIpcRegistries() {
         }
 
         if (typeof ipcMain.removeListener === "function") {
-            for (const [channel, entry] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
+            for (const [
+                channel,
+                entry,
+            ] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
                 try {
                     ipcMain.removeListener(channel, entry.listener);
                 } catch {

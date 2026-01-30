@@ -2,24 +2,33 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 
 /**
- * @typedef {{ total:number, visible:number, available:number }} ChartCategoryCounts
+ * @typedef {{ total: number; visible: number; available: number }} ChartCategoryCounts
+ *
  * @typedef {{
- *  total:number,
- *  visible:number,
- *  available:number,
- *  categories:{ metrics:ChartCategoryCounts, analysis:ChartCategoryCounts, zones:ChartCategoryCounts, gps:ChartCategoryCounts }
+ *     total: number;
+ *     visible: number;
+ *     available: number;
+ *     categories: {
+ *         metrics: ChartCategoryCounts;
+ *         analysis: ChartCategoryCounts;
+ *         zones: ChartCategoryCounts;
+ *         gps: ChartCategoryCounts;
+ *     };
  * }} ChartCounts
  */
 // Re-export typedef via empty export trick for JSDoc consumers
-/** @typedef {import('./getChartCounts.js').ChartCounts} */
+/** @typedef {import("./getChartCounts.js").ChartCounts} */
 
 /**
  * Gets the count of available chart types based on current data
- * @returns {Object} Object containing total available and currently visible counts
+ *
+ * @returns {Object} Object containing total available and currently visible
+ *   counts
  */
 
 /**
  * Compute chart counts grouped by category.
+ *
  * @returns {ChartCounts}
  */
 export function getChartCounts() {
@@ -36,14 +45,18 @@ export function getChartCounts() {
         },
         // Check if we have data
         hasData =
-            globalThis.globalData && globalThis.globalData.recordMesgs && globalThis.globalData.recordMesgs.length > 0;
+            globalThis.globalData &&
+            globalThis.globalData.recordMesgs &&
+            globalThis.globalData.recordMesgs.length > 0;
     if (!hasData) {
         return counts;
     }
 
     const data = globalThis.globalData.recordMesgs;
     // Defensive: recordMesgs can contain null entries in some parsing / merge edge cases.
-    const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
+    const safeData = Array.isArray(data)
+        ? data.filter((row) => row && typeof row === "object")
+        : [];
 
     try {
         // Ensure formatChartFields is an array of strings; handle legacy cases where it might be a single string
@@ -61,14 +74,20 @@ export function getChartCounts() {
 
             // Check if this field has valid numeric data (same logic as renderChartJS)
             const numericData = safeData.map((/** @type {any} */ row) => {
-                    if (row && row[field] !== undefined && row[field] !== null) {
+                    if (
+                        row &&
+                        row[field] !== undefined &&
+                        row[field] !== null
+                    ) {
                         const value = Number.parseFloat(row[field]);
                         return isNaN(value) ? null : value;
                     }
                     return null;
                 }),
                 // Only count as available if there's at least one valid data point
-                hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+                hasValidData = !numericData.every(
+                    (/** @type {any} */ val) => val === null
+                );
             if (hasValidData) {
                 counts.available++;
                 counts.categories.metrics.available++;
@@ -88,8 +107,12 @@ export function getChartCounts() {
             const lat = row.positionLat,
                 long = row.positionLong;
             return (
-                (lat !== undefined && lat !== null && !isNaN(Number.parseFloat(lat))) ||
-                (long !== undefined && long !== null && !isNaN(Number.parseFloat(long)))
+                (lat !== undefined &&
+                    lat !== null &&
+                    !isNaN(Number.parseFloat(lat))) ||
+                (long !== undefined &&
+                    long !== null &&
+                    !isNaN(Number.parseFloat(long)))
             );
         }); // Add GPS track chart in addition to individual lat/long charts
 
@@ -106,7 +129,11 @@ export function getChartCounts() {
                 counts.categories.gps.visible++;
             }
         } // Performance analysis charts
-        const analysisCharts = ["speed_vs_distance", "power_vs_hr", "altitude_profile"];
+        const analysisCharts = [
+            "speed_vs_distance",
+            "power_vs_hr",
+            "altitude_profile",
+        ];
         for (const chartType of analysisCharts) {
             counts.total++;
             counts.categories.analysis.total++; // Check if required fields exist and have valid data for each analysis chart
@@ -115,18 +142,30 @@ export function getChartCounts() {
                 case "altitude_profile": {
                     hasRequiredData = data.some((/** @type {any} */ row) => {
                         const altitude = row.altitude || row.enhancedAltitude;
-                        return altitude !== undefined && altitude !== null && !isNaN(Number.parseFloat(altitude));
+                        return (
+                            altitude !== undefined &&
+                            altitude !== null &&
+                            !isNaN(Number.parseFloat(altitude))
+                        );
                     });
                     break;
                 }
                 case "power_vs_hr": {
                     const hasHeartRate = data.some((/** @type {any} */ row) => {
                             const hr = row.heartRate;
-                            return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                            return (
+                                hr !== undefined &&
+                                hr !== null &&
+                                !isNaN(Number.parseFloat(hr))
+                            );
                         }),
                         hasPower = data.some((/** @type {any} */ row) => {
                             const { power } = row;
-                            return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                            return (
+                                power !== undefined &&
+                                power !== null &&
+                                !isNaN(Number.parseFloat(power))
+                            );
                         });
                     hasRequiredData = hasPower && hasHeartRate;
                     break;
@@ -134,11 +173,19 @@ export function getChartCounts() {
                 case "speed_vs_distance": {
                     const hasDistance = data.some((/** @type {any} */ row) => {
                             const { distance } = row;
-                            return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                            return (
+                                distance !== undefined &&
+                                distance !== null &&
+                                !isNaN(Number.parseFloat(distance))
+                            );
                         }),
                         hasSpeed = data.some((/** @type {any} */ row) => {
                             const speed = row.enhancedSpeed || row.speed;
-                            return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
+                            return (
+                                speed !== undefined &&
+                                speed !== null &&
+                                !isNaN(Number.parseFloat(speed))
+                            );
                         });
                     hasRequiredData = hasSpeed && hasDistance;
                     break;
@@ -166,12 +213,20 @@ export function getChartCounts() {
             if (chartType.includes("hr_zone")) {
                 hasRequiredData = data.some((/** @type {any} */ row) => {
                     const hr = row.heartRate;
-                    return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                    return (
+                        hr !== undefined &&
+                        hr !== null &&
+                        !isNaN(Number.parseFloat(hr))
+                    );
                 });
             } else if (chartType.includes("power_zone")) {
                 hasRequiredData = data.some((/** @type {any} */ row) => {
                     const { power } = row;
-                    return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                    return (
+                        power !== undefined &&
+                        power !== null &&
+                        !isNaN(Number.parseFloat(power))
+                    );
                 });
             }
 
@@ -207,11 +262,15 @@ export function getChartCounts() {
         // No need to count separately as they use the same visibility toggles        // Lap zone charts (from renderLapZoneCharts - up to 4 charts possible)
         if (globalThis.globalData?.timeInZoneMesgs) {
             const { timeInZoneMesgs } = globalThis.globalData,
-                lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+                lapZoneMsgs = timeInZoneMesgs.filter(
+                    (/** @type {any} */ msg) => msg.referenceMesg === "lap"
+                );
 
             if (lapZoneMsgs.length > 0) {
                 // Check for HR lap zone charts (2 charts: stacked bar and individual bars)
-                const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+                const hrLapZones = lapZoneMsgs.filter(
+                    (/** @type {any} */ msg) => msg.timeInHrZone
+                );
                 if (hrLapZones.length > 0) {
                     counts.total += 2; // Stacked bar + individual bars
                     counts.available += 2;
@@ -219,8 +278,12 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for HR lap zone charts
-                    const hrIndividualVisibility = getChartFieldVisibility("hr_lap_zone_individual"),
-                        hrStackedVisibility = getChartFieldVisibility("hr_lap_zone_stacked");
+                    const hrIndividualVisibility = getChartFieldVisibility(
+                            "hr_lap_zone_individual"
+                        ),
+                        hrStackedVisibility = getChartFieldVisibility(
+                            "hr_lap_zone_stacked"
+                        );
 
                     if (hrStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -233,7 +296,9 @@ export function getChartCounts() {
                 }
 
                 // Check for Power lap zone charts (2 charts: stacked bar + individual bars)
-                const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+                const powerLapZones = lapZoneMsgs.filter(
+                    (/** @type {any} */ msg) => msg.timeInPowerZone
+                );
                 if (powerLapZones.length > 0) {
                     counts.total += 2; // Stacked bar + individual bars
                     counts.available += 2;
@@ -241,8 +306,12 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for Power lap zone charts
-                    const powerIndividualVisibility = getChartFieldVisibility("power_lap_zone_individual"),
-                        powerStackedVisibility = getChartFieldVisibility("power_lap_zone_stacked");
+                    const powerIndividualVisibility = getChartFieldVisibility(
+                            "power_lap_zone_individual"
+                        ),
+                        powerStackedVisibility = getChartFieldVisibility(
+                            "power_lap_zone_stacked"
+                        );
 
                     if (powerStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -257,7 +326,10 @@ export function getChartCounts() {
         } // Developer fields (dynamic based on actual data)
 
         // Only count fields that are not already in formatChartFields and have meaningful data
-        if (globalThis.globalData?.recordMesgs && globalThis.globalData.recordMesgs.length > 0) {
+        if (
+            globalThis.globalData?.recordMesgs &&
+            globalThis.globalData.recordMesgs.length > 0
+        ) {
             const [sampleRecord] = globalThis.globalData.recordMesgs,
                 excludedFields = new Set([
                     "distance",
@@ -282,7 +354,9 @@ export function getChartCounts() {
                         return null;
                     }),
                     // Only count as available if there's at least one valid data point
-                    hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+                    hasValidData = !numericData.every(
+                        (/** @type {any} */ val) => val === null
+                    );
                 if (hasValidData) {
                     counts.total++;
                     counts.available++;
@@ -305,7 +379,9 @@ export function getChartCounts() {
 
     // Debug logging to help identify discrepancies
     console.log("[ChartStatus] Chart count breakdown:", {
-        actualRendered: globalThis._chartjsInstances ? globalThis._chartjsInstances.length : 0,
+        actualRendered: globalThis._chartjsInstances
+            ? globalThis._chartjsInstances.length
+            : 0,
         available: counts.available,
         categories: counts.categories,
         total: counts.total,
@@ -313,9 +389,17 @@ export function getChartCounts() {
     });
 
     // Debug: Show what charts are actually rendered
-    if (globalThis._chartjsInstances && globalThis._chartjsInstances.length > 0) {
-        const renderedChartIds = globalThis._chartjsInstances.map((chart) => chart.canvas.id);
-        console.log("[ChartStatus] Actually rendered charts:", renderedChartIds);
+    if (
+        globalThis._chartjsInstances &&
+        globalThis._chartjsInstances.length > 0
+    ) {
+        const renderedChartIds = globalThis._chartjsInstances.map(
+            (chart) => chart.canvas.id
+        );
+        console.log(
+            "[ChartStatus] Actually rendered charts:",
+            renderedChartIds
+        );
     }
 
     return counts;

@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for ui
- * @description Re-exports all subcategories in the ui category
+ * Re-exports all subcategories in the ui category
+ *
+ * @file Main Category Barrel Export for ui
  */
 import * as uiComponents from "./components/index.js";
 import * as uiControls from "./controls/index.js";

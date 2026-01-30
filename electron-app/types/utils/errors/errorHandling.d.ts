@@ -1,51 +1,84 @@
 /**
  * Create a standardized error handler function
- * @param {ErrorHandlingOptions} [options={}] - Error handling options
+ *
+ * @param {ErrorHandlingOptions} [options={}] - Error handling options. Default
+ *   is `{}`
+ *
  * @returns {Function} Error handler function
  */
 export function createErrorHandler(options?: ErrorHandlingOptions): Function;
 /**
  * Validate input with consistent error handling
- * @param {*} value - Value to validate
+ *
+ * @param {any} value - Value to validate
  * @param {Function[]} validators - Array of validation functions
- * @param {string} [fieldName="input"] - Name of field being validated
+ * @param {string} [fieldName="input"] - Name of field being validated. Default
+ *   is `"input"`
+ *
  * @returns {ValidationResult} Validation result
  */
-export function validateInput(value: any, validators: Function[], fieldName?: string): ValidationResult;
+export function validateInput(
+    value: any,
+    validators: Function[],
+    fieldName?: string
+): ValidationResult;
 /**
  * Wrap a function with error handling
+ *
  * @param {Function} fn - Function to wrap
- * @param {ErrorHandlingOptions} [options={}] - Error handling options
+ * @param {ErrorHandlingOptions} [options={}] - Error handling options. Default
+ *   is `{}`
+ *
  * @returns {Function} Wrapped function
  */
-export function withErrorHandling(fn: Function, options?: ErrorHandlingOptions): Function;
+export function withErrorHandling(
+    fn: Function,
+    options?: ErrorHandlingOptions
+): Function;
 /**
- * Initialize error handling system.
- * Currently accepts an options object for future extensibility.
+ * Initialize error handling system. Currently accepts an options object for
+ * future extensibility.
  *
- * @param {Object} [_options={}] - Initialization options (reserved for future use)
+ * @param {Object} [_options={}] - Initialization options (reserved for future
+ *   use). Default is `{}`
  */
 export function initializeErrorHandling(_options?: Object): void;
 /**
  * Standardized error logging with consistent format
+ *
  * @param {Error} error - Error to log
- * @param {ErrorContext} [context={}] - Additional context
- * @param {string} [level="error"] - Log level
+ * @param {ErrorContext} [context={}] - Additional context. Default is `{}`
+ * @param {string} [level="error"] - Log level. Default is `"error"`
  */
-export function logError(error: Error, context?: ErrorContext, level?: string): void;
+export function logError(
+    error: Error,
+    context?: ErrorContext,
+    level?: string
+): void;
 /**
- * Create a resilient version of a function that continues on error with fallback
+ * Create a resilient version of a function that continues on error with
+ * fallback
+ *
  * @param {Function} fn - Function to make resilient
- * @param {*} fallback - Fallback value
- * @param {Object} [options={}] - Options
+ * @param {any} fallback - Fallback value
+ * @param {Object} [options={}] - Options. Default is `{}`
+ *
  * @returns {Function} Resilient function
  */
-export function makeResilient(fn: Function, fallback: any, options?: Object): Function;
+export function makeResilient(
+    fn: Function,
+    fallback: any,
+    options?: Object
+): Function;
 /**
- * Create a safe version of a function that returns null on error instead of throwing
+ * Create a safe version of a function that returns null on error instead of
+ * throwing
+ *
  * @param {Function} fn - Function to make safe
- * @param {Object} [options={}] - Options
- * @param {boolean} [options.logErrors=true] - Whether to log errors
+ * @param {Object} [options={}] - Options. Default is `{}`
+ * @param {boolean} [options.logErrors=true] - Whether to log errors. Default is
+ *   `true`
+ *
  * @returns {Function} Safe function
  */
 export function makeSafe(
@@ -70,19 +103,23 @@ export namespace ERROR_CODES {
 export class AppError extends Error {
     /**
      * Create an application error
+     *
      * @param {string} message - Error message
-     * @param {ErrorContext} [context={}] - Additional error context
+     * @param {ErrorContext} [context={}] - Additional error context. Default is
+     *   `{}`
      */
     constructor(message: string, context?: ErrorContext);
     context: ErrorContext;
     timestamp: number;
     /**
      * Get a formatted error message with context
+     *
      * @returns {string} Formatted error message
      */
     getFormattedMessage(): string;
     /**
      * Convert error to JSON for logging/serialization
+     *
      * @returns {Object} JSON representation
      */
     toJSON(): Object;
@@ -93,10 +130,12 @@ export class AppError extends Error {
 export class ValidationError extends AppError {
     /**
      * Create a validation error
+     *
      * @param {string} message - Error message
      * @param {Object} details - Validation details
      * @param {string[]} details.errors - Validation errors
-     * @param {string[]} [details.warnings=[]] - Validation warnings
+     * @param {string[]} [details.warnings=[]] - Validation warnings. Default is
+     *   `[]`
      */
     constructor(
         message: string,

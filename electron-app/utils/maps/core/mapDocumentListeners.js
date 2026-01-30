@@ -2,16 +2,19 @@
  * Map document-level listeners.
  *
  * This module centralizes document event listeners used by the Leaflet map UI.
- * The map UI is frequently re-rendered (e.g. overlay changes), so listeners must
- * be installed once and use global references that are updated per render.
+ * The map UI is frequently re-rendered (e.g. overlay changes), so listeners
+ * must be installed once and use global references that are updated per
+ * render.
  */
 
 /**
- * Install document-level map listeners once to avoid leaks when renderMap() is invoked repeatedly.
+ * Install document-level map listeners once to avoid leaks when renderMap() is
+ * invoked repeatedly.
  *
  * The handlers rely on global references that are updated on each render:
- * - globalThis.__ffvMapTypeButton: HTMLElement
- * - globalThis.__ffvMapZoomDraggingRef: { current: boolean }
+ *
+ * - GlobalThis.__ffvMapTypeButton: HTMLElement
+ * - GlobalThis.__ffvMapZoomDraggingRef: { current: boolean }
  *
  * @returns {void}
  */
@@ -32,8 +35,15 @@ export function ensureMapDocumentListenersInstalled() {
                 return;
             }
 
-            const layersControlEl = document.querySelector(".leaflet-control-layers");
-            if (!layersControlEl || !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+            const layersControlEl = document.querySelector(
+                ".leaflet-control-layers"
+            );
+            if (
+                !layersControlEl ||
+                !layersControlEl.classList.contains(
+                    "leaflet-control-layers-expanded"
+                )
+            ) {
                 return;
             }
 
@@ -44,10 +54,16 @@ export function ensureMapDocumentListenersInstalled() {
             }
 
             if (!layersControlEl.contains(node) && !mapTypeBtn.contains(node)) {
-                layersControlEl.classList.remove("leaflet-control-layers-expanded");
-                const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
+                layersControlEl.classList.remove(
+                    "leaflet-control-layers-expanded"
+                );
+                const layersControlElStyled = /** @type {HTMLElement} */ (
+                    layersControlEl
+                );
                 const layersListEl = /** @type {HTMLElement | null} */ (
-                    layersControlElStyled.querySelector(".leaflet-control-layers-list")
+                    layersControlElStyled.querySelector(
+                        ".leaflet-control-layers-list"
+                    )
                 );
                 layersControlElStyled.style.zIndex = "";
                 layersControlElStyled.style.maxHeight = "";
@@ -69,8 +85,15 @@ export function ensureMapDocumentListenersInstalled() {
     if (w && typeof w.addEventListener === "function") {
         w.addEventListener("resize", () => {
             try {
-                const layersControlEl = document.querySelector(".leaflet-control-layers");
-                if (!layersControlEl || !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+                const layersControlEl = document.querySelector(
+                    ".leaflet-control-layers"
+                );
+                if (
+                    !layersControlEl ||
+                    !layersControlEl.classList.contains(
+                        "leaflet-control-layers-expanded"
+                    )
+                ) {
                     return;
                 }
 

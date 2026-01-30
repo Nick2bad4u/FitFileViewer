@@ -6,8 +6,8 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 /**
  * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
  * Creates a button in the provided controls container; when activated, the next
- * two clicks on the map will display straight-line distance (meters/km + miles).
- * Subsequent clicks clear the prior measurement and allow a new one.
+ * two clicks on the map will display straight-line distance (meters/km +
+ * miles). Subsequent clicks clear the prior measurement and allow a new one.
  *
  * Typing approach: Leaflet types are treated as any to avoid pulling in type
  * definitions in this JS file. Internal collections are explicitly typed to
@@ -17,7 +17,7 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
  * @param {HTMLElement} controlsDiv - Container element for map action buttons
  */
 export function addSimpleMeasureTool(map, controlsDiv) {
-    /** @type {Array<{lat:number,lng:number}>} */
+    /** @type {{ lat: number; lng: number }[]} */
     let /** @type {any} */
         measureLabel = null,
         /** @type {any} */
@@ -34,8 +34,14 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
 
-    const safePrimary = sanitizeCssColorToken(/** @type {any} */ (themeColors).primary, "#3b82f6");
-    const safeSurface = sanitizeCssColorToken(/** @type {any} */ (themeColors).surface, "#ffffff");
+    const safePrimary = sanitizeCssColorToken(
+        /** @type {any} */ (themeColors).primary,
+        "#3b82f6"
+    );
+    const safeSurface = sanitizeCssColorToken(
+        /** @type {any} */ (themeColors).surface,
+        "#ffffff"
+    );
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
             <line x1="5" y1="19" x2="19" y2="5" stroke="${safePrimary}" stroke-width="2"/>
@@ -44,7 +50,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             <text x="12" y="15" text-anchor="middle" font-size="7" fill="${safePrimary}">↔</text>
         </svg>
         <span>Measure</span>`;
-    measureBtn.title = "Click, then click two points on the map to measure distance";
+    measureBtn.title =
+        "Click, then click two points on the map to measure distance";
 
     function clearMeasure() {
         measurePoints = [];
@@ -62,6 +69,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
 
     /**
      * Disable measurement mode, restore button icon/text.
+     *
      * @param {HTMLButtonElement | null | undefined} measureBtn
      */
     function disableMeasure(btn) {
@@ -70,7 +78,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         if (btn) {
             btn.innerHTML =
                 '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="9" width="16" height="2" rx="1" fill="#1976d2"/><rect x="2" y="5" width="2" height="10" rx="1" fill="#1976d2"/><rect x="16" y="5" width="2" height="10" rx="1" fill="#1976d2"/></svg> <span>Measure</span>';
-            btn.title = "Click, then click two points on the map to measure distance";
+            btn.title =
+                "Click, then click two points on the map to measure distance";
         }
     }
 
@@ -100,10 +109,11 @@ export function addSimpleMeasureTool(map, controlsDiv) {
 
     /**
      * Handle click on the measurement label (exit button).
+     *
      * @param {MouseEvent} e
      */
     function onLabelExitClick(e) {
-        const { target } = /** @type {{target: HTMLElement|null}} */ (e);
+        const { target } = /** @type {{ target: HTMLElement | null }} */ (e);
         if (target && target.classList.contains("measure-exit-btn")) {
             clearMeasure();
         }
@@ -111,6 +121,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
 
     /**
      * Handle map clicks while in measurement mode.
+     *
      * @param {any} e - Leaflet mouse event (contains latlng)
      */
     function onMapClickMeasure(e) {
@@ -122,7 +133,11 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         marker.addTo(map);
         measureMarkers.push(marker);
         if (measurePoints.length === 2) {
-            measureLine = L.polyline(measurePoints, { color: "#222", dashArray: "4,6", weight: 3 }).addTo(map);
+            measureLine = L.polyline(measurePoints, {
+                color: "#222",
+                dashArray: "4,6",
+                weight: 3,
+            }).addTo(map);
             const [p0, p1] = measurePoints;
             // Defensive: ensure both points exist (should by length check)
             if (!p0 || !p1) {
@@ -153,6 +168,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
 
     /**
      * Enable measurement mode and update button appearance.
+     *
      * @param {HTMLButtonElement | null | undefined} measureBtn
      */
     function enableSimpleMeasure(btn) {

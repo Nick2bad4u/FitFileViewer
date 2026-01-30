@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for formatWeight.js utility
+ * @file Comprehensive test suite for formatWeight.js utility
  *
- * Tests all aspects of the weight formatting utility including:
- * - Input validation and error handling
- * - Kilogram to pound conversions
- * - Metric and imperial display formatting
- * - Mathematical accuracy and rounding
- * - Edge cases and boundary conditions
- * - Real-world weight scenarios
+ *   Tests all aspects of the weight formatting utility including:
+ *
+ *   - Input validation and error handling
+ *   - Kilogram to pound conversions
+ *   - Metric and imperial display formatting
+ *   - Mathematical accuracy and rounding
+ *   - Edge cases and boundary conditions
+ *   - Real-world weight scenarios
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -77,7 +78,10 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
         it("should return empty string for negative weight and log warning", () => {
             const result = formatWeight(-10);
             expect(result).toBe("");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatWeight] Negative weight value:", -10);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatWeight] Negative weight value:",
+                -10
+            );
         });
 
         it("should handle negative zero as valid zero weight", () => {
@@ -194,7 +198,13 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
 
     describe("Format Structure and Consistency", () => {
         it("should maintain consistent format pattern", () => {
-            const weights = [1, 25, 50, 75, 100];
+            const weights = [
+                1,
+                25,
+                50,
+                75,
+                100,
+            ];
             const results = weights.map((w) => formatWeight(w));
 
             results.forEach((result) => {
@@ -307,7 +317,14 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
 
     describe("Performance and Consistency", () => {
         it("should handle rapid successive calls efficiently", () => {
-            const weights = [45, 55, 65, 75, 85, 95];
+            const weights = [
+                45,
+                55,
+                65,
+                75,
+                85,
+                95,
+            ];
             const results = weights.map((w) => formatWeight(w));
 
             expect(results).toHaveLength(6);
@@ -332,7 +349,9 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
 
             expect(results).toHaveLength(100);
             expect(results.every((r) => typeof r === "string")).toBe(true);
-            expect(results.every((r) => r.includes("kg") && r.includes("lbs"))).toBe(true);
+            expect(
+                results.every((r) => r.includes("kg") && r.includes("lbs"))
+            ).toBe(true);
         });
 
         it("should maintain precision across operations", () => {

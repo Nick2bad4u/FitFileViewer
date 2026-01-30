@@ -71,8 +71,10 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
         console.log = vi.fn();
 
         // Import the function to test
-        const module = await import("../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js");
-        createGlobalChartStatusIndicatorFromCounts = module.createGlobalChartStatusIndicatorFromCounts;
+        const module =
+            await import("../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js");
+        createGlobalChartStatusIndicatorFromCounts =
+            module.createGlobalChartStatusIndicatorFromCounts;
     });
 
     afterEach(() => {
@@ -104,7 +106,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).not.toBeNull();
             expect(indicator?.id).toBe("global-chart-status");
@@ -130,10 +133,13 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).toBeNull();
-            expect(console.warn).toHaveBeenCalledWith("[ChartStatus] Chart tab content not found");
+            expect(console.warn).toHaveBeenCalledWith(
+                "[ChartStatus] Chart tab content not found"
+            );
         });
     });
 
@@ -151,7 +157,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
 
             expect(statusIcon?.textContent).toBe("✅");
@@ -171,7 +178,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
 
             expect(statusIcon?.textContent).toBe("⚠️");
@@ -191,7 +199,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
 
             expect(statusIcon?.textContent).toBe("⚠️");
@@ -213,10 +222,13 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusText = indicator?.querySelectorAll("span")[1];
 
-            expect(statusText?.textContent).toBe("No chart data available in this FIT file");
+            expect(statusText?.textContent).toBe(
+                "No chart data available in this FIT file"
+            );
             expect(statusText?.style.color).toBe("var(--color-fg-muted)");
         });
 
@@ -233,7 +245,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusText = indicator?.querySelectorAll("span")[1];
 
             expect(statusText?.innerHTML).toContain("Showing");
@@ -255,7 +268,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusText = indicator?.querySelectorAll("span")[1];
 
             expect(statusText?.innerHTML).toContain("var(--color-warning)");
@@ -274,7 +288,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusText = indicator?.querySelectorAll("span")[1];
 
             expect(statusText?.innerHTML).toContain("var(--color-warning)");
@@ -295,11 +310,14 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             expect(quickAction?.textContent).toBe("⚙️ Show Settings");
-            expect(quickAction?.title).toBe("Open chart settings to enable more charts");
+            expect(quickAction?.title).toBe(
+                "Open chart settings to enable more charts"
+            );
         });
 
         it("should show all set button when all charts visible", () => {
@@ -315,7 +333,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             expect(quickAction?.textContent).toBe("✨ All Set");
@@ -337,7 +356,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             expect(quickAction?.textContent).toBe("📂 Load FIT");
@@ -359,7 +379,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // Mock setTimeout
@@ -392,7 +413,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // Mock scrollIntoView on fields section
@@ -432,18 +454,25 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // Simulate mouseenter
-            const mouseenterEvent = new (window as any).MouseEvent("mouseenter");
+            const mouseenterEvent = new (window as any).MouseEvent(
+                "mouseenter"
+            );
             quickAction?.dispatchEvent(mouseenterEvent);
 
-            expect(quickAction?.style.background).toBe("var(--color-accent-hover)");
+            expect(quickAction?.style.background).toBe(
+                "var(--color-accent-hover)"
+            );
             expect(quickAction?.style.transform).toBe("translateY(-1px)");
 
             // Simulate mouseleave
-            const mouseleaveEvent = new (window as any).MouseEvent("mouseleave");
+            const mouseleaveEvent = new (window as any).MouseEvent(
+                "mouseleave"
+            );
             quickAction?.dispatchEvent(mouseleaveEvent);
 
             expect(quickAction?.style.background).toBe("var(--color-btn-bg)");
@@ -463,20 +492,27 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
             // Simulate mouseenter on global indicator
-            const mouseenterEvent = new (window as any).MouseEvent("mouseenter");
+            const mouseenterEvent = new (window as any).MouseEvent(
+                "mouseenter"
+            );
             indicator?.dispatchEvent(mouseenterEvent);
 
-            expect(indicator?.style.background).toBe("var(--color-glass-border)");
+            expect(indicator?.style.background).toBe(
+                "var(--color-glass-border)"
+            );
             expect(indicator?.style.transform).toBe("translateY(-1px)");
             expect(breakdown?.style.opacity).toBe("1");
             expect(breakdown?.style.visibility).toBe("visible");
 
             // Simulate mouseleave on global indicator
-            const mouseleaveEvent = new (window as any).MouseEvent("mouseleave");
+            const mouseleaveEvent = new (window as any).MouseEvent(
+                "mouseleave"
+            );
             indicator?.dispatchEvent(mouseleaveEvent);
 
             expect(indicator?.style.background).toBe("var(--color-bg-alt)");
@@ -498,15 +534,20 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // The button should not have hover listeners when all charts are visible
-            const mouseenterEvent = new (window as any).MouseEvent("mouseenter");
+            const mouseenterEvent = new (window as any).MouseEvent(
+                "mouseenter"
+            );
             quickAction?.dispatchEvent(mouseenterEvent);
 
             // Style should not change since no hover effect was added
-            expect(quickAction?.style.background).not.toBe("var(--color-accent-hover)");
+            expect(quickAction?.style.background).not.toBe(
+                "var(--color-accent-hover)"
+            );
         });
     });
 
@@ -524,7 +565,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
             expect(breakdown?.innerHTML).toContain("📊 Metrics: 2/3");
@@ -546,10 +588,13 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
-            expect(breakdown?.innerHTML).toContain("💡 Use settings panel below to enable more charts");
+            expect(breakdown?.innerHTML).toContain(
+                "💡 Use settings panel below to enable more charts"
+            );
         });
 
         it("should not show tip when all charts are visible", () => {
@@ -565,10 +610,13 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
-            expect(breakdown?.innerHTML).not.toContain("💡 Use settings panel below to enable more charts");
+            expect(breakdown?.innerHTML).not.toContain(
+                "💡 Use settings panel below to enable more charts"
+            );
         });
     });
 
@@ -592,7 +640,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).toBeNull();
             expect(console.error).toHaveBeenCalledWith(
@@ -621,7 +670,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // Should not throw error when clicking
@@ -646,7 +696,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
             // Mock setTimeout
@@ -676,7 +727,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).not.toBeNull();
             // The code logic shows ✅ when visible === available, even if both are 0
@@ -690,13 +742,18 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 available: 99999,
                 categories: {
                     metrics: { total: 25000, visible: 22000, available: 25000 },
-                    analysis: { total: 25000, visible: 22000, available: 25000 },
+                    analysis: {
+                        total: 25000,
+                        visible: 22000,
+                        available: 25000,
+                    },
                     zones: { total: 25000, visible: 22000, available: 25000 },
                     gps: { total: 24999, visible: 22888, available: 24999 },
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const statusText = indicator?.querySelectorAll("span")[1];
 
             expect(statusText?.innerHTML).toContain("88888");
@@ -716,7 +773,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).not.toBeNull();
             // Function should still work, displaying the negative numbers
@@ -730,14 +788,27 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 visible: 3,
                 available: 4,
                 categories: {
-                    metrics: { total: undefined as any, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: undefined as any, available: 1 },
-                    zones: { total: 1, visible: 1, available: undefined as any },
+                    metrics: {
+                        total: undefined as any,
+                        visible: 1,
+                        available: 2,
+                    },
+                    analysis: {
+                        total: 1,
+                        visible: undefined as any,
+                        available: 1,
+                    },
+                    zones: {
+                        total: 1,
+                        visible: 1,
+                        available: undefined as any,
+                    },
                     gps: { total: 1, visible: 0, available: 0 },
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
             expect(breakdown?.innerHTML).toContain("📊 Metrics: 1/2");
@@ -760,7 +831,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             // Check that styles are applied via cssText
             expect(indicator?.style.cssText).toContain("position");
@@ -781,7 +853,8 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 },
             };
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(counts);
 
             // Debug what's actually in the indicator
             expect(indicator).not.toBeNull();

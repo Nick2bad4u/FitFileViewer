@@ -38,9 +38,18 @@ describe("registerExternalHandlers", () => {
             });
 
             expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(3);
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:start", expect.any(Function));
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:stop", expect.any(Function));
+            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
+                "shell:openExternal",
+                expect.any(Function)
+            );
+            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
+                "gyazo:server:start",
+                expect.any(Function)
+            );
+            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
+                "gyazo:server:stop",
+                expect.any(Function)
+            );
         });
 
         it("should not register handlers when registerIpcHandle is not a function", () => {
@@ -84,131 +93,171 @@ describe("registerExternalHandlers", () => {
 
             // Extract the handler for shell:openExternal
             const calls = mockRegisterIpcHandle.mock.calls;
-            const shellCall = calls.find((call) => call[0] === "shell:openExternal");
+            const shellCall = calls.find(
+                (call) => call[0] === "shell:openExternal"
+            );
             shellOpenExternalHandler = shellCall[1];
         });
 
         it("should open a valid HTTP URL successfully", async () => {
-            const result = await shellOpenExternalHandler({}, "http://example.com");
+            const result = await shellOpenExternalHandler(
+                {},
+                "http://example.com"
+            );
 
             expect(mockShellRef).toHaveBeenCalled();
-            expect(mockShell.openExternal).toHaveBeenCalledWith("http://example.com");
+            expect(mockShell.openExternal).toHaveBeenCalledWith(
+                "http://example.com"
+            );
             expect(result).toBe(true);
             expect(mockLogWithContext).not.toHaveBeenCalled();
         });
 
         it("should open a valid HTTPS URL successfully", async () => {
-            const result = await shellOpenExternalHandler({}, "https://example.com");
+            const result = await shellOpenExternalHandler(
+                {},
+                "https://example.com"
+            );
 
             expect(mockShellRef).toHaveBeenCalled();
-            expect(mockShell.openExternal).toHaveBeenCalledWith("https://example.com");
+            expect(mockShell.openExternal).toHaveBeenCalledWith(
+                "https://example.com"
+            );
             expect(result).toBe(true);
             expect(mockLogWithContext).not.toHaveBeenCalled();
         });
 
         it("should throw error for invalid URL (null)", async () => {
-            await expect(shellOpenExternalHandler({}, null)).rejects.toThrow("Invalid URL provided");
+            await expect(shellOpenExternalHandler({}, null)).rejects.toThrow(
+                "Invalid URL provided"
+            );
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in shell:openExternal:", {
-                error: "Invalid URL provided",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "Invalid URL provided",
+                }
+            );
         });
 
         it("should throw error for invalid URL (undefined)", async () => {
-            await expect(shellOpenExternalHandler({}, undefined)).rejects.toThrow("Invalid URL provided");
+            await expect(
+                shellOpenExternalHandler({}, undefined)
+            ).rejects.toThrow("Invalid URL provided");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in shell:openExternal:", {
-                error: "Invalid URL provided",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "Invalid URL provided",
+                }
+            );
         });
 
         it("should throw error for invalid URL (not a string)", async () => {
-            await expect(shellOpenExternalHandler({}, 123)).rejects.toThrow("Invalid URL provided");
+            await expect(shellOpenExternalHandler({}, 123)).rejects.toThrow(
+                "Invalid URL provided"
+            );
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
         it("should throw error for non-HTTP/HTTPS URL (ftp://)", async () => {
-            await expect(shellOpenExternalHandler({}, "ftp://example.com")).rejects.toThrow(
-                "Only HTTP and HTTPS URLs are allowed"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "ftp://example.com")
+            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in shell:openExternal:", {
-                error: "Only HTTP and HTTPS URLs are allowed",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "Only HTTP and HTTPS URLs are allowed",
+                }
+            );
         });
 
         it("should throw error for non-HTTP/HTTPS URL (file://)", async () => {
-            await expect(shellOpenExternalHandler({}, "file:///etc/passwd")).rejects.toThrow(
-                "Only HTTP and HTTPS URLs are allowed"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "file:///etc/passwd")
+            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
         it("should throw error for non-HTTP/HTTPS URL (javascript://)", async () => {
-            await expect(shellOpenExternalHandler({}, "javascript:alert('xss')")).rejects.toThrow(
-                "Only HTTP and HTTPS URLs are allowed"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "javascript:alert('xss')")
+            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
         it("should throw error for credentialed URL (https://user:pass@)", async () => {
-            await expect(shellOpenExternalHandler({}, "https://user:pass@example.com")).rejects.toThrow(
-                "Credentials in URLs are not allowed"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "https://user:pass@example.com")
+            ).rejects.toThrow("Credentials in URLs are not allowed");
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
         it("should throw error when shellRef returns null", async () => {
             mockShellRef.mockReturnValue(null);
 
-            await expect(shellOpenExternalHandler({}, "https://example.com")).rejects.toThrow(
-                "shell.openExternal unavailable"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "https://example.com")
+            ).rejects.toThrow("shell.openExternal unavailable");
 
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in shell:openExternal:", {
-                error: "shell.openExternal unavailable",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "shell.openExternal unavailable",
+                }
+            );
         });
 
         it("should throw error when shellRef returns undefined", async () => {
             mockShellRef.mockReturnValue(undefined);
 
-            await expect(shellOpenExternalHandler({}, "https://example.com")).rejects.toThrow(
-                "shell.openExternal unavailable"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "https://example.com")
+            ).rejects.toThrow("shell.openExternal unavailable");
         });
 
         it("should throw error when shell object has no openExternal method", async () => {
             mockShellRef.mockReturnValue({});
 
-            await expect(shellOpenExternalHandler({}, "https://example.com")).rejects.toThrow(
-                "shell.openExternal unavailable"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "https://example.com")
+            ).rejects.toThrow("shell.openExternal unavailable");
         });
 
         it("should throw error when shell.openExternal is not a function", async () => {
             mockShellRef.mockReturnValue({ openExternal: "not a function" });
 
-            await expect(shellOpenExternalHandler({}, "https://example.com")).rejects.toThrow(
-                "shell.openExternal unavailable"
-            );
+            await expect(
+                shellOpenExternalHandler({}, "https://example.com")
+            ).rejects.toThrow("shell.openExternal unavailable");
         });
 
         it("should propagate errors from shell.openExternal", async () => {
             const testError = new Error("Shell error");
             mockShell.openExternal.mockRejectedValue(testError);
 
-            await expect(shellOpenExternalHandler({}, "https://example.com")).rejects.toThrow("Shell error");
+            await expect(
+                shellOpenExternalHandler({}, "https://example.com")
+            ).rejects.toThrow("Shell error");
 
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in shell:openExternal:", {
-                error: "Shell error",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "Shell error",
+                }
+            );
         });
 
         it("should work without logWithContext being provided", async () => {
@@ -223,7 +272,9 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const shellCall = calls.find((call) => call[0] === "shell:openExternal");
+            const shellCall = calls.find(
+                (call) => call[0] === "shell:openExternal"
+            );
             const handler = shellCall[1];
 
             const result = await handler({}, "https://example.com");
@@ -244,7 +295,9 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const gyazoCall = calls.find((call) => call[0] === "gyazo:server:start");
+            const gyazoCall = calls.find(
+                (call) => call[0] === "gyazo:server:start"
+            );
             gyazoStartHandler = gyazoCall[1];
         });
 
@@ -264,12 +317,16 @@ describe("registerExternalHandlers", () => {
         });
 
         it("should reject invalid port values", async () => {
-            await expect(gyazoStartHandler({}, "not-a-number")).rejects.toThrow("Invalid port provided");
+            await expect(gyazoStartHandler({}, "not-a-number")).rejects.toThrow(
+                "Invalid port provided"
+            );
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
         it("should reject privileged ports (<1024)", async () => {
-            await expect(gyazoStartHandler({}, 80)).rejects.toThrow("Invalid port provided");
+            await expect(gyazoStartHandler({}, 80)).rejects.toThrow(
+                "Invalid port provided"
+            );
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
@@ -290,18 +347,26 @@ describe("registerExternalHandlers", () => {
                 .find((call) => call[0] === "gyazo:server:start");
             const handler = gyazoCall[1];
 
-            await expect(handler({}, 3000)).rejects.toThrow("Gyazo OAuth server start unavailable");
+            await expect(handler({}, 3000)).rejects.toThrow(
+                "Gyazo OAuth server start unavailable"
+            );
         });
 
         it("should handle errors from startGyazoOAuthServer", async () => {
             const testError = new Error("Failed to start server");
             mockStartGyazoOAuthServer.mockRejectedValue(testError);
 
-            await expect(gyazoStartHandler({}, 3000)).rejects.toThrow("Failed to start server");
+            await expect(gyazoStartHandler({}, 3000)).rejects.toThrow(
+                "Failed to start server"
+            );
 
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in gyazo:server:start:", {
-                error: "Failed to start server",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in gyazo:server:start:",
+                {
+                    error: "Failed to start server",
+                }
+            );
         });
 
         it("should work without logWithContext being provided", async () => {
@@ -315,7 +380,9 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const gyazoCall = calls.find((call) => call[0] === "gyazo:server:start");
+            const gyazoCall = calls.find(
+                (call) => call[0] === "gyazo:server:start"
+            );
             const handler = gyazoCall[1];
 
             const result = await handler({});
@@ -336,7 +403,9 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const gyazoCall = calls.find((call) => call[0] === "gyazo:server:stop");
+            const gyazoCall = calls.find(
+                (call) => call[0] === "gyazo:server:stop"
+            );
             gyazoStopHandler = gyazoCall[1];
         });
 
@@ -352,11 +421,17 @@ describe("registerExternalHandlers", () => {
             const testError = new Error("Failed to stop server");
             mockStopGyazoOAuthServer.mockRejectedValue(testError);
 
-            await expect(gyazoStopHandler({})).rejects.toThrow("Failed to stop server");
+            await expect(gyazoStopHandler({})).rejects.toThrow(
+                "Failed to stop server"
+            );
 
-            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in gyazo:server:stop:", {
-                error: "Failed to stop server",
-            });
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in gyazo:server:stop:",
+                {
+                    error: "Failed to stop server",
+                }
+            );
         });
 
         it("should work without logWithContext being provided", async () => {
@@ -370,7 +445,9 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const gyazoCall = calls.find((call) => call[0] === "gyazo:server:stop");
+            const gyazoCall = calls.find(
+                (call) => call[0] === "gyazo:server:stop"
+            );
             const handler = gyazoCall[1];
 
             const result = await handler({});
@@ -394,7 +471,9 @@ describe("registerExternalHandlers", () => {
                 .find((call) => call[0] === "gyazo:server:stop");
             const handler = gyazoCall[1];
 
-            await expect(handler({})).rejects.toThrow("Gyazo OAuth server stop unavailable");
+            await expect(handler({})).rejects.toThrow(
+                "Gyazo OAuth server stop unavailable"
+            );
         });
     });
 
@@ -409,10 +488,14 @@ describe("registerExternalHandlers", () => {
             });
 
             const calls = mockRegisterIpcHandle.mock.calls;
-            const shellCall = calls.find((call) => call[0] === "shell:openExternal");
+            const shellCall = calls.find(
+                (call) => call[0] === "shell:openExternal"
+            );
             const handler = shellCall[1];
 
-            await expect(handler({}, "https://example.com")).rejects.toThrow("shell.openExternal unavailable");
+            await expect(handler({}, "https://example.com")).rejects.toThrow(
+                "shell.openExternal unavailable"
+            );
         });
 
         it("should handle all dependencies being null/undefined", () => {

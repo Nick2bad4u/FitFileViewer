@@ -99,7 +99,9 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             it("should handle very large numbers", () => {
                 const largeNumber = Number.MAX_SAFE_INTEGER;
                 expect(getManufacturerName(largeNumber)).toBe(largeNumber);
-                expect(getManufacturerName(largeNumber.toString())).toBe(largeNumber.toString());
+                expect(getManufacturerName(largeNumber.toString())).toBe(
+                    largeNumber.toString()
+                );
             });
         });
 
@@ -265,7 +267,10 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
                 const result = getManufacturerAndProduct(1, 1);
                 expect(result).toHaveProperty("manufacturerName");
                 expect(result).toHaveProperty("productName");
-                expect(Object.keys(result)).toEqual(["manufacturerName", "productName"]);
+                expect(Object.keys(result)).toEqual([
+                    "manufacturerName",
+                    "productName",
+                ]);
             });
 
             it("should return object with correct property types", () => {
@@ -294,13 +299,17 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             it("should handle underscore variations", () => {
                 expect(getManufacturerIdFromName("wahoo_fitness")).toBe(263);
                 expect(getManufacturerIdFromName("wahoofitness")).toBe(263);
-                expect(getManufacturerIdFromName("favero_electronics")).toBe(89);
+                expect(getManufacturerIdFromName("favero_electronics")).toBe(
+                    89
+                );
                 expect(getManufacturerIdFromName("faveroelectronics")).toBe(89);
             });
 
             it("should handle electronics variations", () => {
                 expect(getManufacturerIdFromName("faveroelectronics")).toBe(89);
-                expect(getManufacturerIdFromName("favero_electronics")).toBe(89);
+                expect(getManufacturerIdFromName("favero_electronics")).toBe(
+                    89
+                );
             });
         });
 
@@ -338,7 +347,9 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             });
 
             it("should handle electronics word variations", () => {
-                expect(getManufacturerIdFromName("favero_electronics")).toBe(89);
+                expect(getManufacturerIdFromName("favero_electronics")).toBe(
+                    89
+                );
                 expect(getManufacturerIdFromName("faveroelectronics")).toBe(89);
             });
 
@@ -352,7 +363,9 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             it("should return null for unknown manufacturer names", () => {
                 expect(getManufacturerIdFromName("unknown")).toBe(null);
                 expect(getManufacturerIdFromName("nonexistent")).toBe(null);
-                expect(getManufacturerIdFromName("fake_manufacturer")).toBe(null);
+                expect(getManufacturerIdFromName("fake_manufacturer")).toBe(
+                    null
+                );
             });
 
             it("should return null for partial matches", () => {

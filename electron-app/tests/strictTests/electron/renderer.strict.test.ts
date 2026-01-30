@@ -18,8 +18,13 @@ const importRendererFresh = async () => {
   `;
     // Ensure input.files is controllable in jsdom
     const fileInput = document.getElementById("fileInput") as HTMLInputElement;
-    const testFile = new File(["fit-bytes"], "test.fit", { type: "application/octet-stream" });
-    Object.defineProperty(fileInput, "files", { configurable: true, get: () => [testFile] });
+    const testFile = new File(["fit-bytes"], "test.fit", {
+        type: "application/octet-stream",
+    });
+    Object.defineProperty(fileInput, "files", {
+        configurable: true,
+        get: () => [testFile],
+    });
 
     // Provide a stub electronAPI before import so the renderer registers immediately
     const listeners = new Map<string, Function[]>();
@@ -55,7 +60,13 @@ const importRendererFresh = async () => {
     const msm = {
         initialize: vi.fn(async () => void 0),
         isInitialized: true,
-        getState: vi.fn(() => ({ app: { initialized: true, isOpeningFile: false, startTime: Date.now() } })),
+        getState: vi.fn(() => ({
+            app: {
+                initialized: true,
+                isOpeningFile: false,
+                startTime: Date.now(),
+            },
+        })),
         getHistory: vi.fn(() => []),
         getSubscriptions: vi.fn(() => []),
         cleanup: vi.fn(() => void 0),
@@ -65,15 +76,32 @@ const importRendererFresh = async () => {
     const subscribeAppDomain = vi.fn();
 
     // NOTE: renderer.js expects the exact '../../utils/...' ids to match resolveExactManualMock
-    vi.doMock("../../utils/ui/notifications/showNotification.js", () => ({ showNotification }));
-    vi.doMock("../../utils/files/import/handleOpenFile.js", () => ({ handleOpenFile }));
+    vi.doMock("../../utils/ui/notifications/showNotification.js", () => ({
+        showNotification,
+    }));
+    vi.doMock("../../utils/files/import/handleOpenFile.js", () => ({
+        handleOpenFile,
+    }));
     vi.doMock("../../utils/theming/core/setupTheme.js", () => ({ setupTheme }));
-    vi.doMock("../../utils/ui/notifications/showUpdateNotification.js", () => ({ showUpdateNotification }));
-    vi.doMock("../../utils/app/lifecycle/listeners.js", () => ({ setupListeners }));
-    vi.doMock("../../utils/ui/modals/aboutModal.js", () => ({ showAboutModal }));
-    vi.doMock("../../utils/theming/core/theme.js", () => ({ applyTheme, listenForThemeChange }));
-    vi.doMock("../../utils/state/core/masterStateManager.js", () => ({ masterStateManager: msm }));
-    vi.doMock("../../utils/app/lifecycle/appActions.js", () => ({ AppActions }));
+    vi.doMock("../../utils/ui/notifications/showUpdateNotification.js", () => ({
+        showUpdateNotification,
+    }));
+    vi.doMock("../../utils/app/lifecycle/listeners.js", () => ({
+        setupListeners,
+    }));
+    vi.doMock("../../utils/ui/modals/aboutModal.js", () => ({
+        showAboutModal,
+    }));
+    vi.doMock("../../utils/theming/core/theme.js", () => ({
+        applyTheme,
+        listenForThemeChange,
+    }));
+    vi.doMock("../../utils/state/core/masterStateManager.js", () => ({
+        masterStateManager: msm,
+    }));
+    vi.doMock("../../utils/app/lifecycle/appActions.js", () => ({
+        AppActions,
+    }));
     vi.doMock("../../utils/state/domain/appState.js", () => ({
         getState: getAppDomainState,
         subscribe: subscribeAppDomain,
@@ -118,8 +146,12 @@ describe("renderer.js strict behavior", () => {
     beforeEach(() => {
         errors = [];
         logs = [];
-        vi.spyOn(console, "error").mockImplementation((...args: any[]) => errors.push(args.join(" ")));
-        vi.spyOn(console, "log").mockImplementation((...args: any[]) => logs.push(args.join(" ")));
+        vi.spyOn(console, "error").mockImplementation((...args: any[]) =>
+            errors.push(args.join(" "))
+        );
+        vi.spyOn(console, "log").mockImplementation((...args: any[]) =>
+            logs.push(args.join(" "))
+        );
         // Default to modern fake timers so we can flush microtasks/intervals deterministically
         vi.useFakeTimers();
     });
@@ -168,7 +200,13 @@ describe("renderer.js strict behavior", () => {
 
         // Dispatch an error event (uncaught exception path)
         const err = new Error("boom");
-        const ev = new ErrorEvent("error", { error: err, message: err.message, filename: "x", lineno: 1, colno: 1 });
+        const ev = new ErrorEvent("error", {
+            error: err,
+            message: err.message,
+            filename: "x",
+            lineno: 1,
+            colno: 1,
+        });
         window.dispatchEvent(ev);
 
         // Allow async handlers to run

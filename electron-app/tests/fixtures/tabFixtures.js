@@ -58,28 +58,38 @@ export function mockStateManager() {
 
     return {
         getState: vi.fn((/** @type {string} */ key) => state.get(key)),
-        setState: vi.fn((/** @type {string} */ key, /** @type {any} */ value, /** @type {any} */ options = {}) => {
-            const oldValue = state.get(key);
-            state.set(key, value);
+        setState: vi.fn(
+            (
+                /** @type {string} */ key,
+                /** @type {any} */ value,
+                /** @type {any} */ options = {}
+            ) => {
+                const oldValue = state.get(key);
+                state.set(key, value);
 
-            // Notify subscribers
-            const keySubscribers = subscribers.get(key) || [];
-            keySubscribers.forEach((/** @type {Function} */ callback) => callback(value, oldValue, options));
-        }),
-        subscribe: vi.fn((/** @type {string} */ key, /** @type {Function} */ callback) => {
-            if (!subscribers.has(key)) {
-                subscribers.set(key, []);
-            }
-            subscribers.get(key).push(callback);
-
-            return () => {
+                // Notify subscribers
                 const keySubscribers = subscribers.get(key) || [];
-                const index = keySubscribers.indexOf(callback);
-                if (index > -1) {
-                    keySubscribers.splice(index, 1);
+                keySubscribers.forEach((/** @type {Function} */ callback) =>
+                    callback(value, oldValue, options)
+                );
+            }
+        ),
+        subscribe: vi.fn(
+            (/** @type {string} */ key, /** @type {Function} */ callback) => {
+                if (!subscribers.has(key)) {
+                    subscribers.set(key, []);
                 }
-            };
-        }),
+                subscribers.get(key).push(callback);
+
+                return () => {
+                    const keySubscribers = subscribers.get(key) || [];
+                    const index = keySubscribers.indexOf(callback);
+                    if (index > -1) {
+                        keySubscribers.splice(index, 1);
+                    }
+                };
+            }
+        ),
         // Expose internals for testing
         _state: state,
         _subscribers: subscribers,

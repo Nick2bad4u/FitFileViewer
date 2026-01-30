@@ -5,12 +5,17 @@ const MODULE_SPECIFIER = "../../../../../utils/theming/core/setupTheme.js";
 const stateManagerMocks = vi.hoisted(() => {
     return {
         getState: vi.fn<(key: string) => unknown>(() => undefined),
-        setState: vi.fn<(key: string, value: unknown, meta?: unknown) => void>(),
-        subscribe: vi.fn<(key: string, handler: (value: unknown) => void) => void>(),
+        setState:
+            vi.fn<(key: string, value: unknown, meta?: unknown) => void>(),
+        subscribe:
+            vi.fn<(key: string, handler: (value: unknown) => void) => void>(),
     };
 });
 
-vi.mock("../../../../../utils/state/core/stateManager.js", () => stateManagerMocks);
+vi.mock(
+    "../../../../../utils/state/core/stateManager.js",
+    () => stateManagerMocks
+);
 
 describe("setupTheme", () => {
     const originalConsole = {
@@ -50,18 +55,27 @@ describe("setupTheme", () => {
         (globalThis as any).electronAPI = {
             getTheme: vi.fn().mockResolvedValue("light"),
         };
-        const listenForThemeChange = vi.fn((callback: (theme: unknown) => void) => {
-            externalListener = callback;
-        });
+        const listenForThemeChange = vi.fn(
+            (callback: (theme: unknown) => void) => {
+                externalListener = callback;
+            }
+        );
 
         const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(applyTheme, listenForThemeChange);
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
-        expect(stateManagerMocks.setState).toHaveBeenCalledWith("ui.theme", "light", { source: "setupTheme" });
+        expect(stateManagerMocks.setState).toHaveBeenCalledWith(
+            "ui.theme",
+            "light",
+            { source: "setupTheme" }
+        );
         expect(localStorage.getItem("ffv-theme")).toBe("light");
-        expect(stateManagerMocks.subscribe).toHaveBeenCalledWith("ui.theme", expect.any(Function));
+        expect(stateManagerMocks.subscribe).toHaveBeenCalledWith(
+            "ui.theme",
+            expect.any(Function)
+        );
         expect(listenForThemeChange).toHaveBeenCalledWith(expect.any(Function));
 
         // simulate external change notification
@@ -75,7 +89,11 @@ describe("setupTheme", () => {
         expect(handler).toBeTypeOf("function");
         stateManagerMocks.getState.mockReturnValueOnce("light");
         handler?.("auto");
-        expect(stateManagerMocks.setState).toHaveBeenCalledWith("ui.previousTheme", "auto", { source: "setupTheme" });
+        expect(stateManagerMocks.setState).toHaveBeenCalledWith(
+            "ui.previousTheme",
+            "auto",
+            { source: "setupTheme" }
+        );
         expect(applyTheme).toHaveBeenCalledWith("auto");
     });
 
@@ -104,7 +122,9 @@ describe("setupTheme", () => {
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
-        expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("getTheme not available"));
+        expect(console.warn).toHaveBeenCalledWith(
+            expect.stringContaining("getTheme not available")
+        );
     });
 
     it("logs warning when localStorage access fails", async () => {
@@ -113,9 +133,11 @@ describe("setupTheme", () => {
             getTheme: vi.fn().mockResolvedValue("dark"),
         };
         const storageProto = Object.getPrototypeOf(localStorage) as Storage;
-        const getItemSpy = vi.spyOn(storageProto, "getItem").mockImplementation(() => {
-            throw new Error("storage failure");
-        });
+        const getItemSpy = vi
+            .spyOn(storageProto, "getItem")
+            .mockImplementation(() => {
+                throw new Error("storage failure");
+            });
 
         try {
             const { setupTheme } = await import(MODULE_SPECIFIER);
@@ -123,7 +145,9 @@ describe("setupTheme", () => {
 
             expect(result).toBe("dark");
             expect(applyTheme).toHaveBeenCalledWith("dark");
-            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Failed to read from localStorage"));
+            expect(console.warn).toHaveBeenCalledWith(
+                expect.stringContaining("Failed to read from localStorage")
+            );
         } finally {
             getItemSpy.mockRestore();
         }
@@ -135,7 +159,9 @@ describe("setupTheme", () => {
         };
 
         const { setupTheme } = await import(MODULE_SPECIFIER);
-        const result = await setupTheme(undefined as unknown as (theme: string) => void);
+        const result = await setupTheme(
+            undefined as unknown as (theme: string) => void
+        );
 
         expect(result).toBe("dark");
         expect(console.error).toHaveBeenCalled();

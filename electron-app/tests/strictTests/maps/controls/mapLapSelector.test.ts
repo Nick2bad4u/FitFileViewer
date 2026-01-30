@@ -7,7 +7,13 @@ async function loadModule() {
 describe("mapLapSelector", () => {
     beforeEach(() => {
         document.body.innerHTML = '<div id="container"></div>';
-        (window as any).globalData = { lapMesgs: [{}, {}, {}] };
+        (window as any).globalData = {
+            lapMesgs: [
+                {},
+                {},
+                {},
+            ],
+        };
     });
 
     it("adds control and handles single vs multi select changes", async () => {
@@ -17,8 +23,12 @@ describe("mapLapSelector", () => {
         const drawFn = vi.fn((sel: any) => draws.push(sel));
 
         addLapSelector(null as any, container, drawFn);
-        const select = container.querySelector("#lap-select") as HTMLSelectElement;
-        const toggle = container.querySelector("#multi-lap-toggle") as HTMLButtonElement;
+        const select = container.querySelector(
+            "#lap-select"
+        ) as HTMLSelectElement;
+        const toggle = container.querySelector(
+            "#multi-lap-toggle"
+        ) as HTMLButtonElement;
         expect(select).toBeTruthy();
 
         // Single-select: choose Lap 2

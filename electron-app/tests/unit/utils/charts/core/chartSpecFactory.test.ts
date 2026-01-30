@@ -61,7 +61,12 @@ describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
             ],
             axes: [
                 { id: "x", type: "linear", label: "Time (s)", display: true },
-                { id: "y", type: "linear", label: "Heart Rate (bpm)", display: true },
+                {
+                    id: "y",
+                    type: "linear",
+                    label: "Heart Rate (bpm)",
+                    display: true,
+                },
             ],
         };
 
@@ -112,7 +117,12 @@ describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
                 },
             ],
             axes: [
-                { id: "x", type: "linear", label: "Heart Rate (bpm)", display: true },
+                {
+                    id: "x",
+                    type: "linear",
+                    label: "Heart Rate (bpm)",
+                    display: true,
+                },
                 { id: "y", type: "linear", label: "Power (W)", display: true },
             ],
         };
@@ -153,7 +163,8 @@ describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
                     id: "power",
                     label: "Power",
                     dataKey: "power",
-                    transform: (value: number | null) => (value == null ? null : value * 2),
+                    transform: (value: number | null) =>
+                        value == null ? null : value * 2,
                 },
             ],
         } as const;
@@ -209,7 +220,10 @@ describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
 
         const chart = (createManagedChart as any)(canvas, config);
 
-        expect(createManagedChart).toHaveBeenCalledWith(canvas, expect.any(Object));
+        expect(createManagedChart).toHaveBeenCalledWith(
+            canvas,
+            expect.any(Object)
+        );
         expect(chart).toBeDefined();
         expect(chart.config.type).toBe("line");
         expect(chart.config.data.datasets[0].label).toBe("Spec Dataset");

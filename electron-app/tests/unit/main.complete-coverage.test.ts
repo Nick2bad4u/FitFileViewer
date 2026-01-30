@@ -2,11 +2,19 @@
 /**
  * Complete Coverage Test for main.js
  *
- * This test combines all successful coverage strategies to maximize main.js coverage.
- * Uses simplified TypeScript to avoid compilation issues.
+ * This test combines all successful coverage strategies to maximize main.js
+ * coverage. Uses simplified TypeScript to avoid compilation issues.
  */
 
-import { beforeAll, beforeEach, afterEach, describe, test, expect, vi } from "vitest";
+import {
+    beforeAll,
+    beforeEach,
+    afterEach,
+    describe,
+    test,
+    expect,
+    vi,
+} from "vitest";
 import { EventEmitter } from "events";
 
 // Create comprehensive global mocks
@@ -28,7 +36,9 @@ const globalMocks = {
 
     // Node.js modules
     mockFs: {
-        readFile: vi.fn((path: string, cb: any) => cb && cb(null, Buffer.from("test"))),
+        readFile: vi.fn(
+            (path: string, cb: any) => cb && cb(null, Buffer.from("test"))
+        ),
         readFileSync: vi.fn(() => Buffer.from("{}")),
         copyFileSync: vi.fn(),
         existsSync: vi.fn(() => true),
@@ -105,7 +115,10 @@ beforeAll(() => {
     }));
 
     // Mock both specifier variants to match main.js's require("./windowStateUtils") resolution
-    vi.mock("../../windowStateUtils.js", () => globalMocks.mockWindowStateUtils);
+    vi.mock(
+        "../../windowStateUtils.js",
+        () => globalMocks.mockWindowStateUtils
+    );
     vi.mock("../../windowStateUtils", () => globalMocks.mockWindowStateUtils);
     // Ensure createWindow exists to avoid BrowserWindow constructor path in initializeApplication
     globalMocks.mockWindowStateUtils.createWindow = vi.fn(() => {
@@ -123,7 +136,10 @@ beforeAll(() => {
         });
         return mockWindow;
     });
-    vi.mock("../../utils/files/recent/recentFiles.js", () => globalMocks.mockRecentFiles);
+    vi.mock(
+        "../../utils/files/recent/recentFiles.js",
+        () => globalMocks.mockRecentFiles
+    );
 
     // Intercept CommonJS requires at the module level to ensure our mocks are used by main.js
     const Module = require("module");
@@ -172,14 +188,19 @@ beforeAll(() => {
         globalMocks.mockProcess.env = {};
     }
     if (!globalMocks.mockProcess.versions) {
-        globalMocks.mockProcess.versions = { electron: "28.0.0", chrome: "120.0.0" };
+        globalMocks.mockProcess.versions = {
+            electron: "28.0.0",
+            chrome: "120.0.0",
+        };
     }
     vi.stubGlobal("process", globalMocks.mockProcess);
     // Default NODE_ENV to test
     globalMocks.mockProcess.env.NODE_ENV = "test";
 
     // Ensure electron-updater is mocked to avoid real listeners and side effects
-    vi.mock("electron-updater", () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
+    vi.mock("electron-updater", () => ({
+        autoUpdater: globalMocks.mockAutoUpdater,
+    }));
 });
 
 beforeEach(() => {
@@ -232,7 +253,9 @@ beforeEach(() => {
 
     globalMocks.MockBrowserWindow.mockImplementation(() => mockWindow);
     globalMocks.browserWindowStatic.getAllWindows.mockReturnValue([mockWindow]);
-    globalMocks.browserWindowStatic.getFocusedWindow.mockReturnValue(mockWindow);
+    globalMocks.browserWindowStatic.getFocusedWindow.mockReturnValue(
+        mockWindow
+    );
 
     // Set up MainProcessState mock
     const mockStateInstance = {
@@ -247,7 +270,9 @@ beforeEach(() => {
         notifyRenderers: vi.fn(),
         notifyChange: vi.fn(),
     };
-    globalMocks.MockMainProcessState.mockImplementation(() => mockStateInstance);
+    globalMocks.MockMainProcessState.mockImplementation(
+        () => mockStateInstance
+    );
 
     // Set up app event handlers
     Object.assign(globalMocks.mockApp, {
@@ -261,7 +286,9 @@ beforeEach(() => {
         whenReady: vi.fn(() => Promise.resolve()),
         setAsDefaultProtocolClient: vi.fn(),
         isDefaultProtocolClient: vi.fn(() => false),
-        getFileIcon: vi.fn(() => Promise.resolve({ toDataURL: () => "data:image/png;base64,icon" })),
+        getFileIcon: vi.fn(() =>
+            Promise.resolve({ toDataURL: () => "data:image/png;base64,icon" })
+        ),
         hide: vi.fn(),
         show: vi.fn(),
         focus: vi.fn(),
@@ -286,8 +313,12 @@ beforeEach(() => {
 
     // Set up dialog mock
     Object.assign(globalMocks.mockDialog, {
-        showOpenDialog: vi.fn(() => Promise.resolve({ canceled: false, filePaths: ["/test/file.fit"] })),
-        showSaveDialog: vi.fn(() => Promise.resolve({ canceled: false, filePath: "/test/save.fit" })),
+        showOpenDialog: vi.fn(() =>
+            Promise.resolve({ canceled: false, filePaths: ["/test/file.fit"] })
+        ),
+        showSaveDialog: vi.fn(() =>
+            Promise.resolve({ canceled: false, filePath: "/test/save.fit" })
+        ),
         showMessageBox: vi.fn(() => Promise.resolve({ response: 0 })),
         showErrorBox: vi.fn(),
         showCertificateTrustDialog: vi.fn(() => Promise.resolve()),
@@ -368,7 +399,11 @@ describe("main.js - Complete Coverage Test", () => {
         globalMocks.mockApp.emit("will-quit");
         globalMocks.mockApp.emit("quit");
         globalMocks.mockApp.emit("second-instance");
-        globalMocks.mockApp.emit("open-file", { preventDefault: vi.fn() }, "/test/file.fit");
+        globalMocks.mockApp.emit(
+            "open-file",
+            { preventDefault: vi.fn() },
+            "/test/file.fit"
+        );
         globalMocks.mockApp.emit(
             "web-contents-created",
             {},
@@ -383,17 +418,23 @@ describe("main.js - Complete Coverage Test", () => {
         // Attach error handler BEFORE emitting to avoid unhandled rejection
         globalMocks.mockAutoUpdater.on("error", () => {});
         globalMocks.mockAutoUpdater.emit("checking-for-update");
-        globalMocks.mockAutoUpdater.emit("update-available", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-available", {
+            version: "2.0.0",
+        });
         globalMocks.mockAutoUpdater.emit("update-not-available");
         globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
-        globalMocks.mockAutoUpdater.emit("update-downloaded", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-downloaded", {
+            version: "2.0.0",
+        });
         // Do not emit a throwing error event here; error paths are covered elsewhere
 
         // Native theme events
         globalMocks.mockNativeTheme.emit("updated");
 
         // Window events simulation
-        const mockWindow = globalMocks.MockBrowserWindow.mock.results[0]?.value || mockWebContents;
+        const mockWindow =
+            globalMocks.MockBrowserWindow.mock.results[0]?.value ||
+            mockWebContents;
         if (mockWindow && typeof mockWindow.emit === "function") {
             mockWindow.emit("ready-to-show");
             mockWindow.emit("closed");
@@ -412,18 +453,46 @@ describe("main.js - Complete Coverage Test", () => {
             // WebContents events
             mockWindow.webContents.emit("dom-ready");
             mockWindow.webContents.emit("did-finish-load");
-            mockWindow.webContents.emit("did-fail-load", {}, 404, "Not Found", "https://example.com");
-            mockWindow.webContents.emit("new-window", {}, "https://external.com");
-            mockWindow.webContents.emit("will-navigate", { preventDefault: vi.fn() }, "https://external.com");
-            mockWindow.webContents.emit("did-navigate", {}, "https://example.com");
-            mockWindow.webContents.emit("console-message", {}, "log", "Test message", 1, "test.js");
+            mockWindow.webContents.emit(
+                "did-fail-load",
+                {},
+                404,
+                "Not Found",
+                "https://example.com"
+            );
+            mockWindow.webContents.emit(
+                "new-window",
+                {},
+                "https://external.com"
+            );
+            mockWindow.webContents.emit(
+                "will-navigate",
+                { preventDefault: vi.fn() },
+                "https://external.com"
+            );
+            mockWindow.webContents.emit(
+                "did-navigate",
+                {},
+                "https://example.com"
+            );
+            mockWindow.webContents.emit(
+                "console-message",
+                {},
+                "log",
+                "Test message",
+                1,
+                "test.js"
+            );
         }
 
         // Error conditions simulation
         console.log("[TEST] Simulating error conditions...");
 
         // File system errors
-        if (!globalMocks.mockFs.readFileSync || typeof globalMocks.mockFs.readFileSync !== "function") {
+        if (
+            !globalMocks.mockFs.readFileSync ||
+            typeof globalMocks.mockFs.readFileSync !== "function"
+        ) {
             globalMocks.mockFs.readFileSync = vi.fn();
         }
         globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
@@ -431,7 +500,10 @@ describe("main.js - Complete Coverage Test", () => {
         });
 
         // Network errors
-        if (!globalMocks.mockHttp.createServer || typeof globalMocks.mockHttp.createServer !== "function") {
+        if (
+            !globalMocks.mockHttp.createServer ||
+            typeof globalMocks.mockHttp.createServer !== "function"
+        ) {
             globalMocks.mockHttp.createServer = vi.fn();
         }
         globalMocks.mockHttp.createServer.mockImplementationOnce(() => {
@@ -471,7 +543,9 @@ describe("main.js - Complete Coverage Test", () => {
         const ipcHandlers = globalMocks.mockIpcMain.handle.mock.calls;
         const ipcOnHandlers = globalMocks.mockIpcMain.on.mock.calls;
 
-        console.log(`[TEST] Found ${ipcHandlers.length} IPC handle calls and ${ipcOnHandlers.length} IPC on calls`);
+        console.log(
+            `[TEST] Found ${ipcHandlers.length} IPC handle calls and ${ipcOnHandlers.length} IPC on calls`
+        );
 
         // Simulate some common IPC patterns that might exist
         const commonIpcChannels = [

@@ -1,20 +1,24 @@
 /**
- * @fileoverview Main Process State Client for Renderer Process
- * @description Provides a clean API for the renderer process to interact with main process state
- * via the electronAPI exposed by preload.js. This module wraps the IPC communication
- * with a more intuitive interface.
+ * Provides a clean API for the renderer process to interact with main process
+ * state via the electronAPI exposed by preload.js. This module wraps the IPC
+ * communication with a more intuitive interface.
  *
  * @module mainProcessStateClient
+ *
+ * @file Main Process State Client for Renderer Process
  */
 
 /**
- * @typedef {import('./mainProcessStateManager.js').Operation} Operation
- * @typedef {import('./mainProcessStateManager.js').ErrorEntry} ErrorEntry
- * @typedef {import('./mainProcessStateManager.js').Metrics} Metrics
+ * @typedef {import("./mainProcessStateManager.js").Operation} Operation
+ *
+ * @typedef {import("./mainProcessStateManager.js").ErrorEntry} ErrorEntry
+ *
+ * @typedef {import("./mainProcessStateManager.js").Metrics} Metrics
  */
 
 /**
  * @typedef {Object} StateChangeEvent
+ *
  * @property {string} path - The path that changed
  * @property {any} value - The new value
  * @property {any} oldValue - The previous value
@@ -37,6 +41,7 @@ class MainProcessStateClient {
 
     /**
      * Initialize the client
+     *
      * @private
      */
     _init() {
@@ -46,14 +51,19 @@ class MainProcessStateClient {
 
         // Verify electronAPI is available
         if (globalThis.window === undefined || !globalThis.electronAPI) {
-            console.warn("[MainProcessStateClient] electronAPI not available - client will be in degraded mode");
+            console.warn(
+                "[MainProcessStateClient] electronAPI not available - client will be in degraded mode"
+            );
             return;
         }
 
         this._isInitialized = true;
 
         // Safe check for development mode in renderer process
-        const isDevelopment = typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development";
+        const isDevelopment =
+            typeof process !== "undefined" &&
+            process.env &&
+            process.env.NODE_ENV === "development";
 
         if (isDevelopment) {
             console.log("[MainProcessStateClient] Initialized successfully");
@@ -62,7 +72,9 @@ class MainProcessStateClient {
 
     /**
      * Get a value from main process state
+     *
      * @param {string} [path] - Optional path to specific state property
+     *
      * @returns {Promise<any>}
      */
     async get(path) {
@@ -73,17 +85,29 @@ class MainProcessStateClient {
         try {
             return await globalThis.electronAPI.getMainState(path);
         } catch (error) {
-            console.error(`[MainProcessStateClient] Error getting state${path ? ` at path "${path}"` : ""}:`, error);
+            console.error(
+                `[MainProcessStateClient] Error getting state${path ? ` at path "${path}"` : ""}:`,
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Get diagnostic information
-     * @returns {Promise<{errors: ErrorEntry[], operations: Record<string, Operation>, metrics: Metrics}>}
+     *
+     * @returns {Promise<{
+     *     errors: ErrorEntry[];
+     *     operations: Record<string, Operation>;
+     *     metrics: Metrics;
+     * }>}
      */
     async getDiagnostics() {
-        const [errors, operations, metrics] = await Promise.all([
+        const [
+            errors,
+            operations,
+            metrics,
+        ] = await Promise.all([
             this.getErrors(),
             this.getOperations(),
             this.getMetrics(),
@@ -94,7 +118,10 @@ class MainProcessStateClient {
 
     /**
      * Get recent errors
-     * @param {number} [limit=50] - Maximum number of errors to retrieve
+     *
+     * @param {number} [limit=50] - Maximum number of errors to retrieve.
+     *   Default is `50`
+     *
      * @returns {Promise<ErrorEntry[]>}
      */
     async getErrors(limit = 50) {
@@ -105,24 +132,32 @@ class MainProcessStateClient {
         try {
             return await globalThis.electronAPI.getErrors(limit);
         } catch (error) {
-            console.error("[MainProcessStateClient] Error getting errors:", error);
+            console.error(
+                "[MainProcessStateClient] Error getting errors:",
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Get the Gyazo server state
-     * @returns {Promise<{server: any, port: number|null}>}
+     *
+     * @returns {Promise<{ server: any; port: number | null }>}
      */
     async getGyazoServerState() {
-        const [server, port] = await Promise.all([this.get("gyazoServer"), this.get("gyazoServerPort")]);
+        const [server, port] = await Promise.all([
+            this.get("gyazoServer"),
+            this.get("gyazoServerPort"),
+        ]);
 
         return { server, port };
     }
 
     /**
      * Get the currently loaded FIT file path
-     * @returns {Promise<string|null>}
+     *
+     * @returns {Promise<string | null>}
      */
     async getLoadedFilePath() {
         return this.get("loadedFitFilePath");
@@ -130,6 +165,7 @@ class MainProcessStateClient {
 
     /**
      * Get the main window reference
+     *
      * @returns {Promise<any>}
      */
     async getMainWindow() {
@@ -138,6 +174,7 @@ class MainProcessStateClient {
 
     /**
      * Get performance metrics
+     *
      * @returns {Promise<Metrics>}
      */
     async getMetrics() {
@@ -148,15 +185,20 @@ class MainProcessStateClient {
         try {
             return await globalThis.electronAPI.getMetrics();
         } catch (error) {
-            console.error("[MainProcessStateClient] Error getting metrics:", error);
+            console.error(
+                "[MainProcessStateClient] Error getting metrics:",
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Get the status of a specific operation
+     *
      * @param {string} operationId - Operation identifier
-     * @returns {Promise<Operation|null>}
+     *
+     * @returns {Promise<Operation | null>}
      */
     async getOperation(operationId) {
         if (!this.isAvailable()) {
@@ -166,13 +208,17 @@ class MainProcessStateClient {
         try {
             return await globalThis.electronAPI.getOperation(operationId);
         } catch (error) {
-            console.error(`[MainProcessStateClient] Error getting operation "${operationId}":`, error);
+            console.error(
+                `[MainProcessStateClient] Error getting operation "${operationId}":`,
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Get all operations
+     *
      * @returns {Promise<Record<string, Operation>>}
      */
     async getOperations() {
@@ -183,23 +229,34 @@ class MainProcessStateClient {
         try {
             return await globalThis.electronAPI.getOperations();
         } catch (error) {
-            console.error("[MainProcessStateClient] Error getting operations:", error);
+            console.error(
+                "[MainProcessStateClient] Error getting operations:",
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Check if the client is properly initialized
+     *
      * @returns {boolean}
      */
     isAvailable() {
-        return this._isInitialized && globalThis.window !== undefined && Boolean(globalThis.electronAPI);
+        return (
+            this._isInitialized &&
+            globalThis.window !== undefined &&
+            Boolean(globalThis.electronAPI)
+        );
     }
 
     /**
      * Listen for changes to a specific state path
+     *
      * @param {string} path - Path to listen to
-     * @param {(change: StateChangeEvent) => void} callback - Callback for state changes
+     * @param {(change: StateChangeEvent) => void} callback - Callback for state
+     *   changes
+     *
      * @returns {Promise<() => void>} Unsubscribe function
      */
     async listen(path, callback) {
@@ -233,11 +290,13 @@ class MainProcessStateClient {
     }
 
     /**
-     * Set a value in main process state (restricted to allowed paths)
-     * Allowed paths: 'loadedFitFilePath', 'operations.*'
+     * Set a value in main process state (restricted to allowed paths) Allowed
+     * paths: 'loadedFitFilePath', 'operations.*'
+     *
      * @param {string} path - Path to the state property
      * @param {any} value - Value to set
      * @param {Object} [options] - Optional metadata
+     *
      * @returns {Promise<boolean>} True if successful
      */
     async set(path, value, options = {}) {
@@ -246,7 +305,11 @@ class MainProcessStateClient {
         }
 
         try {
-            const result = await globalThis.electronAPI.setMainState(path, value, options);
+            const result = await globalThis.electronAPI.setMainState(
+                path,
+                value,
+                options
+            );
             if (!result) {
                 console.warn(
                     `[MainProcessStateClient] Failed to set "${path}" - path may be restricted. ` +
@@ -255,14 +318,19 @@ class MainProcessStateClient {
             }
             return result;
         } catch (error) {
-            console.error(`[MainProcessStateClient] Error setting state at path "${path}":`, error);
+            console.error(
+                `[MainProcessStateClient] Error setting state at path "${path}":`,
+                error
+            );
             throw error;
         }
     }
 
     /**
      * Set the currently loaded FIT file path
-     * @param {string|null} filePath - File path or null to clear
+     *
+     * @param {string | null} filePath - File path or null to clear
+     *
      * @returns {Promise<boolean>}
      */
     async setLoadedFilePath(filePath) {

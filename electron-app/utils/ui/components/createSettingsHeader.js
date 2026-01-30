@@ -1,4 +1,7 @@
-import { reRenderChartsAfterSettingChange, resetAllSettings } from "../../app/initialization/getCurrentSettings.js";
+import {
+    reRenderChartsAfterSettingChange,
+    resetAllSettings,
+} from "../../app/initialization/getCurrentSettings.js";
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { createChartStatusIndicator } from "../../charts/components/createChartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
@@ -6,7 +9,11 @@ import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
-import { fieldColors, fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
+import {
+    fieldColors,
+    fieldLabels,
+    formatChartFields,
+} from "../../formatting/display/formatChartFields.js";
 import {
     getChartFieldVisibility,
     getChartSetting,
@@ -22,6 +29,7 @@ import { showNotification } from "../notifications/showNotification.js";
 
 /**
  * @typedef {Object} WindowExtensions
+ *
  * @property {any[]} [_chartjsInstances] - ChartJS instances
  * @property {Object} [globalData] - Global data object
  * @property {any[]} [globalData.timeInZoneMesgs] - Time in zone messages
@@ -31,6 +39,7 @@ import { showNotification } from "../notifications/showNotification.js";
 
 /**
  * @typedef {Object} ChartOption
+ *
  * @property {string} id - Option identifier
  * @property {string} label - Display label
  * @property {string} type - Option type (slider, toggle, select)
@@ -81,6 +90,7 @@ export function applySettingsPanelStyles(/** @type {HTMLElement} */ wrapper) {
 }
 /**
  * Creates the main controls section with dropdowns and sliders
+ *
  * @param {HTMLElement} wrapper - The wrapper element to add the controls to
  */
 
@@ -153,7 +163,11 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                             filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
                         exportUtils.downloadChartAsPNG(chart, filename);
                     },
-                    (/** @type {any} */ charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
+                    (/** @type {any} */ charts) =>
+                        exportUtils.createCombinedChartsImage(
+                            charts,
+                            "combined-charts.png"
+                        )
                 ),
             icon: "📷",
             text: "Save PNG",
@@ -162,8 +176,10 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Copy to Clipboard",
-                    (/** @type {any} */ chart) => exportUtils.copyChartToClipboard(chart),
-                    (/** @type {any} */ charts) => exportUtils.copyCombinedChartsToClipboard(charts)
+                    (/** @type {any} */ chart) =>
+                        exportUtils.copyChartToClipboard(chart),
+                    (/** @type {any} */ charts) =>
+                        exportUtils.copyCombinedChartsToClipboard(charts)
                 ),
             icon: "📋",
             text: "Copy Image",
@@ -177,11 +193,18 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.csv`;
-                            exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
+                            exportUtils.exportChartDataAsCSV(
+                                dataset.data,
+                                fieldName,
+                                filename
+                            );
                         }
                     },
                     (/** @type {any} */ charts) =>
-                        exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
+                        exportUtils.exportCombinedChartsDataAsCSV(
+                            charts,
+                            "combined-charts-data.csv"
+                        )
                 ),
             icon: "📊",
             text: "Export CSV",
@@ -195,32 +218,51 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.json`;
-                            exportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
+                            exportUtils.exportChartDataAsJSON(
+                                dataset.data,
+                                fieldName,
+                                filename
+                            );
                         }
                     },
                     (/** @type {any} */ charts) => {
                         const allChartsData = {
-                                charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
-                                    const [dataset] = chart.data.datasets;
-                                    return {
-                                        data: dataset?.data || [],
-                                        field: dataset?.label || `chart-${index}`,
-                                        totalPoints: dataset?.data ? dataset.data.length : 0,
-                                        type: chart.config.type,
-                                    };
-                                }),
+                                charts: charts.map(
+                                    (
+                                        /** @type {any} */ chart,
+                                        /** @type {number} */ index
+                                    ) => {
+                                        const [dataset] = chart.data.datasets;
+                                        return {
+                                            data: dataset?.data || [],
+                                            field:
+                                                dataset?.label ||
+                                                `chart-${index}`,
+                                            totalPoints: dataset?.data
+                                                ? dataset.data.length
+                                                : 0,
+                                            type: chart.config.type,
+                                        };
+                                    }
+                                ),
                                 exportedAt: new Date().toISOString(),
                             },
-                            blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
-                                type: "application/json;charset=utf-8;",
-                            }),
+                            blob = new Blob(
+                                [JSON.stringify(allChartsData, null, 2)],
+                                {
+                                    type: "application/json;charset=utf-8;",
+                                }
+                            ),
                             link = document.createElement("a");
                         link.href = URL.createObjectURL(blob);
                         link.download = "combined-charts-data.json";
                         document.body.append(link);
                         link.click();
                         link.remove();
-                        showNotification("Combined chart data exported as JSON", "success");
+                        showNotification(
+                            "Combined chart data exported as JSON",
+                            "success"
+                        );
                     }
                 ),
             icon: "📄",
@@ -231,16 +273,21 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 showChartSelectionModal(
                     "Print",
                     (/** @type {any} */ chart) => exportUtils.printChart(chart),
-                    (/** @type {any} */ charts) => exportUtils.printCombinedCharts(charts)
+                    (/** @type {any} */ charts) =>
+                        exportUtils.printCombinedCharts(charts)
                 ),
             icon: "🖨️",
             text: "Print",
         },
         {
             action: () => {
-                const charts = /** @type {WindowExtensions} */ (globalThis)._chartjsInstances;
+                const charts = /** @type {WindowExtensions} */ (globalThis)
+                    ._chartjsInstances;
                 if (!charts || charts.length === 0) {
-                    showNotification("No charts available to export", "warning");
+                    showNotification(
+                        "No charts available to export",
+                        "warning"
+                    );
                     return;
                 }
                 exportUtils.exportAllAsZip(charts);
@@ -256,7 +303,10 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
         {
             action: () => {
                 if (!exportUtils.isGyazoAuthenticated()) {
-                    showNotification("Please connect your Gyazo account first", "warning");
+                    showNotification(
+                        "Please connect your Gyazo account first",
+                        "warning"
+                    );
                     exportUtils.showGyazoAccountManager();
                     return;
                 }
@@ -421,28 +471,45 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     fieldsGrid.append(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-        const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
-            lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+    if (
+        /** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs
+    ) {
+        const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis)
+                .globalData,
+            lapZoneMsgs = timeInZoneMesgs.filter(
+                (/** @type {any} */ msg) => msg.referenceMesg === "lap"
+            );
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
-            const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+            const hrLapZones = lapZoneMsgs.filter(
+                (/** @type {any} */ msg) => msg.timeInHrZone
+            );
             if (hrLapZones.length > 0) {
-                const hrLapStackedToggle = createFieldToggle("hr_lap_zone_stacked");
+                const hrLapStackedToggle = createFieldToggle(
+                    "hr_lap_zone_stacked"
+                );
                 fieldsGrid.append(hrLapStackedToggle);
 
-                const hrLapIndividualToggle = createFieldToggle("hr_lap_zone_individual");
+                const hrLapIndividualToggle = createFieldToggle(
+                    "hr_lap_zone_individual"
+                );
                 fieldsGrid.append(hrLapIndividualToggle);
             }
 
             // Check for Power lap zone data
-            const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+            const powerLapZones = lapZoneMsgs.filter(
+                (/** @type {any} */ msg) => msg.timeInPowerZone
+            );
             if (powerLapZones.length > 0) {
-                const powerLapStackedToggle = createFieldToggle("power_lap_zone_stacked");
+                const powerLapStackedToggle = createFieldToggle(
+                    "power_lap_zone_stacked"
+                );
                 fieldsGrid.append(powerLapStackedToggle);
 
-                const powerLapIndividualToggle = createFieldToggle("power_lap_zone_individual");
+                const powerLapIndividualToggle = createFieldToggle(
+                    "power_lap_zone_individual"
+                );
                 fieldsGrid.append(powerLapIndividualToggle);
             }
         }
@@ -451,8 +518,11 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     // Add event messages toggle if data exists
     if (
         /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
-        /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
+        Array.isArray(
+            /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs
+        ) &&
+        /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs
+            .length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.append(eventMessagesToggle);
@@ -478,6 +548,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 }
 /**
  * Creates the settings header with title and global actions
+ *
  * @param {HTMLElement} wrapper - The wrapper element to add the header to
  */
 export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
@@ -532,27 +603,35 @@ export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
 
     // Reset to defaults button
     const // Export all charts button
-        exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
-            exportAllCharts();
-        }),
-        resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
-            // Provide immediate visual feedback
-            resetBtn.style.opacity = "0.6";
-            resetBtn.disabled = true;
-
-            // Perform the reset
-            const success = resetAllSettings();
-
-            // Re-enable button after reset completes
-            setTimeout(() => {
-                resetBtn.style.opacity = "1";
-                resetBtn.disabled = false;
-            }, 200);
-
-            if (!success) {
-                console.error("[ResetBtn] Reset failed");
+        exportAllBtn = createActionButton(
+            "📦 Export All",
+            "Export all charts as images",
+            () => {
+                exportAllCharts();
             }
-        });
+        ),
+        resetBtn = createActionButton(
+            "↻ Reset",
+            "Reset all settings to defaults",
+            () => {
+                // Provide immediate visual feedback
+                resetBtn.style.opacity = "0.6";
+                resetBtn.disabled = true;
+
+                // Perform the reset
+                const success = resetAllSettings();
+
+                // Re-enable button after reset completes
+                setTimeout(() => {
+                    resetBtn.style.opacity = "1";
+                    resetBtn.disabled = false;
+                }, 200);
+
+                if (!success) {
+                    console.error("[ResetBtn] Reset failed");
+                }
+            }
+        );
 
     globalActions.append(resetBtn);
     globalActions.append(exportAllBtn);
@@ -560,15 +639,22 @@ export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
     header.append(globalActions);
     wrapper.append(header);
 }
-export function showChartSelectionModal(actionType, singleCallback, combinedCallback) {
-    const charts = /** @type {WindowExtensions} */ (globalThis)._chartjsInstances;
+export function showChartSelectionModal(
+    actionType,
+    singleCallback,
+    combinedCallback
+) {
+    const charts = /** @type {WindowExtensions} */ (globalThis)
+        ._chartjsInstances;
     if (!charts || charts.length === 0) {
         showNotification("No charts available", "warning");
         return;
     }
 
     // Filter out invalid charts using exportUtils validation
-    const validCharts = charts.filter((/** @type {any} */ chart) => exportUtils.isValidChart(chart));
+    const validCharts = charts.filter((/** @type {any} */ chart) =>
+        exportUtils.isValidChart(chart)
+    );
 
     if (validCharts.length === 0) {
         showNotification("No valid charts available", "warning");
@@ -738,6 +824,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 }
 /**
  * Shows a modal to select which chart(s) to use for an action
+ *
  * @param {string} actionType - Type of action (copy, save, print, etc.)
  * @param {Function} singleCallback - Callback for single chart selection
  * @param {Function} combinedCallback - Callback for combined charts action
@@ -792,6 +879,7 @@ function createActionButton(
 
 /**
  * Creates individual control groups for each setting
+ *
  * @param {any} option - The control option configuration
  */
 function createControlGroup(option) {
@@ -872,24 +960,35 @@ function createFieldToggle(/** @type {string} */ field) {
     if (
         /** @type {WindowExtensions} */ (globalThis).globalData &&
         /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs &&
-        /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs.length > 0
+        /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
+            .length > 0
     ) {
-        const data = /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs;
+        const data = /** @type {WindowExtensions} */ (globalThis).globalData
+            .recordMesgs;
 
         switch (field) {
             case "altitude_profile": {
                 hasValidData = data.some((row) => {
                     const altitude = row.altitude || row.enhancedAltitude;
-                    return altitude !== undefined && altitude !== null && !isNaN(Number.parseFloat(altitude));
+                    return (
+                        altitude !== undefined &&
+                        altitude !== null &&
+                        !isNaN(Number.parseFloat(altitude))
+                    );
                 });
 
                 break;
             }
             case "event_messages": {
                 hasValidData = Boolean(
-                    /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-                    Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
-                    /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
+                    /** @type {WindowExtensions} */ (globalThis).globalData
+                        ?.eventMesgs &&
+                    Array.isArray(
+                        /** @type {WindowExtensions} */ (globalThis).globalData
+                            .eventMesgs
+                    ) &&
+                    /** @type {WindowExtensions} */ (globalThis).globalData
+                        .eventMesgs.length > 0
                 );
 
                 break;
@@ -899,8 +998,12 @@ function createFieldToggle(/** @type {string} */ field) {
                     const lat = row.positionLat,
                         long = row.positionLong;
                     return (
-                        (lat !== undefined && lat !== null && !isNaN(Number.parseFloat(lat))) ||
-                        (long !== undefined && long !== null && !isNaN(Number.parseFloat(long)))
+                        (lat !== undefined &&
+                            lat !== null &&
+                            !isNaN(Number.parseFloat(lat))) ||
+                        (long !== undefined &&
+                            long !== null &&
+                            !isNaN(Number.parseFloat(long)))
                     );
                 });
 
@@ -909,10 +1012,20 @@ function createFieldToggle(/** @type {string} */ field) {
             case "hr_lap_zone_individual":
             case "hr_lap_zone_stacked": {
                 // Check for HR lap zone data
-                if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                    const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
-                        lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                        hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+                if (
+                    /** @type {WindowExtensions} */ (globalThis).globalData
+                        ?.timeInZoneMesgs
+                ) {
+                    const { timeInZoneMesgs } =
+                            /** @type {WindowExtensions} */ (globalThis)
+                                .globalData,
+                        lapZoneMsgs = timeInZoneMesgs.filter(
+                            (/** @type {any} */ msg) =>
+                                msg.referenceMesg === "lap"
+                        ),
+                        hrLapZones = lapZoneMsgs.filter(
+                            (/** @type {any} */ msg) => msg.timeInHrZone
+                        );
                     hasValidData = hrLapZones.length > 0;
                 }
 
@@ -921,10 +1034,20 @@ function createFieldToggle(/** @type {string} */ field) {
             case "power_lap_zone_individual":
             case "power_lap_zone_stacked": {
                 // Check for Power lap zone data
-                if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                    const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
-                        lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                        powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+                if (
+                    /** @type {WindowExtensions} */ (globalThis).globalData
+                        ?.timeInZoneMesgs
+                ) {
+                    const { timeInZoneMesgs } =
+                            /** @type {WindowExtensions} */ (globalThis)
+                                .globalData,
+                        lapZoneMsgs = timeInZoneMesgs.filter(
+                            (/** @type {any} */ msg) =>
+                                msg.referenceMesg === "lap"
+                        ),
+                        powerLapZones = lapZoneMsgs.filter(
+                            (/** @type {any} */ msg) => msg.timeInPowerZone
+                        );
                     hasValidData = powerLapZones.length > 0;
                 }
 
@@ -933,11 +1056,19 @@ function createFieldToggle(/** @type {string} */ field) {
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
                         const hr = row.heartRate;
-                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                        return (
+                            hr !== undefined &&
+                            hr !== null &&
+                            !isNaN(Number.parseFloat(hr))
+                        );
                     }),
                     hasPower = data.some((row) => {
                         const { power } = row;
-                        return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                        return (
+                            power !== undefined &&
+                            power !== null &&
+                            !isNaN(Number.parseFloat(power))
+                        );
                     });
                 hasValidData = hasPower && hasHeartRate;
 
@@ -946,11 +1077,19 @@ function createFieldToggle(/** @type {string} */ field) {
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
                         const { distance } = row;
-                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                        return (
+                            distance !== undefined &&
+                            distance !== null &&
+                            !isNaN(Number.parseFloat(distance))
+                        );
                     }),
                     hasSpeed = data.some((row) => {
                         const speed = row.enhancedSpeed || row.speed;
-                        return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
+                        return (
+                            speed !== undefined &&
+                            speed !== null &&
+                            !isNaN(Number.parseFloat(speed))
+                        );
                     });
                 hasValidData = hasSpeed && hasDistance;
 
@@ -960,14 +1099,26 @@ function createFieldToggle(/** @type {string} */ field) {
                 if (field.includes("hr_zone")) {
                     hasValidData = data.some((row) => {
                         const hr = row.heartRate;
-                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                        return (
+                            hr !== undefined &&
+                            hr !== null &&
+                            !isNaN(Number.parseFloat(hr))
+                        );
                     });
                 } else if (field.includes("power_zone")) {
                     hasValidData = data.some((row) => {
                         const { power } = row;
-                        return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                        return (
+                            power !== undefined &&
+                            power !== null &&
+                            !isNaN(Number.parseFloat(power))
+                        );
                     });
-                } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
+                } else if (
+                    /** @type {string[]} */ (
+                        /** @type {unknown} */ (formatChartFields)
+                    ).includes(field)
+                ) {
                     // Regular chart field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
@@ -1044,9 +1195,11 @@ function createFieldToggle(/** @type {string} */ field) {
         colorPicker.type = "color";
 
         /**
-         * Normalize potentially-corrupted stored color values into a hex6 string
-         * that <input type="color"> can accept.
+         * Normalize potentially-corrupted stored color values into a hex6
+         * string that <input type="color"> can accept.
+         *
          * @param {unknown} value
+         *
          * @returns {string | null}
          */
         const normalizeColorInputHex = (value) => {
@@ -1057,11 +1210,21 @@ function createFieldToggle(/** @type {string} */ field) {
             if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
             // #RGB / #RGBA -> expand and strip alpha
             if (/^#[\da-f]{3}$/iu.test(v)) {
-                const [, r, g, b] = v;
+                const [
+                    ,
+                    r,
+                    g,
+                    b,
+                ] = v;
                 return `#${r}${r}${g}${g}${b}${b}`;
             }
             if (/^#[\da-f]{4}$/iu.test(v)) {
-                const [, r, g, b] = v;
+                const [
+                    ,
+                    r,
+                    g,
+                    b,
+                ] = v;
                 return `#${r}${r}${g}${g}${b}${b}`;
             }
             return null;
@@ -1069,7 +1232,9 @@ function createFieldToggle(/** @type {string} */ field) {
 
         const storedColor = getChartSetting(`color_${field}`);
         const candidate =
-            storedColor || /** @type {any} */ (fieldColors)[field] || /** @type {any} */ (themeConfig).colors?.accent;
+            storedColor ||
+            /** @type {any} */ (fieldColors)[field] ||
+            /** @type {any} */ (themeConfig).colors?.accent;
         colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
         colorPicker.style.cssText = `
 			width: 32px;
@@ -1089,7 +1254,10 @@ function createFieldToggle(/** @type {string} */ field) {
                 })
             );
 
-            reRenderChartsAfterSettingChange(`${field}_color`, colorPicker.value);
+            reRenderChartsAfterSettingChange(
+                `${field}_color`,
+                colorPicker.value
+            );
         });
 
         container.append(toggle);
@@ -1112,9 +1280,13 @@ function createFieldToggle(/** @type {string} */ field) {
             chartStateManager.debouncedRender(`Field toggle: ${field}`);
         } else {
             // Fallback without importing renderChartJS to avoid circular deps
-            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.("Field toggle fallback");
+            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.(
+                "Field toggle fallback"
+            );
             globalThis.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", { detail: { reason: "field-toggle" } })
+                new CustomEvent("ffv:request-render-charts", {
+                    detail: { reason: "field-toggle" },
+                })
             );
         }
 
@@ -1138,6 +1310,7 @@ function createFieldToggle(/** @type {string} */ field) {
 }
 /**
  * Creates a range slider control
+ *
  * @param {ChartOption} option - The range control option configuration
  */
 function createRangeControl(/** @type {ChartOption} */ option) {
@@ -1147,7 +1320,8 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 	`;
 
     const defaultRaw = option.defaultValue ?? option.default ?? 0;
-    const defaultNumber = typeof defaultRaw === "number" ? defaultRaw : Number(defaultRaw);
+    const defaultNumber =
+        typeof defaultRaw === "number" ? defaultRaw : Number(defaultRaw);
     const fallbackValue = Number.isFinite(defaultNumber) ? defaultNumber : 0;
     const storedValue = getChartSetting(option.id);
     const resolvedValue = (() => {
@@ -1164,7 +1338,9 @@ function createRangeControl(/** @type {ChartOption} */ option) {
         return fallbackValue;
     })();
 
-    const slider = /** @type {HTMLInputElementExtended} */ (document.createElement("input"));
+    const slider = /** @type {HTMLInputElementExtended} */ (
+        document.createElement("input")
+    );
     slider.type = "range";
     slider.id = `chartjs-${option.id}-slider`;
     slider.min = String(option.min || 0);
@@ -1230,7 +1406,9 @@ function createRangeControl(/** @type {ChartOption} */ option) {
             // input[type=range] should always produce a numeric string within min/max,
             // but we clamp defensively in case of stored-state corruption or unexpected DOM.
             const current = Number(target.value);
-            const safeCurrent = Number.isFinite(current) ? Math.min(maxVal, Math.max(minVal, current)) : clamped;
+            const safeCurrent = Number.isFinite(current)
+                ? Math.min(maxVal, Math.max(minVal, current))
+                : clamped;
             const safeValue = String(safeCurrent);
 
             valueDisplay.textContent = safeValue;
@@ -1238,7 +1416,8 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 
             // Update slider background
             const range = maxVal - minVal;
-            const percentage = range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
+            const percentage =
+                range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
             // Debounced re-render using the same approach as the reset button
@@ -1252,7 +1431,8 @@ function createRangeControl(/** @type {ChartOption} */ option) {
     // Initialize slider background
     // Set initial background
     const range = maxVal - minVal;
-    const initialPercentage = range > 0 ? ((Number(slider.value) - minVal) / range) * 100 : 0;
+    const initialPercentage =
+        range > 0 ? ((Number(slider.value) - minVal) / range) * 100 : 0;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.append(valueDisplay);
@@ -1300,16 +1480,25 @@ function createSelectControl(/** @type {ChartOption} */ option) {
                       ? "Enabled"
                       : val === "off"
                         ? "Disabled"
-                        : String(val).charAt(0).toUpperCase() + String(val).slice(1);
+                        : String(val).charAt(0).toUpperCase() +
+                          String(val).slice(1);
             optionEl.style.background = "var(--color-bg-solid)";
             optionEl.style.color = "var(--color-fg)";
             select.append(optionEl);
         }
 
     const storedValue = getChartSetting(option.id);
-    const allowed = Array.isArray(option.options) ? new Set(option.options.map(String)) : null;
-    const fallback = option.default === undefined ? String(option.options?.[0] ?? "") : String(option.default);
-    const candidate = storedValue === null || storedValue === undefined ? fallback : String(storedValue);
+    const allowed = Array.isArray(option.options)
+        ? new Set(option.options.map(String))
+        : null;
+    const fallback =
+        option.default === undefined
+            ? String(option.options?.[0] ?? "")
+            : String(option.default);
+    const candidate =
+        storedValue === null || storedValue === undefined
+            ? fallback
+            : String(storedValue);
     select.value = allowed && !allowed.has(candidate) ? fallback : candidate;
 
     // Mouse wheel support for maxpoints
@@ -1318,7 +1507,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
             "wheel",
             (e) => {
                 e.preventDefault();
-                const idx = option.options?.indexOf(select.value === "all" ? "all" : Number(select.value)) ?? -1;
+                const idx =
+                    option.options?.indexOf(
+                        select.value === "all" ? "all" : Number(select.value)
+                    ) ?? -1;
                 let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
                 if (newIdx < 0) {
                     newIdx = 0;
@@ -1336,7 +1528,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
     select.addEventListener("change", (/** @type {Event} */ e) => {
         const { target } = /** @type {HTMLSelectElement} */ (e);
         if (target) {
-            const nextValue = option.id === "maxpoints" && target.value !== "all" ? Number(target.value) : target.value;
+            const nextValue =
+                option.id === "maxpoints" && target.value !== "all"
+                    ? Number(target.value)
+                    : target.value;
             setChartSetting(option.id, nextValue);
             reRenderChartsAfterSettingChange(option.id, nextValue);
         }
@@ -1353,7 +1548,9 @@ function createSelectControl(/** @type {ChartOption} */ option) {
  * Creates a toggle switch control
  */
 function createToggleControl(/** @type {ChartOption} */ option) {
-    const container = /** @type {HTMLDivElementExtended} */ (document.createElement("div"));
+    const container = /** @type {HTMLDivElementExtended} */ (
+        document.createElement("div")
+    );
     container.style.cssText = `
 		display: flex;
 		align-items: center;
@@ -1459,13 +1656,16 @@ function createToggleControl(/** @type {ChartOption} */ option) {
 
 /**
  * Toggles all field visibility at once
+ *
  * @param {boolean} enable - Whether to enable or disable all fields
  */
 function toggleAllFields(enable) {
     try {
         const // Get all possible field keys
             allFields = [
-                .../** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)),
+                .../** @type {string[]} */ (
+                    /** @type {unknown} */ (formatChartFields)
+                ),
                 "gps_track",
                 "speed_vs_distance",
                 "power_vs_hr",
@@ -1486,7 +1686,8 @@ function toggleAllFields(enable) {
             /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
         ) {
             const devFields = extractDeveloperFieldsList(
-                /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
+                /** @type {WindowExtensions} */ (globalThis).globalData
+                    .recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields
@@ -1502,7 +1703,9 @@ function toggleAllFields(enable) {
         );
 
         // Update all toggle checkboxes in the UI
-        const toggles = document.querySelectorAll('.field-toggle input[type="checkbox"]');
+        const toggles = document.querySelectorAll(
+            '.field-toggle input[type="checkbox"]'
+        );
         for (const toggle of toggles) {
             /** @type {HTMLInputElement} */ (toggle).checked = enable;
         }
@@ -1515,9 +1718,13 @@ function toggleAllFields(enable) {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
-            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.("Settings change fallback");
+            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.(
+                "Settings change fallback"
+            );
             globalThis.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", { detail: { reason: "settings-change" } })
+                new CustomEvent("ffv:request-render-charts", {
+                    detail: { reason: "settings-change" },
+                })
             );
         }
 

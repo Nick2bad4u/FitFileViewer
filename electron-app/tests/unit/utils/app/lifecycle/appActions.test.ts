@@ -63,7 +63,11 @@ import {
 } from "../../../../../utils/app/lifecycle/appActions.js";
 
 // Helper: apply common setup/teardown per test and disable requireAssertions just for this test body
-const itHasAssertions = (name: string, fn: () => any | Promise<any>, timeout?: number) =>
+const itHasAssertions = (
+    name: string,
+    fn: () => any | Promise<any>,
+    timeout?: number
+) =>
     it(
         name,
         async () => {
@@ -83,7 +87,8 @@ const itHasAssertions = (name: string, fn: () => any | Promise<any>, timeout?: n
             h.mockFitManager.isLoading.mockReset();
             h.mockFitManager.isLoading.mockReturnValue(false);
             h.mockFitManager.clearFileState.mockReset();
-            for (const k of Object.keys(h.subscribeCallbacks)) delete h.subscribeCallbacks[k];
+            for (const k of Object.keys(h.subscribeCallbacks))
+                delete h.subscribeCallbacks[k];
             try {
                 expect.hasAssertions();
                 return await fn();
@@ -104,91 +109,171 @@ describe("AppActions", () => {
         AppActions.clearData();
 
         // Expect multiple setState calls for clearing data
-        const keys = ["globalData", "currentFile", "charts.isRendered", "map.isRendered", "tables.isRendered"];
+        const keys = [
+            "globalData",
+            "currentFile",
+            "charts.isRendered",
+            "map.isRendered",
+            "tables.isRendered",
+        ];
         for (const k of keys) {
-            expect(h.mockSetState).toHaveBeenCalledWith(k, k.includes("isRendered") ? false : null, expect.any(Object));
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                k,
+                k.includes("isRendered") ? false : null,
+                expect.any(Object)
+            );
         }
         expect(h.mockFitManager.clearFileState).toHaveBeenCalledTimes(1);
-        expect(h.mockShowNotification).toHaveBeenCalledWith("Data cleared", "info");
-    });
-
-    itHasAssertions("loadFile delegates to fitFileStateManager when available", async () => {
-        await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
-
-        expect(h.mockFitManager.startFileLoading).toHaveBeenCalledWith("path/fit.fit");
-        expect(h.mockFitManager.isLoading).toHaveBeenCalled();
-        expect(h.mockFitManager.handleFileLoaded).toHaveBeenCalledWith(
-            { foo: "bar" },
-            expect.objectContaining({ filePath: "path/fit.fit", source: "AppActions.loadFile" })
-        );
-        expect(h.mockShowNotification).not.toHaveBeenCalled();
-        expect(h.mockSetState).not.toHaveBeenCalled();
-    });
-
-    itHasAssertions("loadFile falls back to legacy flow when domain manager is unavailable", async () => {
-        const originalHandle = h.mockFitManager.handleFileLoaded;
-        const originalStart = h.mockFitManager.startFileLoading;
-        const originalIsLoading = h.mockFitManager.isLoading;
-
-        // Simulate unavailable manager by clearing capabilities
-        // @ts-expect-error test override
-        h.mockFitManager.handleFileLoaded = undefined;
-        // @ts-expect-error test override
-        h.mockFitManager.startFileLoading = undefined;
-        // @ts-expect-error test override
-        h.mockFitManager.isLoading = undefined;
-
-        await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
-
-        expect(h.mockSetState).toHaveBeenCalledWith("isLoading", true, expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("globalData", { foo: "bar" }, expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("currentFile", "path/fit.fit", expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("charts.isRendered", false, expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("map.isRendered", false, expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("tables.isRendered", false, expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("performance.lastLoadTime", expect.any(Number), expect.any(Object));
-        expect(h.mockSetState).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
-        expect(h.mockShowNotification).toHaveBeenCalledWith("File loaded successfully", "success");
-
-        // Restore mocks for subsequent tests
-        h.mockFitManager.handleFileLoaded = originalHandle;
-        h.mockFitManager.startFileLoading = originalStart;
-        h.mockFitManager.isLoading = originalIsLoading;
-    });
-
-    itHasAssertions("loadFile surfaces delegated errors and clears loading", async () => {
-        h.mockFitManager.handleFileLoaded.mockImplementation(() => {
-            throw new Error("boom");
-        });
-
-        await expect(AppActions.loadFile({} as any, "x")).rejects.toThrow("boom");
-        expect(h.mockSetState).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
-        expect(h.mockShowNotification).toHaveBeenCalledWith("Failed to load file", "error");
-    });
-
-    itHasAssertions("renderChart should update charts slice and performance", () => {
-        AppActions.renderChart({ datasets: [] }, { responsive: true } as any);
-        expect(h.mockUpdateState).toHaveBeenCalledWith(
-            "charts",
-            expect.objectContaining({
-                isRendered: true,
-                chartData: { datasets: [] },
-                chartOptions: { responsive: true },
-            }),
-            expect.any(Object)
-        );
-        expect(h.mockUpdateState).toHaveBeenCalledWith(
-            "performance.renderTimes",
-            expect.objectContaining({ chart: expect.any(Number) }),
-            expect.any(Object)
+        expect(h.mockShowNotification).toHaveBeenCalledWith(
+            "Data cleared",
+            "info"
         );
     });
+
+    itHasAssertions(
+        "loadFile delegates to fitFileStateManager when available",
+        async () => {
+            await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
+
+            expect(h.mockFitManager.startFileLoading).toHaveBeenCalledWith(
+                "path/fit.fit"
+            );
+            expect(h.mockFitManager.isLoading).toHaveBeenCalled();
+            expect(h.mockFitManager.handleFileLoaded).toHaveBeenCalledWith(
+                { foo: "bar" },
+                expect.objectContaining({
+                    filePath: "path/fit.fit",
+                    source: "AppActions.loadFile",
+                })
+            );
+            expect(h.mockShowNotification).not.toHaveBeenCalled();
+            expect(h.mockSetState).not.toHaveBeenCalled();
+        }
+    );
+
+    itHasAssertions(
+        "loadFile falls back to legacy flow when domain manager is unavailable",
+        async () => {
+            const originalHandle = h.mockFitManager.handleFileLoaded;
+            const originalStart = h.mockFitManager.startFileLoading;
+            const originalIsLoading = h.mockFitManager.isLoading;
+
+            // Simulate unavailable manager by clearing capabilities
+            // @ts-expect-error test override
+            h.mockFitManager.handleFileLoaded = undefined;
+            // @ts-expect-error test override
+            h.mockFitManager.startFileLoading = undefined;
+            // @ts-expect-error test override
+            h.mockFitManager.isLoading = undefined;
+
+            await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
+
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "isLoading",
+                true,
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "globalData",
+                { foo: "bar" },
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "currentFile",
+                "path/fit.fit",
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "charts.isRendered",
+                false,
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "map.isRendered",
+                false,
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "tables.isRendered",
+                false,
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "performance.lastLoadTime",
+                expect.any(Number),
+                expect.any(Object)
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "isLoading",
+                false,
+                expect.any(Object)
+            );
+            expect(h.mockShowNotification).toHaveBeenCalledWith(
+                "File loaded successfully",
+                "success"
+            );
+
+            // Restore mocks for subsequent tests
+            h.mockFitManager.handleFileLoaded = originalHandle;
+            h.mockFitManager.startFileLoading = originalStart;
+            h.mockFitManager.isLoading = originalIsLoading;
+        }
+    );
+
+    itHasAssertions(
+        "loadFile surfaces delegated errors and clears loading",
+        async () => {
+            h.mockFitManager.handleFileLoaded.mockImplementation(() => {
+                throw new Error("boom");
+            });
+
+            await expect(AppActions.loadFile({} as any, "x")).rejects.toThrow(
+                "boom"
+            );
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "isLoading",
+                false,
+                expect.any(Object)
+            );
+            expect(h.mockShowNotification).toHaveBeenCalledWith(
+                "Failed to load file",
+                "error"
+            );
+        }
+    );
+
+    itHasAssertions(
+        "renderChart should update charts slice and performance",
+        () => {
+            AppActions.renderChart({ datasets: [] }, {
+                responsive: true,
+            } as any);
+            expect(h.mockUpdateState).toHaveBeenCalledWith(
+                "charts",
+                expect.objectContaining({
+                    isRendered: true,
+                    chartData: { datasets: [] },
+                    chartOptions: { responsive: true },
+                }),
+                expect.any(Object)
+            );
+            expect(h.mockUpdateState).toHaveBeenCalledWith(
+                "performance.renderTimes",
+                expect.objectContaining({ chart: expect.any(Number) }),
+                expect.any(Object)
+            );
+        }
+    );
 
     itHasAssertions("renderMap should update map slice and performance", () => {
         AppActions.renderMap([10, 20], 15);
         expect(h.mockUpdateState).toHaveBeenCalledWith(
             "map",
-            expect.objectContaining({ isRendered: true, center: [10, 20], zoom: 15 }),
+            expect.objectContaining({
+                isRendered: true,
+                center: [10, 20],
+                zoom: 15,
+            }),
             expect.any(Object)
         );
         expect(h.mockUpdateState).toHaveBeenCalledWith(
@@ -198,60 +283,107 @@ describe("AppActions", () => {
         );
     });
 
-    itHasAssertions("renderTable should update tables slice and performance", () => {
-        AppActions.renderTable({ columns: ["a"] } as any);
-        expect(h.mockUpdateState).toHaveBeenCalledWith(
-            "tables",
-            expect.objectContaining({ isRendered: true, columns: ["a"] }),
-            expect.any(Object)
-        );
-        expect(h.mockUpdateState).toHaveBeenCalledWith(
-            "performance.renderTimes",
-            expect.objectContaining({ table: expect.any(Number) }),
-            expect.any(Object)
-        );
-    });
+    itHasAssertions(
+        "renderTable should update tables slice and performance",
+        () => {
+            AppActions.renderTable({ columns: ["a"] } as any);
+            expect(h.mockUpdateState).toHaveBeenCalledWith(
+                "tables",
+                expect.objectContaining({ isRendered: true, columns: ["a"] }),
+                expect.any(Object)
+            );
+            expect(h.mockUpdateState).toHaveBeenCalledWith(
+                "performance.renderTimes",
+                expect.objectContaining({ table: expect.any(Number) }),
+                expect.any(Object)
+            );
+        }
+    );
 
-    itHasAssertions("selectLap, setFileOpening, setInitialized, updateWindowState call set/update state", () => {
-        AppActions.selectLap(3);
-        expect(h.mockSetState).toHaveBeenCalledWith("map.selectedLap", 3, expect.any(Object));
+    itHasAssertions(
+        "selectLap, setFileOpening, setInitialized, updateWindowState call set/update state",
+        () => {
+            AppActions.selectLap(3);
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "map.selectedLap",
+                3,
+                expect.any(Object)
+            );
 
-        AppActions.setFileOpening(true);
-        expect(h.mockSetState).toHaveBeenCalledWith("app.isOpeningFile", true, expect.any(Object));
+            AppActions.setFileOpening(true);
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "app.isOpeningFile",
+                true,
+                expect.any(Object)
+            );
 
-        AppActions.setInitialized(true);
-        expect(h.mockSetState).toHaveBeenCalledWith("app.initialized", true, expect.any(Object));
+            AppActions.setInitialized(true);
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "app.initialized",
+                true,
+                expect.any(Object)
+            );
 
-        AppActions.updateWindowState({ w: 1 } as any);
-        expect(h.mockUpdateState).toHaveBeenCalledWith("ui.windowState", { w: 1 }, expect.any(Object));
-    });
+            AppActions.updateWindowState({ w: 1 } as any);
+            expect(h.mockUpdateState).toHaveBeenCalledWith(
+                "ui.windowState",
+                { w: 1 },
+                expect.any(Object)
+            );
+        }
+    );
 
-    itHasAssertions("switchTab validates values and sets state when valid", () => {
-        AppActions.switchTab("chart");
-        expect(h.mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", expect.any(Object));
-        h.mockSetState.mockClear();
-        AppActions.switchTab("not-a-tab");
-        expect(h.mockSetState).not.toHaveBeenCalled();
-    });
+    itHasAssertions(
+        "switchTab validates values and sets state when valid",
+        () => {
+            AppActions.switchTab("chart");
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "chart",
+                expect.any(Object)
+            );
+            h.mockSetState.mockClear();
+            AppActions.switchTab("not-a-tab");
+            expect(h.mockSetState).not.toHaveBeenCalled();
+        }
+    );
 
-    itHasAssertions("switchTheme validates values and sets state when valid", () => {
-        AppActions.switchTheme("dark");
-        expect(h.mockSetState).toHaveBeenCalledWith("ui.theme", "dark", expect.any(Object));
-        h.mockSetState.mockClear();
-        AppActions.switchTheme("purple");
-        expect(h.mockSetState).not.toHaveBeenCalled();
-    });
+    itHasAssertions(
+        "switchTheme validates values and sets state when valid",
+        () => {
+            AppActions.switchTheme("dark");
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "ui.theme",
+                "dark",
+                expect.any(Object)
+            );
+            h.mockSetState.mockClear();
+            AppActions.switchTheme("purple");
+            expect(h.mockSetState).not.toHaveBeenCalled();
+        }
+    );
 
-    itHasAssertions("toggleChartControls and toggleMeasurementMode invert current value", () => {
-        h.mockGetState.mockImplementation((path: string) => {
-            if (path === "charts.controlsVisible") return false;
-            if (path === "map.measurementMode") return true;
-        });
-        AppActions.toggleChartControls();
-        expect(h.mockSetState).toHaveBeenCalledWith("charts.controlsVisible", true, expect.any(Object));
-        AppActions.toggleMeasurementMode();
-        expect(h.mockSetState).toHaveBeenCalledWith("map.measurementMode", false, expect.any(Object));
-    });
+    itHasAssertions(
+        "toggleChartControls and toggleMeasurementMode invert current value",
+        () => {
+            h.mockGetState.mockImplementation((path: string) => {
+                if (path === "charts.controlsVisible") return false;
+                if (path === "map.measurementMode") return true;
+            });
+            AppActions.toggleChartControls();
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "charts.controlsVisible",
+                true,
+                expect.any(Object)
+            );
+            AppActions.toggleMeasurementMode();
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "map.measurementMode",
+                false,
+                expect.any(Object)
+            );
+        }
+    );
 });
 
 describe("AppSelectors", () => {
@@ -291,27 +423,35 @@ describe("AppSelectors", () => {
     });
 
     itHasAssertions("isTabActive compares to activeTab", () => {
-        h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "map" : undefined));
+        h.mockGetState.mockImplementation((path: string) =>
+            path === "ui.activeTab" ? "map" : undefined
+        );
         expect(AppSelectors.isTabActive("map")).toBe(true);
         expect(AppSelectors.isTabActive("chart")).toBe(false);
     });
 });
 
 describe("StateMiddleware", () => {
-    itHasAssertions("apply should pass through value when middleware returns undefined", () => {
-        const mw = new StateMiddleware();
-        mw.use((_p, v) => {
-            // no return
-        });
-        expect(mw.apply("x", 10, 0, {})).toBe(10);
-    });
+    itHasAssertions(
+        "apply should pass through value when middleware returns undefined",
+        () => {
+            const mw = new StateMiddleware();
+            mw.use((_p, v) => {
+                // no return
+            });
+            expect(mw.apply("x", 10, 0, {})).toBe(10);
+        }
+    );
 
-    itHasAssertions("apply should use modified value when middleware returns value", () => {
-        const mw = new StateMiddleware();
-        mw.use((_p, v) => (typeof v === "number" ? v + 1 : v));
-        mw.use((_p, v) => (typeof v === "number" ? v * 2 : v));
-        expect(mw.apply("y", 10, 0, {})).toBe(22);
-    });
+    itHasAssertions(
+        "apply should use modified value when middleware returns value",
+        () => {
+            const mw = new StateMiddleware();
+            mw.use((_p, v) => (typeof v === "number" ? v + 1 : v));
+            mw.use((_p, v) => (typeof v === "number" ? v * 2 : v));
+            expect(mw.apply("y", 10, 0, {})).toBe(22);
+        }
+    );
 
     itHasAssertions("apply should catch middleware errors and continue", () => {
         const mw = new StateMiddleware();
@@ -327,39 +467,49 @@ describe("StateMiddleware", () => {
 });
 
 describe("useComputed and useState", () => {
-    itHasAssertions("useComputed should cache until dependencies invalidate", () => {
-        let calls = 0;
-        const compute = vi.fn(() => {
-            calls += 1;
-            return calls;
-        });
-        const getter = useComputed(compute, ["a", "b"]);
+    itHasAssertions(
+        "useComputed should cache until dependencies invalidate",
+        () => {
+            let calls = 0;
+            const compute = vi.fn(() => {
+                calls += 1;
+                return calls;
+            });
+            const getter = useComputed(compute, ["a", "b"]);
 
-        // First call computes
-        expect(getter()).toBe(1);
-        expect(getter()).toBe(1); // cached
-        expect(compute).toHaveBeenCalledTimes(1);
+            // First call computes
+            expect(getter()).toBe(1);
+            expect(getter()).toBe(1); // cached
+            expect(compute).toHaveBeenCalledTimes(1);
 
-        // Invalidate via subscribed callback
-        const aCallbacks = h.subscribeCallbacks["a"];
-        expect(aCallbacks?.length).toBeGreaterThan(0);
-        aCallbacks![0]!();
+            // Invalidate via subscribed callback
+            const aCallbacks = h.subscribeCallbacks["a"];
+            expect(aCallbacks?.length).toBeGreaterThan(0);
+            aCallbacks![0]!();
 
-        expect(getter()).toBe(2);
-        expect(compute).toHaveBeenCalledTimes(2);
+            expect(getter()).toBe(2);
+            expect(compute).toHaveBeenCalledTimes(2);
 
-        // Cleanup unsubscribes
-        const before = h.subscribeCallbacks["a"]?.length ?? 0;
-        getter.cleanup();
-        const after = h.subscribeCallbacks["a"]?.length ?? 0;
-        expect(after).toBeLessThan(before);
-    });
+            // Cleanup unsubscribes
+            const before = h.subscribeCallbacks["a"]?.length ?? 0;
+            getter.cleanup();
+            const after = h.subscribeCallbacks["a"]?.length ?? 0;
+            expect(after).toBeLessThan(before);
+        }
+    );
 
-    itHasAssertions("useState should provide default and setter that writes back", () => {
-        h.mockGetState.mockReturnValueOnce(undefined);
-        const [value, setValue] = useState("path.to.value", 42);
-        expect(value).toBe(42);
-        setValue(99);
-        expect(h.mockSetState).toHaveBeenCalledWith("path.to.value", 99, expect.any(Object));
-    });
+    itHasAssertions(
+        "useState should provide default and setter that writes back",
+        () => {
+            h.mockGetState.mockReturnValueOnce(undefined);
+            const [value, setValue] = useState("path.to.value", 42);
+            expect(value).toBe(42);
+            setValue(99);
+            expect(h.mockSetState).toHaveBeenCalledWith(
+                "path.to.value",
+                99,
+                expect.any(Object)
+            );
+        }
+    );
 });

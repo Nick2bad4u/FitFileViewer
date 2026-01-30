@@ -5,23 +5,31 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
  * Minimal shape description to avoid importing chart.js types.
+ *
  * @typedef {Object} MinimalChart
+ *
  * @property {HTMLCanvasElement} canvas
  * @property {CanvasRenderingContext2D} ctx
  * @property {Function} [isZoomedOrPanned]
  * @property {Function} [resetZoom]
- * @property {Object.<string,any>} [_zoomResetBtnBounds]
- * @property {Object.<string,any>} [options]
+ * @property {Object<string, any>} [_zoomResetBtnBounds]
+ * @property {Object<string, any>} [options]
  */
 
 /**
  * @typedef {Object} ChartEventArgs
- * @property {{ type:string, native?: any }} event
+ *
+ * @property {{ type: string; native?: any }} event
  */
 
 /**
  * Zoom reset plugin with defensive guards and minimal typing.
- * @type {{ id:string, afterDraw:(chart:MinimalChart)=>void, afterEvent:(chart:MinimalChart, args:ChartEventArgs)=>void }}
+ *
+ * @type {{
+ *     id: string;
+ *     afterDraw: (chart: MinimalChart) => void;
+ *     afterEvent: (chart: MinimalChart, args: ChartEventArgs) => void;
+ * }}
  */
 export const chartZoomResetPlugin = {
     afterDraw(chart) {
@@ -35,11 +43,20 @@ export const chartZoomResetPlugin = {
                 return;
             }
             const themeConfig = getThemeConfig() || /** @type {any} */ ({}),
-                colors = /** @type {any} */ ((themeConfig && /** @type {any} */ (themeConfig).colors) || {}),
-                accent = typeof colors.accent === "string" ? colors.accent : "#667eea",
+                colors = /** @type {any} */ (
+                    (themeConfig && /** @type {any} */ (themeConfig).colors) ||
+                        {}
+                ),
+                accent =
+                    typeof colors.accent === "string"
+                        ? colors.accent
+                        : "#667eea",
                 btnH = 30,
                 btnW = 100,
-                textPrimary = typeof colors.textPrimary === "string" ? colors.textPrimary : "#ffffff",
+                textPrimary =
+                    typeof colors.textPrimary === "string"
+                        ? colors.textPrimary
+                        : "#ffffff",
                 x = (canvas.width || 0) - btnW - 12,
                 y = 12;
 
@@ -73,7 +90,10 @@ export const chartZoomResetPlugin = {
             chart._zoomResetBtnBounds = { h: btnH, w: btnW, x, y };
         } catch (error) {
             // Silent fail to avoid breaking charts
-            if (globalThis.window !== undefined && /** @type {any} */ (globalThis).__renderer_dev?.debug) {
+            if (
+                globalThis.window !== undefined &&
+                /** @type {any} */ (globalThis).__renderer_dev?.debug
+            ) {
                 console.warn("[chartZoomResetPlugin] afterDraw error", error);
             }
         }
@@ -122,7 +142,10 @@ export const chartZoomResetPlugin = {
                 }
             }
         } catch (error) {
-            if (globalThis.window !== undefined && /** @type {any} */ (globalThis).__renderer_dev?.debug) {
+            if (
+                globalThis.window !== undefined &&
+                /** @type {any} */ (globalThis).__renderer_dev?.debug
+            ) {
                 console.warn("[chartZoomResetPlugin] afterEvent error", error);
             }
         }
@@ -141,7 +164,7 @@ if (typeof CanvasRenderingContext2D !== "undefined") {
          * @param {number} y
          * @param {number} width
          * @param {number} height
-         * @param {number|Object} radius
+         * @param {number | Object} radius
          */
         ctxProto.roundRect = function (x, y, width, height, radius) {
             let r;
@@ -149,7 +172,12 @@ if (typeof CanvasRenderingContext2D !== "undefined") {
                 r = { bl: radius, br: radius, tl: radius, tr: radius };
             } else if (radius && typeof radius === "object") {
                 const o = /** @type {any} */ (radius);
-                r = { bl: o.bl || 0, br: o.br || 0, tl: o.tl || 0, tr: o.tr || 0 };
+                r = {
+                    bl: o.bl || 0,
+                    br: o.br || 0,
+                    tl: o.tl || 0,
+                    tr: o.tr || 0,
+                };
             } else {
                 r = { bl: 5, br: 5, tl: 5, tr: 5 };
             }
@@ -158,7 +186,12 @@ if (typeof CanvasRenderingContext2D !== "undefined") {
             this.lineTo(x + width - r.tr, y);
             this.quadraticCurveTo(x + width, y, x + width, y + r.tr);
             this.lineTo(x + width, y + height - r.br);
-            this.quadraticCurveTo(x + width, y + height, x + width - r.br, y + height);
+            this.quadraticCurveTo(
+                x + width,
+                y + height,
+                x + width - r.br,
+                y + height
+            );
             this.lineTo(x + r.bl, y + height);
             this.quadraticCurveTo(x, y + height, x, y + height - r.bl);
             this.lineTo(x, y + r.tl);

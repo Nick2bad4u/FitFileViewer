@@ -8,7 +8,10 @@ describe("preload.js - Additional edge coverage", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        preloadCode = fs.readFileSync(path.resolve(__dirname, "../../preload.js"), "utf-8");
+        preloadCode = fs.readFileSync(
+            path.resolve(__dirname, "../../preload.js"),
+            "utf-8"
+        );
     });
 
     it("does not expose when validateAPI fails and logs errors", () => {
@@ -18,8 +21,12 @@ describe("preload.js - Additional edge coverage", () => {
             on: vi.fn(),
         };
 
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        const consoleLogSpy = vi
+            .spyOn(console, "log")
+            .mockImplementation(() => {});
 
         const mockRequire = vi.fn((mod: string) => {
             if (mod === "electron") {
@@ -32,18 +39,27 @@ describe("preload.js - Additional edge coverage", () => {
         const mockProcess = { env: { NODE_ENV: "development" }, once: vi.fn() };
 
         // Execute preload in this constrained environment
-        const runner = new Function("require", "console", "process", preloadCode);
+        const runner = new Function(
+            "require",
+            "console",
+            "process",
+            preloadCode
+        );
         runner(mockRequire as any, console, mockProcess as any);
 
         // Should have logged validation failure (no electronAPI exposure)
         const validationErrors = consoleErrorSpy.mock.calls.filter(
-            (c) => typeof c[0] === "string" && c[0].includes("API validation failed - not exposing")
+            (c) =>
+                typeof c[0] === "string" &&
+                c[0].includes("API validation failed - not exposing")
         );
         expect(validationErrors.length).toBeGreaterThan(0);
 
         // Dev tools exposure should also fail and log an error due to missing contextBridge
         const devtoolsErrors = consoleErrorSpy.mock.calls.filter(
-            (c) => typeof c[0] === "string" && c[0].includes("Failed to expose development tools")
+            (c) =>
+                typeof c[0] === "string" &&
+                c[0].includes("Failed to expose development tools")
         );
         expect(devtoolsErrors.length).toBeGreaterThan(0);
 
@@ -61,19 +77,29 @@ describe("preload.js - Additional edge coverage", () => {
             on: vi.fn(),
         };
         const contextBridge = {
-            exposeInMainWorld: vi.fn().mockImplementation((name: string, api: any) => {
-                (globalThis as any)[name] = api;
-            }),
+            exposeInMainWorld: vi
+                .fn()
+                .mockImplementation((name: string, api: any) => {
+                    (globalThis as any)[name] = api;
+                }),
         };
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         const mockRequire = vi.fn((mod: string) => {
-            if (mod === "electron") return { ipcRenderer, contextBridge } as any;
+            if (mod === "electron")
+                return { ipcRenderer, contextBridge } as any;
             throw new Error(`Unknown module: ${mod}`);
         });
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
 
-        const runner = new Function("require", "console", "process", preloadCode);
+        const runner = new Function(
+            "require",
+            "console",
+            "process",
+            preloadCode
+        );
         runner(mockRequire as any, console, mockProcess as any);
 
         const api = (globalThis as any).electronAPI;
@@ -82,7 +108,9 @@ describe("preload.js - Additional edge coverage", () => {
         // Register onOpenRecentFile and capture wrapper
         const cb = vi.fn();
         api.onOpenRecentFile(cb);
-        const call = ipcRenderer.on.mock.calls.find((c: any[]) => c[0] === "open-recent-file");
+        const call = ipcRenderer.on.mock.calls.find(
+            (c: any[]) => c[0] === "open-recent-file"
+        );
         expect(call).toBeDefined();
         const wrapper = (call as any)[1];
         // Simulate event dispatch
@@ -94,7 +122,9 @@ describe("preload.js - Additional edge coverage", () => {
             throw new Error("boom");
         });
         api.onOpenRecentFile(errCb);
-        const call2 = ipcRenderer.on.mock.calls.find((c: any[]) => c[0] === "open-recent-file" && c[1] !== wrapper);
+        const call2 = ipcRenderer.on.mock.calls.find(
+            (c: any[]) => c[0] === "open-recent-file" && c[1] !== wrapper
+        );
         expect(call2).toBeDefined();
         const wrapper2 = (call2 as any)[1];
         wrapper2({}, "C:/test2.fit");
@@ -110,16 +140,28 @@ describe("preload.js - Additional edge coverage", () => {
             on: vi.fn(),
         };
         const contextBridge = {
-            exposeInMainWorld: vi.fn().mockImplementation((name: string, api: any) => {
-                (globalThis as any)[name] = api;
-            }),
+            exposeInMainWorld: vi
+                .fn()
+                .mockImplementation((name: string, api: any) => {
+                    (globalThis as any)[name] = api;
+                }),
         };
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) => ({ ipcRenderer, contextBridge }));
+        const mockRequire = vi.fn((mod: string) => ({
+            ipcRenderer,
+            contextBridge,
+        }));
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
 
-        const runner = new Function("require", "console", "process", preloadCode);
+        const runner = new Function(
+            "require",
+            "console",
+            "process",
+            preloadCode
+        );
         runner(mockRequire as any, console, mockProcess as any);
 
         const api = (globalThis as any).electronAPI;
@@ -136,19 +178,31 @@ describe("preload.js - Additional edge coverage", () => {
     it("onUpdateEvent registers only when eventName and callback are valid", () => {
         const ipcRenderer = { invoke: vi.fn(), send: vi.fn(), on: vi.fn() };
         const contextBridge = {
-            exposeInMainWorld: vi.fn().mockImplementation((name: string, api: any) => {
-                (globalThis as any)[name] = api;
-            }),
+            exposeInMainWorld: vi
+                .fn()
+                .mockImplementation((name: string, api: any) => {
+                    (globalThis as any)[name] = api;
+                }),
         };
 
-        const mockRequire = vi.fn((mod: string) => ({ ipcRenderer, contextBridge }));
+        const mockRequire = vi.fn((mod: string) => ({
+            ipcRenderer,
+            contextBridge,
+        }));
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
-        const runner = new Function("require", "console", "process", preloadCode);
+        const runner = new Function(
+            "require",
+            "console",
+            "process",
+            preloadCode
+        );
         runner(mockRequire as any, console, mockProcess as any);
 
         const api = (globalThis as any).electronAPI;
         const before = ipcRenderer.on.mock.calls.length;
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Invalid eventName should be ignored
         api.onUpdateEvent(null as any, () => {});

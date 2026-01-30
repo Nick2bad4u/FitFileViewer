@@ -21,7 +21,8 @@ describe("LoadingOverlay strict", () => {
     });
 
     it("creates overlay on first show with text and filename", async () => {
-        const { LoadingOverlay } = await import("../../utils/ui/components/LoadingOverlay.js");
+        const { LoadingOverlay } =
+            await import("../../utils/ui/components/LoadingOverlay.js");
 
         LoadingOverlay.show("Loading 1 / 10 files...", "example.fit");
 
@@ -36,7 +37,8 @@ describe("LoadingOverlay strict", () => {
     });
 
     it("reuses existing overlay and updates text only", async () => {
-        const { LoadingOverlay } = await import("../../utils/ui/components/LoadingOverlay.js");
+        const { LoadingOverlay } =
+            await import("../../utils/ui/components/LoadingOverlay.js");
 
         LoadingOverlay.show("Step 1", "first.fit");
         const first = document.getElementById("fitfile-loading-overlay");
@@ -55,10 +57,13 @@ describe("LoadingOverlay strict", () => {
     });
 
     it("hide removes the overlay from DOM", async () => {
-        const { LoadingOverlay } = await import("../../utils/ui/components/LoadingOverlay.js");
+        const { LoadingOverlay } =
+            await import("../../utils/ui/components/LoadingOverlay.js");
 
         LoadingOverlay.show("Working...");
-        expect(document.getElementById("fitfile-loading-overlay")).not.toBeNull();
+        expect(
+            document.getElementById("fitfile-loading-overlay")
+        ).not.toBeNull();
 
         LoadingOverlay.hide();
         expect(document.getElementById("fitfile-loading-overlay")).toBeNull();

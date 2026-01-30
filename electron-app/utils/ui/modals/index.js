@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for ui/modals
- * @description Re-exports all modules in the ui/modals category
+ * Re-exports all modules in the ui/modals category
+ *
+ * @file Barrel Export for ui/modals
  */
 export * from "./aboutModal.js";
 export * from "./ensureAboutModal.js";

@@ -1,6 +1,7 @@
 /**
- * Example integration of the new state system into renderer.js
- * This shows how to modify your existing renderer.js to use the new centralized state management
+ * Example integration of the new state system into renderer.js This shows how
+ * to modify your existing renderer.js to use the new centralized state
+ * management
  */
 
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
@@ -41,9 +42,12 @@ export function exampleStateUsage() {
     }
 
     // Subscribing to changes
-    const unsubscribe = subscribe("ui.activeTab", (/** @type {string} */ newTab) => {
-        console.log(`Tab changed to: ${newTab}`);
-    });
+    const unsubscribe = subscribe(
+        "ui.activeTab",
+        (/** @type {string} */ newTab) => {
+            console.log(`Tab changed to: ${newTab}`);
+        }
+    );
 
     // Later, clean up the subscription
     setTimeout(() => unsubscribe(), 5000);
@@ -71,8 +75,8 @@ export function initializeRendererWithNewStateSystem() {
 }
 
 /**
- * Migration helper for existing renderer.js
- * Replace your existing initialization with this pattern
+ * Migration helper for existing renderer.js Replace your existing
+ * initialization with this pattern
  */
 export function migrateExistingRenderer() {
     // 1. Replace direct global variable assignments with setState
@@ -256,7 +260,8 @@ function setupReactiveUI() {
         for (const content of tabContents) {
             const tabName = content.dataset.tabContent;
             if (content instanceof HTMLElement) {
-                content.style.display = tabName === activeTab ? "block" : "none";
+                content.style.display =
+                    tabName === activeTab ? "block" : "none";
             }
         }
     });
@@ -325,9 +330,18 @@ function setupStateAwareEventHandlers() {
 /** @param {any} newData */
 function updateAllComponents(newData) {
     // Reset all component render states
-    setState("charts.isRendered", false, { silent: true, source: "updateAllComponents" });
-    setState("map.isRendered", false, { silent: true, source: "updateAllComponents" });
-    setState("tables.isRendered", false, { silent: true, source: "updateAllComponents" });
+    setState("charts.isRendered", false, {
+        silent: true,
+        source: "updateAllComponents",
+    });
+    setState("map.isRendered", false, {
+        silent: true,
+        source: "updateAllComponents",
+    });
+    setState("tables.isRendered", false, {
+        silent: true,
+        source: "updateAllComponents",
+    });
 
     // Update summary immediately
     updateSummaryTab(newData);

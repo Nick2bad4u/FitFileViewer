@@ -11,8 +11,8 @@ export const previousChartState = {
 };
 
 /**
- * Resets the chart state tracking - call when loading a new FIT file
- * This ensures notifications are shown for the first render of a new file
+ * Resets the chart state tracking - call when loading a new FIT file This
+ * ensures notifications are shown for the first render of a new file
  */
 export function resetChartNotificationState() {
     previousChartState.chartCount = 0;
@@ -35,13 +35,16 @@ export function resetChartNotificationState() {
 
 /**
  * Updates the previous chart state tracking
+ *
  * @param {number} chartCount - Current chart count
  * @param {number} visibleFields - Current visible field count
  * @param {number} timestamp - Current timestamp
  */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     previousChartState.chartCount = chartCount;
-    previousChartState.fieldsRendered = /** @type {any} */ (Array.from({ length: visibleFields }, () => true));
+    previousChartState.fieldsRendered = /** @type {any} */ (
+        Array.from({ length: visibleFields }, () => true)
+    );
     previousChartState.lastRenderTimestamp = timestamp;
 
     // Update state for other components using updateState

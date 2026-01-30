@@ -1,11 +1,16 @@
 /**
- * @param {*} field
+ * @param {any} field
  */
 export function openZoneColorPicker(field: any): void;
 /**
  * Updates zone color preview in real-time (if chart is visible)
- * @param {*} field - The field name
- * @param {*} zoneIndex - Zone index (0-based)
- * @param {*} newColor - New color value
+ *
+ * @param {any} field - The field name
+ * @param {any} zoneIndex - Zone index (0-based)
+ * @param {any} newColor - New color value
  */
-export function updateZoneColorPreview(field: any, zoneIndex: any, newColor: any): void;
+export function updateZoneColorPreview(
+    field: any,
+    zoneIndex: any,
+    newColor: any
+): void;

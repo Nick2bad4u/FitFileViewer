@@ -25,7 +25,11 @@ describe("getOverlayFileName", () => {
 
     it("returns empty string when item missing or invalid filePath", async () => {
         vi.doMock("../../../../../utils/state/core/stateManager.js", () => ({
-            getState: vi.fn(() => [{}, { filePath: 123 }, { filePath: "   " }]),
+            getState: vi.fn(() => [
+                {},
+                { filePath: 123 },
+                { filePath: "   " },
+            ]),
         }));
         const { getOverlayFileName } = await import(SUT);
         expect(getOverlayFileName(0)).toBe("");

@@ -8,24 +8,43 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 /**
  * @param {HTMLElement} container
  * @param {any[]} data
- * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ * @param {{
+ *     maxPoints: number | "all";
+ *     showPoints?: boolean;
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ * }} options
  */
 export function renderGPSTrackChart(container, data, options) {
     try {
-        const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isTestEnvironment =
+            typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
-            isTestEnvironment || (isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+            isTestEnvironment ||
+            (isDevEnvironment &&
+                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTrackChart called");
         }
 
         // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
-        const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
+        const safeData = Array.isArray(data)
+            ? data.filter((row) => row && typeof row === "object")
+            : [];
 
         // Check if GPS position data is available
-        const hasLatitude = safeData.some((row) => row.positionLat !== undefined && row.positionLat !== null),
-            hasLongitude = safeData.some((row) => row.positionLong !== undefined && row.positionLong !== null);
+        const hasLatitude = safeData.some(
+                (row) =>
+                    row.positionLat !== undefined && row.positionLat !== null
+            ),
+            hasLongitude = safeData.some(
+                (row) =>
+                    row.positionLong !== undefined && row.positionLong !== null
+            );
 
         if (!hasLatitude || !hasLongitude) {
             if (isDebugLoggingEnabled) {
@@ -80,13 +99,23 @@ export function renderGPSTrackChart(container, data, options) {
         }
 
         if (isDebugLoggingEnabled) {
-            console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
+            console.log(
+                `[ChartJS] Creating GPS track chart with ${gpsData.length} points`
+            );
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-track", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas("gps-track", 0)
+        );
         if (themeConfig?.colors) {
-            canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
-            if (typeof themeConfig.colors.shadow === "string" && themeConfig.colors.shadow.length > 0) {
+            canvas.style.background =
+                themeConfig.colors.bgPrimary ||
+                themeConfig.colors.chartBackground ||
+                "#000";
+            if (
+                typeof themeConfig.colors.shadow === "string" &&
+                themeConfig.colors.shadow.length > 0
+            ) {
                 canvas.style.boxShadow = themeConfig.colors.shadow;
             }
         }
@@ -162,7 +191,8 @@ export function renderGPSTrackChart(container, data, options) {
                         },
                         zoom: {
                             drag: {
-                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                backgroundColor:
+                                    themeConfig.colors.primaryAlpha,
                                 borderColor: themeConfig.colors.primary,
                                 borderWidth: 2,
                                 enabled: true,

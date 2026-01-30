@@ -1,7 +1,9 @@
 /**
- * @fileoverview Comprehensive test suite for getLapNumForIdx.js
- * @description Tests lap number determination from data point indices
+ * Tests lap number determination from data point indices
+ *
  * @version 1.0.0
+ *
+ * @file Comprehensive test suite for getLapNumForIdx.js
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -14,7 +16,9 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
     beforeEach(() => {
         // Spy on console methods for testing logging
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -120,7 +124,9 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
 
         it("should return null for null lapMesgs", () => {
             expect(getLapNumForIdx(50, null as any)).toBeNull();
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Invalid lapMesgs: must be an array, got object");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Invalid lapMesgs: must be an array, got object"
+            );
         });
 
         it("should return null for undefined lapMesgs", () => {
@@ -132,24 +138,34 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
 
         it("should return null for non-array lapMesgs", () => {
             expect(getLapNumForIdx(50, "not an array" as any)).toBeNull();
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Invalid lapMesgs: must be an array, got string");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Invalid lapMesgs: must be an array, got string"
+            );
         });
 
         it("should return null for empty lapMesgs array", () => {
             expect(getLapNumForIdx(50, [])).toBeNull();
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] lapMesgs array is empty");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] lapMesgs array is empty"
+            );
         });
     });
 
     describe("Lap Message Validation", () => {
         it("should skip invalid lap objects", () => {
-            const lapMesgs = [null, { start_index: 100, end_index: 199 }] as any;
+            const lapMesgs = [
+                null,
+                { start_index: 100, end_index: 199 },
+            ] as any;
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
             // Note: null laps are silently skipped without warning
         });
 
         it("should skip laps missing start_index", () => {
-            const lapMesgs = [{ end_index: 99 }, { start_index: 100, end_index: 199 }] as any;
+            const lapMesgs = [
+                { end_index: 99 },
+                { start_index: 100, end_index: 199 },
+            ] as any;
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[LapLookup] Lap at index 0 missing numeric start_index or end_index:",
@@ -158,7 +174,10 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
         });
 
         it("should skip laps missing end_index", () => {
-            const lapMesgs = [{ start_index: 0 }, { start_index: 100, end_index: 199 }] as any;
+            const lapMesgs = [
+                { start_index: 0 },
+                { start_index: 100, end_index: 199 },
+            ] as any;
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[LapLookup] Lap at index 0 missing numeric start_index or end_index:",
@@ -184,10 +203,13 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 { start_index: 100, end_index: 199 },
             ];
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Lap at index 0 has negative indices:", {
-                start_index: -10,
-                end_index: 99,
-            });
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Lap at index 0 has negative indices:",
+                {
+                    start_index: -10,
+                    end_index: 99,
+                }
+            );
         });
 
         it("should skip laps with negative end_index", () => {
@@ -196,10 +218,13 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 { start_index: 100, end_index: 199 },
             ];
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Lap at index 0 has negative indices:", {
-                start_index: 0,
-                end_index: -10,
-            });
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Lap at index 0 has negative indices:",
+                {
+                    start_index: 0,
+                    end_index: -10,
+                }
+            );
         });
 
         it("should skip laps with start_index > end_index", () => {
@@ -208,10 +233,13 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 { start_index: 200, end_index: 299 },
             ];
             expect(getLapNumForIdx(250, lapMesgs)).toBe(2);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Lap at index 0 has start_index > end_index:", {
-                start_index: 100,
-                end_index: 50,
-            });
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Lap at index 0 has start_index > end_index:",
+                {
+                    start_index: 100,
+                    end_index: 50,
+                }
+            );
         });
 
         it("should handle lap objects with additional properties", () => {
@@ -357,7 +385,9 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 { start_index: 1000, end_index: 1999 },
             ];
 
-            const results = Array.from({ length: 10 }, () => getLapNumForIdx(500, lapMesgs));
+            const results = Array.from({ length: 10 }, () =>
+                getLapNumForIdx(500, lapMesgs)
+            );
             expect(results.every((result) => result === 1)).toBe(true);
         });
 
@@ -415,7 +445,10 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
 
             expect(getLapNumForIdx(50, lapMesgs)).toBe(1);
             expect(getLapNumForIdx(250, lapMesgs)).toBe(3);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[LapLookup] Invalid lap object at index 1:", "corrupted data");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[LapLookup] Invalid lap object at index 1:",
+                "corrupted data"
+            );
         });
     });
 

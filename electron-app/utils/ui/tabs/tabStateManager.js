@@ -1,8 +1,11 @@
 /**
- * @fileoverview Tab State Manager - Centralized tab management with state integration
- * @description Manages tab switching, state synchronization, and content rendering
- * @author FitFileViewer Development Team
+ * Manages tab switching, state synchronization, and content rendering
+ *
  * @version 3.0.0
+ *
+ * @file Tab State Manager - Centralized tab management with state integration
+ *
+ * @author FitFileViewer Development Team
  */
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
@@ -25,7 +28,10 @@ const getDoc = () => {
     // Canonical Vitest document (preferred)
     try {
         // @ts-ignore
-        if (typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
+        if (
+            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__
+        ) {
             // @ts-ignore
             candidates.push(__vitest_effective_document__);
         }
@@ -46,7 +52,10 @@ const getDoc = () => {
 
     // Global document (other realms)
     try {
-        if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+        if (
+            typeof globalThis !== "undefined" &&
+            /** @type {any} */ (globalThis).document
+        ) {
             candidates.push(/** @type {any} */ (globalThis).document);
         }
     } catch {
@@ -71,13 +80,16 @@ import { showNotification } from "../notifications/showNotification.js";
 
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
 // And only fall back to a canonical global mock if module functions are unavailable.
-/** @returns {{ getState: any, setState: any, subscribe: any }} */
+/** @returns {{ getState: any; setState: any; subscribe: any }} */
 const getStateMgr = () => {
     try {
         const sm = /** @type {any} */ (__StateMgr);
-        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
-        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
-        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
+        const getState =
+            sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState =
+            sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe =
+            sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
@@ -90,9 +102,18 @@ const getStateMgr = () => {
             typeof __vitest_effective_stateManager__ !== "undefined" &&
             /** @type {any} */ (__vitest_effective_stateManager__);
         if (eff && typeof eff === "object") {
-            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
-            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
-            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
+            const getState =
+                typeof eff.getState === "function"
+                    ? eff.getState
+                    : __StateMgr.getState;
+            const setState =
+                typeof eff.setState === "function"
+                    ? eff.setState
+                    : __StateMgr.setState;
+            const subscribe =
+                typeof eff.subscribe === "function"
+                    ? eff.subscribe
+                    : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {
@@ -109,7 +130,13 @@ const getStateMgr = () => {
  * Tab configuration defining available tabs and their handlers
  */
 /**
- * @typedef {{id:string; contentId:string; label:string; requiresData:boolean; handler:string|null}} TabDef
+ * @typedef {{
+ *     id: string;
+ *     contentId: string;
+ *     label: string;
+ *     requiresData: boolean;
+ *     handler: string | null;
+ * }} TabDef
  */
 const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
     altfit: {
@@ -180,7 +207,7 @@ class TabStateManager {
 
     constructor() {
         // Track unsubscribe functions for state subscriptions
-        /** @type {Array<() => void>} */
+        /** @type {(() => void)[]} */
         this._unsubscribes = [];
         // Stable click handler reference to prevent accumulating listeners
         /** @type {(event: Event) => void} */
@@ -206,20 +233,26 @@ class TabStateManager {
     }
 
     /**
-     * Move pre-rendered charts from the background container into the visible chart tab.
-     * This avoids a full re-render when charts were preloaded in the background.
+     * Move pre-rendered charts from the background container into the visible
+     * chart tab. This avoids a full re-render when charts were preloaded in the
+     * background.
+     *
      * @returns {boolean} True if charts were moved into view.
      */
     attachPreRenderedCharts() {
         const doc = getDoc();
         const bgContainer = doc.getElementById("background-chart-container");
-        const visibleContainer = doc.getElementById("content-chartjs") || doc.getElementById("content-chart");
+        const visibleContainer =
+            doc.getElementById("content-chartjs") ||
+            doc.getElementById("content-chart");
 
         if (!bgContainer || !visibleContainer) {
             return false;
         }
 
-        const preRenderedContainer = bgContainer.querySelector("#chartjs-chart-container");
+        const preRenderedContainer = bgContainer.querySelector(
+            "#chartjs-chart-container"
+        );
         if (!preRenderedContainer) {
             return false;
         }
@@ -240,14 +273,20 @@ class TabStateManager {
             try {
                 const g = /** @type {any} */ (globalThis);
                 const w = /** @type {any} */ (g.window);
-                const arr = (g && g._chartjsInstances) || (w && w._chartjsInstances) || [];
+                const arr =
+                    (g && g._chartjsInstances) ||
+                    (w && w._chartjsInstances) ||
+                    [];
                 return Array.isArray(arr) ? arr : [];
             } catch {
                 return [];
             }
         })();
         if (instances.length > 0) {
-            const schedule = typeof requestAnimationFrame === "function" ? requestAnimationFrame : setTimeout;
+            const schedule =
+                typeof requestAnimationFrame === "function"
+                    ? requestAnimationFrame
+                    : setTimeout;
             schedule(() => {
                 for (const chart of instances) {
                     try {
@@ -273,7 +312,10 @@ class TabStateManager {
     cleanup() {
         // Unsubscribe state listeners
         try {
-            if (Array.isArray(this._unsubscribes) && this._unsubscribes.length > 0) {
+            if (
+                Array.isArray(this._unsubscribes) &&
+                this._unsubscribes.length > 0
+            ) {
                 for (const unsub of this._unsubscribes.splice(0)) {
                     try {
                         typeof unsub === "function" && unsub();
@@ -288,7 +330,10 @@ class TabStateManager {
         // Remove document DOMContentLoaded handler if previously added
         try {
             if (this._setupHandlersFn) {
-                getDoc().removeEventListener("DOMContentLoaded", this._setupHandlersFn);
+                getDoc().removeEventListener(
+                    "DOMContentLoaded",
+                    this._setupHandlersFn
+                );
                 this._setupHandlersFn = null;
             }
         } catch {
@@ -299,7 +344,10 @@ class TabStateManager {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
             for (const button of tabButtons) {
                 try {
-                    button.removeEventListener("click", this._buttonClickHandler);
+                    button.removeEventListener(
+                        "click",
+                        this._buttonClickHandler
+                    );
                 } catch {
                     /* Ignore errors */
                 }
@@ -314,8 +362,10 @@ class TabStateManager {
 
     /**
      * Extract tab name from button ID
+     *
      * @param {string} buttonId - Button element ID
-     * @returns {string|null} Tab name or null
+     *
+     * @returns {string | null} Tab name or null
      */
     extractTabName(buttonId) {
         // Try direct lookup in config first
@@ -326,7 +376,12 @@ class TabStateManager {
         }
 
         // Fallback to pattern matching
-        const patterns = [/^tab-(.+)$/, /^(.+)-tab$/, /^btn-(.+)$/, /^(.+)-btn$/];
+        const patterns = [
+            /^tab-(.+)$/,
+            /^(.+)-tab$/,
+            /^btn-(.+)$/,
+            /^(.+)-btn$/,
+        ];
 
         for (const pattern of patterns) {
             const match = buttonId.match(pattern);
@@ -340,6 +395,7 @@ class TabStateManager {
 
     /**
      * Get current active tab information
+     *
      * @returns {Object} Active tab information
      */
     getActiveTabInfo() {
@@ -348,7 +404,9 @@ class TabStateManager {
 
         return {
             config,
-            contentElement: config ? getDoc().getElementById(config.contentId) : null,
+            contentElement: config
+                ? getDoc().getElementById(config.contentId)
+                : null,
             element: config ? getDoc().getElementById(config.id) : null,
             name: activeTab,
             previous: this.previousTab,
@@ -367,7 +425,10 @@ class TabStateManager {
             /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
         ) {
             const iframe = /** @type {any} */ (el);
-            if (typeof iframe.src === "string" && !iframe.src.includes("ffv/index.html")) {
+            if (
+                typeof iframe.src === "string" &&
+                !iframe.src.includes("ffv/index.html")
+            ) {
                 iframe.src = "ffv/index.html";
             }
         }
@@ -383,15 +444,19 @@ class TabStateManager {
                 await mod.renderFileBrowserTab();
             }
         } catch (error) {
-            console.error("[TabStateManager] Failed to render Browser tab", error);
+            console.error(
+                "[TabStateManager] Failed to render Browser tab",
+                error
+            );
         }
     }
 
     /**
      * Handle chart tab activation
+     *
      * @param {Object} globalData - Current global data
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
     async handleChartTab(globalData) {
         if (!globalData || !globalData.recordMesgs) {
             console.warn("[TabStateManager] No chart data available");
@@ -413,20 +478,28 @@ class TabStateManager {
                 const chartState = getStateMgr().getState("charts");
 
                 if (chartState?.isRendered) {
-                    console.log("[TabStateManager] Chart tab activated - charts already rendered");
-                    getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
+                    console.log(
+                        "[TabStateManager] Chart tab activated - charts already rendered"
+                    );
+                    getStateMgr().setState("charts.tabActive", true, {
+                        source: "TabStateManager.handleChartTab",
+                    });
                 } else {
                     console.log(
                         "[TabStateManager] Chart tab activated - triggering initial render through state system"
                     );
                     // The chartStateManager will handle rendering through its subscriptions
                     // We just need to ensure the tab is marked as active in state
-                    getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
+                    getStateMgr().setState("charts.tabActive", true, {
+                        source: "TabStateManager.handleChartTab",
+                    });
                 }
 
                 // Check if cancelled after state updates
                 if (token.isCancelled) {
-                    console.log("[TabStateManager] Chart tab rendering cancelled");
+                    console.log(
+                        "[TabStateManager] Chart tab rendering cancelled"
+                    );
                     return null;
                 }
 
@@ -438,19 +511,27 @@ class TabStateManager {
 
     /**
      * Handle data tables tab activation
+     *
      * @param {Object} globalData - Current global data
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
     async handleDataTab(globalData) {
         if (!globalData || !(/** @type {any} */ (globalThis).createTables)) {
             return;
         }
 
         // Check for background-rendered data first
-        const bgContainer = getDoc().querySelector("#background-data-container"),
+        const bgContainer = getDoc().querySelector(
+                "#background-data-container"
+            ),
             visibleContainer = getDoc().querySelector("#content-data");
 
-        if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
+        if (
+            bgContainer &&
+            bgContainer.childNodes &&
+            bgContainer.childNodes.length > 0 &&
+            visibleContainer
+        ) {
             // Move pre-rendered content
             visibleContainer.innerHTML = "";
             while (bgContainer.firstChild) {
@@ -465,9 +546,10 @@ class TabStateManager {
 
     /**
      * Handle map tab activation
+     *
      * @param {Object} globalData - Current global data
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
     async handleMapTab(globalData) {
         if (!globalData || !globalData.recordMesgs) {
             return;
@@ -475,26 +557,40 @@ class TabStateManager {
 
         // Check if map is already rendered
         const mapState = getStateMgr().getState("map");
-        if (!mapState?.isRendered && /** @type {any} */ (globalThis).renderMap) {
+        if (
+            !mapState?.isRendered &&
+            /** @type {any} */ (globalThis).renderMap
+        ) {
             console.log("[TabStateManager] Rendering map for first time");
             /** @type {any} */ (globalThis).renderMap();
-            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
+            getStateMgr().setState("map.isRendered", true, {
+                source: "TabStateManager.handleMapTab",
+            });
         } else {
             // Map already rendered, just invalidate size to fix grey tiles after tab switch
-            const mapInstance = /** @type {any} */ (globalThis)._leafletMapInstance,
+            const mapInstance = /** @type {any} */ (globalThis)
+                    ._leafletMapInstance,
                 renderMapFn = /** @type {any} */ (globalThis).renderMap;
 
-            if (mapInstance && typeof mapInstance.invalidateSize === "function") {
+            if (
+                mapInstance &&
+                typeof mapInstance.invalidateSize === "function"
+            ) {
                 /**
-                 * Attempt to reflow the map safely. If the underlying container has been detached,
-                 * we fall back to a full re-render to avoid Leaflet accessing undefined properties.
+                 * Attempt to reflow the map safely. If the underlying container
+                 * has been detached, we fall back to a full re-render to avoid
+                 * Leaflet accessing undefined properties.
                  */
                 const executeInvalidation = () => {
                     const container =
-                        typeof mapInstance.getContainer === "function" ? mapInstance.getContainer() : null;
+                        typeof mapInstance.getContainer === "function"
+                            ? mapInstance.getContainer()
+                            : null;
 
                     if (!container || !container.isConnected) {
-                        console.warn("[TabStateManager] Map container missing; re-rendering map instance");
+                        console.warn(
+                            "[TabStateManager] Map container missing; re-rendering map instance"
+                        );
                         if (typeof renderMapFn === "function") {
                             renderMapFn();
                             getStateMgr().setState("map.isRendered", true, {
@@ -506,9 +602,14 @@ class TabStateManager {
 
                     try {
                         mapInstance.invalidateSize({ pan: false });
-                        console.log("[TabStateManager] Map size invalidated to fix grey tiles");
+                        console.log(
+                            "[TabStateManager] Map size invalidated to fix grey tiles"
+                        );
                     } catch (error) {
-                        console.warn("[TabStateManager] Map invalidation failed; re-rendering map", error);
+                        console.warn(
+                            "[TabStateManager] Map invalidation failed; re-rendering map",
+                            error
+                        );
                         if (typeof renderMapFn === "function") {
                             renderMapFn();
                             getStateMgr().setState("map.isRendered", true, {
@@ -519,7 +620,9 @@ class TabStateManager {
                 };
 
                 if (typeof requestAnimationFrame === "function") {
-                    requestAnimationFrame(() => requestAnimationFrame(executeInvalidation));
+                    requestAnimationFrame(() =>
+                        requestAnimationFrame(executeInvalidation)
+                    );
                 } else {
                     setTimeout(executeInvalidation, 75);
                 }
@@ -529,9 +632,10 @@ class TabStateManager {
 
     /**
      * Handle summary tab activation
+     *
      * @param {Object} globalData - Current global data
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
     async handleSummaryTab(globalData) {
         if (!globalData || !(/** @type {any} */ (globalThis).renderSummary)) {
             return;
@@ -552,10 +656,14 @@ class TabStateManager {
 
     /**
      * Handle tab button click events
+     *
      * @param {Event} event - Click event
      */
     handleTabButtonClick = (event) => {
-        const button = event.currentTarget instanceof HTMLElement ? event.currentTarget : null,
+        const button =
+                event.currentTarget instanceof HTMLElement
+                    ? event.currentTarget
+                    : null,
             tabId = button?.id || "";
 
         // Check if button is disabled
@@ -565,7 +673,9 @@ class TabStateManager {
             button.hasAttribute("disabled") ||
             button.classList.contains("tab-disabled")
         ) {
-            console.log(`[TabStateManager] Ignoring click on disabled button: ${tabId}`);
+            console.log(
+                `[TabStateManager] Ignoring click on disabled button: ${tabId}`
+            );
             event.preventDefault();
             event.stopPropagation();
             return;
@@ -574,7 +684,9 @@ class TabStateManager {
         // Extract tab name from button ID
         const tabName = this.extractTabName(tabId);
         if (!tabName) {
-            console.warn(`[TabStateManager] Could not extract tab name from ID: ${tabId}`);
+            console.warn(
+                `[TabStateManager] Could not extract tab name from ID: ${tabId}`
+            );
             return;
         }
 
@@ -584,7 +696,9 @@ class TabStateManager {
         }
 
         // Check if tab requires data
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
+        const tabConfig = /** @type {TabDef | undefined} */ (
+            TAB_CONFIG[tabName]
+        );
         if (tabConfig?.requiresData) {
             const globalData = getStateMgr().getState("globalData");
             if (!globalData || !globalData.recordMesgs) {
@@ -594,11 +708,14 @@ class TabStateManager {
         }
 
         // Update state - this will trigger the subscription handler
-        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.buttonClick" });
+        getStateMgr().setState("ui.activeTab", tabName, {
+            source: "TabStateManager.buttonClick",
+        });
     };
 
     /**
      * Handle tab change through state management
+     *
      * @param {string} newTab - New active tab name
      * @param {string} oldTab - Previous active tab name
      */
@@ -622,10 +739,13 @@ class TabStateManager {
 
     /**
      * Handle tab-specific initialization and rendering logic
+     *
      * @param {string} tabName - Name of the active tab
      */
     async handleTabSpecificLogic(tabName) {
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
+        const tabConfig = /** @type {TabDef | undefined} */ (
+            TAB_CONFIG[tabName]
+        );
         if (!tabConfig) {
             return;
         }
@@ -665,21 +785,28 @@ class TabStateManager {
                 }
 
                 default: {
-                    console.log(`[TabStateManager] No specific handler for tab: ${tabName}`);
+                    console.log(
+                        `[TabStateManager] No specific handler for tab: ${tabName}`
+                    );
                 }
             }
         } catch (error) {
-            console.error(`[TabStateManager] Error handling tab ${tabName}:`, error);
+            console.error(
+                `[TabStateManager] Error handling tab ${tabName}:`,
+                error
+            );
             showNotification(`Error loading ${tabConfig.label} tab`, "error");
         }
     }
 
     /**
      * Generate simple hash for data comparison
+     *
      * @param {Object} data - Data to hash
+     *
      * @returns {string} Simple hash string
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} data */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} data */
     hashData(data) {
         if (!data) {
             return "";
@@ -717,9 +844,12 @@ class TabStateManager {
             });
 
         // Subscribe to data changes to enable/disable tabs
-        const unsubData = getStateMgr().subscribe("globalData", (/** @type {any} */ newData) => {
-            this.updateTabAvailability(newData);
-        });
+        const unsubData = getStateMgr().subscribe(
+            "globalData",
+            (/** @type {any} */ newData) => {
+                this.updateTabAvailability(newData);
+            }
+        );
         if (typeof unsubData === "function")
             this._unsubscribes.push(() => {
                 try {
@@ -743,13 +873,19 @@ class TabStateManager {
             for (const button of tabButtons) {
                 // Add stable listener with automatic cleanup tracking
                 try {
-                    addEventListenerWithCleanup(button, "click", this._buttonClickHandler);
+                    addEventListenerWithCleanup(
+                        button,
+                        "click",
+                        this._buttonClickHandler
+                    );
                 } catch {
                     /* Ignore errors */
                 }
             }
 
-            console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
+            console.log(
+                `[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`
+            );
         };
 
         const doc = getDoc();
@@ -757,7 +893,11 @@ class TabStateManager {
             // Store reference so we can remove it during cleanup
             this._setupHandlersFn = setupHandlers;
             try {
-                addEventListenerWithCleanup(doc, "DOMContentLoaded", this._setupHandlersFn);
+                addEventListenerWithCleanup(
+                    doc,
+                    "DOMContentLoaded",
+                    this._setupHandlersFn
+                );
             } catch {
                 /* Ignore errors */
             }
@@ -768,6 +908,7 @@ class TabStateManager {
 
     /**
      * Manually switch to a specific tab
+     *
      * @param {string} tabName - Name of tab to switch to
      */
     switchToTab(tabName) {
@@ -776,16 +917,21 @@ class TabStateManager {
             return false;
         }
 
-        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.switchToTab" });
+        getStateMgr().setState("ui.activeTab", tabName, {
+            source: "TabStateManager.switchToTab",
+        });
         return true;
     }
 
     /**
      * Update content area visibility
+     *
      * @param {string} activeTab - Currently active tab name
      */
     updateContentVisibility(activeTab) {
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[activeTab]);
+        const tabConfig = /** @type {TabDef | undefined} */ (
+            TAB_CONFIG[activeTab]
+        );
         if (!tabConfig) {
             console.warn(`[TabStateManager] Unknown tab: ${activeTab}`);
             return;
@@ -807,9 +953,10 @@ class TabStateManager {
     }
     /**
      * Update tab availability based on data availability
+     *
      * @param {Object} globalData - Current global data
      */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
     updateTabAvailability(globalData) {
         const hasData = Boolean(globalData && globalData.recordMesgs);
 
@@ -835,6 +982,7 @@ class TabStateManager {
     }
     /**
      * Update tab button visual states
+     *
      * @param {string} activeTab - Currently active tab name
      */
     updateTabButtonStates(activeTab) {
@@ -846,12 +994,19 @@ class TabStateManager {
                     isActive = tabName === activeTab;
 
                 // Defensive: ensure classList exists
-                if (button && button.classList && typeof button.classList.toggle === "function") {
+                if (
+                    button &&
+                    button.classList &&
+                    typeof button.classList.toggle === "function"
+                ) {
                     button.classList.toggle("active", isActive);
                 }
                 // Always set aria-selected for both active and inactive to maintain consistency
                 if (button && typeof button.setAttribute === "function") {
-                    button.setAttribute("aria-selected", isActive ? "true" : "false");
+                    button.setAttribute(
+                        "aria-selected",
+                        isActive ? "true" : "false"
+                    );
                 }
             } catch {
                 // Ignore individual button failures to keep others updated

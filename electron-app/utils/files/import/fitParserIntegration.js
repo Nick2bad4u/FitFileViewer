@@ -1,8 +1,11 @@
 /**
- * @fileoverview FIT Parser Integration Utility
- * @description Provides integration between the FIT parser and the state management system
- * @author FitFileViewer Development Team
+ * Provides integration between the FIT parser and the state management system
+ *
  * @version 1.0.0
+ *
+ * @file FIT Parser Integration Utility
+ *
+ * @author FitFileViewer Development Team
  */
 
 import { performanceMonitor } from "../../debug/stateDevTools.js";
@@ -13,26 +16,31 @@ import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
 
 /**
- * Initialize FIT parser with state management integration
- * Call this during application startup after state managers are initialized
+ * Initialize FIT parser with state management integration Call this during
+ * application startup after state managers are initialized
  */
 /**
  * Result object for integration operations
- * @typedef {{success:boolean, error?:string}} IntegrationResult
+ *
+ * @typedef {{ success: boolean; error?: string }} IntegrationResult
  */
 
 /**
- * Create a wrapper for decodeFitFile that integrates with renderer state
- * This function can be called from the renderer process via IPC
- * @param {Buffer|Uint8Array} fileBuffer - FIT file buffer
+ * Create a wrapper for decodeFitFile that integrates with renderer state This
+ * function can be called from the renderer process via IPC
+ *
+ * @param {Buffer | Uint8Array} fileBuffer - FIT file buffer
  * @param {Object} options - Decoder options
+ *
  * @returns {Promise<Object>} Decoded file data or error
  */
 /**
  * Decode FIT file and update state
- * @param {Buffer|Uint8Array} fileBuffer
+ *
+ * @param {Buffer | Uint8Array} fileBuffer
  * @param {Object} [options]
- * @returns {Promise<any>} decoder result or error shape
+ *
+ * @returns {Promise<any>} Decoder result or error shape
  */
 export async function decodeFitFileWithState(fileBuffer, options = {}) {
     try {
@@ -56,7 +64,10 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
 
         return result;
     } catch (error) {
-        console.error("[FitParserIntegration] Error in decodeFitFileWithState:", error);
+        console.error(
+            "[FitParserIntegration] Error in decodeFitFileWithState:",
+            error
+        );
         const message = error instanceof Error ? error.message : String(error),
             stack = error instanceof Error ? error.stack : undefined;
 
@@ -74,10 +85,12 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
 
 /**
  * Get current decoder options with state management integration
+ *
  * @returns {Object} Current decoder options
  */
 /**
  * Get current decoder options or fallback defaults
+ *
  * @returns {any}
  */
 export function getCurrentDecoderOptionsWithState() {
@@ -90,10 +103,14 @@ export function getCurrentDecoderOptionsWithState() {
               ? fitParser.getDefaultDecoderOptions()
               : {};
     } catch (error) {
-        console.error("[FitParserIntegration] Error getting decoder options:", error);
+        console.error(
+            "[FitParserIntegration] Error getting decoder options:",
+            error
+        );
         try {
             const fitParserFallback = require("../../../fitParser.js");
-            return typeof fitParserFallback.getDefaultDecoderOptions === "function"
+            return typeof fitParserFallback.getDefaultDecoderOptions ===
+                "function"
                 ? fitParserFallback.getDefaultDecoderOptions()
                 : {};
         } catch {
@@ -104,7 +121,8 @@ export function getCurrentDecoderOptionsWithState() {
 
 /**
  * Initialize FIT parser with state management integration
- * @returns {Promise<IntegrationResult>} success flag and optional error
+ *
+ * @returns {Promise<IntegrationResult>} Success flag and optional error
  */
 export async function initializeFitParserIntegration() {
     try {
@@ -125,7 +143,9 @@ export async function initializeFitParserIntegration() {
             // Attempt to read existing decoder options from settings state (dynamic category not in schema)
             const existingDecoder = /** @type {any} */ (
                 settingsStateManager && settingsStateManager.getSetting
-                    ? settingsStateManager.getSetting(/** @type {any} */ ("decoder"))
+                    ? settingsStateManager.getSetting(
+                          /** @type {any} */ ("decoder")
+                      )
                     : undefined
             );
             if (existingDecoder == null) {
@@ -133,37 +153,51 @@ export async function initializeFitParserIntegration() {
                     typeof fitParser.getDefaultDecoderOptions === "function"
                         ? fitParser.getDefaultDecoderOptions()
                         : {};
-                setState("settings.decoder", defaultOptions, { source: "FitParserIntegration" });
-                console.log("[FitParserIntegration] Decoder options initialized in settings state");
+                setState("settings.decoder", defaultOptions, {
+                    source: "FitParserIntegration",
+                });
+                console.log(
+                    "[FitParserIntegration] Decoder options initialized in settings state"
+                );
             }
         } catch (error) {
-            console.warn("[FitParserIntegration] Failed to initialize decoder options:", error);
+            console.warn(
+                "[FitParserIntegration] Failed to initialize decoder options:",
+                error
+            );
         }
 
-        console.log("[FitParserIntegration] FIT parser integration initialized successfully");
+        console.log(
+            "[FitParserIntegration] FIT parser integration initialized successfully"
+        );
         return { success: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("[FitParserIntegration] Failed to initialize FIT parser integration:", error);
+        console.error(
+            "[FitParserIntegration] Failed to initialize FIT parser integration:",
+            error
+        );
         return { error: message, success: false };
     }
 }
 
 /**
  * Set up IPC handlers for FIT parser operations (call from main process)
+ *
  * @param {Object} ipcMain - Electron IPC main instance
  */
 /**
  * Register IPC handlers (main process)
- * @param {import('electron').IpcMain} ipcMain
+ *
+ * @param {import("electron").IpcMain} ipcMain
  */
 export function setupFitParserIPC(ipcMain) {
     // Handle file decoding requests from renderer using canonical fit:decode channel
     ipcMain.handle(
         "fit:decode",
         /**
-         * @param {import('electron').IpcMainInvokeEvent} _event
-         * @param {ArrayBuffer|Uint8Array|Buffer} fileBuffer
+         * @param {import("electron").IpcMainInvokeEvent} _event
+         * @param {ArrayBuffer | Uint8Array | Buffer} fileBuffer
          * @param {any} options
          */
         async (_event, fileBuffer, options) => {
@@ -172,7 +206,10 @@ export function setupFitParserIPC(ipcMain) {
             if (fileBuffer instanceof ArrayBuffer) {
                 normalized = new Uint8Array(fileBuffer);
             }
-            return decodeFitFileWithState(/** @type {Uint8Array|Buffer} */ (normalized), options);
+            return decodeFitFileWithState(
+                /** @type {Uint8Array | Buffer} */ (normalized),
+                options
+            );
         }
     );
 
@@ -180,7 +217,7 @@ export function setupFitParserIPC(ipcMain) {
     ipcMain.handle(
         "update-decoder-options",
         /**
-         * @param {import('electron').IpcMainInvokeEvent} _event
+         * @param {import("electron").IpcMainInvokeEvent} _event
          * @param {any} newOptions
          */
         async (_event, newOptions) => updateDecoderOptionsWithState(newOptions)
@@ -189,47 +226,65 @@ export function setupFitParserIPC(ipcMain) {
     // Handle getting current decoder options
     ipcMain.handle(
         "get-decoder-options",
-        /** @param {import('electron').IpcMainInvokeEvent} _event */
+        /** @param {import("electron").IpcMainInvokeEvent} _event */
         async (_event) => getCurrentDecoderOptionsWithState()
     );
 
     // Handle resetting decoder options
     ipcMain.handle(
         "reset-decoder-options",
-        /** @param {import('electron').IpcMainInvokeEvent} _event */ async (_event) => {
+        /** @param {import("electron").IpcMainInvokeEvent} _event */ async (
+            _event
+        ) => {
             try {
                 /** @type {any} */
                 const fitParser = require("../../../fitParser.js");
                 return typeof fitParser.resetDecoderOptions === "function"
                     ? fitParser.resetDecoderOptions()
-                    : { error: "resetDecoderOptions not available", success: false };
+                    : {
+                          error: "resetDecoderOptions not available",
+                          success: false,
+                      };
             } catch (error) {
-                const message = error instanceof Error ? error.message : String(error);
+                const message =
+                    error instanceof Error ? error.message : String(error);
                 return { error: message, success: false };
             }
         }
     );
 
-    console.log("[FitParserIntegration] IPC handlers registered for FIT parser operations");
+    console.log(
+        "[FitParserIntegration] IPC handlers registered for FIT parser operations"
+    );
 }
 
 /**
  * Set up preload script functions for FIT parser (call from preload script)
+ *
  * @param {Object} contextBridge - Electron context bridge
  * @param {Object} ipcRenderer - Electron IPC renderer
  */
 /**
  * Expose renderer-safe API in preload
- * @param {import('electron').ContextBridge} contextBridge
- * @param {import('electron').IpcRenderer} ipcRenderer
+ *
+ * @param {import("electron").ContextBridge} contextBridge
+ * @param {import("electron").IpcRenderer} ipcRenderer
  */
-export function setupFitParserPreload(/** @type {any} */ contextBridge, /** @type {any} */ ipcRenderer) {
-    if (contextBridge && typeof contextBridge.exposeInMainWorld === "function") {
+export function setupFitParserPreload(
+    /** @type {any} */ contextBridge,
+    /** @type {any} */ ipcRenderer
+) {
+    if (
+        contextBridge &&
+        typeof contextBridge.exposeInMainWorld === "function"
+    ) {
         contextBridge.exposeInMainWorld("fitParser", {
             /**
              * Decode a FIT file buffer
-             * @param {ArrayBuffer|Uint8Array|Buffer} fileBuffer
+             *
+             * @param {ArrayBuffer | Uint8Array | Buffer} fileBuffer
              * @param {any} [options]
+             *
              * @returns {Promise<any>}
              */
             decodeFitFile: (fileBuffer, options) => {
@@ -242,34 +297,46 @@ export function setupFitParserPreload(/** @type {any} */ contextBridge, /** @typ
             },
             /**
              * Get current decoder options
+             *
              * @returns {Promise<any>}
              */
             getDecoderOptions: () => ipcRenderer.invoke("get-decoder-options"),
             /**
              * Reset decoder options to defaults
+             *
              * @returns {Promise<any>}
              */
-            resetDecoderOptions: () => ipcRenderer.invoke("reset-decoder-options"),
+            resetDecoderOptions: () =>
+                ipcRenderer.invoke("reset-decoder-options"),
             /**
              * Update decoder options
+             *
              * @param {any} newOptions
+             *
              * @returns {Promise<any>}
              */
-            updateDecoderOptions: (newOptions) => ipcRenderer.invoke("update-decoder-options", newOptions),
+            updateDecoderOptions: (newOptions) =>
+                ipcRenderer.invoke("update-decoder-options", newOptions),
         });
     }
 
-    console.log("[FitParserIntegration] Preload functions exposed for FIT parser");
+    console.log(
+        "[FitParserIntegration] Preload functions exposed for FIT parser"
+    );
 }
 
 /**
  * Update decoder options through the state management system
+ *
  * @param {Object} newOptions - New decoder options
+ *
  * @returns {Promise<Object>} Update result
  */
 /**
  * Update decoder options via fitParser and emit change events
+ *
  * @param {Object} newOptions
+ *
  * @returns {Promise<any>}
  */
 export async function updateDecoderOptionsWithState(newOptions) {
@@ -280,11 +347,16 @@ export async function updateDecoderOptionsWithState(newOptions) {
             result =
                 typeof fitParser.updateDecoderOptions === "function"
                     ? fitParser.updateDecoderOptions(newOptions)
-                    : { error: "updateDecoderOptions not available", success: false };
+                    : {
+                          error: "updateDecoderOptions not available",
+                          success: false,
+                      };
 
         if (result.success && masterStateManager) {
             try {
-                setState("settings.decoder", result.options, { source: "FitParserIntegration" });
+                setState("settings.decoder", result.options, {
+                    source: "FitParserIntegration",
+                });
             } catch {
                 // Silent: state update failure should not break decoder option update flow
             }
@@ -293,7 +365,10 @@ export async function updateDecoderOptionsWithState(newOptions) {
         return result;
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("[FitParserIntegration] Error updating decoder options:", error);
+        console.error(
+            "[FitParserIntegration] Error updating decoder options:",
+            error
+        );
         return { error: message, success: false };
     }
 }
@@ -301,18 +376,16 @@ export async function updateDecoderOptionsWithState(newOptions) {
 /**
  * Example usage in renderer process:
  *
- * // Decode a FIT file
- * const result = await window.fitParser.decodeFitFile(fileBuffer);
+ * // Decode a FIT file const result = await
+ * window.fitParser.decodeFitFile(fileBuffer);
  *
- * // Update decoder options
- * const updateResult = await window.fitParser.updateDecoderOptions({
- *     applyScaleAndOffset: false,
- *     includeUnknownData: true
- * });
+ * // Update decoder options const updateResult = await
+ * window.fitParser.updateDecoderOptions({ applyScaleAndOffset: false,
+ * includeUnknownData: true });
  *
- * // Get current options
- * const options = await window.fitParser.getDecoderOptions();
+ * // Get current options const options = await
+ * window.fitParser.getDecoderOptions();
  *
- * // Reset to defaults
- * const resetResult = await window.fitParser.resetDecoderOptions();
+ * // Reset to defaults const resetResult = await
+ * window.fitParser.resetDecoderOptions();
  */

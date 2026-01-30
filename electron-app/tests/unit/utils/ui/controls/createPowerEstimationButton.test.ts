@@ -31,13 +31,18 @@ type ModalArgs = {
 };
 
 vi.mock("../../../../../utils/data/processing/estimateCyclingPower.js", () => ({
-    applyEstimatedPowerToRecords: (args: ApplyArgs) => mockApplyEstimatedPowerToRecords(args),
+    applyEstimatedPowerToRecords: (args: ApplyArgs) =>
+        mockApplyEstimatedPowerToRecords(args),
     hasPowerData: (args: Array<FitMesg>) => mockHasPowerData(args),
 }));
 
-vi.mock("../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js", () => ({
-    openPowerEstimationSettingsModal: (args: ModalArgs) => mockOpenModal(args),
-}));
+vi.mock(
+    "../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js",
+    () => ({
+        openPowerEstimationSettingsModal: (args: ModalArgs) =>
+            mockOpenModal(args),
+    })
+);
 
 describe("createPowerEstimationButton.js", () => {
     beforeEach(() => {
@@ -51,7 +56,11 @@ describe("createPowerEstimationButton.js", () => {
 
         mockHasPowerData.mockReturnValue(false);
 
-        const getData = () => ({ recordMesgs: [], sessionMesgs: [], loadedFitFiles: [] });
+        const getData = () => ({
+            recordMesgs: [],
+            sessionMesgs: [],
+            loadedFitFiles: [],
+        });
         const onAfterApply = vi.fn();
 
         const btn = createPowerEstimationButton({ getData, onAfterApply });
@@ -84,7 +93,12 @@ describe("createPowerEstimationButton.js", () => {
             recordMesgs: activeRecords,
             sessionMesgs: [{ sport: "cycling" }],
             loadedFitFiles: [
-                { data: { recordMesgs: overlayRecords1, sessionMesgs: [{ sport: "cycling" }] } },
+                {
+                    data: {
+                        recordMesgs: overlayRecords1,
+                        sessionMesgs: [{ sport: "cycling" }],
+                    },
+                },
                 { data: { recordMesgs: overlayRecords2 } },
                 // Duplicate array should not re-apply
                 { data: { recordMesgs: activeRecords } },
@@ -117,7 +131,8 @@ describe("createPowerEstimationButton.js", () => {
         expect(mockApplyEstimatedPowerToRecords).toHaveBeenCalledTimes(3);
 
         // Ensure at least one call used the active record array
-        const arg0 = mockApplyEstimatedPowerToRecords.mock.calls[0][0] as ApplyArgs;
+        const arg0 = mockApplyEstimatedPowerToRecords.mock
+            .calls[0][0] as ApplyArgs;
         expect(arg0.settings.maxPowerW).toBe(2000);
 
         expect(onAfterApply).toHaveBeenCalledTimes(1);
@@ -129,9 +144,16 @@ describe("createPowerEstimationButton.js", () => {
 
         mockHasPowerData.mockReturnValue(true);
 
-        const getData = () => ({ recordMesgs: [{ power: 200 }], sessionMesgs: [], loadedFitFiles: [] });
+        const getData = () => ({
+            recordMesgs: [{ power: 200 }],
+            sessionMesgs: [],
+            loadedFitFiles: [],
+        });
 
-        const btn = createPowerEstimationButton({ getData, onAfterApply: vi.fn() });
+        const btn = createPowerEstimationButton({
+            getData,
+            onAfterApply: vi.fn(),
+        });
         document.body.append(btn);
 
         btn.click();

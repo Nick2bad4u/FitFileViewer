@@ -1,5 +1,17 @@
-import { describe, it, expect, beforeEach, vi, afterEach, assert } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    describe,
+    it,
+    expect,
+    beforeEach,
+    vi,
+    afterEach,
+    assert,
+} from "vitest";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - resolveShown error handling", () => {
     const originalWarn = console.warn;
@@ -16,7 +28,8 @@ describe("showNotification.js - resolveShown error handling", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {

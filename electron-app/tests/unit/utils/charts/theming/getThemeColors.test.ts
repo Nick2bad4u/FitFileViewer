@@ -19,7 +19,8 @@ describe("getThemeColors and getThemeColor", () => {
     });
 
     it("returns full colors object and safe copy", async () => {
-        const { getThemeColors } = await import("../../../../../utils/charts/theming/getThemeColors.js");
+        const { getThemeColors } =
+            await import("../../../../../utils/charts/theming/getThemeColors.js");
         const colors = getThemeColors();
         expect(colors).toBeDefined();
         expect(colors.accentColor).toBe("#123456");
@@ -30,7 +31,8 @@ describe("getThemeColors and getThemeColor", () => {
     });
 
     it("getThemeColor returns key or fallback and validates inputs", async () => {
-        const { getThemeColor } = await import("../../../../../utils/charts/theming/getThemeColors.js");
+        const { getThemeColor } =
+            await import("../../../../../utils/charts/theming/getThemeColors.js");
         expect(getThemeColor("accentColor", "#fallback")).toBe("#123456");
         expect(getThemeColor("doesNotExist", "#fallback")).toBe("#fallback");
         // Invalid key -> fallback
@@ -43,7 +45,8 @@ describe("getThemeColors and getThemeColor", () => {
                 throw new Error("boom");
             },
         }));
-        const { getThemeColors, getThemeColor } = await import("../../../../../utils/charts/theming/getThemeColors.js");
+        const { getThemeColors, getThemeColor } =
+            await import("../../../../../utils/charts/theming/getThemeColors.js");
         const colors = getThemeColors();
         expect(colors).toMatchObject({
             accentColor: expect.any(String),

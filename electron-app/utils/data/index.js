@@ -1,7 +1,8 @@
 import * as dataLookups from "./lookups/index.js";
 /**
- * @fileoverview Main Category Barrel Export for data
- * @description Re-exports all subcategories in the data category
+ * Re-exports all subcategories in the data category
+ *
+ * @file Main Category Barrel Export for data
  */
 import * as dataProcessing from "./processing/index.js";
 import * as dataZones from "./zones/index.js";

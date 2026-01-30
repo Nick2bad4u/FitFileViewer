@@ -36,17 +36,22 @@ describe("updateActiveTab.js - Coverage Completion", () => {
 
     describe("Uncovered line coverage tests", () => {
         test("should cover defensive checks in updateTabButtonsFromState via state subscription (lines 135-137, 142-144)", async () => {
-            const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+            const { initializeActiveTabState } =
+                await import("../../../utils/ui/tabs/updateActiveTab.js");
 
             // Mock console.warn to capture warnings
-            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             // Initialize the state management to set up subscriptions
             initializeActiveTabState();
 
             // Get the subscription callback that was registered
             expect(mockSubscribe).toHaveBeenCalled();
-            const subscriptionCall = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "ui.activeTab");
+            const subscriptionCall = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "ui.activeTab"
+            );
             expect(subscriptionCall).toBeTruthy();
 
             const stateCallback = subscriptionCall[1];
@@ -59,7 +64,9 @@ describe("updateActiveTab.js - Coverage Completion", () => {
             stateCallback("summary");
 
             // Should warn about no tab buttons found
-            expect(warnSpy).toHaveBeenCalledWith("updateTabButtonsFromState: No tab buttons found in DOM.");
+            expect(warnSpy).toHaveBeenCalledWith(
+                "updateTabButtonsFromState: No tab buttons found in DOM."
+            );
 
             // Test case 2: Invalid button elements (lines 142-144)
             // Create a malformed element that will trigger the defensive check
@@ -88,15 +95,20 @@ describe("updateActiveTab.js - Coverage Completion", () => {
         });
 
         test("should handle null button elements in state callback", async () => {
-            const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+            const { initializeActiveTabState } =
+                await import("../../../utils/ui/tabs/updateActiveTab.js");
 
-            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             // Initialize the state management
             initializeActiveTabState();
 
             // Get the subscription callback
-            const subscriptionCall = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "ui.activeTab");
+            const subscriptionCall = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "ui.activeTab"
+            );
             const stateCallback = subscriptionCall[1];
 
             // Mock querySelectorAll to return an array with null elements
@@ -107,8 +119,14 @@ describe("updateActiveTab.js - Coverage Completion", () => {
             stateCallback("summary");
 
             // Should warn about invalid button elements
-            expect(warnSpy).toHaveBeenCalledWith("updateTabButtonsFromState: Invalid button element found:", null);
-            expect(warnSpy).toHaveBeenCalledWith("updateTabButtonsFromState: Invalid button element found:", undefined);
+            expect(warnSpy).toHaveBeenCalledWith(
+                "updateTabButtonsFromState: Invalid button element found:",
+                null
+            );
+            expect(warnSpy).toHaveBeenCalledWith(
+                "updateTabButtonsFromState: Invalid button element found:",
+                undefined
+            );
 
             // Restore original querySelectorAll
             mockDocument.querySelectorAll = originalQuerySelectorAll;
@@ -117,15 +135,20 @@ describe("updateActiveTab.js - Coverage Completion", () => {
         });
 
         test("should handle buttons without classList property in state callback", async () => {
-            const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+            const { initializeActiveTabState } =
+                await import("../../../utils/ui/tabs/updateActiveTab.js");
 
-            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             // Initialize the state management
             initializeActiveTabState();
 
             // Get the subscription callback
-            const subscriptionCall = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "ui.activeTab");
+            const subscriptionCall = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "ui.activeTab"
+            );
             const stateCallback = subscriptionCall[1];
 
             // Create a button-like object without classList
@@ -136,7 +159,9 @@ describe("updateActiveTab.js - Coverage Completion", () => {
 
             // Mock querySelectorAll to return this malformed button
             const originalQuerySelectorAll = mockDocument.querySelectorAll;
-            mockDocument.querySelectorAll = vi.fn(() => [buttonWithoutClassList]);
+            mockDocument.querySelectorAll = vi.fn(() => [
+                buttonWithoutClassList,
+            ]);
 
             // Trigger the state callback
             stateCallback("chart");

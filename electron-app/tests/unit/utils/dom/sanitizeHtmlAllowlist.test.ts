@@ -6,7 +6,11 @@ describe("sanitizeHtmlAllowlist", () => {
     it("removes disallowed tags and keeps their textContent", () => {
         const html = "<div>hello<img src=x onerror=alert(1)>world</div>";
         const fragment = sanitizeHtmlAllowlist(html, {
-            allowedAttributes: ["class", "id", "style"],
+            allowedAttributes: [
+                "class",
+                "id",
+                "style",
+            ],
             allowedTags: ["DIV"],
             stripUrlInStyle: true,
         });
@@ -37,7 +41,8 @@ describe("sanitizeHtmlAllowlist", () => {
     });
 
     it("strips href/src/xlink:href attributes defensively", () => {
-        const html = '<div><a href="https://example.com" class="c">link</a></div>';
+        const html =
+            '<div><a href="https://example.com" class="c">link</a></div>';
         const fragment = sanitizeHtmlAllowlist(html, {
             allowedAttributes: ["class"],
             allowedTags: ["DIV", "A"],
@@ -53,7 +58,8 @@ describe("sanitizeHtmlAllowlist", () => {
     });
 
     it("removes style attributes containing url() when stripUrlInStyle is enabled", () => {
-        const html = '<div style="background-image:url(https://evil.example/x)">x</div>';
+        const html =
+            '<div style="background-image:url(https://evil.example/x)">x</div>';
         const fragment = sanitizeHtmlAllowlist(html, {
             allowedAttributes: ["style"],
             allowedTags: ["DIV"],
@@ -70,7 +76,8 @@ describe("sanitizeHtmlAllowlist", () => {
 
     it("removes style attributes containing url() even when url is CSS-escaped", () => {
         // u\72l == url
-        const html = '<div style="background-image:u\\72l(https://evil.example/x)">x</div>';
+        const html =
+            '<div style="background-image:u\\72l(https://evil.example/x)">x</div>';
         const fragment = sanitizeHtmlAllowlist(html, {
             allowedAttributes: ["style"],
             allowedTags: ["DIV"],
@@ -87,7 +94,8 @@ describe("sanitizeHtmlAllowlist", () => {
 
     it("removes style attributes containing @import even when escaped", () => {
         // @\69mport == @import
-        const html = '<div style="@\\69mport url(https://evil.example/x)">x</div>';
+        const html =
+            '<div style="@\\69mport url(https://evil.example/x)">x</div>';
         const fragment = sanitizeHtmlAllowlist(html, {
             allowedAttributes: ["style"],
             allowedTags: ["DIV"],
@@ -119,10 +127,20 @@ describe("sanitizeHtmlAllowlist", () => {
     });
 
     it("removes forbidden tags (script/style/svg) even when the caller allowlists them", () => {
-        const html = "<div>ok<script>alert(1)</script><style>body{color:red}</style><svg><circle /></svg>done</div>";
+        const html =
+            "<div>ok<script>alert(1)</script><style>body{color:red}</style><svg><circle /></svg>done</div>";
         const fragment = sanitizeHtmlAllowlist(html, {
-            allowedAttributes: ["class", "id", "style"],
-            allowedTags: ["DIV", "SCRIPT", "STYLE", "SVG"],
+            allowedAttributes: [
+                "class",
+                "id",
+                "style",
+            ],
+            allowedTags: [
+                "DIV",
+                "SCRIPT",
+                "STYLE",
+                "SVG",
+            ],
             stripUrlInStyle: true,
         });
 

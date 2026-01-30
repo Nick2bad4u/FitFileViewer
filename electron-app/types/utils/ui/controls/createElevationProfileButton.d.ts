@@ -4,7 +4,8 @@
  * active file if none explicitly loaded as overlays).
  *
  * Implementation notes / typing strategy:
- * - getThemeColors() returns an index-signature based object; due to
+ *
+ * - GetThemeColors() returns an index-signature based object; due to
  *   noPropertyAccessFromIndexSignature we must use bracket notation.
  * - Many dynamic data objects (window.loadedFitFiles / window.globalData) are
  *   loosely typed; we defensively treat them as any while keeping local

@@ -36,7 +36,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         (globalThis as any).window = dom.window as any;
         (globalThis as any).document = dom.window.document as any;
-        (globalThis as any).HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
+        (globalThis as any).HTMLCanvasElement = dom.window
+            .HTMLCanvasElement as any;
         (globalThis as any).HTMLElement = dom.window.HTMLElement as any;
 
         (globalThis as any).console = {
@@ -77,7 +78,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             chartZoomResetPlugin: { id: "zoom-reset" },
         }));
 
-        const module = await import("../../utils/charts/rendering/renderGPSTimeChart.js");
+        const module =
+            await import("../../utils/charts/rendering/renderGPSTimeChart.js");
         renderGPSTimeChart = module.renderGPSTimeChart;
     });
 
@@ -95,7 +97,9 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
     it("should exit early when GPS or timestamp data is missing", () => {
         const container = document.createElement("div");
-        const data = [{ positionLat: null, positionLong: null, timestamp: null }];
+        const data = [
+            { positionLat: null, positionLong: null, timestamp: null },
+        ];
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
@@ -105,9 +109,17 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
     it.skip("should respect field visibility from settings manager (handled by chart state manager)", () => {
         const container = document.createElement("div");
-        const data = [{ positionLat: 0, positionLong: 0, timestamp: "2024-01-01T00:00:00.000Z" }];
+        const data = [
+            {
+                positionLat: 0,
+                positionLong: 0,
+                timestamp: "2024-01-01T00:00:00.000Z",
+            },
+        ];
 
-        (chartSettingsManager as any).getFieldVisibility = vi.fn(() => "hidden" as any);
+        (chartSettingsManager as any).getFieldVisibility = vi.fn(
+            () => "hidden" as any
+        );
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
@@ -168,10 +180,18 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             datasetIndex: 0,
             raw: secondLatPoint,
         });
-        expect(tooltipLabel).toEqual(["Latitude: -90.000000°", "Elapsed: 2s", "Point: 2"]);
+        expect(tooltipLabel).toEqual([
+            "Latitude: -90.000000°",
+            "Elapsed: 2s",
+            "Point: 2",
+        ]);
 
-        const tooltipTitle = config.options.plugins.tooltip.callbacks.title([{ raw: secondLatPoint }]);
-        expect(tooltipTitle).toBe(new Date(secondLatPoint.timestamp).toLocaleString());
+        const tooltipTitle = config.options.plugins.tooltip.callbacks.title([
+            { raw: secondLatPoint },
+        ]);
+        expect(tooltipTitle).toBe(
+            new Date(secondLatPoint.timestamp).toLocaleString()
+        );
 
         expect(config.plugins[0]).toEqual({ id: "zoom-reset" });
         expect(container.querySelector("canvas")).not.toBeNull();

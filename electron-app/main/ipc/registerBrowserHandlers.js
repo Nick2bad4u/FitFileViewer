@@ -2,12 +2,16 @@
  * IPC handlers for the built-in FIT file browser tab.
  *
  * Goals:
+ *
  * - Let the user pick a folder (persisted) and browse its subfolders.
  * - Only list directories and .fit files.
- * - Approve returned .fit file paths for subsequent readFile() via fileAccessPolicy.
+ * - Approve returned .fit file paths for subsequent readFile() via
+ *   fileAccessPolicy.
  *
  * Security:
- * - The renderer cannot set an arbitrary root path; it must come from the main-process dialog.
+ *
+ * - The renderer cannot set an arbitrary root path; it must come from the
+ *   main-process dialog.
  * - Listing is constrained to the persisted root folder.
  */
 
@@ -15,13 +19,31 @@ const { approveFilePath } = require("../security/fileAccessPolicy");
 
 /**
  * @typedef {object} RegisterBrowserHandlersOptions
+ *
  * @property {(channel: string, handler: Function) => void} registerIpcHandle
  * @property {() => any} dialogRef
- * @property {{ join: Function, resolve: Function, sep: string, isAbsolute: Function }} path
- * @property {{ promises?: { readdir?: Function, stat?: Function }, constants?: any }} fs
+ * @property {{
+ *     join: Function;
+ *     resolve: Function;
+ *     sep: string;
+ *     isAbsolute: Function;
+ * }} path
+ * @property {{
+ *     promises?: { readdir?: Function; stat?: Function };
+ *     constants?: any;
+ * }} fs
  * @property {{ SETTINGS_CONFIG_NAME: string }} CONSTANTS
- * @property {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} logWithContext
- * @property {{ Conf: new (...args: any[]) => { get: (key: string, fallback?: any) => any, set: (key: string, value: any) => void } }} [confModule]
+ * @property {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} logWithContext
+ * @property {{
+ *     Conf: new (...args: any[]) => {
+ *         get: (key: string, fallback?: any) => any;
+ *         set: (key: string, value: any) => void;
+ *     };
+ * }} [confModule]
  */
 
 const CONF_KEY_ENABLED = "fitBrowser.enabled";
@@ -31,6 +53,7 @@ const CONF_KEY_ROOT_FOLDER_MODE = "fitBrowser.rootFolderMode";
 /**
  * @param {unknown} value
  * @param {{ isAbsolute: (p: string) => boolean }} path
+ *
  * @returns {string | null}
  */
 function normalizeAbsoluteFolder(value, path) {
@@ -42,22 +65,37 @@ function normalizeAbsoluteFolder(value, path) {
 /**
  * @param {RegisterBrowserHandlersOptions} options
  */
-function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONSTANTS, logWithContext, confModule }) {
+function registerBrowserHandlers({
+    registerIpcHandle,
+    dialogRef,
+    fs,
+    path,
+    CONSTANTS,
+    logWithContext,
+    confModule,
+}) {
     if (typeof registerIpcHandle !== "function") {
         return;
     }
 
     /**
-     * @returns {{ get: (key: string, fallback?: any) => any, set: (key: string, value: any) => void } | null}
+     * @returns {{
+     *     get: (key: string, fallback?: any) => any;
+     *     set: (key: string, value: any) => void;
+     * } | null}
      */
     const tryGetConf = () => {
         try {
             const { Conf } = confModule ?? require("electron-conf");
             return new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
         } catch (error) {
-            logWithContext?.("warn", "Failed to initialize electron-conf for fitBrowser", {
-                error: /** @type {Error} */ (error)?.message,
-            });
+            logWithContext?.(
+                "warn",
+                "Failed to initialize electron-conf for fitBrowser",
+                {
+                    error: /** @type {Error} */ (error)?.message,
+                }
+            );
             return null;
         }
     };
@@ -68,7 +106,10 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
     const readRootFolder = () => {
         const conf = tryGetConf();
         if (!conf) return null;
-        return normalizeAbsoluteFolder(conf.get(CONF_KEY_ROOT_FOLDER, null), path);
+        return normalizeAbsoluteFolder(
+            conf.get(CONF_KEY_ROOT_FOLDER, null),
+            path
+        );
     };
 
     /**
@@ -90,14 +131,18 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
         try {
             conf.set(CONF_KEY_ROOT_FOLDER, folder);
         } catch (error) {
-            logWithContext?.("warn", "Failed to persist fitBrowser root folder", {
-                error: /** @type {Error} */ (error)?.message,
-            });
+            logWithContext?.(
+                "warn",
+                "Failed to persist fitBrowser root folder",
+                {
+                    error: /** @type {Error} */ (error)?.message,
+                }
+            );
         }
     };
 
     /**
-     * @param {'auto'|'manual'} mode
+     * @param {"auto" | "manual"} mode
      */
     const writeRootFolderMode = (mode) => {
         const conf = tryGetConf();
@@ -106,9 +151,13 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
         try {
             conf.set(CONF_KEY_ROOT_FOLDER_MODE, normalized);
         } catch (error) {
-            logWithContext?.("warn", "Failed to persist fitBrowser root folder mode", {
-                error: /** @type {Error} */ (error)?.message,
-            });
+            logWithContext?.(
+                "warn",
+                "Failed to persist fitBrowser root folder mode",
+                {
+                    error: /** @type {Error} */ (error)?.message,
+                }
+            );
         }
     };
 
@@ -121,14 +170,19 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
         try {
             conf.set(CONF_KEY_ENABLED, enabled === true);
         } catch (error) {
-            logWithContext?.("warn", "Failed to persist fitBrowser enabled flag", {
-                error: /** @type {Error} */ (error)?.message,
-            });
+            logWithContext?.(
+                "warn",
+                "Failed to persist fitBrowser enabled flag",
+                {
+                    error: /** @type {Error} */ (error)?.message,
+                }
+            );
         }
     };
 
     /**
      * @param {string} folder
+     *
      * @returns {Promise<boolean>}
      */
     const validateAndPersistFolder = async (folder) => {
@@ -176,7 +230,12 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
             title: "Select FIT Files Folder",
         });
 
-        if (!result || result.canceled || !Array.isArray(result.filePaths) || result.filePaths.length === 0) {
+        if (
+            !result ||
+            result.canceled ||
+            !Array.isArray(result.filePaths) ||
+            result.filePaths.length === 0
+        ) {
             return null;
         }
 
@@ -215,11 +274,21 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
                 return { entries: [], relPath: "", root };
             }
 
-            /** @type {Array<{ name: string, kind: 'dir'|'file', relPath: string, fullPath: string }>} */
+            /**
+             * @type {{
+             *     name: string;
+             *     kind: "dir" | "file";
+             *     relPath: string;
+             *     fullPath: string;
+             * }[]}
+             */
             const out = [];
 
             const dirents = await readdir(abs, { withFileTypes: true });
-            const baseRel = typeof relPath === "string" ? relPath.trim().replaceAll("\\", "/").replace(/^\/+/, "") : "";
+            const baseRel =
+                typeof relPath === "string"
+                    ? relPath.trim().replaceAll("\\", "/").replace(/^\/+/, "")
+                    : "";
 
             for (const d of dirents) {
                 const name = d && typeof d.name === "string" ? d.name : "";
@@ -231,7 +300,12 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
                 if (!childAbs) continue;
 
                 if (typeof d.isDirectory === "function" && d.isDirectory()) {
-                    out.push({ fullPath: childAbs, kind: "dir", name, relPath: childRel });
+                    out.push({
+                        fullPath: childAbs,
+                        kind: "dir",
+                        name,
+                        relPath: childRel,
+                    });
                     continue;
                 }
 
@@ -245,13 +319,22 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
                     try {
                         approveFilePath(childAbs);
                     } catch (error) {
-                        logWithContext?.("warn", "Failed to approve FIT file for browser", {
-                            error: /** @type {Error} */ (error)?.message,
-                            filePath: childAbs,
-                        });
+                        logWithContext?.(
+                            "warn",
+                            "Failed to approve FIT file for browser",
+                            {
+                                error: /** @type {Error} */ (error)?.message,
+                                filePath: childAbs,
+                            }
+                        );
                     }
 
-                    out.push({ fullPath: childAbs, kind: "file", name, relPath: childRel });
+                    out.push({
+                        fullPath: childAbs,
+                        kind: "file",
+                        name,
+                        relPath: childRel,
+                    });
                 }
             }
 
@@ -278,7 +361,8 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
 /**
  * @param {string} root
  * @param {string} rel
- * @param {{ resolve: (...parts: string[]) => string, sep: string }} path
+ * @param {{ resolve: (...parts: string[]) => string; sep: string }} path
+ *
  * @returns {string | null}
  */
 function resolveWithinRoot(root, rel, path) {
@@ -298,7 +382,9 @@ function resolveWithinRoot(root, rel, path) {
 
     const abs = path.resolve(root, ...parts);
     const rootAbs = path.resolve(root);
-    const rootPrefix = rootAbs.endsWith(path.sep) ? rootAbs : `${rootAbs}${path.sep}`;
+    const rootPrefix = rootAbs.endsWith(path.sep)
+        ? rootAbs
+        : `${rootAbs}${path.sep}`;
 
     // Must be inside root (handle root paths like '/' or 'C:\' without double separators).
     if (abs !== rootAbs && !abs.startsWith(rootPrefix)) {

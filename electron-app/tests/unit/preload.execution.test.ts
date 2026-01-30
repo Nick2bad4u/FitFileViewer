@@ -1,6 +1,7 @@
 /**
- * @file preload.execution.test.ts
- * @description Test file that actually imports and executes preload.js for real coverage
+ * Test file that actually imports and executes preload.js for real coverage
+ *
+ * @file Preload.execution.test.ts
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -76,7 +77,10 @@ describe("preload.js - Actual File Execution", () => {
                 "mockContextBridge.exposeInMainWorld calls after require:",
                 mockContextBridge.exposeInMainWorld.mock.calls.length
             );
-            console.log("All mock calls:", mockContextBridge.exposeInMainWorld.mock.calls);
+            console.log(
+                "All mock calls:",
+                mockContextBridge.exposeInMainWorld.mock.calls
+            );
 
             // Check if exposeInMainWorld was called at all
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalled();
@@ -108,7 +112,9 @@ describe("preload.js - Actual File Execution", () => {
 
             // Verify development logging occurred
             expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining("[preload.js] Successfully exposed electronAPI to main world")
+                expect.stringContaining(
+                    "[preload.js] Successfully exposed electronAPI to main world"
+                )
             );
         });
 
@@ -119,8 +125,11 @@ describe("preload.js - Actual File Execution", () => {
             await import("../../preload.js");
 
             // Get the exposed electronAPI from the mock call
-            const exposeMainWorldCalls = mockContextBridge.exposeInMainWorld.mock.calls;
-            const electronAPICall = exposeMainWorldCalls.find((call) => call[0] === "electronAPI");
+            const exposeMainWorldCalls =
+                mockContextBridge.exposeInMainWorld.mock.calls;
+            const electronAPICall = exposeMainWorldCalls.find(
+                (call) => call[0] === "electronAPI"
+            );
             expect(electronAPICall).toBeDefined();
 
             const electronAPI = electronAPICall![1];
@@ -146,14 +155,19 @@ describe("preload.js - Actual File Execution", () => {
 
             await import("../../preload.js");
 
-            const exposeMainWorldCalls = mockContextBridge.exposeInMainWorld.mock.calls;
-            const electronAPICall = exposeMainWorldCalls.find((call) => call[0] === "electronAPI");
+            const exposeMainWorldCalls =
+                mockContextBridge.exposeInMainWorld.mock.calls;
+            const electronAPICall = exposeMainWorldCalls.find(
+                (call) => call[0] === "electronAPI"
+            );
             const electronAPI = electronAPICall![1];
 
             // Test an invoke-based method
             const result = await electronAPI.getAppVersion();
             expect(result).toBe("test-result");
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("getAppVersion");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "getAppVersion"
+            );
         });
     });
 
@@ -165,10 +179,16 @@ describe("preload.js - Actual File Execution", () => {
             await import("../../preload.js");
 
             // Verify electronAPI was exposed
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.any(Object)
+            );
 
             // Verify devTools was NOT exposed in production
-            const devToolsCall = mockContextBridge.exposeInMainWorld.mock.calls.find((call) => call[0] === "devTools");
+            const devToolsCall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "devTools"
+                );
             expect(devToolsCall).toBeUndefined();
         });
     });

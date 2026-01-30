@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+const HELPERS =
+    "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
 
 describe("renderTable behavior", () => {
     beforeEach(() => {
@@ -14,8 +15,10 @@ describe("renderTable behavior", () => {
                 return {
                     numRows: () => data.length,
                     get: (idx: number, col: string) => data[idx]?.[col],
-                    columnNames: () => (data.length ? Object.keys(data[0]) : []),
-                    array: (col: string) => data.map((r) => r[col]).filter((v) => v !== undefined),
+                    columnNames: () =>
+                        data.length ? Object.keys(data[0]) : [],
+                    array: (col: string) =>
+                        data.map((r) => r[col]).filter((v) => v !== undefined),
                 };
             },
         };
@@ -36,19 +39,50 @@ describe("renderTable behavior", () => {
                 },
             ],
             lapMesgs: [
-                { timestamp: "2020-01-01T00:00:00Z", startTime: "T0", other: 1 },
-                { timestamp: "2020-01-01T00:10:00Z", startTime: "T10", other: 2 },
+                {
+                    timestamp: "2020-01-01T00:00:00Z",
+                    startTime: "T0",
+                    other: 1,
+                },
+                {
+                    timestamp: "2020-01-01T00:10:00Z",
+                    startTime: "T10",
+                    other: 2,
+                },
             ],
-            recordMesgs: [{ timestamp: "2020-01-01T00:00:00Z", distance: 0, speed: 1, altitude: 10 }],
+            recordMesgs: [
+                {
+                    timestamp: "2020-01-01T00:00:00Z",
+                    distance: 0,
+                    speed: 1,
+                    altitude: 10,
+                },
+            ],
         } as any;
-        const visibleColumns = ["total_ascent_ft", "total_descent_ft", "avg_speed", "other", "timestamp"];
+        const visibleColumns = [
+            "total_ascent_ft",
+            "total_descent_ft",
+            "avg_speed",
+            "other",
+            "timestamp",
+        ];
         const setVisibleColumns = vi.fn();
 
-        renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
-        const section = container.querySelector(".summary-section") as HTMLElement;
+        renderTable({
+            container,
+            data,
+            gearBtn,
+            setVisibleColumns,
+            visibleColumns,
+        });
+        const section = container.querySelector(
+            ".summary-section"
+        ) as HTMLElement;
         expect(section).toBeTruthy();
         // Header should include Type + visible columns
-        const headers = Array.from(section.querySelectorAll("thead th")).map((th) => th.textContent);
+        const headers = Array.from(section.querySelectorAll("thead th")).map(
+            (th) => th.textContent
+        );
         expect(headers).toEqual(["Type", ...visibleColumns]);
 
         // Summary row exists and has "Summary" as first cell label
@@ -59,7 +93,9 @@ describe("renderTable behavior", () => {
         const rows = section.querySelectorAll("tbody tr");
         expect(rows.length).toBeGreaterThanOrEqual(1 + data.lapMesgs.length);
         const lap1 = rows[1];
-        const lap1Cells = Array.from(lap1.querySelectorAll("td")).map((td) => td.textContent);
+        const lap1Cells = Array.from(lap1.querySelectorAll("td")).map(
+            (td) => td.textContent
+        );
         expect(lap1Cells[0]).toBe("Lap 1");
         // timestamp column should show startTime per implementation
         const tsIdx = headers.indexOf("timestamp");
@@ -71,18 +107,38 @@ describe("renderTable behavior", () => {
         const { renderTable } = await import(HELPERS);
         const container = document.querySelector("#host") as any;
         const gearBtn = document.createElement("button");
-        const data = { lapMesgs: [{}, {}, {}] } as any;
+        const data = {
+            lapMesgs: [
+                {},
+                {},
+                {},
+            ],
+        } as any;
         const visibleColumns: string[] = [];
         const setVisibleColumns = vi.fn();
 
-        renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
-        const select = container.querySelector(".summary-filter-bar select") as HTMLSelectElement;
+        renderTable({
+            container,
+            data,
+            gearBtn,
+            setVisibleColumns,
+            visibleColumns,
+        });
+        const select = container.querySelector(
+            ".summary-filter-bar select"
+        ) as HTMLSelectElement;
         expect(select.value).toBe("All");
         // Change to Lap 2 via wheel event
-        const evt = new WheelEvent("wheel", { deltaY: 1, bubbles: true, cancelable: true });
+        const evt = new WheelEvent("wheel", {
+            deltaY: 1,
+            bubbles: true,
+            cancelable: true,
+        });
         select.dispatchEvent(evt);
         // After re-render, a new select exists; its value should match cached _summaryFilterValue and not be "All"
-        const newSelect = container.querySelector(".summary-filter-bar select") as HTMLSelectElement;
+        const newSelect = container.querySelector(
+            ".summary-filter-bar select"
+        ) as HTMLSelectElement;
         expect(container._summaryFilterValue).toBeDefined();
         expect(newSelect.value).toBe(container._summaryFilterValue);
         expect(newSelect.value).not.toBe("All"); // should have advanced
@@ -93,13 +149,27 @@ describe("renderTable behavior", () => {
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
         const data = {
-            sessionMesgs: [{ total_ascent: 10, total_descent: 5, avg_speed: 2 }],
+            sessionMesgs: [
+                { total_ascent: 10, total_descent: 5, avg_speed: 2 },
+            ],
             lapMesgs: [{ other: 1 }],
         } as any;
-        const visibleColumns = ["avg_speed", "total_ascent_ft", "total_descent_ft"];
+        const visibleColumns = [
+            "avg_speed",
+            "total_ascent_ft",
+            "total_descent_ft",
+        ];
         const setVisibleColumns = vi.fn();
-        renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
-        const copyBtn = container.querySelector(".copy-btn") as HTMLButtonElement;
+        renderTable({
+            container,
+            data,
+            gearBtn,
+            setVisibleColumns,
+            visibleColumns,
+        });
+        const copyBtn = container.querySelector(
+            ".copy-btn"
+        ) as HTMLButtonElement;
         expect(copyBtn).toBeTruthy();
         copyBtn.click();
         const written = vi.mocked((navigator as any).clipboard.writeText);

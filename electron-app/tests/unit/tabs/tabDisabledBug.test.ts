@@ -1,6 +1,6 @@
 /**
- * Specific test to reproduce and debug the disabled attribute bug
- * This test simulates the exact real-world scenario where disabled="" persists
+ * Specific test to reproduce and debug the disabled attribute bug This test
+ * simulates the exact real-world scenario where disabled="" persists
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
@@ -54,13 +54,23 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
     });
 
     it("should detect if multiple systems are setting disabled attributes", async () => {
-        /** @type {Array<{target: string, oldValue: string|null, newValue: string|null, timestamp: number}>} */
+        /**
+         * @type {{
+         *     target: string;
+         *     oldValue: string | null;
+         *     newValue: string | null;
+         *     timestamp: number;
+         * }[]}
+         */
         const attributeChanges = [];
 
         // Set up a MutationObserver to track attribute changes
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "disabled"
+                ) {
                     const target = /** @type {HTMLElement} */ mutation.target;
                     attributeChanges.push({
                         target: target.id,
@@ -100,7 +110,8 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
 
         // Check for any unexpected attribute changes
         const unexpectedChanges = attributeChanges.filter(
-            (change) => change.newValue !== null && change.newValue !== undefined
+            (change) =>
+                change.newValue !== null && change.newValue !== undefined
         );
 
         expect(Array.isArray(attributeChanges)).toBe(true);
@@ -126,7 +137,10 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
             </button>
         `;
 
-        const button = /** @type {HTMLButtonElement|null} */ document.getElementById("tab-altfit");
+        const button =
+            /** @type {HTMLButtonElement | null} */ document.getElementById(
+                "tab-altfit"
+            );
 
         // Verify button exists
         expect(button).not.toBeNull();

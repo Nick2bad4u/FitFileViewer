@@ -32,18 +32,39 @@ describe("setupZoneData", () => {
     it("uses timeInZoneMesgs session aggregate", async () => {
         const { setupZoneData } = await import(modPath);
         const res = setupZoneData({
-            timeInZoneMesgs: [{ referenceMesg: "session", timeInHrZone: [0, 5, 0, 3], timeInPowerZone: [0, 0, 4] }],
+            timeInZoneMesgs: [
+                {
+                    referenceMesg: "session",
+                    timeInHrZone: [
+                        0,
+                        5,
+                        0,
+                        3,
+                    ],
+                    timeInPowerZone: [
+                        0,
+                        0,
+                        4,
+                    ],
+                },
+            ],
         } as any);
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(true);
         expect(res.heartRateZones.map((z: any) => z.zone)).toEqual([1, 3]);
         expect(res.powerZones.map((z: any) => z.zone)).toEqual([2]);
-        expect((globalThis as any).window.heartRateZones.length).toBeGreaterThan(0);
+        expect(
+            (globalThis as any).window.heartRateZones.length
+        ).toBeGreaterThan(0);
     });
 
     it("falls back to sessionMesgs when no timeInZoneMesgs", async () => {
         const { setupZoneData } = await import(modPath);
-        const res = setupZoneData({ sessionMesgs: [{ time_in_hr_zone: [0, 2], time_in_power_zone: [0, 7] }] } as any);
+        const res = setupZoneData({
+            sessionMesgs: [
+                { time_in_hr_zone: [0, 2], time_in_power_zone: [0, 7] },
+            ],
+        } as any);
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(true);
         expect(res.heartRateZones[0]).toMatchObject({ zone: 1, time: 2 });
@@ -54,8 +75,30 @@ describe("setupZoneData", () => {
         const { setupZoneData } = await import(modPath);
         const res = setupZoneData({
             lapMesgs: [
-                { time_in_hr_zone: [0, 1, 0], time_in_power_zone: [0, 0, 2] },
-                { time_in_hr_zone: [0, 3, 0], time_in_power_zone: [0, 5, 0] },
+                {
+                    time_in_hr_zone: [
+                        0,
+                        1,
+                        0,
+                    ],
+                    time_in_power_zone: [
+                        0,
+                        0,
+                        2,
+                    ],
+                },
+                {
+                    time_in_hr_zone: [
+                        0,
+                        3,
+                        0,
+                    ],
+                    time_in_power_zone: [
+                        0,
+                        5,
+                        0,
+                    ],
+                },
             ],
         } as any);
         expect(res.hasHRZoneData).toBe(true);

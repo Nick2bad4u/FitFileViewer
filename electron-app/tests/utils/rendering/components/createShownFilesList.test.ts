@@ -1,14 +1,20 @@
 /**
- * @fileoverview Comprehensive tests for createShownFilesList.js
- * Tests DOM creation, theme handling, color accessibility, file management,
- * interactive features, tooltip system, and Leaflet map integration.
+ * @file Comprehensive tests for createShownFilesList.js Tests DOM creation,
+ *   theme handling, color accessibility, file management, interactive features,
+ *   tooltip system, and Leaflet map integration.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Mock dependencies
 const mockGetThemeColors = vi.fn();
-const mockChartOverlayColorPalette = ["#1976d2", "#388e3c", "#f57c00", "#7b1fa2", "#d32f2f"];
+const mockChartOverlayColorPalette = [
+    "#1976d2",
+    "#388e3c",
+    "#f57c00",
+    "#7b1fa2",
+    "#d32f2f",
+];
 
 vi.mock("../../charts/theming/getThemeColors.js", () => ({
     getThemeColors: mockGetThemeColors,
@@ -67,12 +73,15 @@ describe("createShownFilesList", () => {
         };
 
         // Import the function dynamically
-        const module = await import("../../../../utils/rendering/components/createShownFilesList.js");
+        const module =
+            await import("../../../../utils/rendering/components/createShownFilesList.js");
         createShownFilesList = module.createShownFilesList;
 
         // Get mocked functions
-        const themeModule = await import("../../../../utils/charts/theming/getThemeColors.js");
-        const paletteModule = await import("../../../../utils/charts/theming/chartOverlayColorPalette.js");
+        const themeModule =
+            await import("../../../../utils/charts/theming/getThemeColors.js");
+        const paletteModule =
+            await import("../../../../utils/charts/theming/chartOverlayColorPalette.js");
     });
 
     afterEach(() => {
@@ -86,12 +95,16 @@ describe("createShownFilesList", () => {
 
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Check that critical properties are set - jsdom may not preserve all styles
             expect(container.style.maxWidth).toBe("fit-content");
             expect(container.style.overflow).toBe("auto");
-            expect(["fit-content", "80px"]).toContain(container.style.maxHeight);
+            expect(["fit-content", "80px"]).toContain(
+                container.style.maxHeight
+            );
 
             // The element should have proper structure
             expect(container.innerHTML).toContain("Extra Files shown on map");
@@ -101,7 +114,9 @@ describe("createShownFilesList", () => {
         it("sets initial HTML content with proper structure", () => {
             const container = createShownFilesList();
 
-            expect(container.innerHTML).toContain("<b>Extra Files shown on map:</b>");
+            expect(container.innerHTML).toContain(
+                "<b>Extra Files shown on map:</b>"
+            );
             expect(container.innerHTML).toContain('<ul id="shown-files-ul"');
 
             const ul = container.querySelector("#shown-files-ul");
@@ -129,7 +144,9 @@ describe("createShownFilesList", () => {
             // The container should have proper styling applied
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Container should have styling applied (theme is applied automatically)
             expect(container.style.margin).toBe("0px");
@@ -138,7 +155,9 @@ describe("createShownFilesList", () => {
             // Verify that the container was created successfully
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
         });
 
         it("handles missing theme properties with defaults", () => {
@@ -155,7 +174,9 @@ describe("createShownFilesList", () => {
             // Instead of checking if mock was called, verify container behavior
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Container should have default styling and structure
             expect(container.style.margin).toBe("0px");
@@ -164,15 +185,23 @@ describe("createShownFilesList", () => {
             // Verify that the container was created successfully
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
         });
 
         it("sets up theme change event listener", () => {
-            const addEventListenerSpy = vi.spyOn(document.body, "addEventListener");
+            const addEventListenerSpy = vi.spyOn(
+                document.body,
+                "addEventListener"
+            );
 
             createShownFilesList();
 
-            expect(addEventListenerSpy).toHaveBeenCalledWith("themechange", expect.any(Function));
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                "themechange",
+                expect.any(Function)
+            );
         });
 
         it("initially hides container when no overlays exist", () => {
@@ -184,7 +213,9 @@ describe("createShownFilesList", () => {
         });
 
         it("initially hides container when only main file exists", () => {
-            (global.window as any).loadedFitFiles = [{ data: {}, filePath: "main.fit" }];
+            (global.window as any).loadedFitFiles = [
+                { data: {}, filePath: "main.fit" },
+            ];
 
             const container = createShownFilesList();
 
@@ -205,7 +236,11 @@ describe("createShownFilesList", () => {
 
     describe("Color Accessibility System", () => {
         let container: HTMLElement;
-        let isColorAccessible: (fg: string, bg: string, filter?: string) => boolean;
+        let isColorAccessible: (
+            fg: string,
+            bg: string,
+            filter?: string
+        ) => boolean;
 
         beforeEach(() => {
             container = createShownFilesList();
@@ -225,7 +260,9 @@ describe("createShownFilesList", () => {
             ];
 
             // Mock getComputedStyle for color testing
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(25, 118, 210)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(25, 118, 210)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
             (global.window as any).updateShownFilesList();
@@ -243,7 +280,9 @@ describe("createShownFilesList", () => {
                 { data: {}, filePath: "overlay.fit" },
             ];
 
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(255, 255, 255)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(255, 255, 255)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
             (global.window as any).updateShownFilesList();
@@ -257,7 +296,9 @@ describe("createShownFilesList", () => {
                 { data: {}, filePath: "overlay.fit" },
             ];
 
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "invalid-color" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "invalid-color" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
                 configurable: true,
@@ -275,7 +316,9 @@ describe("createShownFilesList", () => {
                 { data: {}, filePath: "overlay.fit" },
             ];
 
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(0, 0, 0)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(0, 0, 0)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
                 configurable: true,
@@ -299,10 +342,16 @@ describe("createShownFilesList", () => {
             const mockAppendChild = vi.fn();
             const mockRemoveChild = vi.fn();
 
-            vi.spyOn(document.body, "appendChild").mockImplementation(mockAppendChild);
-            vi.spyOn(document.body, "removeChild").mockImplementation(mockRemoveChild);
+            vi.spyOn(document.body, "appendChild").mockImplementation(
+                mockAppendChild
+            );
+            vi.spyOn(document.body, "removeChild").mockImplementation(
+                mockRemoveChild
+            );
 
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(100, 150, 200)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(100, 150, 200)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
                 configurable: true,
@@ -324,7 +373,9 @@ describe("createShownFilesList", () => {
             ];
 
             // High contrast colors should pass
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(255, 255, 255)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(255, 255, 255)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
                 configurable: true,
@@ -433,7 +484,9 @@ describe("createShownFilesList", () => {
             const removeBtn = firstItem?.querySelector("span");
 
             expect(firstItem?.style.filter).toContain("invert");
-            expect(removeBtn?.style.color).toMatch(/(#ff5252|rgb\(255,\s*82,\s*82\))/);
+            expect(removeBtn?.style.color).toMatch(
+                /(#ff5252|rgb\(255,\s*82,\s*82\))/
+            );
         });
 
         it("applies light theme styling when enabled", () => {
@@ -446,7 +499,9 @@ describe("createShownFilesList", () => {
             const firstItem = ul?.querySelector("li");
             const removeBtn = firstItem?.querySelector("span");
 
-            expect(removeBtn?.style.color).toMatch(/(#e53935|rgb\(229,\s*57,\s*53\))/);
+            expect(removeBtn?.style.color).toMatch(
+                /(#e53935|rgb\(229,\s*57,\s*53\))/
+            );
         });
 
         it("handles missing file paths gracefully", () => {
@@ -487,7 +542,9 @@ describe("createShownFilesList", () => {
         });
 
         it("hides container when no overlays exist", () => {
-            (global.window as any).loadedFitFiles = [{ data: {}, filePath: "main.fit" }];
+            (global.window as any).loadedFitFiles = [
+                { data: {}, filePath: "main.fit" },
+            ];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -516,9 +573,13 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
 
             // Mock updateShownFilesList as a spy after it's created
-            const originalUpdateShownFilesList = (global.window as any).updateShownFilesList;
-            const spyUpdateShownFilesList = vi.fn().mockImplementation(originalUpdateShownFilesList);
-            (global.window as any).updateShownFilesList = spyUpdateShownFilesList;
+            const originalUpdateShownFilesList = (global.window as any)
+                .updateShownFilesList;
+            const spyUpdateShownFilesList = vi
+                .fn()
+                .mockImplementation(originalUpdateShownFilesList);
+            (global.window as any).updateShownFilesList =
+                spyUpdateShownFilesList;
 
             (global.window as any).updateShownFilesList();
 
@@ -602,7 +663,9 @@ describe("createShownFilesList", () => {
             // Fast-forward the timeout
             vi.advanceTimersByTime(10);
 
-            expect(document.querySelector(".overlay-filename-tooltip")).toBeFalsy();
+            expect(
+                document.querySelector(".overlay-filename-tooltip")
+            ).toBeFalsy();
 
             vi.useRealTimers();
         });
@@ -632,7 +695,9 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn") as HTMLElement;
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            ) as HTMLElement;
             expect(clearAllBtn).toBeTruthy();
             expect(clearAllBtn.textContent).toBe("Clear All");
             expect(clearAllBtn.title).toBe("Remove all overlays from the map");
@@ -642,9 +707,15 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn") as HTMLElement;
-            expect(clearAllBtn.style.background).toMatch(/(#e53935|rgb\(229,\s*57,\s*53\))/);
-            expect(clearAllBtn.style.color).toMatch(/(#fff|rgb\(255,\s*255,\s*255\)|white)/);
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            ) as HTMLElement;
+            expect(clearAllBtn.style.background).toMatch(
+                /(#e53935|rgb\(229,\s*57,\s*53\))/
+            );
+            expect(clearAllBtn.style.color).toMatch(
+                /(#fff|rgb\(255,\s*255,\s*255\)|white)/
+            );
             expect(clearAllBtn.style.border).toMatch(/(none|medium|0)/);
             expect(clearAllBtn.style.borderRadius).toBe("4px");
             expect(clearAllBtn.style.cursor).toBe("pointer");
@@ -655,7 +726,9 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn") as HTMLElement;
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            ) as HTMLElement;
             clearAllBtn.click();
 
             expect((global.window as any).loadedFitFiles.length).toBe(1); // Only main file left
@@ -666,7 +739,9 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn") as HTMLElement;
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            ) as HTMLElement;
             const clickEvent = new MouseEvent("click", { bubbles: true });
             const stopPropagationSpy = vi.spyOn(clickEvent, "stopPropagation");
 
@@ -685,12 +760,16 @@ describe("createShownFilesList", () => {
             mockTooltip.className = "overlay-filename-tooltip";
             document.body.appendChild(mockTooltip);
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn") as HTMLElement;
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            ) as HTMLElement;
             clearAllBtn.click();
 
             vi.advanceTimersByTime(10);
 
-            expect(document.querySelector(".overlay-filename-tooltip")).toBeFalsy();
+            expect(
+                document.querySelector(".overlay-filename-tooltip")
+            ).toBeFalsy();
 
             vi.useRealTimers();
         });
@@ -703,17 +782,23 @@ describe("createShownFilesList", () => {
             (global.window as any).updateShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtns = container.querySelectorAll(".overlay-clear-all-btn");
+            const clearAllBtns = container.querySelectorAll(
+                ".overlay-clear-all-btn"
+            );
             expect(clearAllBtns.length).toBe(1);
         });
 
         it("does not create clear all button when no overlays exist", () => {
-            (global.window as any).loadedFitFiles = [{ data: {}, filePath: "main.fit" }];
+            (global.window as any).loadedFitFiles = [
+                { data: {}, filePath: "main.fit" },
+            ];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(".overlay-clear-all-btn");
+            const clearAllBtn = container.querySelector(
+                ".overlay-clear-all-btn"
+            );
             expect(clearAllBtn).toBeFalsy();
         });
     });
@@ -736,7 +821,9 @@ describe("createShownFilesList", () => {
             firstItem.click();
 
             expect((global.window as any)._highlightedOverlayIdx).toBe(1);
-            expect((global.window as any).updateOverlayHighlights).toHaveBeenCalled();
+            expect(
+                (global.window as any).updateOverlayHighlights
+            ).toHaveBeenCalled();
         });
 
         it("handles mouse enter events on list items", () => {
@@ -824,7 +911,9 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
 
             // Advance past the tooltip delay
             vi.advanceTimersByTime(350);
@@ -844,12 +933,17 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            const mouseEvent = new MouseEvent("mouseenter", { clientX: 100, clientY: 100 });
+            const mouseEvent = new MouseEvent("mouseenter", {
+                clientX: 100,
+                clientY: 100,
+            });
             firstItem.dispatchEvent(mouseEvent);
 
             vi.advanceTimersByTime(350);
 
-            const tooltip = document.querySelector(".overlay-filename-tooltip") as HTMLElement;
+            const tooltip = document.querySelector(
+                ".overlay-filename-tooltip"
+            ) as HTMLElement;
             expect(tooltip.style.position).toBe("fixed");
             expect(tooltip.style.zIndex).toBe("9999");
 
@@ -866,13 +960,23 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
             vi.advanceTimersByTime(350);
 
-            const tooltip = document.querySelector(".overlay-filename-tooltip") as HTMLElement;
-            expect(tooltip.style.background).toMatch(/(#23263a|rgb\(35,\s*38,\s*58\))/);
-            expect(tooltip.style.color).toMatch(/(#fff|rgb\(255,\s*255,\s*255\)|white)/);
-            expect(tooltip.style.border).toMatch(/(1px solid #444|1px solid rgb\(68,\s*68,\s*68\)|^$)/); // Allow empty for JSDOM
+            const tooltip = document.querySelector(
+                ".overlay-filename-tooltip"
+            ) as HTMLElement;
+            expect(tooltip.style.background).toMatch(
+                /(#23263a|rgb\(35,\s*38,\s*58\))/
+            );
+            expect(tooltip.style.color).toMatch(
+                /(#fff|rgb\(255,\s*255,\s*255\)|white)/
+            );
+            expect(tooltip.style.border).toMatch(
+                /(1px solid #444|1px solid rgb\(68,\s*68,\s*68\)|^$)/
+            ); // Allow empty for JSDOM
 
             vi.useRealTimers();
         });
@@ -887,13 +991,21 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
             vi.advanceTimersByTime(350);
 
-            const tooltip = document.querySelector(".overlay-filename-tooltip") as HTMLElement;
-            expect(tooltip.style.background).toMatch(/(#fff|rgb\(255,\s*255,\s*255\)|white)/);
+            const tooltip = document.querySelector(
+                ".overlay-filename-tooltip"
+            ) as HTMLElement;
+            expect(tooltip.style.background).toMatch(
+                /(#fff|rgb\(255,\s*255,\s*255\)|white)/
+            );
             expect(tooltip.style.color).toMatch(/(#222|rgb\(34,\s*34,\s*34\))/);
-            expect(tooltip.style.border).toMatch(/(1px solid #bbb|1px solid rgb\(187,\s*187,\s*187\)|^$)/); // Allow empty for JSDOM
+            expect(tooltip.style.border).toMatch(
+                /(1px solid #bbb|1px solid rgb\(187,\s*187,\s*187\)|^$)/
+            ); // Allow empty for JSDOM
 
             vi.useRealTimers();
         });
@@ -912,7 +1024,9 @@ describe("createShownFilesList", () => {
 
             // Mock low contrast colors to trigger warning
             // Dark theme bg is "rgb(30,34,40)", so use a similar dark color for poor contrast
-            const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(40, 44, 50)" });
+            const mockGetComputedStyle = vi
+                .fn()
+                .mockReturnValue({ color: "rgb(40, 44, 50)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
                 configurable: true,
@@ -924,12 +1038,16 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
             vi.advanceTimersByTime(350);
 
             const tooltip = document.querySelector(".overlay-filename-tooltip");
             // Check for the actual warning text from the source code
-            expect(tooltip?.innerHTML).toContain("⚠️ This color may be hard to read in this theme.");
+            expect(tooltip?.innerHTML).toContain(
+                "⚠️ This color may be hard to read in this theme."
+            );
 
             vi.useRealTimers();
         });
@@ -938,8 +1056,14 @@ describe("createShownFilesList", () => {
             vi.useFakeTimers();
 
             // Mock window dimensions
-            Object.defineProperty(window, "innerWidth", { value: 1024, configurable: true });
-            Object.defineProperty(window, "innerHeight", { value: 768, configurable: true });
+            Object.defineProperty(window, "innerWidth", {
+                value: 1024,
+                configurable: true,
+            });
+            Object.defineProperty(window, "innerHeight", {
+                value: 768,
+                configurable: true,
+            });
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -955,9 +1079,13 @@ describe("createShownFilesList", () => {
                 offsetHeight: { value: 100, configurable: true },
             });
 
-            vi.spyOn(document, "createElement").mockReturnValue(mockTooltip as any);
+            vi.spyOn(document, "createElement").mockReturnValue(
+                mockTooltip as any
+            );
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 900, clientY: 700 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 900, clientY: 700 })
+            );
             vi.advanceTimersByTime(350);
 
             // Should adjust position to stay within screen bounds
@@ -981,10 +1109,14 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
 
             // Should remove existing tooltip immediately
-            expect(document.querySelector(".overlay-filename-tooltip")).toBeFalsy();
+            expect(
+                document.querySelector(".overlay-filename-tooltip")
+            ).toBeFalsy();
 
             vi.useRealTimers();
         });
@@ -998,7 +1130,9 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
 
             // Change highlighted index before timeout
             (global.window as any)._highlightedOverlayIdx = 999;
@@ -1061,7 +1195,9 @@ describe("createShownFilesList", () => {
 
         it("brings matching markers to front", () => {
             // Create CircleMarker instance
-            const mockMarker = new (global.window as any).L.CircleMarker({ color: "#1976d2" });
+            const mockMarker = new (global.window as any).L.CircleMarker({
+                color: "#1976d2",
+            });
             mockPolyline._map._layers.marker1 = mockMarker;
 
             const container = createShownFilesList();
@@ -1088,12 +1224,16 @@ describe("createShownFilesList", () => {
 
             const polyElem = mockPolyline.getElement();
             expect(polyElem.style.transition).toBe("filter 0.2s");
-            expect(polyElem.style.filter).toContain("drop-shadow(0 0 16px #1976d2)");
+            expect(polyElem.style.filter).toContain(
+                "drop-shadow(0 0 16px #1976d2)"
+            );
 
             // Fast-forward the timeout
             vi.advanceTimersByTime(250);
 
-            expect(polyElem.style.filter).toContain("drop-shadow(0 0 8px #1976d2)");
+            expect(polyElem.style.filter).toContain(
+                "drop-shadow(0 0 8px #1976d2)"
+            );
 
             vi.useRealTimers();
         });
@@ -1107,10 +1247,11 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect((global.window as any)._leafletMapInstance.fitBounds).toHaveBeenCalledWith(
-                mockPolyline.getBounds(),
-                { padding: [20, 20] }
-            );
+            expect(
+                (global.window as any)._leafletMapInstance.fitBounds
+            ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
+                padding: [20, 20],
+            });
         });
 
         it("handles missing polyline gracefully", () => {
@@ -1198,7 +1339,9 @@ describe("createShownFilesList", () => {
             // Instead of checking mock calls, verify the container exists and can handle theme changes
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // The event handler should be set up without throwing errors
             expect(() => {
@@ -1258,7 +1401,10 @@ describe("createShownFilesList", () => {
         });
 
         it("prevents memory leaks by cleaning up event listeners", () => {
-            const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+            const removeEventListenerSpy = vi.spyOn(
+                window,
+                "removeEventListener"
+            );
 
             const container = createShownFilesList();
             (global.window as any).loadedFitFiles = [
@@ -1272,14 +1418,19 @@ describe("createShownFilesList", () => {
 
             // Set up tooltip with mousemove listener
             vi.useFakeTimers();
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
             vi.advanceTimersByTime(350);
 
             // Trigger cleanup
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
             // Should clean up mousemove listener
-            expect(removeEventListenerSpy).toHaveBeenCalledWith("mousemove", expect.any(Function));
+            expect(removeEventListenerSpy).toHaveBeenCalledWith(
+                "mousemove",
+                expect.any(Function)
+            );
 
             vi.useRealTimers();
         });
@@ -1298,15 +1449,21 @@ describe("createShownFilesList", () => {
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
             // Start tooltip creation
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 100, clientY: 100 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 100, clientY: 100 })
+            );
 
             // Start another tooltip before first completes
-            firstItem.dispatchEvent(new MouseEvent("mouseenter", { clientX: 200, clientY: 200 }));
+            firstItem.dispatchEvent(
+                new MouseEvent("mouseenter", { clientX: 200, clientY: 200 })
+            );
 
             vi.advanceTimersByTime(350);
 
             // Should only have one tooltip
-            const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
+            const tooltips = document.querySelectorAll(
+                ".overlay-filename-tooltip"
+            );
             expect(tooltips.length).toBeLessThanOrEqual(1);
 
             vi.useRealTimers();
@@ -1331,7 +1488,9 @@ describe("createShownFilesList", () => {
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Theme change should not throw errors
             expect(() => {
@@ -1355,7 +1514,9 @@ describe("createShownFilesList", () => {
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Theme system should handle partial objects without errors
             expect(() => {
@@ -1387,14 +1548,18 @@ describe("createShownFilesList", () => {
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
             expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
+            expect(
+                container.classList.contains("map-controls-secondary-card")
+            ).toBe(true);
 
             // Should handle theme persistence without errors
             expect(() => {
                 (global.window as any).updateShownFilesList();
             }).not.toThrow();
             const borderStyle = container.style.border;
-            expect(borderStyle === "" || borderStyle.startsWith("1px solid")).toBe(true);
+            expect(
+                borderStyle === "" || borderStyle.startsWith("1px solid")
+            ).toBe(true);
         });
     });
 });

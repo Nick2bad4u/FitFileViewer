@@ -1,25 +1,70 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="theme-color" content="#000000" />
+        <meta charset="UTF-8">
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        >
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        >
+        <meta
+            name="theme-color"
+            content="#000000"
+        >
         <title>FIT File Viewer</title>
         <meta
             name="description"
             content="View and download all the content of a .FIT file, fix corrupted files so you can import them into Garmin Connect, Strava, etc."
-        />
-        <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
-        <link rel="shortcut icon" href="./favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
-        <link rel="manifest" href="./manifest.json" />
-        <link rel="mask-icon" href="./safari-pinned-tab.svg" color="#5bbad5" />
-        <meta name="apple-mobile-web-app-title" content="FIT File Viewer" />
-        <meta name="application-name" content="FIT File Viewer" />
-        <meta name="msapplication-TileColor" content="#b91d47" />
-        <meta name="theme-color" content="#ffffff" />
+        >
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="./apple-touch-icon.png"
+        >
+        <link
+            rel="shortcut icon"
+            href="./favicon.ico"
+        >
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="./favicon-32x32.png"
+        >
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="./favicon-16x16.png"
+        >
+        <link
+            rel="manifest"
+            href="./manifest.json"
+        >
+        <link
+            rel="mask-icon"
+            href="./safari-pinned-tab.svg"
+            color="#5bbad5"
+        >
+        <meta
+            name="apple-mobile-web-app-title"
+            content="FIT File Viewer"
+        >
+        <meta
+            name="application-name"
+            content="FIT File Viewer"
+        >
+        <meta
+            name="msapplication-TileColor"
+            content="#b91d47"
+        >
+        <meta
+            name="theme-color"
+            content="#ffffff"
+        >
 
         <!--
             Electron embeds this page in an iframe as the "Alternative View".
@@ -46,13 +91,18 @@
 
                 // Patch fetch
                 try {
-                    const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
+                    const originalFetch =
+                        typeof window.fetch === "function"
+                            ? window.fetch.bind(window)
+                            : null;
                     if (originalFetch && typeof Response === "function") {
                         window.fetch = async (input, init) => {
                             const url =
                                 typeof input === "string"
                                     ? input
-                                    : input && typeof input === "object" && "url" in input
+                                    : input &&
+                                        typeof input === "object" &&
+                                        "url" in input
                                       ? String(input.url)
                                       : "";
                             if (url && isBlockedUrl(url)) {
@@ -68,13 +118,15 @@
                 // Patch sendBeacon
                 try {
                     const originalBeacon =
-                        typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function"
+                        typeof navigator !== "undefined" &&
+                        typeof navigator.sendBeacon === "function"
                             ? navigator.sendBeacon.bind(navigator)
                             : null;
                     if (originalBeacon) {
                         // eslint-disable-next-line no-param-reassign
                         navigator.sendBeacon = (url, data) => {
-                            const urlStr = typeof url === "string" ? url : String(url);
+                            const urlStr =
+                                typeof url === "string" ? url : String(url);
                             if (urlStr && isBlockedUrl(urlStr)) {
                                 return true;
                             }
@@ -87,22 +139,44 @@
 
                 // Patch XHR
                 try {
-                    if (typeof XMLHttpRequest !== "undefined" && XMLHttpRequest && XMLHttpRequest.prototype) {
+                    if (
+                        typeof XMLHttpRequest !== "undefined" &&
+                        XMLHttpRequest &&
+                        XMLHttpRequest.prototype
+                    ) {
                         const origOpen = XMLHttpRequest.prototype.open;
                         const origSend = XMLHttpRequest.prototype.send;
-                        if (typeof origOpen === "function" && typeof origSend === "function") {
-                            XMLHttpRequest.prototype.open = function open(method, url, ...rest) {
+                        if (
+                            typeof origOpen === "function" &&
+                            typeof origSend === "function"
+                        ) {
+                            XMLHttpRequest.prototype.open = function open(
+                                method,
+                                url,
+                                ...rest
+                            ) {
                                 try {
-                                    const urlStr = typeof url === "string" ? url : String(url);
+                                    const urlStr =
+                                        typeof url === "string"
+                                            ? url
+                                            : String(url);
                                     // @ts-expect-error - internal flag
-                                    this.__ffvBlocked = urlStr && isBlockedUrl(urlStr);
+                                    this.__ffvBlocked =
+                                        urlStr && isBlockedUrl(urlStr);
                                 } catch {
                                     // @ts-expect-error - internal flag
                                     this.__ffvBlocked = false;
                                 }
-                                return origOpen.call(this, method, url, ...rest);
+                                return origOpen.call(
+                                    this,
+                                    method,
+                                    url,
+                                    ...rest
+                                );
                             };
-                            XMLHttpRequest.prototype.send = function send(body) {
+                            XMLHttpRequest.prototype.send = function send(
+                                body
+                            ) {
                                 // @ts-expect-error - internal flag
                                 if (this.__ffvBlocked) {
                                     try {
@@ -122,8 +196,16 @@
             })();
         </script>
 
-        <script type="module" crossorigin src="./assets/index-LvWRIhnC.js"></script>
-        <link rel="stylesheet" crossorigin href="./assets/index-mfP-sHfH.css" />
+        <script
+            type="module"
+            crossorigin
+            src="./assets/index-LvWRIhnC.js"
+        ></script>
+        <link
+            rel="stylesheet"
+            crossorigin
+            href="./assets/index-mfP-sHfH.css"
+        >
     </head>
     <body>
         <div id="root"></div>
@@ -146,7 +228,9 @@
                     window.loadFitFileFromArrayBuffer(arrayBuffer);
                 } else {
                     // Try dispatching a custom event for React/ffv app to pick up
-                    const event = new CustomEvent("fitfile-received", { detail: arrayBuffer });
+                    const event = new CustomEvent("fitfile-received", {
+                        detail: arrayBuffer,
+                    });
                     window.dispatchEvent(event);
                     // fallback: show a message
                     const root = document.getElementById("root");
@@ -181,12 +265,17 @@
             });
 
             // Helper: create a File from ArrayBuffer and trigger file input
-            function triggerFileInputFromArrayBuffer(arrayBuffer, fileName = "electron-fit-file.fit") {
+            function triggerFileInputFromArrayBuffer(
+                arrayBuffer,
+                fileName = "electron-fit-file.fit"
+            ) {
                 // Find the file input (should be type="file")
                 const fileInput = document.querySelector('input[type="file"]');
                 if (!fileInput) return false;
                 // Create a File object
-                const file = new File([arrayBuffer], fileName, { type: "application/octet-stream" });
+                const file = new File([arrayBuffer], fileName, {
+                    type: "application/octet-stream",
+                });
                 // Create a DataTransfer to simulate user file selection
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
@@ -204,7 +293,11 @@
                     return;
                 }
                 // Try to call ffv React loader directly if available
-                if (window.ffvApp && typeof window.ffvApp.loadFitFileFromArrayBuffer === "function") {
+                if (
+                    window.ffvApp &&
+                    typeof window.ffvApp.loadFitFileFromArrayBuffer ===
+                        "function"
+                ) {
                     window.ffvApp.loadFitFileFromArrayBuffer(event.detail);
                     return;
                 }
@@ -223,8 +316,12 @@
             if (typeof window.electronAPI.openFileDialog !== "function") {
                 window.electronAPI.openFileDialog = async function () {
                     // Show a message in the UI if called from Alt FIT Reader
-                    alert("Open File is only available in the main app. Use the main Open button to load files.");
-                    throw new Error("openFileDialog is not available in this context. Use the main app to open files.");
+                    alert(
+                        "Open File is only available in the main app. Use the main Open button to load files."
+                    );
+                    throw new Error(
+                        "openFileDialog is not available in this context. Use the main app to open files."
+                    );
                 };
             }
 
@@ -235,9 +332,11 @@
                 if (
                     !window.loadFitFileFromArrayBuffer &&
                     window.ffvApp &&
-                    typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
+                    typeof window.ffvApp.loadFitFileFromArrayBuffer ===
+                        "function"
                 ) {
-                    window.loadFitFileFromArrayBuffer = window.ffvApp.loadFitFileFromArrayBuffer;
+                    window.loadFitFileFromArrayBuffer =
+                        window.ffvApp.loadFitFileFromArrayBuffer;
                 }
             })();
         </script>

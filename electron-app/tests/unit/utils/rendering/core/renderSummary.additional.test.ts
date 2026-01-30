@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // From tests/unit/utils/rendering/core -> utils/... requires going up 5 levels
 const SUT = "../../../../../utils/rendering/core/renderSummary.js";
-const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+const HELPERS =
+    "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
 const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
 
 describe("renderSummary - modal and renderTable wiring", () => {

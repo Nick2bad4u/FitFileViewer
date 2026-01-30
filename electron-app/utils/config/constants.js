@@ -1,12 +1,17 @@
 /**
- * @fileoverview Central Configuration System for FitFileViewer
- * @description Provides centralized constants and configuration management across the application
- * @author FitFileViewer Development Team
+ * Provides centralized constants and configuration management across the
+ * application
+ *
  * @version 1.0.0
+ *
+ * @file Central Configuration System for FitFileViewer
+ *
+ * @author FitFileViewer Development Team
  */
 
 /**
  * @typedef {Object} ConversionFactors
+ *
  * @property {number} DECIMAL_PLACES - Default decimal places for formatting
  * @property {number} METERS_PER_KILOMETER - Conversion factor
  * @property {number} METERS_PER_MILE - Conversion factor
@@ -17,6 +22,7 @@
 
 /**
  * @typedef {Object} UIConstants
+ *
  * @property {string} DEFAULT_THEME - Default application theme
  * @property {Object} NOTIFICATION_TYPES - Notification type configurations
  * @property {Object} DOM_IDS - Common DOM element IDs
@@ -26,6 +32,7 @@
 
 /**
  * @typedef {Object} FileConstants
+ *
  * @property {string[]} SUPPORTED_EXTENSIONS - Supported file extensions
  * @property {number} MAX_FILE_SIZE - Maximum file size in bytes
  * @property {string} DEFAULT_EXPORT_FORMAT - Default export format
@@ -370,13 +377,15 @@ export const APP_CONSTANTS = {
 
 /**
  * Get a configuration value by path
- * @param {string} path - Dot-notation path to configuration value
- * @param {*} [defaultValue] - Default value if not found
- * @returns {*} Configuration value
  *
  * @example
- * getConfig('UI_CONSTANTS.DEFAULT_THEME') // returns 'dark'
- * getConfig('CONVERSION_FACTORS.METERS_PER_MILE') // returns 1609.344
+ *     getConfig("UI_CONSTANTS.DEFAULT_THEME"); // returns 'dark'
+ *     getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // returns 1609.344
+ *
+ * @param {string} path - Dot-notation path to configuration value
+ * @param {any} [defaultValue] - Default value if not found
+ *
+ * @returns {any} Configuration value
  */
 export function getConfig(path, defaultValue) {
     const parts = path.split(".");
@@ -422,8 +431,13 @@ export function initializeConfig() {
     const validation = validateConfig();
 
     if (!validation.isValid) {
-        console.error("[Config] Configuration validation failed:", validation.errors);
-        throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`);
+        console.error(
+            "[Config] Configuration validation failed:",
+            validation.errors
+        );
+        throw new Error(
+            `Configuration validation failed: ${validation.errors.join(", ")}`
+        );
     }
 
     if (validation.warnings.length > 0) {
@@ -435,6 +449,7 @@ export function initializeConfig() {
 
 /**
  * Validate configuration integrity
+ *
  * @returns {Object} Validation results
  */
 export function validateConfig() {
@@ -461,7 +476,9 @@ export function validateConfig() {
     }
 
     if (!UI_CONSTANTS.THEMES[UI_CONSTANTS.DEFAULT_THEME.toUpperCase()]) {
-        warnings.push(`Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`);
+        warnings.push(
+            `Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`
+        );
     }
 
     return {

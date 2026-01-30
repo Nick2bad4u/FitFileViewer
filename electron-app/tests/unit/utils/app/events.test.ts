@@ -31,7 +31,8 @@ describe("setupListeners", () => {
 
     beforeEach(() => {
         vi.useRealTimers();
-        document.body.innerHTML = '<button id="open">Open</button><div id="content-summary"></div>';
+        document.body.innerHTML =
+            '<button id="open">Open</button><div id="content-summary"></div>';
         openButton = document.getElementById("open") as HTMLButtonElement;
         isOpeningFileRef = { current: false };
         setLoading = vi.fn();
@@ -45,10 +46,12 @@ describe("setupListeners", () => {
         recentOpenHandler = null;
 
         electronAPI = {
-            onIpc: vi.fn((channel: string, handler: (...args: any[]) => unknown) => {
-                ipcHandlers.set(channel, handler);
-                return () => ipcHandlers.delete(channel);
-            }),
+            onIpc: vi.fn(
+                (channel: string, handler: (...args: any[]) => unknown) => {
+                    ipcHandlers.set(channel, handler);
+                    return () => ipcHandlers.delete(channel);
+                }
+            ),
             send: vi.fn(),
             recentFiles: vi.fn(),
             readFile: vi.fn(),
@@ -60,12 +63,15 @@ describe("setupListeners", () => {
             onOpenRecentFile: vi.fn((handler) => {
                 recentOpenHandler = handler;
             }),
-            onUpdateEvent: vi.fn((event: string, handler: (...args: any[]) => unknown) => {
-                updateHandlers.set(event, handler);
-            }),
+            onUpdateEvent: vi.fn(
+                (event: string, handler: (...args: any[]) => unknown) => {
+                    updateHandlers.set(event, handler);
+                }
+            ),
         };
 
-        delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> }).__ffvMenuForwardRegistry;
+        delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
+            .__ffvMenuForwardRegistry;
         globalAny.electronAPI = electronAPI;
         globalAny.showFitData = vi.fn();
         globalAny.sendFitFileToAltFitReader = vi.fn();
@@ -112,20 +118,32 @@ describe("setupListeners", () => {
 
     it("shows info notification when no recent files exist", async () => {
         electronAPI.recentFiles.mockResolvedValueOnce([]);
-        const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+        const event = new MouseEvent("contextmenu", {
+            bubbles: true,
+            cancelable: true,
+        });
         await openButton.dispatchEvent(event);
         await Promise.resolve();
-        expect(showNotification).toHaveBeenCalledWith("No recent files found.", "info", 2000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "No recent files found.",
+            "info",
+            2000
+        );
     });
 
     it("loads and opens a recent file from the context menu", async () => {
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/demo.fit"]);
         const arrayBuffer = new ArrayBuffer(16);
         electronAPI.readFile.mockResolvedValueOnce(arrayBuffer);
-        electronAPI.parseFitFile.mockResolvedValueOnce({ recordMesgs: [{ speed: 10 }] });
+        electronAPI.parseFitFile.mockResolvedValueOnce({
+            recordMesgs: [{ speed: 10 }],
+        });
         electronAPI.addRecentFile.mockResolvedValueOnce(undefined);
 
-        const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+        const event = new MouseEvent("contextmenu", {
+            bubbles: true,
+            cancelable: true,
+        });
         await openButton.dispatchEvent(event);
         await Promise.resolve();
 
@@ -137,22 +155,35 @@ describe("setupListeners", () => {
 
         // Canonical recent-file menu items are wired via addEventListener("click", async ...)
         // rather than assigning onclick.
-        menuItem.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+        menuItem.dispatchEvent(
+            new MouseEvent("click", { bubbles: true, cancelable: true })
+        );
 
         // Wait a tick for the async click handler to finish.
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(setLoading).toHaveBeenCalledWith(true);
         expect(setLoading).toHaveBeenCalledWith(false);
-        expect(globalAny.showFitData).toHaveBeenCalledWith(expect.anything(), "C:/rides/demo.fit");
-        expect(electronAPI.addRecentFile).toHaveBeenCalledWith("C:/rides/demo.fit");
+        expect(globalAny.showFitData).toHaveBeenCalledWith(
+            expect.anything(),
+            "C:/rides/demo.fit"
+        );
+        expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
+            "C:/rides/demo.fit"
+        );
     });
 
     it("supports keyboard navigation and outside interactions in the recent files menu", async () => {
         vi.useFakeTimers();
-        electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/a.fit", "C:/rides/b.fit"]);
+        electronAPI.recentFiles.mockResolvedValueOnce([
+            "C:/rides/a.fit",
+            "C:/rides/b.fit",
+        ]);
 
-        const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+        const event = new MouseEvent("contextmenu", {
+            bubbles: true,
+            cancelable: true,
+        });
         await openButton.dispatchEvent(event);
         await Promise.resolve();
         vi.runAllTimers();
@@ -163,17 +194,29 @@ describe("setupListeners", () => {
         expect(items).toHaveLength(2);
         const firstItem = items[0];
         const secondItem = items[1];
-        const firstClick = vi.spyOn(firstItem, "click").mockImplementation(() => {});
-        const secondClick = vi.spyOn(secondItem, "click").mockImplementation(() => {});
+        const firstClick = vi
+            .spyOn(firstItem, "click")
+            .mockImplementation(() => {});
+        const secondClick = vi
+            .spyOn(secondItem, "click")
+            .mockImplementation(() => {});
 
-        menu!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+        menu!.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })
+        );
         expect(secondItem.style.background).toBe("var(--color-glass-border)");
-        menu!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+        menu!.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })
+        );
         expect(secondItem.style.background).toBe("transparent");
-        menu!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+        menu!.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+        );
         expect(firstClick).toHaveBeenCalled();
 
-        menu!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        menu!.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+        );
         expect(document.getElementById("recent-files-menu")).toBeNull();
 
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/a.fit"]);
@@ -181,7 +224,9 @@ describe("setupListeners", () => {
         await Promise.resolve();
         vi.runAllTimers();
         expect(document.getElementById("recent-files-menu")).not.toBeNull();
-        document.body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        document.body.dispatchEvent(
+            new MouseEvent("mousedown", { bubbles: true })
+        );
         expect(document.getElementById("recent-files-menu")).toBeNull();
         vi.useRealTimers();
 
@@ -218,7 +263,9 @@ describe("setupListeners", () => {
         expect(summaryContainer).toBeTruthy();
         electronAPI.recentFiles.mockResolvedValue([]);
 
-        const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:ffv");
+        const createObjectURLSpy = vi
+            .spyOn(URL, "createObjectURL")
+            .mockReturnValue("blob:ffv");
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
         const exportHandler = ipcHandlers.get("export-file");
@@ -236,7 +283,11 @@ describe("setupListeners", () => {
         const exportHandler = ipcHandlers.get("export-file");
         globalAny.globalData = { recordMesgs: [] };
         await exportHandler?.(undefined, "activity.gpx");
-        expect(showNotification).toHaveBeenCalledWith("No data available for GPX export.", "info", 3000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "No data available for GPX export.",
+            "info",
+            3000
+        );
     });
 
     it("builds GPX export when records exist", async () => {
@@ -254,12 +305,15 @@ describe("setupListeners", () => {
         };
         globalAny.loadedFitFiles = [{ displayName: "Demo Ride" }];
 
-        const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:gpx");
+        const createObjectURLSpy = vi
+            .spyOn(URL, "createObjectURL")
+            .mockReturnValue("blob:gpx");
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
         await exportHandler?.(undefined, "activity.gpx");
         expect(createObjectURLSpy).toHaveBeenCalled();
-        const anchor = document.body.querySelector<HTMLAnchorElement>("a[download]");
+        const anchor =
+            document.body.querySelector<HTMLAnchorElement>("a[download]");
         expect(anchor?.download.endsWith(".gpx")).toBe(true);
         vi.runAllTimers();
         expect(revokeSpy).toHaveBeenCalledWith("blob:gpx");
@@ -278,13 +332,34 @@ describe("setupListeners", () => {
         for (const event of events) {
             const handler = updateHandlers.get(event);
             expect(handler).toBeTruthy();
-            handler?.(event === "update-download-progress" ? { percent: 42.2 } : "err");
+            handler?.(
+                event === "update-download-progress" ? { percent: 42.2 } : "err"
+            );
         }
-        expect(showUpdateNotification).toHaveBeenCalledWith("Checking for updates...", "info", 3000);
-        expect(showUpdateNotification).toHaveBeenCalledWith("Update available! Downloading...", 4000);
-        expect(showUpdateNotification).toHaveBeenCalledWith("You are using the latest version.", "success", 4000);
-        expect(showUpdateNotification).toHaveBeenCalledWith("Update error: err", "error", 7000);
-        expect(showUpdateNotification).toHaveBeenCalledWith("Downloading update: 42%", "info", 2000);
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Checking for updates...",
+            "info",
+            3000
+        );
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Update available! Downloading...",
+            4000
+        );
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "You are using the latest version.",
+            "success",
+            4000
+        );
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Update error: err",
+            "error",
+            7000
+        );
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Downloading update: 42%",
+            "info",
+            2000
+        );
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Update downloaded! Restart to install the update now, or choose Later to finish your work.",
             "success",
@@ -312,9 +387,13 @@ describe("setupListeners", () => {
         setContrast?.(undefined, "black");
         expect(document.body.classList.contains("high-contrast")).toBe(true);
         setContrast?.(undefined, "white");
-        expect(document.body.classList.contains("high-contrast-white")).toBe(true);
+        expect(document.body.classList.contains("high-contrast-white")).toBe(
+            true
+        );
         setContrast?.(undefined, "yellow");
-        expect(document.body.classList.contains("high-contrast-yellow")).toBe(true);
+        expect(document.body.classList.contains("high-contrast-yellow")).toBe(
+            true
+        );
     });
 
     it("forwards print and update menu IPC events", () => {
@@ -332,15 +411,25 @@ describe("setupListeners", () => {
     it("routes show-notification IPC messages through the notifier", () => {
         const handler = ipcHandlers.get("show-notification");
         handler?.(undefined, "Hello from IPC");
-        expect(showNotification).toHaveBeenCalledWith("Hello from IPC", "info", 3000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "Hello from IPC",
+            "info",
+            3000
+        );
     });
 
     it("loads keyboard shortcuts script and invokes the modal presenter when available", () => {
         delete globalAny.showKeyboardShortcutsModal;
         const originalCreateElement = document.createElement.bind(document);
         const createdScripts: HTMLScriptElement[] = [];
-        vi.spyOn(document, "createElement").mockImplementation(((tagName: string, options?: ElementCreationOptions) => {
-            const element = originalCreateElement(tagName, options) as HTMLElement;
+        vi.spyOn(document, "createElement").mockImplementation(((
+            tagName: string,
+            options?: ElementCreationOptions
+        ) => {
+            const element = originalCreateElement(
+                tagName,
+                options
+            ) as HTMLElement;
             if (tagName === "script") {
                 createdScripts.push(element as HTMLScriptElement);
             }
@@ -365,8 +454,14 @@ describe("setupListeners", () => {
 
         const createdScripts: HTMLScriptElement[] = [];
         const originalCreateElement = document.createElement.bind(document);
-        vi.spyOn(document, "createElement").mockImplementation(((tagName: string, options?: ElementCreationOptions) => {
-            const element = originalCreateElement(tagName, options) as HTMLElement;
+        vi.spyOn(document, "createElement").mockImplementation(((
+            tagName: string,
+            options?: ElementCreationOptions
+        ) => {
+            const element = originalCreateElement(
+                tagName,
+                options
+            ) as HTMLElement;
             if (tagName === "script") {
                 createdScripts.push(element as HTMLScriptElement);
             }

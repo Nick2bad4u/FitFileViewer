@@ -1,5 +1,6 @@
 /**
- * Sends an IPC message to the renderer only when the target window is still usable.
+ * Sends an IPC message to the renderer only when the target window is still
+ * usable.
  *
  * @param {any} win - BrowserWindow instance.
  * @param {string} channel - IPC channel.

@@ -185,7 +185,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("✅");
             expect(statusIcon.title).toBe("All available charts are visible");
@@ -205,7 +207,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("✅");
             expect(statusIcon.title).toBe("All available charts are visible");
@@ -225,7 +229,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("⚠️");
             expect(statusIcon.title).toBe("Some charts are hidden");
@@ -245,7 +251,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("✅");
         });
@@ -264,7 +272,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("⚠️");
         });
@@ -283,11 +293,17 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator.querySelector(".status-icon") as HTMLElement;
-            const statusText = indicator.querySelector(".status-text") as HTMLElement;
+            const statusIcon = indicator.querySelector(
+                ".status-icon"
+            ) as HTMLElement;
+            const statusText = indicator.querySelector(
+                ".status-text"
+            ) as HTMLElement;
 
             expect(statusIcon.textContent).toBe("⚠️");
-            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/100.*\/.*150.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(
+                /100.*\/.*150.*charts visible/
+            );
         });
     });
 
@@ -306,10 +322,14 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator.querySelector(".status-text") as HTMLElement;
+            const statusText = indicator.querySelector(
+                ".status-text"
+            ) as HTMLElement;
 
             // The implementation uses nested spans, so textContent includes all text
-            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/3.*\/.*7.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(
+                /3.*\/.*7.*charts visible/
+            );
         });
 
         it("should display zero counts correctly", () => {
@@ -326,7 +346,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator.querySelector(".status-text") as HTMLElement;
+            const statusText = indicator.querySelector(
+                ".status-text"
+            ) as HTMLElement;
 
             expect(statusText.textContent).toBe("No charts available");
         });
@@ -345,15 +367,21 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator.querySelector(".status-text") as HTMLElement;
+            const statusText = indicator.querySelector(
+                ".status-text"
+            ) as HTMLElement;
 
-            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/9.*\/.*12.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(
+                /9.*\/.*12.*charts visible/
+            );
         });
     });
 
     describe("Button Interactions", () => {
         it("should scroll to fields section on click", () => {
-            const fieldsSection = document.querySelector(".fields-section") as HTMLElement;
+            const fieldsSection = document.querySelector(
+                ".fields-section"
+            ) as HTMLElement;
             const scrollIntoViewSpy = vi.fn();
             fieldsSection.scrollIntoView = scrollIntoViewSpy;
 
@@ -379,7 +407,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
         });
 
         it("should add temporary outline to fields section on click", () => {
-            const fieldsSection = document.querySelector(".fields-section") as HTMLElement;
+            const fieldsSection = document.querySelector(
+                ".fields-section"
+            ) as HTMLElement;
             fieldsSection.scrollIntoView = vi.fn();
 
             const counts = {
@@ -397,12 +427,16 @@ describe("createChartStatusIndicatorFromCounts", () => {
             const indicator = createChartStatusIndicatorFromCounts(counts);
             indicator.click();
 
-            expect(fieldsSection.style.outline).toBe("2px solid var(--color-accent)");
+            expect(fieldsSection.style.outline).toBe(
+                "2px solid var(--color-accent)"
+            );
             expect(fieldsSection.style.outlineOffset).toBe("4px");
         });
 
         it("should remove outline after timeout", async () => {
-            const fieldsSection = document.querySelector(".fields-section") as HTMLElement;
+            const fieldsSection = document.querySelector(
+                ".fields-section"
+            ) as HTMLElement;
             fieldsSection.scrollIntoView = vi.fn();
 
             const counts = {
@@ -470,7 +504,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
 
             indicator.dispatchEvent(mouseEnterEvent);
 
-            expect(indicator.style.background).toBe("var(--color-glass-border)");
+            expect(indicator.style.background).toBe(
+                "var(--color-glass-border)"
+            );
             expect(indicator.style.transform).toBe("translateY(-1px)");
         });
 
@@ -515,7 +551,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
             const mouseEnterEvent = new dom.window.MouseEvent("mouseenter");
             indicator.dispatchEvent(mouseEnterEvent);
@@ -538,7 +576,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
             // First show tooltip
             const mouseEnterEvent = new dom.window.MouseEvent("mouseenter");
@@ -566,14 +606,22 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
             // First show tooltip
-            const mouseEnterEvent = new dom.window.MouseEvent("mouseenter", { clientX: 100, clientY: 200 });
+            const mouseEnterEvent = new dom.window.MouseEvent("mouseenter", {
+                clientX: 100,
+                clientY: 200,
+            });
             indicator.dispatchEvent(mouseEnterEvent);
 
             // Then move mouse
-            const mouseMoveEvent = new dom.window.MouseEvent("mousemove", { clientX: 100, clientY: 200 });
+            const mouseMoveEvent = new dom.window.MouseEvent("mousemove", {
+                clientX: 100,
+                clientY: 200,
+            });
             indicator.dispatchEvent(mouseMoveEvent);
 
             // Tooltip is positioned under cursor with a small offset.
@@ -597,7 +645,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
             expect(breakdown.innerHTML).toContain("📊 Metrics: 1/2");
             expect(breakdown.innerHTML).toContain("📈 Analysis: 1/2");
@@ -619,9 +669,13 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
-            expect(breakdown.innerHTML).toContain('💡 Enable more charts in "Visible Metrics" below');
+            expect(breakdown.innerHTML).toContain(
+                '💡 Enable more charts in "Visible Metrics" below'
+            );
         });
 
         it("should not show hidden charts hint when all are visible", () => {
@@ -638,7 +692,9 @@ describe("createChartStatusIndicatorFromCounts", () => {
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
-            const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
+            const breakdown = document.querySelector(
+                ".status-breakdown"
+            ) as HTMLElement;
 
             expect(breakdown.innerHTML).not.toContain("💡 Enable more charts");
         });
@@ -648,7 +704,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
         it("should handle invalid counts input gracefully", () => {
             const invalidCounts = null as any;
 
-            const indicator = createChartStatusIndicatorFromCounts(invalidCounts);
+            const indicator =
+                createChartStatusIndicatorFromCounts(invalidCounts);
 
             expect(indicator).toBeInstanceOf(dom.window.HTMLDivElement);
             expect(indicator.className).toBe("chart-status-indicator");
@@ -658,11 +715,14 @@ describe("createChartStatusIndicatorFromCounts", () => {
 
         it("should return fallback element on error", () => {
             // Mock console.error to verify it was called
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             const invalidCounts = { invalid: "data" } as any;
 
-            const indicator = createChartStatusIndicatorFromCounts(invalidCounts);
+            const indicator =
+                createChartStatusIndicatorFromCounts(invalidCounts);
 
             expect(indicator.textContent).toBe("Chart status unavailable");
             expect(consoleSpy).toHaveBeenCalledWith(

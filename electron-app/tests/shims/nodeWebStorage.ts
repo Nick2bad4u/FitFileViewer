@@ -31,7 +31,8 @@ interface StorageLike {
 /**
  * Determines whether a candidate value is a function.
  */
-const isFunction = (value: unknown): value is (...args: never[]) => unknown => typeof value === "function";
+const isFunction = (value: unknown): value is (...args: never[]) => unknown =>
+    typeof value === "function";
 
 /**
  * Checks whether an arbitrary value implements the minimal storage contract we

@@ -1,26 +1,32 @@
 /**
- * @fileoverview Centralized Application State Management System
- * @description Provides unified state management with reactive updates, validation, and persistence
- * @author FitFileViewer Development Team
+ * Provides unified state management with reactive updates, validation, and
+ * persistence
+ *
  * @version 1.0.0
+ *
+ * @file Centralized Application State Management System
+ *
+ * @author FitFileViewer Development Team
  */
 
 /**
  * @typedef {Object} StateUpdateEvent
+ *
  * @property {string} path - The state path that changed
- * @property {*} newValue - The new value
- * @property {*} oldValue - The previous value
+ * @property {any} newValue - The new value
+ * @property {any} oldValue - The previous value
  * @property {number} timestamp - When the change occurred
  */
 
 /**
  * @typedef {Object} StateValue
- * @property {*} [data] - Global data state
- * @property {*} [file] - File state information
- * @property {*} [ui] - UI state information
- * @property {*} [charts] - Chart state information
- * @property {*} [performance] - Performance metrics
- * @property {*} [errors] - Error state information
+ *
+ * @property {any} [data] - Global data state
+ * @property {any} [file] - File state information
+ * @property {any} [ui] - UI state information
+ * @property {any} [charts] - Chart state information
+ * @property {any} [performance] - Performance metrics
+ * @property {any} [errors] - Error state information
  */
 
 /**
@@ -63,10 +69,20 @@ export const STATE_EVENTS = {
  */
 const PERSISTENCE_CONFIG = {
     // Keys that should persist across sessions
-    PERSISTENT_KEYS: ["ui.theme", "ui.activeTab", "charts.controlsVisible", "performance.enableMonitoring"],
+    PERSISTENT_KEYS: [
+        "ui.theme",
+        "ui.activeTab",
+        "charts.controlsVisible",
+        "performance.enableMonitoring",
+    ],
     STORAGE_PREFIX: "ffv_state_",
     // Keys that should never persist
-    VOLATILE_KEYS: ["data.globalData", "file.isOpening", "performance.metrics", "errors.current"],
+    VOLATILE_KEYS: [
+        "data.globalData",
+        "file.isOpening",
+        "performance.metrics",
+        "errors.current",
+    ],
 };
 
 /**
@@ -145,6 +161,7 @@ class AppStateManager {
 
     /**
      * Add state validator
+     *
      * @param {string} path - State path to validate
      * @param {Function} validator - Validation function
      */
@@ -154,8 +171,9 @@ class AppStateManager {
 
     /**
      * Emit event to all listeners
+     *
      * @param {string} event - Event name
-     * @param {*} data - Event data
+     * @param {any} data - Event data
      */
     emit(event, data) {
         const eventListeners = this.listeners.get(event);
@@ -164,7 +182,10 @@ class AppStateManager {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`[AppState] Error in event listener for ${event}:`, error);
+                    console.error(
+                        `[AppState] Error in event listener for ${event}:`,
+                        error
+                    );
                 }
             }
         }
@@ -172,20 +193,25 @@ class AppStateManager {
 
     /**
      * Emits specific events based on state path changes
+     *
      * @param {string} path - State path that changed
-     * @param {*} newValue - New value
-     * @param {*} oldValue - Previous value
+     * @param {any} newValue - New value
+     * @param {any} oldValue - Previous value
      */
     emitSpecificEvents(path, newValue, oldValue) {
         switch (path) {
             case "charts.controlsVisible": {
-                this.emit(STATE_EVENTS.CHART_CONTROLS_TOGGLED, { visible: newValue });
+                this.emit(STATE_EVENTS.CHART_CONTROLS_TOGGLED, {
+                    visible: newValue,
+                });
                 break;
             }
 
             case "charts.isRendered": {
                 if (newValue && !oldValue) {
-                    this.emit(STATE_EVENTS.CHART_RENDERED, { renderTime: Date.now() });
+                    this.emit(STATE_EVENTS.CHART_RENDERED, {
+                        renderTime: Date.now(),
+                    });
                 }
                 break;
             }
@@ -194,9 +220,14 @@ class AppStateManager {
                 if (newValue && !oldValue) {
                     this.emit(STATE_EVENTS.DATA_LOADED, { data: newValue });
                 } else if (!newValue && oldValue) {
-                    this.emit(STATE_EVENTS.DATA_CLEARED, { previousData: oldValue });
+                    this.emit(STATE_EVENTS.DATA_CLEARED, {
+                        previousData: oldValue,
+                    });
                 } else if (newValue !== oldValue) {
-                    this.emit(STATE_EVENTS.DATA_CHANGED, { data: newValue, previousData: oldValue });
+                    this.emit(STATE_EVENTS.DATA_CHANGED, {
+                        data: newValue,
+                        previousData: oldValue,
+                    });
                 }
                 break;
             }
@@ -209,12 +240,18 @@ class AppStateManager {
             }
 
             case "ui.activeTab": {
-                this.emit(STATE_EVENTS.TAB_CHANGED, { previousTab: oldValue, tab: newValue });
+                this.emit(STATE_EVENTS.TAB_CHANGED, {
+                    previousTab: oldValue,
+                    tab: newValue,
+                });
                 break;
             }
 
             case "ui.theme": {
-                this.emit(STATE_EVENTS.THEME_CHANGED, { previousTheme: oldValue, theme: newValue });
+                this.emit(STATE_EVENTS.THEME_CHANGED, {
+                    previousTheme: oldValue,
+                    theme: newValue,
+                });
                 break;
             }
         }
@@ -222,8 +259,10 @@ class AppStateManager {
 
     /**
      * Get state value by path
+     *
      * @param {string} path - Dot notation path (e.g., "data.globalData")
-     * @returns {*} State value
+     *
+     * @returns {any} State value
      */
     get(path) {
         const keys = path.split(".");
@@ -242,6 +281,7 @@ class AppStateManager {
 
     /**
      * Get debug information about current state
+     *
      * @returns {Object} Debug information
      */
     getDebugInfo() {
@@ -256,6 +296,7 @@ class AppStateManager {
 
     /**
      * Get current state snapshot
+     *
      * @returns {Object} Deep copy of current state
      */
     getSnapshot() {
@@ -275,9 +316,15 @@ class AppStateManager {
                     try {
                         const value = JSON.parse(stored);
                         this.set(path, value);
-                        console.log(`[AppState] Loaded persisted state for ${path}:`, value);
+                        console.log(
+                            `[AppState] Loaded persisted state for ${path}:`,
+                            value
+                        );
                     } catch (parseError) {
-                        console.warn(`[AppState] Failed to parse persisted state for ${path}:`, parseError);
+                        console.warn(
+                            `[AppState] Failed to parse persisted state for ${path}:`,
+                            parseError
+                        );
                     }
                 }
             }
@@ -288,6 +335,7 @@ class AppStateManager {
 
     /**
      * Remove event listener
+     *
      * @param {string} event - Event name
      * @param {Function} callback - Event handler to remove
      */
@@ -303,8 +351,10 @@ class AppStateManager {
 
     /**
      * Add event listener
+     *
      * @param {string} event - Event name
      * @param {Function} callback - Event handler
+     *
      * @returns {Function} Cleanup function
      */
     on(event, callback) {
@@ -328,6 +378,7 @@ class AppStateManager {
 
     /**
      * Save specific state path to localStorage
+     *
      * @param {string} path - State path to persist
      */
     persistState(path) {
@@ -343,7 +394,10 @@ class AppStateManager {
                 localStorage.setItem(key, JSON.stringify(value));
             }
         } catch (error) {
-            console.error(`[AppState] Error persisting state for ${path}:`, error);
+            console.error(
+                `[AppState] Error persisting state for ${path}:`,
+                error
+            );
         }
     }
 
@@ -366,11 +420,32 @@ class AppStateManager {
                 lastRenderTime: null,
                 visibleFields: new Set(),
             },
-            data: { globalData: null, isLoaded: false, lastModified: null, recordCount: 0 },
+            data: {
+                globalData: null,
+                isLoaded: false,
+                lastModified: null,
+                recordCount: 0,
+            },
             errors: { current: [], history: [], lastError: null },
-            file: { isOpening: false, lastOpened: null, name: null, path: null, size: 0 },
-            performance: { enableMonitoring: true, metrics: new Map(), renderTimes: [], startTime: performance.now() },
-            ui: { activeTab: "summary", isInitialized: false, theme: "auto", windowSize: { height: 0, width: 0 } },
+            file: {
+                isOpening: false,
+                lastOpened: null,
+                name: null,
+                path: null,
+                size: 0,
+            },
+            performance: {
+                enableMonitoring: true,
+                metrics: new Map(),
+                renderTimes: [],
+                startTime: performance.now(),
+            },
+            ui: {
+                activeTab: "summary",
+                isInitialized: false,
+                theme: "auto",
+                windowSize: { height: 0, width: 0 },
+            },
         };
 
         this.emit("state-reset", {});
@@ -379,8 +454,10 @@ class AppStateManager {
 
     /**
      * Set state value by path
+     *
      * @param {string} path - Dot notation path
-     * @param {*} value - New value
+     * @param {any} value - New value
+     *
      * @returns {boolean} Success status
      */
     set(path, value) {
@@ -431,7 +508,7 @@ class AppStateManager {
         /**
          * @param {StateValue} obj - Object to add reactive property to
          * @param {string} path - Dot notation path
-         * @param {*} initialValue - Initial value for the property
+         * @param {any} initialValue - Initial value for the property
          */
         const createReactiveProperty = (obj, path, initialValue) => {
                 const keys = path.split(".");
@@ -464,14 +541,17 @@ class AppStateManager {
                         return value;
                     },
                     /**
-                     * @param {*} newValue - New value to set
+                     * @param {any} newValue - New value to set
                      */
                     set(newValue) {
                         const oldValue = value,
                             // Validate if validator exists
                             validator = self.validators.get(path);
                         if (validator && !validator(newValue, oldValue)) {
-                            console.warn(`[AppState] Validation failed for ${path}:`, newValue);
+                            console.warn(
+                                `[AppState] Validation failed for ${path}:`,
+                                newValue
+                            );
                             return;
                         }
 
@@ -512,6 +592,7 @@ class AppStateManager {
 
     /**
      * Update multiple state values atomically
+     *
      * @param {Object} updates - Object with path:value pairs
      */
     update(updates) {
@@ -571,7 +652,8 @@ if (globalThis.window !== undefined) {
 
 /**
  * Add error to state
- * @param {Error|string} error - Error to add
+ *
+ * @param {Error | string} error - Error to add
  * @param {string} context - Error context
  */
 export function addError(error, context = "") {
@@ -614,8 +696,10 @@ export function clearGlobalData() {
 
 /**
  * Get current state value
+ *
  * @param {string} path - State path
- * @returns {*} State value
+ *
+ * @returns {any} State value
  */
 export function getState(path) {
     return appState.get(path);
@@ -623,6 +707,7 @@ export function getState(path) {
 
 /**
  * Set active tab
+ *
  * @param {string} tabId - Active tab identifier
  */
 export function setActiveTab(tabId) {
@@ -631,6 +716,7 @@ export function setActiveTab(tabId) {
 
 /**
  * Set chart controls visibility
+ *
  * @param {boolean} visible - Whether controls are visible
  */
 export function setChartControlsVisible(visible) {
@@ -639,8 +725,9 @@ export function setChartControlsVisible(visible) {
 
 /**
  * Set file opening state
+ *
  * @param {boolean} isOpening - Whether file is currently opening
- * @param {string|null} [filePath] - Path to file being opened
+ * @param {string | null} [filePath] - Path to file being opened
  */
 export function setFileOpeningState(isOpening, filePath = null) {
     appState.update({
@@ -652,6 +739,7 @@ export function setFileOpeningState(isOpening, filePath = null) {
 
 /**
  * Set global data (maintains backward compatibility)
+ *
  * @param {Object} data - FIT file data
  */
 export function setGlobalData(data) {
@@ -667,8 +755,9 @@ export function setGlobalData(data) {
 
 /**
  * Set state value
+ *
  * @param {string} path - State path
- * @param {*} value - New value
+ * @param {any} value - New value
  */
 export function setState(path, value) {
     return appState.set(path, value);
@@ -676,6 +765,7 @@ export function setState(path, value) {
 
 /**
  * Set theme
+ *
  * @param {string} theme - Theme name
  */
 export function setTheme(theme) {
@@ -684,8 +774,10 @@ export function setTheme(theme) {
 
 /**
  * Subscribe to state changes with cleanup
+ *
  * @param {string} event - Event name or state path
  * @param {Function} callback - Event handler
+ *
  * @returns {Function} Cleanup function
  */
 export function subscribe(event, callback) {

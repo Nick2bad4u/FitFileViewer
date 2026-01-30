@@ -13,7 +13,18 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 /**
  * @param {HTMLElement} container
  * @param {any[]} data
- * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, smoothing?: number, interpolation?: string, animationStyle?: string, theme?: string, distanceUnits?: string }} options
+ * @param {{
+ *     maxPoints: number | "all";
+ *     showPoints?: boolean;
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ *     smoothing?: number;
+ *     interpolation?: string;
+ *     animationStyle?: string;
+ *     theme?: string;
+ *     distanceUnits?: string;
+ * }} options
  */
 export function renderSpeedVsDistanceChart(container, data, options) {
     try {
@@ -30,7 +41,9 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             showTitle,
         } = options;
 
-        const hasDistance = data.some(({ distance }) => distance !== undefined && distance !== null),
+        const hasDistance = data.some(
+                ({ distance }) => distance !== undefined && distance !== null
+            ),
             hasSpeed = data.some(({ speed, enhancedSpeed }) => {
                 const preferredSpeed = enhancedSpeed ?? speed;
                 return preferredSpeed !== undefined && preferredSpeed !== null;
@@ -40,13 +53,15 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             return;
         }
 
-        const visibility = chartSettingsManager.getFieldVisibility("speed_vs_distance");
+        const visibility =
+            chartSettingsManager.getFieldVisibility("speed_vs_distance");
         if (visibility === "hidden") {
             return;
         }
 
         // Determine theme
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
         const { colors } = themeConfig || {};
@@ -67,9 +82,18 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     distance !== null
                 ) {
                     // Apply unit conversion based on user preferences
-                    const convertedDistance = convertValueToUserUnits(distance, "distance"),
-                        convertedSpeed = convertValueToUserUnits(preferredSpeed, "speed"),
-                        roundedSpeed = Math.round((convertedSpeed + Number.EPSILON) * 100) / 100;
+                    const convertedDistance = convertValueToUserUnits(
+                            distance,
+                            "distance"
+                        ),
+                        convertedSpeed = convertValueToUserUnits(
+                            preferredSpeed,
+                            "speed"
+                        ),
+                        roundedSpeed =
+                            Math.round(
+                                (convertedSpeed + Number.EPSILON) * 100
+                            ) / 100;
 
                     return {
                         x: convertedDistance,
@@ -90,7 +114,9 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("speed-vs-distance", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas("speed-vs-distance", 0)
+        );
         canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
         if (colors?.shadow) {
@@ -173,7 +199,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                                 let rawDistance = context.parsed.x;
                                 switch (distanceUnits) {
                                     case "feet": {
-                                        rawDistance = context.parsed.x / 3.280_84; // Convert feet back to meters
+                                        rawDistance =
+                                            context.parsed.x / 3.280_84; // Convert feet back to meters
                                         break;
                                     }
                                     case "kilometers": {
@@ -181,14 +208,18 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                                         break;
                                     }
                                     case "miles": {
-                                        rawDistance = context.parsed.x * 1609.344; // Convert miles back to meters
+                                        rawDistance =
+                                            context.parsed.x * 1609.344; // Convert miles back to meters
                                         break;
                                     }
                                     // No default
                                 }
 
                                 let rawSpeed = context.parsed.y;
-                                if (distanceUnits === "miles" || distanceUnits === "feet") {
+                                if (
+                                    distanceUnits === "miles" ||
+                                    distanceUnits === "feet"
+                                ) {
                                     rawSpeed = context.parsed.y / 2.236_936;
                                 } else {
                                     rawSpeed = context.parsed.y / 3.6;
@@ -275,9 +306,14 @@ export function renderSpeedVsDistanceChart(container, data, options) {
 
         const chart = createManagedChart(canvas, config);
         if (chart) {
-            console.log("[ChartJS] Speed vs Distance chart created successfully");
+            console.log(
+                "[ChartJS] Speed vs Distance chart created successfully"
+            );
         }
     } catch (error) {
-        console.error("[ChartJS] Error rendering speed vs distance chart:", error);
+        console.error(
+            "[ChartJS] Error rendering speed vs distance chart:",
+            error
+        );
     }
 }

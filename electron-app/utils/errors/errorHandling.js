@@ -1,35 +1,48 @@
 /**
- * @fileoverview Unified Error Handling Utilities
- * @description Provides consistent error handling patterns across the FitFileViewer application
- * @author FitFileViewer Development Team
+ * Provides consistent error handling patterns across the FitFileViewer
+ * application
+ *
  * @version 1.0.0
+ *
+ * @file Unified Error Handling Utilities
+ *
+ * @author FitFileViewer Development Team
  */
 
 /**
  * @typedef {Object} ErrorContext
+ *
  * @property {string} [operation] - Operation that failed
  * @property {string} [component] - Component where error occurred
- * @property {*} [input] - Input that caused the error
+ * @property {any} [input] - Input that caused the error
  * @property {string} [path] - File path or state path related to error
  * @property {number} [code] - Error code
  */
 
 /**
  * @typedef {Object} ErrorHandlingOptions
- * @property {boolean} [failSafe=false] - Whether to fail safely (return fallback) or throw
- * @property {*} [fallback=null] - Fallback value for fail-safe mode
- * @property {boolean} [logError=true] - Whether to log the error
- * @property {string} [logLevel="error"] - Log level (debug, info, warn, error)
- * @property {boolean} [notify=false] - Whether to show user notification
- * @property {string} [notificationType="error"] - Notification type (error, warning, info)
+ *
+ * @property {boolean} [failSafe=false] - Whether to fail safely (return
+ *   fallback) or throw. Default is `false`
+ * @property {any} [fallback=null] - Fallback value for fail-safe mode. Default
+ *   is `null`
+ * @property {boolean} [logError=true] - Whether to log the error. Default is
+ *   `true`
+ * @property {string} [logLevel="error"] - Log level (debug, info, warn, error).
+ *   Default is `"error"`
+ * @property {boolean} [notify=false] - Whether to show user notification.
+ *   Default is `false`
+ * @property {string} [notificationType="error"] - Notification type (error,
+ *   warning, info). Default is `"error"`
  */
 
 /**
  * @typedef {Object} ValidationResult
+ *
  * @property {boolean} isValid - Whether validation passed
  * @property {string[]} errors - Array of error messages
  * @property {string[]} warnings - Array of warning messages
- * @property {*} [validatedValue] - Validated/normalized value if applicable
+ * @property {any} [validatedValue] - Validated/normalized value if applicable
  */
 
 /**
@@ -52,8 +65,10 @@ export const ERROR_CODES = {
 export class AppError extends Error {
     /**
      * Create an application error
+     *
      * @param {string} message - Error message
-     * @param {ErrorContext} [context={}] - Additional error context
+     * @param {ErrorContext} [context={}] - Additional error context. Default is
+     *   `{}`
      */
     constructor(message, context = {}) {
         super(message);
@@ -64,6 +79,7 @@ export class AppError extends Error {
 
     /**
      * Get a formatted error message with context
+     *
      * @returns {string} Formatted error message
      */
     getFormattedMessage() {
@@ -86,6 +102,7 @@ export class AppError extends Error {
 
     /**
      * Convert error to JSON for logging/serialization
+     *
      * @returns {Object} JSON representation
      */
     toJSON() {
@@ -105,10 +122,12 @@ export class AppError extends Error {
 export class ValidationError extends AppError {
     /**
      * Create a validation error
+     *
      * @param {string} message - Error message
      * @param {Object} details - Validation details
      * @param {string[]} details.errors - Validation errors
-     * @param {string[]} [details.warnings=[]] - Validation warnings
+     * @param {string[]} [details.warnings=[]] - Validation warnings. Default is
+     *   `[]`
      */
     constructor(message, details) {
         super(message, {
@@ -123,7 +142,10 @@ export class ValidationError extends AppError {
 
 /**
  * Create a standardized error handler function
- * @param {ErrorHandlingOptions} [options={}] - Error handling options
+ *
+ * @param {ErrorHandlingOptions} [options={}] - Error handling options. Default
+ *   is `{}`
+ *
  * @returns {Function} Error handler function
  */
 export function createErrorHandler(options = {}) {
@@ -140,7 +162,10 @@ export function createErrorHandler(options = {}) {
 
     return function handleError(error, context = {}) {
         // Ensure we have an Error object
-        const err = error instanceof Error ? error : new AppError(String(error), context);
+        const err =
+            error instanceof Error
+                ? error
+                : new AppError(String(error), context);
 
         // Add context if it's not already an AppError
         if (!(err instanceof AppError) && Object.keys(context).length > 0) {
@@ -149,16 +174,28 @@ export function createErrorHandler(options = {}) {
 
         // Log error if enabled
         if (config.logError) {
-            const message = err instanceof AppError ? err.getFormattedMessage() : err.message;
+            const message =
+                err instanceof AppError
+                    ? err.getFormattedMessage()
+                    : err.message;
             console[config.logLevel](`[ErrorHandler] ${message}`, err);
         }
 
         // Show notification if enabled
-        if (config.notify && typeof globalThis.showNotification === "function") {
+        if (
+            config.notify &&
+            typeof globalThis.showNotification === "function"
+        ) {
             try {
-                globalThis.showNotification(err.message, config.notificationType);
+                globalThis.showNotification(
+                    err.message,
+                    config.notificationType
+                );
             } catch (notificationError) {
-                console.warn("[ErrorHandler] Failed to show notification:", notificationError);
+                console.warn(
+                    "[ErrorHandler] Failed to show notification:",
+                    notificationError
+                );
             }
         }
 
@@ -173,9 +210,12 @@ export function createErrorHandler(options = {}) {
 
 /**
  * Validate input with consistent error handling
- * @param {*} value - Value to validate
+ *
+ * @param {any} value - Value to validate
  * @param {Function[]} validators - Array of validation functions
- * @param {string} [fieldName="input"] - Name of field being validated
+ * @param {string} [fieldName="input"] - Name of field being validated. Default
+ *   is `"input"`
+ *
  * @returns {ValidationResult} Validation result
  */
 export function validateInput(value, validators, fieldName = "input") {
@@ -211,7 +251,9 @@ export function validateInput(value, validators, fieldName = "input") {
             }
         } catch (error) {
             result.isValid = false;
-            result.errors.push(`Validation error for ${fieldName}: ${error.message}`);
+            result.errors.push(
+                `Validation error for ${fieldName}: ${error.message}`
+            );
         }
     }
 
@@ -220,8 +262,11 @@ export function validateInput(value, validators, fieldName = "input") {
 
 /**
  * Wrap a function with error handling
+ *
  * @param {Function} fn - Function to wrap
- * @param {ErrorHandlingOptions} [options={}] - Error handling options
+ * @param {ErrorHandlingOptions} [options={}] - Error handling options. Default
+ *   is `{}`
+ *
  * @returns {Function} Wrapped function
  */
 export function withErrorHandling(fn, options = {}) {
@@ -258,8 +303,10 @@ export function withErrorHandling(fn, options = {}) {
 export const validators = {
     /**
      * Validate that value is a finite number
-     * @param {*} value - Value to validate
+     *
+     * @param {any} value - Value to validate
      * @param {string} fieldName - Field name for error messages
+     *
      * @returns {ValidationResult} Validation result
      */
     isFiniteNumber: (value, fieldName) => ({
@@ -275,12 +322,15 @@ export const validators = {
 
     /**
      * Validate that value is a positive number
-     * @param {*} value - Value to validate
+     *
+     * @param {any} value - Value to validate
      * @param {string} fieldName - Field name for error messages
+     *
      * @returns {ValidationResult} Validation result
      */
     isPositiveNumber: (value, fieldName) => ({
-        isValid: typeof value === "number" && Number.isFinite(value) && value > 0,
+        isValid:
+            typeof value === "number" && Number.isFinite(value) && value > 0,
         errors:
             typeof value === "number"
                 ? Number.isFinite(value)
@@ -294,8 +344,10 @@ export const validators = {
 
     /**
      * Validate that value is a non-empty string
-     * @param {*} value - Value to validate
+     *
+     * @param {any} value - Value to validate
      * @param {string} fieldName - Field name for error messages
+     *
      * @returns {ValidationResult} Validation result
      */
     isNonEmptyString: (value, fieldName) => ({
@@ -311,22 +363,28 @@ export const validators = {
 
     /**
      * Validate that value is not null or undefined
-     * @param {*} value - Value to validate
+     *
+     * @param {any} value - Value to validate
      * @param {string} fieldName - Field name for error messages
+     *
      * @returns {ValidationResult} Validation result
      */
     isRequired: (value, fieldName) => ({
         isValid: value !== null && value !== undefined,
-        errors: value === null || value === undefined ? [`${fieldName} is required`] : [],
+        errors:
+            value === null || value === undefined
+                ? [`${fieldName} is required`]
+                : [],
         value,
     }),
 };
 
 /**
- * Initialize error handling system.
- * Currently accepts an options object for future extensibility.
+ * Initialize error handling system. Currently accepts an options object for
+ * future extensibility.
  *
- * @param {Object} [_options={}] - Initialization options (reserved for future use)
+ * @param {Object} [_options={}] - Initialization options (reserved for future
+ *   use). Default is `{}`
  */
 export function initializeErrorHandling(_options = {}) {
     // Set up global error handlers
@@ -341,9 +399,14 @@ export function initializeErrorHandling(_options = {}) {
         });
 
         globalThis.addEventListener("unhandledrejection", (event) => {
-            logError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)), {
-                operation: "unhandled-rejection",
-            });
+            logError(
+                event.reason instanceof Error
+                    ? event.reason
+                    : new Error(String(event.reason)),
+                {
+                    operation: "unhandled-rejection",
+                }
+            );
         });
     }
 
@@ -352,9 +415,10 @@ export function initializeErrorHandling(_options = {}) {
 
 /**
  * Standardized error logging with consistent format
+ *
  * @param {Error} error - Error to log
- * @param {ErrorContext} [context={}] - Additional context
- * @param {string} [level="error"] - Log level
+ * @param {ErrorContext} [context={}] - Additional context. Default is `{}`
+ * @param {string} [level="error"] - Log level. Default is `"error"`
  */
 export function logError(error, context = {}, level = "error") {
     const timestamp = new Date().toISOString();
@@ -369,9 +433,15 @@ export function logError(error, context = {}, level = "error") {
     console[level](`[${timestamp}] Error:`, errorInfo);
 
     // Also log to performance monitor if available
-    if (globalThis.performanceMonitor !== undefined && globalThis.performanceMonitor.recordError) {
+    if (
+        globalThis.performanceMonitor !== undefined &&
+        globalThis.performanceMonitor.recordError
+    ) {
         try {
-            globalThis.performanceMonitor.recordError(error, context.operation || "unknown");
+            globalThis.performanceMonitor.recordError(
+                error,
+                context.operation || "unknown"
+            );
         } catch {
             // Ignore performance monitor errors
         }
@@ -379,10 +449,13 @@ export function logError(error, context = {}, level = "error") {
 }
 
 /**
- * Create a resilient version of a function that continues on error with fallback
+ * Create a resilient version of a function that continues on error with
+ * fallback
+ *
  * @param {Function} fn - Function to make resilient
- * @param {*} fallback - Fallback value
- * @param {Object} [options={}] - Options
+ * @param {any} fallback - Fallback value
+ * @param {Object} [options={}] - Options. Default is `{}`
+ *
  * @returns {Function} Resilient function
  */
 export function makeResilient(fn, fallback, options = {}) {
@@ -396,10 +469,14 @@ export function makeResilient(fn, fallback, options = {}) {
 }
 
 /**
- * Create a safe version of a function that returns null on error instead of throwing
+ * Create a safe version of a function that returns null on error instead of
+ * throwing
+ *
  * @param {Function} fn - Function to make safe
- * @param {Object} [options={}] - Options
- * @param {boolean} [options.logErrors=true] - Whether to log errors
+ * @param {Object} [options={}] - Options. Default is `{}`
+ * @param {boolean} [options.logErrors=true] - Whether to log errors. Default is
+ *   `true`
+ *
  * @returns {Function} Safe function
  */
 export function makeSafe(fn, options = {}) {

@@ -1,13 +1,16 @@
 /**
- * Provides lazily-evaluated references to Electron modules. Tests rely on the ability to inject
- * hoisted mocks via {@link globalThis.__electronHoistedMock}, so we mirror the defensive
- * implementation that previously lived in main.js.
+ * Provides lazily-evaluated references to Electron modules. Tests rely on the
+ * ability to inject hoisted mocks via {@link globalThis.__electronHoistedMock},
+ * so we mirror the defensive implementation that previously lived in main.js.
  */
 let electronOverride =
-    (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__electronHoistedMock) || null;
+    (typeof globalThis !== "undefined" &&
+        /** @type {any} */ (globalThis).__electronHoistedMock) ||
+    null;
 
 /**
- * Lazily resolves the Electron module, handling CJS/ESM interop and honoring test overrides.
+ * Lazily resolves the Electron module, handling CJS/ESM interop and honoring
+ * test overrides.
  *
  * @returns {any} Electron module reference or an empty object when unavailable.
  */
@@ -16,7 +19,10 @@ function getElectron() {
         // Vitest can load this module multiple times (CJS require vs ESM import).
         // To keep tests reliable, always honor the hoisted global mock at runtime.
 
-        const hoisted = typeof globalThis === "undefined" ? /** @type {any} */ null : globalThis.__electronHoistedMock;
+        const hoisted =
+            typeof globalThis === "undefined"
+                ? /** @type {any} */ null
+                : globalThis.__electronHoistedMock;
         if (hoisted) return hoisted;
 
         if (electronOverride) return electronOverride;
@@ -40,7 +46,8 @@ function getElectron() {
 }
 
 /**
- * Returns the currently configured Electron override (used by test priming helpers).
+ * Returns the currently configured Electron override (used by test priming
+ * helpers).
  *
  * @returns {any} Cached override or null when none is set.
  */
@@ -49,7 +56,8 @@ function getElectronOverride() {
 }
 
 /**
- * Allows tests to inject a pre-resolved Electron module that will be returned by {@link getElectron}.
+ * Allows tests to inject a pre-resolved Electron module that will be returned
+ * by {@link getElectron}.
  *
  * @param {any} override - Electron module mock to use for subsequent lookups.
  */
@@ -58,7 +66,8 @@ function setElectronOverride(override) {
 }
 
 /**
- * @returns {any} Electron app reference (may be undefined when Electron is unavailable).
+ * @returns {any} Electron app reference (may be undefined when Electron is
+ *   unavailable).
  */
 const appRef = () => /** @type {any} */ (getElectron().app);
 /**

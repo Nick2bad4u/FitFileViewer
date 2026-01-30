@@ -60,17 +60,21 @@ function createElectronAPIMock() {
         onIpc: (channel: string, cb: IpcHandler) => {
             ipcHandlers.set(channel, cb);
         },
-        emit: (channel: string, ...args: any[]) => ipcHandlers.get(channel)?.(...args),
+        emit: (channel: string, ...args: any[]) =>
+            ipcHandlers.get(channel)?.(...args),
 
         // Updater
         onUpdateEvent: (event: string, cb: IpcHandler) => {
             updateHandlers.set(event, cb);
         },
-        emitUpdate: (event: string, ...args: any[]) => updateHandlers.get(event)?.(...args),
+        emitUpdate: (event: string, ...args: any[]) =>
+            updateHandlers.get(event)?.(...args),
 
         // FS operations (can be overridden per test)
         recentFiles: vi.fn<() => Promise<string[]>>(),
-        approveRecentFile: vi.fn<(fp: string) => Promise<boolean>>().mockResolvedValue(true),
+        approveRecentFile: vi
+            .fn<(fp: string) => Promise<boolean>>()
+            .mockResolvedValue(true),
         readFile: vi.fn<(fp: string) => Promise<ArrayBuffer>>(),
         parseFitFile: vi.fn<(buf: ArrayBuffer) => Promise<any>>(),
         addRecentFile: vi.fn<(fp: string) => Promise<void>>(),
@@ -161,8 +165,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Force garbage collection of event listeners by removing all event listeners
         // from commonly used elements
         try {
-            document.removeEventListener("mousedown", () => {}, { capture: true });
-            document.removeEventListener("mousedown", () => {}, { capture: false });
+            document.removeEventListener("mousedown", () => {}, {
+                capture: true,
+            });
+            document.removeEventListener("mousedown", () => {}, {
+                capture: false,
+            });
             window.removeEventListener("resize", () => {});
         } catch (e) {
             // Ignore errors from trying to remove non-existent listeners
@@ -237,7 +245,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Allow async handler to resolve
         await Promise.resolve();
 
-        expect(showNotification).toHaveBeenCalledWith("No recent files found.", "info", 2000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "No recent files found.",
+            "info",
+            2000
+        );
     });
 
     it("contextmenu: renders items and clicking loads file and updates recent", async () => {
@@ -275,7 +287,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for async menu creation to complete
@@ -287,7 +303,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             { timeout: 1000 }
         );
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
         const items = Array.from(menu.querySelectorAll("div"));
         expect(items.length).toBe(files.length);
@@ -302,7 +320,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
-            expect(showFitData).toHaveBeenCalledWith(parseResult.data, files[1]);
+            expect(showFitData).toHaveBeenCalledWith(
+                parseResult.data,
+                files[1]
+            );
         });
         // Loading toggled on/off
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
@@ -336,7 +357,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
-        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith("window-resize");
+        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
+            "window-resize"
+        );
     });
 
     it("IPC: decoder-options-changed without cached file -> only info notification", async () => {
@@ -351,7 +374,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emit("decoder-options-changed", { speed: true });
-        expect(showNotification).toHaveBeenCalledWith("Decoder options updated.", "info", 2000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "Decoder options updated.",
+            "info",
+            2000
+        );
         // Should not attempt read/parse
         expect(window.electronAPI.readFile).not.toHaveBeenCalled();
     });
@@ -381,9 +408,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         await vi.waitFor(() => {
-            expect(window.electronAPI.readFile).toHaveBeenCalledWith("C:/tmp/sample.fit");
-            expect(window.electronAPI.parseFitFile).toHaveBeenCalledWith(arrayBuf);
-            expect(showFitData).toHaveBeenCalledWith(parsed, "C:/tmp/sample.fit");
+            expect(window.electronAPI.readFile).toHaveBeenCalledWith(
+                "C:/tmp/sample.fit"
+            );
+            expect(window.electronAPI.parseFitFile).toHaveBeenCalledWith(
+                arrayBuf
+            );
+            expect(showFitData).toHaveBeenCalledWith(
+                parsed,
+                "C:/tmp/sample.fit"
+            );
             // loading on/off around reload
             expect(setLoading).toHaveBeenCalledWith(true);
             expect(setLoading).toHaveBeenCalledWith(false);
@@ -419,7 +453,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         window.globalData = { foo: "bar" } as any;
 
-        await window.electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
+        await window.electronAPI.emit(
+            "export-file",
+            {} as any,
+            "C:/tmp/out.csv"
+        );
 
         expect((window as any).copyTableAsCSV).toHaveBeenCalled();
         expect(clickSpy).toHaveBeenCalledTimes(1);
@@ -461,7 +499,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             ],
         } as any;
 
-        await window.electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
+        await window.electronAPI.emit(
+            "export-file",
+            {} as any,
+            "C:/tmp/out.gpx"
+        );
         expect(clickSpy).toHaveBeenCalledTimes(1);
 
         // Case 2: no valid coords
@@ -469,13 +511,29 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.globalData = {
             recordMesgs: [{}, {}],
         } as any;
-        await window.electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
-        expect(showNotification).toHaveBeenCalledWith("No valid coordinates found for GPX export.", "info", 3000);
+        await window.electronAPI.emit(
+            "export-file",
+            {} as any,
+            "C:/tmp/out.gpx"
+        );
+        expect(showNotification).toHaveBeenCalledWith(
+            "No valid coordinates found for GPX export.",
+            "info",
+            3000
+        );
 
         // Case 3: no data available
         window.globalData = {} as any;
-        await window.electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
-        expect(showNotification).toHaveBeenCalledWith("No data available for GPX export.", "info", 3000);
+        await window.electronAPI.emit(
+            "export-file",
+            {} as any,
+            "C:/tmp/out.gpx"
+        );
+        expect(showNotification).toHaveBeenCalledWith(
+            "No data available for GPX export.",
+            "info",
+            3000
+        );
     });
 
     it("IPC: show-notification forwards to showNotification", async () => {
@@ -514,7 +572,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.emit("menu-check-for-updates");
         window.electronAPI.emit("menu-save-as");
         window.electronAPI.emit("menu-export");
-        expect(window.electronAPI.send).toHaveBeenCalledWith("menu-check-for-updates");
+        expect(window.electronAPI.send).toHaveBeenCalledWith(
+            "menu-check-for-updates"
+        );
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-save-as");
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
@@ -551,7 +611,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emit("menu-open-overlay");
-        expect(showNotification).toHaveBeenCalledWith("Failed to open overlay selector.", "error", 3000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to open overlay selector.",
+            "error",
+            3000
+        );
     });
 
     it("IPC: menu-about and keyboard-shortcuts flows", async () => {
@@ -606,19 +670,40 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emitUpdate("update-checking");
-        expect(showUpdateNotification).toHaveBeenCalledWith("Checking for updates...", "info", 3000);
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Checking for updates...",
+            "info",
+            3000
+        );
 
         window.electronAPI.emitUpdate("update-available");
-        expect(showUpdateNotification).toHaveBeenCalledWith("Update available! Downloading...", 4000);
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Update available! Downloading...",
+            4000
+        );
 
         window.electronAPI.emitUpdate("update-not-available");
-        expect(showUpdateNotification).toHaveBeenCalledWith("You are using the latest version.", "success", 4000);
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "You are using the latest version.",
+            "success",
+            4000
+        );
 
         window.electronAPI.emitUpdate("update-error", new Error("boom"));
-        expect(showUpdateNotification.mock.calls.some((c: any[]) => String(c[0]).includes("Update error:"))).toBe(true);
+        expect(
+            showUpdateNotification.mock.calls.some((c: any[]) =>
+                String(c[0]).includes("Update error:")
+            )
+        ).toBe(true);
 
-        window.electronAPI.emitUpdate("update-download-progress", { percent: 42.2 });
-        expect(showUpdateNotification).toHaveBeenCalledWith("Downloading update: 42%", "info", 2000);
+        window.electronAPI.emitUpdate("update-download-progress", {
+            percent: 42.2,
+        });
+        expect(showUpdateNotification).toHaveBeenCalledWith(
+            "Downloading update: 42%",
+            "info",
+            2000
+        );
 
         window.electronAPI.emitUpdate("update-download-progress", {});
         expect(showUpdateNotification).toHaveBeenCalledWith(
@@ -655,9 +740,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.emit("set-high-contrast", {} as any, "black");
         expect(document.body.classList.contains("high-contrast")).toBe(true);
         window.electronAPI.emit("set-high-contrast", {} as any, "white");
-        expect(document.body.classList.contains("high-contrast-white")).toBe(true);
+        expect(document.body.classList.contains("high-contrast-white")).toBe(
+            true
+        );
         window.electronAPI.emit("set-high-contrast", {} as any, "yellow");
-        expect(document.body.classList.contains("high-contrast-yellow")).toBe(true);
+        expect(document.body.classList.contains("high-contrast-yellow")).toBe(
+            true
+        );
     });
 
     it("Menu: onMenuOpenFile forwards to handleOpenFile; onOpenRecentFile loads and shows errors", async () => {
@@ -666,7 +755,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // For open recent path success
         const arrayBuf = new ArrayBuffer(32);
         window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        window.electronAPI.parseFitFile = vi.fn().mockResolvedValue({ ok: true });
+        window.electronAPI.parseFitFile = vi
+            .fn()
+            .mockResolvedValue({ ok: true });
         window.electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
 
         setupListeners({
@@ -685,7 +776,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Success case
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(window.electronAPI.approveRecentFile).toHaveBeenCalledWith("C:/tmp/recent.fit");
+        expect(window.electronAPI.approveRecentFile).toHaveBeenCalledWith(
+            "C:/tmp/recent.fit"
+        );
         expect(window.electronAPI.readFile).toHaveBeenCalled();
         expect(window.electronAPI.addRecentFile).toHaveBeenCalled();
 
@@ -694,17 +787,31 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(window.electronAPI.readFile).not.toHaveBeenCalled();
-        expect(showNotification).toHaveBeenCalledWith("File access denied.", "error", 4000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "File access denied.",
+            "error",
+            4000
+        );
 
         // Error case
         window.electronAPI.approveRecentFile = vi.fn().mockResolvedValue(true);
-        window.electronAPI.parseFitFile = vi.fn().mockResolvedValue({ error: "bad" });
+        window.electronAPI.parseFitFile = vi
+            .fn()
+            .mockResolvedValue({ error: "bad" });
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(showNotification.mock.calls.some((c: any[]) => String(c[0]).includes("Error:"))).toBe(true);
+        expect(
+            showNotification.mock.calls.some((c: any[]) =>
+                String(c[0]).includes("Error:")
+            )
+        ).toBe(true);
     });
 
     it("contextmenu: keyboard navigation works (ArrowDown, ArrowUp, Enter, Escape)", async () => {
-        const files = ["C:/Users/Test/one.fit", "C:/Users/Test/two.fit", "C:/Users/Test/three.fit"];
+        const files = [
+            "C:/Users/Test/one.fit",
+            "C:/Users/Test/two.fit",
+            "C:/Users/Test/three.fit",
+        ];
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
 
         const arrayBuf = new ArrayBuffer(8);
@@ -737,25 +844,40 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for menu to be created
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
 
         // Test ArrowDown navigation
-        const arrowDownEvent = new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true });
+        const arrowDownEvent = new KeyboardEvent("keydown", {
+            key: "ArrowDown",
+            bubbles: true,
+        });
         menu.dispatchEvent(arrowDownEvent);
 
         // Test ArrowUp navigation
-        const arrowUpEvent = new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true });
+        const arrowUpEvent = new KeyboardEvent("keydown", {
+            key: "ArrowUp",
+            bubbles: true,
+        });
         menu.dispatchEvent(arrowUpEvent);
 
         // Test Enter key to select item
-        const enterEvent = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+        const enterEvent = new KeyboardEvent("keydown", {
+            key: "Enter",
+            bubbles: true,
+        });
         menu.dispatchEvent(enterEvent);
 
         // Wait for async operations
@@ -763,7 +885,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[0]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
-            expect(showFitData).toHaveBeenCalledWith(parseResult.data, files[0]);
+            expect(showFitData).toHaveBeenCalledWith(
+                parseResult.data,
+                files[0]
+            );
         });
     });
 
@@ -781,17 +906,26 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for menu to be created
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
 
         // Test Escape key to close menu
-        const escapeEvent = new KeyboardEvent("keydown", { key: "Escape", bubbles: true });
+        const escapeEvent = new KeyboardEvent("keydown", {
+            key: "Escape",
+            bubbles: true,
+        });
         menu.dispatchEvent(escapeEvent);
 
         // Menu should be removed from DOM
@@ -812,13 +946,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for menu to be created
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
         const items = Array.from(menu.querySelectorAll("div"));
         expect(items.length).toBe(files.length);
@@ -857,13 +997,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for menu to be created
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
 
         // Create a dummy element outside the menu
@@ -872,7 +1018,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Simulate clicking outside the menu
         const mouseDownEvent = new MouseEvent("mousedown", { bubbles: true });
-        Object.defineProperty(mouseDownEvent, "target", { value: outsideElement });
+        Object.defineProperty(mouseDownEvent, "target", {
+            value: outsideElement,
+        });
         document.dispatchEvent(mouseDownEvent);
 
         // Menu should be removed from DOM
@@ -885,7 +1033,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("contextmenu: handles recent file error during loading", async () => {
         const files = ["C:/Users/Test/one.fit"];
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-        electronAPI.readFile = vi.fn().mockRejectedValue(new Error("File read error"));
+        electronAPI.readFile = vi
+            .fn()
+            .mockRejectedValue(new Error("File read error"));
 
         setupListeners({
             openFileBtn,
@@ -897,13 +1047,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         // Wait for menu to be created
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
         const items = Array.from(menu.querySelectorAll("div"));
         const firstItem = items[0] as HTMLDivElement;
@@ -1012,7 +1168,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     it("decoder-options-changed: handles error during file reload", async () => {
         window.globalData = { cachedFilePath: "C:/tmp/sample.fit" } as any;
-        electronAPI.readFile = vi.fn().mockRejectedValue(new Error("File read failed"));
+        electronAPI.readFile = vi
+            .fn()
+            .mockRejectedValue(new Error("File read failed"));
 
         setupListeners({
             openFileBtn,
@@ -1028,7 +1186,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Wait for async operations and error handling
         await vi.waitFor(() => {
-            expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("Error reloading file"), "error");
+            expect(showNotification).toHaveBeenCalledWith(
+                expect.stringContaining("Error reloading file"),
+                "error"
+            );
         });
 
         // Loading should be turned off
@@ -1278,7 +1439,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Create first menu
-        const evt1 = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt1 = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt1);
         await Promise.resolve();
 
@@ -1286,7 +1451,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(firstMenu).toBeTruthy();
 
         // Create second menu (should remove first)
-        const evt2 = new MouseEvent("contextmenu", { bubbles: true, clientX: 20, clientY: 25 });
+        const evt2 = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 20,
+            clientY: 25,
+        });
         openFileBtn.dispatchEvent(evt2);
         await Promise.resolve();
 
@@ -1308,16 +1477,26 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(menu).toBeTruthy();
 
         const preventDefault = vi.fn();
-        const contextMenuEvent = new MouseEvent("contextmenu", { bubbles: true });
-        Object.defineProperty(contextMenuEvent, "preventDefault", { value: preventDefault });
+        const contextMenuEvent = new MouseEvent("contextmenu", {
+            bubbles: true,
+        });
+        Object.defineProperty(contextMenuEvent, "preventDefault", {
+            value: preventDefault,
+        });
 
         menu.dispatchEvent(contextMenuEvent);
         expect(preventDefault).toHaveBeenCalled();
@@ -1367,11 +1546,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         const items = Array.from(menu.querySelectorAll("div"));
         const firstItem = items[0] as HTMLDivElement;
 
@@ -1414,7 +1599,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("onOpenRecentFile: handles exception during file processing", async () => {
-        electronAPI.readFile = vi.fn().mockRejectedValue(new Error("Network error"));
+        electronAPI.readFile = vi
+            .fn()
+            .mockRejectedValue(new Error("Network error"));
 
         setupListeners({
             openFileBtn,
@@ -1445,7 +1632,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const mockArrayBuffer = new ArrayBuffer(100);
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
         electronAPI.readFile = vi.fn().mockResolvedValue(mockArrayBuffer);
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue({ data: "parsed" });
+        electronAPI.parseFitFile = vi
+            .fn()
+            .mockResolvedValue({ data: "parsed" });
 
         // Mock the integration function
         (globalThis as any).sendFitFileToAltFitReader = vi.fn();
@@ -1461,19 +1650,27 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         const items = Array.from(menu.querySelectorAll("div"));
         const firstItem = items[0] as HTMLDivElement;
 
         firstItem.click();
 
         await vi.waitFor(() => {
-            expect((globalThis as any).sendFitFileToAltFitReader).toHaveBeenCalledWith(mockArrayBuffer);
+            expect(
+                (globalThis as any).sendFitFileToAltFitReader
+            ).toHaveBeenCalledWith(mockArrayBuffer);
         });
     });
 
@@ -1491,12 +1688,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         const items = Array.from(menu.querySelectorAll("div"));
         const firstItem = items[0] as HTMLDivElement;
 
@@ -1527,12 +1730,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            clientX: 10,
+            clientY: 15,
+        });
         openFileBtn.dispatchEvent(evt);
 
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
+        const menu = document.getElementById(
+            "recent-files-menu"
+        ) as HTMLDivElement;
         expect(document.body.contains(menu)).toBe(true);
 
         // Press Escape key to trigger cleanupMenu
@@ -1578,12 +1787,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
-        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith("window-resize");
+        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
+            "window-resize"
+        );
     });
 
     it("decoder-options-changed: catch block when file reload fails (line 279)", async () => {
         window.globalData = { cachedFilePath: "test.fit" };
-        electronAPI.readFile = vi.fn().mockRejectedValue(new Error("Read failed"));
+        electronAPI.readFile = vi
+            .fn()
+            .mockRejectedValue(new Error("Read failed"));
 
         setupListeners({
             openFileBtn,
@@ -1598,7 +1811,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI.emit("decoder-options-changed", { speed: true });
 
         await vi.waitFor(() => {
-            expect(showNotification).toHaveBeenCalledWith("Error reloading file: Error: Read failed", "error");
+            expect(showNotification).toHaveBeenCalledWith(
+                "Error reloading file: Error: Read failed",
+                "error"
+            );
             expect(setLoading).toHaveBeenCalledWith(false);
         });
     });
@@ -1635,11 +1851,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     it("export-file: gpx with valid coordinates for setTimeout cleanup (lines 350-351)", async () => {
         // Mock createExportGPXButton to exist on globalThis
-        (globalThis as any).createExportGPXButton = vi.fn().mockReturnValue(true);
+        (globalThis as any).createExportGPXButton = vi
+            .fn()
+            .mockReturnValue(true);
 
         // Create valid coordinate data in semicircle format
         // Coordinates in semicircles: lat/lng * 2^31 / 180
-        const semicircleConversion = (degrees: number) => Math.round((degrees * 2 ** 31) / 180);
+        const semicircleConversion = (degrees: number) =>
+            Math.round((degrees * 2 ** 31) / 180);
 
         // Mock globalData with valid coordinates
         (globalThis as any).globalData = {
@@ -1662,7 +1881,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         global.URL.revokeObjectURL = vi.fn();
 
         // Mock Blob constructor - must be a proper constructor function
-        (global as any).Blob = vi.fn().mockImplementation(function BlobMock(parts: any[], options: any) {
+        (global as any).Blob = vi.fn().mockImplementation(function BlobMock(
+            parts: any[],
+            options: any
+        ) {
             return {
                 parts,
                 options,
@@ -1705,7 +1927,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Advance timers to trigger the setTimeout cleanup callback
         vi.advanceTimersByTime(100);
 
-        expect(global.URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-url");
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(
+            "blob:test-url"
+        );
         expect(mockAnchorElement.remove).toHaveBeenCalled();
 
         vi.useRealTimers();
@@ -1740,217 +1964,261 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
     });
 
-    it("error handling: parse error without details (line 105)", { timeout: 15000 }, async () => {
-        // Debug output to check test state
-        console.log("Test 105 - electronAPI exists:", !!(globalThis as any).electronAPI);
-        console.log(
-            "Test 105 - electronAPI === globalThis.electronAPI:",
-            electronAPI === (globalThis as any).electronAPI
-        );
-        console.log("Test 105 - electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
+    it(
+        "error handling: parse error without details (line 105)",
+        { timeout: 15000 },
+        async () => {
+            // Debug output to check test state
+            console.log(
+                "Test 105 - electronAPI exists:",
+                !!(globalThis as any).electronAPI
+            );
+            console.log(
+                "Test 105 - electronAPI === globalThis.electronAPI:",
+                electronAPI === (globalThis as any).electronAPI
+            );
+            console.log(
+                "Test 105 - electronAPI.recentFiles exists:",
+                !!electronAPI.recentFiles
+            );
 
-        // Mock recent files as strings (this test targets recent file click handler)
-        const files = ["/path/to/test.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+            // Mock recent files as strings (this test targets recent file click handler)
+            const files = ["/path/to/test.fit"];
+            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
 
-        // Add detailed instrumentation to the mock to trace execution
-        electronAPI.recentFiles = vi.fn().mockImplementation(async () => {
-            console.log("Test 105 - recentFiles() called");
-            return files;
-        });
+            // Add detailed instrumentation to the mock to trace execution
+            electronAPI.recentFiles = vi.fn().mockImplementation(async () => {
+                console.log("Test 105 - recentFiles() called");
+                return files;
+            });
 
-        electronAPI.readFile = vi.fn().mockResolvedValue(new ArrayBuffer(8));
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue({
-            error: "Parse error",
-            // No details property
-        });
+            electronAPI.readFile = vi
+                .fn()
+                .mockResolvedValue(new ArrayBuffer(8));
+            electronAPI.parseFitFile = vi.fn().mockResolvedValue({
+                error: "Parse error",
+                // No details property
+            });
 
-        console.log("Test 105 - After mock setup, electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
-        console.log(
-            "Test 105 - globalThis.electronAPI.recentFiles exists:",
-            !!(globalThis as any).electronAPI?.recentFiles
-        );
+            console.log(
+                "Test 105 - After mock setup, electronAPI.recentFiles exists:",
+                !!electronAPI.recentFiles
+            );
+            console.log(
+                "Test 105 - globalThis.electronAPI.recentFiles exists:",
+                !!(globalThis as any).electronAPI?.recentFiles
+            );
 
-        setupListeners({
-            openFileBtn,
-            isOpeningFileRef: { current: false },
-            setLoading,
-            showNotification,
-            handleOpenFile,
-            showUpdateNotification,
-            showAboutModal,
-        });
+            setupListeners({
+                openFileBtn,
+                isOpeningFileRef: { current: false },
+                setLoading,
+                showNotification,
+                handleOpenFile,
+                showUpdateNotification,
+                showAboutModal,
+            });
 
-        // Check for menu immediately
-        console.log("Test 105 - Menu exists immediately:", !!document.querySelector("#recent-files-menu"));
-        console.log("Test 105 - Document body children count:", document.body.children.length);
+            // Check for menu immediately
+            console.log(
+                "Test 105 - Menu exists immediately:",
+                !!document.querySelector("#recent-files-menu")
+            );
+            console.log(
+                "Test 105 - Document body children count:",
+                document.body.children.length
+            );
 
-        // Right-click to open context menu
-        const contextEvent = new MouseEvent("contextmenu", {
-            bubbles: true,
-            cancelable: true,
-            clientX: 100,
-            clientY: 100,
-        });
-        openFileBtn.dispatchEvent(contextEvent);
-
-        // Check for menu immediately after event
-        console.log("Test 105 - Menu exists immediately after event:", !!document.querySelector("#recent-files-menu"));
-        console.log("Test 105 - Document body children count after event:", document.body.children.length);
-
-        // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(
-            () => {
-                const contextMenu = document.querySelector("#recent-files-menu");
-                console.log("Test 105 - Menu found:", !!contextMenu);
-                return contextMenu !== null;
-            },
-            { timeout: 15000, interval: 100 }
-        );
-
-        const contextMenu = document.querySelector("#recent-files-menu");
-        expect(contextMenu).toBeTruthy();
-
-        // Mock error result without details
-        vi.mocked(electronAPI.readFile).mockResolvedValue(new ArrayBuffer(8));
-        vi.mocked(electronAPI.parseFitFile).mockResolvedValue({
-            error: "Parse error",
-            // No details property
-        });
-
-        // Click the menu item to trigger the error path
-        const menu = document.querySelector("#recent-files-menu");
-        const menuItem = menu?.querySelector("div[role='menuitem']") as HTMLDivElement;
-        menuItem.click();
-
-        await vi.waitFor(() => {
-            expect(showNotification).toHaveBeenCalledWith("Error: Parse error\n", "error");
-        });
-
-        // Explicit cleanup of context menu to prevent interference with subsequent tests
-        const cleanupMenu = document.querySelector("#recent-files-menu");
-        if (cleanupMenu) {
-            cleanupMenu.remove();
-        }
-    });
-
-    it("context menu: cleanup on mousedown (lines 181-182)", { timeout: 15000 }, async () => {
-        // Mock recent files as string array
-        const files = ["/path/to/file1.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-
-        setupListeners({
-            openFileBtn,
-            isOpeningFileRef: { current: false },
-            setLoading,
-            showNotification,
-            handleOpenFile,
-            showUpdateNotification,
-            showAboutModal,
-        });
-
-        // Right-click to open context menu
-        const contextEvent = new MouseEvent("contextmenu", {
-            bubbles: true,
-            cancelable: true,
-            clientX: 100,
-            clientY: 100,
-        });
-        openFileBtn.dispatchEvent(contextEvent);
-
-        // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(
-            () => {
-                const menu = document.querySelector("#recent-files-menu");
-                console.log("Test 181-182 - Menu found:", !!menu);
-                return menu !== null;
-            },
-            { timeout: 15000, interval: 100 }
-        );
-
-        const menu = document.querySelector("#recent-files-menu");
-        expect(menu).toBeTruthy();
-
-        // Trigger mousedown to cleanup
-        const mousedownEvent = new MouseEvent("mousedown", {
-            bubbles: true,
-            cancelable: true,
-        });
-        document.dispatchEvent(mousedownEvent);
-
-        // Menu should be removed
-        const removedMenu = document.querySelector("#recent-files-menu");
-        expect(removedMenu).toBeFalsy();
-
-        // Explicit cleanup to ensure no DOM pollution for subsequent tests
-        if (removedMenu) {
-            removedMenu.remove();
-        }
-    });
-
-    it("context menu: handles onclick function (lines 200-201)", { timeout: 15000 }, async () => {
-        // Mock recent files
-        const files = ["/path/to/file1.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-
-        setupListeners({
-            openFileBtn,
-            isOpeningFileRef: { current: false },
-            setLoading,
-            showNotification,
-            handleOpenFile,
-            showUpdateNotification,
-            showAboutModal,
-        });
-
-        // Right-click to open context menu
-        const contextEvent = new MouseEvent("contextmenu", {
-            bubbles: true,
-            cancelable: true,
-            clientX: 100,
-            clientY: 100,
-        });
-        openFileBtn.dispatchEvent(contextEvent);
-
-        // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(
-            () => {
-                const menu = document.querySelector("#recent-files-menu");
-                console.log("Test 200-201 - Menu found:", !!menu);
-                return menu !== null;
-            },
-            { timeout: 15000, interval: 100 }
-        );
-
-        // Find the menu item (first child div of the menu)
-        const menu = document.querySelector("#recent-files-menu");
-        expect(menu).toBeTruthy();
-        const menuItem = menu?.querySelector("div[role='menuitem']");
-        expect(menuItem).toBeTruthy();
-
-        // Set a mock onclick function to test the original onclick call path
-        const mockOnclick = vi.fn();
-        (menuItem as any).onclick = mockOnclick;
-
-        // Click the menu item
-        menuItem!.dispatchEvent(
-            new MouseEvent("click", {
+            // Right-click to open context menu
+            const contextEvent = new MouseEvent("contextmenu", {
                 bubbles: true,
                 cancelable: true,
-            })
-        );
+                clientX: 100,
+                clientY: 100,
+            });
+            openFileBtn.dispatchEvent(contextEvent);
 
-        // Wait for the click handler to complete
-        await vi.waitFor(() => {
-            expect(mockOnclick).toHaveBeenCalled();
-        });
+            // Check for menu immediately after event
+            console.log(
+                "Test 105 - Menu exists immediately after event:",
+                !!document.querySelector("#recent-files-menu")
+            );
+            console.log(
+                "Test 105 - Document body children count after event:",
+                document.body.children.length
+            );
 
-        // Explicit cleanup of context menu to prevent interference with subsequent tests
-        const finalCleanupMenu = document.querySelector("#recent-files-menu");
-        if (finalCleanupMenu) {
-            finalCleanupMenu.remove();
+            // Wait for the async recentFiles call to complete and menu to be created
+            await vi.waitFor(
+                () => {
+                    const contextMenu =
+                        document.querySelector("#recent-files-menu");
+                    console.log("Test 105 - Menu found:", !!contextMenu);
+                    return contextMenu !== null;
+                },
+                { timeout: 15000, interval: 100 }
+            );
+
+            const contextMenu = document.querySelector("#recent-files-menu");
+            expect(contextMenu).toBeTruthy();
+
+            // Mock error result without details
+            vi.mocked(electronAPI.readFile).mockResolvedValue(
+                new ArrayBuffer(8)
+            );
+            vi.mocked(electronAPI.parseFitFile).mockResolvedValue({
+                error: "Parse error",
+                // No details property
+            });
+
+            // Click the menu item to trigger the error path
+            const menu = document.querySelector("#recent-files-menu");
+            const menuItem = menu?.querySelector(
+                "div[role='menuitem']"
+            ) as HTMLDivElement;
+            menuItem.click();
+
+            await vi.waitFor(() => {
+                expect(showNotification).toHaveBeenCalledWith(
+                    "Error: Parse error\n",
+                    "error"
+                );
+            });
+
+            // Explicit cleanup of context menu to prevent interference with subsequent tests
+            const cleanupMenu = document.querySelector("#recent-files-menu");
+            if (cleanupMenu) {
+                cleanupMenu.remove();
+            }
         }
-    });
+    );
+
+    it(
+        "context menu: cleanup on mousedown (lines 181-182)",
+        { timeout: 15000 },
+        async () => {
+            // Mock recent files as string array
+            const files = ["/path/to/file1.fit"];
+            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+
+            setupListeners({
+                openFileBtn,
+                isOpeningFileRef: { current: false },
+                setLoading,
+                showNotification,
+                handleOpenFile,
+                showUpdateNotification,
+                showAboutModal,
+            });
+
+            // Right-click to open context menu
+            const contextEvent = new MouseEvent("contextmenu", {
+                bubbles: true,
+                cancelable: true,
+                clientX: 100,
+                clientY: 100,
+            });
+            openFileBtn.dispatchEvent(contextEvent);
+
+            // Wait for the async recentFiles call to complete and menu to be created
+            await vi.waitFor(
+                () => {
+                    const menu = document.querySelector("#recent-files-menu");
+                    console.log("Test 181-182 - Menu found:", !!menu);
+                    return menu !== null;
+                },
+                { timeout: 15000, interval: 100 }
+            );
+
+            const menu = document.querySelector("#recent-files-menu");
+            expect(menu).toBeTruthy();
+
+            // Trigger mousedown to cleanup
+            const mousedownEvent = new MouseEvent("mousedown", {
+                bubbles: true,
+                cancelable: true,
+            });
+            document.dispatchEvent(mousedownEvent);
+
+            // Menu should be removed
+            const removedMenu = document.querySelector("#recent-files-menu");
+            expect(removedMenu).toBeFalsy();
+
+            // Explicit cleanup to ensure no DOM pollution for subsequent tests
+            if (removedMenu) {
+                removedMenu.remove();
+            }
+        }
+    );
+
+    it(
+        "context menu: handles onclick function (lines 200-201)",
+        { timeout: 15000 },
+        async () => {
+            // Mock recent files
+            const files = ["/path/to/file1.fit"];
+            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+
+            setupListeners({
+                openFileBtn,
+                isOpeningFileRef: { current: false },
+                setLoading,
+                showNotification,
+                handleOpenFile,
+                showUpdateNotification,
+                showAboutModal,
+            });
+
+            // Right-click to open context menu
+            const contextEvent = new MouseEvent("contextmenu", {
+                bubbles: true,
+                cancelable: true,
+                clientX: 100,
+                clientY: 100,
+            });
+            openFileBtn.dispatchEvent(contextEvent);
+
+            // Wait for the async recentFiles call to complete and menu to be created
+            await vi.waitFor(
+                () => {
+                    const menu = document.querySelector("#recent-files-menu");
+                    console.log("Test 200-201 - Menu found:", !!menu);
+                    return menu !== null;
+                },
+                { timeout: 15000, interval: 100 }
+            );
+
+            // Find the menu item (first child div of the menu)
+            const menu = document.querySelector("#recent-files-menu");
+            expect(menu).toBeTruthy();
+            const menuItem = menu?.querySelector("div[role='menuitem']");
+            expect(menuItem).toBeTruthy();
+
+            // Set a mock onclick function to test the original onclick call path
+            const mockOnclick = vi.fn();
+            (menuItem as any).onclick = mockOnclick;
+
+            // Click the menu item
+            menuItem!.dispatchEvent(
+                new MouseEvent("click", {
+                    bubbles: true,
+                    cancelable: true,
+                })
+            );
+
+            // Wait for the click handler to complete
+            await vi.waitFor(() => {
+                expect(mockOnclick).toHaveBeenCalled();
+            });
+
+            // Explicit cleanup of context menu to prevent interference with subsequent tests
+            const finalCleanupMenu =
+                document.querySelector("#recent-files-menu");
+            if (finalCleanupMenu) {
+                finalCleanupMenu.remove();
+            }
+        }
+    );
 
     it("decoder options: error case (line 279)", async () => {
         setupListeners({
@@ -1967,13 +2235,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         (globalThis as any).globalData = { cachedFilePath: "/test/file.fit" };
 
         // Mock error in file reload
-        vi.mocked(electronAPI.readFile).mockRejectedValue(new Error("File read failed"));
+        vi.mocked(electronAPI.readFile).mockRejectedValue(
+            new Error("File read failed")
+        );
 
         // Trigger decoder options changed
         electronAPI.emit("decoder-options-changed", { speed: true });
 
         await vi.waitFor(() => {
-            expect(showNotification).toHaveBeenCalledWith("Error reloading file: Error: File read failed", "error");
+            expect(showNotification).toHaveBeenCalledWith(
+                "Error reloading file: Error: File read failed",
+                "error"
+            );
         });
     });
 

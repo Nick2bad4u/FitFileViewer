@@ -21,37 +21,54 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
 
     describe("Input Validation", () => {
         it("should throw TypeError for null input", () => {
-            expect(() => convertMpsToKmh(null as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToKmh(null as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for undefined input", () => {
-            expect(() => convertMpsToKmh(undefined as any)).toThrow("Expected mps to be a number, received undefined");
+            expect(() => convertMpsToKmh(undefined as any)).toThrow(
+                "Expected mps to be a number, received undefined"
+            );
         });
 
         it("should throw TypeError for string input", () => {
-            expect(() => convertMpsToKmh("10" as any)).toThrow("Expected mps to be a number, received string");
+            expect(() => convertMpsToKmh("10" as any)).toThrow(
+                "Expected mps to be a number, received string"
+            );
         });
 
         it("should throw TypeError for boolean input", () => {
-            expect(() => convertMpsToKmh(true as any)).toThrow("Expected mps to be a number, received boolean");
+            expect(() => convertMpsToKmh(true as any)).toThrow(
+                "Expected mps to be a number, received boolean"
+            );
         });
 
         it("should throw TypeError for object input", () => {
-            expect(() => convertMpsToKmh({} as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToKmh({} as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for array input", () => {
-            expect(() => convertMpsToKmh([] as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToKmh([] as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for NaN input", () => {
-            expect(() => convertMpsToKmh(NaN)).toThrow("Expected mps to be a number, received number");
+            expect(() => convertMpsToKmh(NaN)).toThrow(
+                "Expected mps to be a number, received number"
+            );
         });
 
         it("should warn for negative speed values", () => {
             const result = convertMpsToKmh(-5);
             expect(result).toBe(-18); // Still converts but warns
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToKmh] Negative speed value:", -5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToKmh] Negative speed value:",
+                -5
+            );
         });
     });
 
@@ -105,7 +122,10 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
         it("should handle negative infinity", () => {
             const result = convertMpsToKmh(-Infinity);
             expect(result).toBe(-Infinity);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToKmh] Negative speed value:", -Infinity);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToKmh] Negative speed value:",
+                -Infinity
+            );
         });
 
         it("should handle floating point precision edge cases", () => {
@@ -118,15 +138,41 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
     describe("Performance and Precision", () => {
         it("should be consistent across multiple calls", () => {
             const testSpeed = 13.89; // 50 km/h
-            const results = Array.from({ length: 100 }, () => convertMpsToKmh(testSpeed));
+            const results = Array.from({ length: 100 }, () =>
+                convertMpsToKmh(testSpeed)
+            );
             const firstResult = results[0];
 
-            expect(results.every((result) => result === firstResult)).toBe(true);
+            expect(results.every((result) => result === firstResult)).toBe(
+                true
+            );
         });
 
         it("should handle rapid successive conversions", () => {
-            const testSpeeds = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30];
-            const expectedResults = [3.6, 7.2, 10.8, 14.4, 18, 36, 54, 72, 90, 108];
+            const testSpeeds = [
+                1,
+                2,
+                3,
+                4,
+                5,
+                10,
+                15,
+                20,
+                25,
+                30,
+            ];
+            const expectedResults = [
+                3.6,
+                7.2,
+                10.8,
+                14.4,
+                18,
+                36,
+                54,
+                72,
+                90,
+                108,
+            ];
 
             const results = testSpeeds.map((speed) => convertMpsToKmh(speed));
 
@@ -167,7 +213,16 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
 
         it("should handle FIT file speed data types", () => {
             // FIT files often contain speed in m/s as integers or fixed-point
-            const fitSpeeds = [0, 1, 2, 3, 5, 8, 13, 21]; // Fibonacci-like progression
+            const fitSpeeds = [
+                0,
+                1,
+                2,
+                3,
+                5,
+                8,
+                13,
+                21,
+            ]; // Fibonacci-like progression
             const results = fitSpeeds.map((speed) => convertMpsToKmh(speed));
 
             expect(results).toEqual(
@@ -217,7 +272,13 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
         it("should maintain accuracy for round-trip conversions where possible", () => {
             // Note: Perfect round-trip isn't always possible due to floating point,
             // but we can test reasonable accuracy
-            const originalSpeeds = [1, 2, 5, 10, 25.5];
+            const originalSpeeds = [
+                1,
+                2,
+                5,
+                10,
+                25.5,
+            ];
 
             originalSpeeds.forEach((speed) => {
                 const converted = convertMpsToKmh(speed);

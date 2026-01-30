@@ -1,6 +1,8 @@
 /**
- * Creates a separate power zone controls section that extracts existing power zone controls
- * @fileoverview Dedicated power zone chart controls section
+ * Creates a separate power zone controls section that extracts existing power
+ * zone controls
+ *
+ * @file Dedicated power zone chart controls section
  */
 
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
@@ -8,7 +10,9 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
 
 /**
  * Creates the power zone controls section by extracting existing controls
+ *
  * @param {HTMLElement} parentContainer - Parent container to append controls to
+ *
  * @returns {HTMLElement} The created power zone controls section
  */
 export function createPowerZoneControls(parentContainer) {
@@ -85,12 +89,16 @@ export function createPowerZoneControls(parentContainer) {
     `;
 
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("power-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
 
     collapseBtn.addEventListener("click", () => {
         isCollapsed = !isCollapsed;
-        localStorage.setItem("power-zone-controls-collapsed", isCollapsed.toString());
+        localStorage.setItem(
+            "power-zone-controls-collapsed",
+            isCollapsed.toString()
+        );
         updateCollapseState();
     });
 
@@ -131,24 +139,30 @@ export function createPowerZoneControls(parentContainer) {
 
 /**
  * Gets current power zone chart visibility settings
+ *
  * @returns {Object} Visibility settings for power zone charts
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartFieldVisibility("power_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        lapIndividualVisible:
+            getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
+        lapStackedVisible:
+            getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
     };
 }
 
 /**
- * Moves existing power zone controls to the dedicated power zone section
- * This should be called after the field toggles are created
+ * Moves existing power zone controls to the dedicated power zone section This
+ * should be called after the field toggles are created
  */
 export function movePowerZoneControlsToSection() {
     const powerZoneContent = document.querySelector("#power-zone-content");
     if (!powerZoneContent) {
-        console.warn("[PowerZoneControls] Power zone content container not found");
+        console.warn(
+            "[PowerZoneControls] Power zone content container not found"
+        );
         return;
     }
 
@@ -156,7 +170,11 @@ export function movePowerZoneControlsToSection() {
     const movedControls = [];
 
     // Find existing power zone controls in the field toggles section
-    const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"];
+    const powerZoneFields = [
+        "power_zone_doughnut",
+        "power_lap_zone_stacked",
+        "power_lap_zone_individual",
+    ];
 
     for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID
@@ -168,11 +186,15 @@ export function movePowerZoneControlsToSection() {
             powerZoneContent.append(controlContainer);
             movedControls.push(fieldName);
 
-            console.log(`[PowerZoneControls] Moved ${fieldName} control to power zone section`);
+            console.log(
+                `[PowerZoneControls] Moved ${fieldName} control to power zone section`
+            );
         }
     }
     if (movedControls.length > 0) {
-        console.log(`[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`);
+        console.log(
+            `[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`
+        );
 
         // Add some spacing between the controls
         const controls = Array.from(powerZoneContent.children);
@@ -189,6 +211,7 @@ export function movePowerZoneControlsToSection() {
 
 /**
  * Updates power zone controls visibility based on data availability
+ *
  * @param {boolean} hasData - Whether power zone data is available
  */
 export function updatePowerZoneControlsVisibility(hasData) {
@@ -208,6 +231,7 @@ export function updatePowerZoneControlsVisibility(hasData) {
 
 /**
  * Adds a unified color picker button for all power zone charts
+ *
  * @param {HTMLElement} container - Container to add the button to
  */
 function addUnifiedPowerZoneColorPicker(container) {
@@ -227,7 +251,10 @@ function addUnifiedPowerZoneColorPicker(container) {
     `;
 
     // Create the inline selector
-    const inlineSelector = createInlineZoneColorSelector("power_zone", colorSelectorContainer);
+    const inlineSelector = createInlineZoneColorSelector(
+        "power_zone",
+        colorSelectorContainer
+    );
 
     if (inlineSelector) {
         container.append(separator);

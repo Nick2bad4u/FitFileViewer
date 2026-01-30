@@ -1,4 +1,8 @@
-import { getState, setState, subscribe } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../state/core/stateManager.js";
 
 /**
  * Initialize chart controls state management
@@ -11,7 +15,9 @@ export function initializeControlsState() {
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = isVisible ? "block" : "none";
-            toggleBtn.textContent = isVisible ? "▼ Hide Controls" : "▶ Show Controls";
+            toggleBtn.textContent = isVisible
+                ? "▼ Hide Controls"
+                : "▶ Show Controls";
             toggleBtn.setAttribute("aria-expanded", isVisible.toString());
         }
     });
@@ -31,7 +37,8 @@ export function toggleChartControls() {
 }
 
 /**
- * Synchronizes the controls state with DOM - useful for fixing state inconsistencies
+ * Synchronizes the controls state with DOM - useful for fixing state
+ * inconsistencies
  */
 export function updateControlsState() {
     const toggleBtn = document.querySelector("#chart-controls-toggle"),
@@ -44,7 +51,9 @@ export function updateControlsState() {
     // Get the actual visibility from the DOM
     const computedStyle = globalThis.getComputedStyle(wrapper),
         isActuallyVisible =
-            wrapper.style.display !== "none" && computedStyle.display !== "none" && wrapper.offsetParent !== null;
+            wrapper.style.display !== "none" &&
+            computedStyle.display !== "none" &&
+            wrapper.offsetParent !== null;
 
     // Update centralized state to match DOM reality
     setState("charts.controlsVisible", isActuallyVisible, {
@@ -53,11 +62,15 @@ export function updateControlsState() {
     });
 
     // Update toggle button to reflect actual state
-    toggleBtn.textContent = isActuallyVisible ? "▼ Hide Controls" : "▶ Show Controls";
+    toggleBtn.textContent = isActuallyVisible
+        ? "▼ Hide Controls"
+        : "▶ Show Controls";
     toggleBtn.setAttribute("aria-expanded", isActuallyVisible.toString());
 
     // Ensure wrapper display matches internal state
     wrapper.style.display = isActuallyVisible ? "block" : "none";
 
-    console.log(`[ChartJS] State synchronized - controls are ${isActuallyVisible ? "visible" : "hidden"}`);
+    console.log(
+        `[ChartJS] State synchronized - controls are ${isActuallyVisible ? "visible" : "hidden"}`
+    );
 }

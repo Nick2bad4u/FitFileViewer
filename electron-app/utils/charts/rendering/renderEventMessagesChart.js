@@ -10,21 +10,37 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 // Event messages chart renderer
 /**
  * @param {HTMLElement} container
- * @param {{ showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, zoomPluginConfig?: any }} options
- * @param {Date|number} startTime
+ * @param {{
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ *     zoomPluginConfig?: any;
+ * }} options
+ * @param {Date | number} startTime
  */
 export function renderEventMessagesChart(container, options, startTime) {
     try {
         const eventMesgs = globalThis.globalData?.eventMesgs;
-        if (!eventMesgs || !Array.isArray(eventMesgs) || eventMesgs.length === 0) {
+        if (
+            !eventMesgs ||
+            !Array.isArray(eventMesgs) ||
+            eventMesgs.length === 0
+        ) {
             return;
         }
 
         // Get theme configuration and user-preferred event color (if set)
         /** @type {any} */
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0)),
-            rawColor = /** @type {string|null|undefined} */ (getChartSetting("color_event_messages")),
-            eventColor = typeof rawColor === "string" && rawColor.length > 0 ? rawColor : "#9c27b0",
+        const canvas = /** @type {HTMLCanvasElement} */ (
+                createChartCanvas("events", 0)
+            ),
+            rawColor = /** @type {string | null | undefined} */ (
+                getChartSetting("color_event_messages")
+            ),
+            eventColor =
+                typeof rawColor === "string" && rawColor.length > 0
+                    ? rawColor
+                    : "#9c27b0",
             themeConfig = getThemeConfig(),
             defaultThemeColors = {
                 backgroundAlt: "#ffffff",
@@ -59,18 +75,40 @@ export function renderEventMessagesChart(container, options, startTime) {
                         eventTimestamp = timestamp.getTime() / 1000; // Convert to seconds
                     } else if (typeof timestamp === "number") {
                         // Check if timestamp is in milliseconds or seconds
-                        eventTimestamp = timestamp > 1_000_000_000_000 ? timestamp / 1000 : timestamp;
+                        eventTimestamp =
+                            timestamp > 1_000_000_000_000
+                                ? timestamp / 1000
+                                : timestamp;
                     } else {
-                        return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
+                        return {
+                            event:
+                                event.event ||
+                                event.message ||
+                                event.eventType ||
+                                "Event",
+                            x: 0,
+                            y: 1,
+                        };
                     }
 
                     if (startTime instanceof Date) {
                         startTimestamp = startTime.getTime() / 1000; // Convert to seconds
                     } else if (typeof startTime === "number") {
                         // Check if startTime is in milliseconds or seconds
-                        startTimestamp = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
+                        startTimestamp =
+                            startTime > 1_000_000_000_000
+                                ? startTime / 1000
+                                : startTime;
                     } else {
-                        return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
+                        return {
+                            event:
+                                event.event ||
+                                event.message ||
+                                event.eventType ||
+                                "Event",
+                            x: 0,
+                            y: 1,
+                        };
                     }
 
                     // Convert to relative seconds
@@ -78,7 +116,11 @@ export function renderEventMessagesChart(container, options, startTime) {
                 }
 
                 return {
-                    event: event.event || event.message || event.eventType || "Event",
+                    event:
+                        event.event ||
+                        event.message ||
+                        event.eventType ||
+                        "Event",
                     x: timestamp,
                     y: 1, // Events are just markers
                 };
@@ -99,7 +141,9 @@ export function renderEventMessagesChart(container, options, startTime) {
                 options: {
                     maintainAspectRatio: false,
                     plugins: {
-                        ...(options.zoomPluginConfig ? { zoom: options.zoomPluginConfig } : {}),
+                        ...(options.zoomPluginConfig
+                            ? { zoom: options.zoomPluginConfig }
+                            : {}),
                         chartBackgroundColorPlugin: {
                             backgroundColor: themeColors.chartBackground,
                         },
@@ -114,9 +158,14 @@ export function renderEventMessagesChart(container, options, startTime) {
                             text: "Event Messages",
                         },
                         tooltip: {
-                            backgroundColor: themeColors.chartSurface || defaultThemeColors.chartSurface,
-                            bodyColor: themeColors.text || defaultThemeColors.text,
-                            borderColor: themeColors.chartBorder || defaultThemeColors.chartBorder,
+                            backgroundColor:
+                                themeColors.chartSurface ||
+                                defaultThemeColors.chartSurface,
+                            bodyColor:
+                                themeColors.text || defaultThemeColors.text,
+                            borderColor:
+                                themeColors.chartBorder ||
+                                defaultThemeColors.chartBorder,
                             borderWidth: 1,
                             callbacks: {
                                 /** @param {any} context */
@@ -125,7 +174,8 @@ export function renderEventMessagesChart(container, options, startTime) {
                                     return point.event || "Event";
                                 },
                             },
-                            titleColor: themeColors.text || defaultThemeColors.text,
+                            titleColor:
+                                themeColors.text || defaultThemeColors.text,
                         },
                     },
                     responsive: true,
@@ -133,7 +183,9 @@ export function renderEventMessagesChart(container, options, startTime) {
                         x: {
                             display: true,
                             grid: {
-                                color: themeColors.gridLines || defaultThemeColors.gridLines,
+                                color:
+                                    themeColors.gridLines ||
+                                    defaultThemeColors.gridLines,
                                 display: options.showGrid,
                             },
                             ticks: {
@@ -141,10 +193,12 @@ export function renderEventMessagesChart(container, options, startTime) {
                                 callback(value) {
                                     return formatTime(value, true);
                                 },
-                                color: themeColors.text || defaultThemeColors.text,
+                                color:
+                                    themeColors.text || defaultThemeColors.text,
                             },
                             title: {
-                                color: themeColors.text || defaultThemeColors.text,
+                                color:
+                                    themeColors.text || defaultThemeColors.text,
                                 display: true,
                                 text: `Time (${getUnitSymbol("time", "time")})`,
                             },
@@ -153,7 +207,9 @@ export function renderEventMessagesChart(container, options, startTime) {
                         y: {
                             display: false,
                             grid: {
-                                color: themeColors.gridLines || defaultThemeColors.gridLines,
+                                color:
+                                    themeColors.gridLines ||
+                                    defaultThemeColors.gridLines,
                                 display: false,
                             },
                             ticks: {
@@ -161,7 +217,8 @@ export function renderEventMessagesChart(container, options, startTime) {
                                 callback(value) {
                                     return formatTime(value, true);
                                 },
-                                color: themeColors.text || defaultThemeColors.text,
+                                color:
+                                    themeColors.text || defaultThemeColors.text,
                             },
                         },
                     },

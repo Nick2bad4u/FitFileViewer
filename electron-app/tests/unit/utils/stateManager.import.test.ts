@@ -1,8 +1,12 @@
 /**
- * @fileoverview State Manager Import Test
+ * @file State Manager Import Test
  */
 import { describe, it, expect } from "vitest";
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager.js";
 
 describe("State Manager Import Test", () => {
     it("should import stateManager functions", () => {

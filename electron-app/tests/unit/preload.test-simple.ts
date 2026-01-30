@@ -24,7 +24,10 @@ describe("Simple Electron Mock Test", () => {
     it("should use manual mock correctly", () => {
         console.log("contextBridge:", contextBridge);
         console.log("ipcRenderer:", ipcRenderer);
-        console.log("contextBridge.exposeInMainWorld:", contextBridge.exposeInMainWorld);
+        console.log(
+            "contextBridge.exposeInMainWorld:",
+            contextBridge.exposeInMainWorld
+        );
 
         expect(contextBridge).toBeDefined();
         expect(ipcRenderer).toBeDefined();

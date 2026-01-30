@@ -16,6 +16,7 @@ export const LoadingOverlay = {
 
     /**
      * Shows a loading overlay with progress text
+     *
      * @param {string} progressText - Text to display
      * @param {string} fileName - Optional filename to display
      */

@@ -1,6 +1,12 @@
-import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "../../files/export/gpxExport.js";
+import {
+    buildGpxFromRecords,
+    resolveTrackNameFromLoadedFiles,
+} from "../../files/export/gpxExport.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
-import { buildDownloadFilename, sanitizeFileExtension } from "../../files/sanitizeFilename.js";
+import {
+    buildDownloadFilename,
+    sanitizeFileExtension,
+} from "../../files/sanitizeFilename.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
 
 // Utility to set up all event listeners for the app
@@ -8,13 +14,19 @@ import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
  * Sets up all event listeners for the FitFileViewer application UI and IPC.
  *
  * @param {Object} params - The parameters object.
- * @param {HTMLButtonElement} params.openFileBtn - The "Open File" button element.
- * @param {Object} params.isOpeningFileRef - Reference object to track file opening state.
+ * @param {HTMLButtonElement} params.openFileBtn - The "Open File" button
+ *   element.
+ * @param {Object} params.isOpeningFileRef - Reference object to track file
+ *   opening state.
  * @param {Function} params.setLoading - Function to show/hide loading overlay.
- * @param {Function} params.showNotification - Function to display notifications to the user.
- * @param {Function} params.handleOpenFile - Function to handle file opening logic.
- * @param {Function} params.showUpdateNotification - Function to display update notifications.
- * @param {Function} params.showAboutModal - Function to display the About modal dialog.
+ * @param {Function} params.showNotification - Function to display notifications
+ *   to the user.
+ * @param {Function} params.handleOpenFile - Function to handle file opening
+ *   logic.
+ * @param {Function} params.showUpdateNotification - Function to display update
+ *   notifications.
+ * @param {Function} params.showAboutModal - Function to display the About modal
+ *   dialog.
  */
 export function setupListeners({
     handleOpenFile,
@@ -44,11 +56,12 @@ export function setupListeners({
         }
     }
 
-    /** @type {Array<() => void>} */
+    /** @type {(() => void)[]} */
     const cleanupCallbacks = [];
 
     /**
      * Track an unsubscribe function returned by preload wrappers.
+     *
      * @param {unknown} maybeUnsubscribe
      */
     const trackUnsubscribe = (maybeUnsubscribe) => {
@@ -82,14 +95,22 @@ export function setupListeners({
     });
 
     // Recent Files Context Menu (extracted for maintainability)
-    trackUnsubscribe(attachRecentFilesContextMenu({ openFileBtn, setLoading, showNotification }));
+    trackUnsubscribe(
+        attachRecentFilesContextMenu({
+            openFileBtn,
+            setLoading,
+            showNotification,
+        })
+    );
 
     // Window resize for chart rendering - use modern state management
     /** @type {ReturnType<typeof setTimeout> | null} */
     let chartRenderTimeout = null;
     const handleWindowResize = () => {
         if (
-            document.querySelector("#tab-chart")?.classList.contains("active") ||
+            document
+                .querySelector("#tab-chart")
+                ?.classList.contains("active") ||
             document.querySelector("#tab-chartjs")?.classList.contains("active")
         ) {
             if (chartRenderTimeout) {
@@ -97,7 +118,10 @@ export function setupListeners({
             }
             chartRenderTimeout = setTimeout(() => {
                 // Use modern chart state management for resize handling
-                if (globalThis.ChartUpdater && globalThis.ChartUpdater.updateCharts) {
+                if (
+                    globalThis.ChartUpdater &&
+                    globalThis.ChartUpdater.updateCharts
+                ) {
                     globalThis.ChartUpdater.updateCharts("window-resize");
                 } else if (globalThis.renderChartJS) {
                     globalThis.renderChartJS();
@@ -127,10 +151,19 @@ export function setupListeners({
     });
 
     // Electron IPC and menu listeners
-    if (globalThis.electronAPI && globalThis.electronAPI.onMenuOpenFile && globalThis.electronAPI.onOpenRecentFile) {
+    if (
+        globalThis.electronAPI &&
+        globalThis.electronAPI.onMenuOpenFile &&
+        globalThis.electronAPI.onOpenRecentFile
+    ) {
         trackUnsubscribe(
             globalThis.electronAPI.onMenuOpenFile(() => {
-                handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification });
+                handleOpenFile({
+                    isOpeningFileRef,
+                    openFileBtn,
+                    setLoading,
+                    showNotification,
+                });
             })
         );
 
@@ -139,35 +172,65 @@ export function setupListeners({
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {
-                    const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+                    const filePathString = Array.isArray(filePath)
+                        ? filePath[0]
+                        : filePath;
 
                     // Security/robustness: approve the selected recent file path before reading.
                     // - In the desktop build, readFile is gated by a main-process allowlist.
                     // - Main process menu clicks *usually* approve paths already, but this keeps
                     //   behavior consistent across entrypoints (menu vs. context menu) and
                     //   prevents failures if menu approval is unavailable.
-                    if (typeof globalThis.electronAPI?.approveRecentFile === "function") {
-                        const ok = await globalThis.electronAPI.approveRecentFile(filePathString);
+                    if (
+                        typeof globalThis.electronAPI?.approveRecentFile ===
+                        "function"
+                    ) {
+                        const ok =
+                            await globalThis.electronAPI.approveRecentFile(
+                                filePathString
+                            );
                         if (!ok) {
-                            showNotification("File access denied.", "error", 4000);
+                            showNotification(
+                                "File access denied.",
+                                "error",
+                                4000
+                            );
                             return;
                         }
                     }
 
-                    const arrayBuffer = await globalThis.electronAPI.readFile(filePathString),
-                        result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+                    const arrayBuffer =
+                            await globalThis.electronAPI.readFile(
+                                filePathString
+                            ),
+                        result =
+                            await globalThis.electronAPI.parseFitFile(
+                                arrayBuffer
+                            );
 
                     // Handle parsing errors
                     if (result && result.error) {
-                        showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
+                        showNotification(
+                            `Error: ${result.error}\n${result.details || ""}`,
+                            "error"
+                        );
                         return;
                     }
 
                     // Debug logging for development
-                    if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
-                        console.log("[DEBUG] Recent file parse result:", result);
+                    if (
+                        typeof process !== "undefined" &&
+                        process.env &&
+                        process.env.NODE_ENV !== "production"
+                    ) {
+                        console.log(
+                            "[DEBUG] Recent file parse result:",
+                            result
+                        );
                         const sessionCount = result.data?.sessions?.length || 0;
-                        console.log(`[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`);
+                        console.log(
+                            `[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`
+                        );
                     }
 
                     // Display the data with proper error handling
@@ -178,18 +241,29 @@ export function setupListeners({
                             globalThis.showFitData(dataToShow, filePathString);
                         }
 
-                        if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
-                            /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
+                        if (
+                            /** @type {any} */ (globalThis)
+                                .sendFitFileToAltFitReader
+                        ) {
+                            /** @type {any} */ (
+                                globalThis
+                            ).sendFitFileToAltFitReader(arrayBuffer);
                         }
                     } catch (displayError) {
-                        showNotification(`Error displaying FIT data: ${displayError}`, "error");
+                        showNotification(
+                            `Error displaying FIT data: ${displayError}`,
+                            "error"
+                        );
                         return;
                     }
 
                     // Add to recent files only if successfully displayed
                     await globalThis.electronAPI.addRecentFile(filePathString);
                 } catch (error) {
-                    showNotification(`Error opening recent file: ${error}`, "error");
+                    showNotification(
+                        `Error opening recent file: ${error}`,
+                        "error"
+                    );
                 } finally {
                     openFileBtn.disabled = false;
                     setLoading(false);
@@ -202,7 +276,8 @@ export function setupListeners({
         const debugMenuEnabled =
             typeof process !== "undefined" &&
             Boolean(process.env) &&
-            (process.env.FFV_DEBUG_MENU === "1" || process.env.NODE_ENV === "development");
+            (process.env.FFV_DEBUG_MENU === "1" ||
+                process.env.NODE_ENV === "development");
         /** @param {...any[]} args */
         const debugMenuLog = (...args) => {
             if (!debugMenuEnabled) return;
@@ -216,49 +291,76 @@ export function setupListeners({
         // Handles changes to decoder options and updates the UI or data accordingly
         /**
          * Decoder options changed handler
+         *
          * @param {any} newOptions
          */
         trackUnsubscribe(
-            globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ _newOptions) => {
-                showNotification("Decoder options updated.", "info", 2000);
-                if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
-                    const filePath = globalThis.globalData.cachedFilePath;
-                    setLoading(true);
-                    globalThis.electronAPI
-                        .readFile(filePath)
-                        .then((arrayBuffer) => globalThis.electronAPI.parseFitFile(arrayBuffer))
-                        .then((result) => {
-                            if (result && result.error) {
-                                showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
-                            } else {
-                                globalThis.showFitData?.(result, filePath);
-                            }
-                        })
-                        .catch((error) => {
-                            showNotification(`Error reloading file: ${error}`, "error");
-                        })
-                        .finally(() => setLoading(false));
+            globalThis.electronAPI.onIpc(
+                "decoder-options-changed",
+                (/** @type {any} */ _newOptions) => {
+                    showNotification("Decoder options updated.", "info", 2000);
+                    if (
+                        globalThis.globalData &&
+                        globalThis.globalData.cachedFilePath
+                    ) {
+                        const filePath = globalThis.globalData.cachedFilePath;
+                        setLoading(true);
+                        globalThis.electronAPI
+                            .readFile(filePath)
+                            .then((arrayBuffer) =>
+                                globalThis.electronAPI.parseFitFile(arrayBuffer)
+                            )
+                            .then((result) => {
+                                if (result && result.error) {
+                                    showNotification(
+                                        `Error: ${result.error}\n${result.details || ""}`,
+                                        "error"
+                                    );
+                                } else {
+                                    globalThis.showFitData?.(result, filePath);
+                                }
+                            })
+                            .catch((error) => {
+                                showNotification(
+                                    `Error reloading file: ${error}`,
+                                    "error"
+                                );
+                            })
+                            .finally(() => setLoading(false));
+                    }
                 }
-            })
+            )
         );
         /**
          * Export file handler
+         *
          * @param {any} _event
          * @param {string} filePath
          */
         trackUnsubscribe(
             globalThis.electronAPI.onIpc(
                 "export-file",
-                /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
+                /** @param {any} _event @param {string} filePath */ async (
+                    _event,
+                    /** @type {string} */ filePath
+                ) => {
                     if (!globalThis.globalData) {
                         return;
                     }
                     const safePath = filePath || "";
-                    const ext = sanitizeFileExtension(safePath.split(".").pop() ?? "");
+                    const ext = sanitizeFileExtension(
+                        safePath.split(".").pop() ?? ""
+                    );
                     if (ext === "csv") {
-                        const container = document.querySelector("#content-summary");
-                        if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
-                            const csv = /** @type {any} */ (globalThis).copyTableAsCSV({
+                        const container =
+                            document.querySelector("#content-summary");
+                        if (
+                            /** @type {any} */ (globalThis).copyTableAsCSV &&
+                            container
+                        ) {
+                            const csv = /** @type {any} */ (
+                                globalThis
+                            ).copyTableAsCSV({
                                 container,
                                 data: globalThis.globalData,
                             });
@@ -277,23 +379,37 @@ export function setupListeners({
                             }, 100);
                         }
                     } else if (ext === "gpx") {
-                        const records = Array.isArray(globalThis.globalData?.recordMesgs)
+                        const records = Array.isArray(
+                            globalThis.globalData?.recordMesgs
+                        )
                             ? globalThis.globalData.recordMesgs
                             : null;
                         if (!records || records.length === 0) {
-                            showNotification("No data available for GPX export.", "info", 3000);
+                            showNotification(
+                                "No data available for GPX export.",
+                                "info",
+                                3000
+                            );
                             return;
                         }
 
-                        const trackName = resolveTrackNameFromLoadedFiles(globalThis.loadedFitFiles);
+                        const trackName = resolveTrackNameFromLoadedFiles(
+                            globalThis.loadedFitFiles
+                        );
                         const gpx = buildGpxFromRecords(records, { trackName });
                         if (!gpx) {
-                            showNotification("No valid coordinates found for GPX export.", "info", 3000);
+                            showNotification(
+                                "No valid coordinates found for GPX export.",
+                                "info",
+                                3000
+                            );
                             return;
                         }
 
                         const a = document.createElement("a");
-                        const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
+                        const blob = new Blob([gpx], {
+                            type: "application/gpx+xml;charset=utf-8",
+                        });
                         const downloadName = buildDownloadFilename(safePath, {
                             defaultExtension: "gpx",
                             fallbackBase: trackName || "export",
@@ -321,11 +437,21 @@ export function setupListeners({
                     // Support both signatures:
                     // - Real ipcRenderer: (event, msg, type)
                     // - Unit-test mocks: (msg, type)
-                    const msg = typeof eventOrMsg === "string" ? eventOrMsg : msgOrType;
-                    const type = typeof eventOrMsg === "string" ? msgOrType : typeMaybe;
+                    const msg =
+                        typeof eventOrMsg === "string" ? eventOrMsg : msgOrType;
+                    const type =
+                        typeof eventOrMsg === "string" ? msgOrType : typeMaybe;
 
-                    if (typeof showNotification === "function" && typeof msg === "string" && msg.trim().length > 0) {
-                        showNotification(msg, typeof type === "string" && type ? type : "info", 3000);
+                    if (
+                        typeof showNotification === "function" &&
+                        typeof msg === "string" &&
+                        msg.trim().length > 0
+                    ) {
+                        showNotification(
+                            msg,
+                            typeof type === "string" && type ? type : "info",
+                            3000
+                        );
                     }
                 }
             )
@@ -347,7 +473,11 @@ export function setupListeners({
         trackUnsubscribe(
             globalThis.electronAPI.onIpc("menu-restart-update", () => {
                 try {
-                    if (globalThis.electronAPI && typeof globalThis.electronAPI.installUpdate === "function") {
+                    if (
+                        globalThis.electronAPI &&
+                        typeof globalThis.electronAPI.installUpdate ===
+                            "function"
+                    ) {
                         globalThis.electronAPI.installUpdate();
                     }
                 } catch {
@@ -361,14 +491,24 @@ export function setupListeners({
                     await openFileSelector();
                 } catch (error) {
                     if (!isTestEnvironment) {
-                        console.error("[Listeners] Failed to open overlay selector:", error);
+                        console.error(
+                            "[Listeners] Failed to open overlay selector:",
+                            error
+                        );
                     }
-                    showNotification("Failed to open overlay selector.", "error", 3000);
+                    showNotification(
+                        "Failed to open overlay selector.",
+                        "error",
+                        3000
+                    );
                 }
             })
         );
         const ensureMenuForwarder = (channel) => {
-            if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
+            if (
+                !globalThis.electronAPI ||
+                typeof globalThis.electronAPI.onIpc !== "function"
+            ) {
                 return;
             }
             /** @type {Record<string, any>} */
@@ -384,7 +524,10 @@ export function setupListeners({
             registry.add(channel);
             trackUnsubscribe(
                 globalThis.electronAPI.onIpc(channel, () => {
-                    if (globalThis.electronAPI && typeof globalThis.electronAPI.send === "function") {
+                    if (
+                        globalThis.electronAPI &&
+                        typeof globalThis.electronAPI.send === "function"
+                    ) {
                         globalThis.electronAPI.send(channel);
                     }
                 })
@@ -405,31 +548,47 @@ export function setupListeners({
                 if (typeof globalThis.showAccentColorPicker === "function") {
                     globalThis.showAccentColorPicker();
                 } else {
-                    debugMenuLog("showAccentColorPicker function not available");
+                    debugMenuLog(
+                        "showAccentColorPicker function not available"
+                    );
                 }
             })
         );
         trackUnsubscribe(
             globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
-                debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
+                debugMenuLog(
+                    "Keyboard shortcuts menu clicked - starting handler"
+                );
                 // Check if the keyboard shortcuts modal script is already loaded
                 if (globalThis.showKeyboardShortcutsModal === undefined) {
-                    debugMenuLog("Modal script not loaded, loading dynamically...");
+                    debugMenuLog(
+                        "Modal script not loaded, loading dynamically..."
+                    );
                     // Load the keyboard shortcuts modal script dynamically
                     const script = document.createElement("script");
                     script.src = "./utils/keyboardShortcutsModal.js";
                     script.addEventListener("load", () => {
                         debugMenuLog("Script loaded successfully");
                         // Call the function after the script is loaded
-                        if (typeof globalThis.showKeyboardShortcutsModal === "function") {
-                            debugMenuLog("Calling showKeyboardShortcutsModal function");
+                        if (
+                            typeof globalThis.showKeyboardShortcutsModal ===
+                            "function"
+                        ) {
+                            debugMenuLog(
+                                "Calling showKeyboardShortcutsModal function"
+                            );
                             globalThis.showKeyboardShortcutsModal();
                         } else {
-                            debugMenuLog("showKeyboardShortcutsModal function not available after script load");
+                            debugMenuLog(
+                                "showKeyboardShortcutsModal function not available after script load"
+                            );
                         }
                     });
                     script.onerror = (error) => {
-                        debugMenuLog("Failed to load keyboard shortcuts modal script:", error);
+                        debugMenuLog(
+                            "Failed to load keyboard shortcuts modal script:",
+                            error
+                        );
                         // Fallback to old implementation
                         const shortcuts = [
                             ["Open File", "Ctrl+O"],
@@ -442,7 +601,8 @@ export function setupListeners({
                             ["Export", "No default"],
                             ["Theme: Dark/Light", "Settings > Theme"],
                         ];
-                        let html = '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
+                        let html =
+                            '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
                         for (const [action, keys] of shortcuts) {
                             html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
                         }
@@ -451,7 +611,9 @@ export function setupListeners({
                     };
                     document.head.append(script);
                 } else {
-                    debugMenuLog("Modal script already loaded, calling function directly");
+                    debugMenuLog(
+                        "Modal script already loaded, calling function directly"
+                    );
                     // Function is already available, call it directly
                     globalThis.showKeyboardShortcutsModal();
                 }
@@ -468,18 +630,36 @@ export function setupListeners({
             showUpdateNotification("Update available! Downloading...", 4000);
         });
         globalThis.electronAPI.onUpdateEvent("update-not-available", () => {
-            showUpdateNotification("You are using the latest version.", "success", 4000);
+            showUpdateNotification(
+                "You are using the latest version.",
+                "success",
+                4000
+            );
         });
-        globalThis.electronAPI.onUpdateEvent("update-error", (/** @type {any} */ err) => {
-            showUpdateNotification(`Update error: ${err}`, "error", 7000);
-        });
-        globalThis.electronAPI.onUpdateEvent("update-download-progress", (/** @type {any} */ progress) => {
-            if (progress && typeof progress.percent === "number") {
-                showUpdateNotification(`Downloading update: ${Math.round(progress.percent)}%`, "info", 2000);
-            } else {
-                showUpdateNotification("Downloading update: progress information unavailable.", "info", 2000);
+        globalThis.electronAPI.onUpdateEvent(
+            "update-error",
+            (/** @type {any} */ err) => {
+                showUpdateNotification(`Update error: ${err}`, "error", 7000);
             }
-        });
+        );
+        globalThis.electronAPI.onUpdateEvent(
+            "update-download-progress",
+            (/** @type {any} */ progress) => {
+                if (progress && typeof progress.percent === "number") {
+                    showUpdateNotification(
+                        `Downloading update: ${Math.round(progress.percent)}%`,
+                        "info",
+                        2000
+                    );
+                } else {
+                    showUpdateNotification(
+                        "Downloading update: progress information unavailable.",
+                        "info",
+                        2000
+                    );
+                }
+            }
+        );
         globalThis.electronAPI.onUpdateEvent("update-downloaded", () => {
             showUpdateNotification(
                 "Update downloaded! Restart to install the update now, or choose Later to finish your work.",
@@ -493,16 +673,29 @@ export function setupListeners({
     // Accessibility Event Listeners
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
         trackUnsubscribe(
-            globalThis.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
-                document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
-                document.body.classList.add(`font-${size}`);
-            })
+            globalThis.electronAPI.onIpc(
+                "set-font-size",
+                (/** @type {any} */ _event, /** @type {string} */ size) => {
+                    document.body.classList.remove(
+                        "font-xsmall",
+                        "font-small",
+                        "font-medium",
+                        "font-large",
+                        "font-xlarge"
+                    );
+                    document.body.classList.add(`font-${size}`);
+                }
+            )
         );
         trackUnsubscribe(
             globalThis.electronAPI.onIpc(
                 "set-high-contrast",
                 (/** @type {any} */ _event, /** @type {string} */ mode) => {
-                    document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
+                    document.body.classList.remove(
+                        "high-contrast",
+                        "high-contrast-white",
+                        "high-contrast-yellow"
+                    );
                     switch (mode) {
                         case "black": {
                             document.body.classList.add("high-contrast");

@@ -90,9 +90,11 @@ describe("getActiveTabContent.js - coverage uplift", () => {
     });
 
     it("handles querySelectorAll throwing and returns null", () => {
-        const spy = vi.spyOn(document, "querySelectorAll").mockImplementation(() => {
-            throw new Error("boom");
-        });
+        const spy = vi
+            .spyOn(document, "querySelectorAll")
+            .mockImplementation(() => {
+                throw new Error("boom");
+            });
         const result = getActiveTabContent();
         expect(result).toBeNull();
         expect(console.error).toHaveBeenCalled();

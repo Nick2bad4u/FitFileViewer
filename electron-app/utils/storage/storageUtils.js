@@ -1,18 +1,19 @@
 /**
- * @fileoverview Safe accessors for Web Storage (localStorage/sessionStorage).
+ * @file Safe accessors for Web Storage (localStorage/sessionStorage).
  *
- * Many parts of the renderer assume localStorage exists. In tests (node/jsdom) or
- * restricted environments it may be missing or throw. These helpers:
- * - centralize try/catch handling
- * - support injection via a storage-provider function
- * - avoid crashing call sites
+ *   Many parts of the renderer assume localStorage exists. In tests (node/jsdom)
+ *   or restricted environments it may be missing or throw. These helpers:
+ *
+ *   - Centralize try/catch handling
+ *   - Support injection via a storage-provider function
+ *   - Avoid crashing call sites
  */
 
 /**
  * @typedef {{
- *  getItem?: (key: string) => string | null,
- *  setItem?: (key: string, value: string) => void,
- *  removeItem?: (key: string) => void
+ *     getItem?: (key: string) => string | null;
+ *     setItem?: (key: string, value: string) => void;
+ *     removeItem?: (key: string) => void;
  * }} StorageLike
  */
 
@@ -20,13 +21,17 @@
  * Resolve a storage instance.
  *
  * @param {undefined | (() => StorageLike | null)} getStorage
+ *
  * @returns {StorageLike | null}
  */
 export function resolveStorage(getStorage) {
     try {
         /** @type {{ localStorage?: StorageLike }} */
         const scope = globalThis;
-        const storage = typeof getStorage === "function" ? getStorage() : (scope.localStorage ?? null);
+        const storage =
+            typeof getStorage === "function"
+                ? getStorage()
+                : (scope.localStorage ?? null);
         if (!storage || typeof storage !== "object") return null;
         return storage;
     } catch {
@@ -37,6 +42,7 @@ export function resolveStorage(getStorage) {
 /**
  * @param {string} key
  * @param {undefined | (() => StorageLike | null)} getStorage
+ *
  * @returns {string | null}
  */
 export function safeStorageGetItem(key, getStorage) {

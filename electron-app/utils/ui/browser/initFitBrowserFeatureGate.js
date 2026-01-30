@@ -1,11 +1,12 @@
 /**
- * @fileoverview Browser tab feature gate.
+ * @file Browser tab feature gate.
  *
- * The folder-based "Browser" tab is experimental and should be hidden/disabled by default.
- * This module:
- * - Reads the persisted main-process setting via the preload API
- * - Shows/hides the Browser tab button + content
- * - Reacts to main-process menu toggles (fit-browser-enabled-changed)
+ *   The folder-based "Browser" tab is experimental and should be hidden/disabled
+ *   by default. This module:
+ *
+ *   - Reads the persisted main-process setting via the preload API
+ *   - Shows/hides the Browser tab button + content
+ *   - Reacts to main-process menu toggles (fit-browser-enabled-changed)
  */
 
 import { getState, setState } from "../../state/core/stateManager.js";
@@ -42,10 +43,16 @@ export function initFitBrowserFeatureGate() {
 
     // React to main-process toggles.
     if (typeof api.onIpc === "function") {
-        api.onIpc("fit-browser-enabled-changed", (eventOrEnabled, enabledMaybe) => {
-            const enabled = typeof eventOrEnabled === "boolean" ? eventOrEnabled : enabledMaybe;
-            applyBrowserTabVisibility(enabled === true);
-        });
+        api.onIpc(
+            "fit-browser-enabled-changed",
+            (eventOrEnabled, enabledMaybe) => {
+                const enabled =
+                    typeof eventOrEnabled === "boolean"
+                        ? eventOrEnabled
+                        : enabledMaybe;
+                applyBrowserTabVisibility(enabled === true);
+            }
+        );
     }
 }
 
@@ -67,7 +74,9 @@ function applyBrowserTabVisibility(enabled) {
     if (!enabled) {
         const activeTab = getState("ui.activeTab");
         if (activeTab === "browser") {
-            setState("ui.activeTab", "map", { source: "initFitBrowserFeatureGate.disable" });
+            setState("ui.activeTab", "map", {
+                source: "initFitBrowserFeatureGate.disable",
+            });
         }
     }
 }

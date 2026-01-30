@@ -116,6 +116,7 @@ declare namespace CONSTANTS {
 }
 /**
  * Creates a new BrowserWindow with enhanced configuration and error handling
+ *
  * @returns {BrowserWindow} The created BrowserWindow instance
  */
 /**
@@ -124,7 +125,9 @@ declare namespace CONSTANTS {
 declare function createWindow(): BrowserWindow;
 /**
  * Retrieves the saved window state from disk with enhanced error handling
- * @returns {Object} Window state object with width, height, and optional x, y coordinates
+ *
+ * @returns {Object} Window state object with width, height, and optional x, y
+ *   coordinates
  */
 /**
  * @returns {WindowState}
@@ -132,28 +135,36 @@ declare function createWindow(): BrowserWindow;
 declare function getWindowState(): WindowState;
 /**
  * Sanitize and normalize persisted window state.
+ *
  * @param {Partial<WindowState>} state
+ *
  * @returns {WindowState}
  */
 declare function sanitizeWindowState(state: Partial<WindowState>): WindowState;
 /**
- * Saves the current window state to disk with enhanced validation and error handling
+ * Saves the current window state to disk with enhanced validation and error
+ * handling
+ *
  * @param {BrowserWindow} win - The Electron BrowserWindow instance
  */
 /**
  * @param {BrowserWindow} win
+ *
  * @returns {void}
  */
 declare function saveWindowState(win: BrowserWindow): void;
 declare const settingsPath: string;
 /**
  * @param {unknown} win
+ *
  * @returns {win is BrowserWindow}
  */
 declare function validateWindow(win: unknown): win is BrowserWindow;
 /**
  * Type guard validating a window state object.
+ *
  * @param {unknown} state
+ *
  * @returns {state is WindowState}
  */
 declare function validateWindowState(state: unknown): state is WindowState;

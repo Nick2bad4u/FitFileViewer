@@ -1,12 +1,13 @@
 /**
- * @fileoverview Comprehensive test coverage for main.js - Electron main process
+ * @file Comprehensive test coverage for main.js - Electron main process
  *
- * Testing strategy:
- * Since main.js is a complex Electron main process module that executes immediately
- * when imported, we'll test it indirectly by simulating the key functions and
- * verifying the behavior patterns rather than directly importing the module.
+ *   Testing strategy: Since main.js is a complex Electron main process module
+ *   that executes immediately when imported, we'll test it indirectly by
+ *   simulating the key functions and verifying the behavior patterns rather
+ *   than directly importing the module.
  *
- * This approach allows us to achieve coverage while avoiding Electron initialization issues.
+ *   This approach allows us to achieve coverage while avoiding Electron
+ *   initialization issues.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -94,7 +95,9 @@ vi.mock("path", () => ({
 }));
 
 vi.mock("fs", () => ({
-    readFileSync: vi.fn().mockReturnValue('{"name": "test", "version": "1.0.0"}'),
+    readFileSync: vi
+        .fn()
+        .mockReturnValue('{"name": "test", "version": "1.0.0"}'),
     existsSync: vi.fn().mockReturnValue(true),
     promises: {
         readFile: vi.fn().mockResolvedValue(Buffer.from("test data")),
@@ -174,8 +177,8 @@ describe("main.js - Comprehensive Coverage", () => {
 
     describe("Core Functionality Tests", () => {
         /**
-         * Test the core application patterns that main.js implements
-         * We'll simulate the behavior without importing the full module
+         * Test the core application patterns that main.js implements We'll
+         * simulate the behavior without importing the full module
          */
 
         it("should handle window lifecycle management", () => {
@@ -183,7 +186,12 @@ describe("main.js - Comprehensive Coverage", () => {
             function isWindowUsable(win: any) {
                 if (!win) return false;
                 if (win.isDestroyed && win.isDestroyed()) return false;
-                if (win.webContents && win.webContents.isDestroyed && win.webContents.isDestroyed()) return false;
+                if (
+                    win.webContents &&
+                    win.webContents.isDestroyed &&
+                    win.webContents.isDestroyed()
+                )
+                    return false;
                 return true;
             }
 
@@ -230,7 +238,12 @@ describe("main.js - Comprehensive Coverage", () => {
             };
 
             async function getThemeFromRenderer(win: any) {
-                if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) {
+                if (
+                    !win ||
+                    win.isDestroyed() ||
+                    !win.webContents ||
+                    win.webContents.isDestroyed()
+                ) {
                     return CONSTANTS.DEFAULT_THEME;
                 }
 
@@ -240,7 +253,10 @@ describe("main.js - Comprehensive Coverage", () => {
                     );
                     return theme || CONSTANTS.DEFAULT_THEME;
                 } catch (err) {
-                    console.error("[main.js] Failed to get theme from renderer:", err);
+                    console.error(
+                        "[main.js] Failed to get theme from renderer:",
+                        err
+                    );
                     return CONSTANTS.DEFAULT_THEME;
                 }
             }
@@ -255,10 +271,14 @@ describe("main.js - Comprehensive Coverage", () => {
 
             const theme = await getThemeFromRenderer(mockWindow);
             expect(theme).toBe("light");
-            expect(mockWindow.webContents.executeJavaScript).toHaveBeenCalledWith('localStorage.getItem("ffv-theme")');
+            expect(
+                mockWindow.webContents.executeJavaScript
+            ).toHaveBeenCalledWith('localStorage.getItem("ffv-theme")');
 
             // Test error handling
-            mockWindow.webContents.executeJavaScript.mockRejectedValue(new Error("JS execution failed"));
+            mockWindow.webContents.executeJavaScript.mockRejectedValue(
+                new Error("JS execution failed")
+            );
             const fallbackTheme = await getThemeFromRenderer(mockWindow);
             expect(fallbackTheme).toBe(CONSTANTS.DEFAULT_THEME);
         });
@@ -266,7 +286,12 @@ describe("main.js - Comprehensive Coverage", () => {
         it("should handle IPC communication patterns", () => {
             // Simulate the IPC handler registration patterns from main.js
             function sendToRenderer(win: any, channel: string, ...args: any[]) {
-                if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+                if (
+                    win &&
+                    !win.isDestroyed() &&
+                    win.webContents &&
+                    !win.webContents.isDestroyed()
+                ) {
                     win.webContents.send(channel, ...args);
                 }
             }
@@ -280,7 +305,10 @@ describe("main.js - Comprehensive Coverage", () => {
             };
 
             sendToRenderer(mockWindow, "test-channel", "test-data");
-            expect(mockWindow.webContents.send).toHaveBeenCalledWith("test-channel", "test-data");
+            expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+                "test-channel",
+                "test-data"
+            );
 
             // Test with destroyed window - should not crash
             const destroyedWindow = {
@@ -288,15 +316,27 @@ describe("main.js - Comprehensive Coverage", () => {
                 webContents: null,
             };
 
-            expect(() => sendToRenderer(destroyedWindow, "test-channel", "data")).not.toThrow();
+            expect(() =>
+                sendToRenderer(destroyedWindow, "test-channel", "data")
+            ).not.toThrow();
         });
 
         it("should handle logging with context", () => {
             // Simulate the logging function from main.js
-            function logWithContext(level: string, message: string, context: any = {}) {
+            function logWithContext(
+                level: string,
+                message: string,
+                context: any = {}
+            ) {
                 const timestamp = new Date().toISOString();
-                const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
-                (console as any)[level](`[${timestamp}] [main.js] ${message}`, contextStr);
+                const contextStr =
+                    Object.keys(context).length > 0
+                        ? JSON.stringify(context)
+                        : "";
+                (console as any)[level](
+                    `[${timestamp}] [main.js] ${message}`,
+                    contextStr
+                );
             }
 
             logWithContext("log", "Test message", { key: "value" });
@@ -313,19 +353,26 @@ describe("main.js - Comprehensive Coverage", () => {
                     try {
                         return await operation(...args);
                     } catch (error) {
-                        console.error(`Error in ${operation.name || "operation"}:`, {
-                            error: (error as Error).message,
-                            stack: (error as Error).stack,
-                        });
+                        console.error(
+                            `Error in ${operation.name || "operation"}:`,
+                            {
+                                error: (error as Error).message,
+                                stack: (error as Error).stack,
+                            }
+                        );
                         throw error;
                     }
                 };
             }
 
-            const mockOperation = vi.fn().mockRejectedValue(new Error("Test error"));
+            const mockOperation = vi
+                .fn()
+                .mockRejectedValue(new Error("Test error"));
             const wrappedOperation = createErrorHandler(mockOperation);
 
-            await expect(wrappedOperation("test")).rejects.toThrow("Test error");
+            await expect(wrappedOperation("test")).rejects.toThrow(
+                "Test error"
+            );
             expect(console.error).toHaveBeenCalled();
         });
     });
@@ -358,12 +405,17 @@ describe("main.js - Comprehensive Coverage", () => {
             const result = await fs.promises.readFile("/path/to/test.fit");
 
             expect(result).toBeInstanceOf(Buffer);
-            expect(fs.promises.readFile).toHaveBeenCalledWith("/path/to/test.fit");
+            expect(fs.promises.readFile).toHaveBeenCalledWith(
+                "/path/to/test.fit"
+            );
         });
 
         it("should handle recent files management", () => {
             // Mock recent files functions without requiring actual module
-            const loadRecentFiles = vi.fn().mockReturnValue(["/path/to/recent1.fit", "/path/to/recent2.fit"]);
+            const loadRecentFiles = vi.fn().mockReturnValue([
+                "/path/to/recent1.fit",
+                "/path/to/recent2.fit",
+            ]);
             const addRecentFile = vi.fn();
 
             const recentFiles = loadRecentFiles();
@@ -393,7 +445,10 @@ describe("main.js - Comprehensive Coverage", () => {
             mockElectronApp.on("activate", mockActivationHandler);
 
             // Verify handler was registered
-            expect(mockElectronApp.on).toHaveBeenCalledWith("activate", mockActivationHandler);
+            expect(mockElectronApp.on).toHaveBeenCalledWith(
+                "activate",
+                mockActivationHandler
+            );
         });
 
         it("should handle window-all-closed event", () => {
@@ -455,7 +510,9 @@ describe("main.js - Comprehensive Coverage", () => {
                 mockAutoUpdater.on(event, vi.fn());
             });
 
-            expect(mockAutoUpdater.on).toHaveBeenCalledTimes(updateEvents.length);
+            expect(mockAutoUpdater.on).toHaveBeenCalledTimes(
+                updateEvents.length
+            );
         });
 
         it("should handle update events", () => {
@@ -476,7 +533,9 @@ describe("main.js - Comprehensive Coverage", () => {
 
             // Simulate triggering events
             eventHandlers["update-available"](updateInfo);
-            expect(eventHandlers["update-available"]).toHaveBeenCalledWith(updateInfo);
+            expect(eventHandlers["update-available"]).toHaveBeenCalledWith(
+                updateInfo
+            );
 
             const testError = new Error("Update failed");
             eventHandlers["error"](testError);
@@ -496,7 +555,11 @@ describe("main.js - Comprehensive Coverage", () => {
             const port = 3000;
             const startPromise = new Promise((resolve) => {
                 server.listen(port, () => {
-                    resolve({ success: true, port, message: `Server started on port ${port}` });
+                    resolve({
+                        success: true,
+                        port,
+                        message: `Server started on port ${port}`,
+                    });
                 });
             });
 
@@ -535,10 +598,13 @@ describe("main.js - Comprehensive Coverage", () => {
                 return { action: "deny" };
             });
 
-            mockWebContents.on("new-window", (event: any, navigationUrl: string) => {
-                event.preventDefault();
-                mockShell.openExternal(navigationUrl);
-            });
+            mockWebContents.on(
+                "new-window",
+                (event: any, navigationUrl: string) => {
+                    event.preventDefault();
+                    mockShell.openExternal(navigationUrl);
+                }
+            );
 
             expect(mockWebContents.setWindowOpenHandler).toHaveBeenCalled();
             expect(mockWebContents.on).toHaveBeenCalled();
@@ -576,15 +642,22 @@ describe("main.js - Comprehensive Coverage", () => {
         it("should handle file operation errors", async () => {
             // Simulate file reading error
             const fs = await import("fs");
-            (fs.promises.readFile as any).mockRejectedValue(new Error("File not found"));
+            (fs.promises.readFile as any).mockRejectedValue(
+                new Error("File not found")
+            );
 
-            await expect(fs.promises.readFile("/invalid/path")).rejects.toThrow("File not found");
+            await expect(fs.promises.readFile("/invalid/path")).rejects.toThrow(
+                "File not found"
+            );
         });
 
         it("should handle IPC errors gracefully", () => {
             // Simulate IPC error handling
             function handleIpcError(error: Error, channel: string) {
-                console.error(`IPC error on channel ${channel}:`, error.message);
+                console.error(
+                    `IPC error on channel ${channel}:`,
+                    error.message
+                );
                 return { error: error.message };
             }
 
@@ -613,7 +686,10 @@ describe("main.js - Comprehensive Coverage", () => {
                 success: false,
                 error: "Network timeout",
             });
-            expect(console.error).toHaveBeenCalledWith("[Auto-updater] Error:", "Network timeout");
+            expect(console.error).toHaveBeenCalledWith(
+                "[Auto-updater] Error:",
+                "Network timeout"
+            );
         });
     });
 
@@ -634,7 +710,10 @@ describe("main.js - Comprehensive Coverage", () => {
 
             // Test state setter
             mainProcessState.set("test.path", "new-value");
-            expect(mainProcessState.set).toHaveBeenCalledWith("test.path", "new-value");
+            expect(mainProcessState.set).toHaveBeenCalledWith(
+                "test.path",
+                "new-value"
+            );
         });
 
         it("should handle state persistence", () => {
@@ -642,7 +721,9 @@ describe("main.js - Comprehensive Coverage", () => {
             function persistAppState(key: string, value: any) {
                 try {
                     // Simulate state persistence
-                    console.log(`Persisting state: ${key} = ${JSON.stringify(value)}`);
+                    console.log(
+                        `Persisting state: ${key} = ${JSON.stringify(value)}`
+                    );
                     return { success: true };
                 } catch (error) {
                     console.error("Failed to persist state:", error);
@@ -652,7 +733,9 @@ describe("main.js - Comprehensive Coverage", () => {
 
             const result = persistAppState("theme", "dark");
             expect(result.success).toBe(true);
-            expect(console.log).toHaveBeenCalledWith('Persisting state: theme = "dark"');
+            expect(console.log).toHaveBeenCalledWith(
+                'Persisting state: theme = "dark"'
+            );
         });
     });
 

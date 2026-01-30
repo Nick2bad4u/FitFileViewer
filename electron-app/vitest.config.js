@@ -2,7 +2,11 @@ import * as fs from "node:fs";
 import os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
+import {
+    coverageConfigDefaults,
+    defaultExclude,
+    defineConfig,
+} from "vitest/config";
 
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -100,7 +104,12 @@ export default defineConfig({
                 // Tooltip display (shows estimated power when real power missing)
                 "utils/formatting/display/formatTooltipData.js",
             ],
-            reporter: ["text", "html", "json", ["lcov", { projectRoot: path.resolve(configDir, "..") }]],
+            reporter: [
+                "text",
+                "html",
+                "json",
+                ["lcov", { projectRoot: path.resolve(configDir, "..") }],
+            ],
             reportOnFailure: true,
             // Work around Windows/Dropbox file locking on coverage temp folder by writing
             // Reports to the OS temp directory when running inside a Dropbox path.
@@ -108,15 +117,22 @@ export default defineConfig({
             reportsDirectory: (() => {
                 const cwd = process.cwd();
                 const isWin = process.platform === "win32";
-                const inDropbox = /\\dropbox\\/i.test(cwd) || /\/dropbox\//i.test(cwd);
-                if (process.env.VITEST_COVERAGE_DIR) return process.env.VITEST_COVERAGE_DIR;
+                const inDropbox =
+                    /\\dropbox\\/i.test(cwd) || /\/dropbox\//i.test(cwd);
+                if (process.env.VITEST_COVERAGE_DIR)
+                    return process.env.VITEST_COVERAGE_DIR;
                 if (isWin && inDropbox) {
                     // When tests are run concurrently (e.g. VS Code Vitest Explorer + CLI task),
                     // Vitest may clean the shared reportsDirectory while another run is still
                     // writing intermediate v8 coverage into <reportsDirectory>/.tmp.
                     // Using a per-process directory avoids cross-run deletion races.
-                    const runDir = path.join(os.tmpdir(), "ffv-vitest-coverage", `pid-${process.pid}`);
+                    const runDir = path.join(
+                        os.tmpdir(),
+                        "ffv-vitest-coverage",
+                        `pid-${process.pid}`
+                    );
                     try {
+                        // eslint-disable-next-line security/detect-non-literal-fs-filename -- path is derived from os.tmpdir + pid (not user input).
                         fs.mkdirSync(runDir, { recursive: true });
                     } catch {
                         // Best-effort; Vitest will still attempt to create the directory.
@@ -167,7 +183,11 @@ export default defineConfig({
         },
         fileParallelism: true,
         // Force rerun triggers - these files will trigger full test suite
-        forceRerunTriggers: ["**/package.json", "**/vitest.config.js", "**/vitest.config.ts"],
+        forceRerunTriggers: [
+            "**/package.json",
+            "**/vitest.config.js",
+            "**/vitest.config.ts",
+        ],
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
         hookTimeout: 30_000,
@@ -223,7 +243,11 @@ export default defineConfig({
         testTimeout: 30_000,
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
-            ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js", "**/preload.js"],
+            ssr: [
+                "**/main.js",
+                "**/utils/app/menu/createAppMenu.js",
+                "**/preload.js",
+            ],
         },
         typecheck: {
             allowJs: false,

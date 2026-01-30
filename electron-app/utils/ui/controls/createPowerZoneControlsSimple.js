@@ -1,11 +1,15 @@
 /**
- * Creates a separate power zone controls section that extracts existing power zone controls
- * @fileoverview Dedicated power zone chart controls section
+ * Creates a separate power zone controls section that extracts existing power
+ * zone controls
+ *
+ * @file Dedicated power zone chart controls section
  */
 
 /**
  * Creates the power zone controls section by extracting existing controls
+ *
  * @param {HTMLElement} parentContainer - Parent container to append controls to
+ *
  * @returns {HTMLElement} The created power zone controls section
  */
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
@@ -85,12 +89,16 @@ export function createPowerZoneControls(parentContainer) {
     `;
 
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("power-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
 
     collapseBtn.addEventListener("click", () => {
         isCollapsed = !isCollapsed;
-        localStorage.setItem("power-zone-controls-collapsed", isCollapsed.toString());
+        localStorage.setItem(
+            "power-zone-controls-collapsed",
+            isCollapsed.toString()
+        );
         updateCollapseState();
     });
 
@@ -131,22 +139,26 @@ export function createPowerZoneControls(parentContainer) {
 
 /**
  * Gets current power zone chart visibility settings
+ *
  * @returns {Object} Visibility settings for power zone charts
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("power_zone_doughnut") !== "hidden",
     };
 }
 
 /**
- * Moves existing power zone controls to the dedicated power zone section
- * This should be called after the field toggles are created
+ * Moves existing power zone controls to the dedicated power zone section This
+ * should be called after the field toggles are created
  */
 export function movePowerZoneControlsToSection() {
     const powerZoneContent = document.querySelector("#power-zone-content");
     if (!powerZoneContent) {
-        console.warn("[PowerZoneControls] Power zone content container not found");
+        console.warn(
+            "[PowerZoneControls] Power zone content container not found"
+        );
         return;
     }
 
@@ -164,12 +176,16 @@ export function movePowerZoneControlsToSection() {
             powerZoneContent.append(controlContainer);
             movedControls.push(fieldName);
 
-            console.log(`[PowerZoneControls] Moved ${fieldName} control to power zone section`);
+            console.log(
+                `[PowerZoneControls] Moved ${fieldName} control to power zone section`
+            );
         }
     }
 
     if (movedControls.length > 0) {
-        console.log(`[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`);
+        console.log(
+            `[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`
+        );
 
         // Add some spacing between the controls
         const controls = Array.from(powerZoneContent.children);
@@ -183,6 +199,7 @@ export function movePowerZoneControlsToSection() {
 
 /**
  * Updates power zone controls visibility based on data availability
+ *
  * @param {boolean} hasData - Whether power zone data is available
  */
 export function updatePowerZoneControlsVisibility(hasData) {

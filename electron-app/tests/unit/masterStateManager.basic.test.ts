@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { masterStateManager } from "../../utils/state/core/masterStateManager.js";
-import { setState, subscribe, resetState } from "../../utils/state/core/stateManager.js";
+import {
+    setState,
+    subscribe,
+    resetState,
+} from "../../utils/state/core/stateManager.js";
 
 describe("MasterStateManager Basic Functionality", () => {
     beforeEach(() => {
@@ -78,7 +82,11 @@ describe("MasterStateManager Basic Functionality", () => {
             // Check subscriptions list through masterStateManager
             const subscriptions = masterStateManager.getSubscriptions();
             expect((subscriptions as any).subscriptionDetails).toBeDefined();
-            expect((subscriptions as any).subscriptionDetails?.["test.subscription"]).toBeDefined();
+            expect(
+                (subscriptions as any).subscriptionDetails?.[
+                    "test.subscription"
+                ]
+            ).toBeDefined();
 
             // Clean up
             unsubscribe();
@@ -87,7 +95,9 @@ describe("MasterStateManager Basic Functionality", () => {
 
     describe("Initialization Status", () => {
         it("should provide initialization status", () => {
-            expect(typeof masterStateManager.getInitializationStatus).toBe("function");
+            expect(typeof masterStateManager.getInitializationStatus).toBe(
+                "function"
+            );
 
             const status = masterStateManager.getInitializationStatus();
             expect(status).toBeDefined();

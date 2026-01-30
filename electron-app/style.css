@@ -113,9 +113,12 @@
     --c_hexb71c1c: #b71c1c;
     --c_rgb0: rgb(0 0 0);
     --c_rgb000_70p: rgb(0 0 0 / 70%);
-    --font-sans: "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+    --font-sans:
+        "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI",
+        roboto, sans-serif;
     --font-display:
-        "Plus Jakarta Sans", "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+        "Plus Jakarta Sans", "Inter", "Open Sans", -apple-system,
+        blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
 
     /* Dark Theme (Default) - Charcoal Blue (lighter, neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #0e1525 0%, #111827 60%, #0f172a 100%);
@@ -160,7 +163,11 @@
     --elev-bg: #0f172a;
     --color-hero-glow: rgb(59 130 246 / 28%); /* blue glow */
     --color-hero-glow-strong: rgb(37 99 235 / 42%); /* blue glow strong */
-    --color-surface: linear-gradient(160deg, rgb(18 26 38 / 95%) 0%, rgb(12 19 31 / 98%) 100%);
+    --color-surface: linear-gradient(
+        160deg,
+        rgb(18 26 38 / 95%) 0%,
+        rgb(12 19 31 / 98%) 100%
+    );
     --color-surface-rgb: 18, 26, 38;
     --color-pill-bg: rgb(255 255 255 / 6%);
     --color-pill-border: rgb(255 255 255 / 12%);
@@ -181,7 +188,10 @@
     --transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     --layout-gutter: clamp(16px, 4vw, 48px);
-    --layout-content-width: min(1680px, calc(100vw - (var(--layout-gutter) * 2)));
+    --layout-content-width: min(
+        1680px,
+        calc(100vw - (var(--layout-gutter) * 2))
+    );
 }
 
 body.theme-light {
@@ -221,7 +231,11 @@ body.theme-light {
     --color-overlay-bg: rgb(2 6 23 / 45%);
     --color-hero-glow: rgb(37 99 235 / 26%);
     --color-hero-glow-strong: rgb(29 78 216 / 32%);
-    --color-surface: linear-gradient(160deg, rgb(255 255 255 / 92%) 0%, rgb(249 250 251 / 96%) 100%);
+    --color-surface: linear-gradient(
+        160deg,
+        rgb(255 255 255 / 92%) 0%,
+        rgb(249 250 251 / 96%) 100%
+    );
     --color-surface-rgb: 255, 255, 255;
     --color-pill-bg: rgb(2 6 23 / 4%);
     --color-pill-border: rgb(2 6 23 / 8%);
@@ -238,9 +252,21 @@ body.theme-light {
 
     background-color: #f8fafc;
     background-image:
-        radial-gradient(140% 140% at 78% -20%, rgb(var(--color-accent-rgb) / 12%) 0%, transparent 58%),
-        radial-gradient(130% 140% at 20% 116%, rgb(var(--color-secondary-accent-rgb) / 14%) 0%, transparent 65%),
-        radial-gradient(150% 130% at 52% 34%, rgb(var(--color-tertiary-accent-rgb) / 14%) 0%, transparent 70%),
+        radial-gradient(
+            140% 140% at 78% -20%,
+            rgb(var(--color-accent-rgb) / 12%) 0%,
+            transparent 58%
+        ),
+        radial-gradient(
+            130% 140% at 20% 116%,
+            rgb(var(--color-secondary-accent-rgb) / 14%) 0%,
+            transparent 65%
+        ),
+        radial-gradient(
+            150% 130% at 52% 34%,
+            rgb(var(--color-tertiary-accent-rgb) / 14%) 0%,
+            transparent 70%
+        ),
         linear-gradient(200deg, #fff, #eef2ff, #e2e8f0);
     background-attachment: fixed;
     background-repeat: no-repeat;
@@ -577,10 +603,27 @@ body {
     font-size: 14px;
     background-color: var(--c_hex05020b);
     background-image:
-        radial-gradient(140% 160% at 80% -30%, rgb(var(--color-accent-rgb) / 16%) 0%, transparent 62%),
-        radial-gradient(140% 160% at 18% 120%, rgb(var(--color-secondary-accent-rgb) / 18%) 0%, transparent 68%),
-        radial-gradient(160% 140% at 54% 42%, rgb(var(--color-tertiary-accent-rgb) / 24%) 0%, transparent 72%),
-        linear-gradient(200deg, var(--c_hex05010a) 0%, var(--c_hex0b0413) 48%, var(--c_hex160b23) 100%);
+        radial-gradient(
+            140% 160% at 80% -30%,
+            rgb(var(--color-accent-rgb) / 16%) 0%,
+            transparent 62%
+        ),
+        radial-gradient(
+            140% 160% at 18% 120%,
+            rgb(var(--color-secondary-accent-rgb) / 18%) 0%,
+            transparent 68%
+        ),
+        radial-gradient(
+            160% 140% at 54% 42%,
+            rgb(var(--color-tertiary-accent-rgb) / 24%) 0%,
+            transparent 72%
+        ),
+        linear-gradient(
+            200deg,
+            var(--c_hex05010a) 0%,
+            var(--c_hex0b0413) 48%,
+            var(--c_hex160b23) 100%
+        );
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -809,10 +852,26 @@ body::before {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 18% 18%, rgb(var(--color-accent-rgb) / 22%) 0%, transparent 48%),
-        radial-gradient(circle at 84% 80%, rgb(var(--color-secondary-accent-rgb) / 20%) 0%, transparent 56%),
-        radial-gradient(150% 140% at 48% 0%, rgb(var(--color-tertiary-accent-rgb) / 16%) 0%, transparent 70%),
-        radial-gradient(160% 160% at 16% 118%, rgb(var(--color-accent-rgb) / 12%) 0%, transparent 74%),
+        radial-gradient(
+            circle at 18% 18%,
+            rgb(var(--color-accent-rgb) / 22%) 0%,
+            transparent 48%
+        ),
+        radial-gradient(
+            circle at 84% 80%,
+            rgb(var(--color-secondary-accent-rgb) / 20%) 0%,
+            transparent 56%
+        ),
+        radial-gradient(
+            150% 140% at 48% 0%,
+            rgb(var(--color-tertiary-accent-rgb) / 16%) 0%,
+            transparent 70%
+        ),
+        radial-gradient(
+            160% 160% at 16% 118%,
+            rgb(var(--color-accent-rgb) / 12%) 0%,
+            transparent 74%
+        ),
         conic-gradient(
             from 18deg at 26% 76%,
             rgb(var(--color-accent-rgb) / 14%) 0deg,
@@ -826,10 +885,26 @@ body::before {
             transparent 58%,
             rgb(var(--color-secondary-accent-rgb) / 12%) 100%
         ),
-        repeating-linear-gradient(118deg, rgb(var(--color-accent-rgb) / 40%) 0 2px, transparent 2px 140px),
-        repeating-linear-gradient(208deg, rgb(var(--color-tertiary-accent-rgb) / 40%) 0 1px, transparent 1px 180px),
-        repeating-linear-gradient(90deg, rgb(var(--color-secondary-accent-rgb) / 30%) 0 1px, transparent 1px 120px),
-        radial-gradient(circle at 50% 60%, var(--c_rgb10884148_14p) 0%, transparent 78%);
+        repeating-linear-gradient(
+            118deg,
+            rgb(var(--color-accent-rgb) / 40%) 0 2px,
+            transparent 2px 140px
+        ),
+        repeating-linear-gradient(
+            208deg,
+            rgb(var(--color-tertiary-accent-rgb) / 40%) 0 1px,
+            transparent 1px 180px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgb(var(--color-secondary-accent-rgb) / 30%) 0 1px,
+            transparent 1px 120px
+        ),
+        radial-gradient(
+            circle at 50% 60%,
+            var(--c_rgb10884148_14p) 0%,
+            transparent 78%
+        );
     background-size:
         auto,
         auto,
@@ -853,7 +928,8 @@ body::before {
         0 0,
         50% 60%;
     background-blend-mode:
-        screen, screen, screen, screen, color-dodge, soft-light, color-dodge, soft-light, soft-light, screen;
+        screen, screen, screen, screen, color-dodge, soft-light, color-dodge,
+        soft-light, soft-light, screen;
     pointer-events: none;
     z-index: -1;
     mix-blend-mode: screen;
@@ -874,9 +950,21 @@ body::after {
     width: 110%;
     height: 110%;
     background:
-        radial-gradient(150% 160% at 16% 118%, rgb(var(--color-accent-rgb) / 18%) 0%, transparent 78%),
-        radial-gradient(150% 160% at 92% -16%, rgb(var(--color-secondary-accent-rgb) / 16%) 0%, transparent 82%),
-        radial-gradient(180% 140% at 50% 120%, rgb(var(--color-tertiary-accent-rgb) / 14%) 0%, transparent 76%),
+        radial-gradient(
+            150% 160% at 16% 118%,
+            rgb(var(--color-accent-rgb) / 18%) 0%,
+            transparent 78%
+        ),
+        radial-gradient(
+            150% 160% at 92% -16%,
+            rgb(var(--color-secondary-accent-rgb) / 16%) 0%,
+            transparent 82%
+        ),
+        radial-gradient(
+            180% 140% at 50% 120%,
+            rgb(var(--color-tertiary-accent-rgb) / 14%) 0%,
+            transparent 76%
+        ),
         conic-gradient(
             from 150deg at 48% 42%,
             rgb(var(--color-accent-rgb) / 12%) 0deg,
@@ -884,15 +972,27 @@ body::after {
             rgb(var(--color-secondary-accent-rgb) / 12%) 280deg,
             transparent 360deg
         ),
-        radial-gradient(circle at 52% 50%, var(--c_rgb9260136_14p) 0%, transparent 78%),
+        radial-gradient(
+            circle at 52% 50%,
+            var(--c_rgb9260136_14p) 0%,
+            transparent 78%
+        ),
         linear-gradient(
             305deg,
             rgb(var(--color-tertiary-accent-rgb) / 12%) 0%,
             transparent 45%,
             rgb(var(--color-secondary-accent-rgb) / 10%) 100%
         ),
-        repeating-linear-gradient(128deg, rgb(var(--color-accent-rgb) / 40%) 0 3px, transparent 3px 230px),
-        repeating-linear-gradient(92deg, rgb(var(--color-secondary-accent-rgb) / 35%) 0 2px, transparent 2px 180px);
+        repeating-linear-gradient(
+            128deg,
+            rgb(var(--color-accent-rgb) / 40%) 0 3px,
+            transparent 3px 230px
+        ),
+        repeating-linear-gradient(
+            92deg,
+            rgb(var(--color-secondary-accent-rgb) / 35%) 0 2px,
+            transparent 2px 180px
+        );
     background-size:
         150% 150%,
         150% 150%,
@@ -912,7 +1012,9 @@ body::after {
         0 0,
         0 0;
     background-repeat: no-repeat;
-    background-blend-mode: screen, screen, screen, color-dodge, soft-light, soft-light, overlay, soft-light;
+    background-blend-mode:
+        screen, screen, screen, color-dodge, soft-light, soft-light, overlay,
+        soft-light;
     pointer-events: none;
     z-index: -2;
     mix-blend-mode: screen;
@@ -952,7 +1054,8 @@ h2 {
    ===================================================== */
 .app-header {
     text-align: center;
-    padding: clamp(40px, 8vw, 60px) clamp(20px, 4vw, 36px) clamp(32px, 6vw, 50px);
+    padding: clamp(40px, 8vw, 60px) clamp(20px, 4vw, 36px)
+        clamp(32px, 6vw, 50px);
     position: relative;
     width: min(100%, var(--layout-content-width));
     margin: 0 auto clamp(16px, 3vw, 28px);
@@ -973,8 +1076,16 @@ h2 {
     gap: 32px;
     border-radius: calc(var(--border-radius) + 28px);
     background:
-        radial-gradient(160% 140% at 22% -10%, rgb(var(--color-accent-rgb) / 28%) 0%, transparent 55%),
-        radial-gradient(140% 160% at 80% 0%, var(--c_rgb108181255_22p) 0%, transparent 60%),
+        radial-gradient(
+            160% 140% at 22% -10%,
+            rgb(var(--color-accent-rgb) / 28%) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            140% 160% at 80% 0%,
+            var(--c_rgb108181255_22p) 0%,
+            transparent 60%
+        ),
         linear-gradient(
             160deg,
             rgb(var(--color-fg-rgb) / 12%) 0%,
@@ -1007,7 +1118,11 @@ h2 {
     content: "";
     position: absolute;
     inset: -15%;
-    background: radial-gradient(circle at 50% 50%, rgb(var(--color-accent-rgb) / 15%) 0%, transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgb(var(--color-accent-rgb) / 15%) 0%,
+        transparent 70%
+    );
     filter: blur(40px);
     opacity: 0.8;
     pointer-events: none;
@@ -1049,8 +1164,16 @@ h2 {
     border-radius: 46px;
     padding: clamp(14px, 2.8vw, 24px);
     background:
-        radial-gradient(circle at 12% 20%, var(--c_rgb255255255_16p) 0%, transparent 45%),
-        radial-gradient(circle at 80% 86%, rgb(var(--color-accent-rgb) / 24%) 0%, transparent 65%),
+        radial-gradient(
+            circle at 12% 20%,
+            var(--c_rgb255255255_16p) 0%,
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 80% 86%,
+            rgb(var(--color-accent-rgb) / 24%) 0%,
+            transparent 65%
+        ),
         linear-gradient(
             140deg,
             rgb(var(--color-accent-rgb) / 96%) 0%,
@@ -1115,7 +1238,11 @@ h2 {
     content: "";
     position: absolute;
     inset: 10% 12% 28%;
-    background: radial-gradient(circle at 60% 50%, rgb(var(--color-accent-rgb) / 32%) 0%, transparent 80%);
+    background: radial-gradient(
+        circle at 60% 50%,
+        rgb(var(--color-accent-rgb) / 32%) 0%,
+        transparent 80%
+    );
     filter: blur(18px);
     opacity: 0.65;
     pointer-events: none;
@@ -1214,9 +1341,21 @@ h2 {
     position: absolute;
     inset: -110px;
     background:
-        radial-gradient(circle at 12% 24%, var(--c_rgb255255255_35p) 0%, transparent 45%),
-        radial-gradient(circle at 78% 66%, rgb(var(--color-accent-rgb) / 42%) 0%, transparent 58%),
-        radial-gradient(circle at 36% 78%, var(--c_rgb255255255_18p) 0%, transparent 62%);
+        radial-gradient(
+            circle at 12% 24%,
+            var(--c_rgb255255255_35p) 0%,
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 78% 66%,
+            rgb(var(--color-accent-rgb) / 42%) 0%,
+            transparent 58%
+        ),
+        radial-gradient(
+            circle at 36% 78%,
+            var(--c_rgb255255255_18p) 0%,
+            transparent 62%
+        );
     filter: blur(40px);
     opacity: 0.45;
     pointer-events: none;
@@ -1226,9 +1365,22 @@ h2 {
 
 body.theme-light .app-header-logo {
     background:
-        radial-gradient(circle at 12% 20%, var(--c_rgb255255255_40p) 0%, transparent 50%),
-        radial-gradient(circle at 80% 86%, var(--c_rgb112182255_35p) 0%, transparent 70%),
-        linear-gradient(140deg, var(--c_rgb248250255) 0%, var(--c_rgb210235255) 55%, var(--c_rgb246227255) 100%);
+        radial-gradient(
+            circle at 12% 20%,
+            var(--c_rgb255255255_40p) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 80% 86%,
+            var(--c_rgb112182255_35p) 0%,
+            transparent 70%
+        ),
+        linear-gradient(
+            140deg,
+            var(--c_rgb248250255) 0%,
+            var(--c_rgb210235255) 55%,
+            var(--c_rgb246227255) 100%
+        );
     box-shadow:
         0 32px 70px rgb(var(--color-accent-rgb) / 26%),
         0 18px 44px var(--c_rgb175200240_38p),
@@ -1237,15 +1389,27 @@ body.theme-light .app-header-logo {
 
 body.theme-light .hero-mascot-frame {
     background:
-        radial-gradient(circle at 30% 12%, var(--c_rgb255255255_62p) 0%, transparent 70%),
-        linear-gradient(160deg, var(--c_rgb250250255_92p) 0%, var(--c_rgb220232255_70p) 100%);
+        radial-gradient(
+            circle at 30% 12%,
+            var(--c_rgb255255255_62p) 0%,
+            transparent 70%
+        ),
+        linear-gradient(
+            160deg,
+            var(--c_rgb250250255_92p) 0%,
+            var(--c_rgb220232255_70p) 100%
+        );
     box-shadow:
         inset 0 10px 32px var(--c_rgb255255255_45p),
         inset 0 -16px 38px rgb(var(--color-accent-rgb) / 22%);
 }
 
 body.theme-light .hero-mascot-frame::after {
-    background: radial-gradient(circle at 58% 48%, rgb(var(--color-accent-rgb) / 35%) 0%, transparent 80%);
+    background: radial-gradient(
+        circle at 58% 48%,
+        rgb(var(--color-accent-rgb) / 35%) 0%,
+        transparent 80%
+    );
 }
 
 body.theme-light .hero-mascot-badge {
@@ -1276,9 +1440,21 @@ body.theme-light .hero-floating-label {
 
 body.theme-light .hero-constellation {
     background:
-        radial-gradient(circle at 12% 24%, var(--c_rgb255255255_65p) 0%, transparent 50%),
-        radial-gradient(circle at 78% 66%, rgb(var(--color-accent-rgb) / 38%) 0%, transparent 58%),
-        radial-gradient(circle at 36% 78%, var(--c_rgb255255255_55p) 0%, transparent 64%);
+        radial-gradient(
+            circle at 12% 24%,
+            var(--c_rgb255255255_65p) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 78% 66%,
+            rgb(var(--color-accent-rgb) / 38%) 0%,
+            transparent 58%
+        ),
+        radial-gradient(
+            circle at 36% 78%,
+            var(--c_rgb255255255_55p) 0%,
+            transparent 64%
+        );
     opacity: 0.55;
 }
 
@@ -1404,7 +1580,11 @@ body.theme-light .tab-button,
 body[data-theme="light"] .tab-button,
 html[data-theme="light"] body .tab-button {
     color: var(--color-fg);
-    background: linear-gradient(135deg, rgb(var(--color-accent-rgb) / 12%) 0%, rgb(var(--color-fg-rgb) / 5%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 12%) 0%,
+        rgb(var(--color-fg-rgb) / 5%) 100%
+    );
     border-color: rgb(var(--color-accent-rgb) / 18%);
     box-shadow:
         0 2px 8px rgb(var(--color-accent-rgb) / 12%),
@@ -1556,7 +1736,11 @@ html[data-theme="light"] body .tab-button.active::after {
     content: "";
     position: absolute;
     inset: -24% -16% 40% -12%;
-    background: radial-gradient(circle at 50% 50%, var(--c_rgb255255255_18p) 0%, transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--c_rgb255255255_18p) 0%,
+        transparent 70%
+    );
     opacity: 0.45;
     filter: blur(10px);
     z-index: -1;
@@ -1589,8 +1773,16 @@ html[data-theme="light"] body .tab-button.active::after {
     position: absolute;
     inset: -80px -160px -40px;
     background:
-        radial-gradient(120% 120% at 50% 10%, rgb(var(--color-accent-rgb) / 22%) 0%, transparent 70%),
-        radial-gradient(circle at 80% 20%, var(--c_rgb255255255_12p) 0%, transparent 58%);
+        radial-gradient(
+            120% 120% at 50% 10%,
+            rgb(var(--color-accent-rgb) / 22%) 0%,
+            transparent 70%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
+            var(--c_rgb255255255_12p) 0%,
+            transparent 58%
+        );
     opacity: 0.68;
     filter: blur(22px);
     z-index: -1;
@@ -2457,7 +2649,11 @@ body[data-has-fit-file="true"] .tab-bar {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgb(var(--color-accent-rgb) / 5%) 0%, transparent 60%);
+    background: radial-gradient(
+        circle at 50% 0%,
+        rgb(var(--color-accent-rgb) / 5%) 0%,
+        transparent 60%
+    );
     opacity: 0.45;
     pointer-events: none;
     z-index: 0;
@@ -2469,8 +2665,16 @@ body[data-has-fit-file="true"] .tab-bar {
     position: absolute;
     inset: -20px -30px;
     background:
-        radial-gradient(circle at 20% 80%, rgb(var(--color-accent-rgb) / 8%) 0%, transparent 40%),
-        radial-gradient(circle at 80% 20%, rgb(var(--color-secondary-accent-rgb) / 6%) 0%, transparent 50%);
+        radial-gradient(
+            circle at 20% 80%,
+            rgb(var(--color-accent-rgb) / 8%) 0%,
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
+            rgb(var(--color-secondary-accent-rgb) / 6%) 0%,
+            transparent 50%
+        );
     border-radius: 50%;
     filter: blur(20px);
     opacity: 0.38;
@@ -2662,14 +2866,19 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
-    background: linear-gradient(135deg, var(--color-surface) 0%, rgb(var(--color-accent-rgb) / 3%) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--color-surface) 0%,
+        rgb(var(--color-accent-rgb) / 3%) 100%
+    );
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
     box-shadow:
         0 32px 60px var(--c_rgb000_28p),
         inset 0 1px 0 rgb(var(--color-accent-rgb) / 8%);
-    padding: clamp(12px, 1.75vw, 18px) clamp(9px, 1.5vw, 16px) clamp(10px, 1.5vw, 15px);
+    padding: clamp(12px, 1.75vw, 18px) clamp(9px, 1.5vw, 16px)
+        clamp(10px, 1.5vw, 15px);
     margin: 0 auto clamp(24px, 4vw, 40px);
     width: 98%;
     min-height: clamp(420px, 60vh, 900px);
@@ -2694,7 +2903,11 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-card::before {
     inset: -40% -10% auto;
     height: 320px;
-    background: radial-gradient(circle at 30% 20%, rgb(var(--color-accent-rgb) / 32%) 0%, transparent 65%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        rgb(var(--color-accent-rgb) / 32%) 0%,
+        transparent 65%
+    );
     filter: blur(12px);
     animation: float-glow 16s ease-in-out infinite;
 }
@@ -2702,7 +2915,11 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-card::after {
     inset: auto -20% -45% 55%;
     height: 420px;
-    background: radial-gradient(circle at 50% 50%, var(--c_rgb11875162_28p) 0%, transparent 65%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--c_rgb11875162_28p) 0%,
+        transparent 65%
+    );
     filter: blur(18px);
     animation: aurora-flow 22s ease-in-out infinite;
 }
@@ -2726,12 +2943,20 @@ body[data-has-fit-file="false"] .tab-card {
 }
 
 body[data-has-fit-file="false"] .tab-card::before {
-    background: radial-gradient(circle at 30% 20%, rgb(var(--color-accent-rgb) / 20%) 0%, transparent 65%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        rgb(var(--color-accent-rgb) / 20%) 0%,
+        transparent 65%
+    );
     animation: empty-float-glow 12s ease-in-out infinite;
 }
 
 body[data-has-fit-file="false"] .tab-card::after {
-    background: radial-gradient(circle at 70% 80%, var(--c_rgb11875162_15p) 0%, transparent 65%);
+    background: radial-gradient(
+        circle at 70% 80%,
+        var(--c_rgb11875162_15p) 0%,
+        transparent 65%
+    );
     animation: empty-aurora-flow 18s ease-in-out infinite;
 }
 
@@ -2996,7 +3221,11 @@ tr:hover {
     position: absolute;
     inset: 12%;
     border-radius: 20px;
-    background: radial-gradient(circle at 30% 20%, var(--c_rgb255255255_18p) 0%, transparent 60%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        var(--c_rgb255255255_18p) 0%,
+        transparent 60%
+    );
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
@@ -3088,7 +3317,11 @@ tr:hover {
     position: absolute;
     inset: -18px -26px;
     border-radius: 24px;
-    background: radial-gradient(circle at 50% 50%, rgb(var(--color-accent-rgb) / 28%) 0%, transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgb(var(--color-accent-rgb) / 28%) 0%,
+        transparent 70%
+    );
     filter: blur(18px);
     opacity: 0;
     transition: opacity 0.6s ease;
@@ -3611,7 +3844,12 @@ table.dataTable thead th {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(45deg, transparent 30%, var(--c_rgb255255255_10p) 50%, transparent 70%);
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        var(--c_rgb255255255_10p) 50%,
+        transparent 70%
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -3939,7 +4177,11 @@ body .leaflet-div-icon.ffv-map-marker {
 }
 
 .ffv-map-marker--start .ffv-map-marker__pin {
-    background: linear-gradient(135deg, rgb(var(--color-success-rgb) / 95%), rgb(var(--color-success-rgb) / 70%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-success-rgb) / 95%),
+        rgb(var(--color-success-rgb) / 70%)
+    );
     border: 1px solid rgb(var(--color-success-rgb) / 80%);
 }
 
@@ -3948,7 +4190,11 @@ body .leaflet-div-icon.ffv-map-marker {
 }
 
 .ffv-map-marker--end .ffv-map-marker__pin {
-    background: linear-gradient(135deg, rgb(var(--color-error-rgb) / 95%), rgb(var(--color-error-rgb) / 70%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-error-rgb) / 95%),
+        rgb(var(--color-error-rgb) / 70%)
+    );
     border: 1px solid rgb(var(--color-error-rgb) / 80%);
 }
 
@@ -3977,7 +4223,9 @@ body .leaflet-measure-segment-label {
 
 /* Leaflet-measure icon assets are dark by default; invert in dark UI so the ruler icon is visible. */
 body.theme-dark .leaflet-control-measure .leaflet-control-measure-toggle,
-#leaflet-map.ffv-map-inverted .leaflet-control-measure .leaflet-control-measure-toggle {
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-measure
+    .leaflet-control-measure-toggle {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -4042,8 +4290,12 @@ body.theme-dark .leaflet-control-minimap.leaflet-container {
 
 /* When the map tiles are inverted, ensure the minimap background never flashes white. */
 #leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container,
-#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-map-pane,
-#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-tile-pane {
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-minimap.leaflet-container
+    .leaflet-map-pane,
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-minimap.leaflet-container
+    .leaflet-tile-pane {
     background: rgb(0 0 0 / 75%);
 }
 
@@ -4237,21 +4489,29 @@ body .leaflet-control-layers.leaflet-control-layers-expanded {
 
 /* Make the layers selector scrollbar clearly visible (Chromium + Firefox).
    Apply styling to the inner list so we don't get nested/double scrollbars. */
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list {
     scrollbar-width: thin;
     scrollbar-color: var(--color-accent) rgb(0 0 0 / 18%);
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar {
     width: 10px;
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-track {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-track {
     background: rgb(0 0 0 / 15%);
     border-radius: 999px;
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-thumb {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-thumb {
     background: var(--color-accent);
     border-radius: 999px;
     border: 2px solid rgb(0 0 0 / 18%);
@@ -5262,7 +5522,8 @@ html[data-theme="light"] body .marker-count-select {
     height: 0;
     border-width: 0 10px 12px;
     border-style: solid;
-    border-color: transparent transparent var(--color-bg-alt-solid, #111827) transparent;
+    border-color: transparent transparent var(--color-bg-alt-solid, #111827)
+        transparent;
     filter: drop-shadow(0 6px 6px rgb(2 6 23 / 32%));
 }
 
@@ -5270,7 +5531,8 @@ html[data-theme="light"] body .marker-count-select {
     top: auto;
     bottom: -12px;
     border-width: 12px 10px 0;
-    border-color: var(--color-bg-alt-solid, #111827) transparent transparent transparent;
+    border-color: var(--color-bg-alt-solid, #111827) transparent transparent
+        transparent;
     filter: drop-shadow(0 -6px 6px rgb(2 6 23 / 24%));
 }
 
@@ -5569,7 +5831,11 @@ body.theme-light .data-point-filter-control__range-values {
     width: 100vw;
     height: 100vh;
     z-index: 9999;
-    background: linear-gradient(135deg, var(--c_rgb000_50p) 0%, var(--c_rgb000_70p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb000_50p) 0%,
+        var(--c_rgb000_70p) 100%
+    );
     backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
@@ -5598,7 +5864,12 @@ body.theme-light .data-point-filter-control__range-values {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, var(--c_rgb255255255_10p), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--c_rgb255255255_10p),
+        transparent
+    );
     animation: shimmer 2s infinite ease-in-out;
 }
 
@@ -6019,7 +6290,11 @@ body.theme-light .data-point-filter-control__range-values {
 .modal {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, var(--c_rgb000_50p) 0%, var(--c_rgb000_70p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb000_50p) 0%,
+        var(--c_rgb000_70p) 100%
+    );
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -6120,7 +6395,11 @@ body.theme-light .data-point-filter-control__range-values {
 }
 
 #openFileBtn .btn-label {
-    background: linear-gradient(135deg, rgb(255 255 255 / 95%) 0%, rgb(255 255 255 / 85%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(255 255 255 / 95%) 0%,
+        rgb(255 255 255 / 85%) 100%
+    );
     /* stylelint-disable property-no-vendor-prefix -- gradient text requires WebKit-specific properties */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -6268,28 +6547,44 @@ body.theme-light .data-point-filter-control__range-values {
 
 /* Enhanced notification type styles with better contrast */
 .notification.error {
-    background: linear-gradient(135deg, var(--c_hexef4444) 0%, var(--c_hexdc2626) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hexef4444) 0%,
+        var(--c_hexdc2626) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb2396868_30p);
 }
 
 .notification.success {
-    background: linear-gradient(135deg, var(--c_hex10b981) 0%, var(--c_hex059669) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hex10b981) 0%,
+        var(--c_hex059669) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb16185129_30p);
 }
 
 .notification.warning {
-    background: linear-gradient(135deg, var(--c_hexf59e0b) 0%, var(--c_hexd97706) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hexf59e0b) 0%,
+        var(--c_hexd97706) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb24515811_30p);
 }
 
 .notification.info {
-    background: linear-gradient(135deg, var(--c_hex6d28d9) 0%, var(--c_hex4c1d95) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hex6d28d9) 0%,
+        var(--c_hex4c1d95) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px rgb(var(--color-accent-rgb) / 35%);
@@ -6564,7 +6859,8 @@ footer {
 }
 
 .credits-section footer.credits-marquee {
-    animation: credits-marquee var(--credits-scroll-duration, 18s) linear infinite;
+    animation: credits-marquee var(--credits-scroll-duration, 18s) linear
+        infinite;
 }
 
 .credits-section footer.credits-marquee:hover {
@@ -6584,12 +6880,20 @@ footer {
 
 .credits-section.credits-section--marquee-active::before {
     left: 0;
-    background: linear-gradient(to right, var(--color-glass) 0%, rgb(0 0 0 / 0%) 100%);
+    background: linear-gradient(
+        to right,
+        var(--color-glass) 0%,
+        rgb(0 0 0 / 0%) 100%
+    );
 }
 
 .credits-section.credits-section--marquee-active::after {
     right: 0;
-    background: linear-gradient(to left, var(--color-glass) 0%, rgb(0 0 0 / 0%) 100%);
+    background: linear-gradient(
+        to left,
+        var(--color-glass) 0%,
+        rgb(0 0 0 / 0%) 100%
+    );
 }
 
 .credits-section a {
@@ -6902,7 +7206,11 @@ body.theme-dark .map-action-btn.disabled {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, var(--c_rgb303454_85p) 0%, var(--c_rgb202444_90p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb303454_85p) 0%,
+        var(--c_rgb202444_90p) 100%
+    );
     backdrop-filter: blur(12px);
     z-index: 10050;
     display: none;
@@ -6934,7 +7242,12 @@ body.theme-dark .map-action-btn.disabled {
     content: "";
     position: absolute;
     inset: -2px;
-    background: linear-gradient(45deg, var(--color-accent), transparent, var(--color-accent));
+    background: linear-gradient(
+        45deg,
+        var(--color-accent),
+        transparent,
+        var(--color-accent)
+    );
     border-radius: var(--border-radius);
     z-index: -1;
     animation: border-glow 3s linear infinite;

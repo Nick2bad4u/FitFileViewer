@@ -97,17 +97,23 @@ describe("loadSharedConfiguration.js", () => {
 
         // Re-setup mocks for this specific test
         const localChartStateManager = { debouncedRender: vi.fn() };
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({
-            chartStateManager: localChartStateManager,
-        }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({
+                chartStateManager: localChartStateManager,
+            })
+        );
 
         vi.doMock("../../../../../utils/charts/core/renderChartJS.js", () => ({
             renderChartJS: mockRenderChartJS,
         }));
 
-        vi.doMock("../../../../../utils/ui/notifications/showNotification.js", () => ({
-            showNotification: mockShowNotification,
-        }));
+        vi.doMock(
+            "../../../../../utils/ui/notifications/showNotification.js",
+            () => ({
+                showNotification: mockShowNotification,
+            })
+        );
 
         // Import the module under test with our freshly created mocks
         const { loadSharedConfiguration } =
@@ -116,18 +122,32 @@ describe("loadSharedConfiguration.js", () => {
         // Call the function
         loadSharedConfiguration();
 
-        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("heart_rate", "visible");
-        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("power", "visible");
-        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith("speed", "hidden");
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
+            "heart_rate",
+            "visible"
+        );
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
+            "power",
+            "visible"
+        );
+        expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
+            "speed",
+            "hidden"
+        );
         expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 5);
         expect(mockSetChartSetting).toHaveBeenCalledWith("showMarkers", true);
 
         // Check notification was shown
-        expect(mockShowNotification).toHaveBeenCalledWith("Chart configuration loaded from URL", "success");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            "Chart configuration loaded from URL",
+            "success"
+        );
 
         // Advance timers and check if rendering was triggered
         vi.advanceTimersByTime(100);
-        expect(localChartStateManager.debouncedRender).toHaveBeenCalledWith("Configuration loaded from URL");
+        expect(localChartStateManager.debouncedRender).toHaveBeenCalledWith(
+            "Configuration loaded from URL"
+        );
     });
 
     it("should use renderChartJS as fallback when chartStateManager is undefined", async () => {
@@ -144,9 +164,12 @@ describe("loadSharedConfiguration.js", () => {
         });
 
         // Ensure chartStateManager import resolves to undefined
-        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({
-            chartStateManager: undefined,
-        }));
+        vi.doMock(
+            "../../../../../utils/charts/core/chartStateManager.js",
+            () => ({
+                chartStateManager: undefined,
+            })
+        );
 
         // Keep renderChartJS mock to observe fallback
         vi.doMock("../../../../../utils/charts/core/renderChartJS.js", () => ({
@@ -169,9 +192,12 @@ describe("loadSharedConfiguration.js", () => {
         mockLocalStorage = {};
 
         // Mock showNotification
-        vi.doMock("../../../../../utils/ui/notifications/showNotification.js", () => ({
-            showNotification: mockShowNotification,
-        }));
+        vi.doMock(
+            "../../../../../utils/ui/notifications/showNotification.js",
+            () => ({
+                showNotification: mockShowNotification,
+            })
+        );
 
         // Set up URL parameter with simple configuration
         const configObject = { smoothing: 10 };
@@ -243,7 +269,10 @@ describe("loadSharedConfiguration.js", () => {
         expect(console.error).toHaveBeenCalled();
 
         // Warning notification should be shown
-        expect(mockShowNotification).toHaveBeenCalledWith("Failed to load shared configuration", "warning");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            "Failed to load shared configuration",
+            "warning"
+        );
     });
 
     it("should handle other exceptions during processing", async () => {
@@ -265,7 +294,10 @@ describe("loadSharedConfiguration.js", () => {
         expect(console.error).toHaveBeenCalled();
 
         // Warning notification should be shown
-        expect(mockShowNotification).toHaveBeenCalledWith("Failed to load shared configuration", "warning");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            "Failed to load shared configuration",
+            "warning"
+        );
 
         // Restore original URLSearchParams
         global.URLSearchParams = originalURLSearchParams;

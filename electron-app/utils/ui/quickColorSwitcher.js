@@ -1,15 +1,22 @@
 /**
- * @fileoverview Quick Accent Color Switcher
- * @description A sleek floating button for instant accent color switching
- * @author FitFileViewer Development Team
+ * A sleek floating button for instant accent color switching
+ *
  * @version 1.0.0
+ *
+ * @file Quick Accent Color Switcher
+ *
+ * @author FitFileViewer Development Team
  */
 
-import { getEffectiveAccentColor, setAccentColor } from "../theming/core/accentColor.js";
+import {
+    getEffectiveAccentColor,
+    setAccentColor,
+} from "../theming/core/accentColor.js";
 import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
 
 /**
  * Preset color palettes with witty names
+ *
  * @private
  */
 const COLOR_PRESETS = [
@@ -25,6 +32,7 @@ const COLOR_PRESETS = [
 
 /**
  * ID for the color switcher element
+ *
  * @private
  */
 const SWITCHER_ID = "quick-color-switcher";
@@ -51,6 +59,7 @@ export function initQuickColorSwitcher() {
 
 /**
  * Updates the active color in the switcher
+ *
  * @param {string} color - The new active color
  */
 export function updateSwitcherActiveColor(color) {
@@ -65,8 +74,10 @@ export function updateSwitcherActiveColor(color) {
 
 /**
  * Creates the switcher DOM element
- * @returns {HTMLElement} The switcher element
+ *
  * @private
+ *
+ * @returns {HTMLElement} The switcher element
  */
 function createSwitcherElement() {
     const switcher = document.createElement("div");
@@ -122,6 +133,7 @@ function createSwitcherElement() {
 
 /**
  * Injects CSS styles for the switcher
+ *
  * @private
  */
 function injectSwitcherStyles() {
@@ -346,8 +358,10 @@ function injectSwitcherStyles() {
 
 /**
  * Sets up event listeners for the switcher
- * @param {HTMLElement} switcher - The switcher element
+ *
  * @private
+ *
+ * @param {HTMLElement} switcher - The switcher element
  */
 function setupSwitcherListeners(switcher) {
     const toggle = switcher.querySelector("#color-switcher-toggle");

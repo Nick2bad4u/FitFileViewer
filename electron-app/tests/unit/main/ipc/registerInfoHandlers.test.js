@@ -11,7 +11,10 @@ describe("registerInfoHandlers", () => {
     let path;
     let logWithContext;
     let mockConfGet;
-    const CONSTANTS = { DEFAULT_THEME: "light", SETTINGS_CONFIG_NAME: "ffv-settings" };
+    const CONSTANTS = {
+        DEFAULT_THEME: "light",
+        SETTINGS_CONFIG_NAME: "ffv-settings",
+    };
 
     beforeEach(async () => {
         vi.resetModules();
@@ -24,7 +27,8 @@ describe("registerInfoHandlers", () => {
             return key in store ? store[key] : fallback;
         });
 
-        ({ registerInfoHandlers } = await import("../../../../main/ipc/registerInfoHandlers.js"));
+        ({ registerInfoHandlers } =
+            await import("../../../../main/ipc/registerInfoHandlers.js"));
         registerIpcHandle = vi.fn();
         appRef = vi.fn().mockReturnValue({
             getVersion: vi.fn().mockReturnValue("1.2.3"),
@@ -58,21 +62,39 @@ describe("registerInfoHandlers", () => {
     };
 
     it("no-ops when registerIpcHandle is missing", () => {
-        registerInfoHandlers({ registerIpcHandle: null, appRef, fs, path, CONSTANTS, logWithContext });
+        registerInfoHandlers({
+            registerIpcHandle: null,
+            appRef,
+            fs,
+            path,
+            CONSTANTS,
+            logWithContext,
+        });
         expect(registerIpcHandle).not.toHaveBeenCalled();
     });
 
     it("provides app/platform metadata and map/theme defaults", async () => {
         const handlers = getHandlers();
         const licenseJson = { license: "Unlicense" };
-        fs.readFileSync.mockReturnValue(Buffer.from(JSON.stringify(licenseJson)));
+        fs.readFileSync.mockReturnValue(
+            Buffer.from(JSON.stringify(licenseJson))
+        );
 
         await expect(handlers.getAppVersion()).resolves.toBe("1.2.3");
-        await expect(handlers.getChromeVersion()).resolves.toBe(process.versions.chrome);
-        await expect(handlers.getElectronVersion()).resolves.toBe(process.versions.electron);
+        await expect(handlers.getChromeVersion()).resolves.toBe(
+            process.versions.chrome
+        );
+        await expect(handlers.getElectronVersion()).resolves.toBe(
+            process.versions.electron
+        );
         await expect(handlers.getLicenseInfo()).resolves.toBe("Unlicense");
-        await expect(handlers.getNodeVersion()).resolves.toBe(process.versions.node);
-        await expect(handlers.getPlatformInfo()).resolves.toEqual({ arch: process.arch, platform: process.platform });
+        await expect(handlers.getNodeVersion()).resolves.toBe(
+            process.versions.node
+        );
+        await expect(handlers.getPlatformInfo()).resolves.toEqual({
+            arch: process.arch,
+            platform: process.platform,
+        });
         await expect(handlers["map-tab:get"]()).resolves.toBe("map");
         await expect(handlers["theme:get"]()).resolves.toBe("dark");
 
@@ -88,9 +110,13 @@ describe("registerInfoHandlers", () => {
 
         await expect(handlers.getLicenseInfo()).resolves.toBe("Unknown");
 
-        expect(logWithContext).toHaveBeenCalledWith("error", "Failed to read license from package.json:", {
-            error: "fs failure",
-        });
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Failed to read license from package.json:",
+            {
+                error: "fs failure",
+            }
+        );
     });
 
     it("normalizes corrupted persisted theme/map-tab values", async () => {
@@ -102,6 +128,8 @@ describe("registerInfoHandlers", () => {
 
         const handlers = getHandlers();
         await expect(handlers["map-tab:get"]()).resolves.toBe("map");
-        await expect(handlers["theme:get"]()).resolves.toBe(CONSTANTS.DEFAULT_THEME);
+        await expect(handlers["theme:get"]()).resolves.toBe(
+            CONSTANTS.DEFAULT_THEME
+        );
     });
 });

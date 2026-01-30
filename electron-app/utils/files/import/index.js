@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for files/import
- * @description Re-exports all modules in the files/import category
+ * Re-exports all modules in the files/import category
+ *
+ * @file Barrel Export for files/import
  */
 export * from "./fitParserIntegration.js";
 export * from "./getOverlayFileName.js";

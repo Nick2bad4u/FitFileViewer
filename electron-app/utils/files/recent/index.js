@@ -1,21 +1,24 @@
 /**
- * @fileoverview Barrel Export for files/recent
- * @description Provides safe, lazy-loaded accessors to recent files utilities.
- * Avoids evaluating Node-only requires in the renderer environment.
+ * Provides safe, lazy-loaded accessors to recent files utilities. Avoids
+ * evaluating Node-only requires in the renderer environment.
+ *
+ * @file Barrel Export for files/recent
  */
 
-/** @type {any|null} */
+/** @type {any | null} */
 let __recentModule = null;
 
 export function addRecentFile(filePath) {
     const mod = loadRecentModule();
-    if (mod && typeof mod.addRecentFile === "function") return mod.addRecentFile(filePath);
+    if (mod && typeof mod.addRecentFile === "function")
+        return mod.addRecentFile(filePath);
     // No-op in renderer/SSR without Node file access
 }
 
 export function getShortRecentName(file) {
     const mod = loadRecentModule();
-    if (mod && typeof mod.getShortRecentName === "function") return mod.getShortRecentName(file);
+    if (mod && typeof mod.getShortRecentName === "function")
+        return mod.getShortRecentName(file);
     if (typeof file !== "string") return "";
     // Fallback basename logic without path module
     const parts = file.split(/[/\\]/);
@@ -24,13 +27,15 @@ export function getShortRecentName(file) {
 
 export function loadRecentFiles() {
     const mod = loadRecentModule();
-    if (mod && typeof mod.loadRecentFiles === "function") return mod.loadRecentFiles();
+    if (mod && typeof mod.loadRecentFiles === "function")
+        return mod.loadRecentFiles();
     return [];
 }
 
 export function saveRecentFiles(list) {
     const mod = loadRecentModule();
-    if (mod && typeof mod.saveRecentFiles === "function") return mod.saveRecentFiles(list);
+    if (mod && typeof mod.saveRecentFiles === "function")
+        return mod.saveRecentFiles(list);
     // No-op in renderer/SSR without Node file access
 }
 

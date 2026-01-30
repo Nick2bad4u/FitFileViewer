@@ -9,7 +9,9 @@ const saveChartSpecificZoneColorMock = vi.fn();
 const setChartColorSchemeMock = vi.fn();
 const showNotificationMock = vi.fn();
 
-const chartStateManagerRef: { current: { debouncedRender: typeof debouncedRenderMock } | null } = {
+const chartStateManagerRef: {
+    current: { debouncedRender: typeof debouncedRenderMock } | null;
+} = {
     current: { debouncedRender: debouncedRenderMock },
 };
 
@@ -21,8 +23,20 @@ vi.mock("../../../../../utils/charts/core/chartStateManager.js", () => ({
 
 vi.mock("../../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     applyZoneColors: applyZoneColorsMock,
-    DEFAULT_HR_ZONE_COLORS: ["#ff5500", "#ff8800", "#ffaa00", "#ffcc00", "#ffee00"],
-    DEFAULT_POWER_ZONE_COLORS: ["#0044ff", "#3366ff", "#5588ff", "#77aaff", "#99ccff"],
+    DEFAULT_HR_ZONE_COLORS: [
+        "#ff5500",
+        "#ff8800",
+        "#ffaa00",
+        "#ffcc00",
+        "#ffee00",
+    ],
+    DEFAULT_POWER_ZONE_COLORS: [
+        "#0044ff",
+        "#3366ff",
+        "#5588ff",
+        "#77aaff",
+        "#99ccff",
+    ],
     getChartSpecificZoneColor: getChartSpecificZoneColorMock,
     removeChartSpecificZoneColor: removeChartSpecificZoneColorMock,
     removeZoneColor: removeZoneColorMock,
@@ -68,10 +82,13 @@ describe("openZoneColorPicker", () => {
         setChartColorSchemeMock.mockClear();
         showNotificationMock.mockClear();
 
-        applyZoneColorsMock.mockImplementation((zones: Array<Record<string, unknown>>) =>
-            zones.map((zone) => ({ ...zone }))
+        applyZoneColorsMock.mockImplementation(
+            (zones: Array<Record<string, unknown>>) =>
+                zones.map((zone) => ({ ...zone }))
         );
-        getChartSpecificZoneColorMock.mockImplementation((_field: string, index: number) => `#aa00${index}${index}`);
+        getChartSpecificZoneColorMock.mockImplementation(
+            (_field: string, index: number) => `#aa00${index}${index}`
+        );
     });
 
     afterEach(() => {
@@ -90,7 +107,10 @@ describe("openZoneColorPicker", () => {
 
         openZoneColorPicker("unknown-field");
 
-        expect(showNotificationMock).toHaveBeenCalledWith("Unknown zone type", "error");
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "Unknown zone type",
+            "error"
+        );
         expect(document.querySelector("#zone-color-picker-overlay")).toBeNull();
         expect(applyZoneColorsMock).not.toHaveBeenCalled();
     });
@@ -101,7 +121,10 @@ describe("openZoneColorPicker", () => {
 
         openZoneColorPicker("hr_zone");
 
-        expect(showNotificationMock).toHaveBeenCalledWith("No heart rate zone data available", "warning");
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "No heart rate zone data available",
+            "warning"
+        );
         expect(applyZoneColorsMock).not.toHaveBeenCalled();
     });
 
@@ -124,7 +147,8 @@ describe("openZoneColorPicker", () => {
         const inlineSelectorsMock = vi.fn();
         const resetAllSettingsMock = vi.fn();
         const globalNotificationMock = vi.fn();
-        (globalThis as any).updateInlineZoneColorSelectors = inlineSelectorsMock;
+        (globalThis as any).updateInlineZoneColorSelectors =
+            inlineSelectorsMock;
         (globalThis as any).resetAllSettings = resetAllSettingsMock;
         (globalThis as any).showNotification = globalNotificationMock;
 
@@ -132,50 +156,83 @@ describe("openZoneColorPicker", () => {
 
         module.openZoneColorPicker("hr_zone");
 
-        const overlay = document.querySelector<HTMLDivElement>("#zone-color-picker-overlay");
+        const overlay = document.querySelector<HTMLDivElement>(
+            "#zone-color-picker-overlay"
+        );
         expect(overlay).toBeTruthy();
         if (!overlay) {
             throw new Error("Zone color picker overlay not rendered");
         }
-        expect(applyZoneColorsMock).toHaveBeenCalledWith(expect.any(Array), "heart rate");
+        expect(applyZoneColorsMock).toHaveBeenCalledWith(
+            expect.any(Array),
+            "heart rate"
+        );
 
-        const colorInput = overlay.querySelector<HTMLInputElement>('input[type="color"]');
+        const colorInput = overlay.querySelector<HTMLInputElement>(
+            'input[type="color"]'
+        );
         expect(colorInput).toBeTruthy();
         if (!colorInput) {
             throw new Error("Color input not rendered");
         }
-        const colorPreview = colorInput.previousElementSibling as HTMLDivElement | null;
+        const colorPreview =
+            colorInput.previousElementSibling as HTMLDivElement | null;
 
         colorInput.value = "#123456";
         colorInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-        expect(setChartColorSchemeMock).toHaveBeenCalledWith("hr_zone", "custom");
-        expect(saveChartSpecificZoneColorMock).toHaveBeenCalledWith("hr_zone", 0, "#123456");
+        expect(setChartColorSchemeMock).toHaveBeenCalledWith(
+            "hr_zone",
+            "custom"
+        );
+        expect(saveChartSpecificZoneColorMock).toHaveBeenCalledWith(
+            "hr_zone",
+            0,
+            "#123456"
+        );
         if (colorPreview) {
-            expect(colorPreview.style.background.toLowerCase()).toBe("rgb(18, 52, 86)");
+            expect(colorPreview.style.background.toLowerCase()).toBe(
+                "rgb(18, 52, 86)"
+            );
         }
         expect(inlineSelectorsMock).toHaveBeenCalled();
 
-        const resetAllButton = overlay.querySelector<HTMLButtonElement>(".reset-all-btn");
+        const resetAllButton =
+            overlay.querySelector<HTMLButtonElement>(".reset-all-btn");
         expect(resetAllButton).toBeTruthy();
         resetAllButton?.click();
 
-        expect(setChartColorSchemeMock).toHaveBeenCalledWith("hr_zone", "custom");
-        expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith("hr_zone", 0);
+        expect(setChartColorSchemeMock).toHaveBeenCalledWith(
+            "hr_zone",
+            "custom"
+        );
+        expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith(
+            "hr_zone",
+            0
+        );
         expect(removeZoneColorMock).toHaveBeenCalledWith("hr", 0);
         expect(checkbox.checked).toBe(true);
         expect(resetAllSettingsMock).toHaveBeenCalled();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
-        expect(globalNotificationMock).toHaveBeenCalledWith("Zone colors and settings reset to defaults", "success");
+        expect(globalNotificationMock).toHaveBeenCalledWith(
+            "Zone colors and settings reset to defaults",
+            "success"
+        );
 
-        const applyButton = Array.from(overlay.querySelectorAll<HTMLButtonElement>("button")).find(
-            (btn) => btn.textContent && btn.textContent.includes("Apply & Close")
+        const applyButton = Array.from(
+            overlay.querySelectorAll<HTMLButtonElement>("button")
+        ).find(
+            (btn) =>
+                btn.textContent && btn.textContent.includes("Apply & Close")
         );
         expect(applyButton).toBeTruthy();
         applyButton?.click();
 
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors applied");
-        expect(showNotificationMock).toHaveBeenCalledWith("Heart Rate zone colors updated", "success");
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "Heart Rate zone colors updated",
+            "success"
+        );
         expect(document.body.contains(overlay)).toBe(false);
     });
 });
@@ -208,7 +265,8 @@ describe("updateZoneColorPreview", () => {
 
         module.updateZoneColorPreview("hr_zone", 0, "#fedcba");
 
-        const dataset = (globalThis as any)._chartjsInstances[0].data.datasets[0];
+        const dataset = (globalThis as any)._chartjsInstances[0].data
+            .datasets[0];
         expect(dataset.backgroundColor[0]).toBe("#fedcba");
         expect(updateMock).toHaveBeenCalledWith("none");
     });
@@ -230,7 +288,9 @@ describe("updateZoneColorPreview", () => {
             },
         ];
 
-        expect(() => module.updateZoneColorPreview("hr_zone", 0, "#abcdef")).not.toThrow();
+        expect(() =>
+            module.updateZoneColorPreview("hr_zone", 0, "#abcdef")
+        ).not.toThrow();
         expect(updateMock).not.toHaveBeenCalled();
     });
 });

@@ -6,21 +6,36 @@ const hoisted = vi.hoisted(() => {
     const showNotification = vi.fn();
     const debouncedRender = vi.fn();
 
-    const DEFAULT_HR_ZONE_COLORS = ["#a", "#b", "#c"];
-    const DEFAULT_POWER_ZONE_COLORS = ["#1", "#2", "#3", "#4"];
+    const DEFAULT_HR_ZONE_COLORS = [
+        "#a",
+        "#b",
+        "#c",
+    ];
+    const DEFAULT_POWER_ZONE_COLORS = [
+        "#1",
+        "#2",
+        "#3",
+        "#4",
+    ];
     const storeChartSpecific: Record<string, string> = {};
     const storeGeneric: Record<string, string> = {};
     const schemeStore: Record<string, string> = {};
     const getChartSpecificZoneColor = vi.fn(
-        (field: string, idx: number) => storeChartSpecific[`${field}:${idx}`] || "#000000"
+        (field: string, idx: number) =>
+            storeChartSpecific[`${field}:${idx}`] || "#000000"
     );
     const getStoredChartSpecificZoneColor = vi.fn(
-        (field: string, idx: number) => storeChartSpecific[`${field}:${idx}`] || null
+        (field: string, idx: number) =>
+            storeChartSpecific[`${field}:${idx}`] || null
     );
-    const getStoredZoneColor = vi.fn((type: string, idx: number) => storeGeneric[`${type}:${idx}`] || null);
-    const saveChartSpecificZoneColor = vi.fn((field: string, idx: number, val: string) => {
-        storeChartSpecific[`${field}:${idx}`] = val;
-    });
+    const getStoredZoneColor = vi.fn(
+        (type: string, idx: number) => storeGeneric[`${type}:${idx}`] || null
+    );
+    const saveChartSpecificZoneColor = vi.fn(
+        (field: string, idx: number, val: string) => {
+            storeChartSpecific[`${field}:${idx}`] = val;
+        }
+    );
     const saveZoneColor = vi.fn((type: string, idx: number, val: string) => {
         storeGeneric[`${type}:${idx}`] = val;
     });
@@ -30,7 +45,9 @@ const hoisted = vi.hoisted(() => {
     const removeZoneColor = vi.fn((type: string, idx: number) => {
         delete storeGeneric[`${type}:${idx}`];
     });
-    const getChartColorScheme = vi.fn((field: string) => schemeStore[field] || "custom");
+    const getChartColorScheme = vi.fn(
+        (field: string) => schemeStore[field] || "custom"
+    );
     const setChartColorScheme = vi.fn((field: string, scheme: string) => {
         schemeStore[field] = scheme;
         return scheme;
@@ -39,17 +56,23 @@ const hoisted = vi.hoisted(() => {
         delete schemeStore[field];
         return true;
     });
-    const resetChartSpecificZoneColors = vi.fn((field: string, count: number) => {
-        for (let i = 0; i < count; i++) delete storeChartSpecific[`${field}:${i}`];
-    });
+    const resetChartSpecificZoneColors = vi.fn(
+        (field: string, count: number) => {
+            for (let i = 0; i < count; i++)
+                delete storeChartSpecific[`${field}:${i}`];
+        }
+    );
     const resetZoneColors = vi.fn((type: string, count: number) => {
         for (let i = 0; i < count; i++) delete storeGeneric[`${type}:${i}`];
     });
-    const getChartZoneColors = vi.fn((zoneType: string, count: number, scheme: string) =>
-        Array.from({ length: count }, (_, i) => `#S-${scheme}-${i}`)
+    const getChartZoneColors = vi.fn(
+        (zoneType: string, count: number, scheme: string) =>
+            Array.from({ length: count }, (_, i) => `#S-${scheme}-${i}`)
     );
     const applyZoneColors = vi.fn((zones: any[], _type: string) => zones);
-    const getZoneTypeFromField = vi.fn((field: string) => (field.includes("hr") ? "hr" : "power"));
+    const getZoneTypeFromField = vi.fn((field: string) =>
+        field.includes("hr") ? "hr" : "power"
+    );
 
     // Cache invalidation helper used by the selector when switching schemes.
     const clearCachedChartZoneColor = vi.fn();
@@ -83,7 +106,9 @@ const hoisted = vi.hoisted(() => {
 });
 
 // Use the real formatTime implementation to avoid hoisting/TDZ issues
-vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({ renderChartJS: hoisted.renderChartJS }));
+vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
+    renderChartJS: hoisted.renderChartJS,
+}));
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
     showNotification: hoisted.showNotification,
 }));
@@ -159,7 +184,10 @@ describe("createInlineZoneColorSelector", () => {
     it("creates Power zone selector and scheme change updates generic colors and triggers rerender", () => {
         const container = document.createElement("div");
         document.body.appendChild(container);
-        const el = createInlineZoneColorSelector("power_zone", container) as any;
+        const el = createInlineZoneColorSelector(
+            "power_zone",
+            container
+        ) as any;
         expect(el).toBeTruthy();
         // Change scheme from default custom to vibrant
         const select = container.querySelector("select") as HTMLSelectElement;
@@ -177,15 +205,28 @@ describe("createInlineZoneColorSelector", () => {
         const el = createInlineZoneColorSelector("hr_zone", container) as any;
         expect(el).toBeTruthy();
         const item = container.querySelector(".zone-color-item") as HTMLElement;
-        const input = item.querySelector(".zone-color-input") as HTMLInputElement;
-        const preview = item.querySelector(".zone-color-preview") as HTMLElement;
+        const input = item.querySelector(
+            ".zone-color-input"
+        ) as HTMLInputElement;
+        const preview = item.querySelector(
+            ".zone-color-preview"
+        ) as HTMLElement;
         input.value = "#ff0000";
         input.dispatchEvent(new Event("change"));
-        expect(hoisted.setChartColorScheme).toHaveBeenCalledWith("hr_zone", "custom");
-        expect(hoisted.saveChartSpecificZoneColor).toHaveBeenCalledWith("hr_zone", 0, "#ff0000");
+        expect(hoisted.setChartColorScheme).toHaveBeenCalledWith(
+            "hr_zone",
+            "custom"
+        );
+        expect(hoisted.saveChartSpecificZoneColor).toHaveBeenCalledWith(
+            "hr_zone",
+            0,
+            "#ff0000"
+        );
         expect(hoisted.saveZoneColor).toHaveBeenCalledWith("hr", 0, "#ff0000");
         const bg = getComputedStyle(preview).backgroundColor;
-        expect(bg === "#ff0000" || /rgb\(\s*255\s*,\s*0\s*,\s*0\s*\)/i.test(bg)).toBe(true);
+        expect(
+            bg === "#ff0000" || /rgb\(\s*255\s*,\s*0\s*,\s*0\s*\)/i.test(bg)
+        ).toBe(true);
     });
 
     it("reset button clears storages and triggers rerender and update of all selectors", () => {
@@ -229,7 +270,9 @@ describe("createInlineZoneColorSelector", () => {
 
         // remove
         removeInlineZoneColorSelectors(container);
-        expect(container.querySelector(".inline-zone-color-selector")).toBeNull();
+        expect(
+            container.querySelector(".inline-zone-color-selector")
+        ).toBeNull();
 
         // scheme getter
         expect(getCurrentColorScheme("hr_zone")).toBe("custom");

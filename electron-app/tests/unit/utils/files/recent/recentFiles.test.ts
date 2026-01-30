@@ -21,7 +21,9 @@ describe("recentFiles utility", () => {
 
         // Clear the cache to ensure fresh module load
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        delete require.cache[require.resolve("../../../../../utils/files/recent/recentFiles.js")];
+        delete require.cache[
+            require.resolve("../../../../../utils/files/recent/recentFiles.js")
+        ];
 
         // Setup environment variable for test file path
         process.env.RECENT_FILES_PATH = TEST_FILE_PATH;
@@ -38,7 +40,9 @@ describe("recentFiles utility", () => {
         cpath = require("path");
 
         // Default: neutralize writes to real filesystem and allow call assertions
-        writeSpyDefault = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
+        writeSpyDefault = vi
+            .spyOn(cfs, "writeFileSync")
+            .mockImplementation(() => {});
 
         // Import the module after mocks and spies are setup
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -72,7 +76,9 @@ describe("recentFiles utility", () => {
         // Setup
         const testData = ["file1.fit", "file2.fit"];
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
-        vi.spyOn(cfs, "readFileSync").mockReturnValue(JSON.stringify(testData) as any);
+        vi.spyOn(cfs, "readFileSync").mockReturnValue(
+            JSON.stringify(testData) as any
+        );
 
         // Execute
         const result = recentFiles.loadRecentFiles();
@@ -95,13 +101,20 @@ describe("recentFiles utility", () => {
 
         // Verify
         expect(result).toEqual([]);
-        expect(console.error).toHaveBeenCalledWith("Failed to load recent files:", expect.any(Error));
+        expect(console.error).toHaveBeenCalledWith(
+            "Failed to load recent files:",
+            expect.any(Error)
+        );
     });
     it("saveRecentFiles writes data to file", () => {
         const testData = ["file1.fit", "file2.fit"];
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         recentFiles.saveRecentFiles(testData);
-        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData), "utf8");
+        expect(spy).toHaveBeenCalledWith(
+            TEST_FILE_PATH,
+            JSON.stringify(testData),
+            "utf8"
+        );
     });
 
     it("saveRecentFiles caps list to 10 items", () => {
@@ -112,7 +125,11 @@ describe("recentFiles utility", () => {
         recentFiles.saveRecentFiles(testData);
 
         // Verify only first 10 saved
-        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData.slice(0, 10)), "utf8");
+        expect(spy).toHaveBeenCalledWith(
+            TEST_FILE_PATH,
+            JSON.stringify(testData.slice(0, 10)),
+            "utf8"
+        );
     });
 
     it("saveRecentFiles handles write errors", () => {
@@ -125,14 +142,19 @@ describe("recentFiles utility", () => {
         recentFiles.saveRecentFiles(["test.fit"]);
 
         // Verify error handled
-        expect(console.error).toHaveBeenCalledWith("Failed to save recent files:", expect.any(Error));
+        expect(console.error).toHaveBeenCalledWith(
+            "Failed to save recent files:",
+            expect.any(Error)
+        );
     });
 
     it("addRecentFile adds new file to beginning of list", () => {
         // Setup: existing list
         const existingFiles = ["file1.fit", "file2.fit"];
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
-        vi.spyOn(cfs, "readFileSync").mockReturnValue(JSON.stringify(existingFiles) as any);
+        vi.spyOn(cfs, "readFileSync").mockReturnValue(
+            JSON.stringify(existingFiles) as any
+        );
 
         // Execute: add new file
         recentFiles.addRecentFile("newfile.fit");
@@ -140,16 +162,26 @@ describe("recentFiles utility", () => {
         // Verify: new file at beginning
         expect(cfs.writeFileSync).toHaveBeenCalledWith(
             TEST_FILE_PATH,
-            JSON.stringify(["newfile.fit", "file1.fit", "file2.fit"]),
+            JSON.stringify([
+                "newfile.fit",
+                "file1.fit",
+                "file2.fit",
+            ]),
             "utf8"
         );
     });
 
     it("addRecentFile moves existing file to beginning", () => {
         // Setup: existing list with file to be moved
-        const existingFiles = ["file1.fit", "file2.fit", "file3.fit"];
+        const existingFiles = [
+            "file1.fit",
+            "file2.fit",
+            "file3.fit",
+        ];
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
-        vi.spyOn(cfs, "readFileSync").mockReturnValue(JSON.stringify(existingFiles) as any);
+        vi.spyOn(cfs, "readFileSync").mockReturnValue(
+            JSON.stringify(existingFiles) as any
+        );
 
         // Execute: move existing file to top
         recentFiles.addRecentFile("file2.fit");
@@ -157,7 +189,11 @@ describe("recentFiles utility", () => {
         // Verify: file moved to beginning
         expect(cfs.writeFileSync).toHaveBeenCalledWith(
             TEST_FILE_PATH,
-            JSON.stringify(["file2.fit", "file1.fit", "file3.fit"]),
+            JSON.stringify([
+                "file2.fit",
+                "file1.fit",
+                "file3.fit",
+            ]),
             "utf8"
         );
     });
@@ -166,7 +202,9 @@ describe("recentFiles utility", () => {
         // Setup: file already at top
         const existingFiles = ["file1.fit", "file2.fit"];
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
-        vi.spyOn(cfs, "readFileSync").mockReturnValue(JSON.stringify(existingFiles) as any);
+        vi.spyOn(cfs, "readFileSync").mockReturnValue(
+            JSON.stringify(existingFiles) as any
+        );
 
         // Execute: add file already at top
         recentFiles.addRecentFile("file1.fit");
@@ -184,8 +222,14 @@ describe("recentFiles utility", () => {
         recentFiles.addRecentFile("newfile.fit");
 
         // Verify: warning logged and new list created
-        expect(console.warn).toHaveBeenCalledWith("Invalid recent files list, resetting to an empty array.");
-        expect(cfs.writeFileSync).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(["newfile.fit"]), "utf8");
+        expect(console.warn).toHaveBeenCalledWith(
+            "Invalid recent files list, resetting to an empty array."
+        );
+        expect(cfs.writeFileSync).toHaveBeenCalledWith(
+            TEST_FILE_PATH,
+            JSON.stringify(["newfile.fit"]),
+            "utf8"
+        );
     });
 
     it("getShortRecentName handles empty input", () => {
@@ -197,7 +241,9 @@ describe("recentFiles utility", () => {
 
         // Verify
         expect(result).toBe("");
-        expect(console.warn).toHaveBeenCalledWith("Invalid file path provided to getShortRecentName.");
+        expect(console.warn).toHaveBeenCalledWith(
+            "Invalid file path provided to getShortRecentName."
+        );
     });
 
     it("getShortRecentName returns basename of file path", () => {
@@ -216,7 +262,8 @@ describe("recentFiles utility", () => {
     // Initialization branch coverage
     function requireFresh() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const modPath = require.resolve("../../../../../utils/files/recent/recentFiles.js");
+        const modPath =
+            require.resolve("../../../../../utils/files/recent/recentFiles.js");
         // @ts-ignore
         delete require.cache[modPath];
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -236,7 +283,10 @@ describe("recentFiles utility", () => {
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
-        const calledPath = String((spy.mock as any).calls[0][0]).replace(/\\/g, "/");
+        const calledPath = String((spy.mock as any).calls[0][0]).replace(
+            /\\/g,
+            "/"
+        );
         expect(calledPath).toBe("/mock/userdata/recent-files.json");
     });
 
@@ -263,21 +313,34 @@ describe("recentFiles utility", () => {
         try {
             const eid = require.resolve("electron");
             delete require.cache[eid];
-            require.cache[eid] = { id: eid, filename: eid, loaded: true, exports: {} } as any;
+            require.cache[eid] = {
+                id: eid,
+                filename: eid,
+                loaded: true,
+                exports: {},
+            } as any;
         } catch {}
         let exitHandler: any;
-        const procOn = vi.spyOn(process as any, "on" as any).mockImplementation(((event: any, handler: any) => {
-            if (event === "exit") exitHandler = handler;
-            // @ts-ignore
-            return process;
-        }) as any);
+        const procOn = vi
+            .spyOn(process as any, "on" as any)
+            .mockImplementation(((event: any, handler: any) => {
+                if (event === "exit") exitHandler = handler;
+                // @ts-ignore
+                return process;
+            }) as any);
         const rf = requireFresh();
-        const writeSpy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
-        const unlinkSpy = vi.spyOn(cfs, "unlinkSync").mockImplementation(() => {});
+        const writeSpy = vi
+            .spyOn(cfs, "writeFileSync")
+            .mockImplementation(() => {});
+        const unlinkSpy = vi
+            .spyOn(cfs, "unlinkSync")
+            .mockImplementation(() => {});
         rf.saveRecentFiles(["z"]);
         const savedPath = String((writeSpy.mock as any).calls[0][0]);
         // Ensure cleanup sees existing file
-        vi.spyOn(cfs, "existsSync").mockImplementation((p: any) => String(p) === savedPath);
+        vi.spyOn(cfs, "existsSync").mockImplementation(
+            (p: any) => String(p) === savedPath
+        );
         // Call captured handler
         exitHandler?.();
         expect(unlinkSpy).toHaveBeenCalledWith(savedPath);
@@ -313,16 +376,23 @@ describe("recentFiles utility", () => {
         try {
             const eid = require.resolve("electron");
             delete require.cache[eid];
-            require.cache[eid] = { id: eid, filename: eid, loaded: true, exports: {} } as any;
+            require.cache[eid] = {
+                id: eid,
+                filename: eid,
+                loaded: true,
+                exports: {},
+            } as any;
         } catch {}
-        const procOn = vi.spyOn(process as any, "on" as any).mockImplementation(((event: any, handler: any) => {
-            if (event === "exit") {
-                // invoke immediately to simulate exit later
-                (process as any).__rf_cleanup__ = handler;
-            }
-            // @ts-ignore
-            return process;
-        }) as any);
+        const procOn = vi
+            .spyOn(process as any, "on" as any)
+            .mockImplementation(((event: any, handler: any) => {
+                if (event === "exit") {
+                    // invoke immediately to simulate exit later
+                    (process as any).__rf_cleanup__ = handler;
+                }
+                // @ts-ignore
+                return process;
+            }) as any);
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
@@ -338,9 +408,16 @@ describe("recentFiles utility", () => {
         try {
             const eid = require.resolve("electron");
             delete require.cache[eid];
-            require.cache[eid] = { id: eid, filename: eid, loaded: true, exports: {} } as any;
+            require.cache[eid] = {
+                id: eid,
+                filename: eid,
+                loaded: true,
+                exports: {},
+            } as any;
         } catch {}
-        const exists = vi.spyOn(cfs, "existsSync").mockReturnValue(false as any);
+        const exists = vi
+            .spyOn(cfs, "existsSync")
+            .mockReturnValue(false as any);
         const mkdir = vi.spyOn(cfs, "mkdirSync").mockImplementation(() => {
             throw new Error("mkdir failed");
         });

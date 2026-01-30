@@ -1,7 +1,9 @@
 /**
- * @fileoverview Cancellation Token System for Async Operations
- * @description Provides a mechanism to cancel ongoing async operations like chart rendering
- * when the user navigates away or performs other actions that make the operation irrelevant.
+ * Provides a mechanism to cancel ongoing async operations like chart rendering
+ * when the user navigates away or performs other actions that make the
+ * operation irrelevant.
+ *
+ * @file Cancellation Token System for Async Operations
  */
 
 /**
@@ -12,6 +14,7 @@ export class CancellationToken {
 
     /**
      * Check if operation is cancelled
+     *
      * @returns {boolean}
      */
     get isCancelled() {
@@ -21,7 +24,7 @@ export class CancellationToken {
     constructor() {
         /** @type {boolean} */
 
-        /** @type {Array<() => void>} */
+        /** @type {(() => void)[]} */
         this._callbacks = [];
     }
 
@@ -40,7 +43,10 @@ export class CancellationToken {
             try {
                 callback();
             } catch (error) {
-                console.error("[CancellationToken] Error in cancellation callback:", error);
+                console.error(
+                    "[CancellationToken] Error in cancellation callback:",
+                    error
+                );
             }
         }
 
@@ -49,7 +55,9 @@ export class CancellationToken {
 
     /**
      * Register a callback to be called when cancelled
+     *
      * @param {() => void} callback - Callback function
+     *
      * @returns {() => void} Unsubscribe function
      */
     onCancel(callback) {
@@ -62,7 +70,10 @@ export class CancellationToken {
             try {
                 callback();
             } catch (error) {
-                console.error("[CancellationToken] Error in immediate cancellation callback:", error);
+                console.error(
+                    "[CancellationToken] Error in immediate cancellation callback:",
+                    error
+                );
             }
             return () => {}; // No-op unsubscribe
         }
@@ -79,6 +90,7 @@ export class CancellationToken {
     }
     /**
      * Throw if cancelled
+     *
      * @throws {Error} If operation is cancelled
      */
     throwIfCancelled() {
@@ -114,7 +126,9 @@ export class CancellationTokenSource {
 
 /**
  * Create a cancellation token that automatically cancels after a timeout
+ *
  * @param {number} timeout - Timeout in milliseconds
+ *
  * @returns {CancellationTokenSource}
  */
 export function createTimeoutCancellationToken(timeout) {
@@ -129,8 +143,10 @@ export function createTimeoutCancellationToken(timeout) {
 
 /**
  * Delay with cancellation support
+ *
  * @param {number} ms - Milliseconds to wait
  * @param {CancellationToken} [token] - Optional cancellation token
+ *
  * @returns {Promise<void>}
  */
 export async function delay(ms, token) {
@@ -160,9 +176,13 @@ export async function delay(ms, token) {
 
 /**
  * Check if an error is a cancellation error
+ *
  * @param {any} error - Error to check
+ *
  * @returns {boolean}
  */
 export function isCancellationError(error) {
-    return error instanceof Error && error.message === "Operation was cancelled";
+    return (
+        error instanceof Error && error.message === "Operation was cancelled"
+    );
 }

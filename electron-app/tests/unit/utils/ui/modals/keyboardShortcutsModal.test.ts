@@ -14,13 +14,22 @@ const rafMock = vi.fn((callback: FrameRequestCallback) => {
 vi.stubGlobal("requestAnimationFrame", rafMock);
 vi.stubGlobal("cancelAnimationFrame", cancelRafMock);
 
-function resolveModalExports(module: Partial<ModalExports> & { default?: Partial<ModalExports> }): ModalExports {
+function resolveModalExports(
+    module: Partial<ModalExports> & { default?: Partial<ModalExports> }
+): ModalExports {
     const resolved = {
-        closeKeyboardShortcutsModal: module.closeKeyboardShortcutsModal ?? module.default?.closeKeyboardShortcutsModal,
-        showKeyboardShortcutsModal: module.showKeyboardShortcutsModal ?? module.default?.showKeyboardShortcutsModal,
+        closeKeyboardShortcutsModal:
+            module.closeKeyboardShortcutsModal ??
+            module.default?.closeKeyboardShortcutsModal,
+        showKeyboardShortcutsModal:
+            module.showKeyboardShortcutsModal ??
+            module.default?.showKeyboardShortcutsModal,
     } satisfies Partial<ModalExports>;
 
-    if (!resolved.showKeyboardShortcutsModal || !resolved.closeKeyboardShortcutsModal) {
+    if (
+        !resolved.showKeyboardShortcutsModal ||
+        !resolved.closeKeyboardShortcutsModal
+    ) {
         throw new Error("Failed to load keyboard shortcuts modal exports");
     }
 
@@ -31,7 +40,8 @@ async function loadModal() {
     await vi.resetModules();
     delete (globalThis as any).showKeyboardShortcutsModal;
     delete (globalThis as any).closeKeyboardShortcutsModal;
-    const module = await import("../../../../../utils/ui/modals/keyboardShortcutsModal.js");
+    const module =
+        await import("../../../../../utils/ui/modals/keyboardShortcutsModal.js");
     return resolveModalExports(module);
 }
 
@@ -59,20 +69,27 @@ describe("keyboardShortcutsModal", () => {
 
         showKeyboardShortcutsModal();
 
-        const modal = document.querySelector<HTMLDivElement>("#keyboard-shortcuts-modal");
+        const modal = document.querySelector<HTMLDivElement>(
+            "#keyboard-shortcuts-modal"
+        );
         expect(modal).toBeTruthy();
         expect(modal?.style.display).toBe("flex");
         expect(modal?.classList.contains("show")).toBe(true);
 
-        const closeBtn = modal?.querySelector<HTMLButtonElement>("#shortcuts-modal-close");
+        const closeBtn = modal?.querySelector<HTMLButtonElement>(
+            "#shortcuts-modal-close"
+        );
         expect(closeBtn).toBeTruthy();
         expect(document.activeElement).toBe(closeBtn);
         expect(document.body.style.overflow).toBe("hidden");
-        expect(document.querySelectorAll("#keyboard-shortcuts-modal-styles").length).toBe(1);
+        expect(
+            document.querySelectorAll("#keyboard-shortcuts-modal-styles").length
+        ).toBe(1);
     });
 
     it("closes modal with animation and restores focus", async () => {
-        const { showKeyboardShortcutsModal, closeKeyboardShortcutsModal } = await loadModal();
+        const { showKeyboardShortcutsModal, closeKeyboardShortcutsModal } =
+            await loadModal();
         vi.useFakeTimers();
 
         const trigger = document.createElement("button");
@@ -81,8 +98,12 @@ describe("keyboardShortcutsModal", () => {
         trigger.focus();
 
         showKeyboardShortcutsModal();
-        const modal = document.querySelector<HTMLDivElement>("#keyboard-shortcuts-modal");
-        const closeBtn = modal?.querySelector<HTMLButtonElement>("#shortcuts-modal-close");
+        const modal = document.querySelector<HTMLDivElement>(
+            "#keyboard-shortcuts-modal"
+        );
+        const closeBtn = modal?.querySelector<HTMLButtonElement>(
+            "#shortcuts-modal-close"
+        );
         expect(closeBtn).toBeTruthy();
 
         closeKeyboardShortcutsModal();
@@ -104,10 +125,15 @@ describe("keyboardShortcutsModal", () => {
         trigger.focus();
 
         showKeyboardShortcutsModal();
-        const modal = document.querySelector<HTMLDivElement>("#keyboard-shortcuts-modal");
+        const modal = document.querySelector<HTMLDivElement>(
+            "#keyboard-shortcuts-modal"
+        );
         expect(modal?.style.display).toBe("flex");
 
-        const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true });
+        const event = new KeyboardEvent("keydown", {
+            key: "Escape",
+            bubbles: true,
+        });
         document.dispatchEvent(event);
         vi.advanceTimersByTime(350);
 
@@ -120,7 +146,9 @@ describe("keyboardShortcutsModal", () => {
         vi.useFakeTimers();
 
         showKeyboardShortcutsModal();
-        const modal = document.querySelector<HTMLDivElement>("#keyboard-shortcuts-modal");
+        const modal = document.querySelector<HTMLDivElement>(
+            "#keyboard-shortcuts-modal"
+        );
         const focusable = modal?.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
@@ -133,13 +161,20 @@ describe("keyboardShortcutsModal", () => {
         const last = focusable[focusable.length - 1];
 
         last.focus();
-        const forwardTab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true });
+        const forwardTab = new KeyboardEvent("keydown", {
+            key: "Tab",
+            bubbles: true,
+        });
         modal?.dispatchEvent(forwardTab);
         expect(document.activeElement).toBe(first);
         expect(forwardTab.defaultPrevented).toBe(true);
 
         first.focus();
-        const reverseTab = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true });
+        const reverseTab = new KeyboardEvent("keydown", {
+            key: "Tab",
+            shiftKey: true,
+            bubbles: true,
+        });
         modal?.dispatchEvent(reverseTab);
         expect(document.activeElement).toBe(last);
         expect(reverseTab.defaultPrevented).toBe(true);
@@ -153,17 +188,24 @@ describe("keyboardShortcutsModal", () => {
         (globalThis as any).electronAPI = { openExternal };
 
         showKeyboardShortcutsModal();
-        const modal = document.querySelector<HTMLDivElement>("#keyboard-shortcuts-modal");
+        const modal = document.querySelector<HTMLDivElement>(
+            "#keyboard-shortcuts-modal"
+        );
         const link = document.createElement("a");
         link.href = "https://example.com";
         link.dataset.externalLink = "true";
         link.textContent = "Docs";
         modal?.append(link);
 
-        const clickEvent = new MouseEvent("click", { bubbles: true, cancelable: true });
+        const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+        });
         link.dispatchEvent(clickEvent);
 
-        expect(openExternal).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/example\.com\/?$/));
+        expect(openExternal).toHaveBeenCalledWith(
+            expect.stringMatching(/^https:\/\/example\.com\/?$/)
+        );
         expect(clickEvent.defaultPrevented).toBe(true);
     });
 });

@@ -1,27 +1,30 @@
 /**
- * List of supported chart field keys for FIT file data visualization.
- * These correspond to actual FIT file field names and are used to determine
- * which data series can be rendered in charts throughout the application.
+ * List of supported chart field keys for FIT file data visualization. These
+ * correspond to actual FIT file field names and are used to determine which
+ * data series can be rendered in charts throughout the application.
+ *
+ * @example
+ *     import { formatChartFields } from '../formatting/display/formatChartFields';
+ *     if (formatChartFields.includes(fieldName)) { ... }
  *
  * @type {string[]}
- * @example
- * import { formatChartFields } from '../formatting/display/formatChartFields';
- * if (formatChartFields.includes(fieldName)) { ... }
  */
 /**
  * Ordered list of supported chart field keys.
+ *
  * @type {string[]}
  */
 export const formatChartFields: string[];
 /**
- * Maps FIT file field keys to human-readable chart labels.
- * Used throughout the application to display user-friendly names
- * for chart axes, legends, tooltips, and UI elements.
+ * Maps FIT file field keys to human-readable chart labels. Used throughout the
+ * application to display user-friendly names for chart axes, legends, tooltips,
+ * and UI elements.
  *
- * @type {Object.<string, string>}
  * @example
- * import { fieldLabels } from '../formatting/display/formatChartFields';
- * const label = fieldLabels[fieldKey] || fieldKey;
+ *     import { fieldLabels } from "../formatting/display/formatChartFields";
+ *     const label = fieldLabels[fieldKey] || fieldKey;
+ *
+ * @type {Object<string, string>}
  */
 export const fieldLabels: {
     [x: string]: string;

@@ -25,7 +25,9 @@ describe("renderSummary helpers + renderSummary", () => {
         expect(getStorageKey({}, [])).toContain("summaryColSel_");
         // data fallback
         delete (window as any).globalData;
-        expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" } as any, [])).toContain("summaryColSel_");
+        expect(
+            getStorageKey({ cachedFilePath: "/a/b/c.fit" } as any, [])
+        ).toContain("summaryColSel_");
         // activeFitFileName fallback
         (window as any).activeFitFileName = "bar.fit";
         expect(getStorageKey({}, [])).toContain("summaryColSel_");
@@ -34,7 +36,11 @@ describe("renderSummary helpers + renderSummary", () => {
     it("save/load column preferences roundtrip", async () => {
         const { saveColPrefs, loadColPrefs } = await importHelpers();
         const key = "summaryColSel_test";
-        const cols = ["a", "b", "c"];
+        const cols = [
+            "a",
+            "b",
+            "c",
+        ];
         saveColPrefs(key, cols, undefined);
         expect(loadColPrefs(key, undefined)).toEqual(cols);
         // Invalid stored value returns null
@@ -57,16 +63,22 @@ describe("renderSummary helpers + renderSummary", () => {
         renderSummary(data);
         const container = document.getElementById("content-summary")!;
         // Header exists
-        const headerTitle = container.querySelector(".summary-title") as HTMLElement;
+        const headerTitle = container.querySelector(
+            ".summary-title"
+        ) as HTMLElement;
         expect(headerTitle?.textContent).toContain("Activity Summary");
         // Gear opens modal
-        const gear = container.querySelector(".summary-gear-btn") as HTMLButtonElement;
+        const gear = container.querySelector(
+            ".summary-gear-btn"
+        ) as HTMLButtonElement;
         expect(gear).toBeTruthy();
         gear.click();
         const modal = document.querySelector(".summary-col-modal-overlay");
         expect(modal).toBeTruthy();
         // Filter select should exist and change triggers rerender
-        const select = container.querySelector(".summary-filter-bar select") as HTMLSelectElement;
+        const select = container.querySelector(
+            ".summary-filter-bar select"
+        ) as HTMLSelectElement;
         expect(select).toBeTruthy();
         select.value = "Lap 1";
         select.dispatchEvent(new Event("change"));

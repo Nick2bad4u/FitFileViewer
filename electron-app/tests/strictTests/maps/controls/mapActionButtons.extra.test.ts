@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showNotification: vi.fn() }));
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
+}));
 
 const modPath = "../../../../utils/maps/controls/mapActionButtons.js";
 
@@ -20,7 +22,11 @@ describe("mapActionButtons additional branches", () => {
 
     it("notifies when no valid bounds even with polyline", async () => {
         const fitBounds = vi.fn();
-        (window as any)._leafletMapInstance = { fitBounds, getCenter: vi.fn(), getZoom: vi.fn() };
+        (window as any)._leafletMapInstance = {
+            fitBounds,
+            getCenter: vi.fn(),
+            getZoom: vi.fn(),
+        };
         const poly = {
             options: { color: "#1976d2" },
             getBounds: () => ({ isValid: () => false }),
@@ -32,8 +38,13 @@ describe("mapActionButtons additional branches", () => {
         const name = document.getElementById("activeFileName")!;
         name.dispatchEvent(new Event("click"));
         await new Promise((r) => setTimeout(r, 150));
-        const { showNotification } = await import("../../../../utils/ui/notifications/showNotification.js");
-        expect((showNotification as any).mock.calls.some((c: any[]) => String(c[0]).includes("bounds"))).toBe(true);
+        const { showNotification } =
+            await import("../../../../utils/ui/notifications/showNotification.js");
+        expect(
+            (showNotification as any).mock.calls.some((c: any[]) =>
+                String(c[0]).includes("bounds")
+            )
+        ).toBe(true);
         expect(fitBounds).not.toHaveBeenCalled();
     });
 
@@ -53,7 +64,10 @@ describe("mapActionButtons additional branches", () => {
             getElement: () => ({ style: {} as any }),
             _map: {
                 _layers: {
-                    a: { options: { color: "#00ff00" }, bringToFront: bringToFrontMarker },
+                    a: {
+                        options: { color: "#00ff00" },
+                        bringToFront: bringToFrontMarker,
+                    },
                     b: { options: { color: "#ff0000" }, bringToFront: vi.fn() },
                 },
             },
@@ -62,8 +76,14 @@ describe("mapActionButtons additional branches", () => {
         } as any;
 
         // Make layer a instance of CircleMarker at runtime check
-        Object.setPrototypeOf((poly._map._layers as any).a, (window as any).L.CircleMarker.prototype);
-        Object.setPrototypeOf((poly._map._layers as any).b, (window as any).L.CircleMarker.prototype);
+        Object.setPrototypeOf(
+            (poly._map._layers as any).a,
+            (window as any).L.CircleMarker.prototype
+        );
+        Object.setPrototypeOf(
+            (poly._map._layers as any).b,
+            (window as any).L.CircleMarker.prototype
+        );
 
         (window as any)._overlayPolylines = [poly];
         await import(modPath);
@@ -85,7 +105,11 @@ describe("mapActionButtons additional branches", () => {
         (window as any).updateShownFilesList();
         // Ensure our click handler still works after patch
         const fitBounds = vi.fn();
-        (window as any)._leafletMapInstance = { fitBounds, getCenter: vi.fn(), getZoom: vi.fn() };
+        (window as any)._leafletMapInstance = {
+            fitBounds,
+            getCenter: vi.fn(),
+            getZoom: vi.fn(),
+        };
         (window as any)._mainPolylineOriginalBounds = { isValid: () => true };
         (window as any)._overlayPolylines = [
             {

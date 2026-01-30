@@ -25,7 +25,11 @@ describe("metricsPreview", () => {
             selectedCount: 10,
             totalCandidates: 100,
         };
-        const text = buildSummaryText(result, { mode: "valueRange", metric: "power" }, { decimals: 0 });
+        const text = buildSummaryText(
+            result,
+            { mode: "valueRange", metric: "power" },
+            { decimals: 0 }
+        );
         expect(text).toContain("Power");
         expect(text).toContain("10 of 100");
         expect(text).toContain("42.4% coverage");
@@ -33,7 +37,9 @@ describe("metricsPreview", () => {
 
     it("buildSummaryText returns null for inactive results", () => {
         const inactive = { isActive: false };
-        expect(buildSummaryText(inactive, { mode: "topPercent", metric: "speed" })).toBeNull();
+        expect(
+            buildSummaryText(inactive, { mode: "topPercent", metric: "speed" })
+        ).toBeNull();
     });
 
     it("buildSummaryText handles top percent summaries", () => {
@@ -47,17 +53,36 @@ describe("metricsPreview", () => {
             selectedCount: 30,
             totalCandidates: 200,
         };
-        const summary = buildSummaryText(result, { metric: "speed", mode: "topPercent", percent: 15 });
+        const summary = buildSummaryText(result, {
+            metric: "speed",
+            mode: "topPercent",
+            percent: 15,
+        });
         expect(summary).toContain("top 15%");
         expect(summary).toContain("30 of 200");
     });
 
     it("previewFilterResult derives a filter result from global records", () => {
         globalThis.globalData = {
-            recordMesgs: [{ speed: 5 }, { speed: 10 }, { speed: 15 }, { speed: 20 }],
+            recordMesgs: [
+                { speed: 5 },
+                { speed: 10 },
+                { speed: 15 },
+                { speed: 20 },
+            ],
         };
-        updateGlobalFilter({ enabled: true, metric: "speed", mode: "topPercent", percent: 50 });
-        const result = previewFilterResult({ enabled: true, metric: "speed", mode: "topPercent", percent: 50 });
+        updateGlobalFilter({
+            enabled: true,
+            metric: "speed",
+            mode: "topPercent",
+            percent: 50,
+        });
+        const result = previewFilterResult({
+            enabled: true,
+            metric: "speed",
+            mode: "topPercent",
+            percent: 50,
+        });
         expect(result).toBeTruthy();
         expect(result.isActive).toBe(true);
         expect(result.metric).toBe("speed");

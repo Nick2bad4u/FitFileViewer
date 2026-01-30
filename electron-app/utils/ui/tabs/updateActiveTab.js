@@ -16,7 +16,12 @@ const getDoc = () => {
     // Prefer the current test's document first
     try {
         // @ts-ignore - JSDOM provides document
-        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+        if (
+            !d &&
+            typeof document !== "undefined" &&
+            document &&
+            typeof document.getElementById === "function"
+        ) {
             d = /** @type {any} */ (document);
         }
     } catch {
@@ -29,13 +34,18 @@ const getDoc = () => {
         /* Ignore errors */
     }
     try {
-        if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
+        if (!d && globalThis.window !== undefined && globalThis.document)
+            d = /** @type {any} */ (globalThis.document);
     } catch {
         /* Ignore errors */
     }
     try {
         // Then prefer the current global document; this reflects the active jsdom for this test file
-        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+        if (
+            !d &&
+            typeof globalThis !== "undefined" &&
+            /** @type {any} */ (globalThis).document
+        ) {
             d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
     } catch {
@@ -44,7 +54,11 @@ const getDoc = () => {
     // Fallback: canonical document provided by the test harness
     try {
         // @ts-ignore
-        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
+        if (
+            !d &&
+            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__
+        ) {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
@@ -58,21 +72,41 @@ const getDoc = () => {
     }
     // Validate minimal DOM API presence; if invalid, try fallbacks again (prefer current test doc first)
     try {
-        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
+        if (
+            !(
+                d &&
+                typeof d.getElementById === "function" &&
+                typeof d.querySelectorAll === "function"
+            )
+        ) {
             // Prefer current doc/window, then global, then canonical
             // @ts-ignore
-            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+            if (
+                typeof document !== "undefined" &&
+                document &&
+                typeof document.getElementById === "function"
+            ) {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
-            } else if (globalThis.window !== undefined && globalThis.window.document) {
+            } else if (
+                globalThis.window !== undefined &&
+                globalThis.window.document
+            ) {
                 d = /** @type {any} */ (globalThis.window.document);
             } else if (globalThis.window !== undefined && globalThis.document) {
                 d = /** @type {any} */ (globalThis.document);
-            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
-                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+            } else if (
+                typeof globalThis !== "undefined" &&
+                /** @type {any} */ (globalThis).document
+            ) {
+                d = /** @type {any} */ (
+                    /** @type {any} */ (globalThis).document
+                );
             } else if (
                 typeof __vitest_effective_document__ !== "undefined" &&
-                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
+                /** @type {any} */ (
+                    /** @type {any} */ (__vitest_effective_document__)
+                )
             ) {
                 // @ts-ignore
                 d = /** @type {any} */ (__vitest_effective_document__);
@@ -86,13 +120,16 @@ const getDoc = () => {
 
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
 // And only fall back to a canonical global mock if module functions are unavailable.
-/** @returns {{ getState: any, setState: any, subscribe: any }} */
+/** @returns {{ getState: any; setState: any; subscribe: any }} */
 const getStateMgr = () => {
     try {
         const sm = /** @type {any} */ (__StateMgr);
-        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
-        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
-        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
+        const getState =
+            sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState =
+            sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe =
+            sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
@@ -105,9 +142,18 @@ const getStateMgr = () => {
             typeof __vitest_effective_stateManager__ !== "undefined" &&
             /** @type {any} */ (__vitest_effective_stateManager__);
         if (eff && typeof eff === "object") {
-            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
-            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
-            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
+            const getState =
+                typeof eff.getState === "function"
+                    ? eff.getState
+                    : __StateMgr.getState;
+            const setState =
+                typeof eff.setState === "function"
+                    ? eff.setState
+                    : __StateMgr.setState;
+            const subscribe =
+                typeof eff.subscribe === "function"
+                    ? eff.subscribe
+                    : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {
@@ -125,8 +171,9 @@ const getStateMgr = () => {
  *
  * We intentionally keep this local to the module instead of relying on
  * stateManager.subscribeSingleton() so:
- * - unit tests can reliably mock `subscribe` and capture the callback
- * - repeated initialization (e.g., re-render / hot reload) does not leak
+ *
+ * - Unit tests can reliably mock `subscribe` and capture the callback
+ * - Repeated initialization (e.g., re-render / hot reload) does not leak
  *   subscriptions in production
  *
  * @type {(() => void) | null}
@@ -135,6 +182,7 @@ let activeTabUnsubscribe = null;
 
 /**
  * Get the currently active tab
+ *
  * @returns {string} Currently active tab name
  */
 export function getActiveTab() {
@@ -161,7 +209,8 @@ export function initializeActiveTabState() {
         // This prevents subscription leaks without requiring the state manager to expose
         // a dedicated singleton API, and it keeps the behavior easy to mock in tests.
         try {
-            if (typeof activeTabUnsubscribe === "function") activeTabUnsubscribe();
+            if (typeof activeTabUnsubscribe === "function")
+                activeTabUnsubscribe();
         } catch {
             /* ignore */
         }
@@ -170,30 +219,43 @@ export function initializeActiveTabState() {
         const sm = getStateMgr();
         if (typeof sm.subscribe === "function") {
             const maybeUnsub = sm.subscribe("ui.activeTab", onActiveTabChange);
-            activeTabUnsubscribe = typeof maybeUnsub === "function" ? maybeUnsub : null;
+            activeTabUnsubscribe =
+                typeof maybeUnsub === "function" ? maybeUnsub : null;
         } else if (typeof __StateMgr.subscribeSingleton === "function") {
             // Safety fallback for unexpected environments.
-            __StateMgr.subscribeSingleton("ui.activeTab", "ui:updateActiveTab:activeTab", onActiveTabChange);
+            __StateMgr.subscribeSingleton(
+                "ui.activeTab",
+                "ui:updateActiveTab:activeTab",
+                onActiveTabChange
+            );
         } else {
-            console.warn("[ActiveTab] No state subscription API available; active tab UI will not react to state");
+            console.warn(
+                "[ActiveTab] No state subscription API available; active tab UI will not react to state"
+            );
         }
 
         // Set up click listeners for tab buttons
         const tabButtons = getDoc().querySelectorAll(".tab-button");
         if (!tabButtons || tabButtons.length === 0) {
-            console.warn("initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up.");
+            console.warn(
+                "initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up."
+            );
         } else {
             for (const btn of tabButtons) {
                 const button = /** @type {any} */ (btn);
                 if (!button || typeof button.addEventListener !== "function") {
-                    console.warn("initializeActiveTabState: Invalid button element found:", button);
+                    console.warn(
+                        "initializeActiveTabState: Invalid button element found:",
+                        button
+                    );
                     continue;
                 }
                 /** @type {(evt: Event) => void} */
                 const onClick = (evt) => {
                     // Ignore clicks on disabled buttons (including aria-disabled="true")
                     const anyBtn = /** @type {any} */ (button);
-                    const hasDisabledClass = anyBtn?.classList?.contains?.("tab-disabled");
+                    const hasDisabledClass =
+                        anyBtn?.classList?.contains?.("tab-disabled");
                     const isDisabled =
                         anyBtn.disabled === true ||
                         button.getAttribute?.("aria-disabled") === "true" ||
@@ -201,7 +263,9 @@ export function initializeActiveTabState() {
                     if (isDisabled) {
                         // Explicit debug log for coverage and diagnostics
                         try {
-                            console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id}`);
+                            console.log(
+                                `[ActiveTab] Ignoring click on disabled button: ${button.id}`
+                            );
                         } catch {
                             /* Ignore errors */
                         }
@@ -213,16 +277,22 @@ export function initializeActiveTabState() {
                         }
                         return;
                     }
-                    const btnId = typeof button.id === "string" ? button.id.trim() : "";
+                    const btnId =
+                        typeof button.id === "string" ? button.id.trim() : "";
                     if (!btnId) return; // Do not update state if element has no valid id
                     const tabName = extractTabName(btnId);
                     if (!tabName) return;
                     // Handle potential state errors gracefully within event handler
                     try {
-                        getStateMgr().setState("ui.activeTab", tabName, { source: "tabButtonClick" });
+                        getStateMgr().setState("ui.activeTab", tabName, {
+                            source: "tabButtonClick",
+                        });
                     } catch (error) {
                         try {
-                            console.warn("[ActiveTab] Failed to set state from button click:", error);
+                            console.warn(
+                                "[ActiveTab] Failed to set state from button click:",
+                                error
+                            );
                         } catch {
                             /* Ignore errors */
                         }
@@ -241,7 +311,9 @@ export function initializeActiveTabState() {
 
 /**
  * Update active tab efficiently
+ *
  * @param {string} tabId
+ *
  * @returns {boolean}
  */
 export function updateActiveTab(tabId) {
@@ -255,7 +327,9 @@ export function updateActiveTab(tabId) {
         const currentActive = getDoc().querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
             const tabNameFast = extractTabName(tabId);
-            getStateMgr().setState("ui.activeTab", tabNameFast, { source: "updateActiveTab" });
+            getStateMgr().setState("ui.activeTab", tabNameFast, {
+                source: "updateActiveTab",
+            });
             return true;
         }
     } catch {
@@ -280,21 +354,29 @@ export function updateActiveTab(tabId) {
         anyTarget.classList.add("active");
         const tabName = extractTabName(tabId);
         // Let errors from setState propagate to satisfy tests expecting throws
-        getStateMgr().setState("ui.activeTab", tabName, { source: "updateActiveTab" });
+        getStateMgr().setState("ui.activeTab", tabName, {
+            source: "updateActiveTab",
+        });
         return true;
     }
-    console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
+    console.error(
+        `Element with ID "${tabId}" not found in the DOM or missing classList.`
+    );
     return false;
 }
 
 /**
  * Extract tab name from button ID
+ *
  * @param {string} tabId - The button ID
- * @returns {string|null} Tab name or null if not found
+ *
+ * @returns {string | null} Tab name or null if not found
  */
 /**
  * Extract tab name from button ID
+ *
  * @param {string} tabId
+ *
  * @returns {string}
  */
 function extractTabName(tabId) {
@@ -319,6 +401,7 @@ function extractTabName(tabId) {
 
 /**
  * Update tab button states based on current state
+ *
  * @param {string} activeTab - Currently active tab name
  */
 function updateTabButtonsFromState(activeTab) {
@@ -333,7 +416,10 @@ function updateTabButtonsFromState(activeTab) {
     for (const btn of tabButtons) {
         // CRITICAL BUG FIX: Defensive check for classList and setAttribute
         if (!btn || !btn.classList) {
-            console.warn("updateTabButtonsFromState: Invalid button element found:", btn);
+            console.warn(
+                "updateTabButtonsFromState: Invalid button element found:",
+                btn
+            );
             continue;
         }
 

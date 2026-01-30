@@ -82,24 +82,26 @@ beforeEach(() => {
     stateStore.set("isLoading", false);
     stateStore.set("charts.controlsVisible", false);
 
-    subscribeMock.mockImplementation((key: string, handler: SubscriptionHandler) => {
-        const handlers = subscriptionHandlers.get(key) ?? [];
-        handlers.push(handler);
-        subscriptionHandlers.set(key, handlers);
+    subscribeMock.mockImplementation(
+        (key: string, handler: SubscriptionHandler) => {
+            const handlers = subscriptionHandlers.get(key) ?? [];
+            handlers.push(handler);
+            subscriptionHandlers.set(key, handlers);
 
-        const unsubscribe = vi.fn(() => {
-            const currentHandlers = subscriptionHandlers.get(key);
-            if (!currentHandlers) {
-                return;
-            }
-            const index = currentHandlers.indexOf(handler);
-            if (index !== -1) {
-                currentHandlers.splice(index, 1);
-            }
-        });
-        unsubscribeRegistry.set(handler, unsubscribe);
-        return unsubscribe;
-    });
+            const unsubscribe = vi.fn(() => {
+                const currentHandlers = subscriptionHandlers.get(key);
+                if (!currentHandlers) {
+                    return;
+                }
+                const index = currentHandlers.indexOf(handler);
+                if (index !== -1) {
+                    currentHandlers.splice(index, 1);
+                }
+            });
+            unsubscribeRegistry.set(handler, unsubscribe);
+            return unsubscribe;
+        }
+    );
 
     getStateMock.mockImplementation((key: string) => stateStore.get(key));
     setStateMock.mockImplementation((key: string, value: unknown) => {
@@ -107,7 +109,9 @@ beforeEach(() => {
     });
 
     hasDataMock.mockReturnValue(true);
-    isTabActiveMock.mockImplementation((tab: string) => tab === stateStore.get("ui.activeTab"));
+    isTabActiveMock.mockImplementation(
+        (tab: string) => tab === stateStore.get("ui.activeTab")
+    );
     areChartsRenderedMock.mockReturnValue(false);
     isMapRenderedMock.mockReturnValue(false);
     areTablesRenderedMock.mockReturnValue(false);
@@ -154,7 +158,10 @@ describe("rendererStateIntegration", () => {
         );
 
         expect(switchTabMock).toHaveBeenCalledWith("chart");
-        expect(loadFileMock).toHaveBeenCalledWith({ records: [] }, "path/to/file.fit");
+        expect(loadFileMock).toHaveBeenCalledWith(
+            { records: [] },
+            "path/to/file.fit"
+        );
         expect(toggleChartControlsMock).toHaveBeenCalled();
         expect(hasDataMock).toHaveBeenCalled();
         expect(isTabActiveMock).toHaveBeenCalledWith("chart");
@@ -163,7 +170,9 @@ describe("rendererStateIntegration", () => {
         expect(handlers.length).toBe(1);
         const unsubscribe = unsubscribeRegistry.get(handlers[0]);
         if (!unsubscribe) {
-            throw new Error("Expected unsubscribe handler for exampleStateUsage subscription");
+            throw new Error(
+                "Expected unsubscribe handler for exampleStateUsage subscription"
+            );
         }
 
         vi.advanceTimersByTime(5000);
@@ -193,11 +202,15 @@ describe("rendererStateIntegration", () => {
         themeButton.dataset.theme = "dark";
         document.body.append(themeButton);
 
-        let fileOpenCallback: ((data: unknown, path: string) => void) | undefined;
+        let fileOpenCallback:
+            | ((data: unknown, path: string) => void)
+            | undefined;
         (globalThis as any).electronAPI = {
-            onFileOpened: vi.fn((handler: (data: unknown, path: string) => void) => {
-                fileOpenCallback = handler;
-            }),
+            onFileOpened: vi.fn(
+                (handler: (data: unknown, path: string) => void) => {
+                    fileOpenCallback = handler;
+                }
+            ),
         };
 
         const module = await importTarget();
@@ -220,7 +233,9 @@ describe("rendererStateIntegration", () => {
         expect(activeTabHandlers.length).toBeGreaterThanOrEqual(2);
         const [componentHandler, reactiveHandler] = activeTabHandlers;
         if (!componentHandler || !reactiveHandler) {
-            throw new Error("Expected component and reactive handlers for ui.activeTab");
+            throw new Error(
+                "Expected component and reactive handlers for ui.activeTab"
+            );
         }
 
         switchTabMock.mockClear();
@@ -236,7 +251,11 @@ describe("rendererStateIntegration", () => {
 
         setStateMock.mockClear();
         componentHandler("map");
-        expect(setStateMock).toHaveBeenCalledWith("isLoading", true, expect.objectContaining({ source: "loadMapTab" }));
+        expect(setStateMock).toHaveBeenCalledWith(
+            "isLoading",
+            true,
+            expect.objectContaining({ source: "loadMapTab" })
+        );
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             false,
@@ -305,17 +324,26 @@ describe("rendererStateIntegration", () => {
         expect(setStateMock).toHaveBeenCalledWith(
             "charts.isRendered",
             false,
-            expect.objectContaining({ source: "updateAllComponents", silent: true })
+            expect.objectContaining({
+                source: "updateAllComponents",
+                silent: true,
+            })
         );
         expect(setStateMock).toHaveBeenCalledWith(
             "map.isRendered",
             false,
-            expect.objectContaining({ source: "updateAllComponents", silent: true })
+            expect.objectContaining({
+                source: "updateAllComponents",
+                silent: true,
+            })
         );
         expect(setStateMock).toHaveBeenCalledWith(
             "tables.isRendered",
             false,
-            expect.objectContaining({ source: "updateAllComponents", silent: true })
+            expect.objectContaining({
+                source: "updateAllComponents",
+                silent: true,
+            })
         );
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",

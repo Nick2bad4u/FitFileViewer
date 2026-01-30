@@ -78,12 +78,17 @@ describe("setupWindow", () => {
         chartStateManagerMock.cleanup.mockImplementationOnce(() => {
             throw error;
         });
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
         cleanup();
 
-        expect(errorSpy).toHaveBeenCalledWith("[setupWindow] Cleanup failed:", error);
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[setupWindow] Cleanup failed:",
+            error
+        );
 
         errorSpy.mockRestore();
     });
@@ -95,11 +100,20 @@ describe("setupWindow", () => {
 
         await expect(setupWindow()).resolves.toBeUndefined();
 
-        expect(setupThemeMock).toHaveBeenCalledWith(applyThemeMock, listenForThemeChangeMock);
+        expect(setupThemeMock).toHaveBeenCalledWith(
+            applyThemeMock,
+            listenForThemeChangeMock
+        );
         expect(chartTabIntegrationMock.initialize).toHaveBeenCalledTimes(1);
         expect(tabStateManagerMock.switchToTab).toHaveBeenCalledWith("summary");
-        expect(showNotificationMock).toHaveBeenCalledWith("Application initialized successfully", "success", 2000);
-        expect(logSpy).toHaveBeenCalledWith("[setupWindow] Modern initialization complete");
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "Application initialized successfully",
+            "success",
+            2000
+        );
+        expect(logSpy).toHaveBeenCalledWith(
+            "[setupWindow] Modern initialization complete"
+        );
 
         logSpy.mockRestore();
     });
@@ -107,15 +121,24 @@ describe("setupWindow", () => {
     it("notifies and rethrows on initialization failure", async () => {
         const failure = new Error("setup failed");
         setupThemeMock.mockRejectedValueOnce(failure);
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const { setupWindow } = await loadModule();
 
         await expect(setupWindow()).rejects.toThrow(failure);
 
-        expect(showNotificationMock).toHaveBeenCalledWith("Application initialization failed", "error", 5000);
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "Application initialization failed",
+            "error",
+            5000
+        );
         expect(chartTabIntegrationMock.initialize).not.toHaveBeenCalled();
         expect(tabStateManagerMock.switchToTab).not.toHaveBeenCalled();
-        expect(errorSpy).toHaveBeenCalledWith("[setupWindow] Initialization failed:", failure);
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[setupWindow] Initialization failed:",
+            failure
+        );
 
         errorSpy.mockRestore();
     });

@@ -1,9 +1,13 @@
 /**
- * Renderer utility functions with state management integration
- * Enhanced utilities for renderer.js with centralized state support
+ * Renderer utility functions with state management integration Enhanced
+ * utilities for renderer.js with centralized state support
  */
 
-import { getState, setState, subscribe } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../state/core/stateManager.js";
 
 /**
  * Clear current notification
@@ -19,7 +23,8 @@ export function clearNotification() {
 
 /**
  * Get current notification
- * @returns {Object|null} Current notification object or null
+ *
+ * @returns {Object | null} Current notification object or null
  */
 export function getCurrentNotification() {
     return getState("ui.currentNotification");
@@ -35,17 +40,23 @@ export function initializeRendererUtils() {
     });
 
     // Subscribe to notification state changes
-    subscribe("ui.currentNotification", (/** @type {{message:string,type:string}|null} */ notification) => {
-        if (notification) {
-            updateNotificationUI(notification);
+    subscribe(
+        "ui.currentNotification",
+        (
+            /** @type {{ message: string; type: string } | null} */ notification
+        ) => {
+            if (notification) {
+                updateNotificationUI(notification);
+            }
         }
-    });
+    );
 
     console.log("[RendererUtils] State management initialized");
 }
 
 /**
  * Get current loading state
+ *
  * @returns {boolean} Current loading state
  */
 export function isLoading() {
@@ -53,9 +64,11 @@ export function isLoading() {
 }
 
 /**
- * Shows or hides the loading overlay and updates the cursor style with state integration.
+ * Shows or hides the loading overlay and updates the cursor style with state
+ * integration.
  *
- * @param {boolean} loading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
+ * @param {boolean} loading - If true, displays the loading overlay and sets the
+ *   cursor to 'wait'. If false, hides the overlay and resets the cursor.
  */
 export function setLoading(loading) {
     // Update state first
@@ -79,8 +92,9 @@ export function setLoading(loading) {
 
 /**
  * Show error notification with standard styling
+ *
  * @param {string} message - Error message
- * @param {number} [timeout=5000] - Display timeout
+ * @param {number} [timeout=5000] - Display timeout. Default is `5000`
  */
 export function showError(message, timeout = 5000) {
     showNotification(message, "error", timeout);
@@ -88,8 +102,9 @@ export function showError(message, timeout = 5000) {
 
 /**
  * Show info notification with standard styling
+ *
  * @param {string} message - Info message
- * @param {number} [timeout=4000] - Display timeout
+ * @param {number} [timeout=4000] - Display timeout. Default is `4000`
  */
 export function showInfo(message, timeout = 4000) {
     showNotification(message, "info", timeout);
@@ -99,8 +114,10 @@ export function showInfo(message, timeout = 4000) {
  * Displays a notification message in the UI with state tracking.
  *
  * @param {string} message - The message to display in the notification.
- * @param {'error'|'success'|'info'|'warning'} [type='error'] - The type of notification, which determines its styling.
- * @param {number} [timeout=5000] - Duration in milliseconds before the notification disappears. Set to 0 to keep it visible.
+ * @param {"error" | "success" | "info" | "warning"} [type='error'] - The type
+ *   of notification, which determines its styling. Default is `'error'`
+ * @param {number} [timeout=5000] - Duration in milliseconds before the
+ *   notification disappears. Set to 0 to keep it visible. Default is `5000`
  */
 export function showNotification(message, type = "error", timeout = 5000) {
     const notif = document.querySelector("#notification");
@@ -127,7 +144,9 @@ export function showNotification(message, type = "error", timeout = 5000) {
     if (timeout > 0) {
         setTimeout(() => {
             notif.style.display = "none";
-            setState("ui.currentNotification", null, { source: "showNotification" });
+            setState("ui.currentNotification", null, {
+                source: "showNotification",
+            });
         }, timeout);
     }
 
@@ -136,8 +155,9 @@ export function showNotification(message, type = "error", timeout = 5000) {
 
 /**
  * Show success notification with standard styling
+ *
  * @param {string} message - Success message
- * @param {number} [timeout=3000] - Display timeout
+ * @param {number} [timeout=3000] - Display timeout. Default is `3000`
  */
 export function showSuccess(message, timeout = 3000) {
     showNotification(message, "success", timeout);
@@ -145,8 +165,9 @@ export function showSuccess(message, timeout = 3000) {
 
 /**
  * Show warning notification with standard styling
+ *
  * @param {string} message - Warning message
- * @param {number} [timeout=4000] - Display timeout
+ * @param {number} [timeout=4000] - Display timeout. Default is `4000`
  */
 export function showWarning(message, timeout = 4000) {
     showNotification(message, "warning", timeout);
@@ -155,11 +176,12 @@ export function showWarning(message, timeout = 4000) {
 /**
  * Update loading UI based on state
  *
- * Shows/hides loading overlay and disables/enables interactive elements.
- * The Open File button (openFileBtn) is intentionally excluded from
- * being disabled to allow users to open new files at any time.
+ * Shows/hides loading overlay and disables/enables interactive elements. The
+ * Open File button (openFileBtn) is intentionally excluded from being disabled
+ * to allow users to open new files at any time.
  *
  * @private
+ *
  * @param {boolean} isLoading - Loading state
  */
 function updateLoadingUI(loading) {
@@ -173,7 +195,9 @@ function updateLoadingUI(loading) {
     document.body.setAttribute("aria-busy", loading.toString());
 
     // Disable/enable interactive elements during loading
-    const interactiveElements = document.querySelectorAll("button, input, select, textarea");
+    const interactiveElements = document.querySelectorAll(
+        "button, input, select, textarea"
+    );
     for (const element of interactiveElements) {
         // Never disable the Open File button - users should always be able to open new files
         if (element.id === "openFileBtn") {
@@ -205,11 +229,13 @@ function updateLoadingUI(loading) {
 
 /**
  * Update notification UI based on state
+ *
  * @private
+ *
  * @param {Object} notification - Notification object
  */
 /**
- * @param {{message:string,type:string}} notification
+ * @param {{ message: string; type: string }} notification
  */
 function updateNotificationUI(notification) {
     const notif = document.querySelector("#notification");

@@ -7,28 +7,34 @@
 /**
  * Loads the list of recent files from disk.
  *
- * Attempts to read and parse a JSON file containing recent files.
- * If the file does not exist or an error occurs, returns an empty array.
+ * Attempts to read and parse a JSON file containing recent files. If the file
+ * does not exist or an error occurs, returns an empty array.
  *
  * @function
- * @returns {string[]} An array of recent file paths, or an empty array if none are found or an error occurs.
+ *
+ * @returns {string[]} An array of recent file paths, or an empty array if none
+ *   are found or an error occurs.
  */
 
 /**
  * Saves the list of recent files to disk, keeping only the most recent entries.
  *
  * @function
+ *
  * @param {string[]} list - The array of recent file paths to save.
+ *
  * @returns {void}
  */
 
 /**
- * Adds a file path to the list of recent files.
- * If the file already exists in the list, it is moved to the top.
- * The updated list is then saved.
+ * Adds a file path to the list of recent files. If the file already exists in
+ * the list, it is moved to the top. The updated list is then saved.
  *
  * @function
- * @param {string} filePath - The path of the file to add to the recent files list.
+ *
+ * @param {string} filePath - The path of the file to add to the recent files
+ *   list.
+ *
  * @returns {void}
  */
 
@@ -38,13 +44,15 @@ const fs = require("node:fs");
  * Returns the base name (file name with extension) of the given file path.
  *
  * @function
+ *
  * @param {string} file - The full path to the file.
+ *
  * @returns {string} The base name of the file.
  */
 // Utility functions for managing recent files
 const path = require("node:path");
 
-/** @type {string|undefined} */
+/** @type {string | undefined} */
 let RECENT_FILES_PATH;
 const { RECENT_FILES_PATH: RECENT_ENV } = process.env;
 if (RECENT_ENV) {
@@ -53,7 +61,10 @@ if (RECENT_ENV) {
     let userDataPath;
     try {
         // App may be undefined in test environments
-        userDataPath = app && typeof app.getPath === "function" ? app.getPath("userData") : null;
+        userDataPath =
+            app && typeof app.getPath === "function"
+                ? app.getPath("userData")
+                : null;
     } catch {
         userDataPath = null;
     }
@@ -79,15 +90,28 @@ if (RECENT_ENV) {
 
             // Use process ID to avoid conflicts between test runs
             const { VITEST_WORKER_ID } = process.env;
-            const testId = VITEST_WORKER_ID || process.pid || Math.random().toString(36).slice(2, 10);
-            RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
+            const testId =
+                VITEST_WORKER_ID ||
+                process.pid ||
+                Math.random().toString(36).slice(2, 10);
+            RECENT_FILES_PATH = path.join(
+                fitTempDir,
+                `recent-files-${testId}.json`
+            );
 
             // Register cleanup handler for tests
             if (typeof process !== "undefined" && process.on) {
                 process.on("exit", () => {
                     try {
-                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
-                            fs.unlinkSync(/** @type {string} */ (RECENT_FILES_PATH));
+                        if (
+                            RECENT_FILES_PATH &&
+                            fs.existsSync(
+                                /** @type {string} */ (RECENT_FILES_PATH)
+                            )
+                        ) {
+                            fs.unlinkSync(
+                                /** @type {string} */ (RECENT_FILES_PATH)
+                            );
                         }
                     } catch {
                         // Ignore cleanup errors
@@ -103,11 +127,12 @@ if (RECENT_ENV) {
 const MAX_RECENT_FILES = 10;
 
 /**
- * Adds a file path to the list of recent files.
- * If the file already exists in the list, it is moved to the top of the list.
- * The updated list is then saved to disk.
+ * Adds a file path to the list of recent files. If the file already exists in
+ * the list, it is moved to the top of the list. The updated list is then saved
+ * to disk.
  *
- * @param {string} filePath - The path of the file to add to the recent files list.
+ * @param {string} filePath - The path of the file to add to the recent files
+ *   list.
  */
 function addRecentFile(filePath) {
     let list = loadRecentFiles();
@@ -129,6 +154,7 @@ function addRecentFile(filePath) {
  * Returns the base name (file name with extension) of the given file path.
  *
  * @param {string} file - The full path to the file.
+ *
  * @returns {string} The base name of the file.
  */
 function getShortRecentName(file) {
@@ -142,15 +168,18 @@ function getShortRecentName(file) {
 /**
  * Loads the list of recent files from the RECENT_FILES_PATH.
  *
- * Attempts to read and parse a JSON file containing recent files.
- * If the file does not exist or an error occurs, returns an empty array.
+ * Attempts to read and parse a JSON file containing recent files. If the file
+ * does not exist or an error occurs, returns an empty array.
  *
- * @returns {Array<string>} An array of recent files, or an empty array if none are found or an error occurs.
+ * @returns {string[]} An array of recent files, or an empty array if none are
+ *   found or an error occurs.
  */
 function loadRecentFiles() {
     try {
         if (fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
-            const data = fs.readFileSync(/** @type {string} */ (RECENT_FILES_PATH));
+            const data = fs.readFileSync(
+                /** @type {string} */ (RECENT_FILES_PATH)
+            );
             return JSON.parse(data);
         }
     } catch (error) {
@@ -162,7 +191,8 @@ function loadRecentFiles() {
 /**
  * Saves the list of recent files to disk, keeping only the most recent entries.
  *
- * @param {Array<string>} list - The array of recent file paths to save.
+ * @param {string[]} list - The array of recent file paths to save.
+ *
  * @returns {void}
  */
 function saveRecentFiles(list) {

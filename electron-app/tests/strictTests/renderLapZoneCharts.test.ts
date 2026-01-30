@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import {
+    describe,
+    it,
+    expect,
+    vi,
+    beforeEach,
+    afterEach,
+    type Mock,
+} from "vitest";
 import { renderLapZoneCharts } from "../../utils/charts/rendering/renderLapZoneCharts.js";
 
 // Mock dependencies
@@ -52,7 +60,9 @@ describe("renderLapZoneCharts", () => {
 
         // Mock console methods
         mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-        mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        mockConsoleError = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Mock notification
         mockShowNotification = vi.fn();
@@ -70,27 +80,37 @@ describe("renderLapZoneCharts", () => {
     describe("Parameter Validation", () => {
         it("should handle null container gracefully", () => {
             renderLapZoneCharts(null as any);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] renderLapZoneCharts called");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] renderLapZoneCharts called"
+            );
         });
 
         it("should handle undefined container gracefully", () => {
             renderLapZoneCharts(undefined as any);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] renderLapZoneCharts called");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] renderLapZoneCharts called"
+            );
         });
 
         it("should accept valid container", () => {
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] renderLapZoneCharts called");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] renderLapZoneCharts called"
+            );
         });
 
         it("should handle empty options object", () => {
             renderLapZoneCharts(container, {});
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] renderLapZoneCharts called");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] renderLapZoneCharts called"
+            );
         });
 
         it("should handle null options", () => {
             renderLapZoneCharts(container, null as any);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] renderLapZoneCharts called");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] renderLapZoneCharts called"
+            );
         });
     });
 
@@ -98,26 +118,37 @@ describe("renderLapZoneCharts", () => {
         it("should return early when window.globalData is missing", () => {
             delete window.globalData;
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] No timeInZoneMesgs available for lap zone charts");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No timeInZoneMesgs available for lap zone charts"
+            );
         });
 
         it("should return early when timeInZoneMesgs is missing", () => {
             window.globalData = {};
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] No timeInZoneMesgs available for lap zone charts");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No timeInZoneMesgs available for lap zone charts"
+            );
         });
 
         it("should return early when timeInZoneMesgs is null", () => {
             window.globalData = { timeInZoneMesgs: null };
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] No timeInZoneMesgs available for lap zone charts");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No timeInZoneMesgs available for lap zone charts"
+            );
         });
 
         it("should return early when timeInZoneMesgs is empty array", () => {
             window.globalData = { timeInZoneMesgs: [] };
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Found timeInZoneMesgs:", 0);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] No lap-specific zone data found");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Found timeInZoneMesgs:",
+                0
+            );
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No lap-specific zone data found"
+            );
         });
     });
 
@@ -131,8 +162,14 @@ describe("renderLapZoneCharts", () => {
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Found timeInZoneMesgs:", 4);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Found lap zone data:", expect.any(Array));
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Found timeInZoneMesgs:",
+                4
+            );
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Found lap zone data:",
+                expect.any(Array)
+            );
         });
 
         it("should return early when no lap-specific zone data found", () => {
@@ -142,7 +179,9 @@ describe("renderLapZoneCharts", () => {
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] No lap-specific zone data found");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No lap-specific zone data found"
+            );
         });
     });
 
@@ -153,8 +192,16 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20,30]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15,25]",
+                    referenceIndex: 2,
+                },
             ];
         });
 
@@ -166,7 +213,16 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle array inputs directly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: [0, 10, 20, 30], referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: [
+                        0,
+                        10,
+                        20,
+                        30,
+                    ],
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
@@ -174,7 +230,9 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null values", () => {
-            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 }];
+            window.globalData.timeInZoneMesgs = [
+                { referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 },
+            ];
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -182,7 +240,11 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle invalid JSON strings", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "invalid json", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "invalid json",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
@@ -190,7 +252,9 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle non-string non-array values", () => {
-            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 }];
+            window.globalData.timeInZoneMesgs = [
+                { referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 },
+            ];
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -199,80 +263,160 @@ describe("renderLapZoneCharts", () => {
 
     describe("Zone Data Processing", () => {
         beforeEach(() => {
-            (getZoneColor as any).mockImplementation((type: string, index: number) => `${type}-zone-${index}`);
+            (getZoneColor as any).mockImplementation(
+                (type: string, index: number) => `${type}-zone-${index}`
+            );
         });
 
         it("should process HR zone data correctly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20,30]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20,30]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", [0, 1, 2]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            );
         });
 
         it("should process Power zone data correctly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15,25]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Power Zone filtering - meaningfulPowerZones:",
-                [0, 1, 2]
+                [
+                    0,
+                    1,
+                    2,
+                ]
             );
         });
 
         it("should skip zone 0 (rest zone) in processing", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[50,10,20,30]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[50,10,20,30]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
             // Zone 0 should be skipped, zones 1,2,3 should be processed
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", [0, 1, 2]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            );
         });
 
         it("should handle multiple laps", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,0,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,15,0]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,0,30]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,5,15,0]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", [0, 1, 2]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            );
         });
     });
 
     describe("Meaningful Zone Filtering", () => {
         it("should filter out zones with zero values across all laps", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,0,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,0,0]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,0,0]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,5,0,0]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
             // Only zones 1 should be meaningful (zone 0 is rest, zones 2,3 have no data)
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", [0]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                [0]
+            );
         });
 
         it("should include zones with data from any lap", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,0,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,0,15,0]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,0,30]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,0,15,0]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", [0, 1, 2]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            );
         });
 
         it("should handle empty zone data after filtering", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,0,0,0]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,0,0,0]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] HR Zone filtering - meaningfulHRZones:", []);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                []
+            );
         });
     });
 
@@ -287,20 +431,28 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
         });
 
         it("should create canvas with correct ID for HR stacked chart", () => {
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-lap-hr-zones") as HTMLCanvasElement;
+            const canvas = container.querySelector(
+                "#chartjs-canvas-lap-hr-zones"
+            ) as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
             expect(canvas.tagName).toBe("CANVAS");
         });
 
         it("should apply correct styling to HR stacked canvas", () => {
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-lap-hr-zones") as HTMLCanvasElement;
+            const canvas = container.querySelector(
+                "#chartjs-canvas-lap-hr-zones"
+            ) as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
             expect(canvas.style.marginBottom).toBe("20px");
             expect(canvas.style.maxHeight).toBe("400px");
@@ -311,27 +463,41 @@ describe("renderLapZoneCharts", () => {
 
         it("should create canvas for Power stacked chart", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-lap-power-zones");
+            const canvas = container.querySelector(
+                "#chartjs-canvas-lap-power-zones"
+            );
             expect(canvas).toBeTruthy();
         });
 
         it("should create canvas for HR individual chart", () => {
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-single-lap-hr");
+            const canvas = container.querySelector(
+                "#chartjs-canvas-single-lap-hr"
+            );
             expect(canvas).toBeTruthy();
         });
 
         it("should create canvas for Power individual chart", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-single-lap-power");
+            const canvas = container.querySelector(
+                "#chartjs-canvas-single-lap-power"
+            );
             expect(canvas).toBeTruthy();
         });
     });
@@ -344,12 +510,24 @@ describe("renderLapZoneCharts", () => {
             });
 
             (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
-            (renderSingleHRZoneBar as any).mockReturnValue({ id: "mock-hr-bar" });
-            (renderSinglePowerZoneBar as any).mockReturnValue({ id: "mock-power-bar" });
+            (renderSingleHRZoneBar as any).mockReturnValue({
+                id: "mock-hr-bar",
+            });
+            (renderSinglePowerZoneBar as any).mockReturnValue({
+                id: "mock-power-bar",
+            });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15]",
+                    referenceIndex: 1,
+                },
             ];
         });
 
@@ -358,11 +536,16 @@ describe("renderLapZoneCharts", () => {
 
             // Verify renderLapZoneChart was called for HR chart
             const hrCalls = renderLapZoneChart.mock.calls.filter(
-                (call: { title: string }[]) => call[2]?.title === "HR Zone by Lap (Stacked)"
+                (call: { title: string }[]) =>
+                    call[2]?.title === "HR Zone by Lap (Stacked)"
             );
             expect(hrCalls).toHaveLength(1);
 
-            const [canvas, data, options] = hrCalls[0];
+            const [
+                canvas,
+                data,
+                options,
+            ] = hrCalls[0];
             expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
             expect(canvas.id).toBe("chartjs-canvas-lap-hr-zones");
             expect(Array.isArray(data)).toBe(true);
@@ -371,23 +554,35 @@ describe("renderLapZoneCharts", () => {
 
         it("should call renderLapZoneChart for Power stacked chart", () => {
             renderLapZoneCharts(container);
-            expect(renderLapZoneChart).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
-                title: "Power Zone by Lap (Stacked)",
-            });
+            expect(renderLapZoneChart).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Array),
+                {
+                    title: "Power Zone by Lap (Stacked)",
+                }
+            );
         });
 
         it("should call renderSingleHRZoneBar for HR individual chart", () => {
             renderLapZoneCharts(container);
-            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
-                title: "HR Zone by Lap (Individual)",
-            });
+            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Array),
+                {
+                    title: "HR Zone by Lap (Individual)",
+                }
+            );
         });
 
         it("should call renderSinglePowerZoneBar for Power individual chart", () => {
             renderLapZoneCharts(container);
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
-                title: "Power Zone by Lap (Individual)",
-            });
+            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Array),
+                {
+                    title: "Power Zone by Lap (Individual)",
+                }
+            );
         });
     });
 
@@ -398,10 +593,16 @@ describe("renderLapZoneCharts", () => {
             });
 
             (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
-            (renderSingleHRZoneBar as any).mockReturnValue({ id: "mock-hr-bar" });
+            (renderSingleHRZoneBar as any).mockReturnValue({
+                id: "mock-hr-bar",
+            });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
         });
 
@@ -437,7 +638,11 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
@@ -453,11 +658,18 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockShowNotification).toHaveBeenCalledWith("Failed to render lap zone charts", "error");
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Failed to render lap zone charts",
+                "error"
+            );
         });
 
         it("should continue execution when showNotification is not available", () => {
@@ -467,7 +679,11 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
 
             // Should not throw
@@ -482,8 +698,16 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15]",
+                    referenceIndex: 1,
+                },
             ];
         });
 
@@ -506,8 +730,12 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container, options);
             // Should create only HR stacked and Power individual canvases
             expect(container.querySelectorAll("canvas")).toHaveLength(2);
-            expect(container.querySelector("#chartjs-canvas-lap-hr-zones")).toBeTruthy();
-            expect(container.querySelector("#chartjs-canvas-single-lap-power")).toBeTruthy();
+            expect(
+                container.querySelector("#chartjs-canvas-lap-hr-zones")
+            ).toBeTruthy();
+            expect(
+                container.querySelector("#chartjs-canvas-single-lap-power")
+            ).toBeTruthy();
         });
 
         it("should skip charts when visibility is false", () => {
@@ -525,7 +753,13 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should skip charts when no data available", () => {
-            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: "[0,0,0]", referenceIndex: 1 }];
+            window.globalData.timeInZoneMesgs = [
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,0,0]",
+                    referenceIndex: 1,
+                },
+            ];
 
             renderLapZoneCharts(container);
             // All zones are zero, so no meaningful data - no charts should be created
@@ -536,7 +770,11 @@ describe("renderLapZoneCharts", () => {
     describe("Theme Integration", () => {
         beforeEach(() => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
         });
 
@@ -549,7 +787,10 @@ describe("renderLapZoneCharts", () => {
         it("should log theme config name when available", () => {
             (getThemeConfig as any).mockReturnValue({ name: "dark-theme" });
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[renderLapZoneCharts] Using theme config:", "dark-theme");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[renderLapZoneCharts] Using theme config:",
+                "dark-theme"
+            );
         });
 
         it("should handle missing theme config gracefully", () => {
@@ -573,7 +814,9 @@ describe("renderLapZoneCharts", () => {
             });
 
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+            const canvas = container.querySelector(
+                "canvas"
+            ) as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
             expect(canvas.style.background).toBe("");
             expect(canvas.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
@@ -594,11 +837,18 @@ describe("renderLapZoneCharts", () => {
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Using session HR zone data:", window.heartRateZones);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Using session HR zone data:",
+                window.heartRateZones
+            );
         });
 
         it("should convert time property to value for HR zones", () => {
@@ -608,7 +858,11 @@ describe("renderLapZoneCharts", () => {
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,20]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
@@ -625,13 +879,26 @@ describe("renderLapZoneCharts", () => {
             delete window.heartRateZones;
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,15]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10,0]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,5,15]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Aggregating HR zone data from laps");
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Aggregated HR zones:", expect.any(Array));
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Aggregating HR zone data from laps"
+            );
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Aggregated HR zones:",
+                expect.any(Array)
+            );
         });
 
         it("should use window.powerZones for Power individual chart when available", () => {
@@ -641,23 +908,40 @@ describe("renderLapZoneCharts", () => {
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,15]",
+                    referenceIndex: 1,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Using session Power zone data:", window.powerZones);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Using session Power zone data:",
+                window.powerZones
+            );
         });
 
         it("should aggregate Power zone data from laps when session data not available", () => {
             delete window.powerZones;
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,3,12]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,5,0]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInPowerZone: "[0,3,12]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Aggregating Power zone data from laps");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Aggregating Power zone data from laps"
+            );
         });
     });
 
@@ -665,7 +949,10 @@ describe("renderLapZoneCharts", () => {
         it("should render complete lap zone charts with all data types", () => {
             (getThemeConfig as any).mockReturnValue({
                 name: "integration-theme",
-                colors: { bgPrimary: "#f0f0f0", shadow: "0 2px 4px rgba(0,0,0,0.1)" },
+                colors: {
+                    bgPrimary: "#f0f0f0",
+                    shadow: "0 2px 4px rgba(0,0,0,0.1)",
+                },
             });
 
             window.heartRateZones = [
@@ -679,8 +966,18 @@ describe("renderLapZoneCharts", () => {
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,30,45]", timeInPowerZone: "[0,20,35]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,25,50]", timeInPowerZone: "[0,15,40]", referenceIndex: 2 },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,30,45]",
+                    timeInPowerZone: "[0,20,35]",
+                    referenceIndex: 1,
+                },
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,25,50]",
+                    timeInPowerZone: "[0,15,40]",
+                    referenceIndex: 2,
+                },
             ];
 
             renderLapZoneCharts(container);
@@ -694,7 +991,9 @@ describe("renderLapZoneCharts", () => {
             expect(renderSinglePowerZoneBar).toHaveBeenCalledTimes(1);
 
             // Should have logged success
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Lap zone charts rendered successfully");
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Lap zone charts rendered successfully"
+            );
         });
 
         it("should handle minimal data scenario", () => {
@@ -702,13 +1001,23 @@ describe("renderLapZoneCharts", () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: "[0,10]", referenceIndex: 1 }];
+            window.globalData.timeInZoneMesgs = [
+                {
+                    referenceMesg: "lap",
+                    timeInHrZone: "[0,10]",
+                    referenceIndex: 1,
+                },
+            ];
 
             renderLapZoneCharts(container);
 
             // Should create at least the HR individual chart
-            expect(container.querySelectorAll("canvas").length).toBeGreaterThan(0);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Lap zone charts rendered successfully");
+            expect(container.querySelectorAll("canvas").length).toBeGreaterThan(
+                0
+            );
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Lap zone charts rendered successfully"
+            );
         });
     });
 });

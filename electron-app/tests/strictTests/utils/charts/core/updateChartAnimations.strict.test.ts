@@ -23,7 +23,9 @@ describe("updateChartAnimations", () => {
     });
 
     it("configures base animation and type-specific for line charts", () => {
-        const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+        const consoleLog = vi
+            .spyOn(console, "log")
+            .mockImplementation(() => {});
         const chart: any = { options: {}, config: { type: "line" } };
         const res = updateChartAnimations(chart, "Line Chart");
         expect(res).toBe(chart);
@@ -56,7 +58,9 @@ describe("updateChartAnimations", () => {
     });
 
     it("logs error and returns original chart if exception thrown", () => {
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const chart: any = { options: {} };
         // Force error by monkey-patching Object spread target via getter throwing
         const badChart: any = {

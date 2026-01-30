@@ -72,9 +72,13 @@ describe("isValidOptionValue", () => {
     it("rejects out-of-bounds for range type", () => {
         expect(isValidOptionValue("smoothing", -0.1)).toBe(false);
         expect(isValidOptionValue("smoothing", 1.1)).toBe(false);
-        expect(isValidOptionValue("smoothing", Number.POSITIVE_INFINITY)).toBe(false);
+        expect(isValidOptionValue("smoothing", Number.POSITIVE_INFINITY)).toBe(
+            false
+        );
         // wrong type
-        expect(isValidOptionValue("smoothing", "0.5" as unknown as number)).toBe(false);
+        expect(
+            isValidOptionValue("smoothing", "0.5" as unknown as number)
+        ).toBe(false);
     });
 
     it("validates select type membership", () => {
@@ -87,7 +91,9 @@ describe("isValidOptionValue", () => {
     it("validates toggle type boolean", () => {
         expect(isValidOptionValue("showLegend", true)).toBe(true);
         expect(isValidOptionValue("showLegend", false)).toBe(true);
-        expect(isValidOptionValue("showLegend", 1 as unknown as boolean)).toBe(false);
+        expect(isValidOptionValue("showLegend", 1 as unknown as boolean)).toBe(
+            false
+        );
     });
 
     it("returns false for unknown optionId", () => {
@@ -104,7 +110,9 @@ describe("getMaxPointsWarningLevel", () => {
         expect(getMaxPointsWarningLevel(1)).toBe(null);
         expect(getMaxPointsWarningLevel(5)).toBe(null);
         // NaN path should produce null (no thresholds matched)
-        expect(getMaxPointsWarningLevel("not-a-number" as unknown as number)).toBe(null);
+        expect(
+            getMaxPointsWarningLevel("not-a-number" as unknown as number)
+        ).toBe(null);
     });
 
     it("returns slow, very-slow, and not-recommended at thresholds", () => {

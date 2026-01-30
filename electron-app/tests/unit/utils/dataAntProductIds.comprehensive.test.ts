@@ -197,10 +197,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                     });
                 });
 
-                const lowercaseNames = allProductNames.filter((name) => name === name.toLowerCase());
+                const lowercaseNames = allProductNames.filter(
+                    (name) => name === name.toLowerCase()
+                );
 
                 // Allow for some mixed case names (like MiPulse found in manufacturer data)
-                const lowercasePercentage = (lowercaseNames.length / allProductNames.length) * 100;
+                const lowercasePercentage =
+                    (lowercaseNames.length / allProductNames.length) * 100;
                 expect(lowercasePercentage).toBeGreaterThan(85); // More flexible for product names
             });
 
@@ -213,8 +216,11 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                     });
                 });
 
-                const namesWithSpaces = allProductNames.filter((name) => name.includes(" "));
-                const spacePercentage = (namesWithSpaces.length / allProductNames.length) * 100;
+                const namesWithSpaces = allProductNames.filter((name) =>
+                    name.includes(" ")
+                );
+                const spacePercentage =
+                    (namesWithSpaces.length / allProductNames.length) * 100;
 
                 // Most product names should use underscores instead of spaces
                 expect(spacePercentage).toBeLessThan(15);
@@ -268,7 +274,9 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
         describe("Key Range and Distribution", () => {
             it("should have manufacturer IDs within reasonable range", () => {
-                const manufacturerIds = Object.keys(localDataAntProductIds).map(Number);
+                const manufacturerIds = Object.keys(localDataAntProductIds).map(
+                    Number
+                );
                 const maxManufacturerId = Math.max(...manufacturerIds);
                 const minManufacturerId = Math.min(...manufacturerIds);
 
@@ -277,14 +285,18 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
             });
 
             it("should have product IDs within reasonable range for each manufacturer", () => {
-                Object.entries(localDataAntProductIds).forEach(([manufacturerId, products]) => {
-                    const productIds = Object.keys(products as any).map(Number);
-                    const maxProductId = Math.max(...productIds);
-                    const minProductId = Math.min(...productIds);
+                Object.entries(localDataAntProductIds).forEach(
+                    ([manufacturerId, products]) => {
+                        const productIds = Object.keys(products as any).map(
+                            Number
+                        );
+                        const maxProductId = Math.max(...productIds);
+                        const minProductId = Math.min(...productIds);
 
-                    expect(minProductId).toBeGreaterThanOrEqual(1);
-                    expect(maxProductId).toBeLessThan(100000); // Very generous upper bound
-                });
+                        expect(minProductId).toBeGreaterThanOrEqual(1);
+                        expect(maxProductId).toBeLessThan(100000); // Very generous upper bound
+                    }
+                );
             });
 
             it("should have unique manufacturer IDs", () => {
@@ -294,25 +306,33 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
             });
 
             it("should have unique product IDs within each manufacturer", () => {
-                Object.entries(localDataAntProductIds).forEach(([manufacturerId, products]) => {
-                    const productIds = Object.keys(products as any);
-                    const uniqueProductIds = new Set(productIds);
-                    expect(uniqueProductIds.size).toBe(productIds.length);
-                });
+                Object.entries(localDataAntProductIds).forEach(
+                    ([manufacturerId, products]) => {
+                        const productIds = Object.keys(products as any);
+                        const uniqueProductIds = new Set(productIds);
+                        expect(uniqueProductIds.size).toBe(productIds.length);
+                    }
+                );
             });
 
             it("should contain a reasonable number of manufacturers", () => {
-                const manufacturerCount = Object.keys(localDataAntProductIds).length;
+                const manufacturerCount = Object.keys(
+                    localDataAntProductIds
+                ).length;
                 expect(manufacturerCount).toBeGreaterThan(3); // At least a few manufacturers
                 expect(manufacturerCount).toBeLessThan(100); // Not unreasonably many
             });
 
             it("should contain reasonable number of products per manufacturer", () => {
-                Object.entries(localDataAntProductIds).forEach(([manufacturerId, products]) => {
-                    const productCount = Object.keys(products as any).length;
-                    expect(productCount).toBeGreaterThan(0);
-                    expect(productCount).toBeLessThan(1000); // Generous upper bound
-                });
+                Object.entries(localDataAntProductIds).forEach(
+                    ([manufacturerId, products]) => {
+                        const productCount = Object.keys(
+                            products as any
+                        ).length;
+                        expect(productCount).toBeGreaterThan(0);
+                        expect(productCount).toBeLessThan(1000); // Generous upper bound
+                    }
+                );
             });
         });
     });
@@ -416,7 +436,9 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
             it("should handle power meter product scenarios", () => {
                 // Various power meter brands
                 expect(localDataAntProductIds[263]?.[12]).toBe("assioma_duo"); // Favero
-                expect(localDataAntProductIds[68]?.[1]).toBe("power_meter_gen1"); // Stages
+                expect(localDataAntProductIds[68]?.[1]).toBe(
+                    "power_meter_gen1"
+                ); // Stages
                 expect(localDataAntProductIds[280]?.[1]).toBe("quarq_dzero"); // SRAM
             });
 
@@ -431,23 +453,36 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
         describe("Integration with Other Utilities", () => {
             it("should provide consistent data for product formatting", () => {
                 // Test that data format is suitable for product formatting utilities
-                Object.entries(localDataAntProductIds).forEach(([manufacturerId, products]) => {
-                    Object.entries(products as any).forEach(([productId, productName]) => {
-                        expect(typeof manufacturerId).toBe("string");
-                        expect(typeof productId).toBe("string");
-                        expect(typeof productName).toBe("string");
-                        expect(productName).toBeTruthy();
-                    });
-                });
+                Object.entries(localDataAntProductIds).forEach(
+                    ([manufacturerId, products]) => {
+                        Object.entries(products as any).forEach(
+                            ([productId, productName]) => {
+                                expect(typeof manufacturerId).toBe("string");
+                                expect(typeof productId).toBe("string");
+                                expect(typeof productName).toBe("string");
+                                expect(productName).toBeTruthy();
+                            }
+                        );
+                    }
+                );
             });
 
             it("should support reverse lookup functionality", () => {
                 // Test ability to find manufacturer by product name
-                const findManufacturerByProduct = (searchProductName: string) => {
-                    for (const [manufacturerId, products] of Object.entries(localDataAntProductIds)) {
-                        for (const [productId, productName] of Object.entries(products as any)) {
+                const findManufacturerByProduct = (
+                    searchProductName: string
+                ) => {
+                    for (const [manufacturerId, products] of Object.entries(
+                        localDataAntProductIds
+                    )) {
+                        for (const [productId, productName] of Object.entries(
+                            products as any
+                        )) {
                             if (productName === searchProductName) {
-                                return { manufacturerId: Number(manufacturerId), productId: Number(productId) };
+                                return {
+                                    manufacturerId: Number(manufacturerId),
+                                    productId: Number(productId),
+                                };
                             }
                         }
                     }
@@ -455,10 +490,16 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 };
 
                 const edgeResult = findManufacturerByProduct("edge500");
-                expect(edgeResult).toEqual({ manufacturerId: 1, productId: 1036 });
+                expect(edgeResult).toEqual({
+                    manufacturerId: 1,
+                    productId: 1036,
+                });
 
                 const kickrResult = findManufacturerByProduct("kickr_core");
-                expect(kickrResult).toEqual({ manufacturerId: 32, productId: 3 }); // kickr_core is product ID 3
+                expect(kickrResult).toEqual({
+                    manufacturerId: 32,
+                    productId: 3,
+                }); // kickr_core is product ID 3
             });
         });
 
@@ -484,7 +525,9 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
             });
 
             it("should have predictable memory footprint", () => {
-                const manufacturerCount = Object.keys(localDataAntProductIds).length;
+                const manufacturerCount = Object.keys(
+                    localDataAntProductIds
+                ).length;
                 let totalProductCount = 0;
 
                 Object.values(localDataAntProductIds).forEach((products) => {
@@ -519,9 +562,15 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
             it("should handle null and undefined keys", () => {
                 expect(localDataAntProductIds[null as any]).toBeUndefined();
-                expect(localDataAntProductIds[undefined as any]).toBeUndefined();
-                expect(localDataAntProductIds[1]?.[null as any]).toBeUndefined();
-                expect(localDataAntProductIds[1]?.[undefined as any]).toBeUndefined();
+                expect(
+                    localDataAntProductIds[undefined as any]
+                ).toBeUndefined();
+                expect(
+                    localDataAntProductIds[1]?.[null as any]
+                ).toBeUndefined();
+                expect(
+                    localDataAntProductIds[1]?.[undefined as any]
+                ).toBeUndefined();
             });
 
             it("should handle boolean keys", () => {
@@ -556,20 +605,28 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
         describe("Type Safety", () => {
             it("should handle type coercion predictably", () => {
                 // JavaScript will coerce numbers to strings for object keys
-                expect(localDataAntProductIds[1]).toBe(localDataAntProductIds["1"]);
-                expect(localDataAntProductIds[1]?.[1036]).toBe(localDataAntProductIds["1"]?.["1036"]);
+                expect(localDataAntProductIds[1]).toBe(
+                    localDataAntProductIds["1"]
+                );
+                expect(localDataAntProductIds[1]?.[1036]).toBe(
+                    localDataAntProductIds["1"]?.["1036"]
+                );
             });
 
             it("should maintain type consistency", () => {
-                Object.entries(localDataAntProductIds).forEach(([manufacturerId, products]) => {
-                    expect(typeof manufacturerId).toBe("string");
-                    expect(typeof products).toBe("object");
+                Object.entries(localDataAntProductIds).forEach(
+                    ([manufacturerId, products]) => {
+                        expect(typeof manufacturerId).toBe("string");
+                        expect(typeof products).toBe("object");
 
-                    Object.entries(products as any).forEach(([productId, productName]) => {
-                        expect(typeof productId).toBe("string");
-                        expect(typeof productName).toBe("string");
-                    });
-                });
+                        Object.entries(products as any).forEach(
+                            ([productId, productName]) => {
+                                expect(typeof productId).toBe("string");
+                                expect(typeof productName).toBe("string");
+                            }
+                        );
+                    }
+                );
             });
         });
     });

@@ -1,17 +1,20 @@
 /**
- * @fileoverview Comprehensive test suite for formatting utilities
+ * @file Comprehensive test suite for formatting utilities
  *
- * This test suite provides complete coverage for all formatting utility functions
- * including edge cases, error handling, boundary conditions, and type validation.
+ *   This test suite provides complete coverage for all formatting utility
+ *   functions including edge cases, error handling, boundary conditions, and
+ *   type validation.
  *
- * Tests include:
- * - formatDistance: Distance formatting with metric/imperial units
- * - formatDuration: Duration formatting with seconds/minutes/hours
- * - formatTime: Time formatting with MM:SS or HH:MM:SS format
- * - formatWeight: Weight formatting with kg/pounds conversion
- * - formatHeight: Height formatting utilities
+ *   Tests include:
+ *
+ *   - FormatDistance: Distance formatting with metric/imperial units
+ *   - FormatDuration: Duration formatting with seconds/minutes/hours
+ *   - FormatTime: Time formatting with MM:SS or HH:MM:SS format
+ *   - FormatWeight: Weight formatting with kg/pounds conversion
+ *   - FormatHeight: Height formatting utilities
  *
  * @author FitFileViewer Test Suite
+ *
  * @since 1.0.0
  */
 
@@ -155,11 +158,15 @@ describe("Formatting Utilities", () => {
             });
 
             it("should handle negative durations with warning", () => {
-                expect(() => formatDuration(-30)).toThrow("Invalid duration input: Duration cannot be negative");
+                expect(() => formatDuration(-30)).toThrow(
+                    "Invalid duration input: Duration cannot be negative"
+                );
             });
 
             it("should handle NaN input correctly", () => {
-                expect(() => formatDuration(NaN)).toThrow("Invalid duration input: Input must be a finite number");
+                expect(() => formatDuration(NaN)).toThrow(
+                    "Invalid duration input: Input must be a finite number"
+                );
             });
         });
 
@@ -253,7 +260,10 @@ describe("Formatting Utilities", () => {
 
             it("should handle negative time with warning", () => {
                 const result = formatTime(-30);
-                expect(console.warn).toHaveBeenCalledWith("[formatTime] Negative time value:", -30);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatTime] Negative time value:",
+                    -30
+                );
                 expect(result).toBe("0:00");
             });
 
@@ -318,7 +328,10 @@ describe("Formatting Utilities", () => {
 
             it("should handle negative weight with warning", () => {
                 const result = formatWeight(-10);
-                expect(console.warn).toHaveBeenCalledWith("[formatWeight] Negative weight value:", -10);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatWeight] Negative weight value:",
+                    -10
+                );
                 expect(result).toBe("");
             });
         });
@@ -370,7 +383,10 @@ describe("Formatting Utilities", () => {
 
             it("should handle negative height with warning", () => {
                 const result = formatHeight(-1.5);
-                expect(console.warn).toHaveBeenCalledWith("[formatHeight] Negative height value:", -1.5);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatHeight] Negative height value:",
+                    -1.5
+                );
                 expect(result).toBe("");
             });
 
@@ -399,7 +415,12 @@ describe("Formatting Utilities", () => {
             });
 
             it("should handle typical human height range", () => {
-                const heights = [1.5, 1.65, 1.8, 1.95];
+                const heights = [
+                    1.5,
+                    1.65,
+                    1.8,
+                    1.95,
+                ];
                 heights.forEach((height) => {
                     const result = formatHeight(height);
                     expect(result).toContain("m");
@@ -425,11 +446,24 @@ describe("Formatting Utilities", () => {
         });
 
         it("should handle all formatters with edge case inputs", () => {
-            const edgeCases = [0, -1, NaN, Infinity, null, undefined, "invalid"];
+            const edgeCases = [
+                0,
+                -1,
+                NaN,
+                Infinity,
+                null,
+                undefined,
+                "invalid",
+            ];
 
             edgeCases.forEach((value) => {
                 // formatDuration throws for negative/invalid values, others don't
-                if (value === -1 || Number.isNaN(value) || value === Infinity || value === "invalid") {
+                if (
+                    value === -1 ||
+                    Number.isNaN(value) ||
+                    value === Infinity ||
+                    value === "invalid"
+                ) {
                     expect(() => formatDuration(value as any)).toThrow();
                 } else {
                     expect(() => {

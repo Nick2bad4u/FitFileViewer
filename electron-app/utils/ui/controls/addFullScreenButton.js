@@ -1,13 +1,15 @@
 /**
- * @fileoverview Fullscreen functionality for FitFileViewer application
- * Provides fullscreen toggle buttons, keyboard shortcuts, and overlay management
- * Part of the FitFileViewer Electron application utilities
+ * @version 1.0.0
  *
- * This module manages fullscreen functionality across different tab content areas,
- * including proper overlay management, keyboard shortcuts, and accessibility features.
+ * @file Fullscreen functionality for FitFileViewer application Provides
+ *   fullscreen toggle buttons, keyboard shortcuts, and overlay management Part
+ *   of the FitFileViewer Electron application utilities
+ *
+ *   This module manages fullscreen functionality across different tab content
+ *   areas, including proper overlay management, keyboard shortcuts, and
+ *   accessibility features.
  *
  * @author FitFileViewer
- * @version 1.0.0
  */
 
 // screenfull is loaded globally from index.html via vendor/screenfull-global.js
@@ -20,7 +22,12 @@ import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
 // Constants for better maintainability
 const FULLSCREEN_BUTTON_ID = "global-fullscreen-btn";
 const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
-const REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
+const REQUIRED_CONTENT_IDS = [
+    "content-data",
+    "content-map",
+    "content-summary",
+    "content-altfit",
+];
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
 const NATIVE_FULLSCREEN_EVENTS = [
@@ -32,11 +39,15 @@ const NATIVE_FULLSCREEN_EVENTS = [
 
 const getScreenfullInstance = () => {
     const { screenfull } = /** @type {any} */ (globalThis);
-    return /** @type {import('screenfull').Screenfull | undefined} */ (screenfull);
+    return /** @type {import("screenfull").Screenfull | undefined} */ (
+        screenfull
+    );
 };
 
 const getStoredHandler = (key) =>
-    /** @type {(event: any) => void | null | undefined} */ (/** @type {any} */ (globalThis)[key]);
+    /** @type {(event: any) => void | null | undefined} */ (
+        /** @type {any} */ (globalThis)[key]
+    );
 
 const setStoredHandler = (key, handler) => {
     Object.defineProperty(globalThis, key, {
@@ -55,28 +66,34 @@ const isFullscreenActive = () => {
 
     const doc = /** @type {any} */ (document);
     return Boolean(
-        document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
+        document.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
     );
 };
 
 /**
- * Adds a global fullscreen toggle button to the application
- * Creates a floating button that allows users to toggle fullscreen mode for the active tab content
+ * Adds a global fullscreen toggle button to the application Creates a floating
+ * button that allows users to toggle fullscreen mode for the active tab content
  * Only creates one button instance to prevent duplicates
+ *
+ * @since 1.0.0
+ *
+ * @example
+ *     // Add fullscreen button when app initializes
+ *     addFullScreenButton();
  *
  * @returns {void}
  *
- * @example
- * // Add fullscreen button when app initializes
- * addFullScreenButton();
- *
  * @public
- * @since 1.0.0
  */
 export function addFullScreenButton() {
     try {
         if (document.getElementById(FULLSCREEN_WRAPPER_ID)) {
-            logWithContext("Fullscreen button already exists, skipping creation");
+            logWithContext(
+                "Fullscreen button already exists, skipping creation"
+            );
             return;
         }
 
@@ -101,7 +118,10 @@ export function addFullScreenButton() {
             wrapper.append(btn);
             document.body.append(wrapper);
 
-            logWithContext("Screenfull not available or not enabled; using native fullscreen fallback", "warn");
+            logWithContext(
+                "Screenfull not available or not enabled; using native fullscreen fallback",
+                "warn"
+            );
             return;
         }
 
@@ -125,45 +145,61 @@ export function addFullScreenButton() {
 
         logWithContext("Fullscreen button created successfully");
     } catch (error) {
-        logWithContext(`Failed to create fullscreen button: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Failed to create fullscreen button: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
- * Alternative DOM setup function for backward compatibility
- * Sets up fullscreen functionality when DOM content is loaded
+ * Alternative DOM setup function for backward compatibility Sets up fullscreen
+ * functionality when DOM content is loaded
+ *
+ * @deprecated Use setupFullscreenListeners() instead
+ *
+ * @since 1.0.0
+ *
+ * @example
+ *     // Alternative setup method
+ *     setupDOMContentLoaded();
  *
  * @returns {void}
  *
- * @example
- * // Alternative setup method
- * setupDOMContentLoaded();
- *
  * @public
- * @since 1.0.0
- * @deprecated Use setupFullscreenListeners() instead
  */
 export function setupDOMContentLoaded() {
     try {
         if (document.readyState === "loading") {
             globalThis.addEventListener("DOMContentLoaded", () => {
-                const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+                const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
+                    (id) => document.getElementById(id) !== null
+                );
 
                 if (hasRequiredElements) {
                     addFullScreenButton();
-                    logWithContext("Legacy DOM setup: Fullscreen button initialized");
+                    logWithContext(
+                        "Legacy DOM setup: Fullscreen button initialized"
+                    );
                 }
             });
         } else {
-            const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+            const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
+                (id) => document.getElementById(id) !== null
+            );
 
             if (hasRequiredElements) {
                 addFullScreenButton();
-                logWithContext("Legacy DOM setup: Fullscreen button initialized (immediate)");
+                logWithContext(
+                    "Legacy DOM setup: Fullscreen button initialized (immediate)"
+                );
             }
         }
     } catch (error) {
-        logWithContext(`Error in legacy DOM setup: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Error in legacy DOM setup: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
@@ -171,14 +207,15 @@ export function setupDOMContentLoaded() {
  * Sets up fullscreen event listeners for state changes and keyboard shortcuts
  * Handles fullscreen state changes, F11 key events, and initialization
  *
- * @returns {void}
+ * @since 1.0.0
  *
  * @example
- * // Setup listeners after DOM is ready
- * setupFullscreenListeners();
+ *     // Setup listeners after DOM is ready
+ *     setupFullscreenListeners();
+ *
+ * @returns {void}
  *
  * @public
- * @since 1.0.0
  */
 export function setupFullscreenListeners() {
     try {
@@ -189,14 +226,19 @@ export function setupFullscreenListeners() {
             globalThis.removeEventListener("keydown", previousKeyHandler);
         }
 
-        const previousNativeHandler = getStoredHandler(NATIVE_FULLSCREEN_HANDLER_KEY);
+        const previousNativeHandler = getStoredHandler(
+            NATIVE_FULLSCREEN_HANDLER_KEY
+        );
         if (typeof previousNativeHandler === "function") {
             for (const evt of NATIVE_FULLSCREEN_EVENTS) {
                 document.removeEventListener(evt, previousNativeHandler);
             }
         }
 
-        globalThis.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
+        globalThis.removeEventListener(
+            "DOMContentLoaded",
+            handleDOMContentLoaded
+        );
 
         if (screenfull && screenfull.isEnabled) {
             if (typeof screenfull.off === "function") {
@@ -215,7 +257,10 @@ export function setupFullscreenListeners() {
             setStoredHandler(NATIVE_FULLSCREEN_HANDLER_KEY, null);
 
             if (document.readyState === "loading") {
-                globalThis.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+                globalThis.addEventListener(
+                    "DOMContentLoaded",
+                    handleDOMContentLoaded
+                );
             } else {
                 handleDOMContentLoaded();
             }
@@ -245,21 +290,31 @@ export function setupFullscreenListeners() {
         setStoredHandler(KEYDOWN_HANDLER_KEY, keyHandler);
 
         if (document.readyState === "loading") {
-            globalThis.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+            globalThis.addEventListener(
+                "DOMContentLoaded",
+                handleDOMContentLoaded
+            );
         } else {
             handleDOMContentLoaded();
         }
 
-        logWithContext("Using native fullscreen listeners (screenfull not enabled)");
+        logWithContext(
+            "Using native fullscreen listeners (screenfull not enabled)"
+        );
     } catch (error) {
-        logWithContext(`Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Creates SVG icon for fullscreen enter state
- * @returns {string} SVG markup for enter fullscreen icon
+ *
  * @private
+ *
+ * @returns {string} SVG markup for enter fullscreen icon
  */
 function createEnterFullscreenIcon() {
     return `
@@ -275,8 +330,10 @@ function createEnterFullscreenIcon() {
 
 /**
  * Creates SVG icon for fullscreen exit state
- * @returns {string} SVG markup for exit fullscreen icon
+ *
  * @private
+ *
+ * @returns {string} SVG markup for exit fullscreen icon
  */
 function createExitFullscreenIcon() {
     return `
@@ -292,6 +349,7 @@ function createExitFullscreenIcon() {
 
 /**
  * Handles DOM content loaded initialization
+ *
  * @private
  */
 function handleDOMContentLoaded() {
@@ -311,12 +369,16 @@ function handleDOMContentLoaded() {
         // Initial state check
         updateFullscreenButtonState();
     } catch (error) {
-        logWithContext(`Error in DOMContentLoaded handler: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Error in DOMContentLoaded handler: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Handles fullscreen state change events
+ *
  * @private
  */
 function handleFullscreenStateChange() {
@@ -325,11 +387,15 @@ function handleFullscreenStateChange() {
         const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
         const screenfull = getScreenfullInstance();
         const fullscreenEnabled = screenfull && screenfull.isEnabled;
-        const isFullscreen = fullscreenEnabled ? Boolean(screenfull.isFullscreen) : isFullscreenActive();
+        const isFullscreen = fullscreenEnabled
+            ? Boolean(screenfull.isFullscreen)
+            : isFullscreenActive();
 
         if (isFullscreen) {
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                addExitFullscreenOverlay(
+                    /** @type {HTMLElement} */ (activeContent)
+                );
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -337,13 +403,17 @@ function handleFullscreenStateChange() {
                 updateButtonState(globalBtn, true);
             }
 
-            const contentBtn = activeContent && document.getElementById(`${activeContent.id}-fullscreen-btn`);
+            const contentBtn =
+                activeContent &&
+                document.getElementById(`${activeContent.id}-fullscreen-btn`);
             if (contentBtn) {
                 updateButtonState(contentBtn, true);
             }
         } else {
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                removeExitFullscreenOverlay(
+                    /** @type {HTMLElement} */ (activeContent)
+                );
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -351,20 +421,27 @@ function handleFullscreenStateChange() {
                 updateButtonState(globalBtn, false);
             }
 
-            const contentBtn = activeContent && document.getElementById(`${activeContent.id}-fullscreen-btn`);
+            const contentBtn =
+                activeContent &&
+                document.getElementById(`${activeContent.id}-fullscreen-btn`);
             if (contentBtn) {
                 updateButtonState(contentBtn, false);
             }
         }
     } catch (error) {
-        logWithContext(`Error handling fullscreen state change: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Error handling fullscreen state change: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Handles fullscreen toggle button click events
- * @param {Event} event - The click event
+ *
  * @private
+ *
+ * @param {Event} event - The click event
  */
 async function handleFullscreenToggle(event) {
     try {
@@ -373,14 +450,19 @@ async function handleFullscreenToggle(event) {
         // Always attempt to toggle fullscreen even if we cannot reliably determine the active tab.
         // In those cases, fall back to the document root.
         const activeContent = getActiveTabContent();
-        const target = /** @type {any} */ (activeContent ?? document.documentElement);
+        const target = /** @type {any} */ (
+            activeContent ?? document.documentElement
+        );
 
         const screenfull = getScreenfullInstance();
         const isScreenfullEnabled = Boolean(screenfull && screenfull.isEnabled);
 
         if (!isScreenfullEnabled) {
             if (!activeContent) {
-                logWithContext("No active content found; using document root for native fullscreen", "warn");
+                logWithContext(
+                    "No active content found; using document root for native fullscreen",
+                    "warn"
+                );
             }
             nativeToggleFullscreen(target);
             return;
@@ -398,7 +480,9 @@ async function handleFullscreenToggle(event) {
                 if (result && typeof result.then === "function") {
                     await result;
                 }
-                logWithContext(`Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`);
+                logWithContext(
+                    `Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`
+                );
             }
         } catch (error) {
             // Some environments can report screenfull as enabled but still reject the request.
@@ -410,14 +494,19 @@ async function handleFullscreenToggle(event) {
             nativeToggleFullscreen(target);
         }
     } catch (error) {
-        logWithContext(`Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Handles keyboard shortcuts for fullscreen functionality
- * @param {KeyboardEvent} event - The keyboard event
+ *
  * @private
+ *
+ * @param {KeyboardEvent} event - The keyboard event
  */
 function handleKeyboardShortcuts(event) {
     try {
@@ -425,13 +514,20 @@ function handleKeyboardShortcuts(event) {
             event.preventDefault();
 
             const activeContent = getActiveTabContent();
-            const target = /** @type {any} */ (activeContent ?? document.documentElement);
+            const target = /** @type {any} */ (
+                activeContent ?? document.documentElement
+            );
             const screenfull = getScreenfullInstance();
-            const isScreenfullEnabled = Boolean(screenfull && screenfull.isEnabled);
+            const isScreenfullEnabled = Boolean(
+                screenfull && screenfull.isEnabled
+            );
 
             if (!isScreenfullEnabled) {
                 if (!activeContent)
-                    logWithContext("No active content for F11 fullscreen toggle; using document root", "warn");
+                    logWithContext(
+                        "No active content for F11 fullscreen toggle; using document root",
+                        "warn"
+                    );
                 nativeToggleFullscreen(target);
                 return;
             }
@@ -443,7 +539,9 @@ function handleKeyboardShortcuts(event) {
                     logWithContext("F11: Exiting fullscreen mode");
                 } else {
                     screenfull.request(target);
-                    logWithContext(`F11: Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`);
+                    logWithContext(
+                        `F11: Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`
+                    );
                 }
             } catch (error) {
                 logWithContext(
@@ -454,15 +552,20 @@ function handleKeyboardShortcuts(event) {
             }
         }
     } catch (error) {
-        logWithContext(`Error handling keyboard shortcut: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Error handling keyboard shortcut: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Logs messages with context for fullscreen operations
+ *
+ * @private
+ *
  * @param {string} message - The message to log
  * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
  */
 function logWithContext(message, level = "info") {
     const prefix = "[FullscreenButton]";
@@ -491,9 +594,14 @@ function logWithContext(message, level = "info") {
 function nativeToggleFullscreen(target) {
     try {
         const overrideTarget = /** @type {HTMLElement | Document} */ (target);
-        const activeContent = overrideTarget instanceof HTMLElement ? overrideTarget : getActiveTabContent();
+        const activeContent =
+            overrideTarget instanceof HTMLElement
+                ? overrideTarget
+                : getActiveTabContent();
         const doc = /** @type {any} */ (document);
-        const docEl = /** @type {any} */ (activeContent || document.documentElement);
+        const docEl = /** @type {any} */ (
+            activeContent || document.documentElement
+        );
 
         const isFs = Boolean(
             document.fullscreenElement ||
@@ -503,7 +611,10 @@ function nativeToggleFullscreen(target) {
         );
         if (isFs) {
             const exit =
-                document.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+                document.exitFullscreen ||
+                doc.webkitExitFullscreen ||
+                doc.mozCancelFullScreen ||
+                doc.msExitFullscreen;
             if (typeof exit === "function") exit.call(document);
             logWithContext("Exiting fullscreen mode (native fallback)");
         } else {
@@ -516,15 +627,20 @@ function nativeToggleFullscreen(target) {
             logWithContext("Entering fullscreen mode (native fallback)");
         }
     } catch (error) {
-        logWithContext(`Native fullscreen fallback failed: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Native fullscreen fallback failed: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Updates the fullscreen button icon and title based on current state
+ *
+ * @private
+ *
  * @param {HTMLElement} button - The fullscreen button element
  * @param {boolean} isFullscreen - Whether currently in fullscreen mode
- * @private
  */
 function updateButtonState(button, isFullscreen) {
     try {
@@ -549,7 +665,10 @@ function updateButtonState(button, isFullscreen) {
             icon.innerHTML = createEnterFullscreenIcon();
         }
     } catch (error) {
-        logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(
+            `Failed to update button state: ${/** @type {any} */ (error).message}`,
+            "error"
+        );
     }
 }
 
@@ -557,6 +676,7 @@ function updateButtonState(button, isFullscreen) {
 
 /**
  * Updates fullscreen button state based on whether a file is loaded
+ *
  * @private
  */
 function updateFullscreenButtonState() {

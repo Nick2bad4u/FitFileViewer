@@ -40,7 +40,11 @@ export function computeRangeState(
               max: any;
           };
       };
-export function formatMetricValue(value: any, stats: any, decimalsOverride: any): string;
+export function formatMetricValue(
+    value: any,
+    stats: any,
+    decimalsOverride: any
+): string;
 export function formatPercent(value: any): string;
 export function getGlobalRecords(): any;
 export function resolveInitialConfig(

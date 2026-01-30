@@ -1,12 +1,20 @@
 import "./index-LvWRIhnC.js";
 (function () {
     try {
-        var i = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var i =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             t = new Error().stack;
         t &&
             ((i._sentryDebugIds = i._sentryDebugIds || {}),
             (i._sentryDebugIds[t] = "9f565142-70f1-499c-ab4c-2767a1b4a07b"),
-            (i._sentryDebugIdIdentifier = "sentry-dbid-9f565142-70f1-499c-ab4c-2767a1b4a07b"));
+            (i._sentryDebugIdIdentifier =
+                "sentry-dbid-9f565142-70f1-499c-ab4c-2767a1b4a07b"));
     } catch {
         /* Ignore errors */
     }
@@ -933,7 +941,11 @@ const e = {
             },
             tone: { 0: "off", 1: "tone", 2: "vibrate", 3: "tone_and_vibrate" },
             autoscroll: { 0: "none", 1: "slow", 2: "medium", 3: "fast" },
-            activity_class: { 100: "level_max", "0x7F": "level", "0x80": "athlete" },
+            activity_class: {
+                100: "level_max",
+                "0x7F": "level",
+                "0x80": "athlete",
+            },
             hr_zone_calc: {
                 0: "custom",
                 1: "percent_max_hr",
@@ -1766,7 +1778,12 @@ const e = {
                 123: "bike_speed",
                 124: "stride_speed_distance",
             },
-            ant_network: { 0: "public", 1: "antplus", 2: "antfs", 3: "private" },
+            ant_network: {
+                0: "public",
+                1: "antplus",
+                2: "antfs",
+                3: "private",
+            },
             workout_capabilities: {
                 bitFlags: !0,
                 "0x00000001": "interval",
@@ -2172,8 +2189,16 @@ const e = {
                 2: "connect_iq",
                 3: "disabled",
             },
-            digital_watchface_layout: { 0: "traditional", 1: "modern", 2: "bold" },
-            analog_watchface_layout: { 0: "minimal", 1: "traditional", 2: "modern" },
+            digital_watchface_layout: {
+                0: "traditional",
+                1: "modern",
+                2: "bold",
+            },
+            analog_watchface_layout: {
+                0: "minimal",
+                1: "traditional",
+                2: "modern",
+            },
             rider_position_type: {
                 0: "seated",
                 1: "standing",
@@ -2225,7 +2250,12 @@ const e = {
                 2: "camera_orientation_180",
                 3: "camera_orientation_270",
             },
-            attitude_stage: { 0: "failed", 1: "aligning", 2: "degraded", 3: "valid" },
+            attitude_stage: {
+                0: "failed",
+                1: "aligning",
+                2: "degraded",
+                3: "valid",
+            },
             attitude_validity: {
                 bitFlags: !0,
                 "0x0001": "track_angle_heading_valid",
@@ -4410,7 +4440,12 @@ const e = {
             orientation: { 0: "north_up", 1: "track_up" },
             power_averaging: { 0: "include_zeros", 1: "do_not_include_zeros" },
             power_save_timeout: { 0: "normal", 1: "extended" },
-            record_metric: { 0: "time", 1: "distance", 2: "ascent", 3: "power" },
+            record_metric: {
+                0: "time",
+                1: "distance",
+                2: "ascent",
+                3: "power",
+            },
             relief_shading: { 0: "default", 1: "off", 2: "on" },
             route_recalculation: { 0: "automatic", 1: "off", 2: "prompted" },
             routing_mode: {
@@ -4460,7 +4495,11 @@ const e = {
                 127: "stamina",
                 162: "group_ride",
             },
-            self_evaluation_status: { 0: "off", 1: "workouts_only", 2: "always" },
+            self_evaluation_status: {
+                0: "off",
+                1: "workouts_only",
+                2: "always",
+            },
             sound_and_vibe: {
                 0: "off",
                 1: "tone",
@@ -4495,15 +4534,26 @@ const e = {
                             {
                                 fieldName: "favero_product",
                                 fieldType: "favero_product",
-                                map: [{ name: "manufacturer", value: "favero_electronics" }],
+                                map: [
+                                    {
+                                        name: "manufacturer",
+                                        value: "favero_electronics",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "garmin_product",
                                 fieldType: "garmin_product",
                                 map: [
                                     { name: "manufacturer", value: "garmin" },
-                                    { name: "manufacturer", value: "dynastream" },
-                                    { name: "manufacturer", value: "dynastream_oem" },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream",
+                                    },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream_oem",
+                                    },
                                     { name: "manufacturer", value: "tacx" },
                                 ],
                             },
@@ -4518,8 +4568,16 @@ const e = {
             1: {
                 messageName: "capabilities",
                 fields: {
-                    0: { fieldName: "languages", fieldType: "uint8z", array: "[N]" },
-                    1: { fieldName: "sports", fieldType: "sport_bits_0", array: "[N]" },
+                    0: {
+                        fieldName: "languages",
+                        fieldType: "uint8z",
+                        array: "[N]",
+                    },
+                    1: {
+                        fieldName: "sports",
+                        fieldType: "sport_bits_0",
+                        array: "[N]",
+                    },
                     21: {
                         fieldName: "workouts_supported",
                         fieldType: "workout_capabilities",
@@ -4541,7 +4599,11 @@ const e = {
                         array: "[N]",
                         units: "s",
                     },
-                    4: { fieldName: "time_mode", fieldType: "time_mode", array: "[N]" },
+                    4: {
+                        fieldName: "time_mode",
+                        fieldType: "time_mode",
+                        array: "[N]",
+                    },
                     5: {
                         fieldName: "time_zone_offset",
                         fieldType: "sint8",
@@ -4549,10 +4611,20 @@ const e = {
                         scale: 4,
                         units: "hr",
                     },
-                    12: { fieldName: "backlight_mode", fieldType: "backlight_mode" },
-                    36: { fieldName: "activity_tracker_enabled", fieldType: "bool" },
+                    12: {
+                        fieldName: "backlight_mode",
+                        fieldType: "backlight_mode",
+                    },
+                    36: {
+                        fieldName: "activity_tracker_enabled",
+                        fieldType: "bool",
+                    },
                     39: { fieldName: "clock_time", fieldType: "date_time" },
-                    40: { fieldName: "pages_enabled", fieldType: "uint16", array: "[N]" },
+                    40: {
+                        fieldName: "pages_enabled",
+                        fieldType: "uint16",
+                        array: "[N]",
+                    },
                     46: { fieldName: "move_alert_enabled", fieldType: "bool" },
                     47: { fieldName: "date_mode", fieldType: "date_mode" },
                     55: {
@@ -4560,7 +4632,11 @@ const e = {
                         fieldType: "display_orientation",
                     },
                     56: { fieldName: "mounting_side", fieldType: "side" },
-                    57: { fieldName: "default_page", fieldType: "uint16", array: "[N]" },
+                    57: {
+                        fieldName: "default_page",
+                        fieldType: "uint16",
+                        array: "[N]",
+                    },
                     58: {
                         fieldName: "autosync_min_steps",
                         fieldType: "uint16",
@@ -4575,7 +4651,10 @@ const e = {
                         fieldName: "lactate_threshold_autodetect_enabled",
                         fieldType: "bool",
                     },
-                    86: { fieldName: "ble_auto_upload_enabled", fieldType: "bool" },
+                    86: {
+                        fieldName: "ble_auto_upload_enabled",
+                        fieldType: "bool",
+                    },
                     89: {
                         fieldName: "auto_sync_frequency",
                         fieldType: "auto_sync_frequency",
@@ -4590,7 +4669,10 @@ const e = {
                         fieldType: "display_orientation",
                     },
                     134: { fieldName: "tap_interface", fieldType: "switch" },
-                    174: { fieldName: "tap_sensitivity", fieldType: "tap_sensitivity" },
+                    174: {
+                        fieldName: "tap_sensitivity",
+                        fieldType: "tap_sensitivity",
+                    },
                 },
             },
             3: {
@@ -4612,8 +4694,14 @@ const e = {
                         units: "kg",
                     },
                     5: { fieldName: "language", fieldType: "language" },
-                    6: { fieldName: "elev_setting", fieldType: "display_measure" },
-                    7: { fieldName: "weight_setting", fieldType: "display_measure" },
+                    6: {
+                        fieldName: "elev_setting",
+                        fieldType: "display_measure",
+                    },
+                    7: {
+                        fieldName: "weight_setting",
+                        fieldType: "display_measure",
+                    },
                     8: {
                         fieldName: "resting_heart_rate",
                         fieldType: "uint8",
@@ -4635,26 +4723,54 @@ const e = {
                         units: "bpm",
                     },
                     12: { fieldName: "hr_setting", fieldType: "display_heart" },
-                    13: { fieldName: "speed_setting", fieldType: "display_measure" },
-                    14: { fieldName: "dist_setting", fieldType: "display_measure" },
-                    16: { fieldName: "power_setting", fieldType: "display_power" },
-                    17: { fieldName: "activity_class", fieldType: "activity_class" },
-                    18: { fieldName: "position_setting", fieldType: "display_position" },
+                    13: {
+                        fieldName: "speed_setting",
+                        fieldType: "display_measure",
+                    },
+                    14: {
+                        fieldName: "dist_setting",
+                        fieldType: "display_measure",
+                    },
+                    16: {
+                        fieldName: "power_setting",
+                        fieldType: "display_power",
+                    },
+                    17: {
+                        fieldName: "activity_class",
+                        fieldType: "activity_class",
+                    },
+                    18: {
+                        fieldName: "position_setting",
+                        fieldType: "display_position",
+                    },
                     21: {
                         fieldName: "temperature_setting",
                         fieldType: "display_measure",
                     },
                     22: { fieldName: "local_id", fieldType: "user_local_id" },
-                    23: { fieldName: "global_id", fieldType: "byte", array: "[6]" },
+                    23: {
+                        fieldName: "global_id",
+                        fieldType: "byte",
+                        array: "[6]",
+                    },
                     24: {
                         fieldName: "year_of_birth",
                         fieldType: "uint8",
                         offset: -1900,
                         undocumented: !0,
                     },
-                    28: { fieldName: "wake_time", fieldType: "localtime_into_day" },
-                    29: { fieldName: "sleep_time", fieldType: "localtime_into_day" },
-                    30: { fieldName: "height_setting", fieldType: "display_measure" },
+                    28: {
+                        fieldName: "wake_time",
+                        fieldType: "localtime_into_day",
+                    },
+                    29: {
+                        fieldName: "sleep_time",
+                        fieldType: "localtime_into_day",
+                    },
+                    30: {
+                        fieldName: "height_setting",
+                        fieldType: "display_measure",
+                    },
                     31: {
                         fieldName: "user_running_step_length",
                         fieldType: "uint16",
@@ -4680,14 +4796,20 @@ const e = {
                         source: 4,
                         undocumented: !0,
                     },
-                    47: { fieldName: "depth_setting", fieldType: "display_measure" },
+                    47: {
+                        fieldName: "depth_setting",
+                        fieldType: "display_measure",
+                    },
                     49: { fieldName: "dive_count", fieldType: "uint32" },
                     62: {
                         fieldName: "gender_x",
                         fieldType: "gender_x",
                         undocumented: !0,
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             4: {
@@ -4696,8 +4818,14 @@ const e = {
                     0: { fieldName: "enabled", fieldType: "bool" },
                     1: { fieldName: "hrm_ant_id", fieldType: "uint16z" },
                     2: { fieldName: "log_hrv", fieldType: "bool" },
-                    3: { fieldName: "hrm_ant_id_trans_type", fieldType: "uint8z" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    3: {
+                        fieldName: "hrm_ant_id_trans_type",
+                        fieldType: "uint8z",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             5: {
@@ -4718,9 +4846,15 @@ const e = {
                         units: "m",
                     },
                     4: { fieldName: "speed_source", fieldType: "bool" },
-                    5: { fieldName: "sdm_ant_id_trans_type", fieldType: "uint8z" },
+                    5: {
+                        fieldName: "sdm_ant_id_trans_type",
+                        fieldType: "uint8z",
+                    },
                     7: { fieldName: "odometer_rollover", fieldType: "uint8" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             6: {
@@ -4737,7 +4871,10 @@ const e = {
                     },
                     4: { fieldName: "bike_spd_ant_id", fieldType: "uint16z" },
                     5: { fieldName: "bike_cad_ant_id", fieldType: "uint16z" },
-                    6: { fieldName: "bike_spdcad_ant_id", fieldType: "uint16z" },
+                    6: {
+                        fieldName: "bike_spdcad_ant_id",
+                        fieldType: "uint16z",
+                    },
                     7: { fieldName: "bike_power_ant_id", fieldType: "uint16z" },
                     8: {
                         fieldName: "custom_wheelsize",
@@ -4778,8 +4915,14 @@ const e = {
                         units: "mm",
                     },
                     20: { fieldName: "enabled", fieldType: "bool" },
-                    21: { fieldName: "bike_spd_ant_id_trans_type", fieldType: "uint8z" },
-                    22: { fieldName: "bike_cad_ant_id_trans_type", fieldType: "uint8z" },
+                    21: {
+                        fieldName: "bike_spd_ant_id_trans_type",
+                        fieldType: "uint8z",
+                    },
+                    22: {
+                        fieldName: "bike_cad_ant_id_trans_type",
+                        fieldType: "uint8z",
+                    },
                     23: {
                         fieldName: "bike_spdcad_ant_id_trans_type",
                         fieldType: "uint8z",
@@ -4790,37 +4933,71 @@ const e = {
                     },
                     37: { fieldName: "odometer_rollover", fieldType: "uint8" },
                     38: { fieldName: "front_gear_num", fieldType: "uint8z" },
-                    39: { fieldName: "front_gear", fieldType: "uint8z", array: "[N]" },
+                    39: {
+                        fieldName: "front_gear",
+                        fieldType: "uint8z",
+                        array: "[N]",
+                    },
                     40: { fieldName: "rear_gear_num", fieldType: "uint8z" },
-                    41: { fieldName: "rear_gear", fieldType: "uint8z", array: "[N]" },
+                    41: {
+                        fieldName: "rear_gear",
+                        fieldType: "uint8z",
+                        array: "[N]",
+                    },
                     44: { fieldName: "shimano_di2_enabled", fieldType: "bool" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             7: {
                 messageName: "zones_target",
                 fields: {
                     1: { fieldName: "max_heart_rate", fieldType: "uint8" },
-                    2: { fieldName: "threshold_heart_rate", fieldType: "uint8" },
-                    3: { fieldName: "functional_threshold_power", fieldType: "uint16" },
+                    2: {
+                        fieldName: "threshold_heart_rate",
+                        fieldType: "uint8",
+                    },
+                    3: {
+                        fieldName: "functional_threshold_power",
+                        fieldType: "uint16",
+                    },
                     5: { fieldName: "hr_calc_type", fieldType: "hr_zone_calc" },
-                    7: { fieldName: "pwr_calc_type", fieldType: "pwr_zone_calc" },
+                    7: {
+                        fieldName: "pwr_calc_type",
+                        fieldType: "pwr_zone_calc",
+                    },
                 },
             },
             8: {
                 messageName: "hr_zone",
                 fields: {
-                    1: { fieldName: "high_bpm", fieldType: "uint8", units: "bpm" },
+                    1: {
+                        fieldName: "high_bpm",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     2: { fieldName: "name", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             9: {
                 messageName: "power_zone",
                 fields: {
-                    1: { fieldName: "high_value", fieldType: "uint16", units: "watts" },
+                    1: {
+                        fieldName: "high_value",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
                     2: { fieldName: "name", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             10: {
@@ -4839,7 +5016,10 @@ const e = {
                         scale: 10,
                         units: "kcal / min",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             12: {
@@ -4951,7 +5131,11 @@ const e = {
                         fieldType: "satellites",
                         undocumented: !0,
                     },
-                    35: { fieldName: "3_d_speed", fieldType: "switch", undocumented: !0 },
+                    35: {
+                        fieldName: "3_d_speed",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     36: {
                         fieldName: "3_d_distance",
                         fieldType: "switch",
@@ -4980,7 +5164,11 @@ const e = {
                         units: "s",
                         undocumented: !0,
                     },
-                    46: { fieldName: "lap_key", fieldType: "switch", undocumented: !0 },
+                    46: {
+                        fieldName: "lap_key",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     50: {
                         fieldName: "workout_target_alerts",
                         fieldType: "switch",
@@ -5008,7 +5196,11 @@ const e = {
                         fieldType: "switch",
                         undocumented: !0,
                     },
-                    63: { fieldName: "climb_pro", fieldType: "switch", undocumented: !0 },
+                    63: {
+                        fieldName: "climb_pro",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     67: {
                         fieldName: "track_consumption",
                         fieldType: "switch",
@@ -5019,7 +5211,11 @@ const e = {
                         fieldType: "uint16",
                         undocumented: !0,
                     },
-                    70: { fieldName: "volume", fieldType: "volume", undocumented: !0 },
+                    70: {
+                        fieldName: "volume",
+                        fieldType: "volume",
+                        undocumented: !0,
+                    },
                     80: {
                         fieldName: "minimum_ride_duration",
                         fieldType: "uint16",
@@ -5081,24 +5277,52 @@ const e = {
                         fieldType: "climb_pro_terrain",
                         undocumented: !0,
                     },
-                    1001: { fieldName: "gps", fieldType: "switch", undocumented: !0 },
-                    1002: { fieldName: "glonass", fieldType: "switch", undocumented: !0 },
-                    1003: { fieldName: "galileo", fieldType: "switch", undocumented: !0 },
-                    1004: { fieldName: "beidou", fieldType: "switch", undocumented: !0 },
+                    1001: {
+                        fieldName: "gps",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    1002: {
+                        fieldName: "glonass",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    1003: {
+                        fieldName: "galileo",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    1004: {
+                        fieldName: "beidou",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             14: {
                 messageName: "data_screen",
                 fields: {
-                    3: { fieldName: "nr_fields", fieldType: "uint8", undocumented: !0 },
+                    3: {
+                        fieldName: "nr_fields",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     7: {
                         fieldName: "data_fields",
                         fieldType: "data_fields",
                         undocumented: !0,
                     },
-                    8: { fieldName: "layout", fieldType: "uint8", undocumented: !0 },
-                    9: { fieldName: "position", fieldType: "uint8", undocumented: !0 },
+                    8: {
+                        fieldName: "layout",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    9: {
+                        fieldName: "position",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     10: {
                         fieldName: "screen_type",
                         fieldType: "screen_type",
@@ -5118,11 +5342,17 @@ const e = {
                     5: { fieldName: "value", fieldType: "uint32" },
                     6: { fieldName: "repeat", fieldType: "bool" },
                     7: { fieldName: "target_value", fieldType: "uint32" },
-                    8: { fieldName: "recurrence", fieldType: "goal_recurrence" },
+                    8: {
+                        fieldName: "recurrence",
+                        fieldType: "goal_recurrence",
+                    },
                     9: { fieldName: "recurrence_value", fieldType: "uint16" },
                     10: { fieldName: "enabled", fieldType: "bool" },
                     11: { fieldName: "source", fieldType: "goal_source" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             16: {
@@ -5164,9 +5394,21 @@ const e = {
                         ],
                         undocumented: !0,
                     },
-                    3: { fieldName: "status", fieldType: "switch", undocumented: !0 },
-                    4: { fieldName: "message", fieldType: "string", undocumented: !0 },
-                    5: { fieldName: "repeat", fieldType: "switch", undocumented: !0 },
+                    3: {
+                        fieldName: "status",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "message",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "repeat",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -5329,7 +5571,10 @@ const e = {
                                     { name: "sport", value: "cycling" },
                                     { name: "sport", value: "swimming" },
                                     { name: "sport", value: "rowing" },
-                                    { name: "sport", value: "stand_up_paddleboarding" },
+                                    {
+                                        name: "sport",
+                                        value: "stand_up_paddleboarding",
+                                    },
                                 ],
                             },
                         ],
@@ -5347,15 +5592,37 @@ const e = {
                     14: {
                         fieldName: "avg_speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 124, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 124,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
                     15: {
                         fieldName: "max_speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 125, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 125,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
-                    16: { fieldName: "avg_heart_rate", fieldType: "uint8", units: "bpm" },
-                    17: { fieldName: "max_heart_rate", fieldType: "uint8", units: "bpm" },
+                    16: {
+                        fieldName: "avg_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    17: {
+                        fieldName: "max_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     18: {
                         fieldName: "avg_cadence",
                         fieldType: "uint8",
@@ -5382,10 +5649,26 @@ const e = {
                             },
                         ],
                     },
-                    20: { fieldName: "avg_power", fieldType: "uint16", units: "watts" },
-                    21: { fieldName: "max_power", fieldType: "uint16", units: "watts" },
-                    22: { fieldName: "total_ascent", fieldType: "uint16", units: "m" },
-                    23: { fieldName: "total_descent", fieldType: "uint16", units: "m" },
+                    20: {
+                        fieldName: "avg_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    21: {
+                        fieldName: "max_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    22: {
+                        fieldName: "total_ascent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    23: {
+                        fieldName: "total_descent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
                     24: {
                         fieldName: "total_training_effect",
                         fieldType: "uint8",
@@ -5479,13 +5762,20 @@ const e = {
                         fieldType: "uint16",
                         units: "watts",
                     },
-                    46: { fieldName: "pool_length_unit", fieldType: "display_measure" },
+                    46: {
+                        fieldName: "pool_length_unit",
+                        fieldType: "display_measure",
+                    },
                     47: {
                         fieldName: "num_active_lengths",
                         fieldType: "uint16",
                         units: "lengths",
                     },
-                    48: { fieldName: "total_work", fieldType: "uint32", units: "J" },
+                    48: {
+                        fieldName: "total_work",
+                        fieldType: "uint32",
+                        units: "J",
+                    },
                     49: {
                         fieldName: "avg_altitude",
                         fieldType: "uint16",
@@ -5512,7 +5802,11 @@ const e = {
                             },
                         ],
                     },
-                    51: { fieldName: "gps_accuracy", fieldType: "uint8", units: "m" },
+                    51: {
+                        fieldName: "gps_accuracy",
+                        fieldType: "uint8",
+                        units: "m",
+                    },
                     52: {
                         fieldName: "avg_grade",
                         fieldType: "sint16",
@@ -5543,8 +5837,16 @@ const e = {
                         scale: 100,
                         units: "%",
                     },
-                    57: { fieldName: "avg_temperature", fieldType: "sint8", units: "C" },
-                    58: { fieldName: "max_temperature", fieldType: "sint8", units: "C" },
+                    57: {
+                        fieldName: "avg_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
+                    58: {
+                        fieldName: "max_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     59: {
                         fieldName: "total_moving_time",
                         fieldType: "uint32",
@@ -5575,7 +5877,11 @@ const e = {
                         scale: 1e3,
                         units: "m/s",
                     },
-                    64: { fieldName: "min_heart_rate", fieldType: "uint8", units: "bpm" },
+                    64: {
+                        fieldName: "min_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     65: {
                         fieldName: "time_in_hr_zone",
                         fieldType: "uint32",
@@ -5631,7 +5937,11 @@ const e = {
                         units: "strokes/length",
                         undocumented: !0,
                     },
-                    80: { fieldName: "avg_swolf", fieldType: "uint16", undocumented: !0 },
+                    80: {
+                        fieldName: "avg_swolf",
+                        fieldType: "uint16",
+                        undocumented: !0,
+                    },
                     82: { fieldName: "player_score", fieldType: "uint16" },
                     83: { fieldName: "opponent_score", fieldType: "uint16" },
                     84: { fieldName: "opponent_name", fieldType: "string" },
@@ -5767,7 +6077,10 @@ const e = {
                         scale: 2,
                         units: "percent",
                     },
-                    110: { fieldName: "sport_profile_name", fieldType: "string" },
+                    110: {
+                        fieldName: "sport_profile_name",
+                        fieldType: "string",
+                    },
                     111: { fieldName: "sport_index", fieldType: "uint8" },
                     112: {
                         fieldName: "time_standing",
@@ -5776,8 +6089,16 @@ const e = {
                         units: "s",
                     },
                     113: { fieldName: "stand_count", fieldType: "uint16" },
-                    114: { fieldName: "avg_left_pco", fieldType: "sint8", units: "mm" },
-                    115: { fieldName: "avg_right_pco", fieldType: "sint8", units: "mm" },
+                    114: {
+                        fieldName: "avg_left_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
+                    115: {
+                        fieldName: "avg_right_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
                     116: {
                         fieldName: "avg_left_power_phase",
                         fieldType: "uint8",
@@ -5966,8 +6287,16 @@ const e = {
                         fieldType: "uint8",
                         components: [{ fieldDefNumber: 180, bits: 8 }],
                     },
-                    150: { fieldName: "min_temperature", fieldType: "sint8", units: "C" },
-                    155: { fieldName: "o2_toxicity", fieldType: "uint16", units: "OTUs" },
+                    150: {
+                        fieldName: "min_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
+                    155: {
+                        fieldName: "o2_toxicity",
+                        fieldType: "uint16",
+                        units: "OTUs",
+                    },
                     156: { fieldName: "dive_number", fieldType: "uint32" },
                     168: {
                         fieldName: "training_load_peak",
@@ -6001,7 +6330,11 @@ const e = {
                         fieldType: "float32",
                         units: "kGrit",
                     },
-                    182: { fieldName: "total_flow", fieldType: "float32", units: "Flow" },
+                    182: {
+                        fieldName: "total_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
                     183: { fieldName: "jump_count", fieldType: "uint16" },
                     185: {
                         fieldName: "execution_score",
@@ -6009,8 +6342,16 @@ const e = {
                         units: "percent",
                         undocumented: !0,
                     },
-                    186: { fieldName: "avg_grit", fieldType: "float32", units: "kGrit" },
-                    187: { fieldName: "avg_flow", fieldType: "float32", units: "Flow" },
+                    186: {
+                        fieldName: "avg_grit",
+                        fieldType: "float32",
+                        units: "kGrit",
+                    },
+                    187: {
+                        fieldName: "avg_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
                     188: {
                         fieldName: "primary_benefit",
                         fieldType: "benefit",
@@ -6018,7 +6359,11 @@ const e = {
                     },
                     192: { fieldName: "workout_feel", fieldType: "uint8" },
                     193: { fieldName: "workout_rpe", fieldType: "uint8" },
-                    194: { fieldName: "avg_spo2", fieldType: "uint8", units: "percent" },
+                    194: {
+                        fieldName: "avg_spo2",
+                        fieldType: "uint8",
+                        units: "percent",
+                    },
                     195: {
                         fieldName: "avg_stress",
                         fieldType: "uint8",
@@ -6030,8 +6375,16 @@ const e = {
                         units: "kcal",
                         undocumented: !0,
                     },
-                    197: { fieldName: "sdrr_hrv", fieldType: "uint8", units: "mS" },
-                    198: { fieldName: "rmssd_hrv", fieldType: "uint8", units: "mS" },
+                    197: {
+                        fieldName: "sdrr_hrv",
+                        fieldType: "uint8",
+                        units: "mS",
+                    },
+                    198: {
+                        fieldName: "rmssd_hrv",
+                        fieldType: "uint8",
+                        units: "mS",
+                    },
                     199: {
                         fieldName: "total_fractional_ascent",
                         fieldType: "uint8",
@@ -6087,8 +6440,15 @@ const e = {
                         fieldType: "wind_data_status",
                         undocumented: !0,
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             19: {
@@ -6157,7 +6517,10 @@ const e = {
                                     { name: "sport", value: "cycling" },
                                     { name: "sport", value: "swimming" },
                                     { name: "sport", value: "rowing" },
-                                    { name: "sport", value: "stand_up_paddleboarding" },
+                                    {
+                                        name: "sport",
+                                        value: "stand_up_paddleboarding",
+                                    },
                                 ],
                             },
                         ],
@@ -6175,15 +6538,37 @@ const e = {
                     13: {
                         fieldName: "avg_speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 110, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 110,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
                     14: {
                         fieldName: "max_speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 111, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 111,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
-                    15: { fieldName: "avg_heart_rate", fieldType: "uint8", units: "bpm" },
-                    16: { fieldName: "max_heart_rate", fieldType: "uint8", units: "bpm" },
+                    15: {
+                        fieldName: "avg_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    16: {
+                        fieldName: "max_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     17: {
                         fieldName: "avg_cadence",
                         fieldType: "uint8",
@@ -6210,10 +6595,26 @@ const e = {
                             },
                         ],
                     },
-                    19: { fieldName: "avg_power", fieldType: "uint16", units: "watts" },
-                    20: { fieldName: "max_power", fieldType: "uint16", units: "watts" },
-                    21: { fieldName: "total_ascent", fieldType: "uint16", units: "m" },
-                    22: { fieldName: "total_descent", fieldType: "uint16", units: "m" },
+                    19: {
+                        fieldName: "avg_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    20: {
+                        fieldName: "max_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    21: {
+                        fieldName: "total_ascent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    22: {
+                        fieldName: "total_descent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
                     23: { fieldName: "intensity", fieldType: "intensity" },
                     24: { fieldName: "lap_trigger", fieldType: "lap_trigger" },
                     25: { fieldName: "sport", fieldType: "sport" },
@@ -6256,7 +6657,10 @@ const e = {
                         fieldName: "left_right_balance",
                         fieldType: "left_right_balance_100",
                     },
-                    35: { fieldName: "first_length_index", fieldType: "uint16" },
+                    35: {
+                        fieldName: "first_length_index",
+                        fieldType: "uint16",
+                    },
                     37: {
                         fieldName: "avg_stroke_distance",
                         fieldType: "uint16",
@@ -6270,7 +6674,11 @@ const e = {
                         fieldType: "uint16",
                         units: "lengths",
                     },
-                    41: { fieldName: "total_work", fieldType: "uint32", units: "J" },
+                    41: {
+                        fieldName: "total_work",
+                        fieldType: "uint32",
+                        units: "J",
+                    },
                     42: {
                         fieldName: "avg_altitude",
                         fieldType: "uint16",
@@ -6297,7 +6705,11 @@ const e = {
                             },
                         ],
                     },
-                    44: { fieldName: "gps_accuracy", fieldType: "uint8", units: "m" },
+                    44: {
+                        fieldName: "gps_accuracy",
+                        fieldType: "uint8",
+                        units: "m",
+                    },
                     45: {
                         fieldName: "avg_grade",
                         fieldType: "sint16",
@@ -6328,8 +6740,16 @@ const e = {
                         scale: 100,
                         units: "%",
                     },
-                    50: { fieldName: "avg_temperature", fieldType: "sint8", units: "C" },
-                    51: { fieldName: "max_temperature", fieldType: "sint8", units: "C" },
+                    50: {
+                        fieldName: "avg_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
+                    51: {
+                        fieldName: "max_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     52: {
                         fieldName: "total_moving_time",
                         fieldType: "uint32",
@@ -6402,8 +6822,15 @@ const e = {
                             },
                         ],
                     },
-                    63: { fieldName: "min_heart_rate", fieldType: "uint8", units: "bpm" },
-                    71: { fieldName: "wkt_step_index", fieldType: "message_index" },
+                    63: {
+                        fieldName: "min_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    71: {
+                        fieldName: "wkt_step_index",
+                        fieldType: "message_index",
+                    },
                     73: {
                         fieldName: "total_strokes",
                         fieldType: "uint16",
@@ -6502,7 +6929,11 @@ const e = {
                         scale: 10,
                         units: "%",
                     },
-                    90: { fieldName: "avg_swolf", fieldType: "uint16", undocumented: !0 },
+                    90: {
+                        fieldName: "avg_swolf",
+                        fieldType: "uint16",
+                        undocumented: !0,
+                    },
                     91: {
                         fieldName: "avg_left_torque_effectiveness",
                         fieldType: "uint8",
@@ -6540,8 +6971,16 @@ const e = {
                         units: "s",
                     },
                     99: { fieldName: "stand_count", fieldType: "uint16" },
-                    100: { fieldName: "avg_left_pco", fieldType: "sint8", units: "mm" },
-                    101: { fieldName: "avg_right_pco", fieldType: "sint8", units: "mm" },
+                    100: {
+                        fieldName: "avg_left_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
+                    101: {
+                        fieldName: "avg_right_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
                     102: {
                         fieldName: "avg_left_power_phase",
                         fieldType: "uint8",
@@ -6680,7 +7119,11 @@ const e = {
                         scale: 1e3,
                         units: "m",
                     },
-                    124: { fieldName: "min_temperature", fieldType: "sint8", units: "C" },
+                    124: {
+                        fieldName: "min_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     136: {
                         fieldName: "enhanced_avg_respiration_rate",
                         fieldType: "uint16",
@@ -6708,10 +7151,22 @@ const e = {
                         fieldType: "float32",
                         units: "kGrit",
                     },
-                    150: { fieldName: "total_flow", fieldType: "float32", units: "Flow" },
+                    150: {
+                        fieldName: "total_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
                     151: { fieldName: "jump_count", fieldType: "uint16" },
-                    153: { fieldName: "avg_grit", fieldType: "float32", units: "kGrit" },
-                    154: { fieldName: "avg_flow", fieldType: "float32", units: "Flow" },
+                    153: {
+                        fieldName: "avg_grit",
+                        fieldType: "float32",
+                        units: "kGrit",
+                    },
+                    154: {
+                        fieldName: "avg_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
                     156: {
                         fieldName: "total_fractional_ascent",
                         fieldType: "uint8",
@@ -6748,8 +7203,15 @@ const e = {
                         units: "percent",
                         undocumented: !0,
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             20: {
@@ -6778,8 +7240,16 @@ const e = {
                             },
                         ],
                     },
-                    3: { fieldName: "heart_rate", fieldType: "uint8", units: "bpm" },
-                    4: { fieldName: "cadence", fieldType: "uint8", units: "rpm" },
+                    3: {
+                        fieldName: "heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    4: {
+                        fieldName: "cadence",
+                        fieldType: "uint8",
+                        units: "rpm",
+                    },
                     5: {
                         fieldName: "distance",
                         fieldType: "uint32",
@@ -6789,9 +7259,20 @@ const e = {
                     6: {
                         fieldName: "speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 73, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 73,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
-                    7: { fieldName: "power", fieldType: "uint16", units: "watts" },
+                    7: {
+                        fieldName: "power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
                     8: {
                         fieldName: "compressed_speed_distance",
                         fieldType: "byte",
@@ -6832,7 +7313,11 @@ const e = {
                         scale: 100,
                         units: "m",
                     },
-                    13: { fieldName: "temperature", fieldType: "sint8", units: "C" },
+                    13: {
+                        fieldName: "temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     17: {
                         fieldName: "speed_1s",
                         fieldType: "uint8",
@@ -6843,7 +7328,14 @@ const e = {
                     18: {
                         fieldName: "cycles",
                         fieldType: "uint8",
-                        components: [{ fieldDefNumber: 19, units: "cycles", bits: 8, accumulate: 1 }],
+                        components: [
+                            {
+                                fieldDefNumber: 19,
+                                units: "cycles",
+                                bits: 8,
+                                accumulate: 1,
+                            },
+                        ],
                     },
                     19: {
                         fieldName: "total_cycles",
@@ -6853,7 +7345,14 @@ const e = {
                     28: {
                         fieldName: "compressed_accumulated_power",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 29, units: "watts", bits: 16, accumulate: 1 }],
+                        components: [
+                            {
+                                fieldDefNumber: 29,
+                                units: "watts",
+                                bits: 16,
+                                accumulate: 1,
+                            },
+                        ],
                     },
                     29: {
                         fieldName: "accumulated_power",
@@ -6864,14 +7363,22 @@ const e = {
                         fieldName: "left_right_balance",
                         fieldType: "left_right_balance",
                     },
-                    31: { fieldName: "gps_accuracy", fieldType: "uint8", units: "m" },
+                    31: {
+                        fieldName: "gps_accuracy",
+                        fieldType: "uint8",
+                        units: "m",
+                    },
                     32: {
                         fieldName: "vertical_speed",
                         fieldType: "sint16",
                         scale: 1e3,
                         units: "m/s",
                     },
-                    33: { fieldName: "calories", fieldType: "uint16", units: "kcal" },
+                    33: {
+                        fieldName: "calories",
+                        fieldType: "uint16",
+                        units: "kcal",
+                    },
                     39: {
                         fieldName: "vertical_oscillation",
                         fieldType: "uint16",
@@ -6890,7 +7397,10 @@ const e = {
                         scale: 10,
                         units: "ms",
                     },
-                    42: { fieldName: "activity_type", fieldType: "activity_type" },
+                    42: {
+                        fieldName: "activity_type",
+                        fieldType: "activity_type",
+                    },
                     43: {
                         fieldName: "left_torque_effectiveness",
                         fieldType: "uint8",
@@ -6983,9 +7493,20 @@ const e = {
                         scale: 10,
                         units: "%",
                     },
-                    62: { fieldName: "device_index", fieldType: "device_index" },
-                    67: { fieldName: "left_pco", fieldType: "sint8", units: "mm" },
-                    68: { fieldName: "right_pco", fieldType: "sint8", units: "mm" },
+                    62: {
+                        fieldName: "device_index",
+                        fieldType: "device_index",
+                    },
+                    67: {
+                        fieldName: "left_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
+                    68: {
+                        fieldName: "right_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
                     69: {
                         fieldName: "left_power_phase",
                         fieldType: "uint8",
@@ -7033,7 +7554,11 @@ const e = {
                         scale: 2,
                         units: "percent",
                     },
-                    82: { fieldName: "motor_power", fieldType: "uint16", units: "watts" },
+                    82: {
+                        fieldName: "motor_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
                     83: {
                         fieldName: "vertical_ratio",
                         fieldType: "uint16",
@@ -7098,7 +7623,11 @@ const e = {
                         scale: 1,
                         units: "s",
                     },
-                    97: { fieldName: "cns_load", fieldType: "uint8", units: "percent" },
+                    97: {
+                        fieldName: "cns_load",
+                        fieldType: "uint8",
+                        units: "percent",
+                    },
                     98: {
                         fieldName: "n2_load",
                         fieldType: "uint16",
@@ -7108,7 +7637,14 @@ const e = {
                     99: {
                         fieldName: "respiration_rate",
                         fieldType: "uint8",
-                        components: [{ fieldDefNumber: 108, scale: 1, units: "s", bits: 8 }],
+                        components: [
+                            {
+                                fieldDefNumber: 108,
+                                scale: 1,
+                                units: "s",
+                                bits: 8,
+                            },
+                        ],
                     },
                     108: {
                         fieldName: "enhanced_respiration_rate",
@@ -7118,7 +7654,11 @@ const e = {
                     },
                     114: { fieldName: "grit", fieldType: "float32" },
                     115: { fieldName: "flow", fieldType: "float32" },
-                    116: { fieldName: "current_stress", fieldType: "uint16", scale: 100 },
+                    116: {
+                        fieldName: "current_stress",
+                        fieldType: "uint16",
+                        scale: 100,
+                    },
                     117: {
                         fieldName: "ebike_travel_range",
                         fieldType: "uint16",
@@ -7191,7 +7731,11 @@ const e = {
                         fieldType: "uint8",
                         undocumented: !0,
                     },
-                    138: { fieldName: "stamina", fieldType: "uint8", undocumented: !0 },
+                    138: {
+                        fieldName: "stamina",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     139: {
                         fieldName: "core_temperature",
                         fieldType: "uint16",
@@ -7216,7 +7760,11 @@ const e = {
                         units: "bpm",
                         undocumented: !0,
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             21: {
@@ -7237,7 +7785,12 @@ const e = {
                                 fieldName: "performance_condition",
                                 fieldType: "uint16",
                                 offset: 100,
-                                map: [{ name: "event", value: "performance_condition_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "performance_condition_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "course_point_index",
@@ -7256,13 +7809,20 @@ const e = {
                                 fieldType: "uint16",
                                 scale: 1e3,
                                 units: "m/s",
-                                map: [{ name: "event", value: "virtual_partner_pace" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "virtual_partner_pace",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "hr_high_alert",
                                 fieldType: "uint8",
                                 units: "bpm",
-                                map: [{ name: "event", value: "hr_high_alert" }],
+                                map: [
+                                    { name: "event", value: "hr_high_alert" },
+                                ],
                             },
                             {
                                 fieldName: "hr_low_alert",
@@ -7275,63 +7835,101 @@ const e = {
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "m/s",
-                                map: [{ name: "event", value: "speed_high_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "speed_high_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "speed_low_alert",
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "m/s",
-                                map: [{ name: "event", value: "speed_low_alert" }],
+                                map: [
+                                    { name: "event", value: "speed_low_alert" },
+                                ],
                             },
                             {
                                 fieldName: "cad_high_alert",
                                 fieldType: "uint16",
                                 units: "rpm",
-                                map: [{ name: "event", value: "cad_high_alert" }],
+                                map: [
+                                    { name: "event", value: "cad_high_alert" },
+                                ],
                             },
                             {
                                 fieldName: "cad_low_alert",
                                 fieldType: "uint16",
                                 units: "rpm",
-                                map: [{ name: "event", value: "cad_low_alert" }],
+                                map: [
+                                    { name: "event", value: "cad_low_alert" },
+                                ],
                             },
                             {
                                 fieldName: "power_high_alert",
                                 fieldType: "uint16",
                                 units: "watts",
-                                map: [{ name: "event", value: "power_high_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "power_high_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "power_low_alert",
                                 fieldType: "uint16",
                                 units: "watts",
-                                map: [{ name: "event", value: "power_low_alert" }],
+                                map: [
+                                    { name: "event", value: "power_low_alert" },
+                                ],
                             },
                             {
                                 fieldName: "time_duration_alert",
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "s",
-                                map: [{ name: "event", value: "time_duration_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "time_duration_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "distance_duration_alert",
                                 fieldType: "uint32",
                                 scale: 100,
                                 units: "m",
-                                map: [{ name: "event", value: "distance_duration_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "distance_duration_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "calorie_duration_alert",
                                 fieldType: "uint32",
                                 units: "calories",
-                                map: [{ name: "event", value: "calorie_duration_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "calorie_duration_alert",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "fitness_equipment_state",
                                 fieldType: "fitness_equipment_state",
-                                map: [{ name: "event", value: "fitness_equipment" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "fitness_equipment",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "sport_point",
@@ -7346,8 +7944,14 @@ const e = {
                                 fieldName: "gear_change_data",
                                 fieldType: "uint32",
                                 map: [
-                                    { name: "event", value: "front_gear_change" },
-                                    { name: "event", value: "rear_gear_change" },
+                                    {
+                                        name: "event",
+                                        value: "front_gear_change",
+                                    },
+                                    {
+                                        name: "event",
+                                        value: "rear_gear_change",
+                                    },
                                 ],
                                 components: [
                                     { fieldDefNumber: 11, scale: 1, bits: 8 },
@@ -7359,7 +7963,12 @@ const e = {
                             {
                                 fieldName: "rider_position",
                                 fieldType: "rider_position_type",
-                                map: [{ name: "event", value: "rider_position_change" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "rider_position_change",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "comm_timeout",
@@ -7375,12 +7984,22 @@ const e = {
                                 fieldName: "auto_activity_detect_duration",
                                 fieldType: "uint16",
                                 units: "min",
-                                map: [{ name: "event", value: "auto_activity_detect" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "auto_activity_detect",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "radar_threat_alert",
                                 fieldType: "uint32",
-                                map: [{ name: "event", value: "radar_threat_alert" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "radar_threat_alert",
+                                    },
+                                ],
                                 components: [
                                     { fieldDefNumber: 21, scale: 1, bits: 8 },
                                     { fieldDefNumber: 22, scale: 1, bits: 8 },
@@ -7398,18 +8017,30 @@ const e = {
                     10: { fieldName: "front_gear", fieldType: "uint8z" },
                     11: { fieldName: "rear_gear_num", fieldType: "uint8z" },
                     12: { fieldName: "rear_gear", fieldType: "uint8z" },
-                    13: { fieldName: "device_index", fieldType: "device_index" },
-                    14: { fieldName: "activity_type", fieldType: "activity_type" },
+                    13: {
+                        fieldName: "device_index",
+                        fieldType: "device_index",
+                    },
+                    14: {
+                        fieldName: "activity_type",
+                        fieldType: "activity_type",
+                    },
                     15: {
                         fieldName: "start_timestamp",
                         fieldType: "date_time",
                         units: "s",
                         subfields: [
                             {
-                                fieldName: "auto_activity_detect_start_timestamp",
+                                fieldName:
+                                    "auto_activity_detect_start_timestamp",
                                 fieldType: "date_time",
                                 units: "s",
-                                map: [{ name: "event", value: "auto_activity_detect" }],
+                                map: [
+                                    {
+                                        name: "event",
+                                        value: "auto_activity_detect",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -7430,7 +8061,11 @@ const e = {
                         scale: 10,
                         units: "m/s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             22: {
@@ -7486,12 +8121,19 @@ const e = {
                             {
                                 fieldName: "ble_device_type",
                                 fieldType: "ble_device_type",
-                                map: [{ name: "source_type", value: "bluetooth_low_energy" }],
+                                map: [
+                                    {
+                                        name: "source_type",
+                                        value: "bluetooth_low_energy",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "antplus_device_type",
                                 fieldType: "antplus_device_type",
-                                map: [{ name: "source_type", value: "antplus" }],
+                                map: [
+                                    { name: "source_type", value: "antplus" },
+                                ],
                             },
                             {
                                 fieldName: "ant_device_type",
@@ -7514,21 +8156,36 @@ const e = {
                             {
                                 fieldName: "favero_product",
                                 fieldType: "favero_product",
-                                map: [{ name: "manufacturer", value: "favero_electronics" }],
+                                map: [
+                                    {
+                                        name: "manufacturer",
+                                        value: "favero_electronics",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "garmin_product",
                                 fieldType: "garmin_product",
                                 map: [
                                     { name: "manufacturer", value: "garmin" },
-                                    { name: "manufacturer", value: "dynastream" },
-                                    { name: "manufacturer", value: "dynastream_oem" },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream",
+                                    },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream_oem",
+                                    },
                                     { name: "manufacturer", value: "tacx" },
                                 ],
                             },
                         ],
                     },
-                    5: { fieldName: "software_version", fieldType: "uint16", scale: 100 },
+                    5: {
+                        fieldName: "software_version",
+                        fieldType: "uint16",
+                        scale: 100,
+                    },
                     6: { fieldName: "hardware_version", fieldType: "uint8" },
                     7: {
                         fieldName: "cum_operating_time",
@@ -7541,11 +8198,23 @@ const e = {
                         scale: 256,
                         units: "V",
                     },
-                    11: { fieldName: "battery_status", fieldType: "battery_status" },
-                    18: { fieldName: "sensor_position", fieldType: "body_location" },
+                    11: {
+                        fieldName: "battery_status",
+                        fieldType: "battery_status",
+                    },
+                    18: {
+                        fieldName: "sensor_position",
+                        fieldType: "body_location",
+                    },
                     19: { fieldName: "descriptor", fieldType: "string" },
-                    20: { fieldName: "ant_transmission_type", fieldType: "uint8z" },
-                    21: { fieldName: "ant_device_number", fieldType: "uint16z" },
+                    20: {
+                        fieldName: "ant_transmission_type",
+                        fieldType: "uint8z",
+                    },
+                    21: {
+                        fieldName: "ant_device_number",
+                        fieldType: "uint16z",
+                    },
                     22: { fieldName: "ant_network", fieldType: "ant_network" },
                     24: {
                         fieldName: "ant_id",
@@ -7555,15 +8224,26 @@ const e = {
                     },
                     25: { fieldName: "source_type", fieldType: "source_type" },
                     27: { fieldName: "product_name", fieldType: "string" },
-                    32: { fieldName: "battery_level", fieldType: "uint8", units: "%" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    32: {
+                        fieldName: "battery_level",
+                        fieldType: "uint8",
+                        units: "%",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             26: {
                 messageName: "workout",
                 fields: {
                     4: { fieldName: "sport", fieldType: "sport" },
-                    5: { fieldName: "capabilities", fieldType: "workout_capabilities" },
+                    5: {
+                        fieldName: "capabilities",
+                        fieldType: "workout_capabilities",
+                    },
                     6: { fieldName: "num_valid_steps", fieldType: "uint16" },
                     8: { fieldName: "wkt_name", fieldType: "string" },
                     9: {
@@ -7582,7 +8262,10 @@ const e = {
                                 units: "s",
                                 map: [
                                     { name: "duration_type", value: "time" },
-                                    { name: "duration_type", value: "repetition_time" },
+                                    {
+                                        name: "duration_type",
+                                        value: "repetition_time",
+                                    },
                                 ],
                             },
                             {
@@ -7590,32 +8273,63 @@ const e = {
                                 fieldType: "uint32",
                                 scale: 100,
                                 units: "m",
-                                map: [{ name: "duration_type", value: "distance" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "distance",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "duration_hr",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
                                 map: [
-                                    { name: "duration_type", value: "hr_less_than" },
-                                    { name: "duration_type", value: "hr_greater_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "hr_less_than",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "hr_greater_than",
+                                    },
                                 ],
                             },
                             {
                                 fieldName: "duration_calories",
                                 fieldType: "uint32",
                                 units: "calories",
-                                map: [{ name: "duration_type", value: "calories" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "calories",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "duration_step",
                                 fieldType: "uint32",
                                 map: [
-                                    { name: "duration_type", value: "repeat_until_steps_cmplt" },
-                                    { name: "duration_type", value: "repeat_until_time" },
-                                    { name: "duration_type", value: "repeat_until_distance" },
-                                    { name: "duration_type", value: "repeat_until_calories" },
-                                    { name: "duration_type", value: "repeat_until_hr_less_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_steps_cmplt",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_time",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_distance",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_calories",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_hr_less_than",
+                                    },
                                     {
                                         name: "duration_type",
                                         value: "repeat_until_hr_greater_than",
@@ -7635,8 +8349,14 @@ const e = {
                                 fieldType: "workout_power",
                                 units: "% or watts",
                                 map: [
-                                    { name: "duration_type", value: "power_less_than" },
-                                    { name: "duration_type", value: "power_greater_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "power_less_than",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "power_greater_than",
+                                    },
                                 ],
                             },
                             {
@@ -7654,8 +8374,15 @@ const e = {
                         scale: 100,
                         units: "m",
                     },
-                    15: { fieldName: "pool_length_unit", fieldType: "display_measure" },
-                    17: { fieldName: "notes", fieldType: "string", undocumented: !0 },
+                    15: {
+                        fieldName: "pool_length_unit",
+                        fieldType: "display_measure",
+                    },
+                    17: {
+                        fieldName: "notes",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     20: {
                         fieldName: "workout_index",
                         fieldType: "uint16",
@@ -7677,14 +8404,20 @@ const e = {
                         source: 3,
                         undocumented: !0,
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             27: {
                 messageName: "workout_step",
                 fields: {
                     0: { fieldName: "wkt_step_name", fieldType: "string" },
-                    1: { fieldName: "duration_type", fieldType: "wkt_step_duration" },
+                    1: {
+                        fieldName: "duration_type",
+                        fieldType: "wkt_step_duration",
+                    },
                     2: {
                         fieldName: "duration_value",
                         fieldType: "uint32",
@@ -7696,7 +8429,10 @@ const e = {
                                 units: "s",
                                 map: [
                                     { name: "duration_type", value: "time" },
-                                    { name: "duration_type", value: "repetition_time" },
+                                    {
+                                        name: "duration_type",
+                                        value: "repetition_time",
+                                    },
                                 ],
                             },
                             {
@@ -7704,32 +8440,63 @@ const e = {
                                 fieldType: "uint32",
                                 scale: 100,
                                 units: "m",
-                                map: [{ name: "duration_type", value: "distance" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "distance",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "duration_hr",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
                                 map: [
-                                    { name: "duration_type", value: "hr_less_than" },
-                                    { name: "duration_type", value: "hr_greater_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "hr_less_than",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "hr_greater_than",
+                                    },
                                 ],
                             },
                             {
                                 fieldName: "duration_calories",
                                 fieldType: "uint32",
                                 units: "calories",
-                                map: [{ name: "duration_type", value: "calories" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "calories",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "duration_step",
                                 fieldType: "uint32",
                                 map: [
-                                    { name: "duration_type", value: "repeat_until_steps_cmplt" },
-                                    { name: "duration_type", value: "repeat_until_time" },
-                                    { name: "duration_type", value: "repeat_until_distance" },
-                                    { name: "duration_type", value: "repeat_until_calories" },
-                                    { name: "duration_type", value: "repeat_until_hr_less_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_steps_cmplt",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_time",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_distance",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_calories",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_hr_less_than",
+                                    },
                                     {
                                         name: "duration_type",
                                         value: "repeat_until_hr_greater_than",
@@ -7749,8 +8516,14 @@ const e = {
                                 fieldType: "workout_power",
                                 units: "% or watts",
                                 map: [
-                                    { name: "duration_type", value: "power_less_than" },
-                                    { name: "duration_type", value: "power_greater_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "power_less_than",
+                                    },
+                                    {
+                                        name: "duration_type",
+                                        value: "power_greater_than",
+                                    },
                                 ],
                             },
                             {
@@ -7760,7 +8533,10 @@ const e = {
                             },
                         ],
                     },
-                    3: { fieldName: "target_type", fieldType: "wkt_step_target" },
+                    3: {
+                        fieldName: "target_type",
+                        fieldType: "wkt_step_target",
+                    },
                     4: {
                         fieldName: "target_value",
                         fieldType: "uint32",
@@ -7773,12 +8549,19 @@ const e = {
                             {
                                 fieldName: "target_hr_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "target_cadence_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "target_type", value: "cadence" }],
+                                map: [
+                                    { name: "target_type", value: "cadence" },
+                                ],
                             },
                             {
                                 fieldName: "target_power_zone",
@@ -7788,34 +8571,57 @@ const e = {
                             {
                                 fieldName: "repeat_steps",
                                 fieldType: "uint32",
-                                map: [{ name: "duration_type", value: "repeat_until_steps_cmplt" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_steps_cmplt",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "repeat_time",
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "s",
-                                map: [{ name: "duration_type", value: "repeat_until_time" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_time",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "repeat_distance",
                                 fieldType: "uint32",
                                 scale: 100,
                                 units: "m",
-                                map: [{ name: "duration_type", value: "repeat_until_distance" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_distance",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "repeat_calories",
                                 fieldType: "uint32",
                                 units: "calories",
-                                map: [{ name: "duration_type", value: "repeat_until_calories" }],
+                                map: [
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_calories",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "repeat_hr",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
                                 map: [
-                                    { name: "duration_type", value: "repeat_until_hr_less_than" },
+                                    {
+                                        name: "duration_type",
+                                        value: "repeat_until_hr_less_than",
+                                    },
                                     {
                                         name: "duration_type",
                                         value: "repeat_until_hr_greater_than",
@@ -7840,7 +8646,12 @@ const e = {
                             {
                                 fieldName: "target_stroke_type",
                                 fieldType: "swim_stroke",
-                                map: [{ name: "target_type", value: "swim_stroke" }],
+                                map: [
+                                    {
+                                        name: "target_type",
+                                        value: "swim_stroke",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -7859,13 +8670,20 @@ const e = {
                                 fieldName: "custom_target_heart_rate_low",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
-                                map: [{ name: "target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "custom_target_cadence_low",
                                 fieldType: "uint32",
                                 units: "rpm",
-                                map: [{ name: "target_type", value: "cadence" }],
+                                map: [
+                                    { name: "target_type", value: "cadence" },
+                                ],
                             },
                             {
                                 fieldName: "custom_target_power_low",
@@ -7890,13 +8708,20 @@ const e = {
                                 fieldName: "custom_target_heart_rate_high",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
-                                map: [{ name: "target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "custom_target_cadence_high",
                                 fieldType: "uint32",
                                 units: "rpm",
-                                map: [{ name: "target_type", value: "cadence" }],
+                                map: [
+                                    { name: "target_type", value: "cadence" },
+                                ],
                             },
                             {
                                 fieldName: "custom_target_power_high",
@@ -7908,7 +8733,10 @@ const e = {
                     },
                     7: { fieldName: "intensity", fieldType: "intensity" },
                     8: { fieldName: "notes", fieldType: "string" },
-                    9: { fieldName: "equipment", fieldType: "workout_equipment" },
+                    9: {
+                        fieldName: "equipment",
+                        fieldType: "workout_equipment",
+                    },
                     10: {
                         fieldName: "exercise_category",
                         fieldType: "exercise_category",
@@ -7920,7 +8748,10 @@ const e = {
                         scale: 100,
                         units: "kg",
                     },
-                    13: { fieldName: "weight_display_unit", fieldType: "fit_base_unit" },
+                    13: {
+                        fieldName: "weight_display_unit",
+                        fieldType: "fit_base_unit",
+                    },
                     19: {
                         fieldName: "secondary_target_type",
                         fieldType: "wkt_step_target",
@@ -7932,27 +8763,52 @@ const e = {
                             {
                                 fieldName: "secondary_target_speed_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "secondary_target_type", value: "speed" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "speed",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_target_hr_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "secondary_target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_target_cadence_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "secondary_target_type", value: "cadence" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "cadence",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_target_power_zone",
                                 fieldType: "uint32",
-                                map: [{ name: "secondary_target_type", value: "power" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "power",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_target_stroke_type",
                                 fieldType: "swim_stroke",
-                                map: [{ name: "secondary_target_type", value: "swim_stroke" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "swim_stroke",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -7965,25 +8821,47 @@ const e = {
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "m/s",
-                                map: [{ name: "secondary_target_type", value: "speed" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "speed",
+                                    },
+                                ],
                             },
                             {
-                                fieldName: "secondary_custom_target_heart_rate_low",
+                                fieldName:
+                                    "secondary_custom_target_heart_rate_low",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
-                                map: [{ name: "secondary_target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
-                                fieldName: "secondary_custom_target_cadence_low",
+                                fieldName:
+                                    "secondary_custom_target_cadence_low",
                                 fieldType: "uint32",
                                 units: "rpm",
-                                map: [{ name: "secondary_target_type", value: "cadence" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "cadence",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_custom_target_power_low",
                                 fieldType: "workout_power",
                                 units: "% or watts",
-                                map: [{ name: "secondary_target_type", value: "power" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "power",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -7996,25 +8874,47 @@ const e = {
                                 fieldType: "uint32",
                                 scale: 1e3,
                                 units: "m/s",
-                                map: [{ name: "secondary_target_type", value: "speed" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "speed",
+                                    },
+                                ],
                             },
                             {
-                                fieldName: "secondary_custom_target_heart_rate_high",
+                                fieldName:
+                                    "secondary_custom_target_heart_rate_high",
                                 fieldType: "workout_hr",
                                 units: "% or bpm",
-                                map: [{ name: "secondary_target_type", value: "heart_rate" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "heart_rate",
+                                    },
+                                ],
                             },
                             {
-                                fieldName: "secondary_custom_target_cadence_high",
+                                fieldName:
+                                    "secondary_custom_target_cadence_high",
                                 fieldType: "uint32",
                                 units: "rpm",
-                                map: [{ name: "secondary_target_type", value: "cadence" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "cadence",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "secondary_custom_target_power_high",
                                 fieldType: "workout_power",
                                 units: "% or watts",
-                                map: [{ name: "secondary_target_type", value: "power" }],
+                                map: [
+                                    {
+                                        name: "secondary_target_type",
+                                        value: "power",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -8023,7 +8923,10 @@ const e = {
                         fieldType: "uint16",
                         undocumented: !0,
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             28: {
@@ -8037,15 +8940,26 @@ const e = {
                             {
                                 fieldName: "favero_product",
                                 fieldType: "favero_product",
-                                map: [{ name: "manufacturer", value: "favero_electronics" }],
+                                map: [
+                                    {
+                                        name: "manufacturer",
+                                        value: "favero_electronics",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "garmin_product",
                                 fieldType: "garmin_product",
                                 map: [
                                     { name: "manufacturer", value: "garmin" },
-                                    { name: "manufacturer", value: "dynastream" },
-                                    { name: "manufacturer", value: "dynastream_oem" },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream",
+                                    },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream_oem",
+                                    },
                                     { name: "manufacturer", value: "tacx" },
                                 ],
                             },
@@ -8055,13 +8969,20 @@ const e = {
                     3: { fieldName: "time_created", fieldType: "date_time" },
                     4: { fieldName: "completed", fieldType: "bool" },
                     5: { fieldName: "type", fieldType: "schedule" },
-                    6: { fieldName: "scheduled_time", fieldType: "local_date_time" },
+                    6: {
+                        fieldName: "scheduled_time",
+                        fieldType: "local_date_time",
+                    },
                 },
             },
             29: {
                 messageName: "location",
                 fields: {
-                    0: { fieldName: "name", fieldType: "string", undocumented: !0 },
+                    0: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     1: {
                         fieldName: "position_lat",
                         fieldType: "sint32",
@@ -8074,7 +8995,11 @@ const e = {
                         units: "semicircles",
                         undocumented: !0,
                     },
-                    3: { fieldName: "symbol", fieldType: "map_symbol", undocumented: !0 },
+                    3: {
+                        fieldName: "symbol",
+                        fieldType: "map_symbol",
+                        undocumented: !0,
+                    },
                     4: {
                         fieldName: "altitude",
                         fieldType: "uint16",
@@ -8162,15 +9087,25 @@ const e = {
                         fieldType: "uint8",
                         units: "years",
                     },
-                    11: { fieldName: "visceral_fat_rating", fieldType: "uint8" },
-                    12: { fieldName: "user_profile_index", fieldType: "message_index" },
+                    11: {
+                        fieldName: "visceral_fat_rating",
+                        fieldType: "uint8",
+                    },
+                    12: {
+                        fieldName: "user_profile_index",
+                        fieldType: "message_index",
+                    },
                     13: {
                         fieldName: "bmi",
                         fieldType: "uint16",
                         scale: 10,
                         units: "kg/m^2",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             31: {
@@ -8178,7 +9113,10 @@ const e = {
                 fields: {
                     4: { fieldName: "sport", fieldType: "sport" },
                     5: { fieldName: "name", fieldType: "string" },
-                    6: { fieldName: "capabilities", fieldType: "course_capabilities" },
+                    6: {
+                        fieldName: "capabilities",
+                        fieldType: "course_capabilities",
+                    },
                     7: { fieldName: "sub_sport", fieldType: "sub_sport" },
                 },
             },
@@ -8205,22 +9143,52 @@ const e = {
                     5: { fieldName: "type", fieldType: "course_point" },
                     6: { fieldName: "name", fieldType: "string" },
                     8: { fieldName: "favorite", fieldType: "bool" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             33: {
                 messageName: "totals",
                 fields: {
-                    0: { fieldName: "timer_time", fieldType: "uint32", units: "s" },
-                    1: { fieldName: "distance", fieldType: "uint32", units: "m" },
-                    2: { fieldName: "calories", fieldType: "uint32", units: "kcal" },
+                    0: {
+                        fieldName: "timer_time",
+                        fieldType: "uint32",
+                        units: "s",
+                    },
+                    1: {
+                        fieldName: "distance",
+                        fieldType: "uint32",
+                        units: "m",
+                    },
+                    2: {
+                        fieldName: "calories",
+                        fieldType: "uint32",
+                        units: "kcal",
+                    },
                     3: { fieldName: "sport", fieldType: "sport" },
-                    4: { fieldName: "elapsed_time", fieldType: "uint32", units: "s" },
+                    4: {
+                        fieldName: "elapsed_time",
+                        fieldType: "uint32",
+                        units: "s",
+                    },
                     5: { fieldName: "sessions", fieldType: "uint16" },
-                    6: { fieldName: "active_time", fieldType: "uint32", units: "s" },
+                    6: {
+                        fieldName: "active_time",
+                        fieldType: "uint32",
+                        units: "s",
+                    },
                     9: { fieldName: "sport_index", fieldType: "uint8" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             34: {
@@ -8236,7 +9204,10 @@ const e = {
                     2: { fieldName: "type", fieldType: "activity" },
                     3: { fieldName: "event", fieldType: "event" },
                     4: { fieldName: "event_type", fieldType: "event_type" },
-                    5: { fieldName: "local_timestamp", fieldType: "local_date_time" },
+                    5: {
+                        fieldName: "local_timestamp",
+                        fieldType: "local_date_time",
+                    },
                     6: { fieldName: "event_group", fieldType: "uint8" },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
                 },
@@ -8244,9 +9215,16 @@ const e = {
             35: {
                 messageName: "software",
                 fields: {
-                    3: { fieldName: "version", fieldType: "uint16", scale: 100 },
+                    3: {
+                        fieldName: "version",
+                        fieldType: "uint16",
+                        scale: 100,
+                    },
                     5: { fieldName: "part_number", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             37: {
@@ -8256,8 +9234,15 @@ const e = {
                     1: { fieldName: "flags", fieldType: "file_flags" },
                     2: { fieldName: "directory", fieldType: "string" },
                     3: { fieldName: "max_count", fieldType: "uint16" },
-                    4: { fieldName: "max_size", fieldType: "uint32", units: "bytes" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    4: {
+                        fieldName: "max_size",
+                        fieldType: "uint32",
+                        units: "bytes",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             38: {
@@ -8273,21 +9258,39 @@ const e = {
                             {
                                 fieldName: "num_per_file",
                                 fieldType: "uint16",
-                                map: [{ name: "count_type", value: "num_per_file" }],
+                                map: [
+                                    {
+                                        name: "count_type",
+                                        value: "num_per_file",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "max_per_file",
                                 fieldType: "uint16",
-                                map: [{ name: "count_type", value: "max_per_file" }],
+                                map: [
+                                    {
+                                        name: "count_type",
+                                        value: "max_per_file",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "max_per_file_type",
                                 fieldType: "uint16",
-                                map: [{ name: "count_type", value: "max_per_file_type" }],
+                                map: [
+                                    {
+                                        name: "count_type",
+                                        value: "max_per_file_type",
+                                    },
+                                ],
                             },
                         ],
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             39: {
@@ -8297,7 +9300,10 @@ const e = {
                     1: { fieldName: "mesg_num", fieldType: "mesg_num" },
                     2: { fieldName: "field_num", fieldType: "uint8" },
                     3: { fieldName: "count", fieldType: "uint16" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             49: {
@@ -8340,11 +9346,22 @@ const e = {
                         fieldType: "uint16",
                         units: "mmHg",
                     },
-                    6: { fieldName: "heart_rate", fieldType: "uint8", units: "bpm" },
+                    6: {
+                        fieldName: "heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     7: { fieldName: "heart_rate_type", fieldType: "hr_type" },
                     8: { fieldName: "status", fieldType: "bp_status" },
-                    9: { fieldName: "user_profile_index", fieldType: "message_index" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    9: {
+                        fieldName: "user_profile_index",
+                        fieldType: "message_index",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             53: {
@@ -8357,14 +9374,21 @@ const e = {
                         units: "m/s",
                     },
                     1: { fieldName: "name", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             55: {
                 messageName: "monitoring",
                 fields: {
                     0: { fieldName: "device_index", fieldType: "device_index" },
-                    1: { fieldName: "calories", fieldType: "uint16", units: "kcal" },
+                    1: {
+                        fieldName: "calories",
+                        fieldType: "uint16",
+                        units: "kcal",
+                    },
                     2: {
                         fieldName: "distance",
                         fieldType: "uint32",
@@ -8394,7 +9418,10 @@ const e = {
                                 units: "strokes",
                                 map: [
                                     { name: "activity_type", value: "cycling" },
-                                    { name: "activity_type", value: "swimming" },
+                                    {
+                                        name: "activity_type",
+                                        value: "swimming",
+                                    },
                                 ],
                             },
                         ],
@@ -8405,9 +9432,18 @@ const e = {
                         scale: 1e3,
                         units: "s",
                     },
-                    5: { fieldName: "activity_type", fieldType: "activity_type" },
-                    6: { fieldName: "activity_subtype", fieldType: "activity_subtype" },
-                    7: { fieldName: "activity_level", fieldType: "activity_level" },
+                    5: {
+                        fieldName: "activity_type",
+                        fieldType: "activity_type",
+                    },
+                    6: {
+                        fieldName: "activity_subtype",
+                        fieldType: "activity_subtype",
+                    },
+                    7: {
+                        fieldName: "activity_level",
+                        fieldType: "activity_level",
+                    },
                     8: {
                         fieldName: "distance_16",
                         fieldType: "uint16",
@@ -8418,8 +9454,15 @@ const e = {
                         fieldType: "uint16",
                         units: "2 * cycles (steps)",
                     },
-                    10: { fieldName: "active_time_16", fieldType: "uint16", units: "s" },
-                    11: { fieldName: "local_timestamp", fieldType: "local_date_time" },
+                    10: {
+                        fieldName: "active_time_16",
+                        fieldType: "uint16",
+                        units: "s",
+                    },
+                    11: {
+                        fieldName: "local_timestamp",
+                        fieldType: "local_date_time",
+                    },
                     12: {
                         fieldName: "temperature",
                         fieldType: "sint16",
@@ -8462,11 +9505,31 @@ const e = {
                         fieldType: "uint8",
                         units: "min",
                     },
-                    26: { fieldName: "timestamp_16", fieldType: "uint16", units: "s" },
-                    27: { fieldName: "heart_rate", fieldType: "uint8", units: "bpm" },
-                    28: { fieldName: "intensity", fieldType: "uint8", scale: 10 },
-                    29: { fieldName: "duration_min", fieldType: "uint16", units: "min" },
-                    30: { fieldName: "duration", fieldType: "uint32", units: "s" },
+                    26: {
+                        fieldName: "timestamp_16",
+                        fieldType: "uint16",
+                        units: "s",
+                    },
+                    27: {
+                        fieldName: "heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    28: {
+                        fieldName: "intensity",
+                        fieldType: "uint8",
+                        scale: 10,
+                    },
+                    29: {
+                        fieldName: "duration_min",
+                        fieldType: "uint16",
+                        units: "min",
+                    },
+                    30: {
+                        fieldName: "duration",
+                        fieldType: "uint32",
+                        units: "s",
+                    },
                     31: {
                         fieldName: "ascent",
                         fieldType: "uint32",
@@ -8489,7 +9552,11 @@ const e = {
                         fieldType: "uint16",
                         units: "minutes",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             70: {
@@ -8510,7 +9577,11 @@ const e = {
                         fieldType: "visibility_status",
                         undocumented: !0,
                     },
-                    14: { fieldName: "auto_zoom", fieldType: "switch", undocumented: !0 },
+                    14: {
+                        fieldName: "auto_zoom",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     15: {
                         fieldName: "guide_text",
                         fieldType: "guide_text",
@@ -8521,7 +9592,11 @@ const e = {
                         fieldType: "visibility_status",
                         undocumented: !0,
                     },
-                    20: { fieldName: "courses", fieldType: "courses", undocumented: !0 },
+                    20: {
+                        fieldName: "courses",
+                        fieldType: "courses",
+                        undocumented: !0,
+                    },
                     23: {
                         fieldName: "spot_soundings",
                         fieldType: "switch",
@@ -8583,7 +9658,11 @@ const e = {
                         fieldType: "route_recalculation",
                         undocumented: !0,
                     },
-                    5: { fieldName: "type", fieldType: "routing_type", undocumented: !0 },
+                    5: {
+                        fieldName: "type",
+                        fieldType: "routing_type",
+                        undocumented: !0,
+                    },
                     7: {
                         fieldName: "course_recalculation",
                         fieldType: "course_recalculation",
@@ -8604,15 +9683,26 @@ const e = {
                             {
                                 fieldName: "favero_product",
                                 fieldType: "favero_product",
-                                map: [{ name: "manufacturer", value: "favero_electronics" }],
+                                map: [
+                                    {
+                                        name: "manufacturer",
+                                        value: "favero_electronics",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "garmin_product",
                                 fieldType: "garmin_product",
                                 map: [
                                     { name: "manufacturer", value: "garmin" },
-                                    { name: "manufacturer", value: "dynastream" },
-                                    { name: "manufacturer", value: "dynastream_oem" },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream",
+                                    },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream_oem",
+                                    },
                                     { name: "manufacturer", value: "tacx" },
                                 ],
                             },
@@ -8666,7 +9756,11 @@ const e = {
                         units: "kg",
                         undocumented: !0,
                     },
-                    4: { fieldName: "gender", fieldType: "gender", undocumented: !0 },
+                    4: {
+                        fieldName: "gender",
+                        fieldType: "gender",
+                        undocumented: !0,
+                    },
                     6: {
                         fieldName: "max_hr",
                         fieldType: "uint8",
@@ -8761,7 +9855,11 @@ const e = {
                     },
                     3: { fieldName: "channel_number", fieldType: "uint8" },
                     4: { fieldName: "data", fieldType: "byte", array: "[N]" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             81: {
@@ -8792,7 +9890,11 @@ const e = {
                     },
                     3: { fieldName: "channel_number", fieldType: "uint8" },
                     4: { fieldName: "data", fieldType: "byte", array: "[N]" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             82: {
@@ -8813,7 +9915,11 @@ const e = {
                         fieldType: "open_water_event_type",
                         undocumented: !0,
                     },
-                    1: { fieldName: "field_1?", fieldType: "bits", undocumented: !0 },
+                    1: {
+                        fieldName: "field_1?",
+                        fieldType: "bits",
+                        undocumented: !0,
+                    },
                     5: {
                         fieldName: "swim_stroke",
                         fieldType: "swim_stroke",
@@ -8911,7 +10017,10 @@ const e = {
                         components: [{ fieldDefNumber: 23, bits: 8 }],
                     },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             103: {
@@ -8946,7 +10055,11 @@ const e = {
                         fieldType: "uint16",
                         units: "kcal / day",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             104: {
@@ -8992,15 +10105,26 @@ const e = {
                             {
                                 fieldName: "favero_product",
                                 fieldType: "favero_product",
-                                map: [{ name: "manufacturer", value: "favero_electronics" }],
+                                map: [
+                                    {
+                                        name: "manufacturer",
+                                        value: "favero_electronics",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "garmin_product",
                                 fieldType: "garmin_product",
                                 map: [
                                     { name: "manufacturer", value: "garmin" },
-                                    { name: "manufacturer", value: "dynastream" },
-                                    { name: "manufacturer", value: "dynastream_oem" },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream",
+                                    },
+                                    {
+                                        name: "manufacturer",
+                                        value: "dynastream_oem",
+                                    },
                                     { name: "manufacturer", value: "tacx" },
                                 ],
                             },
@@ -9011,7 +10135,11 @@ const e = {
             113: {
                 messageName: "best_effort",
                 fields: {
-                    1: { fieldName: "sport", fieldType: "sport", undocumented: !0 },
+                    1: {
+                        fieldName: "sport",
+                        fieldType: "sport",
+                        undocumented: !0,
+                    },
                     2: {
                         fieldName: "distance",
                         fieldType: "uint32",
@@ -9048,7 +10176,11 @@ const e = {
                         fieldType: "record_metric",
                         undocumented: !0,
                     },
-                    1: { fieldName: "sport", fieldType: "sport", undocumented: !0 },
+                    1: {
+                        fieldName: "sport",
+                        fieldType: "sport",
+                        undocumented: !0,
+                    },
                     2: {
                         fieldName: "distance",
                         fieldType: "uint32",
@@ -9099,25 +10231,53 @@ const e = {
                     1: { fieldName: "bluetooth_le_enabled", fieldType: "bool" },
                     2: { fieldName: "ant_enabled", fieldType: "bool" },
                     3: { fieldName: "name", fieldType: "string" },
-                    4: { fieldName: "live_tracking_enabled", fieldType: "bool" },
-                    5: { fieldName: "weather_conditions_enabled", fieldType: "bool" },
-                    6: { fieldName: "weather_alerts_enabled", fieldType: "bool" },
-                    7: { fieldName: "auto_activity_upload_enabled", fieldType: "bool" },
-                    8: { fieldName: "course_download_enabled", fieldType: "bool" },
-                    9: { fieldName: "workout_download_enabled", fieldType: "bool" },
+                    4: {
+                        fieldName: "live_tracking_enabled",
+                        fieldType: "bool",
+                    },
+                    5: {
+                        fieldName: "weather_conditions_enabled",
+                        fieldType: "bool",
+                    },
+                    6: {
+                        fieldName: "weather_alerts_enabled",
+                        fieldType: "bool",
+                    },
+                    7: {
+                        fieldName: "auto_activity_upload_enabled",
+                        fieldType: "bool",
+                    },
+                    8: {
+                        fieldName: "course_download_enabled",
+                        fieldType: "bool",
+                    },
+                    9: {
+                        fieldName: "workout_download_enabled",
+                        fieldType: "bool",
+                    },
                     10: {
                         fieldName: "gps_ephemeris_download_enabled",
                         fieldType: "bool",
                     },
-                    11: { fieldName: "incident_detection_enabled", fieldType: "bool" },
+                    11: {
+                        fieldName: "incident_detection_enabled",
+                        fieldType: "bool",
+                    },
                     12: { fieldName: "grouptrack_enabled", fieldType: "bool" },
                 },
             },
             128: {
                 messageName: "weather_conditions",
                 fields: {
-                    0: { fieldName: "weather_report", fieldType: "weather_report" },
-                    1: { fieldName: "temperature", fieldType: "sint8", units: "C" },
+                    0: {
+                        fieldName: "weather_report",
+                        fieldType: "weather_report",
+                    },
+                    1: {
+                        fieldName: "temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     2: { fieldName: "condition", fieldType: "weather_status" },
                     3: {
                         fieldName: "wind_direction",
@@ -9130,7 +10290,10 @@ const e = {
                         scale: 1e3,
                         units: "m/s",
                     },
-                    5: { fieldName: "precipitation_probability", fieldType: "uint8" },
+                    5: {
+                        fieldName: "precipitation_probability",
+                        fieldType: "uint8",
+                    },
                     6: {
                         fieldName: "temperature_feels_like",
                         fieldType: "sint8",
@@ -9138,7 +10301,10 @@ const e = {
                     },
                     7: { fieldName: "relative_humidity", fieldType: "uint8" },
                     8: { fieldName: "location", fieldType: "string" },
-                    9: { fieldName: "observed_at_time", fieldType: "date_time" },
+                    9: {
+                        fieldName: "observed_at_time",
+                        fieldType: "date_time",
+                    },
                     10: {
                         fieldName: "observed_location_lat",
                         fieldType: "sint32",
@@ -9150,8 +10316,16 @@ const e = {
                         units: "semicircles",
                     },
                     12: { fieldName: "day_of_week", fieldType: "day_of_week" },
-                    13: { fieldName: "high_temperature", fieldType: "sint8", units: "C" },
-                    14: { fieldName: "low_temperature", fieldType: "sint8", units: "C" },
+                    13: {
+                        fieldName: "high_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
+                    14: {
+                        fieldName: "low_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
                 },
             },
@@ -9169,9 +10343,16 @@ const e = {
             131: {
                 messageName: "cadence_zone",
                 fields: {
-                    0: { fieldName: "high_value", fieldType: "uint8", units: "rpm" },
+                    0: {
+                        fieldName: "high_value",
+                        fieldType: "uint8",
+                        units: "rpm",
+                    },
                     1: { fieldName: "name", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             132: {
@@ -9186,7 +10367,14 @@ const e = {
                     1: {
                         fieldName: "time256",
                         fieldType: "uint8",
-                        components: [{ fieldDefNumber: 0, scale: 256, units: "s", bits: 8 }],
+                        components: [
+                            {
+                                fieldDefNumber: 0,
+                                scale: 256,
+                                units: "s",
+                                bits: 8,
+                            },
+                        ],
                     },
                     6: {
                         fieldName: "filtered_bpm",
@@ -9213,15 +10401,60 @@ const e = {
                                 bits: 12,
                                 accumulate: 1,
                             },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
-                            { fieldDefNumber: 9, scale: 1024, bits: 12, accumulate: 1 },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
+                            {
+                                fieldDefNumber: 9,
+                                scale: 1024,
+                                bits: 12,
+                                accumulate: 1,
+                            },
                         ],
                     },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
@@ -9230,7 +10463,11 @@ const e = {
             140: {
                 messageName: "activity_metrics",
                 fields: {
-                    1: { fieldName: "new_hr_max", fieldType: "uint8z", undocumented: !0 },
+                    1: {
+                        fieldName: "new_hr_max",
+                        fieldType: "uint8z",
+                        undocumented: !0,
+                    },
                     4: {
                         fieldName: "aerobic_training_effect",
                         fieldType: "uint8",
@@ -9468,14 +10705,46 @@ const e = {
                         scale: 1e3,
                         units: "m/s",
                     },
-                    15: { fieldName: "avg_heart_rate", fieldType: "uint8", units: "bpm" },
-                    16: { fieldName: "max_heart_rate", fieldType: "uint8", units: "bpm" },
-                    17: { fieldName: "avg_cadence", fieldType: "uint8", units: "rpm" },
-                    18: { fieldName: "max_cadence", fieldType: "uint8", units: "rpm" },
-                    19: { fieldName: "avg_power", fieldType: "uint16", units: "watts" },
-                    20: { fieldName: "max_power", fieldType: "uint16", units: "watts" },
-                    21: { fieldName: "total_ascent", fieldType: "uint16", units: "m" },
-                    22: { fieldName: "total_descent", fieldType: "uint16", units: "m" },
+                    15: {
+                        fieldName: "avg_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    16: {
+                        fieldName: "max_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    17: {
+                        fieldName: "avg_cadence",
+                        fieldType: "uint8",
+                        units: "rpm",
+                    },
+                    18: {
+                        fieldName: "max_cadence",
+                        fieldType: "uint8",
+                        units: "rpm",
+                    },
+                    19: {
+                        fieldName: "avg_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    20: {
+                        fieldName: "max_power",
+                        fieldType: "uint16",
+                        units: "watts",
+                    },
+                    21: {
+                        fieldName: "total_ascent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    22: {
+                        fieldName: "total_descent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
                     23: { fieldName: "sport", fieldType: "sport" },
                     24: { fieldName: "event_group", fieldType: "uint8" },
                     25: {
@@ -9509,7 +10778,11 @@ const e = {
                         fieldType: "left_right_balance_100",
                     },
                     32: { fieldName: "sub_sport", fieldType: "sub_sport" },
-                    33: { fieldName: "total_work", fieldType: "uint32", units: "J" },
+                    33: {
+                        fieldName: "total_work",
+                        fieldType: "uint32",
+                        units: "J",
+                    },
                     34: {
                         fieldName: "avg_altitude",
                         fieldType: "uint16",
@@ -9536,7 +10809,11 @@ const e = {
                             },
                         ],
                     },
-                    36: { fieldName: "gps_accuracy", fieldType: "uint8", units: "m" },
+                    36: {
+                        fieldName: "gps_accuracy",
+                        fieldType: "uint8",
+                        units: "m",
+                    },
                     37: {
                         fieldName: "avg_grade",
                         fieldType: "sint16",
@@ -9567,8 +10844,16 @@ const e = {
                         scale: 100,
                         units: "%",
                     },
-                    42: { fieldName: "avg_temperature", fieldType: "sint8", units: "C" },
-                    43: { fieldName: "max_temperature", fieldType: "sint8", units: "C" },
+                    42: {
+                        fieldName: "avg_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
+                    43: {
+                        fieldName: "max_temperature",
+                        fieldType: "sint8",
+                        units: "C",
+                    },
                     44: {
                         fieldName: "total_moving_time",
                         fieldType: "uint32",
@@ -9641,14 +10926,21 @@ const e = {
                             },
                         ],
                     },
-                    55: { fieldName: "min_heart_rate", fieldType: "uint8", units: "bpm" },
+                    55: {
+                        fieldName: "min_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     56: {
                         fieldName: "active_time",
                         fieldType: "uint32",
                         scale: 1e3,
                         units: "s",
                     },
-                    57: { fieldName: "wkt_step_index", fieldType: "message_index" },
+                    57: {
+                        fieldName: "wkt_step_index",
+                        fieldType: "message_index",
+                    },
                     58: { fieldName: "sport_event", fieldType: "sport_event" },
                     59: {
                         fieldName: "avg_left_torque_effectiveness",
@@ -9680,7 +10972,10 @@ const e = {
                         scale: 2,
                         units: "percent",
                     },
-                    64: { fieldName: "status", fieldType: "segment_lap_status" },
+                    64: {
+                        fieldName: "status",
+                        fieldType: "segment_lap_status",
+                    },
                     65: { fieldName: "uuid", fieldType: "string" },
                     66: {
                         fieldName: "avg_fractional_cadence",
@@ -9700,8 +10995,14 @@ const e = {
                         scale: 128,
                         units: "cycles",
                     },
-                    69: { fieldName: "front_gear_shift_count", fieldType: "uint16" },
-                    70: { fieldName: "rear_gear_shift_count", fieldType: "uint16" },
+                    69: {
+                        fieldName: "front_gear_shift_count",
+                        fieldType: "uint16",
+                    },
+                    70: {
+                        fieldName: "rear_gear_shift_count",
+                        fieldType: "uint16",
+                    },
                     71: {
                         fieldName: "time_standing",
                         fieldType: "uint32",
@@ -9709,8 +11010,16 @@ const e = {
                         units: "s",
                     },
                     72: { fieldName: "stand_count", fieldType: "uint16" },
-                    73: { fieldName: "avg_left_pco", fieldType: "sint8", units: "mm" },
-                    74: { fieldName: "avg_right_pco", fieldType: "sint8", units: "mm" },
+                    73: {
+                        fieldName: "avg_left_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
+                    74: {
+                        fieldName: "avg_right_pco",
+                        fieldType: "sint8",
+                        units: "mm",
+                    },
                     75: {
                         fieldName: "avg_left_power_phase",
                         fieldType: "uint8",
@@ -9763,11 +11072,30 @@ const e = {
                         array: "[N]",
                         units: "rpm",
                     },
-                    83: { fieldName: "manufacturer", fieldType: "manufacturer" },
-                    84: { fieldName: "total_grit", fieldType: "float32", units: "kGrit" },
-                    85: { fieldName: "total_flow", fieldType: "float32", units: "Flow" },
-                    86: { fieldName: "avg_grit", fieldType: "float32", units: "kGrit" },
-                    87: { fieldName: "avg_flow", fieldType: "float32", units: "Flow" },
+                    83: {
+                        fieldName: "manufacturer",
+                        fieldType: "manufacturer",
+                    },
+                    84: {
+                        fieldName: "total_grit",
+                        fieldType: "float32",
+                        units: "kGrit",
+                    },
+                    85: {
+                        fieldName: "total_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
+                    86: {
+                        fieldName: "avg_grit",
+                        fieldType: "float32",
+                        units: "kGrit",
+                    },
+                    87: {
+                        fieldName: "avg_flow",
+                        fieldType: "float32",
+                        units: "Flow",
+                    },
                     89: {
                         fieldName: "total_fractional_ascent",
                         fieldType: "uint8",
@@ -9801,14 +11129,25 @@ const e = {
                         offset: 500,
                         units: "m",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             143: {
                 messageName: "multisport_settings",
                 fields: {
-                    0: { fieldName: "name", fieldType: "string", undocumented: !0 },
+                    0: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     1: {
                         fieldName: "transitions",
                         fieldType: "switch",
@@ -9819,16 +11158,36 @@ const e = {
                         fieldType: "uint8",
                         undocumented: !0,
                     },
-                    3: { fieldName: "auto_pause", fieldType: "allow", undocumented: !0 },
-                    4: { fieldName: "alerts", fieldType: "allow", undocumented: !0 },
-                    5: { fieldName: "auto_lap", fieldType: "allow", undocumented: !0 },
+                    3: {
+                        fieldName: "auto_pause",
+                        fieldType: "allow",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "alerts",
+                        fieldType: "allow",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "auto_lap",
+                        fieldType: "allow",
+                        undocumented: !0,
+                    },
                     6: {
                         fieldName: "power_save_timeout",
                         fieldType: "power_save_timeout",
                         undocumented: !0,
                     },
-                    7: { fieldName: "auto_scroll", fieldType: "allow", undocumented: !0 },
-                    8: { fieldName: "repeat", fieldType: "switch", undocumented: !0 },
+                    7: {
+                        fieldName: "auto_scroll",
+                        fieldType: "allow",
+                        undocumented: !0,
+                    },
+                    8: {
+                        fieldName: "repeat",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     10: {
                         fieldName: "sport_change",
                         fieldType: "sport_change",
@@ -9840,7 +11199,11 @@ const e = {
             144: {
                 messageName: "multisport_activity",
                 fields: {
-                    0: { fieldName: "sport", fieldType: "sport", undocumented: !0 },
+                    0: {
+                        fieldName: "sport",
+                        fieldType: "sport",
+                        undocumented: !0,
+                    },
                     1: {
                         fieldName: "sub_sport",
                         fieldType: "sub_sport",
@@ -9851,7 +11214,11 @@ const e = {
                         fieldType: "switch",
                         undocumented: !0,
                     },
-                    3: { fieldName: "name", fieldType: "string", undocumented: !0 },
+                    3: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -9860,7 +11227,10 @@ const e = {
                 fields: {
                     0: { fieldName: "memo", fieldType: "byte", array: "[N]" },
                     1: { fieldName: "mesg_num", fieldType: "mesg_num" },
-                    2: { fieldName: "parent_index", fieldType: "message_index" },
+                    2: {
+                        fieldName: "parent_index",
+                        fieldType: "message_index",
+                    },
                     3: { fieldName: "field_num", fieldType: "uint8" },
                     4: { fieldName: "data", fieldType: "uint8z", array: "[N]" },
                     250: { fieldName: "part_index", fieldType: "uint32" },
@@ -9875,7 +11245,11 @@ const e = {
                         source: 4,
                         undocumented: !0,
                     },
-                    2: { fieldName: "name", fieldType: "string", undocumented: !0 },
+                    2: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     10: {
                         fieldName: "wheel_size_manual",
                         fieldType: "uint16",
@@ -9919,10 +11293,16 @@ const e = {
                     1: { fieldName: "uuid", fieldType: "string" },
                     2: { fieldName: "sport", fieldType: "sport" },
                     3: { fieldName: "enabled", fieldType: "bool" },
-                    4: { fieldName: "user_profile_primary_key", fieldType: "uint32" },
+                    4: {
+                        fieldName: "user_profile_primary_key",
+                        fieldType: "uint32",
+                    },
                     5: { fieldName: "device_id", fieldType: "uint32" },
                     6: { fieldName: "default_race_leader", fieldType: "uint8" },
-                    7: { fieldName: "delete_status", fieldType: "segment_delete_status" },
+                    7: {
+                        fieldName: "delete_status",
+                        fieldType: "segment_delete_status",
+                    },
                     8: {
                         fieldName: "selection_type",
                         fieldType: "segment_selection_type",
@@ -9933,7 +11313,10 @@ const e = {
                 messageName: "segment_leaderboard_entry",
                 fields: {
                     0: { fieldName: "name", fieldType: "string" },
-                    1: { fieldName: "type", fieldType: "segment_leaderboard_type" },
+                    1: {
+                        fieldName: "type",
+                        fieldType: "segment_leaderboard_type",
+                    },
                     2: { fieldName: "group_primary_key", fieldType: "uint32" },
                     3: { fieldName: "activity_id", fieldType: "uint32" },
                     4: {
@@ -9943,7 +11326,10 @@ const e = {
                         units: "s",
                     },
                     5: { fieldName: "activity_id_string", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             150: {
@@ -9992,7 +11378,10 @@ const e = {
                         offset: 500,
                         units: "m",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             151: {
@@ -10000,7 +11389,10 @@ const e = {
                 fields: {
                     1: { fieldName: "file_uuid", fieldType: "string" },
                     3: { fieldName: "enabled", fieldType: "bool" },
-                    4: { fieldName: "user_profile_primary_key", fieldType: "uint32" },
+                    4: {
+                        fieldName: "user_profile_primary_key",
+                        fieldType: "uint32",
+                    },
                     7: {
                         fieldName: "leader_type",
                         fieldType: "segment_leaderboard_type",
@@ -10021,14 +11413,24 @@ const e = {
                         fieldType: "string",
                         array: "[N]",
                     },
-                    11: { fieldName: "default_race_leader", fieldType: "uint8" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    11: {
+                        fieldName: "default_race_leader",
+                        fieldType: "uint8",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             152: {
                 messageName: "metronome",
                 fields: {
-                    0: { fieldName: "enabled", fieldType: "switch", undocumented: !0 },
+                    0: {
+                        fieldName: "enabled",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     1: {
                         fieldName: "beats_per_minute",
                         fieldType: "uint8",
@@ -10061,8 +11463,14 @@ const e = {
                         scale: 100,
                         units: "m",
                     },
-                    5: { fieldName: "pool_length_unit", fieldType: "display_measure" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    5: {
+                        fieldName: "pool_length_unit",
+                        fieldType: "display_measure",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             159: {
@@ -10085,13 +11493,20 @@ const e = {
                             },
                         ],
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             160: {
                 messageName: "gps_metadata",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "position_lat",
                         fieldType: "sint32",
@@ -10121,7 +11536,11 @@ const e = {
                         scale: 100,
                         units: "degrees",
                     },
-                    6: { fieldName: "utc_timestamp", fieldType: "date_time", units: "s" },
+                    6: {
+                        fieldName: "utc_timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                     7: {
                         fieldName: "velocity",
                         fieldType: "sint16",
@@ -10129,20 +11548,35 @@ const e = {
                         scale: 100,
                         units: "m/s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             161: {
                 messageName: "camera_event",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
-                    1: { fieldName: "camera_event_type", fieldType: "camera_event_type" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
+                    1: {
+                        fieldName: "camera_event_type",
+                        fieldType: "camera_event_type",
+                    },
                     2: { fieldName: "camera_file_uuid", fieldType: "string" },
                     3: {
                         fieldName: "camera_orientation",
                         fieldType: "camera_orientation_type",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             162: {
@@ -10172,19 +11606,31 @@ const e = {
                         units: "s",
                         undocumented: !0,
                     },
-                    4: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    4: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     5: {
                         fieldName: "system_timestamp_ms",
                         fieldType: "uint16",
                         units: "ms",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             164: {
                 messageName: "gyroscope_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sample_time_offset",
                         fieldType: "uint16",
@@ -10227,13 +11673,21 @@ const e = {
                         array: "[N]",
                         units: "deg/s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             165: {
                 messageName: "accelerometer_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sample_time_offset",
                         fieldType: "uint16",
@@ -10294,7 +11748,11 @@ const e = {
                         array: "[N]",
                         units: "mG",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             167: {
@@ -10309,13 +11767,20 @@ const e = {
                                 fieldName: "accel_cal_factor",
                                 fieldType: "uint32",
                                 units: "g",
-                                map: [{ name: "sensor_type", value: "accelerometer" }],
+                                map: [
+                                    {
+                                        name: "sensor_type",
+                                        value: "accelerometer",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "gyro_cal_factor",
                                 fieldType: "uint32",
                                 units: "deg/s",
-                                map: [{ name: "sensor_type", value: "gyroscope" }],
+                                map: [
+                                    { name: "sensor_type", value: "gyroscope" },
+                                ],
                             },
                         ],
                     },
@@ -10325,22 +11790,38 @@ const e = {
                         units: "counts",
                     },
                     3: { fieldName: "level_shift", fieldType: "uint32" },
-                    4: { fieldName: "offset_cal", fieldType: "sint32", array: "[3]" },
+                    4: {
+                        fieldName: "offset_cal",
+                        fieldType: "sint32",
+                        array: "[3]",
+                    },
                     5: {
                         fieldName: "orientation_matrix",
                         fieldType: "sint32",
                         array: "[9]",
                         scale: 65535,
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             169: {
                 messageName: "video_frame",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: { fieldName: "frame_number", fieldType: "uint32" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             170: {
@@ -10361,8 +11842,16 @@ const e = {
                         ],
                         undocumented: !0,
                     },
-                    100: { fieldName: "screen_id", fieldType: "uint8", undocumented: !0 },
-                    101: { fieldName: "field_bits", fieldType: "bits", undocumented: !0 },
+                    100: {
+                        fieldName: "screen_id",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    101: {
+                        fieldName: "field_bits",
+                        fieldType: "bits",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -10389,7 +11878,11 @@ const e = {
             174: {
                 messageName: "obdii_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "time_offset",
                         fieldType: "uint16",
@@ -10397,30 +11890,58 @@ const e = {
                         units: "ms",
                     },
                     2: { fieldName: "pid", fieldType: "byte" },
-                    3: { fieldName: "raw_data", fieldType: "byte", array: "[N]" },
-                    4: { fieldName: "pid_data_size", fieldType: "uint8", array: "[N]" },
-                    5: { fieldName: "system_time", fieldType: "uint32", array: "[N]" },
+                    3: {
+                        fieldName: "raw_data",
+                        fieldType: "byte",
+                        array: "[N]",
+                    },
+                    4: {
+                        fieldName: "pid_data_size",
+                        fieldType: "uint8",
+                        array: "[N]",
+                    },
+                    5: {
+                        fieldName: "system_time",
+                        fieldType: "uint32",
+                        array: "[N]",
+                    },
                     6: { fieldName: "start_timestamp", fieldType: "date_time" },
                     7: {
                         fieldName: "start_timestamp_ms",
                         fieldType: "uint16",
                         units: "ms",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             177: {
                 messageName: "nmea_sentence",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: { fieldName: "sentence", fieldType: "string" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             178: {
                 messageName: "aviation_attitude",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "system_time",
                         fieldType: "uint32",
@@ -10462,7 +11983,11 @@ const e = {
                         scale: 1024,
                         units: "radians/second",
                     },
-                    7: { fieldName: "stage", fieldType: "attitude_stage", array: "[N]" },
+                    7: {
+                        fieldName: "stage",
+                        fieldType: "attitude_stage",
+                        array: "[N]",
+                    },
                     8: {
                         fieldName: "attitude_stage_complete",
                         fieldType: "uint8",
@@ -10481,7 +12006,11 @@ const e = {
                         fieldType: "attitude_validity",
                         array: "[N]",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             184: {
@@ -10489,7 +12018,11 @@ const e = {
                 fields: {
                     0: { fieldName: "url", fieldType: "string" },
                     1: { fieldName: "hosting_provider", fieldType: "string" },
-                    2: { fieldName: "duration", fieldType: "uint32", units: "ms" },
+                    2: {
+                        fieldName: "duration",
+                        fieldType: "uint32",
+                        units: "ms",
+                    },
                 },
             },
             185: {
@@ -10497,7 +12030,10 @@ const e = {
                 fields: {
                     0: { fieldName: "message_count", fieldType: "uint16" },
                     1: { fieldName: "text", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             186: {
@@ -10505,7 +12041,10 @@ const e = {
                 fields: {
                     0: { fieldName: "message_count", fieldType: "uint16" },
                     1: { fieldName: "text", fieldType: "string" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             187: {
@@ -10516,22 +12055,42 @@ const e = {
                     2: { fieldName: "start_timestamp_ms", fieldType: "uint16" },
                     3: { fieldName: "end_timestamp", fieldType: "date_time" },
                     4: { fieldName: "end_timestamp_ms", fieldType: "uint16" },
-                    6: { fieldName: "clip_start", fieldType: "uint32", units: "ms" },
-                    7: { fieldName: "clip_end", fieldType: "uint32", units: "ms" },
+                    6: {
+                        fieldName: "clip_start",
+                        fieldType: "uint32",
+                        units: "ms",
+                    },
+                    7: {
+                        fieldName: "clip_end",
+                        fieldType: "uint32",
+                        units: "ms",
+                    },
                 },
             },
             188: {
                 messageName: "ohr_settings",
                 fields: {
                     0: { fieldName: "enabled", fieldType: "switch" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             190: {
                 messageName: "golf_course",
                 fields: {
-                    0: { fieldName: "course_id", fieldType: "uint32", undocumented: !0 },
-                    1: { fieldName: "name", fieldType: "string", undocumented: !0 },
+                    0: {
+                        fieldName: "course_id",
+                        fieldType: "uint32",
+                        undocumented: !0,
+                    },
+                    1: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     2: {
                         fieldName: "local_time",
                         fieldType: "local_date_time",
@@ -10547,42 +12106,114 @@ const e = {
                         fieldType: "date_time",
                         undocumented: !0,
                     },
-                    8: { fieldName: "out", fieldType: "uint8", undocumented: !0 },
-                    9: { fieldName: "in", fieldType: "uint8", undocumented: !0 },
-                    10: { fieldName: "total", fieldType: "uint8", undocumented: !0 },
-                    11: { fieldName: "tee", fieldType: "string", undocumented: !0 },
-                    12: { fieldName: "slope", fieldType: "uint8", undocumented: !0 },
-                    21: { fieldName: "rating", fieldType: "float_32", undocumented: !0 },
+                    8: {
+                        fieldName: "out",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    9: {
+                        fieldName: "in",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    10: {
+                        fieldName: "total",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    11: {
+                        fieldName: "tee",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    12: {
+                        fieldName: "slope",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    21: {
+                        fieldName: "rating",
+                        fieldType: "float_32",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             191: {
                 messageName: "golf_stats",
                 fields: {
-                    0: { fieldName: "name", fieldType: "string", undocumented: !0 },
-                    2: { fieldName: "out", fieldType: "uint8", undocumented: !0 },
-                    3: { fieldName: "in", fieldType: "uint8", undocumented: !0 },
-                    4: { fieldName: "total", fieldType: "uint8", undocumented: !0 },
-                    7: { fieldName: "fairway_hit", fieldType: "uint8", undocumented: !0 },
-                    8: { fieldName: "gir", fieldType: "uint8", undocumented: !0 },
-                    9: { fieldName: "putts", fieldType: "uint8", undocumented: !0 },
+                    0: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    2: {
+                        fieldName: "out",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    3: {
+                        fieldName: "in",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "total",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    7: {
+                        fieldName: "fairway_hit",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    8: {
+                        fieldName: "gir",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    9: {
+                        fieldName: "putts",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             192: {
                 messageName: "score",
                 fields: {
-                    1: { fieldName: "hole_number", fieldType: "uint8", undocumented: !0 },
-                    2: { fieldName: "score", fieldType: "uint8", undocumented: !0 },
-                    5: { fieldName: "putts", fieldType: "sint8", undocumented: !0 },
-                    6: { fieldName: "fairway", fieldType: "fairway", undocumented: !0 },
+                    1: {
+                        fieldName: "hole_number",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    2: {
+                        fieldName: "score",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "putts",
+                        fieldType: "sint8",
+                        undocumented: !0,
+                    },
+                    6: {
+                        fieldName: "fairway",
+                        fieldType: "fairway",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             193: {
                 messageName: "hole",
                 fields: {
-                    0: { fieldName: "hole_number", fieldType: "uint8", undocumented: !0 },
+                    0: {
+                        fieldName: "hole_number",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     1: {
                         fieldName: "distance",
                         fieldType: "uint16",
@@ -10590,8 +12221,16 @@ const e = {
                         units: "m",
                         undocumented: !0,
                     },
-                    2: { fieldName: "par", fieldType: "uint8", undocumented: !0 },
-                    3: { fieldName: "handicap", fieldType: "uint8", undocumented: !0 },
+                    2: {
+                        fieldName: "par",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    3: {
+                        fieldName: "handicap",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     4: {
                         fieldName: "position_lat",
                         fieldType: "sint32",
@@ -10610,7 +12249,11 @@ const e = {
             194: {
                 messageName: "shot",
                 fields: {
-                    1: { fieldName: "hole_number", fieldType: "uint8", undocumented: !0 },
+                    1: {
+                        fieldName: "hole_number",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     2: {
                         fieldName: "start_position_long",
                         fieldType: "sint32",
@@ -10635,7 +12278,11 @@ const e = {
                         units: "semicircles",
                         undocumented: !0,
                     },
-                    7: { fieldName: "club_type", fieldType: "uint32", undocumented: !0 },
+                    7: {
+                        fieldName: "club_type",
+                        fieldType: "uint32",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -10662,8 +12309,15 @@ const e = {
                     },
                     2: { fieldName: "field_id", fieldType: "uint8" },
                     3: { fieldName: "concept_count", fieldType: "uint8" },
-                    4: { fieldName: "display_type", fieldType: "exd_display_type" },
-                    5: { fieldName: "title", fieldType: "string", array: "[32]" },
+                    4: {
+                        fieldName: "display_type",
+                        fieldType: "exd_display_type",
+                    },
+                    5: {
+                        fieldName: "title",
+                        fieldType: "string",
+                        array: "[32]",
+                    },
                 },
             },
             202: {
@@ -10685,25 +12339,48 @@ const e = {
                     6: { fieldName: "scaling", fieldType: "uint8" },
                     8: { fieldName: "data_units", fieldType: "exd_data_units" },
                     9: { fieldName: "qualifier", fieldType: "exd_qualifiers" },
-                    10: { fieldName: "descriptor", fieldType: "exd_descriptors" },
+                    10: {
+                        fieldName: "descriptor",
+                        fieldType: "exd_descriptors",
+                    },
                     11: { fieldName: "is_signed", fieldType: "bool" },
                 },
             },
             206: {
                 messageName: "field_description",
                 fields: {
-                    0: { fieldName: "developer_data_index", fieldType: "uint8" },
-                    1: { fieldName: "field_definition_number", fieldType: "uint8" },
-                    2: { fieldName: "fit_base_type_id", fieldType: "fit_base_type" },
-                    3: { fieldName: "field_name", fieldType: "string", array: "[N]" },
+                    0: {
+                        fieldName: "developer_data_index",
+                        fieldType: "uint8",
+                    },
+                    1: {
+                        fieldName: "field_definition_number",
+                        fieldType: "uint8",
+                    },
+                    2: {
+                        fieldName: "fit_base_type_id",
+                        fieldType: "fit_base_type",
+                    },
+                    3: {
+                        fieldName: "field_name",
+                        fieldType: "string",
+                        array: "[N]",
+                    },
                     4: { fieldName: "array", fieldType: "uint8" },
                     5: { fieldName: "components", fieldType: "string" },
                     6: { fieldName: "scale", fieldType: "uint8" },
                     7: { fieldName: "offset", fieldType: "sint8" },
-                    8: { fieldName: "units", fieldType: "string", array: "[N]" },
+                    8: {
+                        fieldName: "units",
+                        fieldType: "string",
+                        array: "[N]",
+                    },
                     9: { fieldName: "bits", fieldType: "string" },
                     10: { fieldName: "accumulate", fieldType: "string" },
-                    13: { fieldName: "fit_base_unit_id", fieldType: "fit_base_unit" },
+                    13: {
+                        fieldName: "fit_base_unit_id",
+                        fieldType: "fit_base_unit",
+                    },
                     14: { fieldName: "native_mesg_num", fieldType: "mesg_num" },
                     15: { fieldName: "native_field_num", fieldType: "uint8" },
                 },
@@ -10711,17 +12388,38 @@ const e = {
             207: {
                 messageName: "developer_data_id",
                 fields: {
-                    0: { fieldName: "developer_id", fieldType: "byte", array: "[N]" },
-                    1: { fieldName: "application_id", fieldType: "byte", array: "[N]" },
-                    2: { fieldName: "manufacturer_id", fieldType: "manufacturer" },
-                    3: { fieldName: "developer_data_index", fieldType: "uint8" },
-                    4: { fieldName: "application_version", fieldType: "uint32" },
+                    0: {
+                        fieldName: "developer_id",
+                        fieldType: "byte",
+                        array: "[N]",
+                    },
+                    1: {
+                        fieldName: "application_id",
+                        fieldType: "byte",
+                        array: "[N]",
+                    },
+                    2: {
+                        fieldName: "manufacturer_id",
+                        fieldType: "manufacturer",
+                    },
+                    3: {
+                        fieldName: "developer_data_index",
+                        fieldType: "uint8",
+                    },
+                    4: {
+                        fieldName: "application_version",
+                        fieldType: "uint32",
+                    },
                 },
             },
             208: {
                 messageName: "magnetometer_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sample_time_offset",
                         fieldType: "uint16",
@@ -10764,13 +12462,21 @@ const e = {
                         array: "[N]",
                         units: "G",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             209: {
                 messageName: "barometer_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sample_time_offset",
                         fieldType: "uint16",
@@ -10783,7 +12489,11 @@ const e = {
                         array: "[N]",
                         units: "Pa",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             210: {
@@ -10798,7 +12508,9 @@ const e = {
                                 fieldName: "baro_cal_factor",
                                 fieldType: "uint32",
                                 units: "Pa",
-                                map: [{ name: "sensor_type", value: "barometer" }],
+                                map: [
+                                    { name: "sensor_type", value: "barometer" },
+                                ],
                             },
                         ],
                     },
@@ -10809,7 +12521,11 @@ const e = {
                     },
                     3: { fieldName: "level_shift", fieldType: "uint32" },
                     4: { fieldName: "offset_cal", fieldType: "sint32" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             211: {
@@ -10825,14 +12541,21 @@ const e = {
                         fieldType: "uint8",
                         units: "bpm",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             216: {
                 messageName: "time_in_zone",
                 fields: {
                     0: { fieldName: "reference_mesg", fieldType: "mesg_num" },
-                    1: { fieldName: "reference_index", fieldType: "message_index" },
+                    1: {
+                        fieldName: "reference_index",
+                        fieldType: "message_index",
+                    },
                     2: {
                         fieldName: "time_in_hr_zone",
                         fieldType: "uint32",
@@ -10886,13 +12609,29 @@ const e = {
                         array: "[N]",
                         units: "watts",
                     },
-                    10: { fieldName: "hr_calc_type", fieldType: "hr_zone_calc" },
+                    10: {
+                        fieldName: "hr_calc_type",
+                        fieldType: "hr_zone_calc",
+                    },
                     11: { fieldName: "max_heart_rate", fieldType: "uint8" },
                     12: { fieldName: "resting_heart_rate", fieldType: "uint8" },
-                    13: { fieldName: "threshold_heart_rate", fieldType: "uint8" },
-                    14: { fieldName: "pwr_calc_type", fieldType: "pwr_zone_calc" },
-                    15: { fieldName: "functional_threshold_power", fieldType: "uint16" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    13: {
+                        fieldName: "threshold_heart_rate",
+                        fieldType: "uint8",
+                    },
+                    14: {
+                        fieldName: "pwr_calc_type",
+                        fieldType: "pwr_zone_calc",
+                    },
+                    15: {
+                        fieldName: "functional_threshold_power",
+                        fieldType: "uint16",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             225: {
@@ -10923,9 +12662,18 @@ const e = {
                         fieldType: "uint16",
                         array: "[N]",
                     },
-                    9: { fieldName: "weight_display_unit", fieldType: "fit_base_unit" },
-                    10: { fieldName: "message_index", fieldType: "message_index" },
-                    11: { fieldName: "wkt_step_index", fieldType: "message_index" },
+                    9: {
+                        fieldName: "weight_display_unit",
+                        fieldType: "fit_base_unit",
+                    },
+                    10: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
+                    11: {
+                        fieldName: "wkt_step_index",
+                        fieldType: "message_index",
+                    },
                     254: { fieldName: "timestamp", fieldType: "date_time" },
                 },
             },
@@ -10957,19 +12705,29 @@ const e = {
                     },
                     5: { fieldName: "sport", fieldType: "sport" },
                     6: { fieldName: "sub_sport", fieldType: "sub_sport" },
-                    8: { fieldName: "max_met_category", fieldType: "max_met_category" },
+                    8: {
+                        fieldName: "max_met_category",
+                        fieldType: "max_met_category",
+                    },
                     9: { fieldName: "calibrated_data", fieldType: "bool" },
                     12: {
                         fieldName: "hr_source",
                         fieldType: "max_met_heart_rate_source",
                     },
-                    13: { fieldName: "speed_source", fieldType: "max_met_speed_source" },
+                    13: {
+                        fieldName: "speed_source",
+                        fieldType: "max_met_speed_source",
+                    },
                 },
             },
             233: {
                 messageName: "mesg_233?",
                 fields: {
-                    2: { fieldName: "values", fieldType: "byte", undocumented: !0 },
+                    2: {
+                        fieldName: "values",
+                        fieldType: "byte",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -10981,9 +12739,21 @@ const e = {
                         fieldType: "date_time",
                         undocumented: !0,
                     },
-                    2: { fieldName: "title", fieldType: "string", undocumented: !0 },
-                    3: { fieldName: "artist", fieldType: "string", undocumented: !0 },
-                    4: { fieldName: "genre", fieldType: "string", undocumented: !0 },
+                    2: {
+                        fieldName: "title",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    3: {
+                        fieldName: "artist",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "genre",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     5: {
                         fieldName: "duration",
                         fieldType: "uint16",
@@ -10998,8 +12768,16 @@ const e = {
                 fields: {
                     0: { fieldName: "name", fieldType: "string" },
                     1: { fieldName: "model", fieldType: "tissue_model_type" },
-                    2: { fieldName: "gf_low", fieldType: "uint8", units: "percent" },
-                    3: { fieldName: "gf_high", fieldType: "uint8", units: "percent" },
+                    2: {
+                        fieldName: "gf_low",
+                        fieldType: "uint8",
+                        units: "percent",
+                    },
+                    3: {
+                        fieldName: "gf_high",
+                        fieldType: "uint8",
+                        units: "percent",
+                    },
                     4: { fieldName: "water_type", fieldType: "water_type" },
                     5: {
                         fieldName: "water_density",
@@ -11027,10 +12805,22 @@ const e = {
                     9: { fieldName: "safety_stop_enabled", fieldType: "bool" },
                     10: { fieldName: "bottom_depth", fieldType: "float32" },
                     11: { fieldName: "bottom_time", fieldType: "uint32" },
-                    12: { fieldName: "apnea_countdown_enabled", fieldType: "bool" },
-                    13: { fieldName: "apnea_countdown_time", fieldType: "uint32" },
-                    14: { fieldName: "backlight_mode", fieldType: "dive_backlight_mode" },
-                    15: { fieldName: "backlight_brightness", fieldType: "uint8" },
+                    12: {
+                        fieldName: "apnea_countdown_enabled",
+                        fieldType: "bool",
+                    },
+                    13: {
+                        fieldName: "apnea_countdown_time",
+                        fieldType: "uint32",
+                    },
+                    14: {
+                        fieldName: "backlight_mode",
+                        fieldType: "dive_backlight_mode",
+                    },
+                    15: {
+                        fieldName: "backlight_brightness",
+                        fieldType: "uint8",
+                    },
                     16: {
                         fieldName: "backlight_timeout",
                         fieldType: "backlight_timeout",
@@ -11047,7 +12837,10 @@ const e = {
                         scale: 1,
                         units: "s",
                     },
-                    19: { fieldName: "heart_rate_source_type", fieldType: "source_type" },
+                    19: {
+                        fieldName: "heart_rate_source_type",
+                        fieldType: "source_type",
+                    },
                     20: {
                         fieldName: "heart_rate_source",
                         fieldType: "uint8",
@@ -11055,12 +12848,22 @@ const e = {
                             {
                                 fieldName: "heart_rate_antplus_device_type",
                                 fieldType: "antplus_device_type",
-                                map: [{ name: "heart_rate_source_type", value: "antplus" }],
+                                map: [
+                                    {
+                                        name: "heart_rate_source_type",
+                                        value: "antplus",
+                                    },
+                                ],
                             },
                             {
                                 fieldName: "heart_rate_local_device_type",
                                 fieldType: "local_device_type",
-                                map: [{ name: "heart_rate_source_type", value: "local" }],
+                                map: [
+                                    {
+                                        name: "heart_rate_source_type",
+                                        value: "local",
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -11108,9 +12911,15 @@ const e = {
                         fieldType: "uint8",
                         scale: 10,
                     },
-                    37: { fieldName: "no_fly_time_mode", fieldType: "no_fly_time_mode" },
+                    37: {
+                        fieldName: "no_fly_time_mode",
+                        fieldType: "no_fly_time_mode",
+                    },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             259: {
@@ -11128,7 +12937,10 @@ const e = {
                     },
                     2: { fieldName: "status", fieldType: "dive_gas_status" },
                     3: { fieldName: "mode", fieldType: "dive_gas_mode" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             262: {
@@ -11140,11 +12952,23 @@ const e = {
                         scale: 1e3,
                         units: "m",
                     },
-                    1: { fieldName: "time", fieldType: "sint32", scale: 1, units: "s" },
+                    1: {
+                        fieldName: "time",
+                        fieldType: "sint32",
+                        scale: 1,
+                        units: "s",
+                    },
                     2: { fieldName: "enabled", fieldType: "bool" },
-                    3: { fieldName: "alarm_type", fieldType: "dive_alarm_type" },
+                    3: {
+                        fieldName: "alarm_type",
+                        fieldType: "dive_alarm_type",
+                    },
                     4: { fieldName: "sound", fieldType: "tone" },
-                    5: { fieldName: "dive_types", fieldType: "sub_sport", array: "[N]" },
+                    5: {
+                        fieldName: "dive_types",
+                        fieldType: "sub_sport",
+                        array: "[N]",
+                    },
                     6: { fieldName: "id", fieldType: "uint32" },
                     7: { fieldName: "popup_enabled", fieldType: "bool" },
                     8: { fieldName: "trigger_on_descent", fieldType: "bool" },
@@ -11156,23 +12980,39 @@ const e = {
                         scale: 1e3,
                         units: "mps",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             264: {
                 messageName: "exercise_title",
                 fields: {
-                    0: { fieldName: "exercise_category", fieldType: "exercise_category" },
+                    0: {
+                        fieldName: "exercise_category",
+                        fieldType: "exercise_category",
+                    },
                     1: { fieldName: "exercise_name", fieldType: "uint16" },
-                    2: { fieldName: "wkt_step_name", fieldType: "string", array: "[N]" },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    2: {
+                        fieldName: "wkt_step_name",
+                        fieldType: "string",
+                        array: "[N]",
+                    },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             268: {
                 messageName: "dive_summary",
                 fields: {
                     0: { fieldName: "reference_mesg", fieldType: "mesg_num" },
-                    1: { fieldName: "reference_index", fieldType: "message_index" },
+                    1: {
+                        fieldName: "reference_index",
+                        fieldType: "message_index",
+                    },
                     2: {
                         fieldName: "avg_depth",
                         fieldType: "uint32",
@@ -11215,7 +13055,11 @@ const e = {
                         scale: 1,
                         units: "percent",
                     },
-                    9: { fieldName: "o2_toxicity", fieldType: "uint16", units: "OTUs" },
+                    9: {
+                        fieldName: "o2_toxicity",
+                        fieldType: "uint16",
+                        units: "OTUs",
+                    },
                     10: { fieldName: "dive_number", fieldType: "uint32" },
                     11: {
                         fieldName: "bottom_time",
@@ -11283,7 +13127,11 @@ const e = {
                         scale: 1e3,
                         units: "s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             269: {
@@ -11295,25 +13143,52 @@ const e = {
                         scale: 1,
                         units: "percent",
                     },
-                    1: { fieldName: "reading_confidence", fieldType: "uint8", scale: 1 },
-                    2: { fieldName: "mode", fieldType: "spo2_measurement_type" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    1: {
+                        fieldName: "reading_confidence",
+                        fieldType: "uint8",
+                        scale: 1,
+                    },
+                    2: {
+                        fieldName: "mode",
+                        fieldType: "spo2_measurement_type",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             275: {
                 messageName: "sleep_level",
                 fields: {
                     0: { fieldName: "sleep_level", fieldType: "sleep_level" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             285: {
                 messageName: "jump",
                 fields: {
-                    0: { fieldName: "distance", fieldType: "float32", units: "m" },
-                    1: { fieldName: "height", fieldType: "float32", units: "m" },
+                    0: {
+                        fieldName: "distance",
+                        fieldType: "float32",
+                        units: "m",
+                    },
+                    1: {
+                        fieldName: "height",
+                        fieldType: "float32",
+                        units: "m",
+                    },
                     2: { fieldName: "rotations", fieldType: "uint8" },
-                    3: { fieldName: "hang_time", fieldType: "float32", units: "s" },
+                    3: {
+                        fieldName: "hang_time",
+                        fieldType: "float32",
+                        units: "s",
+                    },
                     4: { fieldName: "score", fieldType: "float32" },
                     5: {
                         fieldName: "position_lat",
@@ -11328,7 +13203,14 @@ const e = {
                     7: {
                         fieldName: "speed",
                         fieldType: "uint16",
-                        components: [{ fieldDefNumber: 8, scale: 1e3, units: "m/s", bits: 16 }],
+                        components: [
+                            {
+                                fieldDefNumber: 8,
+                                scale: 1e3,
+                                units: "m/s",
+                                bits: 16,
+                            },
+                        ],
                     },
                     8: {
                         fieldName: "enhanced_speed",
@@ -11336,14 +13218,26 @@ const e = {
                         scale: 1e3,
                         units: "m/s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             288: {
                 messageName: "mesg_288?",
                 fields: {
-                    0: { fieldName: "number", fieldType: "sint8", undocumented: !0 },
-                    1: { fieldName: "value", fieldType: "sint8", undocumented: !0 },
+                    0: {
+                        fieldName: "number",
+                        fieldType: "sint8",
+                        undocumented: !0,
+                    },
+                    1: {
+                        fieldName: "value",
+                        fieldType: "sint8",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -11366,7 +13260,11 @@ const e = {
             290: {
                 messageName: "beat_intervals",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "time",
                         fieldType: "uint16",
@@ -11391,7 +13289,11 @@ const e = {
             302: {
                 messageName: "hsa_accelerometer_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sampling_interval",
                         fieldType: "uint16",
@@ -11419,7 +13321,11 @@ const e = {
                         units: "mG",
                     },
                     5: { fieldName: "timestamp_32k", fieldType: "uint32" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             304: {
@@ -11437,7 +13343,11 @@ const e = {
                         scale: 1,
                         units: "steps",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             305: {
@@ -11454,8 +13364,16 @@ const e = {
                         array: "[N]",
                         units: "percent",
                     },
-                    2: { fieldName: "confidence", fieldType: "uint8", array: "[N]" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    2: {
+                        fieldName: "confidence",
+                        fieldType: "uint8",
+                        array: "[N]",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             306: {
@@ -11491,7 +13409,11 @@ const e = {
                         scale: 100,
                         units: "breaths/min",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             308: {
@@ -11510,7 +13432,11 @@ const e = {
                         scale: 1,
                         units: "bpm",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             309: {
@@ -11673,8 +13599,16 @@ const e = {
                         units: "m/s",
                     },
                     9: { fieldName: "start_time", fieldType: "date_time" },
-                    13: { fieldName: "total_ascent", fieldType: "uint16", units: "m" },
-                    14: { fieldName: "total_descent", fieldType: "uint16", units: "m" },
+                    13: {
+                        fieldName: "total_ascent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    14: {
+                        fieldName: "total_descent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
                     21: {
                         fieldName: "start_position_lat",
                         fieldType: "sint32",
@@ -11726,7 +13660,10 @@ const e = {
                         scale: 1e3,
                         units: "s",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             313: {
@@ -11758,10 +13695,26 @@ const e = {
                         scale: 1e3,
                         units: "m/s",
                     },
-                    8: { fieldName: "total_ascent", fieldType: "uint16", units: "m" },
-                    9: { fieldName: "total_descent", fieldType: "uint16", units: "m" },
-                    10: { fieldName: "avg_heart_rate", fieldType: "uint8", units: "bpm" },
-                    11: { fieldName: "max_heart_rate", fieldType: "uint8", units: "bpm" },
+                    8: {
+                        fieldName: "total_ascent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    9: {
+                        fieldName: "total_descent",
+                        fieldType: "uint16",
+                        units: "m",
+                    },
+                    10: {
+                        fieldName: "avg_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
+                    11: {
+                        fieldName: "max_heart_rate",
+                        fieldType: "uint8",
+                        units: "bpm",
+                    },
                     12: {
                         fieldName: "avg_vert_speed",
                         fieldType: "sint32",
@@ -11779,7 +13732,10 @@ const e = {
                         scale: 1e3,
                         units: "s",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             314: {
@@ -11796,16 +13752,32 @@ const e = {
                         array: "[N]",
                         units: "percent",
                     },
-                    2: { fieldName: "charged", fieldType: "sint16", array: "[N]" },
-                    3: { fieldName: "uncharged", fieldType: "sint16", array: "[N]" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    2: {
+                        fieldName: "charged",
+                        fieldType: "sint16",
+                        array: "[N]",
+                    },
+                    3: {
+                        fieldName: "uncharged",
+                        fieldType: "sint16",
+                        array: "[N]",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             315: {
                 messageName: "hsa_event",
                 fields: {
                     0: { fieldName: "event_id", fieldType: "uint8" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             317: {
@@ -11821,11 +13793,22 @@ const e = {
                         fieldType: "sint32",
                         units: "semicircles",
                     },
-                    2: { fieldName: "climb_pro_event", fieldType: "climb_pro_event" },
+                    2: {
+                        fieldName: "climb_pro_event",
+                        fieldType: "climb_pro_event",
+                    },
                     3: { fieldName: "climb_number", fieldType: "uint16" },
                     4: { fieldName: "climb_category", fieldType: "uint8" },
-                    5: { fieldName: "current_dist", fieldType: "float32", units: "m" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    5: {
+                        fieldName: "current_dist",
+                        fieldType: "float32",
+                        units: "m",
+                    },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             319: {
@@ -11838,7 +13821,11 @@ const e = {
                         scale: 100,
                         units: "bar",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             321: {
@@ -11886,26 +13873,62 @@ const e = {
                         scale: 100,
                         units: "L",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             324: {
                 messageName: "mesg_324?",
                 fields: {
-                    1: { fieldName: "value", fieldType: "uint8", undocumented: !0 },
-                    2: { fieldName: "list", fieldType: "byte", undocumented: !0 },
+                    1: {
+                        fieldName: "value",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    2: {
+                        fieldName: "list",
+                        fieldType: "byte",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             325: {
                 messageName: "mesg_325?",
                 fields: {
-                    0: { fieldName: "field_0", fieldType: "uint8", undocumented: !0 },
-                    1: { fieldName: "field_1", fieldType: "uint8", undocumented: !0 },
-                    2: { fieldName: "field_2", fieldType: "uint8", undocumented: !0 },
-                    3: { fieldName: "field_3", fieldType: "uint8", undocumented: !0 },
-                    4: { fieldName: "field_4", fieldType: "uint8", undocumented: !0 },
-                    5: { fieldName: "field_5", fieldType: "uint8", undocumented: !0 },
+                    0: {
+                        fieldName: "field_0",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    1: {
+                        fieldName: "field_1",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    2: {
+                        fieldName: "field_2",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    3: {
+                        fieldName: "field_3",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "field_4",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "field_5",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -11924,66 +13947,149 @@ const e = {
                             {
                                 fieldName: "gps_mode",
                                 fieldType: "gps_mode",
-                                map: [{ name: "event_type", value: "mode_change" }],
+                                map: [
+                                    {
+                                        name: "event_type",
+                                        value: "mode_change",
+                                    },
+                                ],
                             },
                         ],
                         undocumented: !0,
                     },
-                    100: { fieldName: "gps_1", fieldType: "switch", undocumented: !0 },
-                    101: { fieldName: "glonass", fieldType: "switch", undocumented: !0 },
-                    102: { fieldName: "unknown_1", fieldType: "uint8", undocumented: !0 },
-                    104: { fieldName: "qzss_1", fieldType: "switch", undocumented: !0 },
-                    105: { fieldName: "unknown_2", fieldType: "uint8", undocumented: !0 },
+                    100: {
+                        fieldName: "gps_1",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    101: {
+                        fieldName: "glonass",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    102: {
+                        fieldName: "unknown_1",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    104: {
+                        fieldName: "qzss_1",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
+                    105: {
+                        fieldName: "unknown_2",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     106: {
                         fieldName: "galileo_1",
                         fieldType: "switch",
                         undocumented: !0,
                     },
-                    107: { fieldName: "beidou_1", fieldType: "switch", undocumented: !0 },
+                    107: {
+                        fieldName: "beidou_1",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                     108: {
                         fieldName: "auto_select",
                         fieldType: "switch",
                         undocumented: !0,
                     },
-                    109: { fieldName: "unknown_3", fieldType: "uint8", undocumented: !0 },
+                    109: {
+                        fieldName: "unknown_3",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
                     110: {
                         fieldName: "gpsgalileobeidou_5",
                         fieldType: "bits",
                         undocumented: !0,
                     },
-                    113: { fieldName: "qzss_5", fieldType: "switch", undocumented: !0 },
+                    113: {
+                        fieldName: "qzss_5",
+                        fieldType: "switch",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             327: {
                 messageName: "mesg_327?",
                 fields: {
-                    0: { fieldName: "field_0", fieldType: "uint8", undocumented: !0 },
-                    1: { fieldName: "field_1", fieldType: "uint8", undocumented: !0 },
-                    2: { fieldName: "field_2", fieldType: "uint8", undocumented: !0 },
-                    3: { fieldName: "field_3", fieldType: "uint32", undocumented: !0 },
-                    4: { fieldName: "field_4", fieldType: "byte", undocumented: !0 },
-                    5: { fieldName: "field_5", fieldType: "uint32", undocumented: !0 },
-                    6: { fieldName: "field_6", fieldType: "enum", undocumented: !0 },
+                    0: {
+                        fieldName: "field_0",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    1: {
+                        fieldName: "field_1",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    2: {
+                        fieldName: "field_2",
+                        fieldType: "uint8",
+                        undocumented: !0,
+                    },
+                    3: {
+                        fieldName: "field_3",
+                        fieldType: "uint32",
+                        undocumented: !0,
+                    },
+                    4: {
+                        fieldName: "field_4",
+                        fieldType: "byte",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "field_5",
+                        fieldType: "uint32",
+                        undocumented: !0,
+                    },
+                    6: {
+                        fieldName: "field_6",
+                        fieldType: "enum",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
             346: {
                 messageName: "sleep_assessment",
                 fields: {
-                    0: { fieldName: "combined_awake_score", fieldType: "uint8" },
+                    0: {
+                        fieldName: "combined_awake_score",
+                        fieldType: "uint8",
+                    },
                     1: { fieldName: "awake_time_score", fieldType: "uint8" },
-                    2: { fieldName: "awakenings_count_score", fieldType: "uint8" },
+                    2: {
+                        fieldName: "awakenings_count_score",
+                        fieldType: "uint8",
+                    },
                     3: { fieldName: "deep_sleep_score", fieldType: "uint8" },
-                    4: { fieldName: "sleep_duration_score", fieldType: "uint8" },
+                    4: {
+                        fieldName: "sleep_duration_score",
+                        fieldType: "uint8",
+                    },
                     5: { fieldName: "light_sleep_score", fieldType: "uint8" },
                     6: { fieldName: "overall_sleep_score", fieldType: "uint8" },
                     7: { fieldName: "sleep_quality_score", fieldType: "uint8" },
-                    8: { fieldName: "sleep_recovery_score", fieldType: "uint8" },
+                    8: {
+                        fieldName: "sleep_recovery_score",
+                        fieldType: "uint8",
+                    },
                     9: { fieldName: "rem_sleep_score", fieldType: "uint8" },
-                    10: { fieldName: "sleep_restlessness_score", fieldType: "uint8" },
+                    10: {
+                        fieldName: "sleep_restlessness_score",
+                        fieldType: "uint8",
+                    },
                     11: { fieldName: "awakenings_count", fieldType: "uint8" },
-                    14: { fieldName: "interruptions_score", fieldType: "uint8" },
+                    14: {
+                        fieldName: "interruptions_score",
+                        fieldType: "uint8",
+                    },
                     15: {
                         fieldName: "average_stress_during_sleep",
                         fieldType: "uint16",
@@ -11994,7 +14100,11 @@ const e = {
             358: {
                 messageName: "race_event",
                 fields: {
-                    1: { fieldName: "event_id", fieldType: "string", undocumented: !0 },
+                    1: {
+                        fieldName: "event_id",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     2: {
                         fieldName: "start_time",
                         fieldType: "date_time",
@@ -12007,8 +14117,16 @@ const e = {
                         units: "s",
                         undocumented: !0,
                     },
-                    4: { fieldName: "name", fieldType: "string", undocumented: !0 },
-                    5: { fieldName: "location", fieldType: "string", undocumented: !0 },
+                    4: {
+                        fieldName: "name",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    5: {
+                        fieldName: "location",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                     6: {
                         fieldName: "start_point_lat",
                         fieldType: "sint32",
@@ -12035,8 +14153,16 @@ const e = {
                         units: "s",
                         undocumented: !0,
                     },
-                    24: { fieldName: "city", fieldType: "string", undocumented: !0 },
-                    26: { fieldName: "country", fieldType: "string", undocumented: !0 },
+                    24: {
+                        fieldName: "city",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
+                    26: {
+                        fieldName: "country",
+                        fieldType: "string",
+                        undocumented: !0,
+                    },
                 },
                 undocumented: !0,
             },
@@ -12098,7 +14224,11 @@ const e = {
             372: {
                 messageName: "raw_bbi",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "data",
                         fieldType: "uint16",
@@ -12157,7 +14287,11 @@ const e = {
                         array: "[N]",
                         units: "ms",
                     },
-                    3: { fieldName: "quality", fieldType: "uint8", array: "[N]" },
+                    3: {
+                        fieldName: "quality",
+                        fieldType: "uint8",
+                        array: "[N]",
+                    },
                     4: { fieldName: "gap", fieldType: "uint8", array: "[N]" },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
                 },
@@ -12172,7 +14306,10 @@ const e = {
                         scale: 256,
                         units: "V",
                     },
-                    2: { fieldName: "battery_status", fieldType: "battery_status" },
+                    2: {
+                        fieldName: "battery_status",
+                        fieldType: "battery_status",
+                    },
                     3: { fieldName: "battery_identifier", fieldType: "uint8" },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
                 },
@@ -12180,7 +14317,11 @@ const e = {
             376: {
                 messageName: "hsa_gyroscope_data",
                 fields: {
-                    0: { fieldName: "timestamp_ms", fieldType: "uint16", units: "ms" },
+                    0: {
+                        fieldName: "timestamp_ms",
+                        fieldType: "uint16",
+                        units: "ms",
+                    },
                     1: {
                         fieldName: "sampling_interval",
                         fieldType: "uint16",
@@ -12212,7 +14353,11 @@ const e = {
                         fieldType: "uint32",
                         units: "1/32768 s",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             379: {
@@ -12245,7 +14390,10 @@ const e = {
                         units: "m/s",
                     },
                     3: { fieldName: "shot_count", fieldType: "uint16" },
-                    4: { fieldName: "projectile_type", fieldType: "projectile_type" },
+                    4: {
+                        fieldName: "projectile_type",
+                        fieldType: "projectile_type",
+                    },
                     5: {
                         fieldName: "grain_weight",
                         fieldType: "uint32",
@@ -12279,7 +14427,11 @@ const e = {
                 fields: {
                     0: { fieldName: "data", fieldType: "byte", array: "[N]" },
                     1: { fieldName: "data_size", fieldType: "uint8" },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             393: {
@@ -12291,11 +14443,23 @@ const e = {
                         scale: 1e3,
                         units: "m",
                     },
-                    1: { fieldName: "time", fieldType: "sint32", scale: 1, units: "s" },
+                    1: {
+                        fieldName: "time",
+                        fieldType: "sint32",
+                        scale: 1,
+                        units: "s",
+                    },
                     2: { fieldName: "enabled", fieldType: "bool" },
-                    3: { fieldName: "alarm_type", fieldType: "dive_alarm_type" },
+                    3: {
+                        fieldName: "alarm_type",
+                        fieldType: "dive_alarm_type",
+                    },
                     4: { fieldName: "sound", fieldType: "tone" },
-                    5: { fieldName: "dive_types", fieldType: "sub_sport", array: "[N]" },
+                    5: {
+                        fieldName: "dive_types",
+                        fieldType: "sub_sport",
+                        array: "[N]",
+                    },
                     6: { fieldName: "id", fieldType: "uint32" },
                     7: { fieldName: "popup_enabled", fieldType: "bool" },
                     8: { fieldName: "trigger_on_descent", fieldType: "bool" },
@@ -12307,7 +14471,10 @@ const e = {
                         scale: 1e3,
                         units: "mps",
                     },
-                    254: { fieldName: "message_index", fieldType: "message_index" },
+                    254: {
+                        fieldName: "message_index",
+                        fieldType: "message_index",
+                    },
                 },
             },
             394: {
@@ -12336,9 +14503,15 @@ const e = {
             398: {
                 messageName: "skin_temp_overnight",
                 fields: {
-                    0: { fieldName: "local_timestamp", fieldType: "local_date_time" },
+                    0: {
+                        fieldName: "local_timestamp",
+                        fieldType: "local_date_time",
+                    },
                     1: { fieldName: "average_deviation", fieldType: "float32" },
-                    2: { fieldName: "average_7_day_deviation", fieldType: "float32" },
+                    2: {
+                        fieldName: "average_7_day_deviation",
+                        fieldType: "float32",
+                    },
                     4: { fieldName: "nightly_value", fieldType: "float32" },
                     253: { fieldName: "timestamp", fieldType: "date_time" },
                 },
@@ -12358,7 +14531,11 @@ const e = {
                         scale: 1e3,
                         units: "degC",
                     },
-                    253: { fieldName: "timestamp", fieldType: "date_time", units: "s" },
+                    253: {
+                        fieldName: "timestamp",
+                        fieldType: "date_time",
+                        units: "s",
+                    },
                 },
             },
             428: {
@@ -12386,7 +14563,11 @@ const e = {
                         scale: 10,
                         undocumented: !0,
                     },
-                    7: { fieldName: "sport", fieldType: "sport", undocumented: !0 },
+                    7: {
+                        fieldName: "sport",
+                        fieldType: "sport",
+                        undocumented: !0,
+                    },
                     9: {
                         fieldName: "duration",
                         fieldType: "uint32",
@@ -12570,9 +14751,17 @@ const e = {
     f = 253,
     c = 631065600,
     g = 86400,
-    y = ["lap", "session", "activity"],
+    y = [
+        "lap",
+        "session",
+        "activity",
+    ],
     h = {
-        250: { fieldName: "part_index", label: "part index", fieldType: "uint32" },
+        250: {
+            fieldName: "part_index",
+            label: "part index",
+            fieldType: "uint32",
+        },
         253: {
             fieldName: "timestamp",
             label: "timestamp",
@@ -12586,7 +14775,11 @@ const e = {
         },
     },
     N = typeof process == "object",
-    b = ["hrv", "gps_metadata", "message_233"];
+    b = [
+        "hrv",
+        "gps_metadata",
+        "message_233",
+    ];
 function T(i, t = 4) {
     return `${i.toString(2).padStart(t, "0")}₂`;
 }
@@ -12604,7 +14797,13 @@ function v(i) {
 }
 function x(i) {
     const t = i.map((_) => a(_)).join("");
-    return [t.slice(0, 8), t.slice(8, 12), t.slice(12, 16), t.slice(16, 20), t.slice(20)].join("-");
+    return [
+        t.slice(0, 8),
+        t.slice(8, 12),
+        t.slice(12, 16),
+        t.slice(16, 20),
+        t.slice(20),
+    ].join("-");
 }
 function k(i) {
     return i.replace ? i.replace(/_/g, " ") : i;

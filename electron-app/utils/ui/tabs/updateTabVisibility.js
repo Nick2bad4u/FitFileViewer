@@ -19,7 +19,12 @@ const getDoc = () => {
     // Prefer the current test's document first
     try {
         // @ts-ignore
-        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+        if (
+            !d &&
+            typeof document !== "undefined" &&
+            document &&
+            typeof document.getElementById === "function"
+        ) {
             // @ts-ignore
             d = /** @type {any} */ (document);
         }
@@ -27,13 +32,18 @@ const getDoc = () => {
         /* Ignore errors */
     }
     try {
-        if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
+        if (!d && globalThis.window !== undefined && globalThis.document)
+            d = /** @type {any} */ (globalThis.document);
     } catch {
         /* Ignore errors */
     }
     try {
         // Then prefer the current global document
-        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+        if (
+            !d &&
+            typeof globalThis !== "undefined" &&
+            /** @type {any} */ (globalThis).document
+        ) {
             d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
     } catch {
@@ -42,7 +52,11 @@ const getDoc = () => {
     // Fallback: canonical test document
     try {
         // @ts-ignore
-        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
+        if (
+            !d &&
+            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__
+        ) {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
@@ -54,19 +68,36 @@ const getDoc = () => {
         d = /** @type {any} */ (document);
     }
     try {
-        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
+        if (
+            !(
+                d &&
+                typeof d.getElementById === "function" &&
+                typeof d.querySelectorAll === "function"
+            )
+        ) {
             // Prefer current doc/window, then global, then canonical
             // @ts-ignore
-            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+            if (
+                typeof document !== "undefined" &&
+                document &&
+                typeof document.getElementById === "function"
+            ) {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
             } else if (globalThis.window !== undefined && globalThis.document) {
                 d = /** @type {any} */ (globalThis.document);
-            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
-                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+            } else if (
+                typeof globalThis !== "undefined" &&
+                /** @type {any} */ (globalThis).document
+            ) {
+                d = /** @type {any} */ (
+                    /** @type {any} */ (globalThis).document
+                );
             } else if (
                 typeof __vitest_effective_document__ !== "undefined" &&
-                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
+                /** @type {any} */ (
+                    /** @type {any} */ (__vitest_effective_document__)
+                )
             ) {
                 // @ts-ignore
                 d = /** @type {any} */ (__vitest_effective_document__);
@@ -80,13 +111,16 @@ const getDoc = () => {
 
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
 // And only fall back to a canonical global mock if module functions are unavailable.
-/** @returns {{ getState: any, setState: any, subscribe: any }} */
+/** @returns {{ getState: any; setState: any; subscribe: any }} */
 const getStateMgr = () => {
     try {
         const sm = /** @type {any} */ (__StateMgr);
-        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
-        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
-        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
+        const getState =
+            sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState =
+            sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe =
+            sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
@@ -99,9 +133,18 @@ const getStateMgr = () => {
             typeof __vitest_effective_stateManager__ !== "undefined" &&
             /** @type {any} */ (__vitest_effective_stateManager__);
         if (eff && typeof eff === "object") {
-            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
-            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
-            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
+            const getState =
+                typeof eff.getState === "function"
+                    ? eff.getState
+                    : __StateMgr.getState;
+            const setState =
+                typeof eff.setState === "function"
+                    ? eff.setState
+                    : __StateMgr.setState;
+            const subscribe =
+                typeof eff.subscribe === "function"
+                    ? eff.subscribe
+                    : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {
@@ -116,7 +159,8 @@ const getStateMgr = () => {
 
 /**
  * Get currently visible tab content
- * @returns {string|null} Currently visible tab name or null
+ *
+ * @returns {string | null} Currently visible tab name or null
  */
 export function getVisibleTabContent() {
     return getStateMgr().getState("ui.activeTabContent") || null;
@@ -146,12 +190,15 @@ export function initializeTabVisibilityState() {
     getStateMgr().subscribe(
         "globalData",
         /** @param {any} data */ (data) => {
-            const currentTab = getStateMgr().getState("ui.activeTab") || "summary",
+            const currentTab =
+                    getStateMgr().getState("ui.activeTab") || "summary",
                 hasData = data !== null && data !== undefined;
 
             if (!hasData && currentTab !== "summary") {
                 // If no data, switch to summary tab
-                getStateMgr().setState("ui.activeTab", "summary", { source: "initializeTabVisibilityState" });
+                getStateMgr().setState("ui.activeTab", "summary", {
+                    source: "initializeTabVisibilityState",
+                });
             }
         }
     );
@@ -161,6 +208,7 @@ export function initializeTabVisibilityState() {
 
 /**
  * Show specific tab content
+ *
  * @param {string} tabName - Name of the tab to show
  */
 export function showTabContent(tabName) {
@@ -170,11 +218,13 @@ export function showTabContent(tabName) {
 
 /**
  * Toggles the visibility of tab content sections by setting the display style.
- * Only the tab content with the specified `visibleTabId` will be shown; all others will be hidden.
- * If `visibleTabId` does not match any of the IDs in `tabContentIds`, no tab content will be displayed.
+ * Only the tab content with the specified `visibleTabId` will be shown; all
+ * others will be hidden. If `visibleTabId` does not match any of the IDs in
+ * `tabContentIds`, no tab content will be displayed.
  *
- * @param {string|null|undefined} visibleTabId - The ID of the tab content element to display.
- * If `null` or `undefined` is passed, no tab content will be displayed.
+ * @param {string | null | undefined} visibleTabId - The ID of the tab content
+ *   element to display. If `null` or `undefined` is passed, no tab content will
+ *   be displayed.
  */
 export function updateTabVisibility(visibleTabId) {
     const // Cache DOM elements in a map for better performance
@@ -205,9 +255,9 @@ export function updateTabVisibility(visibleTabId) {
 
     // Normalize the requested visible tab id to a canonical content id when possible.
     // This allows inputs like "summary-content" (pattern) to correctly map to "content-summary".
-    /** @type {string|null|undefined} */
+    /** @type {string | null | undefined} */
     let targetId = visibleTabId;
-    /** @type {string|null} */ let derivedTabName = null;
+    /** @type {string | null} */ let derivedTabName = null;
     if (targetId && !(targetId in elementMap)) {
         const maybeName = extractTabNameFromContentId(String(targetId));
         if (maybeName) {
@@ -230,15 +280,19 @@ export function updateTabVisibility(visibleTabId) {
     if (targetId) {
         const tabName = derivedTabName ?? extractTabNameFromContentId(targetId);
         if (tabName) {
-            getStateMgr().setState("ui.activeTabContent", tabName, { source: "updateTabVisibility" });
+            getStateMgr().setState("ui.activeTabContent", tabName, {
+                source: "updateTabVisibility",
+            });
         }
     }
 }
 
 /**
  * Extract tab name from content ID
+ *
  * @param {string} contentId - Content element ID
- * @returns {string|null} Tab name or null if not found
+ *
+ * @returns {string | null} Tab name or null if not found
  */
 function extractTabNameFromContentId(contentId) {
     // CRITICAL BUG FIX: Type validation for contentId
@@ -258,7 +312,9 @@ function extractTabNameFromContentId(contentId) {
     for (const pattern of patterns) {
         const match = contentId.match(pattern);
         if (match) {
-            return match[1] === "chartjs" ? "chart" : /** @type {string} */ (match[1]); // Special case for chartjs -> chart
+            return match[1] === "chartjs"
+                ? "chart"
+                : /** @type {string} */ (match[1]); // Special case for chartjs -> chart
         }
     }
 
@@ -267,7 +323,9 @@ function extractTabNameFromContentId(contentId) {
 
 /**
  * Get content ID from tab name
+ *
  * @param {string} tabName - Tab name
+ *
  * @returns {string} Content element ID
  */
 function getContentIdFromTabName(tabName) {
@@ -281,5 +339,7 @@ function getContentIdFromTabName(tabName) {
         zwift: "content-zwift",
     };
 
-    return /** @type {any} */ (tabToContentMap)[tabName] || `content-${tabName}`;
+    return (
+        /** @type {any} */ (tabToContentMap)[tabName] || `content-${tabName}`
+    );
 }

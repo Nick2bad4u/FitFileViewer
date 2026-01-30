@@ -65,7 +65,9 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         const info = getMiddlewareInfo();
         const names = info.map((i) => i.name).sort();
         expect(names).toEqual(["mw1", "mw2"]);
-        expect(info.find((i) => i.name === "mw1")?.phases).toContain("beforeSet");
+        expect(info.find((i) => i.name === "mw1")?.phases).toContain(
+            "beforeSet"
+        );
     });
 
     it("halts execution when a handler returns false and supports object-return context modification", async () => {
@@ -176,7 +178,9 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
 
     it("wrapHandler measures performance and logs slow handlers; errors propagate to error handlers", async () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Mock performance.now to simulate elapsed time > 5ms inside wrapper BEFORE awaiting handler
         const perfSpy = vi
@@ -191,7 +195,11 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
             {
                 beforeSet: (c) => ({ ...c, value: (c.value as number) + 1 }),
                 onError: (err, ctx) => {
-                    onErrorCtx.push({ type: "ok", err: err?.message, phase: ctx?.phase });
+                    onErrorCtx.push({
+                        type: "ok",
+                        err: err?.message,
+                        phase: ctx?.phase,
+                    });
                 },
             },
             10
@@ -391,7 +399,11 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         registerMiddleware("dup", { beforeSet: (c) => c }, 10);
         // Duplicate with different priority should replace and warn
-        registerMiddleware("dup", { beforeSet: (c) => ({ ...c, value: 42 }) }, 30);
+        registerMiddleware(
+            "dup",
+            { beforeSet: (c) => ({ ...c, value: 42 }) },
+            30
+        );
         const info = getMiddlewareInfo();
         expect(info.some((i) => i.name === "dup")).toBe(true);
         expect(warnSpy).toHaveBeenCalled();
@@ -399,7 +411,9 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("executeErrorHandlers logs when an error handler itself throws", async () => {
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         // Thrower to trigger error path
         registerMiddleware(
             "thrower",
@@ -458,7 +472,10 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
                 },
                 afterGet(ctx) {
                     seen.push("afterGet");
-                    return { ...ctx, value: String(ctx.value) + ":after" } as any;
+                    return {
+                        ...ctx,
+                        value: String(ctx.value) + ":after",
+                    } as any;
                 },
             },
             10
@@ -470,7 +487,10 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
             value: "init",
             options: {},
         } as any);
-        const c2 = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_GET, c1 as any);
+        const c2 = await executeMiddleware(
+            MIDDLEWARE_PHASES.AFTER_GET,
+            c1 as any
+        );
         expect(seen).toEqual(["beforeGet", "afterGet"]);
         expect(c2.value).toBe("from-before:after");
     });
@@ -479,8 +499,12 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         cleanupMiddleware();
         const msgs = logSpy.mock.calls.map((c) => String(c[0]));
-        expect(msgs.some((m) => m.includes("All middleware cleared"))).toBe(true);
-        expect(msgs.some((m) => m.includes("Middleware system cleaned up"))).toBe(true);
+        expect(msgs.some((m) => m.includes("All middleware cleared"))).toBe(
+            true
+        );
+        expect(
+            msgs.some((m) => m.includes("Middleware system cleaned up"))
+        ).toBe(true);
         logSpy.mockRestore();
     });
 

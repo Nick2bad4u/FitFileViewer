@@ -4,20 +4,28 @@
 export function cleanupStateDevTools(): void;
 /**
  * Initialize debug and monitoring utilities
+ *
  * @param {boolean} enableInProduction - Whether to enable in production
  */
 export function initializeStateDevTools(enableInProduction?: boolean): void;
 /**
  * Utility function to measure state operation performance
+ *
  * @param {string} operationName - Name of the operation
  * @param {Function} operation - Function to measure
- * @returns {Promise<*>} Operation result
+ *
+ * @returns {Promise<any>} Operation result
  */
-export function measureStateOperation(operationName: string, operation: Function): Promise<any>;
+export function measureStateOperation(
+    operationName: string,
+    operation: Function
+): Promise<any>;
 /**
  * Create a performance-monitored version of a function
+ *
  * @param {string} name - Function name for monitoring
  * @param {Function} fn - Function to wrap
+ *
  * @returns {Function} Wrapped function
  */
 export function withPerformanceMonitoring(name: string, fn: Function): Function;
@@ -99,19 +107,25 @@ declare class StatePerformanceMonitor {
     enable(): void;
     /**
      * End timing an operation
+     *
      * @param {string} operationId - Unique identifier for the operation
      */
     /**
      * @param {string} operationId
-     * @returns {number|undefined}
+     *
+     * @returns {number | undefined}
      */
     endTimer(operationId: string): number | undefined;
     /**
      * Get performance metrics
+     *
      * @returns {Object} Performance metrics
      */
     /**
-     * @returns {PerformanceMetrics & { isEnabled: boolean, timestamp: number }}
+     * @returns {PerformanceMetrics & {
+     *     isEnabled: boolean;
+     *     timestamp: number;
+     * }}
      */
     getMetrics(): PerformanceMetrics & {
         isEnabled: boolean;
@@ -119,6 +133,7 @@ declare class StatePerformanceMonitor {
     };
     /**
      * Get performance report
+     *
      * @returns {string} Formatted performance report
      */
     /**
@@ -127,6 +142,7 @@ declare class StatePerformanceMonitor {
     getReport(): string;
     /**
      * Record an error
+     *
      * @param {Error} error - Error to record
      * @param {string} context - Context where error occurred
      */
@@ -141,6 +157,7 @@ declare class StatePerformanceMonitor {
     recordMemoryUsage(): void;
     /**
      * Record a slow operation
+     *
      * @param {string} operationId - Operation identifier
      * @param {number} duration - Duration in milliseconds
      */
@@ -155,6 +172,7 @@ declare class StatePerformanceMonitor {
     resetMetrics(): void;
     /**
      * Start timing an operation
+     *
      * @param {string} operationId - Unique identifier for the operation
      */
     startTimer(operationId: string): void;
@@ -171,30 +189,42 @@ declare class StateDebugUtilities {
     logLevel: string;
     /**
      * Check for undefined values recursively
-     * @param {*} obj - Object to check
+     *
+     * @param {any} obj - Object to check
      * @param {string} path - Current path
      * @param {Object} validation - Validation results
      */
     /**
-     * @param {*} obj
+     * @param {any} obj
      * @param {string} path
      * @param {ValidationResult} validation
      */
-    checkForUndefined(obj: any, path: string, validation: ValidationResult): void;
+    checkForUndefined(
+        obj: any,
+        path: string,
+        validation: ValidationResult
+    ): void;
     /**
      * Compare two state snapshots
+     *
      * @param {Object} snapshot1 - First snapshot
      * @param {Object} snapshot2 - Second snapshot
+     *
      * @returns {Object} Comparison results
      */
     /**
      * @param {StateSnapshot} snapshot1
      * @param {StateSnapshot} snapshot2
+     *
      * @returns {SnapshotComparison}
      */
-    compareSnapshots(snapshot1: StateSnapshot, snapshot2: StateSnapshot): SnapshotComparison;
+    compareSnapshots(
+        snapshot1: StateSnapshot,
+        snapshot2: StateSnapshot
+    ): SnapshotComparison;
     /**
      * Create state snapshot for debugging
+     *
      * @returns {Object} State snapshot with metadata
      */
     /**
@@ -211,7 +241,8 @@ declare class StateDebugUtilities {
     enableDebugMode(): void;
     /**
      * Find slow subscribers (mock implementation)
-     * @returns {Array<any>} List of potentially slow subscribers
+     *
+     * @returns {any[]} List of potentially slow subscribers
      */
     findSlowSubscribers(): Array<any>;
     /**
@@ -220,11 +251,13 @@ declare class StateDebugUtilities {
     logCurrentState(): void;
     /**
      * Validate state integrity
+     *
      * @returns {Object} Validation results
      */
     validateState(): Object;
     /**
      * Validate expected state structure
+     *
      * @param {Object} state - State to validate
      * @param {Object} validation - Validation results
      */

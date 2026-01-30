@@ -32,9 +32,14 @@ describe("updateTabVisibility - additional branches", () => {
         const setState = vi.fn();
         const getState = vi.fn();
         const subscribe = vi.fn();
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
 
-        const { updateTabVisibility } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+        const { updateTabVisibility } =
+            await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
         updateTabVisibility("summary-content" as any);
 
@@ -66,7 +71,8 @@ describe("updateTabVisibility - additional branches", () => {
             subscribe: effSub,
         };
 
-        const { updateTabVisibility } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+        const { updateTabVisibility } =
+            await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
         updateTabVisibility("content-map");
 

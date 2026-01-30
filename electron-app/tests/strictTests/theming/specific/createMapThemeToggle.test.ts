@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showNotification: vi.fn() }));
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
+}));
 vi.mock("../../../../utils/charts/theming/getThemeColors.js", () => ({
     getThemeColors: () => ({ surface: "#fff", primary: "#000" }),
 }));
@@ -16,14 +18,18 @@ describe("createMapThemeToggle", () => {
     });
 
     it("get/set preference defaults to dark and toggles", async () => {
-        const { getMapThemeInverted, setMapThemeInverted } = await import(modPath);
+        const { getMapThemeInverted, setMapThemeInverted } = await import(
+            modPath
+        );
         expect(getMapThemeInverted()).toBe(true);
         setMapThemeInverted(false);
         expect(getMapThemeInverted()).toBe(false);
     });
 
     it("creates button and toggles state with click", async () => {
-        const { createMapThemeToggle, MAP_THEME_EVENTS } = await import(modPath);
+        const { createMapThemeToggle, MAP_THEME_EVENTS } = await import(
+            modPath
+        );
         const btn = createMapThemeToggle();
         expect(btn.tagName).toBe("BUTTON");
         // Should initially render with dark map (active class present)

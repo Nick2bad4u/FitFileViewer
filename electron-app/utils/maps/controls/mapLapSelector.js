@@ -3,6 +3,7 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * @typedef {Object} LapMesg
+ *
  * @property {number} [zone] - Zone identifier
  * @property {string} [label] - Zone label
  * @property {number} [time] - Time value
@@ -10,16 +11,19 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * @typedef {Object} GlobalData
+ *
  * @property {LapMesg[]} lapMesgs - Array of lap messages
  */
 
 /**
  * @typedef {Object} WindowWithGlobalData
+ *
  * @property {GlobalData} globalData - Global data object
  */
 
 /**
  * @typedef {Object} ThemeColors
+ *
  * @property {string} surface - Surface color
  * @property {string} primary - Primary color
  * @property {string} accent - Accent color
@@ -29,6 +33,7 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * @typedef {Object} MapDrawLapsFunction
+ *
  * @property {Function} call - Function to draw laps on map
  */
 
@@ -37,9 +42,11 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * Adds lap selector control to map
+ *
  * @param {any} _map - Leaflet map instance (unused in current implementation)
  * @param {HTMLElement} container - Container element for the control
  * @param {Function} mapDrawLaps - Function to draw laps on map
+ *
  * @returns {void}
  */
 export function addLapSelector(_map, container, mapDrawLaps) {
@@ -53,7 +60,8 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     }
 
     const lapControl = document.createElement("div");
-    lapControl.className = "custom-lap-control-container leaflet-bottom leaflet-left";
+    lapControl.className =
+        "custom-lap-control-container leaflet-bottom leaflet-left";
     // Import theme colors for consistent theming
     const themeColors = /** @type {any} */ (getThemeColors());
 
@@ -66,16 +74,24 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     const safeColors = {
         surface: sanitizeCssColorToken(themeColors.surface, "#ffffff"),
         primary: sanitizeCssColorToken(themeColors.primary, "#3b82f6"),
-        accent: sanitizeCssColorToken(themeColors.accent || themeColors.primary, "#3b82f6"),
+        accent: sanitizeCssColorToken(
+            themeColors.accent || themeColors.primary,
+            "#3b82f6"
+        ),
         text: sanitizeCssColorToken(themeColors.text, "#0f172a"),
-        textSecondary: sanitizeCssColorToken(themeColors.textSecondary || "#888", "#888"),
+        textSecondary: sanitizeCssColorToken(
+            themeColors.textSecondary || "#888",
+            "#888"
+        ),
     };
 
     /**
      * @param {string} name
+     *
      * @returns {SVGElement}
      */
-    const svgEl = (name) => document.createElementNS("http://www.w3.org/2000/svg", name);
+    const svgEl = (name) =>
+        document.createElementNS("http://www.w3.org/2000/svg", name);
 
     /**
      * @returns {SVGElement}
@@ -328,10 +344,23 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     helpTooltip.addEventListener("mouseenter", () => showHelpTooltip());
     helpTooltip.addEventListener("mouseleave", () => hideHelpTooltip());
 
-    bar.append(multiLapToggle, deselectAllBtn, label, lapSelect, helpBtn, helpTooltip);
+    bar.append(
+        multiLapToggle,
+        deselectAllBtn,
+        label,
+        lapSelect,
+        helpBtn,
+        helpTooltip
+    );
     lapControl.append(bar);
-    lapControl.addEventListener("mousedown", (/** @type {Event} */ e) => e.stopPropagation());
-    lapControl.addEventListener("touchstart", (/** @type {Event} */ e) => e.stopPropagation(), { passive: true });
+    lapControl.addEventListener("mousedown", (/** @type {Event} */ e) =>
+        e.stopPropagation()
+    );
+    lapControl.addEventListener(
+        "touchstart",
+        (/** @type {Event} */ e) => e.stopPropagation(),
+        { passive: true }
+    );
     container.append(lapControl);
 
     const deselectAllBtnEl = /** @type {HTMLButtonElement} */ (deselectAllBtn);
@@ -345,19 +374,26 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         if (existingSvg) {
             existingSvg.remove();
         }
-        multiLapToggleEl.prepend(on ? createMultiLapIcon() : createStopwatchIcon());
+        multiLapToggleEl.prepend(
+            on ? createMultiLapIcon() : createStopwatchIcon()
+        );
     };
 
     /**
      * Set multi-select mode state
+     *
      * @param {boolean} on - Whether to enable multi-select mode
+     *
      * @returns {void}
      */
     function setMultiSelectMode(on) {
         multiSelectMode = on;
         if (multiSelectMode) {
             lapSelectEl.multiple = true;
-            lapSelectEl.size = Math.min(windowWithData.globalData.lapMesgs.length + 1, 6);
+            lapSelectEl.size = Math.min(
+                windowWithData.globalData.lapMesgs.length + 1,
+                6
+            );
             multiLapToggleEl?.classList.add("active");
             lapControl.classList.add("multi-select-active");
             if (deselectAllBtnEl) {
@@ -379,7 +415,8 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             // If more than one selected, reset to 'all'
             if (
                 lapSelectEl.selectedOptions.length > 1 ||
-                (lapSelectEl.selectedOptions.length === 1 && lapSelectEl.selectedOptions[0]?.value !== "all")
+                (lapSelectEl.selectedOptions.length === 1 &&
+                    lapSelectEl.selectedOptions[0]?.value !== "all")
             ) {
                 lapSelectEl.selectedIndex = 0;
                 lapSelectEl.dispatchEvent(new Event("change"));
@@ -400,10 +437,14 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     // Hide deselect button by default.
     deselectAllBtnEl.style.display = "none";
 
-    multiLapToggleEl.addEventListener("click", () => setMultiSelectMode(!multiSelectMode));
+    multiLapToggleEl.addEventListener("click", () =>
+        setMultiSelectMode(!multiSelectMode)
+    );
 
     lapSelectEl.addEventListener("change", () => {
-        let selected = [...lapSelectEl.selectedOptions].map((/** @type {HTMLOptionElement} */ opt) => opt.value);
+        let selected = [...lapSelectEl.selectedOptions].map(
+            (/** @type {HTMLOptionElement} */ opt) => opt.value
+        );
         if (multiSelectMode) {
             if (selected.includes("all") && selected.length > 1) {
                 for (const opt of lapSelectEl.options) {
@@ -453,7 +494,12 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     });
     lapSelectEl.addEventListener("mouseover", (/** @type {MouseEvent} */ e) => {
         const { target } = /** @type {{ target: HTMLElement }} */ (e);
-        if (multiSelectMode && dragSelecting && target && target.tagName === "OPTION") {
+        if (
+            multiSelectMode &&
+            dragSelecting &&
+            target &&
+            target.tagName === "OPTION"
+        ) {
             const opt = /** @type {HTMLOptionElement} */ (target);
             if (opt.value !== "all") {
                 opt.selected = /** @type {boolean} */ (dragSelectValue);

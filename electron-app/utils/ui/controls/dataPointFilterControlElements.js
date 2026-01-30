@@ -2,25 +2,27 @@ import { MAP_FILTER_METRICS } from "../../maps/filters/mapMetricFilter.js";
 
 /**
  * Build the DOM structure for the data point filter control.
+ *
  * @param {number} instanceId
+ *
  * @returns {{
- *  applyButton: HTMLButtonElement;
- *  container: HTMLDivElement;
- *  panel: HTMLDivElement;
- *  percentGroup: HTMLDivElement;
- *  percentInput: HTMLInputElement;
- *  rangeGroup: HTMLDivElement;
- *  rangeOption: HTMLLabelElement;
- *  rangeRadio: HTMLInputElement;
- *  rangeSliderMax: HTMLInputElement;
- *  rangeSliderMin: HTMLInputElement;
- *  rangeValueDisplay: HTMLDivElement;
- *  resetButton: HTMLButtonElement;
- *  summary: HTMLParagraphElement;
- *  toggleButton: HTMLButtonElement;
- *  topPercentOption: HTMLLabelElement;
- *  topPercentRadio: HTMLInputElement;
- *  metricSelect: HTMLSelectElement;
+ *     applyButton: HTMLButtonElement;
+ *     container: HTMLDivElement;
+ *     panel: HTMLDivElement;
+ *     percentGroup: HTMLDivElement;
+ *     percentInput: HTMLInputElement;
+ *     rangeGroup: HTMLDivElement;
+ *     rangeOption: HTMLLabelElement;
+ *     rangeRadio: HTMLInputElement;
+ *     rangeSliderMax: HTMLInputElement;
+ *     rangeSliderMin: HTMLInputElement;
+ *     rangeValueDisplay: HTMLDivElement;
+ *     resetButton: HTMLButtonElement;
+ *     summary: HTMLParagraphElement;
+ *     toggleButton: HTMLButtonElement;
+ *     topPercentOption: HTMLLabelElement;
+ *     topPercentRadio: HTMLInputElement;
+ *     metricSelect: HTMLSelectElement;
  * }}
  */
 export function buildDataPointFilterControlElements(instanceId) {
@@ -75,7 +77,8 @@ export function buildDataPointFilterControlElements(instanceId) {
     metricGroup.append(metricLabel, metricSelect);
 
     const modeGroup = document.createElement("div");
-    modeGroup.className = "data-point-filter-control__group data-point-filter-control__group--mode";
+    modeGroup.className =
+        "data-point-filter-control__group data-point-filter-control__group--mode";
 
     const modeLegend = document.createElement("span");
     modeLegend.className = "data-point-filter-control__mode-label";
@@ -128,11 +131,13 @@ export function buildDataPointFilterControlElements(instanceId) {
     percentInput.value = "10";
 
     const percentGroup = document.createElement("div");
-    percentGroup.className = "data-point-filter-control__group data-point-filter-control__percent";
+    percentGroup.className =
+        "data-point-filter-control__group data-point-filter-control__percent";
     percentGroup.append(percentLabel, percentInput);
 
     const rangeGroup = document.createElement("div");
-    rangeGroup.className = "data-point-filter-control__group data-point-filter-control__range";
+    rangeGroup.className =
+        "data-point-filter-control__group data-point-filter-control__range";
 
     const rangeLabel = document.createElement("span");
     rangeLabel.className = "data-point-filter-control__range-label";
@@ -152,7 +157,12 @@ export function buildDataPointFilterControlElements(instanceId) {
     rangeValueDisplay.className = "data-point-filter-control__range-values";
     rangeValueDisplay.textContent = "Range unavailable";
 
-    rangeGroup.append(rangeLabel, rangeSliderMin, rangeSliderMax, rangeValueDisplay);
+    rangeGroup.append(
+        rangeLabel,
+        rangeSliderMin,
+        rangeSliderMax,
+        rangeValueDisplay
+    );
 
     const summary = document.createElement("p");
     summary.className = "data-point-filter-control__summary";
@@ -172,7 +182,14 @@ export function buildDataPointFilterControlElements(instanceId) {
     resetButton.textContent = "Clear";
 
     actions.append(applyButton, resetButton);
-    panel.append(metricGroup, modeGroup, percentGroup, rangeGroup, summary, actions);
+    panel.append(
+        metricGroup,
+        modeGroup,
+        percentGroup,
+        rangeGroup,
+        summary,
+        actions
+    );
 
     container.append(toggleButton);
 

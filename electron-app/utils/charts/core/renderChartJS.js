@@ -1,15 +1,17 @@
 /**
- * @fileoverview Enhanced Chart.js rendering utility with State Management Integration
- * @description Provides comprehensive chart rendering, controls management, and export capabilities
- * for fitness device data visualization in the FitFileViewer application.
+ * Provides comprehensive chart rendering, controls management, and export
+ * capabilities for fitness device data visualization in the FitFileViewer
+ * application.
  *
  * STATE MANAGEMENT INTEGRATION:
+ *
  * - Uses getState() to access chart data and configuration
  * - Updates chart state through setState() for proper reactivity
  * - Integrates with ui and performance state tracking
  * - Provides proper error handling and loading states
  *
  * Features:
+ *
  * - Multiple chart types (line, bar, doughnut) with dynamic data binding
  * - Toggleable controls panel with professional UI
  * - Comprehensive export capabilities (PNG, CSV, JSON, clipboard)
@@ -18,8 +20,11 @@
  * - Accessibility support with ARIA labels
  *
  * Dependencies:
+ *
  * - Chart.js library (windowAny.Chart)
  * - Chart.js zoom plugin (windowAny.ChartZoom)
+ *
+ * @file Enhanced Chart.js rendering utility with State Management Integration
  */
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
@@ -28,11 +33,19 @@ import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
-import { fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
+import {
+    fieldLabels,
+    formatChartFields,
+} from "../../formatting/display/formatChartFields.js";
 import { createUserDeviceInfoBox } from "../../rendering/components/createUserDeviceInfoBox.js";
 import { computedStateManager } from "../../state/core/computedStateManager.js";
 // State management imports
-import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
 // Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
@@ -115,7 +128,10 @@ async function getThemeConfigSafe() {
         if (!themeConfig && g && typeof g.require === "function") {
             try {
                 const reqMod = g.require("../../theming/core/theme.js");
-                const fn = reqMod?.getThemeConfig || reqMod?.default?.getThemeConfig || reqMod?.default;
+                const fn =
+                    reqMod?.getThemeConfig ||
+                    reqMod?.default?.getThemeConfig ||
+                    reqMod?.default;
                 if (typeof fn === "function") {
                     themeConfig = /** @type {any} */ (fn());
                 }
@@ -132,13 +148,19 @@ async function getThemeConfigSafe() {
 
 /**
  * Normalizes a theme config object to ensure required color keys exist.
+ *
  * @param {any} rawConfig
+ *
  * @returns {ThemeConfig}
  */
 function normalizeThemeConfig(rawConfig) {
-    const normalized = rawConfig && typeof rawConfig === "object" ? { ...rawConfig } : {};
+    const normalized =
+        rawConfig && typeof rawConfig === "object" ? { ...rawConfig } : {};
     const providedColors =
-        rawConfig && typeof rawConfig === "object" && rawConfig.colors && typeof rawConfig.colors === "object"
+        rawConfig &&
+        typeof rawConfig === "object" &&
+        rawConfig.colors &&
+        typeof rawConfig.colors === "object"
             ? rawConfig.colors
             : {};
     const mergedColors = {
@@ -146,13 +168,22 @@ function normalizeThemeConfig(rawConfig) {
         ...providedColors,
     };
 
-    if (!Array.isArray(mergedColors.zoneColors) || mergedColors.zoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.zoneColors) ||
+        mergedColors.zoneColors.length === 0
+    ) {
         mergedColors.zoneColors = [...FALLBACK_ZONE_COLORS];
     }
-    if (!Array.isArray(mergedColors.heartRateZoneColors) || mergedColors.heartRateZoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.heartRateZoneColors) ||
+        mergedColors.heartRateZoneColors.length === 0
+    ) {
         mergedColors.heartRateZoneColors = [...FALLBACK_HEART_RATE_ZONE_COLORS];
     }
-    if (!Array.isArray(mergedColors.powerZoneColors) || mergedColors.powerZoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.powerZoneColors) ||
+        mergedColors.powerZoneColors.length === 0
+    ) {
         mergedColors.powerZoneColors = [...FALLBACK_POWER_ZONE_COLORS];
     }
 
@@ -176,8 +207,12 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         // Allow background work to suppress noisy notifications.
         // This is important for cache pre-warming / silent background operations.
         const suppress =
-            (typeof _options === "object" && _options && "silent" in _options && _options.silent === true) ||
-            /** @type {any} */ (globalThis).__FFV_suppressNotifications === true;
+            (typeof _options === "object" &&
+                _options &&
+                "silent" in _options &&
+                _options.silent === true) ||
+            /** @type {any} */ (globalThis).__FFV_suppressNotifications ===
+                true;
         if (suppress) {
             return;
         }
@@ -192,8 +227,13 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         // Try module cache injection path used by tests
         if (g && typeof g.require === "function") {
             try {
-                const reqMod = g.require("../../ui/notifications/showNotification.js");
-                const fn = reqMod?.showNotification || reqMod?.default?.showNotification || reqMod?.default;
+                const reqMod = g.require(
+                    "../../ui/notifications/showNotification.js"
+                );
+                const fn =
+                    reqMod?.showNotification ||
+                    reqMod?.default?.showNotification ||
+                    reqMod?.default;
                 if (typeof fn === "function") {
                     return await fn(message, /** @type {any} */ (type));
                 }
@@ -207,7 +247,9 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         if (mod && typeof mod.showNotification === "function") {
             await mod.showNotification(message, /** @type {any} */ (type));
         } else {
-            console.warn("[ChartJS] Notification module missing showNotification export");
+            console.warn(
+                "[ChartJS] Notification module missing showNotification export"
+            );
         }
     } catch (error) {
         console.warn("[ChartJS] notify() fallback failed:", error);
@@ -247,7 +289,8 @@ const DATA_SIGNATURE_SOURCES = [
         const g = /** @type {any} */ (globalThis);
         if (!g.process) g.process = {};
         if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => cb(...args));
+            g.process.nextTick = (cb, ...args) =>
+                Promise.resolve().then(() => cb(...args));
         }
     } catch {
         // ignore
@@ -304,7 +347,10 @@ function getComputedStateManagerSafe() {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
             const mod = g.require("../../state/core/computedStateManager.js");
-            const nested = mod?.computedStateManager || mod?.default?.computedStateManager || mod?.default;
+            const nested =
+                mod?.computedStateManager ||
+                mod?.default?.computedStateManager ||
+                mod?.default;
             if (nested && typeof nested === "object") return nested;
             if (mod && typeof mod.invalidateComputed === "function") return mod;
         }
@@ -318,8 +364,11 @@ function getConvertersSafe() {
     try {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
-            const mod = g.require("../../formatting/converters/convertValueToUserUnits.js");
-            if (mod && typeof mod.convertValueToUserUnits === "function") return mod.convertValueToUserUnits;
+            const mod = g.require(
+                "../../formatting/converters/convertValueToUserUnits.js"
+            );
+            if (mod && typeof mod.convertValueToUserUnits === "function")
+                return mod.convertValueToUserUnits;
         }
     } catch {
         /* ignore */
@@ -331,8 +380,11 @@ function getFormatChartFieldsSafe() {
     try {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
-            const mod = g.require("../../formatting/display/formatChartFields.js");
-            const fields = mod?.formatChartFields || mod?.default?.formatChartFields;
+            const mod = g.require(
+                "../../formatting/display/formatChartFields.js"
+            );
+            const fields =
+                mod?.formatChartFields || mod?.default?.formatChartFields;
             return Array.isArray(fields) ? fields : formatChartFields;
         }
     } catch {
@@ -344,14 +396,21 @@ function getFormatChartFieldsSafe() {
 
 function getHoverPluginsSafe() {
     const g = /** @type {any} */ (globalThis);
-    const result = { addChartHoverEffects, addHoverEffectsToExistingCharts, removeChartHoverEffects };
+    const result = {
+        addChartHoverEffects,
+        addHoverEffectsToExistingCharts,
+        removeChartHoverEffects,
+    };
     if (g && typeof g.require === "function") {
         try {
             const m = g.require("../plugins/addChartHoverEffects.js");
-            if (m?.addChartHoverEffects) result.addChartHoverEffects = m.addChartHoverEffects;
+            if (m?.addChartHoverEffects)
+                result.addChartHoverEffects = m.addChartHoverEffects;
             if (m?.addHoverEffectsToExistingCharts)
-                result.addHoverEffectsToExistingCharts = m.addHoverEffectsToExistingCharts;
-            if (m?.removeChartHoverEffects) result.removeChartHoverEffects = m.removeChartHoverEffects;
+                result.addHoverEffectsToExistingCharts =
+                    m.addHoverEffectsToExistingCharts;
+            if (m?.removeChartHoverEffects)
+                result.removeChartHoverEffects = m.removeChartHoverEffects;
         } catch {
             /* ignore */
         }
@@ -374,50 +433,60 @@ function getRendererModulesSafe() {
     if (g && typeof g.require === "function") {
         try {
             const m1 = g.require("../components/createChartCanvas.js");
-            if (m1?.createChartCanvas) result.createChartCanvas = m1.createChartCanvas;
+            if (m1?.createChartCanvas)
+                result.createChartCanvas = m1.createChartCanvas;
         } catch {
             /* ignore */
         }
         try {
             const m2 = g.require("../components/createEnhancedChart.js");
-            if (m2?.createEnhancedChart) result.createEnhancedChart = m2.createEnhancedChart;
+            if (m2?.createEnhancedChart)
+                result.createEnhancedChart = m2.createEnhancedChart;
         } catch {
             /* ignore */
         }
         try {
             const m3 = g.require("../rendering/renderEventMessagesChart.js");
-            if (m3?.renderEventMessagesChart) result.renderEventMessagesChart = m3.renderEventMessagesChart;
+            if (m3?.renderEventMessagesChart)
+                result.renderEventMessagesChart = m3.renderEventMessagesChart;
         } catch {
             /* ignore */
         }
         try {
             const m4 = g.require("../rendering/renderGPSTimeChart.js");
-            if (m4?.renderGPSTimeChart) result.renderGPSTimeChart = m4.renderGPSTimeChart;
+            if (m4?.renderGPSTimeChart)
+                result.renderGPSTimeChart = m4.renderGPSTimeChart;
         } catch {
             /* ignore */
         }
         try {
             const m5 = g.require("../rendering/renderGPSTrackChart.js");
-            if (m5?.renderGPSTrackChart) result.renderGPSTrackChart = m5.renderGPSTrackChart;
+            if (m5?.renderGPSTrackChart)
+                result.renderGPSTrackChart = m5.renderGPSTrackChart;
         } catch {
             /* ignore */
         }
         try {
             const m6 = g.require("../rendering/renderLapZoneCharts.js");
-            if (m6?.renderLapZoneCharts) result.renderLapZoneCharts = m6.renderLapZoneCharts;
+            if (m6?.renderLapZoneCharts)
+                result.renderLapZoneCharts = m6.renderLapZoneCharts;
         } catch {
             /* ignore */
         }
         try {
-            const m7 = g.require("../rendering/renderPerformanceAnalysisCharts.js");
+            const m7 = g.require(
+                "../rendering/renderPerformanceAnalysisCharts.js"
+            );
             if (m7?.renderPerformanceAnalysisCharts)
-                result.renderPerformanceAnalysisCharts = m7.renderPerformanceAnalysisCharts;
+                result.renderPerformanceAnalysisCharts =
+                    m7.renderPerformanceAnalysisCharts;
         } catch {
             /* ignore */
         }
         try {
             const m8 = g.require("../rendering/renderTimeInZoneCharts.js");
-            if (m8?.renderTimeInZoneCharts) result.renderTimeInZoneCharts = m8.renderTimeInZoneCharts;
+            if (m8?.renderTimeInZoneCharts)
+                result.renderTimeInZoneCharts = m8.renderTimeInZoneCharts;
         } catch {
             /* ignore */
         }
@@ -431,7 +500,8 @@ function getSettingsStateManagerSafe() {
         if (g && typeof g.require === "function") {
             const mod = g.require("../../state/domain/settingsStateManager.js");
             if (mod && typeof mod.getChartSettings === "function") return mod;
-            const nested = mod?.settingsStateManager || mod?.default?.settingsStateManager;
+            const nested =
+                mod?.settingsStateManager || mod?.default?.settingsStateManager;
             if (nested && typeof nested === "object") return nested;
         }
     } catch {
@@ -445,7 +515,8 @@ function getSetupZoneDataSafe() {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
             const mod = g.require("../../data/processing/setupZoneData.js");
-            if (mod && typeof mod.setupZoneData === "function") return mod.setupZoneData;
+            if (mod && typeof mod.setupZoneData === "function")
+                return mod.setupZoneData;
         }
     } catch {
         /* ignore */
@@ -460,8 +531,11 @@ function getShowRenderNotificationSafe() {
     try {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.require === "function") {
-            const mod = g.require("../../ui/notifications/showRenderNotification.js");
-            if (mod && typeof mod.showRenderNotification === "function") return mod.showRenderNotification;
+            const mod = g.require(
+                "../../ui/notifications/showRenderNotification.js"
+            );
+            if (mod && typeof mod.showRenderNotification === "function")
+                return mod.showRenderNotification;
         }
     } catch {
         /* ignore */
@@ -501,8 +575,13 @@ function getUIStateManagerMaybe() {
         if (g && typeof g.require === "function") {
             try {
                 const mod = g.require("../../state/domain/uiStateManager.js");
-                const candidate = mod?.uiStateManager || mod?.default?.uiStateManager || mod?.default;
-                return candidate && typeof candidate === "object" ? candidate : null;
+                const candidate =
+                    mod?.uiStateManager ||
+                    mod?.default?.uiStateManager ||
+                    mod?.default;
+                return candidate && typeof candidate === "object"
+                    ? candidate
+                    : null;
             } catch {
                 /* ignore */
             }
@@ -529,26 +608,48 @@ function resolveChartSettingsApi() {
             ? (key, value) => manager.setChartSetting(key, value)
             : (key, value) => manager.setSetting?.("chart", value, key),
         getChartFieldVisibility: manager.getChartFieldVisibility
-            ? (fieldKey, defaultVisibility) => manager.getChartFieldVisibility(fieldKey, defaultVisibility)
+            ? (fieldKey, defaultVisibility) =>
+                  manager.getChartFieldVisibility(fieldKey, defaultVisibility)
             : (fieldKey, defaultVisibility = "visible") => {
-                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  const visibilityMap =
+                      manager.getSetting?.("chart", "fieldVisibility") ?? {};
                   return visibilityMap?.[fieldKey] ?? defaultVisibility;
               },
         setChartFieldVisibility: manager.setChartFieldVisibility
-            ? (fieldKey, visibility) => manager.setChartFieldVisibility(fieldKey, visibility)
+            ? (fieldKey, visibility) =>
+                  manager.setChartFieldVisibility(fieldKey, visibility)
             : (fieldKey, visibility) => {
-                  const visibilityMap = manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  const nextVisibility = { ...visibilityMap, [fieldKey]: visibility };
-                  manager.setSetting?.("chart", nextVisibility, "fieldVisibility");
+                  const visibilityMap =
+                      manager.getSetting?.("chart", "fieldVisibility") ?? {};
+                  const nextVisibility = {
+                      ...visibilityMap,
+                      [fieldKey]: visibility,
+                  };
+                  manager.setSetting?.(
+                      "chart",
+                      nextVisibility,
+                      "fieldVisibility"
+                  );
                   return nextVisibility;
               },
         updateChartSettings: manager.updateChartSettings
             ? (updates) => manager.updateChartSettings(updates)
             : (updates) => {
                   for (const [key, value] of Object.entries(updates || {})) {
-                      if (key === "fieldVisibility" && typeof value === "object") {
-                          const existing = manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                          manager.setSetting?.("chart", { ...existing, ...value }, "fieldVisibility");
+                      if (
+                          key === "fieldVisibility" &&
+                          typeof value === "object"
+                      ) {
+                          const existing =
+                              manager.getSetting?.(
+                                  "chart",
+                                  "fieldVisibility"
+                              ) ?? {};
+                          manager.setSetting?.(
+                              "chart",
+                              { ...existing, ...value },
+                              "fieldVisibility"
+                          );
                           continue;
                       }
                       manager.setSetting?.("chart", value, key);
@@ -558,23 +659,29 @@ function resolveChartSettingsApi() {
 }
 
 /**
- * Enhanced chart settings management with state integration
- * Provides centralized settings access with reactive updates
+ * Enhanced chart settings management with state integration Provides
+ * centralized settings access with reactive updates
  */
 export const chartSettingsManager = {
     /**
      * Get field visibility setting with state management
+     *
      * @param {string} field - Field name
+     *
      * @returns {string} Visibility setting ("visible", "hidden")
      */
     getFieldVisibility(field) {
         const settingsApi = resolveChartSettingsApi();
-        const visibility = settingsApi.getChartFieldVisibility(field, "visible");
+        const visibility = settingsApi.getChartFieldVisibility(
+            field,
+            "visible"
+        );
         return visibility;
     },
 
     /**
      * Get chart settings with state management integration
+     *
      * @returns {Object} Complete chart settings
      */
     getSettings() {
@@ -586,17 +693,23 @@ export const chartSettingsManager = {
             const settingsApi = resolveChartSettingsApi();
             settings = settingsApi.getChartSettings();
             // Cache in state for faster access
-            callSetState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
+            callSetState("settings.charts", settings, {
+                silent: false,
+                source: "chartSettingsManager.getSettings",
+            });
         }
 
-        const resolved = settings && typeof settings === "object" ? settings : {};
+        const resolved =
+            settings && typeof settings === "object" ? settings : {};
         const rawMaxpoints = /** @type {any} */ (resolved).maxpoints;
         const normalizedMaxpoints =
             rawMaxpoints === "all"
                 ? "all"
-                : typeof rawMaxpoints === "number" && Number.isFinite(rawMaxpoints)
+                : typeof rawMaxpoints === "number" &&
+                    Number.isFinite(rawMaxpoints)
                   ? rawMaxpoints
-                  : typeof rawMaxpoints === "string" && Number.isFinite(Number(rawMaxpoints))
+                  : typeof rawMaxpoints === "string" &&
+                      Number.isFinite(Number(rawMaxpoints))
                     ? Number(rawMaxpoints)
                     : DEFAULT_MAX_POINTS;
 
@@ -620,6 +733,7 @@ export const chartSettingsManager = {
 
     /**
      * Set field visibility and trigger updates
+     *
      * @param {string} field - Field name
      * @param {string} visibility - Visibility setting
      */
@@ -641,20 +755,26 @@ export const chartSettingsManager = {
         // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
         if (chartState.isRendered) {
             // eslint-disable-next-line no-use-before-define -- chartActions is declared later in this module but accessed lazily at runtime
-            chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
+            chartActions.requestRerender(
+                `Field ${field} visibility changed to ${visibility}`
+            );
         }
     },
 
     /**
      * Update chart settings and trigger reactive updates
+     *
      * @param {Object} newSettings - Settings to update
      */
     updateSettings(newSettings) {
         const currentSettings = this.getSettings(),
             updatedSettings = { ...currentSettings, ...newSettings },
-            previousDataSignature = createDataSettingsSignature(currentSettings),
+            previousDataSignature =
+                createDataSettingsSignature(currentSettings),
             nextDataSignature = createDataSettingsSignature(updatedSettings),
-            dataSettingsChanged = DATA_SIGNATURE_SOURCES.some(({ settingKey }) => settingKey in newSettings);
+            dataSettingsChanged = DATA_SIGNATURE_SOURCES.some(
+                ({ settingKey }) => settingKey in newSettings
+            );
 
         // Update through settings state manager for persistence
         {
@@ -668,7 +788,10 @@ export const chartSettingsManager = {
             source: "chartSettingsManager.updateSettings",
         });
 
-        if (dataSettingsChanged || previousDataSignature !== nextDataSignature) {
+        if (
+            dataSettingsChanged ||
+            previousDataSignature !== nextDataSignature
+        ) {
             invalidateChartRenderCache("settings-update:data-changing");
         }
 
@@ -683,8 +806,10 @@ export const chartSettingsManager = {
 
 /**
  * Simple debounce utility to limit function execution frequency
+ *
  * @param {Function} func - Function to debounce
  * @param {number} wait - Milliseconds to wait
+ *
  * @returns {Function} Debounced function
  */
 function debounce(func, wait) {
@@ -713,15 +838,22 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 
     const { getState: getStateSafe } = getStateManagerSafe();
     const data = getStateSafe("globalData");
-    const hasValidData = Boolean(data && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0);
+    const hasValidData = Boolean(
+        data && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0
+    );
 
     if (container && hasValidData) {
         // Fire and forget so this function stays purely "scheduling".
         renderChartJS(/** @type {HTMLElement} */ (container)).catch((error) => {
             console.warn("[ChartJS] Direct re-render failed", error);
         });
-    } else if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
-        console.log(`[ChartJS] Skipping direct re-render (${reason}) - no container or no data`);
+    } else if (
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development"
+    ) {
+        console.log(
+            `[ChartJS] Skipping direct re-render (${reason}) - no container or no data`
+        );
     }
 }, RENDER_DEBOUNCE_MS);
 
@@ -738,7 +870,10 @@ function isElement(maybe) {
 // Safe append utility for environments where Element.append may be missing (e.g., jsdom mocks)
 function safeAppend(parent, child) {
     try {
-        if (parent && typeof (/** @type {any} */ (parent).append) === "function") {
+        if (
+            parent &&
+            typeof (/** @type {any} */ (parent).append) === "function"
+        ) {
             /** @type {any} */ (parent).append(child);
         } else if (parent && parent.insertBefore && parent.firstChild) {
             parent.insertBefore(child, parent.firstChild);
@@ -746,7 +881,10 @@ function safeAppend(parent, child) {
     } catch (error) {
         console.warn("[ChartJS] safeAppend fallback used:", error);
         // Final best-effort attempt using append only (prefer append over appendChild)
-        if (parent && typeof (/** @type {any} */ (parent).append) === "function") {
+        if (
+            parent &&
+            typeof (/** @type {any} */ (parent).append) === "function"
+        ) {
             try {
                 /** @type {any} */ (parent).append(child);
             } catch {
@@ -783,7 +921,10 @@ export function getChartSeriesCacheStats() {
 }
 
 export function invalidateChartRenderCache(reason = "manual") {
-    if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    if (
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development"
+    ) {
         console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
     }
     fieldSeriesCache = new WeakMap();
@@ -803,26 +944,37 @@ export function invalidateChartRenderCache(reason = "manual") {
 }
 
 /**
- * Pre-warm the most expensive chart caches (labels + per-field converted values + chart points).
+ * Pre-warm the most expensive chart caches (labels + per-field converted values
+ * + chart points).
  *
  * Why this helps:
- * - The slow part of chart rendering is frequently the O(N) scan across recordMesgs for each field,
- *   plus unit conversion and point creation.
- * - `renderChartsWithData()` already caches this work in WeakMaps/Maps.
- * - By pre-warming those caches during idle time after file load, the Charts tab render becomes
- *   dramatically faster without attempting to render charts while the tab is hidden (display:none).
  *
- * This function intentionally does **not** touch the DOM and is safe to run while the map tab is active.
+ * - The slow part of chart rendering is frequently the O(N) scan across
+ *   recordMesgs for each field, plus unit conversion and point creation.
+ * - `renderChartsWithData()` already caches this work in WeakMaps/Maps.
+ * - By pre-warming those caches during idle time after file load, the Charts tab
+ *   render becomes dramatically faster without attempting to render charts
+ *   while the tab is hidden (display:none).
+ *
+ * This function intentionally does **not** touch the DOM and is safe to run
+ * while the map tab is active.
  *
  * @param {{
- *  recordMesgs: Array<Record<string, unknown>>,
- *  startTime: unknown,
- *  reason?: string,
- *  yieldEvery?: number
+ *     recordMesgs: Record<string, unknown>[];
+ *     startTime: unknown;
+ *     reason?: string;
+ *     yieldEvery?: number;
  * }} params
- * @returns {Promise<{ processedFields: number, skipped: boolean }>} Summary info for debugging.
+ *
+ * @returns {Promise<{ processedFields: number; skipped: boolean }>} Summary
+ *   info for debugging.
  */
-export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason = "prewarm", yieldEvery = 2 }) {
+export async function prewarmChartRenderCaches({
+    recordMesgs,
+    startTime,
+    reason = "prewarm",
+    yieldEvery = 2,
+}) {
     if (!Array.isArray(recordMesgs) || recordMesgs.length === 0) {
         return { processedFields: 0, skipped: true };
     }
@@ -844,12 +996,17 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
     }
 
     // Pre-warming should not produce user notifications.
-    const prevSuppress = /** @type {any} */ (globalThis).__FFV_suppressNotifications;
+    const prevSuppress = /** @type {any} */ (globalThis)
+        .__FFV_suppressNotifications;
     /** @type {any} */ (globalThis).__FFV_suppressNotifications = true;
 
     try {
-        const settings = /** @type {any} */ (chartSettingsManager.getSettings());
-        const normalizedMaxPoints = normalizeMaxPointsValue(settings?.maxpoints);
+        const settings = /** @type {any} */ (
+            chartSettingsManager.getSettings()
+        );
+        const normalizedMaxPoints = normalizeMaxPointsValue(
+            settings?.maxpoints
+        );
         const dataSettingsSignature = ensureDataSettingsSignature(settings);
         const convert = getConvertersSafe();
 
@@ -860,7 +1017,11 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
         const fields = getFormatChartFieldsSafe();
         /** @type {string[]} */
         const renderable = Array.isArray(fields)
-            ? fields.filter((field) => (chartSettingsManager.getFieldVisibility(field) || "visible") !== "hidden")
+            ? fields.filter(
+                  (field) =>
+                      (chartSettingsManager.getFieldVisibility(field) ||
+                          "visible") !== "hidden"
+              )
             : [];
 
         /** @type {string[]} */
@@ -872,7 +1033,11 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
                     : {};
                 fieldsToPrewarm = Object.keys(sample)
                     .filter((key) => key !== "timestamp")
-                    .filter((key) => typeof (/** @type {any} */ (sample)[key]) === "number");
+                    .filter(
+                        (key) =>
+                            typeof (/** @type {any} */ (sample)[key]) ===
+                            "number"
+                    );
             } catch {
                 /* ignore */
             }
@@ -885,7 +1050,13 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
         // can noticeably stall the UI even when scheduled during idle time.
         const totalRecords = recordMesgs.length;
         const MAX_FIELDS_TO_PREWARM =
-            totalRecords >= 250_000 ? 2 : totalRecords >= 120_000 ? 4 : totalRecords >= 60_000 ? 6 : 8;
+            totalRecords >= 250_000
+                ? 2
+                : totalRecords >= 120_000
+                  ? 4
+                  : totalRecords >= 60_000
+                    ? 6
+                    : 8;
         const PRIORITY_FIELDS = [
             // Common record fields (both snake_case and camelCase variants seen across parsers)
             "speed",
@@ -911,9 +1082,15 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
         }
         // Keep original ordering for the remaining candidates.
         const remaining = fieldsToPrewarm.filter((f) => candidateSet.has(f));
-        fieldsToPrewarm = [...prioritized, ...remaining].slice(0, MAX_FIELDS_TO_PREWARM);
+        fieldsToPrewarm = [...prioritized, ...remaining].slice(
+            0,
+            MAX_FIELDS_TO_PREWARM
+        );
 
-        if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+        if (
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development"
+        ) {
             console.log(
                 `${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`
             );
@@ -932,7 +1109,12 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
                 continue;
             }
 
-            const entry = getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert);
+            const entry = getFieldSeriesEntry(
+                recordMesgs,
+                field,
+                dataSettingsSignature,
+                convert
+            );
             // Warm point + axis-range caches for the current maxpoints setting.
             getCachedSeriesForSettings(entry, labels, normalizedMaxPoints);
 
@@ -948,8 +1130,13 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
             }
         }
 
-        if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
-            console.log(`${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`);
+        if (
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development"
+        ) {
+            console.log(
+                `${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`
+            );
         }
 
         return { processedFields, skipped: false };
@@ -957,7 +1144,8 @@ export async function prewarmChartRenderCaches({ recordMesgs, startTime, reason 
         console.warn(`${CACHE_LOG_PREFIX} prewarm failed (${reason})`, error);
         return { processedFields: 0, skipped: false };
     } finally {
-        /** @type {any} */ (globalThis).__FFV_suppressNotifications = prevSuppress;
+        /** @type {any} */ (globalThis).__FFV_suppressNotifications =
+            prevSuppress;
     }
 }
 
@@ -1026,8 +1214,14 @@ function createChartPoints(labels, values) {
     return Array.from({ length }, (_, index) => {
         const labelValue = labels?.[index];
         const yValue = values?.[index];
-        const x = typeof labelValue === "number" && Number.isFinite(labelValue) ? labelValue : index;
-        const y = typeof yValue === "number" && Number.isFinite(yValue) ? yValue : null;
+        const x =
+            typeof labelValue === "number" && Number.isFinite(labelValue)
+                ? labelValue
+                : index;
+        const y =
+            typeof yValue === "number" && Number.isFinite(yValue)
+                ? yValue
+                : null;
         return { x, y };
     });
 }
@@ -1036,7 +1230,11 @@ function createDataSettingsSignature(settings = {}) {
     /** @type {Record<string, any>} */
     const signature = {};
     for (const { settingKey, storageKey } of DATA_SIGNATURE_SOURCES) {
-        const value = readSettingOrStorageValue(settingKey, storageKey, settings);
+        const value = readSettingOrStorageValue(
+            settingKey,
+            storageKey,
+            settings
+        );
         if (value != null) {
             signature[settingKey] = value;
         }
@@ -1046,7 +1244,11 @@ function createDataSettingsSignature(settings = {}) {
 
 function ensureDataSettingsSignature(settings) {
     const signature = createDataSettingsSignature(settings);
-    if (signature && lastDataSettingsSignature && lastDataSettingsSignature !== signature) {
+    if (
+        signature &&
+        lastDataSettingsSignature &&
+        lastDataSettingsSignature !== signature
+    ) {
         invalidateChartRenderCache("data-settings-changed");
     }
     lastDataSettingsSignature = signature;
@@ -1076,7 +1278,9 @@ function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
     if (!labelCache) {
         const basePoints = createChartPoints(labels, entry.values);
         const baseAxisRange = calculateAxisRanges(basePoints);
-        const baseHasValidData = basePoints.some(({ y }) => typeof y === "number" && Number.isFinite(y));
+        const baseHasValidData = basePoints.some(
+            ({ y }) => typeof y === "number" && Number.isFinite(y)
+        );
         labelCache = {
             baseAxisRange,
             baseHasValidData,
@@ -1094,13 +1298,19 @@ function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
 
     chartSeriesCacheStats.misses += 1;
     const points =
-        maxPointsValue === "all" ? labelCache.basePoints : limitChartPoints(labelCache.basePoints, maxPointsValue);
+        maxPointsValue === "all"
+            ? labelCache.basePoints
+            : limitChartPoints(labelCache.basePoints, maxPointsValue);
     const hasValidData =
         maxPointsValue === "all"
             ? labelCache.baseHasValidData
-            : points.some(({ y }) => typeof y === "number" && Number.isFinite(y));
+            : points.some(
+                  ({ y }) => typeof y === "number" && Number.isFinite(y)
+              );
     const axisRanges =
-        maxPointsValue === "all" ? labelCache.baseAxisRange : calculateAxisRanges(points) || labelCache.baseAxisRange;
+        maxPointsValue === "all"
+            ? labelCache.baseAxisRange
+            : calculateAxisRanges(points) || labelCache.baseAxisRange;
 
     labelCache.limits.set(key, {
         axisRanges,
@@ -1111,7 +1321,12 @@ function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
     return labelCache.limits.get(key);
 }
 
-function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert) {
+function getFieldSeriesEntry(
+    recordMesgs,
+    field,
+    dataSettingsSignature,
+    convert
+) {
     const cache = ensureFieldSeriesCache(recordMesgs);
     let fieldMap = cache.fields.get(field);
     if (!fieldMap) {
@@ -1128,7 +1343,10 @@ function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert)
         let hasNull = false;
 
         for (const row of recordMesgs) {
-            const raw = row && typeof row === "object" ? /** @type {any} */ (row)[readKey] : null;
+            const raw =
+                row && typeof row === "object"
+                    ? /** @type {any} */ (row)[readKey]
+                    : null;
             let numeric = Number(raw);
             if (!Number.isFinite(numeric)) {
                 values.push(null);
@@ -1186,18 +1404,30 @@ function getLabelsForRecords(recordMesgs, startTime) {
     let base = null;
     if (typeof startTime === "number") {
         base = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
-    } else if (startTime && typeof startTime === "object" && "getTime" in startTime) {
+    } else if (
+        startTime &&
+        typeof startTime === "object" &&
+        "getTime" in startTime
+    ) {
         base = startTime.getTime() / 1000;
     }
 
     for (const [index, row] of recordMesgs.entries()) {
         let labelValue = index;
-        if (row && typeof row === "object" && "timestamp" in row && row.timestamp != null) {
+        if (
+            row &&
+            typeof row === "object" &&
+            "timestamp" in row &&
+            row.timestamp != null
+        ) {
             const { timestamp: rawTimestamp } = /** @type {any} */ (row);
             let timestamp = rawTimestamp;
             if (rawTimestamp instanceof Date) {
                 timestamp = rawTimestamp.getTime() / 1000;
-            } else if (typeof rawTimestamp === "number" && rawTimestamp > 1_000_000_000_000) {
+            } else if (
+                typeof rawTimestamp === "number" &&
+                rawTimestamp > 1_000_000_000_000
+            ) {
                 timestamp = rawTimestamp / 1000;
             }
             if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
@@ -1227,7 +1457,10 @@ function limitChartPoints(points, maxPoints) {
         return points.slice();
     }
 
-    const limit = typeof maxPoints === "number" ? maxPoints : Number.parseInt(String(maxPoints), 10);
+    const limit =
+        typeof maxPoints === "number"
+            ? maxPoints
+            : Number.parseInt(String(maxPoints), 10);
     if (!Number.isFinite(limit) || limit <= 0 || points.length <= limit) {
         return points.slice();
     }
@@ -1249,7 +1482,10 @@ function normalizeMaxPointsValue(maxPoints) {
         return "all";
     }
 
-    const numeric = typeof maxPoints === "number" ? maxPoints : Number.parseInt(String(maxPoints), 10);
+    const numeric =
+        typeof maxPoints === "number"
+            ? maxPoints
+            : Number.parseInt(String(maxPoints), 10);
     if (!Number.isFinite(numeric) || numeric <= 0) {
         return "all";
     }
@@ -1264,14 +1500,23 @@ function readSettingOrStorageValue(settingKey, storageKey, settings) {
     return null;
 }
 
-function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature) {
+function resolvePerformanceSettings(
+    totalPoints,
+    settings,
+    dataSettingsSignature
+) {
     const key = `${totalPoints}|${settings?.chartType || "line"}|${dataSettingsSignature}`;
     if (performanceSettingsCache.has(key)) {
         return performanceSettingsCache.get(key);
     }
 
     const allowDecimation =
-        (!settings?.chartType || ["area", "line", "radar"].includes(String(settings.chartType))) &&
+        (!settings?.chartType ||
+            [
+                "area",
+                "line",
+                "radar",
+            ].includes(String(settings.chartType))) &&
         totalPoints > DECIMATION_THRESHOLD;
 
     const decimation = allowDecimation
@@ -1283,7 +1528,10 @@ function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature
           }
         : { enabled: false };
 
-    const tickSampleSize = totalPoints > MAX_TICK_TARGET ? Math.ceil(totalPoints / MAX_TICK_TARGET) : undefined;
+    const tickSampleSize =
+        totalPoints > MAX_TICK_TARGET
+            ? Math.ceil(totalPoints / MAX_TICK_TARGET)
+            : undefined;
     const enableSpanGaps = totalPoints > DECIMATION_THRESHOLD;
 
     const result = { decimation, enableSpanGaps, tickSampleSize };
@@ -1294,13 +1542,14 @@ function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature
 /**
  * Resolve which key to read from record messages for a given chart field.
  *
- * The app has historically seen both snake_case and camelCase field keys depending on
- * parser/source. Chart configuration uses camelCase (e.g., heartRate), but recordMesgs
- * commonly contain snake_case (e.g., heart_rate).
+ * The app has historically seen both snake_case and camelCase field keys
+ * depending on parser/source. Chart configuration uses camelCase (e.g.,
+ * heartRate), but recordMesgs commonly contain snake_case (e.g., heart_rate).
  *
- * @param {{ readKeys?: Map<string,string> }} cache
- * @param {Array<Record<string, unknown>>} recordMesgs
+ * @param {{ readKeys?: Map<string, string> }} cache
+ * @param {Record<string, unknown>[]} recordMesgs
  * @param {string} field
+ *
  * @returns {string}
  */
 function resolveRecordFieldKey(cache, recordMesgs, field) {
@@ -1316,7 +1565,10 @@ function resolveRecordFieldKey(cache, recordMesgs, field) {
 
     // Scan a small prefix of records to find which key actually exists.
     // (We prefer the canonical field first, then the snake_case variant.)
-    const limit = Math.min(50, Array.isArray(recordMesgs) ? recordMesgs.length : 0);
+    const limit = Math.min(
+        50,
+        Array.isArray(recordMesgs) ? recordMesgs.length : 0
+    );
     for (let i = 0; i < limit; i += 1) {
         const row = recordMesgs[i];
         if (!row || typeof row !== "object") {
@@ -1372,7 +1624,10 @@ export const previousChartState = chartNotificationState.previousChartState || {
 
 export function resetChartNotificationState() {
     try {
-        if (typeof chartNotificationState.resetChartNotificationState === "function") {
+        if (
+            typeof chartNotificationState.resetChartNotificationState ===
+            "function"
+        ) {
             return chartNotificationState.resetChartNotificationState();
         }
     } catch {
@@ -1382,8 +1637,15 @@ export function resetChartNotificationState() {
 
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     try {
-        if (typeof chartNotificationState.updatePreviousChartState === "function") {
-            return chartNotificationState.updatePreviousChartState(chartCount, visibleFields, timestamp);
+        if (
+            typeof chartNotificationState.updatePreviousChartState ===
+            "function"
+        ) {
+            return chartNotificationState.updatePreviousChartState(
+                chartCount,
+                visibleFields,
+                timestamp
+            );
         }
     } catch {
         /* no-op */
@@ -1401,12 +1663,16 @@ try {
         // Track registration per Chart object to avoid duplicate registrations across tests
         const markRegistered = (obj) => {
             try {
-                Object.defineProperty(obj, "__ffvPluginsRegistered", { value: true, configurable: true });
+                Object.defineProperty(obj, "__ffvPluginsRegistered", {
+                    value: true,
+                    configurable: true,
+                });
             } catch {
                 /* ignore defineProperty errors */
             }
         };
-        const isRegistered = (obj) => Boolean(obj && obj.__ffvPluginsRegistered);
+        const isRegistered = (obj) =>
+            Boolean(obj && obj.__ffvPluginsRegistered);
         Object.defineProperty(g, "Chart", {
             configurable: true,
             enumerable: true,
@@ -1414,9 +1680,14 @@ try {
                 // On read access, attempt one-time registration for current Chart object
                 try {
                     const v = _Chart;
-                    if (v && typeof v.register === "function" && !isRegistered(v)) {
+                    if (
+                        v &&
+                        typeof v.register === "function" &&
+                        !isRegistered(v)
+                    ) {
                         if (v.Zoom) v.register(v.Zoom);
-                        else if (g.chartjsPluginZoom) v.register(g.chartjsPluginZoom);
+                        else if (g.chartjsPluginZoom)
+                            v.register(g.chartjsPluginZoom);
                         else if (g.ChartZoom) v.register(g.ChartZoom);
                         try {
                             v.register(chartBackgroundColorPlugin);
@@ -1436,7 +1707,8 @@ try {
                     if (v && typeof v.register === "function") {
                         // Register zoom plugin variants if present
                         if (v.Zoom) v.register(v.Zoom);
-                        else if (g.chartjsPluginZoom) v.register(g.chartjsPluginZoom);
+                        else if (g.chartjsPluginZoom)
+                            v.register(g.chartjsPluginZoom);
                         else if (g.ChartZoom) v.register(g.ChartZoom);
                         // Always attempt to register background color plugin
                         try {
@@ -1468,10 +1740,14 @@ try {
             console.log("[ChartJS] chartjs-plugin-zoom registered.");
         } else if (windowAny.chartjsPluginZoom) {
             windowAny.Chart.register(windowAny.chartjsPluginZoom);
-            console.log("[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartjsPluginZoom).");
+            console.log(
+                "[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartjsPluginZoom)."
+            );
         } else if (windowAny.ChartZoom) {
             windowAny.Chart.register(windowAny.ChartZoom);
-            console.log("[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartZoom).");
+            console.log(
+                "[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartZoom)."
+            );
         }
     }
 } catch {
@@ -1485,49 +1761,80 @@ if (!windowAny._fitFileViewerChartListener) {
     // Subscribe to state changes for reactive chart updates instead of custom events
     // The chartStateManager already handles this, so we can simplify or remove this
 
-    console.log("[ChartJS] Chart state management is now handled by chartStateManager");
-    console.log("[ChartJS] Old event-based system is being phased out in favor of reactive state");
+    console.log(
+        "[ChartJS] Chart state management is now handled by chartStateManager"
+    );
+    console.log(
+        "[ChartJS] Old event-based system is being phased out in favor of reactive state"
+    );
 
     // Bridge: handle generic render requests dispatched by other modules to avoid direct imports
     try {
         if (globalThis && typeof globalThis.addEventListener === "function") {
-            globalThis.addEventListener("ffv:request-render-charts", (/** @type {CustomEvent} */ ev) => {
-                const reason = ev && ev.detail && ev.detail.reason ? String(ev.detail.reason) : "event-trigger";
-                console.log(`[ChartJS] Received render request event: ${reason}`);
+            globalThis.addEventListener(
+                "ffv:request-render-charts",
+                (/** @type {CustomEvent} */ ev) => {
+                    const reason =
+                        ev && ev.detail && ev.detail.reason
+                            ? String(ev.detail.reason)
+                            : "event-trigger";
+                    console.log(
+                        `[ChartJS] Received render request event: ${reason}`
+                    );
 
-                // Prefer chartStateManager if available
-                if (typeof (/** @type {any} */ (globalThis).chartStateManager?.debouncedRender) === "function") {
-                    /** @type {any} */ (globalThis).chartStateManager.debouncedRender(reason);
-                    return;
-                }
+                    // Prefer chartStateManager if available
+                    if (
+                        typeof (
+                            /** @type {any} */ (globalThis).chartStateManager
+                                ?.debouncedRender
+                        ) === "function"
+                    ) {
+                        /** @type {any} */ (
+                            globalThis
+                        ).chartStateManager.debouncedRender(reason);
+                        return;
+                    }
 
-                // Fallback: directly call renderChartJS with a sensible container
-                const container =
-                    document.querySelector("#chartjs-chart-container") ||
-                    document.querySelector("#content-chartjs") ||
-                    document.querySelector("#content-chart") ||
-                    document.body;
-                try {
-                    // Call without awaiting to keep handler non-blocking
-                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */ (container)));
-                } catch (error) {
-                    console.warn("[ChartJS] Event-based render fallback failed:", error);
+                    // Fallback: directly call renderChartJS with a sensible container
+                    const container =
+                        document.querySelector("#chartjs-chart-container") ||
+                        document.querySelector("#content-chartjs") ||
+                        document.querySelector("#content-chart") ||
+                        document.body;
+                    try {
+                        // Call without awaiting to keep handler non-blocking
+                        Promise.resolve().then(() =>
+                            renderChartJS(
+                                /** @type {HTMLElement} */ (container)
+                            )
+                        );
+                    } catch (error) {
+                        console.warn(
+                            "[ChartJS] Event-based render fallback failed:",
+                            error
+                        );
+                    }
                 }
-            });
+            );
         }
     } catch (listenerError) {
-        console.warn("[ChartJS] Failed to register render request listener:", listenerError);
+        console.warn(
+            "[ChartJS] Failed to register render request listener:",
+            listenerError
+        );
     }
 }
 
 /**
  * Creates an enhanced settings and control panel for charts
- * @param {HTMLElement|string} targetContainer - Container element or ID
+ *
+ * @param {HTMLElement | string} targetContainer - Container element or ID
+ *
  * @returns {Object} Current settings object
  */
 /**
- * Chart state management with reactive updates
- * Integrates with the centralized state system for chart rendering and controls
+ * Chart state management with reactive updates Integrates with the centralized
+ * state system for chart rendering and controls
  */
 export const chartState = {
     get chartData() {
@@ -1560,7 +1867,8 @@ export const chartState = {
                     for (const id of candidates) {
                         try {
                             const m = g.require(id);
-                            const getStateFn = m?.getState || m?.default?.getState;
+                            const getStateFn =
+                                m?.getState || m?.default?.getState;
                             if (typeof getStateFn === "function") {
                                 const v = getStateFn("globalData");
                                 if (v !== undefined) {
@@ -1578,13 +1886,20 @@ export const chartState = {
             }
         }
         const g = /** @type {any} */ (globalThis);
-        const hasModuleInjection = Boolean(g && typeof g.require === "function");
+        const hasModuleInjection = Boolean(
+            g && typeof g.require === "function"
+        );
         // Tests expect null when the state value is truly undefined
         if (data === undefined) return null;
         // In module-injected tests, null means explicitly no data (false).
         // In simpler tests without module cache injection, null should be treated as unknown (null).
         if (data === null) return hasModuleInjection ? false : null;
-        return Boolean(data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0);
+        return Boolean(
+            data &&
+            data.recordMesgs &&
+            Array.isArray(data.recordMesgs) &&
+            data.recordMesgs.length > 0
+        );
     },
 
     // Use computed state for reactive updates
@@ -1604,7 +1919,9 @@ export const chartState = {
         const fields = getFormatChartFieldsSafe();
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                  const visibility = chartSettingsManager.getFieldVisibility(field) || "visible";
+                  const visibility =
+                      chartSettingsManager.getFieldVisibility(field) ||
+                      "visible";
                   return visibility !== "hidden";
               })
             : [];
@@ -1625,13 +1942,19 @@ export const chartActions = {
     clearCharts() {
         // Destroy existing chart instances
         if (windowAny._chartjsInstances) {
-            for (const [index, chart] of windowAny._chartjsInstances.entries()) {
+            for (const [
+                index,
+                chart,
+            ] of windowAny._chartjsInstances.entries()) {
                 try {
                     if (chart && typeof chart.destroy === "function") {
                         chart.destroy();
                     }
                 } catch (error) {
-                    console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+                    console.warn(
+                        `[ChartJS] Error destroying chart ${index}:`,
+                        error
+                    );
                 }
             }
             windowAny._chartjsInstances = [];
@@ -1651,6 +1974,7 @@ export const chartActions = {
 
     /**
      * Complete chart rendering process
+     *
      * @param {boolean} success - Whether rendering succeeded
      * @param {number} chartCount - Number of charts rendered
      * @param {number} renderTime - Time taken to render
@@ -1671,9 +1995,14 @@ export const chartActions = {
         );
 
         // Background renders (preload) must not hijack the global loading indicator.
-        const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+        const suppressLoading = Boolean(
+            /** @type {any} */ (globalThis).__FFV_suppressLoadingState
+        );
         if (!suppressLoading) {
-            callSetState("isLoading", false, { silent: false, source: "chartActions.completeRendering" });
+            callSetState("isLoading", false, {
+                silent: false,
+                source: "chartActions.completeRendering",
+            });
         }
 
         if (success) {
@@ -1686,12 +2015,15 @@ export const chartActions = {
             );
 
             // Notify other components of successful render
-            /** @type {any} */ (AppActions).notifyChartRenderComplete?.(chartCount);
+            /** @type {any} */ (AppActions).notifyChartRenderComplete?.(
+                chartCount
+            );
         }
     },
 
     /**
      * Request chart re-render with debouncing
+     *
      * @param {string} reason - Reason for re-render
      */
     requestRerender(reason = "State change") {
@@ -1711,10 +2043,14 @@ export const chartActions = {
 
     /**
      * Update chart selection
+     *
      * @param {string} chartType - New chart type selection
      */
     selectChart(chartType) {
-        callSetState("charts.selectedChart", chartType, { silent: false, source: "chartActions.selectChart" });
+        callSetState("charts.selectedChart", chartType, {
+            silent: false,
+            source: "chartActions.selectChart",
+        });
 
         // Trigger re-render if charts are currently displayed
         if (chartState.isRendered) {
@@ -1727,11 +2063,19 @@ export const chartActions = {
      */
     startRendering() {
         // Use state management instead of missing AppActions method
-        callSetState("charts.isRendering", true, { silent: false, source: "chartActions.startRendering" });
+        callSetState("charts.isRendering", true, {
+            silent: false,
+            source: "chartActions.startRendering",
+        });
         // Background renders (preload) must not hijack the global loading indicator.
-        const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+        const suppressLoading = Boolean(
+            /** @type {any} */ (globalThis).__FFV_suppressLoadingState
+        );
         if (!suppressLoading) {
-            callSetState("isLoading", true, { silent: false, source: "chartActions.startRendering" });
+            callSetState("isLoading", true, {
+                silent: false,
+                source: "chartActions.startRendering",
+            });
         }
     },
 
@@ -1740,9 +2084,15 @@ export const chartActions = {
      */
     toggleControls() {
         const newVisibility = !chartState.controlsVisible;
-        callSetState("charts.controlsVisible", newVisibility, { silent: false, source: "chartActions.toggleControls" });
+        callSetState("charts.controlsVisible", newVisibility, {
+            silent: false,
+            source: "chartActions.toggleControls",
+        });
         const uiMgr = getUIStateManagerMaybe();
-        /** @type {any} */ (uiMgr)?.updatePanelVisibility?.("chart-controls", newVisibility);
+        /** @type {any} */ (uiMgr)?.updatePanelVisibility?.(
+            "chart-controls",
+            newVisibility
+        );
     },
 };
 
@@ -1767,7 +2117,9 @@ try {
         ChartRef.registry.plugins &&
         typeof ChartRef.registry.plugins.get === "function"
     );
-    const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
+    const already = hasRegistry
+        ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin")
+        : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
         ChartRef.register(chartBackgroundColorPlugin);
         console.log("[ChartJS] chartBackgroundColorPlugin registered");
@@ -1778,7 +2130,9 @@ try {
 
 /**
  * State-aware chart export function
+ *
  * @param {string} format - Export format (png, csv, json)
+ *
  * @returns {Promise<boolean>} Success status
  */
 export async function exportChartsWithState(format = "png") {
@@ -1790,7 +2144,11 @@ export async function exportChartsWithState(format = "png") {
         try {
             const g = /** @type {any} */ (globalThis);
             const w = /** @type {any} */ (g.window);
-            const arr = (g && g._chartjsInstances) || (w && w._chartjsInstances) || windowAny._chartjsInstances || [];
+            const arr =
+                (g && g._chartjsInstances) ||
+                (w && w._chartjsInstances) ||
+                windowAny._chartjsInstances ||
+                [];
             return Array.isArray(arr) ? arr : [];
         } catch {
             return [];
@@ -1801,13 +2159,18 @@ export async function exportChartsWithState(format = "png") {
     // Only treat as "no charts" when we have neither rendered state nor any instances
     if (!isRendered && instances.length === 0) {
         // fire and forget
-        Promise.resolve().then(() => notify("No charts available for export", "warning"));
+        Promise.resolve().then(() =>
+            notify("No charts available for export", "warning")
+        );
         return false;
     }
 
     // Best-effort export: non-critical errors (state/notify) should not flip success when charts exist
     try {
-        setState("ui.isExporting", true, { silent: false, source: "exportChartsWithState" });
+        setState("ui.isExporting", true, {
+            silent: false,
+            source: "exportChartsWithState",
+        });
     } catch {
         /* non-fatal */
     }
@@ -1815,14 +2178,20 @@ export async function exportChartsWithState(format = "png") {
     // Placeholder: real export implementation handled elsewhere; here we just signal success
     try {
         Promise.resolve().then(() =>
-            notify(`Charts exported as ${format?.toUpperCase?.() || String(format)}`, "success")
+            notify(
+                `Charts exported as ${format?.toUpperCase?.() || String(format)}`,
+                "success"
+            )
         );
     } catch {
         /* non-fatal */
     }
 
     try {
-        setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState" });
+        setState("ui.isExporting", false, {
+            silent: false,
+            source: "exportChartsWithState",
+        });
     } catch {
         /* non-fatal */
     }
@@ -1831,6 +2200,7 @@ export async function exportChartsWithState(format = "png") {
 
 /**
  * Get comprehensive chart status from state
+ *
  * @returns {Object} Chart status information
  */
 export function getChartStatus() {
@@ -1852,6 +2222,7 @@ export function getChartStatus() {
 /**
  * @param {string} hex - Hex color code
  * @param {number} alpha - Alpha transparency value
+ *
  * @returns {string} RGBA color string
  */
 export function hexToRgba(hex, alpha) {
@@ -1862,9 +2233,8 @@ export function hexToRgba(hex, alpha) {
 }
 
 /**
- * Initialize chart state management integration
- * Sets up reactive subscriptions and state synchronization
- * Call this during application startup
+ * Initialize chart state management integration Sets up reactive subscriptions
+ * and state synchronization Call this during application startup
  */
 export function initializeChartStateManagement() {
     console.log("[ChartJS] Initializing chart state management...");
@@ -1894,7 +2264,12 @@ export function initializeChartStateManagement() {
     // Set up computed state dependencies
     /** @type {any} */ (computedStateManager).define?.("charts.hasData", () => {
         const data = getState("globalData");
-        return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
+        return (
+            data &&
+            data.recordMesgs &&
+            Array.isArray(data.recordMesgs) &&
+            data.recordMesgs.length > 0
+        );
     });
 
     /** @type {any} */ (computedStateManager).define?.(
@@ -1902,19 +2277,25 @@ export function initializeChartStateManagement() {
         () => chartState.renderableFields.length
     );
 
-    /** @type {any} */ (computedStateManager).define?.("charts.summary", () => ({
-        chartCount: getState("charts.renderedCount") || 0,
-        fieldCount: chartState.renderableFields.length,
-        hasData: chartState.hasValidData,
-        isRendered: chartState.isRendered,
-        lastRender: getState("charts.lastRenderTime"),
-    }));
+    /** @type {any} */ (computedStateManager).define?.(
+        "charts.summary",
+        () => ({
+            chartCount: getState("charts.renderedCount") || 0,
+            fieldCount: chartState.renderableFields.length,
+            hasData: chartState.hasValidData,
+            isRendered: chartState.isRendered,
+            lastRender: getState("charts.lastRenderTime"),
+        })
+    );
 
     // Set up state middleware for chart operations (only if not already registered)
     if (!middlewareManager.middleware?.has?.("chart-render")) {
         middlewareManager.register("chart-render", {
             afterSet: (/** @type {any} */ context) => {
-                console.log("[ChartJS] Chart render action completed:", context);
+                console.log(
+                    "[ChartJS] Chart render action completed:",
+                    context
+                );
                 return context;
             },
             beforeSet: (/** @type {any} */ context) => {
@@ -1923,7 +2304,9 @@ export function initializeChartStateManagement() {
             },
             onError: (/** @type {any} */ context) => {
                 console.error("[ChartJS] Chart render action failed:", context);
-                Promise.resolve().then(() => notify("Chart rendering failed", "error"));
+                Promise.resolve().then(() =>
+                    notify("Chart rendering failed", "error")
+                );
                 return context;
             },
         });
@@ -1933,8 +2316,8 @@ export function initializeChartStateManagement() {
 }
 
 /**
- * State-aware chart refresh function
- * Triggers re-render only if conditions are met
+ * State-aware chart refresh function Triggers re-render only if conditions are
+ * met
  */
 export function refreshChartsIfNeeded() {
     if (chartState.hasValidData && !chartState.isRendering) {
@@ -1945,18 +2328,22 @@ export function refreshChartsIfNeeded() {
 }
 
 /**
- * Process and set up zone data from FIT file for chart rendering
- * Extracts time in zone data from session messages and sets global variables
+ * Process and set up zone data from FIT file for chart rendering Extracts time
+ * in zone data from session messages and sets global variables
  */
 /**
- * Main chart rendering function with state management integration and comprehensive error handling
- * @param {Element|string} [targetContainer] - Optional container element or ID for chart rendering. If omitted, defaults to '#content-chart'.
+ * Main chart rendering function with state management integration and
+ * comprehensive error handling
+ *
+ * @param {Element | string} [targetContainer] - Optional container element or
+ *   ID for chart rendering. If omitted, defaults to '#content-chart'.
  * @param {{
- *  allowInactiveTab?: boolean,
- *  skipTabAbort?: boolean,
- *  skipControls?: boolean,
- *  renderMode?: "foreground"|"background"
+ *     allowInactiveTab?: boolean;
+ *     skipTabAbort?: boolean;
+ *     skipControls?: boolean;
+ *     renderMode?: "foreground" | "background";
  * }} [options]
+ *
  * @returns {Promise<boolean>} Success status of the rendering operation
  */
 export async function renderChartJS(targetContainer, options = {}) {
@@ -1969,12 +2356,15 @@ export async function renderChartJS(targetContainer, options = {}) {
     } = options && typeof options === "object" ? options : {};
 
     // Early exit if chart tab is not active to prevent unnecessary rendering (except in tests)
-    const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+    const isTestEnvironment =
+        typeof process !== "undefined" && process.env?.NODE_ENV === "test";
     if (!isTestEnvironment && !allowInactiveTab) {
         const { getState: getStateEarly } = getStateManagerSafe();
         const activeTab = getStateEarly("ui.activeTab");
         if (activeTab !== "chart" && activeTab !== "chartjs") {
-            console.log(`[ChartJS] Skipping render - chart tab not active (current tab: ${activeTab})`);
+            console.log(
+                `[ChartJS] Skipping render - chart tab not active (current tab: ${activeTab})`
+            );
             return false;
         }
     }
@@ -1996,10 +2386,18 @@ export async function renderChartJS(targetContainer, options = {}) {
                 ca.startRendering();
             } else {
                 // Fallback state updates to indicate rendering state
-                callSetState("charts.isRendering", true, { silent: false, source: "renderChartJS.start" });
-                const suppressLoading = Boolean(/** @type {any} */ (globalThis).__FFV_suppressLoadingState);
+                callSetState("charts.isRendering", true, {
+                    silent: false,
+                    source: "renderChartJS.start",
+                });
+                const suppressLoading = Boolean(
+                    /** @type {any} */ (globalThis).__FFV_suppressLoadingState
+                );
                 if (!suppressLoading) {
-                    callSetState("isLoading", true, { silent: false, source: "renderChartJS.start" });
+                    callSetState("isLoading", true, {
+                        silent: false,
+                        source: "renderChartJS.start",
+                    });
                 }
             }
         }
@@ -2034,11 +2432,18 @@ export async function renderChartJS(targetContainer, options = {}) {
             } else {
                 // Local fallback clear
                 if (windowAny._chartjsInstances) {
-                    for (const [index, chart] of windowAny._chartjsInstances.entries()) {
+                    for (const [
+                        index,
+                        chart,
+                    ] of windowAny._chartjsInstances.entries()) {
                         try {
-                            if (chart && typeof chart.destroy === "function") chart.destroy();
+                            if (chart && typeof chart.destroy === "function")
+                                chart.destroy();
                         } catch (error) {
-                            console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+                            console.warn(
+                                `[ChartJS] Error destroying chart ${index}:`,
+                                error
+                            );
                         }
                     }
                 }
@@ -2067,7 +2472,10 @@ export async function renderChartJS(targetContainer, options = {}) {
             const hasDataObject = Boolean(data && typeof data === "object");
             if (!hasDataObject) {
                 console.warn("[ChartJS] No FIT file data available for charts");
-                await notify("No FIT file data available for chart rendering", "warning");
+                await notify(
+                    "No FIT file data available for chart rendering",
+                    "warning"
+                );
                 safeCompleteRendering(false);
                 return false;
             }
@@ -2100,16 +2508,22 @@ export async function renderChartJS(targetContainer, options = {}) {
 
         // Validate record messages (main time-series data)
         const { recordMesgs } = globalData;
-        if (!recordMesgs || !Array.isArray(recordMesgs) || recordMesgs.length === 0) {
+        if (
+            !recordMesgs ||
+            !Array.isArray(recordMesgs) ||
+            recordMesgs.length === 0
+        ) {
             console.warn("[ChartJS] No record messages found in FIT data");
             await notify("No chartable data found in this FIT file", "info");
 
             // Still render the UI but show a helpful message using state-aware theming
             // Resolve target container (allow optional arg)
-            let container = /** @type {HTMLElement|null} */ (null);
+            let container = /** @type {HTMLElement | null} */ (null);
             if (targetContainer) {
                 if (typeof targetContainer === "string") {
-                    container = document.getElementById(targetContainer) || document.querySelector(targetContainer);
+                    container =
+                        document.getElementById(targetContainer) ||
+                        document.querySelector(targetContainer);
                 } else if (isElement(targetContainer)) {
                     container = /** @type {HTMLElement} */ (targetContainer);
                 }
@@ -2132,7 +2546,10 @@ export async function renderChartJS(targetContainer, options = {}) {
                     };
                 }
 
-                const { colors } = /** @type {{ colors: Record<string, string> }} */ (themeConfig);
+                const { colors } =
+                    /** @type {{ colors: Record<string, string> }} */ (
+                        themeConfig
+                    );
                 const {
                     backgroundAlt: colorsBackgroundAlt,
                     border: colorsBorder,
@@ -2140,9 +2557,18 @@ export async function renderChartJS(targetContainer, options = {}) {
                     textPrimary: colorsTextPrimary,
                 } = colors;
                 const safeText = sanitizeCssColorToken(colorsText, "#1e293b");
-                const safeTextPrimary = sanitizeCssColorToken(colorsTextPrimary, "#0f172a");
-                const safeBgAlt = sanitizeCssColorToken(colorsBackgroundAlt, "#ffffff");
-                const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
+                const safeTextPrimary = sanitizeCssColorToken(
+                    colorsTextPrimary,
+                    "#0f172a"
+                );
+                const safeBgAlt = sanitizeCssColorToken(
+                    colorsBackgroundAlt,
+                    "#ffffff"
+                );
+                const safeBorder = sanitizeCssColorToken(
+                    colorsBorder,
+                    "#e5e7eb"
+                );
 
                 container.replaceChildren();
 
@@ -2162,11 +2588,13 @@ export async function renderChartJS(targetContainer, options = {}) {
                 h3.style.marginBottom = "16px";
 
                 const p1 = document.createElement("p");
-                p1.textContent = "This FIT file does not contain time-series data that can be charted.";
+                p1.textContent =
+                    "This FIT file does not contain time-series data that can be charted.";
                 p1.style.marginBottom = "8px";
 
                 const p2 = document.createElement("p");
-                p2.textContent = "Try loading a FIT file from a fitness activity or workout.";
+                p2.textContent =
+                    "Try loading a FIT file from a fitness activity or workout.";
                 p2.style.marginBottom = "0";
 
                 wrapper.append(h3, p1, p2);
@@ -2176,7 +2604,9 @@ export async function renderChartJS(targetContainer, options = {}) {
             return false;
         }
 
-        console.log(`[ChartJS] Found ${recordMesgs.length} data points to process`);
+        console.log(
+            `[ChartJS] Found ${recordMesgs.length} data points to process`
+        );
 
         // Get the actual start time from the first valid record message (handle malformed entries)
         let activityStartTime = null;
@@ -2193,7 +2623,10 @@ export async function renderChartJS(targetContainer, options = {}) {
                 }
             }
             if (activityStartTime != null) {
-                console.log("[ChartJS] Activity start time:", activityStartTime);
+                console.log(
+                    "[ChartJS] Activity start time:",
+                    activityStartTime
+                );
             }
         }
 
@@ -2220,7 +2653,11 @@ export async function renderChartJS(targetContainer, options = {}) {
                 const modules = getRendererModulesSafe();
                 const tmp = document.createElement("div");
                 try {
-                    modules.renderEventMessagesChart?.(tmp, {}, activityStartTime);
+                    modules.renderEventMessagesChart?.(
+                        tmp,
+                        {},
+                        activityStartTime
+                    );
                 } catch {
                     /* ignore */
                 }
@@ -2230,7 +2667,10 @@ export async function renderChartJS(targetContainer, options = {}) {
                     /* ignore */
                 }
                 try {
-                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */ ({ visibilitySettings: {} }));
+                    modules.renderLapZoneCharts?.(
+                        tmp,
+                        /** @type {any} */ ({ visibilitySettings: {} })
+                    );
                 } catch {
                     /* ignore */
                 }
@@ -2240,8 +2680,15 @@ export async function renderChartJS(targetContainer, options = {}) {
                     /* ignore */
                 }
                 try {
-                    const labelsProbe = Array.isArray(recordMesgs) ? recordMesgs.map((_, i) => i) : [];
-                    modules.renderPerformanceAnalysisCharts?.(tmp, recordMesgs, labelsProbe, {});
+                    const labelsProbe = Array.isArray(recordMesgs)
+                        ? recordMesgs.map((_, i) => i)
+                        : [];
+                    modules.renderPerformanceAnalysisCharts?.(
+                        tmp,
+                        recordMesgs,
+                        labelsProbe,
+                        {}
+                    );
                 } catch {
                     /* ignore */
                 }
@@ -2252,21 +2699,33 @@ export async function renderChartJS(targetContainer, options = {}) {
 
         let result = false;
         try {
-            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime, {
-                skipControls,
-                skipTabAbort: skipTabAbort || allowInactiveTab,
-            });
+            result = await renderChartsWithData(
+                /** @type {any} */ (targetContainer),
+                recordMesgs,
+                activityStartTime,
+                {
+                    skipControls,
+                    skipTabAbort: skipTabAbort || allowInactiveTab,
+                }
+            );
         } catch (innerError) {
-            console.warn("[ChartJS] renderChartsWithData threw, continuing with graceful completion:", innerError);
+            console.warn(
+                "[ChartJS] renderChartsWithData threw, continuing with graceful completion:",
+                innerError
+            );
             // If we have valid data, treat inner errors as non-fatal so that overall rendering
             // lifecycle and performance updates still occur (tests expect success in these cases)
             result = Array.isArray(recordMesgs) && recordMesgs.length > 0;
         }
         renderTime = performance.now() - performanceStart;
-        console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
+        console.log(
+            `[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`
+        );
 
         // Complete rendering process through state actions
-        const chartCount = windowAny._chartjsInstances ? windowAny._chartjsInstances.length : 0;
+        const chartCount = windowAny._chartjsInstances
+            ? windowAny._chartjsInstances.length
+            : 0;
         // Success reflects inner renderer outcome; do not force success when DOM errors occur
         const success = result === true;
         try {
@@ -2314,7 +2773,8 @@ export async function renderChartJS(targetContainer, options = {}) {
                 };
             }
 
-            const { colors } = /** @type {{ colors: Record<string, string> }} */ (themeConfig);
+            const { colors } =
+                /** @type {{ colors: Record<string, string> }} */ (themeConfig);
             const {
                 backgroundAlt: colorsBackgroundAlt,
                 border: colorsBorder,
@@ -2322,7 +2782,10 @@ export async function renderChartJS(targetContainer, options = {}) {
                 text: colorsText,
             } = colors;
             const safeText = sanitizeCssColorToken(colorsText, "#1e293b");
-            const safeBgAlt = sanitizeCssColorToken(colorsBackgroundAlt, "#ffffff");
+            const safeBgAlt = sanitizeCssColorToken(
+                colorsBackgroundAlt,
+                "#ffffff"
+            );
             const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
             const safeError = sanitizeCssColorToken(colorsError, "#ef4444");
 
@@ -2369,7 +2832,9 @@ export async function renderChartJS(targetContainer, options = {}) {
             pre.style.border = `1px solid var(--color-border, ${safeBorder})`;
 
             const errAny = /** @type {any} */ (error);
-            pre.textContent = String(errAny?.stack || errAny?.message || errAny);
+            pre.textContent = String(
+                errAny?.stack || errAny?.message || errAny
+            );
 
             details.append(summary, pre);
             wrapper.append(h3, msg, details);
@@ -2380,13 +2845,14 @@ export async function renderChartJS(targetContainer, options = {}) {
 }
 
 /**
- * Resets the chart state tracking - call when loading a new FIT file
- * This ensures notifications are shown for the first render of a new file
+ * Resets the chart state tracking - call when loading a new FIT file This
+ * ensures notifications are shown for the first render of a new file
  */
 // resetChartNotificationState now imported and re-exported
 
 /**
  * Updates the previous chart state tracking
+ *
  * @param {number} chartCount - Current chart count
  * @param {number} visibleFields - Current visible field count
  * @param {number} timestamp - Current timestamp
@@ -2395,21 +2861,35 @@ export async function renderChartJS(targetContainer, options = {}) {
 
 /**
  * Renders charts with validated data
+ *
  * @private
  */
 /**
  * @param {HTMLElement} targetContainer - Container element for charts
- * @param {Array<Object>} recordMesgs - FIT file record messages
- * @param {number|Date|null} startTime - Activity start time used for label generation
- * @param {{ skipTabAbort?: boolean, skipControls?: boolean }} [options]
+ * @param {Object[]} recordMesgs - FIT file record messages
+ * @param {number | Date | null} startTime - Activity start time used for label
+ *   generation
+ * @param {{ skipTabAbort?: boolean; skipControls?: boolean }} [options]
+ *
  * @returns {Promise<boolean>} Success status
  */
-async function renderChartsWithData(targetContainer, recordMesgs, startTime, options = {}) {
+async function renderChartsWithData(
+    targetContainer,
+    recordMesgs,
+    startTime,
+    options = {}
+) {
     // Check if in test environment
-    const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
-    const { skipControls = false, skipTabAbort = false } = options && typeof options === "object" ? options : {};
+    const isTestEnvironment =
+        typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+    const isDevEnvironment =
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled =
+        isDevEnvironment &&
+        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+    const { skipControls = false, skipTabAbort = false } =
+        options && typeof options === "object" ? options : {};
 
     const renderStartTime = performance.now();
 
@@ -2438,7 +2918,11 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
         removeChartHoverEffects: removeChartHoverEffectsSafe,
     } = getHoverPluginsSafe();
     const showRenderNotificationSafe = getShowRenderNotificationSafe();
-    const { setState: ss_rcwd, updateState: us_rcwd, getState: gs_rcwd } = getStateManagerSafe();
+    const {
+        setState: ss_rcwd,
+        updateState: us_rcwd,
+        getState: gs_rcwd,
+    } = getStateManagerSafe();
 
     // Ensure settings dropdowns exist (skip in background pre-render mode)
     if (!skipControls) {
@@ -2446,7 +2930,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     }
 
     // Setup theme listener for real-time theme updates
-    const settingsWrapperElem = document.querySelector("#chartjs-settings-wrapper");
+    const settingsWrapperElem = document.querySelector(
+        "#chartjs-settings-wrapper"
+    );
     if (!skipControls && targetContainer && settingsWrapperElem) {
         setupChartThemeListener(targetContainer, settingsWrapperElem);
     }
@@ -2468,9 +2954,14 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
 			border-radius: 12px;
 		`;
 
-        const settingsWrapperElem2 = document.querySelector("#chartjs-settings-wrapper");
+        const settingsWrapperElem2 = document.querySelector(
+            "#chartjs-settings-wrapper"
+        );
         if (settingsWrapperElem2 && settingsWrapperElem2.parentNode) {
-            settingsWrapperElem2.parentNode.insertBefore(chartContainer, settingsWrapperElem2.nextSibling);
+            settingsWrapperElem2.parentNode.insertBefore(
+                chartContainer,
+                settingsWrapperElem2.nextSibling
+            );
         } else {
             document.body.append(chartContainer);
         }
@@ -2513,7 +3004,11 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
         };
     const normalizedMaxPoints = normalizeMaxPointsValue(maxPoints);
     const dataSettingsSignature = ensureDataSettingsSignature(settings);
-    const performanceTuning = resolvePerformanceSettings(recordMesgs.length, settings, dataSettingsSignature);
+    const performanceTuning = resolvePerformanceSettings(
+        recordMesgs.length,
+        settings,
+        dataSettingsSignature
+    );
     ss_rcwd(
         "charts.chartOptions",
         {
@@ -2542,8 +3037,12 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
             },
             zoom: {
                 drag: {
-                    backgroundColor: /** @type {any} */ (themeConfig).colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
-                    borderColor: /** @type {any} */ (themeConfig).colors.primary || "rgba(59, 130, 246, 0.8)",
+                    backgroundColor:
+                        /** @type {any} */ (themeConfig).colors.primaryAlpha ||
+                        "rgba(59, 130, 246, 0.2)",
+                    borderColor:
+                        /** @type {any} */ (themeConfig).colors.primary ||
+                        "rgba(59, 130, 246, 0.8)",
                     borderWidth: 2,
                     enabled: true,
                     modifierKey: "shift", // Require shift key for drag selection
@@ -2569,17 +3068,27 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     let visibleFieldCount = 0;
     const { renderableFields } = chartState;
     /** @type {string[]} */
-    let fieldsToRender = Array.isArray(renderableFields) ? [...renderableFields] : [];
+    let fieldsToRender = Array.isArray(renderableFields)
+        ? [...renderableFields]
+        : [];
     if (!fieldsToRender.length) {
         try {
-            const sample = Array.isArray(recordMesgs) ? recordMesgs.find((r) => r && typeof r === "object") || {} : {};
+            const sample = Array.isArray(recordMesgs)
+                ? recordMesgs.find((r) => r && typeof r === "object") || {}
+                : {};
             fieldsToRender = Object.keys(sample)
                 .filter((key) => key !== "timestamp")
-                .filter((key) => typeof (/** @type {any} */ (sample)[key]) === "number");
-            if (!fieldsToRender.length) {
-                fieldsToRender = ["speed", "elevation", "heart_rate", "power"].filter(
-                    (field) => field in /** @type {any} */ (sample)
+                .filter(
+                    (key) =>
+                        typeof (/** @type {any} */ (sample)[key]) === "number"
                 );
+            if (!fieldsToRender.length) {
+                fieldsToRender = [
+                    "speed",
+                    "elevation",
+                    "heart_rate",
+                    "power",
+                ].filter((field) => field in /** @type {any} */ (sample));
             }
         } catch {
             // ignore and proceed with empty, which will show no-data messages later
@@ -2596,7 +3105,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     // and makes the UI feel sluggish even for small record sets. Auto-tune animation for bulk renders.
     // NOTE: This does not change persisted settings; it only affects this render.
     const ESTIMATED_NON_METRIC_CHARTS = 12;
-    const estimatedChartCount = fieldsToRender.length + ESTIMATED_NON_METRIC_CHARTS;
+    const estimatedChartCount =
+        fieldsToRender.length + ESTIMATED_NON_METRIC_CHARTS;
     const effectiveAnimationStyle =
         animationStyle === "normal" && estimatedChartCount >= 20
             ? "none"
@@ -2616,7 +3126,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
         if (!isTestEnvironment && !skipTabAbort) {
             const currentTab = gs_rcwd("ui.activeTab");
             if (currentTab !== "chart" && currentTab !== "chartjs") {
-                console.log(`[ChartJS] Aborting render loop - tab switched to ${currentTab}`);
+                console.log(
+                    `[ChartJS] Aborting render loop - tab switched to ${currentTab}`
+                );
                 return false;
             }
         }
@@ -2629,13 +3141,22 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
             continue;
         }
 
-        const seriesEntry = getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert);
+        const seriesEntry = getFieldSeriesEntry(
+            recordMesgs,
+            field,
+            dataSettingsSignature,
+            convert
+        );
         const rawValueCount = seriesEntry.values.length;
         const {
             axisRanges,
             hasValidData,
             points: limitedPoints,
-        } = getCachedSeriesForSettings(seriesEntry, labels, normalizedMaxPoints);
+        } = getCachedSeriesForSettings(
+            seriesEntry,
+            labels,
+            normalizedMaxPoints
+        );
 
         if (isDebugLoggingEnabled) {
             console.log(
@@ -2645,7 +3166,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
 
         if (!hasValidData) {
             if (isDebugLoggingEnabled) {
-                console.log(`[ChartJS] Skipping field ${field} - no valid data after memoization`);
+                console.log(
+                    `[ChartJS] Skipping field ${field} - no valid data after memoization`
+                );
             }
             continue;
         }
@@ -2663,7 +3186,10 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
                 chartType,
                 customColors,
                 decimation: performanceTuning.decimation,
-                enableSpanGaps: shouldUseSpanGaps(performanceTuning, seriesEntry),
+                enableSpanGaps: shouldUseSpanGaps(
+                    performanceTuning,
+                    seriesEntry
+                ),
                 field,
                 fieldLabels,
                 interpolation,
@@ -2689,7 +3215,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     }
 
     // Event messages chart (respect state-managed visibility)
-    const eventMessagesVisibility = chartSettingsManager.getFieldVisibility("event_messages");
+    const eventMessagesVisibility =
+        chartSettingsManager.getFieldVisibility("event_messages");
     if (eventMessagesVisibility !== "hidden") {
         renderEventMessagesChartSafe(
             chartContainer,
@@ -2713,10 +3240,21 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
 
     // Render lap zone charts with enhanced state-managed visibility
     const lapZoneVisibility = {
-        hrIndividualVisible: chartSettingsManager.getFieldVisibility("hr_lap_zone_individual") !== "hidden",
-        hrStackedVisible: chartSettingsManager.getFieldVisibility("hr_lap_zone_stacked") !== "hidden",
-        powerIndividualVisible: chartSettingsManager.getFieldVisibility("power_lap_zone_individual") !== "hidden",
-        powerStackedVisible: chartSettingsManager.getFieldVisibility("power_lap_zone_stacked") !== "hidden",
+        hrIndividualVisible:
+            chartSettingsManager.getFieldVisibility(
+                "hr_lap_zone_individual"
+            ) !== "hidden",
+        hrStackedVisible:
+            chartSettingsManager.getFieldVisibility("hr_lap_zone_stacked") !==
+            "hidden",
+        powerIndividualVisible:
+            chartSettingsManager.getFieldVisibility(
+                "power_lap_zone_individual"
+            ) !== "hidden",
+        powerStackedVisible:
+            chartSettingsManager.getFieldVisibility(
+                "power_lap_zone_stacked"
+            ) !== "hidden",
     };
 
     // Only render if at least one lap zone chart type is visible
@@ -2766,7 +3304,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
         zoomPluginConfig,
     });
     // Count total rendered charts by checking the _chartjsInstances array
-    const totalChartsRendered = windowAny._chartjsInstances ? windowAny._chartjsInstances.length : 0;
+    const totalChartsRendered = windowAny._chartjsInstances
+        ? windowAny._chartjsInstances.length
+        : 0;
 
     // Handle no charts case
     if (totalChartsRendered === 0 && visibleFieldCount === 0) {
@@ -2780,7 +3320,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     // Performance logging with state updates using updateState
     const endTime = performance.now();
     const renderTime = endTime - renderStartTime;
-    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`);
+    console.log(
+        `[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`
+    );
 
     // Update performance metrics in state using updateState for efficiency
     {
@@ -2799,12 +3341,18 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     }
 
     // Check if this is a meaningful render that warrants a notification
-    const shouldShowNotification = showRenderNotificationSafe(totalChartsRendered, visibleFieldCount);
+    const shouldShowNotification = showRenderNotificationSafe(
+        totalChartsRendered,
+        visibleFieldCount
+    );
 
     if (shouldShowNotification && totalChartsRendered > 0) {
         // Check if chart tab is still active before showing notification (skip in tests)
         const activeTab = gs_rcwd("ui.activeTab");
-        const isChartTabActive = isTestEnvironment || activeTab === "chart" || activeTab === "chartjs";
+        const isChartTabActive =
+            isTestEnvironment ||
+            activeTab === "chart" ||
+            activeTab === "chartjs";
 
         if (isChartTabActive) {
             const message =
@@ -2818,10 +3366,16 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
             setTimeout(() => {
                 // Double-check tab is still active (skip in tests)
                 const currentTab = gs_rcwd("ui.activeTab");
-                if (isTestEnvironment || currentTab === "chart" || currentTab === "chartjs") {
+                if (
+                    isTestEnvironment ||
+                    currentTab === "chart" ||
+                    currentTab === "chartjs"
+                ) {
                     Promise.resolve().then(() => notify(message, "success"));
                 } else {
-                    console.log(`[ChartJS] Notification cancelled - tab switched to ${currentTab}`);
+                    console.log(
+                        `[ChartJS] Notification cancelled - tab switched to ${currentTab}`
+                    );
                 }
             }, 100);
 
@@ -2838,7 +3392,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
                 { merge: true, source: "renderChartsWithData" }
             );
         } else {
-            console.log(`[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`);
+            console.log(
+                `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
+            );
         }
     } else {
         console.log(
@@ -2885,7 +3441,11 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
     }
 
     // Update previous chart state for future comparisons (safe wrapper)
-    updatePreviousChartState(totalChartsRendered, visibleFieldCount, Date.now());
+    updatePreviousChartState(
+        totalChartsRendered,
+        visibleFieldCount,
+        Date.now()
+    );
 
     // Emit comprehensive chart status event with state information
     // Compute directly to avoid relying on chartState in tests that import during init
@@ -2926,12 +3486,13 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime, opt
 }
 
 /**
- * State-aware chart performance monitoring
- * Tracks and reports chart rendering performance metrics
+ * State-aware chart performance monitoring Tracks and reports chart rendering
+ * performance metrics
  */
 export const chartPerformanceMonitor = {
     /**
      * End performance tracking and record metrics
+     *
      * @param {string} trackingId - Tracking ID from startTracking
      * @param {Object} additionalData - Additional performance data
      */
@@ -2974,11 +3535,14 @@ export const chartPerformanceMonitor = {
             source: "chartPerformanceMonitor.endTracking",
         });
 
-        console.log(`[ChartJS Performance] ${trackingData.operation} completed in ${duration.toFixed(2)}ms`);
+        console.log(
+            `[ChartJS Performance] ${trackingData.operation} completed in ${duration.toFixed(2)}ms`
+        );
     },
 
     /**
      * Get performance summary for charts
+     *
      * @returns {Object} Performance metrics summary
      */
     getSummary() {
@@ -2987,10 +3551,15 @@ export const chartPerformanceMonitor = {
             return {};
         }
 
-        const durations = history.map((/** @type {any} */ record) => record.duration),
+        const durations = history.map(
+                (/** @type {any} */ record) => record.duration
+            ),
             avgDuration =
-                durations.reduce((/** @type {any} */ sum, /** @type {any} */ duration) => sum + duration, 0) /
-                durations.length,
+                durations.reduce(
+                    (/** @type {any} */ sum, /** @type {any} */ duration) =>
+                        sum + duration,
+                    0
+                ) / durations.length,
             maxDuration = Math.max(...durations),
             minDuration = Math.min(...durations);
 
@@ -3006,7 +3575,9 @@ export const chartPerformanceMonitor = {
 
     /**
      * Start performance tracking for a chart operation
+     *
      * @param {string} operation - Operation name
+     *
      * @returns {string} Performance tracking ID
      */
     startTracking(operation) {
@@ -3043,8 +3614,10 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
+                get: (/** @type {any} */ key) =>
+                    /** @type {any} */ (computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) =>
+                    /** @type {any} */ (computedStateManager).invalidate?.(key),
                 list: () => /** @type {any} */ (computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
@@ -3061,19 +3634,23 @@ if (globalThis.window !== undefined) {
 
             // Field visibility management
             fieldVisibility: {
-                get: (/** @type {any} */ field) => chartSettingsManager.getFieldVisibility(field),
+                get: (/** @type {any} */ field) =>
+                    chartSettingsManager.getFieldVisibility(field),
                 getAll: () => {
                     /** @type {any} */
                     const result = {};
                     if (Array.isArray(formatChartFields)) {
                         for (const field of formatChartFields) {
-                            result[field] = chartSettingsManager.getFieldVisibility(field);
+                            result[field] =
+                                chartSettingsManager.getFieldVisibility(field);
                         }
                     }
                     return result;
                 },
-                set: (/** @type {any} */ field, /** @type {any} */ visibility) =>
-                    chartSettingsManager.setFieldVisibility(field, visibility),
+                set: (
+                    /** @type {any} */ field,
+                    /** @type {any} */ visibility
+                ) => chartSettingsManager.setFieldVisibility(field, visibility),
             },
             // Chart instance management
             getChartInstances: () => windowAny._chartjsInstances || [],
@@ -3107,7 +3684,8 @@ if (globalThis.window !== undefined) {
 
             settings: chartSettingsManager,
 
-            subscribe: (/** @type {any} */ path, /** @type {any} */ callback) => subscribe(path, callback),
+            subscribe: (/** @type {any} */ path, /** @type {any} */ callback) =>
+                subscribe(path, callback),
 
             // Debounce testing utility
             testDebounce: (delay = 1000) => {
@@ -3121,11 +3699,18 @@ if (globalThis.window !== undefined) {
                 console.log("[ChartJS Dev] Testing state synchronization...");
 
                 // Debug state access (removed automatic theme test to prevent redundant updates)
-                console.log("[ChartJS Dev] State access available for manual testing");
+                console.log(
+                    "[ChartJS Dev] State access available for manual testing"
+                );
             },
         };
 
-        console.log("[ChartJS] Enhanced development tools available at windowAny.__chartjs_dev");
-        console.log("[ChartJS] Available commands:", Object.keys(windowAny.__chartjs_dev));
+        console.log(
+            "[ChartJS] Enhanced development tools available at windowAny.__chartjs_dev"
+        );
+        console.log(
+            "[ChartJS] Available commands:",
+            Object.keys(windowAny.__chartjs_dev)
+        );
     }
 }

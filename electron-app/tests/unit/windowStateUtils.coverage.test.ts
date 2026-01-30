@@ -4,7 +4,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("windowStateUtils.js - coverage uplift", () => {
-    const defaultState = { width: 1200, height: 800, minWidth: 800, minHeight: 600 };
+    const defaultState = {
+        width: 1200,
+        height: 800,
+        minWidth: 800,
+        minHeight: 600,
+    };
     let mockFs: any;
     let mockApp: any;
     let mockBrowserWindow: any;
@@ -42,7 +47,9 @@ describe("windowStateUtils.js - coverage uplift", () => {
             isDestroyed: vi.fn().mockReturnValue(false),
             isMinimized: vi.fn().mockReturnValue(false),
             isMaximized: vi.fn().mockReturnValue(false),
-            getBounds: vi.fn().mockReturnValue({ width: 1000, height: 700, x: 10, y: 20 }),
+            getBounds: vi
+                .fn()
+                .mockReturnValue({ width: 1000, height: 700, x: 10, y: 20 }),
             on: vi.fn(),
             once: vi.fn((_ev: string, cb: Function) => cb()),
             show: vi.fn(),
@@ -57,7 +64,10 @@ describe("windowStateUtils.js - coverage uplift", () => {
         mockBrowserWindow = BrowserWindow;
 
         vi.mock("fs", () => mockFs);
-        vi.mock("electron", () => ({ app: mockApp, BrowserWindow: mockBrowserWindow }));
+        vi.mock("electron", () => ({
+            app: mockApp,
+            BrowserWindow: mockBrowserWindow,
+        }));
 
         // Silence logs
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -82,16 +92,28 @@ describe("windowStateUtils.js - coverage uplift", () => {
         // Arrange persisted file
         // Re-mock fs with existing file and content
         vi.resetModules();
-        const fileData = JSON.stringify({ width: 500, height: 400, x: 5, y: 6 });
+        const fileData = JSON.stringify({
+            width: 500,
+            height: 400,
+            x: 5,
+            y: 6,
+        });
         const fs2 = {
-            existsSync: vi.fn().mockImplementation((p: string) => p.endsWith("window-state.json") || true),
+            existsSync: vi
+                .fn()
+                .mockImplementation(
+                    (p: string) => p.endsWith("window-state.json") || true
+                ),
             readFileSync: vi.fn().mockReturnValue(fileData),
             writeFileSync: vi.fn(),
             mkdirSync: vi.fn(),
             unlinkSync: vi.fn(),
         };
         vi.mock("fs", () => fs2 as any);
-        const electron2 = { app: { getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer") }, BrowserWindow: vi.fn() };
+        const electron2 = {
+            app: { getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer") },
+            BrowserWindow: vi.fn(),
+        };
         vi.mock("electron", () => electron2);
 
         const mod = await import("../../windowStateUtils.js");

@@ -44,21 +44,27 @@ describe("createAppMenu", () => {
                 "C:/Users/Test/Documents/activity1.fit",
                 "C:/Users/Test/Documents/activity2.fit",
             ]),
-            getShortRecentName: vi.fn((p: string) => p.split(/\\|\//g).slice(-2).join("\\")),
+            getShortRecentName: vi.fn((p: string) =>
+                p.split(/\\|\//g).slice(-2).join("\\")
+            ),
         }));
         // Do NOT reassign these spies — the electron mock captures the original references.
         // Instead, clear existing calls so expectations remain accurate per-test.
         const sendSpy = (globalThis as any).__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function") sendSpy.mockReset();
+        if (sendSpy && typeof sendSpy.mockReset === "function")
+            sendSpy.mockReset();
         else (globalThis as any).__electronSendSpy = vi.fn();
         const shellSpy = (globalThis as any).__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function") shellSpy.mockReset();
+        if (shellSpy && typeof shellSpy.mockReset === "function")
+            shellSpy.mockReset();
         else (globalThis as any).__electronShellOpenSpy = vi.fn();
         const shellShowSpy = (globalThis as any).__electronShellShowSpy;
-        if (shellShowSpy && typeof shellShowSpy.mockReset === "function") shellShowSpy.mockReset();
+        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
+            shellShowSpy.mockReset();
         else (globalThis as any).__electronShellShowSpy = vi.fn();
         const clipboardSpy = (globalThis as any).__electronClipboardWriteSpy;
-        if (clipboardSpy && typeof clipboardSpy.mockReset === "function") clipboardSpy.mockReset();
+        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
+            clipboardSpy.mockReset();
         else (globalThis as any).__electronClipboardWriteSpy = vi.fn();
         // Initialize deterministic global logs used by the hoisted mock wrappers
         (globalThis as any).__ipcCalls = [];
@@ -86,7 +92,9 @@ describe("createAppMenu", () => {
                             const calls = (globalThis as any).__ipcCalls || [];
                             calls.push(args);
                             (globalThis as any).__ipcCalls = calls;
-                            const fn = (globalThis as any).__electronSendSpy || vi.fn();
+                            const fn =
+                                (globalThis as any).__electronSendSpy ||
+                                vi.fn();
                             return fn(...args);
                         },
                     },
@@ -98,14 +106,16 @@ describe("createAppMenu", () => {
                     const calls = (globalThis as any).__shellOpenCalls || [];
                     calls.push(args);
                     (globalThis as any).__shellOpenCalls = calls;
-                    const fn = (globalThis as any).__electronShellOpenSpy || vi.fn();
+                    const fn =
+                        (globalThis as any).__electronShellOpenSpy || vi.fn();
                     return fn(...args);
                 },
                 showItemInFolder: (...args: any[]) => {
                     const calls = (globalThis as any).__shellRevealCalls || [];
                     calls.push(args);
                     (globalThis as any).__shellRevealCalls = calls;
-                    const fn = (globalThis as any).__electronShellShowSpy || vi.fn();
+                    const fn =
+                        (globalThis as any).__electronShellShowSpy || vi.fn();
                     return fn(...args);
                 },
             },
@@ -114,7 +124,9 @@ describe("createAppMenu", () => {
                     const calls = (globalThis as any).__clipboardWrites || [];
                     calls.push(args);
                     (globalThis as any).__clipboardWrites = calls;
-                    const fn = (globalThis as any).__electronClipboardWriteSpy || vi.fn();
+                    const fn =
+                        (globalThis as any).__electronClipboardWriteSpy ||
+                        vi.fn();
                     return fn(...args);
                 },
             },
@@ -132,7 +144,11 @@ describe("createAppMenu", () => {
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const mod = require("../../../utils/app/menu/createAppMenu.js");
-        return mod.createAppMenu as (mainWindow: any, currentTheme?: string, loadedFitFilePath?: string | null) => void;
+        return mod.createAppMenu as (
+            mainWindow: any,
+            currentTheme?: string,
+            loadedFitFilePath?: string | null
+        ) => void;
     }
 
     it("builds a menu with File/View/Settings/Help and recent files", () => {
@@ -140,18 +156,30 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
 
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect(tpl).toBeTruthy();
         const labels = (tpl || []).map((i: any) => i.label);
-        expect(labels).toEqual(expect.arrayContaining(["📁 File", "👁️ View", "⚙️ Settings", "❓ Help"]));
+        expect(labels).toEqual(
+            expect.arrayContaining([
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ])
+        );
 
         // Find Open Recent submenu and verify it contains mapped items
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         expect(fileMenu).toBeTruthy();
-        const openRecent = fileMenu.submenu.find((i: any) => i.label === "🕑 Open Recent");
+        const openRecent = fileMenu.submenu.find(
+            (i: any) => i.label === "🕑 Open Recent"
+        );
         expect(openRecent).toBeTruthy();
         const recentLabels = openRecent.submenu.map((i: any) => i.label);
-        expect(recentLabels.some((l: string) => l.includes("activity1.fit"))).toBe(true);
+        expect(
+            recentLabels.some((l: string) => l.includes("activity1.fit"))
+        ).toBe(true);
     });
 
     it("enables Summary Columns when a file is loaded and triggers IPC on click", () => {
@@ -159,10 +187,15 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect(tpl).toBeTruthy();
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const summary = settingsMenu.submenu.find((i: any) => i.label === "📊 Summary Columns...");
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const summary = settingsMenu.submenu.find(
+            (i: any) => i.label === "📊 Summary Columns..."
+        );
         expect(summary.enabled).toBe(true);
         summary.click();
         expect(send).toHaveBeenCalledWith("open-summary-column-selector");
@@ -173,13 +206,22 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const openRecent = fileMenu.submenu.find((i: any) => i.label === "🕑 Open Recent");
-        const clearItem = openRecent.submenu.find((i: any) => i.label === "🧹 Clear Recent Files");
+        const openRecent = fileMenu.submenu.find(
+            (i: any) => i.label === "🕑 Open Recent"
+        );
+        const clearItem = openRecent.submenu.find(
+            (i: any) => i.label === "🧹 Clear Recent Files"
+        );
         expect(clearItem.enabled).toBe(true);
         clearItem.click();
-        expect(send).toHaveBeenCalledWith("show-notification", "Recent files cleared.", "info");
+        expect(send).toHaveBeenCalledWith(
+            "show-notification",
+            "Recent files cleared.",
+            "info"
+        );
         expect(send).toHaveBeenCalledWith("unload-fit-file");
     });
 
@@ -187,7 +229,8 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const labels = [
             "➕ Add FIT Files as Overlays...",
@@ -201,13 +244,20 @@ describe("createAppMenu", () => {
             expect(item.enabled).toBe(false);
         }
         const revealItem = fileMenu.submenu.find(
-            (i: any) => typeof i.label === "string" && i.label.startsWith("📂 Reveal")
+            (i: any) =>
+                typeof i.label === "string" && i.label.startsWith("📂 Reveal")
         );
         expect(revealItem?.enabled).toBe(false);
-        const copyItem = fileMenu.submenu.find((i: any) => i.label === "📋 Copy File Path");
+        const copyItem = fileMenu.submenu.find(
+            (i: any) => i.label === "📋 Copy File Path"
+        );
         expect(copyItem.enabled).toBe(false);
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const summary = settingsMenu.submenu.find((i: any) => i.label === "📊 Summary Columns...");
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const summary = settingsMenu.submenu.find(
+            (i: any) => i.label === "📊 Summary Columns..."
+        );
         expect(summary.enabled).toBe(false);
     });
 
@@ -216,13 +266,19 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const openRecent = fileMenu.submenu.find((i: any) => i.label === "🕑 Open Recent");
+        const openRecent = fileMenu.submenu.find(
+            (i: any) => i.label === "🕑 Open Recent"
+        );
         const firstRecent = openRecent.submenu[0];
         expect(typeof firstRecent.click).toBe("function");
         firstRecent.click();
-        expect(send).toHaveBeenCalledWith("open-recent-file", "C:/Users/Test/Documents/activity1.fit");
+        expect(send).toHaveBeenCalledWith(
+            "open-recent-file",
+            "C:/Users/Test/Documents/activity1.fit"
+        );
     });
 
     it("theme radio items reflect selection and send set-theme on click", () => {
@@ -231,11 +287,18 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         // Start with light theme
         createAppMenu(fakeWin as any, "light", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const themeMenu = settingsMenu.submenu.find((i: any) => i.label === "🎨 Theme");
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const themeMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "🎨 Theme"
+        );
         const dark = themeMenu.submenu.find((i: any) => i.label === "🌑 Dark");
-        const light = themeMenu.submenu.find((i: any) => i.label === "🌕 Light");
+        const light = themeMenu.submenu.find(
+            (i: any) => i.label === "🌕 Light"
+        );
         expect(light.checked).toBe(true);
         expect(dark.checked).toBe(false);
         // Click dark and expect event
@@ -252,11 +315,18 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const decoderMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "💿 Decoder Options"
+        );
         // Find an option, e.g., includeUnknownData
-        const includeUnknown = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        const includeUnknown = decoderMenu.submenu.find((i: any) =>
+            String(i.label).includes("includeUnknownData")
+        );
         expect(includeUnknown.checked).toBe(true);
         includeUnknown.click({ checked: false });
         expect(send).toHaveBeenCalledWith(
@@ -269,16 +339,27 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        let tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        let settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        let decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
-        const includeUnknown = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        let tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        let settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        let decoderMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "💿 Decoder Options"
+        );
+        const includeUnknown = decoderMenu.submenu.find((i: any) =>
+            String(i.label).includes("includeUnknownData")
+        );
         includeUnknown.click({ checked: false });
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
         tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
-        const refreshed = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        decoderMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "💿 Decoder Options"
+        );
+        const refreshed = decoderMenu.submenu.find((i: any) =>
+            String(i.label).includes("includeUnknownData")
+        );
         expect(refreshed.checked).toBe(false);
     });
 
@@ -287,15 +368,26 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
-        const accessMenu = viewMenu.submenu.find((i: any) => i.label === "♿ Accessibility");
-        const fontSize = accessMenu.submenu.find((i: any) => i.label === "🔡 Font Size");
-        const xs = fontSize.submenu.find((i: any) => i.label === "🅰️ Extra Small");
+        const accessMenu = viewMenu.submenu.find(
+            (i: any) => i.label === "♿ Accessibility"
+        );
+        const fontSize = accessMenu.submenu.find(
+            (i: any) => i.label === "🔡 Font Size"
+        );
+        const xs = fontSize.submenu.find(
+            (i: any) => i.label === "🅰️ Extra Small"
+        );
         xs.click();
         expect(send).toHaveBeenCalledWith("set-font-size", "xsmall");
-        const hc = accessMenu.submenu.find((i: any) => i.label === "🎨 High Contrast Mode");
-        const black = hc.submenu.find((i: any) => i.label === "⬛ Black (Default)");
+        const hc = accessMenu.submenu.find(
+            (i: any) => i.label === "🎨 High Contrast Mode"
+        );
+        const black = hc.submenu.find(
+            (i: any) => i.label === "⬛ Black (Default)"
+        );
         black.click();
         expect(send).toHaveBeenCalledWith("set-high-contrast", "black");
     });
@@ -305,17 +397,26 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
-        const docs = help.submenu.find((i: any) => i.label === "📖 Documentation");
-        const repo = help.submenu.find((i: any) => i.label === "🌐 GitHub Repository");
-        const issues = help.submenu.find((i: any) => i.label === "❗Report an Issue");
+        const docs = help.submenu.find(
+            (i: any) => i.label === "📖 Documentation"
+        );
+        const repo = help.submenu.find(
+            (i: any) => i.label === "🌐 GitHub Repository"
+        );
+        const issues = help.submenu.find(
+            (i: any) => i.label === "❗Report an Issue"
+        );
         // Ensure items exist and are callable. Electron wiring for shell is mocked elsewhere and can be flaky; we assert structure.
         expect(typeof docs.click).toBe("function");
         expect(typeof repo.click).toBe("function");
         expect(typeof issues.click).toBe("function");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
-        const shortcuts = help.submenu.find((i: any) => i.label === "⌨️ Keyboard Shortcuts");
+        const shortcuts = help.submenu.find(
+            (i: any) => i.label === "⌨️ Keyboard Shortcuts"
+        );
         expect(typeof about.click).toBe("function");
         expect(typeof shortcuts.click).toBe("function");
     });
@@ -324,26 +425,37 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
-        const shortcuts = help.submenu.find((i: any) => i.label === "⌨️ Keyboard Shortcuts");
+        const shortcuts = help.submenu.find(
+            (i: any) => i.label === "⌨️ Keyboard Shortcuts"
+        );
         expect(typeof about.click).toBe("function");
         expect(typeof shortcuts.click).toBe("function");
         // Exercise click handlers and assert IPC
         about.click();
         shortcuts.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-keyboard-shortcuts"]]));
+        expect(ipcCalls).toEqual(
+            expect.arrayContaining([
+                ["menu-about"],
+                ["menu-keyboard-shortcuts"],
+            ])
+        );
     });
 
     it("file > Close Window item is present and clickable", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const closeItem = fileMenu.submenu.find((i: any) => i.label === "🚪 Close Window");
+        const closeItem = fileMenu.submenu.find(
+            (i: any) => i.label === "🚪 Close Window"
+        );
         expect(typeof closeItem.click).toBe("function");
     });
 
@@ -357,17 +469,24 @@ describe("createAppMenu", () => {
         // Also reset the default mock from beforeEach so it doesn't override
         vi.doMock("../../../utils/files/recent/recentFiles", () => ({
             loadRecentFiles: vi.fn(() => []),
-            getShortRecentName: vi.fn((p: string) => (p ? p.split(/\\|\//g).pop() : "")),
+            getShortRecentName: vi.fn((p: string) =>
+                p ? p.split(/\\|\//g).pop() : ""
+            ),
         }));
 
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect(Array.isArray(tpl)).toBe(true);
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const openRecent = fileMenu.submenu.find((i: any) => i.label === "🕑 Open Recent");
-        const clearItem = openRecent.submenu.find((i: any) => i.label === "🧹 Clear Recent Files");
+        const openRecent = fileMenu.submenu.find(
+            (i: any) => i.label === "🕑 Open Recent"
+        );
+        const clearItem = openRecent.submenu.find(
+            (i: any) => i.label === "🧹 Clear Recent Files"
+        );
         // The most reliable signal of an empty recent list is the Clear item being disabled
         expect(clearItem.enabled).toBe(false);
     });
@@ -377,13 +496,22 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const unloadItem = fileMenu.submenu.find((i: any) => i.label === "❌ Unload File");
+        const unloadItem = fileMenu.submenu.find(
+            (i: any) => i.label === "❌ Unload File"
+        );
         unloadItem.click();
-        const saveAsItem = fileMenu.submenu.find((i: any) => i.label === "💾 Save As...");
-        const exportItem = fileMenu.submenu.find((i: any) => i.label === "📤 Export...");
-        const printItem = fileMenu.submenu.find((i: any) => i.label === "🖨️ Print...");
+        const saveAsItem = fileMenu.submenu.find(
+            (i: any) => i.label === "💾 Save As..."
+        );
+        const exportItem = fileMenu.submenu.find(
+            (i: any) => i.label === "📤 Export..."
+        );
+        const printItem = fileMenu.submenu.find(
+            (i: any) => i.label === "🖨️ Print..."
+        );
         saveAsItem.click();
         exportItem.click();
         printItem.click();
@@ -398,9 +526,12 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const openItem = fileMenu.submenu.find((i: any) => i.label === "📂 Open FIT File...");
+        const openItem = fileMenu.submenu.find(
+            (i: any) => i.label === "📂 Open FIT File..."
+        );
         openItem.click();
         expect(send).toHaveBeenCalledWith("menu-open-file");
     });
@@ -410,9 +541,12 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const overlayItem = fileMenu.submenu.find((i: any) => i.label === "➕ Add FIT Files as Overlays...");
+        const overlayItem = fileMenu.submenu.find(
+            (i: any) => i.label === "➕ Add FIT Files as Overlays..."
+        );
         expect(overlayItem.enabled).toBe(true);
         overlayItem.click();
         expect(send).toHaveBeenCalledWith("menu-open-overlay");
@@ -424,10 +558,12 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         const filePath = "C:/Users/Test/Documents/activity1.fit";
         createAppMenu(fakeWin as any, "dark", filePath);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const revealItem = fileMenu.submenu.find(
-            (i: any) => typeof i.label === "string" && i.label.startsWith("📂 Reveal")
+            (i: any) =>
+                typeof i.label === "string" && i.label.startsWith("📂 Reveal")
         );
         expect(revealItem.enabled).toBe(true);
         revealItem.click();
@@ -441,13 +577,21 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         const filePath = "C:/Users/Test/Documents/activity2.fit";
         createAppMenu(fakeWin as any, "dark", filePath);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const copyItem = fileMenu.submenu.find((i: any) => i.label === "📋 Copy File Path");
+        const copyItem = fileMenu.submenu.find(
+            (i: any) => i.label === "📋 Copy File Path"
+        );
         copyItem.click();
-        const clipboardSpy = (globalThis as any).__electronClipboardWriteSpy as Mock;
+        const clipboardSpy = (globalThis as any)
+            .__electronClipboardWriteSpy as Mock;
         expect(clipboardSpy).toHaveBeenCalledWith(filePath);
-        expect(send).toHaveBeenCalledWith("show-notification", "File path copied to clipboard.", "success");
+        expect(send).toHaveBeenCalledWith(
+            "show-notification",
+            "File path copied to clipboard.",
+            "success"
+        );
     });
 
     it("theme can toggle to light and sends set-theme", () => {
@@ -456,10 +600,17 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         // Start dark then choose Light
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const themeMenu = settingsMenu.submenu.find((i: any) => i.label === "🎨 Theme");
-        const light = themeMenu.submenu.find((i: any) => i.label === "🌕 Light");
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const themeMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "🎨 Theme"
+        );
+        const light = themeMenu.submenu.find(
+            (i: any) => i.label === "🌕 Light"
+        );
         light.click();
         expect(send).toHaveBeenCalledWith("set-theme", "light");
     });
@@ -469,10 +620,15 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
-        const accessMenu = viewMenu.submenu.find((i: any) => i.label === "♿ Accessibility");
-        const fontSize = accessMenu.submenu.find((i: any) => i.label === "🔡 Font Size");
+        const accessMenu = viewMenu.submenu.find(
+            (i: any) => i.label === "♿ Accessibility"
+        );
+        const fontSize = accessMenu.submenu.find(
+            (i: any) => i.label === "🔡 Font Size"
+        );
         const sizes = [
             { label: "🅰️ Extra Small", val: "xsmall" },
             { label: "🔠 Small", val: "small" },
@@ -492,12 +648,19 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
-        const accessMenu = viewMenu.submenu.find((i: any) => i.label === "♿ Accessibility");
-        const hc = accessMenu.submenu.find((i: any) => i.label === "🎨 High Contrast Mode");
+        const accessMenu = viewMenu.submenu.find(
+            (i: any) => i.label === "♿ Accessibility"
+        );
+        const hc = accessMenu.submenu.find(
+            (i: any) => i.label === "🎨 High Contrast Mode"
+        );
         // Verify all options exist and are clickable
-        const black = hc.submenu.find((i: any) => i.label === "⬛ Black (Default)");
+        const black = hc.submenu.find(
+            (i: any) => i.label === "⬛ Black (Default)"
+        );
         const white = hc.submenu.find((i: any) => i.label === "⬜ White");
         const yellow = hc.submenu.find((i: any) => i.label === "🟨 Yellow");
         const off = hc.submenu.find((i: any) => i.label === "🚫 Off");
@@ -514,11 +677,20 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
-        const accessMenu = viewMenu.submenu.find((i: any) => i.label === "♿ Accessibility");
-        const hc = accessMenu.submenu.find((i: any) => i.label === "🎨 High Contrast Mode");
-        for (const lab of ["⬜ White", "🟨 Yellow", "🚫 Off"]) {
+        const accessMenu = viewMenu.submenu.find(
+            (i: any) => i.label === "♿ Accessibility"
+        );
+        const hc = accessMenu.submenu.find(
+            (i: any) => i.label === "🎨 High Contrast Mode"
+        );
+        for (const lab of [
+            "⬜ White",
+            "🟨 Yellow",
+            "🚫 Off",
+        ]) {
             const item = hc.submenu.find((i: any) => i.label === lab);
             expect(typeof item.click).toBe("function");
         }
@@ -528,11 +700,18 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
-        const docs = help.submenu.find((i: any) => i.label === "📖 Documentation");
-        const repo = help.submenu.find((i: any) => i.label === "🌐 GitHub Repository");
-        const issues = help.submenu.find((i: any) => i.label === "❗Report an Issue");
+        const docs = help.submenu.find(
+            (i: any) => i.label === "📖 Documentation"
+        );
+        const repo = help.submenu.find(
+            (i: any) => i.label === "🌐 GitHub Repository"
+        );
+        const issues = help.submenu.find(
+            (i: any) => i.label === "❗Report an Issue"
+        );
         expect(typeof docs.click).toBe("function");
         expect(typeof repo.click).toBe("function");
         expect(typeof issues.click).toBe("function");
@@ -540,7 +719,9 @@ describe("createAppMenu", () => {
         docs.click();
         repo.click();
         issues.click();
-        const urls = ((globalThis as any).__shellOpenCalls || []).map((c: any[]) => c[0]);
+        const urls = ((globalThis as any).__shellOpenCalls || []).map(
+            (c: any[]) => c[0]
+        );
         expect(urls.some((u: string) => /#readme/.test(u))).toBe(true);
         expect(urls.some((u: string) => /FitFileViewer$/.test(u))).toBe(true);
         expect(urls.some((u: string) => /issues$/.test(u))).toBe(true);
@@ -550,10 +731,13 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
-        const shortcuts = help.submenu.find((i: any) => i.label === "⌨️ Keyboard Shortcuts");
+        const shortcuts = help.submenu.find(
+            (i: any) => i.label === "⌨️ Keyboard Shortcuts"
+        );
         expect(typeof about.click).toBe("function");
         expect(typeof shortcuts.click).toBe("function");
     });
@@ -562,9 +746,12 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const closeItem = fileMenu.submenu.find((i: any) => i.label === "🚪 Close Window");
+        const closeItem = fileMenu.submenu.find(
+            (i: any) => i.label === "🚪 Close Window"
+        );
         expect(typeof closeItem.click).toBe("function");
     });
 
@@ -573,14 +760,19 @@ describe("createAppMenu", () => {
         // No need to depend on a specific window's send spy because the handler
         // uses BrowserWindow.getFocusedWindow() first; instead assert via global IPC log
         createAppMenu({ webContents: { send: vi.fn() } } as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
-        const restart = help.submenu.find((i: any) => i.id === "restart-update");
+        const restart = help.submenu.find(
+            (i: any) => i.id === "restart-update"
+        );
         expect(restart.enabled).toBe(false);
         // Call handler directly to exercise branch
         restart.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-restart-update"]]));
+        expect(ipcCalls).toEqual(
+            expect.arrayContaining([["menu-restart-update"]])
+        );
     });
 
     it("exposes template via global when Menu API is unavailable", () => {
@@ -639,9 +831,14 @@ describe("createAppMenu", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const check = settingsMenu.submenu.find((i: any) => i.label === "🔄 Check for Updates...");
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const check = settingsMenu.submenu.find(
+            (i: any) => i.label === "🔄 Check for Updates..."
+        );
         check.click();
         expect(send).toHaveBeenCalledWith("menu-check-for-updates");
     });
@@ -687,14 +884,18 @@ describe("createAppMenu - additional robust branches", () => {
                 "C:/Users/Test/Documents/activity1.fit",
                 "C:/Users/Test/Documents/activity2.fit",
             ]),
-            getShortRecentName: vi.fn((p: string) => p.split(/\\|\//g).slice(-2).join("\\")),
+            getShortRecentName: vi.fn((p: string) =>
+                p.split(/\\|\//g).slice(-2).join("\\")
+            ),
         }));
         // reset spies and call logs
         const sendSpy = (globalThis as any).__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function") sendSpy.mockReset();
+        if (sendSpy && typeof sendSpy.mockReset === "function")
+            sendSpy.mockReset();
         else (globalThis as any).__electronSendSpy = vi.fn();
         const shellSpy = (globalThis as any).__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function") shellSpy.mockReset();
+        if (shellSpy && typeof shellSpy.mockReset === "function")
+            shellSpy.mockReset();
         else (globalThis as any).__electronShellOpenSpy = vi.fn();
         (globalThis as any).__ipcCalls = [];
         (globalThis as any).__shellOpenCalls = [];
@@ -718,7 +919,9 @@ describe("createAppMenu - additional robust branches", () => {
                             const calls = (globalThis as any).__ipcCalls || [];
                             calls.push(args);
                             (globalThis as any).__ipcCalls = calls;
-                            const fn = (globalThis as any).__electronSendSpy || vi.fn();
+                            const fn =
+                                (globalThis as any).__electronSendSpy ||
+                                vi.fn();
                             return fn(...args);
                         },
                     },
@@ -730,7 +933,8 @@ describe("createAppMenu - additional robust branches", () => {
                     const calls = (globalThis as any).__shellOpenCalls || [];
                     calls.push(args);
                     (globalThis as any).__shellOpenCalls = calls;
-                    const fn = (globalThis as any).__electronShellOpenSpy || vi.fn();
+                    const fn =
+                        (globalThis as any).__electronShellOpenSpy || vi.fn();
                     return fn(...args);
                 },
             },
@@ -757,12 +961,16 @@ describe("createAppMenu - additional robust branches", () => {
     it("invokes BrowserWindow.close() from File > Close Window", () => {
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const closeItem = fileMenu.submenu.find((i: any) => i.label === "🚪 Close Window");
+        const closeItem = fileMenu.submenu.find(
+            (i: any) => i.label === "🚪 Close Window"
+        );
         // Instead of spying a specific instance (which may be recreated), stub getFocusedWindow to return
         // a deterministic object with a spy for close, ensuring the handler calls it
-        const originalBW = (globalThis as any).__electronHoistedMock.BrowserWindow;
+        const originalBW = (globalThis as any).__electronHoistedMock
+            .BrowserWindow;
         const winMock = { close: vi.fn() };
         (globalThis as any).__electronHoistedMock.BrowserWindow = {
             ...originalBW,
@@ -776,11 +984,18 @@ describe("createAppMenu - additional robust branches", () => {
     it("external help links call shell.openExternal with correct URLs", () => {
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
-        const docs = help.submenu.find((i: any) => i.label === "📖 Documentation");
-        const repo = help.submenu.find((i: any) => i.label === "🌐 GitHub Repository");
-        const issues = help.submenu.find((i: any) => i.label === "❗Report an Issue");
+        const docs = help.submenu.find(
+            (i: any) => i.label === "📖 Documentation"
+        );
+        const repo = help.submenu.find(
+            (i: any) => i.label === "🌐 GitHub Repository"
+        );
+        const issues = help.submenu.find(
+            (i: any) => i.label === "❗Report an Issue"
+        );
         docs.click();
         repo.click();
         issues.click();
@@ -795,14 +1010,24 @@ describe("createAppMenu - additional robust branches", () => {
     it("decoder options send IPC via BrowserWindow fallback when no mainWindow", () => {
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", "C:/x.fit");
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
-        const includeUnknown = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const decoderMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "💿 Decoder Options"
+        );
+        const includeUnknown = decoderMenu.submenu.find((i: any) =>
+            String(i.label).includes("includeUnknownData")
+        );
         includeUnknown.click({ checked: false });
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
         const found = ipcCalls.some(
-            (c) => c[0] === "decoder-options-changed" && c[1] && c[1].includeUnknownData === false
+            (c) =>
+                c[0] === "decoder-options-changed" &&
+                c[1] &&
+                c[1].includeUnknownData === false
         );
         expect(found).toBe(true);
     });
@@ -810,10 +1035,15 @@ describe("createAppMenu - additional robust branches", () => {
     it("high contrast white/yellow/off send IPC via BrowserWindow fallback", () => {
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
-        const accessMenu = viewMenu.submenu.find((i: any) => i.label === "♿ Accessibility");
-        const hc = accessMenu.submenu.find((i: any) => i.label === "🎨 High Contrast Mode");
+        const accessMenu = viewMenu.submenu.find(
+            (i: any) => i.label === "♿ Accessibility"
+        );
+        const hc = accessMenu.submenu.find(
+            (i: any) => i.label === "🎨 High Contrast Mode"
+        );
         const white = hc.submenu.find((i: any) => i.label === "⬜ White");
         const yellow = hc.submenu.find((i: any) => i.label === "🟨 Yellow");
         const off = hc.submenu.find((i: any) => i.label === "🚫 Off");
@@ -835,16 +1065,20 @@ describe("createAppMenu - additional robust branches", () => {
         const send = vi.fn();
         const fakeWin = { webContents: { send } };
         // Force getFocusedWindow to return null
-        const originalBW = (globalThis as any).__electronHoistedMock.BrowserWindow;
+        const originalBW = (globalThis as any).__electronHoistedMock
+            .BrowserWindow;
         (globalThis as any).__electronHoistedMock.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => null,
         };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         help.submenu.find((i: any) => i.label === "ℹ️ About").click();
-        help.submenu.find((i: any) => i.label === "⌨️ Keyboard Shortcuts").click();
+        help.submenu
+            .find((i: any) => i.label === "⌨️ Keyboard Shortcuts")
+            .click();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const hc = viewMenu.submenu
             .find((i: any) => i.label === "♿ Accessibility")
@@ -872,7 +1106,9 @@ describe("createAppMenu - additional robust branches", () => {
                 setApplicationMenu: vi.fn(),
             },
         };
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const createAppMenu = importCreateAppMenu();
         createAppMenu({ webContents: { send: vi.fn() } } as any, "dark", null);
         expect(errorSpy).toHaveBeenCalled();
@@ -892,16 +1128,21 @@ describe("createAppMenu - additional robust branches", () => {
         vi.resetModules();
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         // First menu should be the App menu on macOS
         const appMenu = (tpl || [])[0];
         expect(appMenu.label).toBe("FitFileViewer");
         const about = appMenu.submenu.find((i: any) => i.label === "About");
-        const prefs = appMenu.submenu.find((i: any) => i.label === "Preferences...");
+        const prefs = appMenu.submenu.find(
+            (i: any) => i.label === "Preferences..."
+        );
         about.click();
         prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-preferences"]]));
+        expect(ipcCalls).toEqual(
+            expect.arrayContaining([["menu-about"], ["menu-preferences"]])
+        );
         // restore
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
@@ -919,16 +1160,21 @@ describe("createAppMenu - additional robust branches", () => {
         vi.resetModules();
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const appMenu = (tpl || [])[0];
         expect(appMenu.label).toBe("App");
         // Ensure items are still functional
         const about = appMenu.submenu.find((i: any) => i.label === "About");
-        const prefs = appMenu.submenu.find((i: any) => i.label === "Preferences...");
+        const prefs = appMenu.submenu.find(
+            (i: any) => i.label === "Preferences..."
+        );
         about.click();
         prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-preferences"]]));
+        expect(ipcCalls).toEqual(
+            expect.arrayContaining([["menu-about"], ["menu-preferences"]])
+        );
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
     });
@@ -945,7 +1191,8 @@ describe("createAppMenu - additional robust branches", () => {
         (globalThis as any).__electronHoistedMock = {
             ...original,
             Menu: {
-                buildFromTemplate: (template: any[]) => ({ items: template }) as any,
+                buildFromTemplate: (template: any[]) =>
+                    ({ items: template }) as any,
                 setApplicationMenu: setAppMenuSpy,
             },
         };
@@ -964,12 +1211,23 @@ describe("createAppMenu - additional robust branches", () => {
 
     it("uses default theme from getTheme when currentTheme is undefined", () => {
         const createAppMenu = importCreateAppMenu();
-        createAppMenu({ webContents: { send: vi.fn() } } as any, undefined, null);
-        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const themeMenu = settingsMenu.submenu.find((i: any) => i.label === "🎨 Theme");
+        createAppMenu(
+            { webContents: { send: vi.fn() } } as any,
+            undefined,
+            null
+        );
+        const tpl =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const settingsMenu = (tpl || []).find(
+            (i: any) => i.label === "⚙️ Settings"
+        );
+        const themeMenu = settingsMenu.submenu.find(
+            (i: any) => i.label === "🎨 Theme"
+        );
         const dark = themeMenu.submenu.find((i: any) => i.label === "🌑 Dark");
-        const light = themeMenu.submenu.find((i: any) => i.label === "🌕 Light");
+        const light = themeMenu.submenu.find(
+            (i: any) => i.label === "🌕 Light"
+        );
         // getTheme returns 'dark' by default; ensure dark is checked
         expect(dark.checked).toBe(true);
         expect(light.checked).toBe(false);
@@ -979,24 +1237,35 @@ describe("createAppMenu - additional robust branches", () => {
         const originalDefineProperty = Object.defineProperty;
         const defineSpy = vi
             .spyOn(Object, "defineProperty")
-            .mockImplementation((target: any, property: PropertyKey, descriptor: PropertyDescriptor) => {
-                if (property === "__FFV_createAppMenuExports") {
-                    throw new Error("defineProperty blocked");
+            .mockImplementation(
+                (
+                    target: any,
+                    property: PropertyKey,
+                    descriptor: PropertyDescriptor
+                ) => {
+                    if (property === "__FFV_createAppMenuExports") {
+                        throw new Error("defineProperty blocked");
+                    }
+                    return originalDefineProperty(target, property, descriptor);
                 }
-                return originalDefineProperty(target, property, descriptor);
-            });
+            );
 
         try {
             delete (globalThis as any).__FFV_createAppMenuExports;
-            const modulePath = require.resolve("../../../utils/app/menu/createAppMenu.js");
+            const modulePath =
+                require.resolve("../../../utils/app/menu/createAppMenu.js");
             delete require.cache[modulePath];
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const mod = require("../../../utils/app/menu/createAppMenu.js");
             expect(typeof mod.createAppMenu).toBe("function");
             const defineMock = defineSpy as unknown as Mock;
-            const calls = defineMock.mock.calls as Array<[any, PropertyKey, PropertyDescriptor]>;
+            const calls = defineMock.mock.calls as Array<
+                [any, PropertyKey, PropertyDescriptor]
+            >;
             expect(calls.length).toBeGreaterThan(0);
-            const targetedIndex = calls.findIndex(([, prop]) => prop === "__FFV_createAppMenuExports");
+            const targetedIndex = calls.findIndex(
+                ([, prop]) => prop === "__FFV_createAppMenuExports"
+            );
             expect(targetedIndex).toBeGreaterThanOrEqual(0);
             const results = defineMock.mock.results as Array<{ type: string }>;
             expect(results[targetedIndex]?.type).toBe("throw");
@@ -1030,10 +1299,13 @@ describe("createAppMenu - additional robust branches", () => {
         const electronMock = (globalThis as any).__electronHoistedMock as {
             BrowserWindow: { getFocusedWindow: Mock };
         };
-        electronMock.BrowserWindow.getFocusedWindow = vi.fn().mockReturnValue(fakeWindow);
+        electronMock.BrowserWindow.getFocusedWindow = vi
+            .fn()
+            .mockReturnValue(fakeWindow);
 
         createAppMenu(fakeWindow as any, "dark", "C:/activities/sample.fit");
-        const template = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const template =
+            capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const clickableItems: Array<Record<string, any>> = [];
 
         function collect(items: Array<Record<string, any>> | undefined) {
@@ -1063,7 +1335,10 @@ describe("createAppMenu - additional robust branches", () => {
             try {
                 click();
             } catch (e) {
-                console.error(`Error executing click handler for ${item.label}:`, e);
+                console.error(
+                    `Error executing click handler for ${item.label}:`,
+                    e
+                );
             }
         }
     });

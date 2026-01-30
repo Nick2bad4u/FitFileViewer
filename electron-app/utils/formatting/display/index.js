@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for formatting/display
- * @description Re-exports all modules in the formatting/display category
+ * Re-exports all modules in the formatting/display category
+ *
+ * @file Barrel Export for formatting/display
  */
 export * from "./formatAntNames.js";
 export * from "./formatCapitalize.js";

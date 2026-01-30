@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 
-import { getAllFieldColors, getFieldColor, hasFieldColor } from "../../../../../utils/charts/theming/getFieldColor.js";
+import {
+    getAllFieldColors,
+    getFieldColor,
+    hasFieldColor,
+} from "../../../../../utils/charts/theming/getFieldColor.js";
 
 describe("getFieldColor", () => {
     it("returns known color for mapped fields", () => {

@@ -1,5 +1,6 @@
 /**
  * Registers dialog IPC handlers for opening FIT files and overlay selections.
+ *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {() => any} options.dialogRef
@@ -9,7 +10,11 @@
  * @param {() => any} options.browserWindowRef
  * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
  * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  * @param {any} options.mainWindow
  */
 function registerDialogHandlers({
@@ -30,7 +35,12 @@ function registerDialogHandlers({
 
     // Main-process allowlist for renderer-initiated file reads.
     // This prevents arbitrary file disclosure via IPC if the renderer is compromised.
-    /** @type {null | { approveFilePath: (p: unknown, options?: { source?: string }) => string, approveFilePaths: (p: unknown, options?: { source?: string }) => void }} */
+    /**
+     * @type {null | {
+     *     approveFilePath: (p: unknown, options?: { source?: string }) => string;
+     *     approveFilePaths: (p: unknown, options?: { source?: string }) => void;
+     * }}
+     */
     let fileAccessPolicy = null;
     try {
         fileAccessPolicy = require("../security/fileAccessPolicy");
@@ -50,7 +60,11 @@ function registerDialogHandlers({
                 properties: ["openFile"],
             });
 
-            if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
+            if (
+                canceled ||
+                !Array.isArray(filePaths) ||
+                filePaths.length === 0
+            ) {
                 return null;
             }
 
@@ -60,12 +74,18 @@ function registerDialogHandlers({
             }
 
             try {
-                fileAccessPolicy?.approveFilePath(firstPath, { source: "dialog:openFile" });
-            } catch (policyError) {
-                logWithContext?.("warn", "Failed to approve file path for reading", {
-                    error: /** @type {Error} */ (policyError)?.message,
-                    filePath: firstPath,
+                fileAccessPolicy?.approveFilePath(firstPath, {
+                    source: "dialog:openFile",
                 });
+            } catch (policyError) {
+                logWithContext?.(
+                    "warn",
+                    "Failed to approve file path for reading",
+                    {
+                        error: /** @type {Error} */ (policyError)?.message,
+                        filePath: firstPath,
+                    }
+                );
             }
 
             if (typeof addRecentFile === "function") {
@@ -77,14 +97,22 @@ function registerDialogHandlers({
             }
 
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
-            if (win && typeof getThemeFromRenderer === "function" && typeof safeCreateAppMenu === "function") {
+            if (
+                win &&
+                typeof getThemeFromRenderer === "function" &&
+                typeof safeCreateAppMenu === "function"
+            ) {
                 try {
                     const theme = await getThemeFromRenderer(win);
                     safeCreateAppMenu(win, theme, firstPath);
                 } catch (menuError) {
-                    logWithContext?.("warn", "Failed to refresh menu after file dialog selection", {
-                        error: /** @type {Error} */ (menuError)?.message,
-                    });
+                    logWithContext?.(
+                        "warn",
+                        "Failed to refresh menu after file dialog selection",
+                        {
+                            error: /** @type {Error} */ (menuError)?.message,
+                        }
+                    );
                 }
             }
 
@@ -109,18 +137,30 @@ function registerDialogHandlers({
                 properties: ["openFile", "multiSelections"],
             });
 
-            if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
+            if (
+                canceled ||
+                !Array.isArray(filePaths) ||
+                filePaths.length === 0
+            ) {
                 return [];
             }
 
-            const filtered = filePaths.filter((entry) => typeof entry === "string" && entry.trim().length > 0);
+            const filtered = filePaths.filter(
+                (entry) => typeof entry === "string" && entry.trim().length > 0
+            );
 
             try {
-                fileAccessPolicy?.approveFilePaths(filtered, { source: "dialog:openOverlayFiles" });
-            } catch (policyError) {
-                logWithContext?.("warn", "Failed to approve overlay file paths for reading", {
-                    error: /** @type {Error} */ (policyError)?.message,
+                fileAccessPolicy?.approveFilePaths(filtered, {
+                    source: "dialog:openOverlayFiles",
                 });
+            } catch (policyError) {
+                logWithContext?.(
+                    "warn",
+                    "Failed to approve overlay file paths for reading",
+                    {
+                        error: /** @type {Error} */ (policyError)?.message,
+                    }
+                );
             }
 
             return filtered;
@@ -135,12 +175,14 @@ function registerDialogHandlers({
 
 /**
  * Resolves a sensible target window for menu updates.
+ *
  * @param {() => any} browserWindowRef
  * @param {any} fallback
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {
-        const api = typeof browserWindowRef === "function" ? browserWindowRef() : null;
+        const api =
+            typeof browserWindowRef === "function" ? browserWindowRef() : null;
         if (api && typeof api.getFocusedWindow === "function") {
             const focused = api.getFocusedWindow();
             if (focused) {

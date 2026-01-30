@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for rendering/components
- * @description Re-exports all modules in the rendering/components category
+ * Re-exports all modules in the rendering/components category
+ *
+ * @file Barrel Export for rendering/components
  */
 export * from "./createShownFilesList.js";
 export * from "./createTables.js";

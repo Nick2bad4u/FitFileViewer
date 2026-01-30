@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel export for DOM helper utilities
- * @description Exposes individual helpers and a namespace default export for DOM operations
+ * Exposes individual helpers and a namespace default export for DOM operations
+ *
+ * @file Barrel export for DOM helper utilities
  */
 
 export * from "./domHelpers.js";

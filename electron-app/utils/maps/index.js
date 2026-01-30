@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for maps
- * @description Re-exports all subcategories in the maps category
+ * Re-exports all subcategories in the maps category
+ *
+ * @file Main Category Barrel Export for maps
  */
 
 import * as mapControls from "./controls/index.js";

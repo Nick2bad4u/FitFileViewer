@@ -1,19 +1,26 @@
 /**
- * @vitest-environment jsdom
- * @file setupTabButton.comprehensive.test.js
- * @description Comprehensive test suite for setupTabButton.js module with focus on exposing potential bugs
+ * Comprehensive test suite for setupTabButton.js module with focus on exposing
+ * potential bugs
  *
  * CRITICAL BUG TESTING FOCUS:
+ *
  * - Event handler memory leak scenarios
  * - Cache staleness and invalidation bugs
  * - Handler reference management issues
  * - Element type validation problems
  * - Cache memory management leaks
  * - DOM timing and race condition issues
+ *
+ * @file SetupTabButton.comprehensive.test.js
+ *
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { setupTabButton, clearTabButtonCache } from "../../../utils/ui/tabs/setupTabButton.js";
+import {
+    setupTabButton,
+    clearTabButtonCache,
+} from "../../../utils/ui/tabs/setupTabButton.js";
 
 describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
     let testContainer;
@@ -61,7 +68,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton(null, handler);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid button id provided.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid button id provided."
+            );
             expect(handler).not.toHaveBeenCalled();
         });
 
@@ -70,7 +79,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton(undefined, handler);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid button id provided.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid button id provided."
+            );
             expect(handler).not.toHaveBeenCalled();
         });
 
@@ -79,7 +90,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton("", handler);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid button id provided.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid button id provided."
+            );
             expect(handler).not.toHaveBeenCalled();
         });
 
@@ -88,7 +101,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton("   ", handler);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid button id provided.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid button id provided."
+            );
             expect(handler).not.toHaveBeenCalled();
         });
 
@@ -100,7 +115,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             setupTabButton([], handler);
 
             expect(consoleWarnSpy).toHaveBeenCalledTimes(3);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid button id provided.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid button id provided."
+            );
         });
 
         it("should handle null handler gracefully", () => {
@@ -108,7 +125,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton("test-btn", null);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid handler provided. It must be a function.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid handler provided. It must be a function."
+            );
         });
 
         it("should handle undefined handler gracefully", () => {
@@ -116,7 +135,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             setupTabButton("test-btn", undefined);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid handler provided. It must be a function.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid handler provided. It must be a function."
+            );
         });
 
         it("should handle non-function handler types", () => {
@@ -127,7 +148,9 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             setupTabButton("test-btn", {});
 
             expect(consoleWarnSpy).toHaveBeenCalledTimes(3);
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid handler provided. It must be a function.");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Invalid handler provided. It must be a function."
+            );
         });
     });
 
@@ -173,7 +196,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             button?.remove();
 
             // Add new element with same ID
-            testContainer.innerHTML = '<button id="stale-test">New Test</button>';
+            testContainer.innerHTML =
+                '<button id="stale-test">New Test</button>';
 
             // This should detect stale cache and refresh
             const handler2 = vi.fn();
@@ -190,7 +214,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should handle case where cached element becomes disconnected but replacement fails", () => {
-            testContainer.innerHTML = '<button id="disconnect-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="disconnect-test">Test</button>';
             const handler = vi.fn();
 
             // First call caches the element
@@ -215,7 +240,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
     describe("Event Handler Management - Memory Leak Bug Detection", () => {
         it("BUG TEST: should handle manually set _setupTabButtonHandler property without actual listener", () => {
-            testContainer.innerHTML = '<button id="manual-handler-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="manual-handler-test">Test</button>';
             const button = document.getElementById("manual-handler-test");
 
             // Manually set the property without adding actual listener (simulating bug scenario)
@@ -234,7 +260,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("should replace existing handler to prevent multiple handlers", () => {
-            testContainer.innerHTML = '<button id="replace-handler-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="replace-handler-test">Test</button>';
             const handler1 = vi.fn();
             const handler2 = vi.fn();
 
@@ -254,7 +281,13 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
         it("BUG TEST: should handle rapid multiple calls without race conditions", () => {
             testContainer.innerHTML = '<button id="race-test">Test</button>';
-            const handlers = [vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn()];
+            const handlers = [
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+            ];
 
             // Rapidly set multiple handlers
             handlers.forEach((handler) => {
@@ -275,7 +308,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("should register event listener for cleanup", () => {
-            testContainer.innerHTML = '<button id="reference-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="reference-test">Test</button>';
             const handler = vi.fn();
 
             setupTabButton("reference-test", handler);
@@ -298,7 +332,13 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             `;
 
             const handler = vi.fn();
-            const elementTypes = ["div-test", "span-test", "link-test", "input-test", "button-test"];
+            const elementTypes = [
+                "div-test",
+                "span-test",
+                "link-test",
+                "input-test",
+                "button-test",
+            ];
 
             // All element types should accept handlers (potential bug - no type validation)
             elementTypes.forEach((id) => {
@@ -318,7 +358,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should handle disabled elements", () => {
-            testContainer.innerHTML = '<button id="disabled-test" disabled>Disabled Button</button>';
+            testContainer.innerHTML =
+                '<button id="disabled-test" disabled>Disabled Button</button>';
             const handler = vi.fn();
 
             setupTabButton("disabled-test", handler);
@@ -387,7 +428,11 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             expect(cache.size).toBe(0);
 
             // Verify handlers are removed
-            const buttons = ["clear-test-1", "clear-test-2", "clear-test-3"].map((id) => document.getElementById(id));
+            const buttons = [
+                "clear-test-1",
+                "clear-test-2",
+                "clear-test-3",
+            ].map((id) => document.getElementById(id));
 
             buttons.forEach((button) => {
                 expect(button._setupTabButtonHandler).toBeUndefined();
@@ -409,7 +454,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should handle elements with undefined _setupTabButtonHandler during clear", () => {
-            testContainer.innerHTML = '<button id="undefined-handler-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="undefined-handler-test">Test</button>';
             const handler = vi.fn();
 
             setupTabButton("undefined-handler-test", handler);
@@ -427,7 +473,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
     describe("Integration and Real-World Scenarios", () => {
         it("should handle complete setup and teardown cycle", () => {
-            testContainer.innerHTML = '<button id="lifecycle-test">Test</button>';
+            testContainer.innerHTML =
+                '<button id="lifecycle-test">Test</button>';
             const handler1 = vi.fn();
             const handler2 = vi.fn();
 
@@ -451,7 +498,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should handle DOM mutations that affect cached elements", () => {
-            testContainer.innerHTML = '<button id="mutation-test">Original</button>';
+            testContainer.innerHTML =
+                '<button id="mutation-test">Original</button>';
             const handler = vi.fn();
 
             setupTabButton("mutation-test", handler);
@@ -465,7 +513,8 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             expect(handler).toHaveBeenCalled();
 
             // But what if the element is completely replaced?
-            testContainer.innerHTML = '<button id="mutation-test">Completely New</button>';
+            testContainer.innerHTML =
+                '<button id="mutation-test">Completely New</button>';
 
             const handler2 = vi.fn();
             setupTabButton("mutation-test", handler2);
@@ -477,8 +526,13 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("should handle concurrent operations on same element", () => {
-            testContainer.innerHTML = '<button id="concurrent-test">Test</button>';
-            const handlers = [vi.fn(), vi.fn(), vi.fn()];
+            testContainer.innerHTML =
+                '<button id="concurrent-test">Test</button>';
+            const handlers = [
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+            ];
 
             // Simulate rapid concurrent calls
             Promise.all([

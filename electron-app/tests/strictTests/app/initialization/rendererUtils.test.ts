@@ -43,7 +43,9 @@ describe("rendererUtils", () => {
     });
 
     it("showNotification updates DOM and clears after timeout", async () => {
-        const { showNotification, getCurrentNotification } = await import(modPath);
+        const { showNotification, getCurrentNotification } = await import(
+            modPath
+        );
         // Initially, state should be undefined/null
         expect(getCurrentNotification()).toBeUndefined();
         showNotification("Hello", "info", 1000);
@@ -67,9 +69,15 @@ describe("rendererUtils", () => {
 
     it("setLoading toggles overlay, cursor, and aria attributes", async () => {
         const { setLoading } = await import(modPath);
-        const overlay = document.getElementById("loadingOverlay")! as HTMLDivElement;
-        const openBtn = document.getElementById("openFileBtn")! as HTMLButtonElement;
-        const otherBtn = document.getElementById("otherBtn")! as HTMLButtonElement;
+        const overlay = document.getElementById(
+            "loadingOverlay"
+        )! as HTMLDivElement;
+        const openBtn = document.getElementById(
+            "openFileBtn"
+        )! as HTMLButtonElement;
+        const otherBtn = document.getElementById(
+            "otherBtn"
+        )! as HTMLButtonElement;
         const input = document.getElementById("someInput")! as HTMLInputElement;
         otherBtn.disabled = false;
         input.disabled = false;
@@ -97,25 +105,37 @@ describe("rendererUtils", () => {
 
     it("initializeRendererUtils wires subscriptions and updates UI on state change", async () => {
         const { initializeRendererUtils } = await import(modPath);
-        const overlay = document.getElementById("loadingOverlay")! as HTMLDivElement;
-        const notif = document.getElementById("notification")! as HTMLDivElement;
+        const overlay = document.getElementById(
+            "loadingOverlay"
+        )! as HTMLDivElement;
+        const notif = document.getElementById(
+            "notification"
+        )! as HTMLDivElement;
 
         initializeRendererUtils();
         // Trigger state updates via mocked setState through subscription API
         // Import mocked stateManager to access setState
-        const stateMgr = await import("../../../../utils/state/core/stateManager.js");
+        const stateMgr =
+            await import("../../../../utils/state/core/stateManager.js");
         stateMgr.setState("isLoading", true);
         expect(overlay.style.display).toBe("flex");
 
-        stateMgr.setState("ui.currentNotification", { message: "Done", type: "success" });
+        stateMgr.setState("ui.currentNotification", {
+            message: "Done",
+            type: "success",
+        });
         expect(notif.textContent).toBe("Done");
         expect(notif.className).toContain("success");
         expect(notif.style.display).toBe("block");
     });
 
     it("helper wrappers call showNotification with proper types", async () => {
-        const { showSuccess, showError, showInfo, showWarning } = await import(modPath);
-        const notif = document.getElementById("notification")! as HTMLDivElement;
+        const { showSuccess, showError, showInfo, showWarning } = await import(
+            modPath
+        );
+        const notif = document.getElementById(
+            "notification"
+        )! as HTMLDivElement;
 
         showSuccess("ok", 0);
         expect(notif.className).toContain("success");
@@ -132,7 +152,9 @@ describe("rendererUtils", () => {
 
     it("clearNotification hides element and clears state", async () => {
         const { clearNotification, showInfo } = await import(modPath);
-        const notif = document.getElementById("notification")! as HTMLDivElement;
+        const notif = document.getElementById(
+            "notification"
+        )! as HTMLDivElement;
         showInfo("temp", 0);
         expect(notif.style.display).toBe("block");
         clearNotification();

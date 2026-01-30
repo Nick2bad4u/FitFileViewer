@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { formatChartFields, fieldLabels, fieldColors } from "../../../utils/formatting/display/formatChartFields.js";
+import {
+    formatChartFields,
+    fieldLabels,
+    fieldColors,
+} from "../../../utils/formatting/display/formatChartFields.js";
 
 describe("formatChartFields.js - Chart Field Configuration", () => {
     describe("formatChartFields Array", () => {
@@ -86,7 +90,8 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
             it("should include enhanced fields after basic ones", () => {
                 const speedIndex = formatChartFields.indexOf("speed");
-                const enhancedSpeedIndex = formatChartFields.indexOf("enhancedSpeed");
+                const enhancedSpeedIndex =
+                    formatChartFields.indexOf("enhancedSpeed");
                 expect(enhancedSpeedIndex).toBeGreaterThan(speedIndex);
             });
         });
@@ -104,7 +109,9 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should support standard array operations", () => {
                 expect(formatChartFields.includes("speed")).toBe(true);
                 expect(formatChartFields.includes("nonexistent")).toBe(false);
-                expect(formatChartFields.indexOf("heartRate")).toBeGreaterThanOrEqual(0);
+                expect(
+                    formatChartFields.indexOf("heartRate")
+                ).toBeGreaterThanOrEqual(0);
                 expect(formatChartFields.indexOf("nonexistent")).toBe(-1);
             });
 
@@ -188,12 +195,24 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             });
 
             it("should have labels for zone charts", () => {
-                expect(fieldLabels.hr_zone_doughnut).toBe("HR Zone Distribution (Doughnut)");
-                expect(fieldLabels.power_zone_doughnut).toBe("Power Zone Distribution (Doughnut)");
-                expect(fieldLabels.hr_lap_zone_stacked).toBe("HR Zone by Lap (Stacked)");
-                expect(fieldLabels.hr_lap_zone_individual).toBe("HR Zone by Lap (Individual)");
-                expect(fieldLabels.power_lap_zone_stacked).toBe("Power Zone by Lap (Stacked)");
-                expect(fieldLabels.power_lap_zone_individual).toBe("Power Zone by Lap (Individual)");
+                expect(fieldLabels.hr_zone_doughnut).toBe(
+                    "HR Zone Distribution (Doughnut)"
+                );
+                expect(fieldLabels.power_zone_doughnut).toBe(
+                    "Power Zone Distribution (Doughnut)"
+                );
+                expect(fieldLabels.hr_lap_zone_stacked).toBe(
+                    "HR Zone by Lap (Stacked)"
+                );
+                expect(fieldLabels.hr_lap_zone_individual).toBe(
+                    "HR Zone by Lap (Individual)"
+                );
+                expect(fieldLabels.power_lap_zone_stacked).toBe(
+                    "Power Zone by Lap (Stacked)"
+                );
+                expect(fieldLabels.power_lap_zone_individual).toBe(
+                    "Power Zone by Lap (Individual)"
+                );
             });
 
             it("should have label for event messages", () => {
@@ -341,10 +360,14 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 expect(fieldColors.speed).not.toBe(fieldColors.enhancedSpeed);
 
                 // Altitude vs Enhanced Altitude should be different
-                expect(fieldColors.altitude).not.toBe(fieldColors.enhancedAltitude);
+                expect(fieldColors.altitude).not.toBe(
+                    fieldColors.enhancedAltitude
+                );
 
                 // Heart rate zones should be distinguishable
-                expect(fieldColors.hr_zone_doughnut).not.toBe(fieldColors.hr_lap_zone_stacked);
+                expect(fieldColors.hr_zone_doughnut).not.toBe(
+                    fieldColors.hr_lap_zone_stacked
+                );
             });
         });
     });
@@ -364,7 +387,11 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             });
 
             it("should have consistent key naming conventions", () => {
-                const allKeys = [...formatChartFields, ...Object.keys(fieldLabels), ...Object.keys(fieldColors)];
+                const allKeys = [
+                    ...formatChartFields,
+                    ...Object.keys(fieldLabels),
+                    ...Object.keys(fieldColors),
+                ];
 
                 allKeys.forEach((key) => {
                     // Keys should be camelCase or snake_case

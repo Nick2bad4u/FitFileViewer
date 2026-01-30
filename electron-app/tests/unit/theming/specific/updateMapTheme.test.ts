@@ -1,8 +1,8 @@
 /**
- * @fileoverview Tests for updateMapTheme utility
+ * @file Tests for updateMapTheme utility
  *
- * Comprehensive test suite covering map theme updates, event handling,
- * and side effects for the updateMapTheme module.
+ *   Comprehensive test suite covering map theme updates, event handling, and side
+ *   effects for the updateMapTheme module.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -17,21 +17,29 @@ vi.mock("../../../../utils/theming/specific/createMapThemeToggle.js", () => ({
 }));
 
 // Import the module AFTER setting up mocks
-const { installUpdateMapThemeListeners, uninstallUpdateMapThemeListeners, updateMapTheme } =
-    await import("../../../../utils/theming/specific/updateMapTheme.js");
+const {
+    installUpdateMapThemeListeners,
+    uninstallUpdateMapThemeListeners,
+    updateMapTheme,
+} = await import("../../../../utils/theming/specific/updateMapTheme.js");
 
 describe("updateMapTheme - comprehensive coverage", () => {
     let consoleLogSpy: any;
     let consoleErrorSpy: any;
 
     /**
-     * Sets up a minimal Leaflet-like DOM structure.
-     * The dark-map theme filter is applied to `.leaflet-tile-pane` (tiles) only.
+     * Sets up a minimal Leaflet-like DOM structure. The dark-map theme filter
+     * is applied to `.leaflet-tile-pane` (tiles) only.
      */
     const setupLeafletDom = () => {
-        document.body.innerHTML = '<div id="leaflet-map"><div class="leaflet-tile-pane"></div></div>';
-        const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
-        const tilePane = document.querySelector("#leaflet-map .leaflet-tile-pane") as HTMLElement;
+        document.body.innerHTML =
+            '<div id="leaflet-map"><div class="leaflet-tile-pane"></div></div>';
+        const mapElement = document.querySelector(
+            "#leaflet-map"
+        ) as HTMLElement;
+        const tilePane = document.querySelector(
+            "#leaflet-map .leaflet-tile-pane"
+        ) as HTMLElement;
         return { mapElement, tilePane };
     };
 
@@ -41,7 +49,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
         // Set up console spies
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Reset DOM
         document.body.innerHTML = "";
@@ -67,8 +77,12 @@ describe("updateMapTheme - comprehensive coverage", () => {
             // Container must never be filtered (controls/tooltips live in the map container).
             expect(mapElement.style.filter).toBe("none");
             // Tiles are filtered to create a dark basemap.
-            expect(tilePane.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
+            expect(tilePane.style.filter).toBe(
+                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
+            );
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: true"
+            );
         });
 
         it("should remove filter when map should be light", () => {
@@ -83,7 +97,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
             expect(mockGetMapThemeInverted).toHaveBeenCalled();
             expect(mapElement.style.filter).toBe("none");
             expect(tilePane.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: false"
+            );
         });
 
         it("should handle missing map element gracefully", () => {
@@ -111,7 +127,10 @@ describe("updateMapTheme - comprehensive coverage", () => {
             updateMapTheme();
 
             // Verify error handling
-            expect(consoleErrorSpy).toHaveBeenCalledWith("[updateMapTheme] Error updating map theme:", testError);
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Error updating map theme:",
+                testError
+            );
         });
 
         it("should handle DOM query errors", () => {
@@ -144,8 +163,14 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             installUpdateMapThemeListeners();
 
-            expect(addSpy).toHaveBeenCalledWith("themechange", expect.any(Function));
-            expect(addSpy).toHaveBeenCalledWith("mapThemeChanged", expect.any(Function));
+            expect(addSpy).toHaveBeenCalledWith(
+                "themechange",
+                expect.any(Function)
+            );
+            expect(addSpy).toHaveBeenCalledWith(
+                "mapThemeChanged",
+                expect.any(Function)
+            );
         });
 
         it("should be idempotent (no duplicate installs)", () => {
@@ -155,8 +180,12 @@ describe("updateMapTheme - comprehensive coverage", () => {
             installUpdateMapThemeListeners();
 
             // Only the first call should register listeners.
-            const themechangeCalls = addSpy.mock.calls.filter((c) => c[0] === "themechange");
-            const mapThemeChangedCalls = addSpy.mock.calls.filter((c) => c[0] === "mapThemeChanged");
+            const themechangeCalls = addSpy.mock.calls.filter(
+                (c) => c[0] === "themechange"
+            );
+            const mapThemeChangedCalls = addSpy.mock.calls.filter(
+                (c) => c[0] === "mapThemeChanged"
+            );
 
             expect(themechangeCalls).toHaveLength(1);
             expect(mapThemeChangedCalls).toHaveLength(1);
@@ -177,8 +206,12 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             // Verify response
             expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
+            expect(tilePane.style.filter).toBe(
+                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
+            );
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: true"
+            );
         });
 
         it("should respond to mapThemeChanged events", () => {
@@ -195,7 +228,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
             // Verify response
             expect(mapElement.style.filter).toBe("none");
             expect(tilePane.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: false"
+            );
         });
     });
 
@@ -206,8 +241,14 @@ describe("updateMapTheme - comprehensive coverage", () => {
             installUpdateMapThemeListeners();
             window.dispatchEvent(new Event("beforeunload"));
 
-            expect(removeSpy).toHaveBeenCalledWith("themechange", expect.any(Function));
-            expect(removeSpy).toHaveBeenCalledWith("mapThemeChanged", expect.any(Function));
+            expect(removeSpy).toHaveBeenCalledWith(
+                "themechange",
+                expect.any(Function)
+            );
+            expect(removeSpy).toHaveBeenCalledWith(
+                "mapThemeChanged",
+                expect.any(Function)
+            );
         });
 
         it("should handle cleanup when no listeners exist", () => {
@@ -234,7 +275,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
             // Verify final state
             expect(mapElement.style.filter).toBe("none");
             expect(tilePane.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: false"
+            );
         });
 
         it("should maintain state consistency across multiple calls", () => {
@@ -245,7 +288,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
             expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
+            expect(tilePane.style.filter).toBe(
+                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
+            );
 
             mockGetMapThemeInverted.mockReturnValue(false);
             updateMapTheme();
@@ -256,7 +301,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
             expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
+            expect(tilePane.style.filter).toBe(
+                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
+            );
         });
     });
 });

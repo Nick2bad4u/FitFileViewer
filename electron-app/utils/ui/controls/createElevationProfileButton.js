@@ -7,7 +7,8 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
  * active file if none explicitly loaded as overlays).
  *
  * Implementation notes / typing strategy:
- * - getThemeColors() returns an index-signature based object; due to
+ *
+ * - GetThemeColors() returns an index-signature based object; due to
  *   noPropertyAccessFromIndexSignature we must use bracket notation.
  * - Many dynamic data objects (window.loadedFitFiles / window.globalData) are
  *   loosely typed; we defensively treat them as any while keeping local
@@ -17,7 +18,9 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
  * @returns {HTMLButtonElement}
  */
 export function createElevationProfileButton() {
-    const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+    const btn = /** @type {HTMLButtonElement} */ (
+        document.createElement("button")
+    );
     btn.className = "map-action-btn";
     const themeColorsInit = getThemeColors(),
         // Use bracket notation because themeColorsInit comes from an index signature
@@ -26,7 +29,7 @@ export function createElevationProfileButton() {
     btn.title = "Show Elevation Profile";
 
     btn.addEventListener("click", () => {
-        /** @type {Array<any>} */
+        /** @type {any[]} */
         let fitFiles = [];
         const w = /** @type {any} */ (globalThis);
         if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
@@ -39,7 +42,11 @@ export function createElevationProfileButton() {
                 },
             ];
         }
-        const chartWin = window.open("", "Elevation Profile", "width=900,height=600"),
+        const chartWin = window.open(
+                "",
+                "Elevation Profile",
+                "width=900,height=600"
+            ),
             isDark = document.body.classList.contains("theme-dark"),
             themeColors = getThemeColors();
         if (!chartWin) {
@@ -48,21 +55,31 @@ export function createElevationProfileButton() {
         }
 
         /**
-         * Prepare a safe, serialisable model for the popup.
-         * IMPORTANT: Do not inline JSON into a <script> tag (e.g. const x = ${JSON.stringify(...)})
-         * because strings like "</script>" inside file paths can terminate the tag and enable injection.
+         * Prepare a safe, serialisable model for the popup. IMPORTANT: Do not
+         * inline JSON into a <script> tag (e.g. const x =
+         * ${JSON.stringify(...)}) because strings like "</script>" inside file
+         * paths can terminate the tag and enable injection.
          */
         const fitFilesModel = fitFiles.map((f, idx) => ({
             altitudes:
                 f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
                     ? /** @type {any[]} */ (f.data.recordMesgs)
-                          .filter((r) => r && r.positionLat != null && r.positionLong != null && r.altitude != null)
+                          .filter(
+                              (r) =>
+                                  r &&
+                                  r.positionLat != null &&
+                                  r.positionLong != null &&
+                                  r.altitude != null
+                          )
                           .map((r, i) => ({ x: i, y: r.altitude }))
                     : [],
             color:
-                globalThis.chartOverlayColorPalette && Array.isArray(globalThis.chartOverlayColorPalette)
+                globalThis.chartOverlayColorPalette &&
+                Array.isArray(globalThis.chartOverlayColorPalette)
                     ? sanitizeCssColorToken(
-                          globalThis.chartOverlayColorPalette[idx % globalThis.chartOverlayColorPalette.length],
+                          globalThis.chartOverlayColorPalette[
+                              idx % globalThis.chartOverlayColorPalette.length
+                          ],
                           "#1976d2"
                       )
                     : "#1976d2",
@@ -71,9 +88,18 @@ export function createElevationProfileButton() {
 
         // Sanitize the theme colors used in template-string CSS.
         const safeThemeColors = {
-            background: sanitizeCssColorToken(themeColors.background, isDark ? "#0b1220" : "#ffffff"),
-            border: sanitizeCssColorToken(themeColors.border, isDark ? "#334155" : "#e5e7eb"),
-            borderLight: sanitizeCssColorToken(themeColors.borderLight, isDark ? "#475569" : "#f1f5f9"),
+            background: sanitizeCssColorToken(
+                themeColors.background,
+                isDark ? "#0b1220" : "#ffffff"
+            ),
+            border: sanitizeCssColorToken(
+                themeColors.border,
+                isDark ? "#334155" : "#e5e7eb"
+            ),
+            borderLight: sanitizeCssColorToken(
+                themeColors.borderLight,
+                isDark ? "#475569" : "#f1f5f9"
+            ),
             primary: sanitizeCssColorToken(themeColors.primary, "#3b82f6"),
             primaryShadow: sanitizeCssColorToken(
                 themeColors.primaryShadow,
@@ -87,9 +113,18 @@ export function createElevationProfileButton() {
                 themeColors.shadowMedium,
                 isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
             ),
-            surface: sanitizeCssColorToken(themeColors.surface, isDark ? "#111827" : "#ffffff"),
-            text: sanitizeCssColorToken(themeColors.text, isDark ? "#e5e7eb" : "#0f172a"),
-            textSecondary: sanitizeCssColorToken(themeColors.textSecondary, isDark ? "#cbd5e1" : "#475569"),
+            surface: sanitizeCssColorToken(
+                themeColors.surface,
+                isDark ? "#111827" : "#ffffff"
+            ),
+            text: sanitizeCssColorToken(
+                themeColors.text,
+                isDark ? "#e5e7eb" : "#0f172a"
+            ),
+            textSecondary: sanitizeCssColorToken(
+                themeColors.textSecondary,
+                isDark ? "#cbd5e1" : "#475569"
+            ),
         };
 
         // Pass the model to the popup without embedding it into HTML.
@@ -204,11 +239,11 @@ export function createElevationProfileButton() {
 				const container = document.getElementById('elevChartsContainer');
 				fitFiles.forEach((f, idx) => {
 					const div = document.createElement('div');
-					div.className = 'elev-profile-block';
+					div.className="elev-profile-block";
 					const label = document.createElement('div');
-					label.className = 'elev-profile-label';
+					label.className="elev-profile-label";
 					const dot = document.createElement('span');
-					dot.className = 'dot';
+					dot.className="dot";
 					dot.style.background = f.color;
 					label.appendChild(dot);
 					const text = document.createElement('span');
@@ -218,7 +253,7 @@ export function createElevationProfileButton() {
 					div.appendChild(label);
 					const canvas = document.createElement('canvas');
 					canvas.id = 'elevChart_' + idx;
-					canvas.className = 'elev-profile-canvas';
+					canvas.className="elev-profile-canvas";
 					div.appendChild(canvas);
 					container.appendChild(div);
 					if (f.altitudes.length > 0) {
@@ -282,7 +317,7 @@ export function createElevationProfileButton() {
 					} else {
 						const noData = document.createElement('div');
 						noData.textContent = 'No altitude data.';
-						noData.className = 'no-altitude-data';
+						noData.className="no-altitude-data";
 						div.appendChild(noData);
 					}
 				});

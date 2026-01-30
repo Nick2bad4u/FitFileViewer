@@ -1,46 +1,64 @@
 /**
- * @fileoverview FIT File Parser with State Management Integration
- * @description Decodes FIT files using Garmin SDK with integrated state management for progress tracking,
- * error handling, and settings persistence. Supports both new state management system and electron-conf fallback.
- * @author FitFileViewer Development Team
+ * Decodes FIT files using Garmin SDK with integrated state management for
+ * progress tracking, error handling, and settings persistence. Supports both
+ * new state management system and electron-conf fallback.
+ *
  * @version 2.0.0
+ *
+ * @file FIT File Parser with State Management Integration
+ *
+ * @author FitFileViewer Development Team
  */
 
 const { Buffer } = require("node:buffer");
 // Electron-conf imported dynamically in getConf() to avoid module loading issues in tests
 
 /**
- * ============================= Typedef Section =============================
- * the project (allowJs + checkJs). They intentionally model only the pieces
- * of each object this module relies on so we can progressively enrich them
- * without over‑committing to full shapes up front.
- * ==========================================================================
+ * # ============================= Typedef Section =============================
+ *
+ * The project (allowJs + checkJs). They intentionally model only the pieces of
+ * each object this module relies on so we can progressively enrich them without
+ * over‑committing to full shapes up front.
  */
 
 /**
  * @typedef {Object} SettingsStateManager
- * @property {(category: string) => any} getCategory Retrieve a settings category
- * @property {(category: string, value: any, opts?: { silent?: boolean, source?: string }) => void} updateCategory Update a settings category
+ *
+ * @property {(category: string) => any} getCategory Retrieve a settings
+ *   category
+ * @property {(
+ *     category: string,
+ *     value: any,
+ *     opts?: { silent?: boolean; source?: string }
+ * ) => void} updateCategory
+ *   Update a settings category
  */
 
 /**
  * @typedef {Object} FitFileStateManager
- * @property {(progress: number) => void} updateLoadingProgress Update decode progress percentage
- * @property {(error: Error) => void} handleFileLoadingError Record a loading error
- * @property {(payload: { messages: FitMessages, metadata: any }) => void} handleFileLoaded Record successful load
- * @property {(messages: FitMessages) => number} getRecordCount Derive record count for metadata
+ *
+ * @property {(progress: number) => void} updateLoadingProgress Update decode
+ *   progress percentage
+ * @property {(error: Error) => void} handleFileLoadingError Record a loading
+ *   error
+ * @property {(payload: { messages: FitMessages; metadata: any }) => void} handleFileLoaded
+ *   Record successful load
+ * @property {(messages: FitMessages) => number} getRecordCount Derive record
+ *   count for metadata
  */
 
 /**
  * @typedef {Object} PerformanceMonitor
+ *
  * @property {(id: string) => void} startTimer Start a named timing operation
  * @property {(id: string) => void} endTimer End a named timing operation
- * @property {(id: string) => (number|null)} getOperationTime Get elapsed ms
+ * @property {(id: string) => number | null} getOperationTime Get elapsed ms
  * @property {boolean} [isEnabled] Optional flag for enablement
  */
 
 /**
  * @typedef {Object} DecoderOptionSchemaEntry
+ *
  * @property {"boolean"} type Primitive type expected (only boolean currently)
  * @property {boolean} default Default value
  * @property {string} description Human readable description
@@ -48,6 +66,7 @@ const { Buffer } = require("node:buffer");
 
 /**
  * @typedef {Object} DecoderOptions
+ *
  * @property {boolean} applyScaleAndOffset
  * @property {boolean} expandSubFields
  * @property {boolean} expandComponents
@@ -59,17 +78,20 @@ const { Buffer } = require("node:buffer");
 
 /**
  * @typedef {Object} DecoderOptionsValidationResult
+ *
  * @property {boolean} isValid Whether supplied options passed validation
  * @property {string[]} errors Validation messages (empty when valid)
- * @property {DecoderOptions} validatedOptions Sanitized + default‑filled options
+ * @property {DecoderOptions} validatedOptions Sanitized + default‑filled
+ *   options
  */
 
 /**
- * @typedef {Record<string, any[]|object[]>} FitMessages
+ * @typedef {Record<string, any[] | object[]>} FitMessages
  */
 
 /**
  * @typedef {Object} UnknownMessageMapping
+ *
  * @property {string} name Canonical label to replace unknown_xxx key
  * @property {string[]} fields Ordered field labels for generic mapping path
  */
@@ -79,26 +101,29 @@ const { Buffer } = require("node:buffer");
  */
 
 // State management integration
-/** @type {SettingsStateManager|null} */
-/** @type {FitFileStateManager|null} */
+/** @type {SettingsStateManager | null} */
+/** @type {FitFileStateManager | null} */
 let fitFileStateManager = null,
-    /** @type {PerformanceMonitor|null} */
+    /** @type {PerformanceMonitor | null} */
     performanceMonitor = null,
-    /** @type {SettingsStateManager|null} */
+    /** @type {SettingsStateManager | null} */
     settingsStateManager = null;
 
 // Fallback to electron-conf for backwards compatibility - lazy initialization
 /** @type {any} */
 let conf = null;
 /**
- * Custom error class for FIT file decoding issues with enhanced metadata for state management
+ * Custom error class for FIT file decoding issues with enhanced metadata for
+ * state management
+ *
  * @extends Error
  */
 class FitDecodeError extends Error {
     /**
      * Create a FIT decode error
+     *
      * @param {string} message - Error message
-     * @param {*} details - Additional error details
+     * @param {any} details - Additional error details
      * @param {Object} [metadata] - Optional metadata for state management
      */
     constructor(message, details, metadata = {}) {
@@ -114,6 +139,7 @@ class FitDecodeError extends Error {
 
     /**
      * Convert error to JSON for state management
+     *
      * @returns {Object} Serializable error object
      */
     toJSON() {
@@ -135,15 +161,23 @@ function getConf() {
     return conf;
 }
 /**
- * Initialize state management integration for the FIT parser
- * This should be called during application startup to connect the parser to the state system
+ * Initialize state management integration for the FIT parser This should be
+ * called during application startup to connect the parser to the state system
+ *
  * @param {Object} stateManagers - State management instances
- * @param {Object} stateManagers.settingsStateManager - Settings state manager for decoder options
- * @param {Object} stateManagers.fitFileStateManager - FIT file state manager for progress tracking
- * @param {Object} stateManagers.performanceMonitor - Performance monitor for timing operations
+ * @param {Object} stateManagers.settingsStateManager - Settings state manager
+ *   for decoder options
+ * @param {Object} stateManagers.fitFileStateManager - FIT file state manager
+ *   for progress tracking
+ * @param {Object} stateManagers.performanceMonitor - Performance monitor for
+ *   timing operations
  */
 /**
- * @param {{ settingsStateManager?: SettingsStateManager, fitFileStateManager?: FitFileStateManager, performanceMonitor?: PerformanceMonitor }} [stateManagers]
+ * @param {{
+ *     settingsStateManager?: SettingsStateManager;
+ *     fitFileStateManager?: FitFileStateManager;
+ *     performanceMonitor?: PerformanceMonitor;
+ * }} [stateManagers]
  */
 function initializeStateManagement(stateManagers = {}) {
     settingsStateManager = stateManagers.settingsStateManager || null;
@@ -162,17 +196,46 @@ function initializeStateManagement(stateManagers = {}) {
  */
 /** @type {Record<keyof DecoderOptions, DecoderOptionSchemaEntry>} */
 const DECODER_OPTIONS_SCHEMA = {
-    applyScaleAndOffset: { default: true, description: "Apply scale and offset transformations", type: "boolean" },
-    convertDateTimesToDates: { default: true, description: "Convert timestamps to Date objects", type: "boolean" },
-    convertTypesToStrings: { default: true, description: "Convert enum types to strings", type: "boolean" },
-    expandComponents: { default: true, description: "Expand component fields", type: "boolean" },
-    expandSubFields: { default: true, description: "Expand sub-fields in messages", type: "boolean" },
-    includeUnknownData: { default: true, description: "Include unknown message types", type: "boolean" },
-    mergeHeartRates: { default: true, description: "Merge heart rate data from multiple sources", type: "boolean" },
+    applyScaleAndOffset: {
+        default: true,
+        description: "Apply scale and offset transformations",
+        type: "boolean",
+    },
+    convertDateTimesToDates: {
+        default: true,
+        description: "Convert timestamps to Date objects",
+        type: "boolean",
+    },
+    convertTypesToStrings: {
+        default: true,
+        description: "Convert enum types to strings",
+        type: "boolean",
+    },
+    expandComponents: {
+        default: true,
+        description: "Expand component fields",
+        type: "boolean",
+    },
+    expandSubFields: {
+        default: true,
+        description: "Expand sub-fields in messages",
+        type: "boolean",
+    },
+    includeUnknownData: {
+        default: true,
+        description: "Include unknown message types",
+        type: "boolean",
+    },
+    mergeHeartRates: {
+        default: true,
+        description: "Merge heart rate data from multiple sources",
+        type: "boolean",
+    },
 };
 
 /**
  * Get default decoder options
+ *
  * @returns {Object} Default decoder options
  */
 /**
@@ -182,8 +245,10 @@ function getDefaultDecoderOptions() {
     /** @type {DecoderOptions} */
     const defaults = {
         applyScaleAndOffset: DECODER_OPTIONS_SCHEMA.applyScaleAndOffset.default,
-        convertDateTimesToDates: DECODER_OPTIONS_SCHEMA.convertDateTimesToDates.default,
-        convertTypesToStrings: DECODER_OPTIONS_SCHEMA.convertTypesToStrings.default,
+        convertDateTimesToDates:
+            DECODER_OPTIONS_SCHEMA.convertDateTimesToDates.default,
+        convertTypesToStrings:
+            DECODER_OPTIONS_SCHEMA.convertTypesToStrings.default,
         expandComponents: DECODER_OPTIONS_SCHEMA.expandComponents.default,
         expandSubFields: DECODER_OPTIONS_SCHEMA.expandSubFields.default,
         includeUnknownData: DECODER_OPTIONS_SCHEMA.includeUnknownData.default,
@@ -194,11 +259,14 @@ function getDefaultDecoderOptions() {
 
 /**
  * Validates decoder options against schema
+ *
  * @param {Object} options - Options to validate
+ *
  * @returns {Object} Validation result with isValid and errors properties
  */
 /**
- * @param {Partial<DecoderOptions>|null|undefined} options
+ * @param {Partial<DecoderOptions> | null | undefined} options
+ *
  * @returns {DecoderOptionsValidationResult}
  */
 function validateDecoderOptions(options) {
@@ -217,7 +285,9 @@ function validateDecoderOptions(options) {
                 if (typeof value === schema.type) {
                     validatedOptions[key] = value;
                 } else {
-                    errors.push(`${String(key)} must be of type ${schema.type}, got ${typeof value}`);
+                    errors.push(
+                        `${String(key)} must be of type ${schema.type}, got ${typeof value}`
+                    );
                 }
             }
         }
@@ -230,7 +300,13 @@ function validateDecoderOptions(options) {
 /** @type {UnknownMessageMappings} */
 const unknownMessageMappings = {
     104: {
-        fields: ["timestamp", "battery_voltage", "battery_level", "temperature", "field_4"],
+        fields: [
+            "timestamp",
+            "battery_voltage",
+            "battery_level",
+            "temperature",
+            "field_4",
+        ],
         name: "Device Status",
     },
     // Add more mappings as needed
@@ -238,11 +314,14 @@ const unknownMessageMappings = {
 
 /**
  * Applies human-readable names and field labels to unknown messages.
+ *
  * @param {Object} messages - The decoded FIT messages.
+ *
  * @returns {Object} Messages with updated labels for unknown types.
  */
 /**
  * @param {FitMessages} messages
+ *
  * @returns {FitMessages}
  */
 function applyUnknownMessageLabels(messages) {
@@ -256,7 +335,9 @@ function applyUnknownMessageLabels(messages) {
         const possibleKeys = [`unknown_${msgNum}`, msgNum];
         for (const key of possibleKeys) {
             if (Object.hasOwn(updated, key)) {
-                const rows = /** @type {any[]} */ (updated[/** @type {any} */ (key)]);
+                const rows = /** @type {any[]} */ (
+                    updated[/** @type {any} */ (key)]
+                );
                 if (!Array.isArray(rows)) {
                     continue;
                 }
@@ -281,7 +362,10 @@ function applyUnknownMessageLabels(messages) {
                         /** @type {Record<string, any>} */
                         const labeled = {};
                         if (mapping && Array.isArray(mapping.fields)) {
-                            for (const [idx, field] of mapping.fields.entries()) {
+                            for (const [
+                                idx,
+                                field,
+                            ] of mapping.fields.entries()) {
                                 labeled[field] = row[idx];
                             }
                         }
@@ -298,7 +382,10 @@ function applyUnknownMessageLabels(messages) {
             continue;
         }
         const key = /** @type {any} */ (msgNum);
-        if (Object.hasOwn(updated, key) && Object.hasOwn(updated, mapping.name)) {
+        if (
+            Object.hasOwn(updated, key) &&
+            Object.hasOwn(updated, mapping.name)
+        ) {
             delete updated[key];
         }
     }
@@ -306,17 +393,22 @@ function applyUnknownMessageLabels(messages) {
 }
 
 /**
- * Decodes a FIT file buffer using the Garmin FIT SDK with integrated state management.
- * @param {Buffer|Uint8Array} fileBuffer - The FIT file buffer to decode.
+ * Decodes a FIT file buffer using the Garmin FIT SDK with integrated state
+ * management.
+ *
+ * @param {Buffer | Uint8Array} fileBuffer - The FIT file buffer to decode.
  * @param {Object} [options] - Optional decoder.read options.
  * @param {Object} [fitsdk] - Optional fitsdk dependency for testing/mocking.
+ *
  * @returns {Promise<Object>} Decoded messages or error object.
  */
 /**
- * @param {Buffer|Uint8Array} fileBuffer
- * @param {Partial<DecoderOptions>=} options
- * @param {any=} fitsdk Optional injected sdk for tests (should expose Decoder & Stream)
- * @returns {Promise<FitMessages|{error:string, details:any}>}
+ * @param {Buffer | Uint8Array} fileBuffer
+ * @param {Partial<DecoderOptions>} [options]
+ * @param {any} [fitsdk] Optional injected sdk for tests (should expose Decoder
+ *   & Stream)
+ *
+ * @returns {Promise<FitMessages | { error: string; details: any }>}
  */
 async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
     const operationId = `fitFile_decode_${Date.now()}`;
@@ -331,21 +423,32 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         try {
             fitFileStateManager.updateLoadingProgress(10); // Starting decode
         } catch (error) {
-            console.warn("[FitParser] Failed to update loading progress:", error);
+            console.warn(
+                "[FitParser] Failed to update loading progress:",
+                error
+            );
         }
     }
 
     // Input validation
-    if (!fileBuffer || !(fileBuffer instanceof Buffer || fileBuffer instanceof Uint8Array)) {
+    if (
+        !fileBuffer ||
+        !(fileBuffer instanceof Buffer || fileBuffer instanceof Uint8Array)
+    ) {
         const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
         console.error(msg);
 
         // Update state with error
         if (fitFileStateManager) {
             try {
-                fitFileStateManager.handleFileLoadingError(new FitDecodeError(msg, null));
+                fitFileStateManager.handleFileLoadingError(
+                    new FitDecodeError(msg, null)
+                );
             } catch (error) {
-                console.warn("[FitParser] Failed to update error state:", error);
+                console.warn(
+                    "[FitParser] Failed to update error state:",
+                    error
+                );
             }
         }
 
@@ -355,7 +458,9 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
     try {
         /** @type {any} */
         // @ts-ignore - external library lacks bundled types; suppressed locally
-        const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer),
+        const buffer = Buffer.isBuffer(fileBuffer)
+                ? fileBuffer
+                : Buffer.from(fileBuffer),
             sdk = fitsdk || (await import("@garmin/fitsdk")),
             // @ts-ignore - typed as any due to missing declaration file
             { Decoder, Stream } = /** @type {any} */ (sdk),
@@ -367,7 +472,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(30);
             } catch (error) {
-                console.warn("[FitParser] Failed to update loading progress:", error);
+                console.warn(
+                    "[FitParser] Failed to update loading progress:",
+                    error
+                );
             }
         }
 
@@ -384,7 +492,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn("[FitParser] Failed to update error state:", stateError);
+                    console.warn(
+                        "[FitParser] Failed to update error state:",
+                        stateError
+                    );
                 }
             }
 
@@ -396,7 +507,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(50);
             } catch (error) {
-                console.warn("[FitParser] Failed to update loading progress:", error);
+                console.warn(
+                    "[FitParser] Failed to update loading progress:",
+                    error
+                );
             }
         }
 
@@ -409,7 +523,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(70);
             } catch (error) {
-                console.warn("[FitParser] Failed to update loading progress:", error);
+                console.warn(
+                    "[FitParser] Failed to update loading progress:",
+                    error
+                );
             }
         }
 
@@ -424,7 +541,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn("[FitParser] Failed to update error state:", stateError);
+                    console.warn(
+                        "[FitParser] Failed to update error state:",
+                        stateError
+                    );
                 }
             }
 
@@ -432,7 +552,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         }
 
         if (!messages || Object.keys(messages).length === 0) {
-            const msg = "No valid messages decoded, FIT file might be corrupted.";
+            const msg =
+                "No valid messages decoded, FIT file might be corrupted.";
             console.error(msg);
 
             const error = new FitDecodeError(msg, null);
@@ -440,7 +561,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn("[FitParser] Failed to update error state:", stateError);
+                    console.warn(
+                        "[FitParser] Failed to update error state:",
+                        stateError
+                    );
                 }
             }
 
@@ -452,7 +576,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(90);
             } catch (error) {
-                console.warn("[FitParser] Failed to update loading progress:", error);
+                console.warn(
+                    "[FitParser] Failed to update loading progress:",
+                    error
+                );
             }
         }
 
@@ -468,21 +595,30 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                         metadata: {
                             decodingOptions: readOptions,
                             processingTime: performanceMonitor
-                                ? performanceMonitor.getOperationTime(operationId)
+                                ? performanceMonitor.getOperationTime(
+                                      operationId
+                                  )
                                 : null,
-                            recordCount: fitFileStateManager.getRecordCount(processedMessages),
+                            recordCount:
+                                fitFileStateManager.getRecordCount(
+                                    processedMessages
+                                ),
                         },
                     },
                     {
                         filePath:
-                            typeof readOptions?.filePath === "string" && readOptions.filePath.length > 0
+                            typeof readOptions?.filePath === "string" &&
+                            readOptions.filePath.length > 0
                                 ? readOptions.filePath
                                 : null,
                         source: "fitParser.decodeFitFile",
                     }
                 );
             } catch (error) {
-                console.warn("[FitParser] Failed to update success state:", error);
+                console.warn(
+                    "[FitParser] Failed to update success state:",
+                    error
+                );
             }
         }
 
@@ -508,22 +644,31 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         // Update state with generic error
         if (fitFileStateManager) {
             try {
-                fitFileStateManager.handleFileLoadingError(/** @type {Error} */ (error));
+                fitFileStateManager.handleFileLoadingError(
+                    /** @type {Error} */ (error)
+                );
             } catch (stateError) {
-                console.warn("[FitParser] Failed to update error state:", stateError);
+                console.warn(
+                    "[FitParser] Failed to update error state:",
+                    stateError
+                );
             }
         }
 
         const errObj = /** @type {any} */ (error);
         return {
             details: errObj && errObj.stack ? errObj.stack : null,
-            error: errObj && errObj.message ? errObj.message : "Failed to decode file",
+            error:
+                errObj && errObj.message
+                    ? errObj.message
+                    : "Failed to decode file",
         };
     }
 }
 
 /**
  * Get current decoder options
+ *
  * @returns {Object} Current decoder options
  */
 function getCurrentDecoderOptions() {
@@ -531,7 +676,9 @@ function getCurrentDecoderOptions() {
 }
 
 /**
- * Retrieves persisted decoder options from the state management system or fallback to electron-conf.
+ * Retrieves persisted decoder options from the state management system or
+ * fallback to electron-conf.
+ *
  * @returns {Object} Persisted decoder options with validation
  */
 function getPersistedDecoderOptions() {
@@ -540,8 +687,12 @@ function getPersistedDecoderOptions() {
     // Try to get from new state management system first
     if (settingsStateManager) {
         try {
-            const decoderSettings = settingsStateManager.getCategory("decoder") || {},
-                validation = validateDecoderOptions({ ...defaults, ...decoderSettings });
+            const decoderSettings =
+                    settingsStateManager.getCategory("decoder") || {},
+                validation = validateDecoderOptions({
+                    ...defaults,
+                    ...decoderSettings,
+                });
             return validation.validatedOptions;
         } catch (error) {
             console.warn(
@@ -552,13 +703,16 @@ function getPersistedDecoderOptions() {
     }
 
     // Fallback to electron-conf
-    const storedOptions = /** @type {Partial<DecoderOptions>} */ (getConf().get("decoderOptions", defaults)),
+    const storedOptions = /** @type {Partial<DecoderOptions>} */ (
+            getConf().get("decoderOptions", defaults)
+        ),
         validation = validateDecoderOptions(storedOptions);
     return validation.validatedOptions;
 }
 
 /**
  * Reset decoder options to defaults
+ *
  * @returns {Object} Result with success status
  */
 function resetDecoderOptions() {
@@ -568,21 +722,31 @@ function resetDecoderOptions() {
 
 /**
  * Update decoder options in the state management system with validation
+ *
  * @param {Object} newOptions - New decoder options to persist
+ *
  * @returns {Object} Result with success status and any validation errors
  */
 function updateDecoderOptions(newOptions) {
     // Validate options first
     const validation = validateDecoderOptions(newOptions);
     if (!validation.isValid) {
-        console.error("[FitParser] Invalid decoder options:", validation.errors);
+        console.error(
+            "[FitParser] Invalid decoder options:",
+            validation.errors
+        );
         return { errors: validation.errors, success: false };
     }
 
     if (settingsStateManager) {
         try {
-            settingsStateManager.updateCategory("decoder", validation.validatedOptions);
-            console.log("[FitParser] Decoder options updated in state management");
+            settingsStateManager.updateCategory(
+                "decoder",
+                validation.validatedOptions
+            );
+            console.log(
+                "[FitParser] Decoder options updated in state management"
+            );
             return { options: validation.validatedOptions, success: true };
         } catch (error) {
             console.warn(
@@ -590,12 +754,20 @@ function updateDecoderOptions(newOptions) {
                 error
             );
             getConf().set("decoderOptions", validation.validatedOptions);
-            return { fallback: true, options: validation.validatedOptions, success: true };
+            return {
+                fallback: true,
+                options: validation.validatedOptions,
+                success: true,
+            };
         }
     } else {
         // Fallback to electron-conf
         getConf().set("decoderOptions", validation.validatedOptions);
-        return { fallback: true, options: validation.validatedOptions, success: true };
+        return {
+            fallback: true,
+            options: validation.validatedOptions,
+            success: true,
+        };
     }
 }
 

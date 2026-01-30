@@ -1,12 +1,14 @@
 /**
  * Get a configuration value by path
- * @param {string} path - Dot-notation path to configuration value
- * @param {*} [defaultValue] - Default value if not found
- * @returns {*} Configuration value
  *
  * @example
- * getConfig('UI_CONSTANTS.DEFAULT_THEME') // returns 'dark'
- * getConfig('CONVERSION_FACTORS.METERS_PER_MILE') // returns 1609.344
+ *     getConfig("UI_CONSTANTS.DEFAULT_THEME"); // returns 'dark'
+ *     getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // returns 1609.344
+ *
+ * @param {string} path - Dot-notation path to configuration value
+ * @param {any} [defaultValue] - Default value if not found
+ *
+ * @returns {any} Configuration value
  */
 export function getConfig(path: string, defaultValue?: any): any;
 /**
@@ -15,6 +17,7 @@ export function getConfig(path: string, defaultValue?: any): any;
 export function initializeConfig(): void;
 /**
  * Validate configuration integrity
+ *
  * @returns {Object} Validation results
  */
 export function validateConfig(): Object;

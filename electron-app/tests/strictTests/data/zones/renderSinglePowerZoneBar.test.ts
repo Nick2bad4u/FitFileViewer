@@ -9,10 +9,19 @@ vi.mock("../../../../utils/data/lookups/getUnitSymbol.js", () => ({
 vi.mock("../../../../utils/formatting/formatters/formatTime.js", () => ({
     formatTime: (v: any) => `${v}s`,
 }));
-vi.mock("../../../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({ chartZoomResetPlugin: {} }));
-vi.mock("../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({ chartBackgroundColorPlugin: {} }));
+vi.mock("../../../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
+    chartZoomResetPlugin: {},
+}));
+vi.mock(
+    "../../../../utils/charts/plugins/chartBackgroundColorPlugin.js",
+    () => ({ chartBackgroundColorPlugin: {} })
+);
 vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
-    getChartZoneColors: () => ["#f00", "#0f0", "#00f"],
+    getChartZoneColors: () => [
+        "#f00",
+        "#0f0",
+        "#00f",
+    ],
 }));
 
 describe("renderSinglePowerZoneBar", () => {
@@ -33,7 +42,8 @@ describe("renderSinglePowerZoneBar", () => {
         }
         (global as any).globalThis.Chart = (window as any).Chart;
 
-        const { renderSinglePowerZoneBar } = await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
+        const { renderSinglePowerZoneBar } =
+            await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
         const chart = renderSinglePowerZoneBar(
             canvas as HTMLCanvasElement,
             [
@@ -52,12 +62,15 @@ describe("renderSinglePowerZoneBar", () => {
         const yTickCb = cfg.options.scales.y.ticks.callback;
         const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
         expect(yTickCb(30)).toBe("30s");
-        expect(tooltipCb({ dataset: { label: "Z1" }, parsed: { y: 30 } })).toBe("Z1: 30s");
+        expect(tooltipCb({ dataset: { label: "Z1" }, parsed: { y: 30 } })).toBe(
+            "Z1: 30s"
+        );
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {
         delete (window as any).Chart;
-        const { renderSinglePowerZoneBar } = await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
+        const { renderSinglePowerZoneBar } =
+            await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
         (window as any).showNotification = vi.fn(async () => {});
         const res = renderSinglePowerZoneBar(null as any, null as any);
         expect(res).toBeNull();

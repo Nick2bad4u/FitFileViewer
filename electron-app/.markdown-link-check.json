@@ -27,7 +27,8 @@
         { "pattern": "^#-linux-builds$" },
         { "pattern": "^#-development$" },
         { "pattern": "^#-credits$" },
-        { "pattern": "^#-license$" }],
+        { "pattern": "^#-license$" }
+    ],
     "retryCount": 2,
     "retryOn429": true,
     "timeout": "10s"

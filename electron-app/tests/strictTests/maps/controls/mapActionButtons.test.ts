@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showNotification: vi.fn() }));
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
+}));
 
 const modPath = "../../../../utils/maps/controls/mapActionButtons.js";
 
@@ -20,7 +22,8 @@ describe("mapActionButtons", () => {
     it("attaches click listener and shows notification when map not ready", async () => {
         await import(modPath); // IIFE attaches observers and handlers
         const name = document.getElementById("activeFileName")!;
-        const { showNotification } = await import("../../../../utils/ui/notifications/showNotification.js");
+        const { showNotification } =
+            await import("../../../../utils/ui/notifications/showNotification.js");
         name.dispatchEvent(new Event("click"));
         // Click handler defers center operation via setTimeout; advance timers
         await new Promise((r) => setTimeout(r, 600));

@@ -1,10 +1,12 @@
 /**
  * Builds a safe download name from an arbitrary path/label. If the source lacks
- * an extension, `defaultExtension` is appended after sanitisation. The result is
- * always safe to assign to the `download` attribute of an anchor element.
+ * an extension, `defaultExtension` is appended after sanitisation. The result
+ * is always safe to assign to the `download` attribute of an anchor element.
  *
- * @param {string} candidatePath - Raw file path or label suggested by the user/app.
- * @param {{ defaultExtension?: string, fallbackBase?: string }} [options]
+ * @param {string} candidatePath - Raw file path or label suggested by the
+ *   user/app.
+ * @param {{ defaultExtension?: string; fallbackBase?: string }} [options]
+ *
  * @returns {string}
  */
 export function buildDownloadFilename(
@@ -20,20 +22,32 @@ export function buildDownloadFilename(
  * lower-cased for consistency.
  *
  * @param {string} extension - Raw file extension (with or without leading dot).
- * @param {string} [fallback=""] - Optional fallback extension when sanitisation empties the value.
- * @returns {string} A safe extension without leading dots. Empty string when sanitisation fails.
+ * @param {string} [fallback=""] - Optional fallback extension when sanitisation
+ *   empties the value. Default is `""`
+ *
+ * @returns {string} A safe extension without leading dots. Empty string when
+ *   sanitisation fails.
  */
-export function sanitizeFileExtension(extension: string, fallback?: string): string;
+export function sanitizeFileExtension(
+    extension: string,
+    fallback?: string
+): string;
 /**
  * Safely transforms an arbitrary string into a file-system friendly segment.
  * Reserved Windows characters, ASCII control codes (0x00-0x1F), trailing dots
- * and leading periods are stripped. Whitespace collapses to single underscores.
+ * and leading periods are stripped. Whitespace collapses to single
+ * underscores.
  *
  * @param {string} value - Original label that needs to become file-name safe.
- * @param {string} [fallback="file"] - Replacement when the input sanitises to nothing.
+ * @param {string} [fallback="file"] - Replacement when the input sanitises to
+ *   nothing. Default is `"file"`
+ *
  * @returns {string} Sanitised file name component without an extension.
  */
-export function sanitizeFilenameComponent(value: string, fallback?: string): string;
+export function sanitizeFilenameComponent(
+    value: string,
+    fallback?: string
+): string;
 export namespace __TESTING_INTERNALS__ {
     export { RESERVED_DEVICE_NAMES };
     export { RESERVED_FILENAME_CHARACTERS };

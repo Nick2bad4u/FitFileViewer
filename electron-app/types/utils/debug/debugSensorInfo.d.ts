@@ -4,7 +4,8 @@
 export function checkDataAvailability(): any;
 /**
  * Extracts and displays detailed sensor information from global data
- * @returns {Object|null} Sensor analysis summary or null if no data
+ *
+ * @returns {Object | null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo(): Object | null;
 /**
@@ -17,7 +18,8 @@ export function showDataKeys(): void;
 export function showSensorNames(): void;
 /**
  * Test manufacturer ID resolution
- * @param {number|string} manufacturerId - Manufacturer ID to test
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID to test
  */
 export function testManufacturerId(manufacturerId: number | string): {
     formatted: string;
@@ -26,8 +28,9 @@ export function testManufacturerId(manufacturerId: number | string): {
 };
 /**
  * Test product ID resolution
- * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID to test
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID
+ * @param {number | string} productId - Product ID to test
  */
 export function testProductId(
     manufacturerId: number | string,

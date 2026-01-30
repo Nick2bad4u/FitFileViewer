@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for theming
- * @description Re-exports all subcategories in the theming category
+ * Re-exports all subcategories in the theming category
+ *
+ * @file Main Category Barrel Export for theming
  */
 
 import * as themingCore from "./core/index.js";

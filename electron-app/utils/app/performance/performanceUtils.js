@@ -1,15 +1,21 @@
 /**
- * @fileoverview Performance utilities for optimizing rendering and operations
- * @description Provides debouncing, throttling, memoization, and idle callback utilities
+ * Provides debouncing, throttling, memoization, and idle callback utilities
+ *
+ * @file Performance utilities for optimizing rendering and operations
  */
 
 /**
  * Batch multiple operations together
+ *
  * @template T
- * @param {(items: T[]) => void} callback - Callback to execute with batched items
+ *
+ * @param {(items: T[]) => void} callback - Callback to execute with batched
+ *   items
  * @param {Object} [options] - Options
- * @param {number} [options.maxWait=50] - Maximum wait time
- * @param {number} [options.maxItems=100] - Maximum items to batch
+ * @param {number} [options.maxWait=50] - Maximum wait time. Default is `50`
+ * @param {number} [options.maxItems=100] - Maximum items to batch. Default is
+ *   `100`
+ *
  * @returns {(item: T) => void} Function to add items to batch
  */
 export function batchOperations(callback, options = {}) {
@@ -41,6 +47,7 @@ export function batchOperations(callback, options = {}) {
 
 /**
  * Cancel idle callback
+ *
  * @param {number} id - Request ID
  */
 export function cancelIdleCallback(id) {
@@ -53,13 +60,19 @@ export function cancelIdleCallback(id) {
 
 /**
  * Debounce a function
+ *
  * @template {(...args: any[]) => any} T
+ *
  * @param {T} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {Object} [options] - Options
- * @param {boolean} [options.leading=false] - Execute on leading edge
- * @param {boolean} [options.trailing=true] - Execute on trailing edge
- * @returns {T & { cancel: () => void, flush: () => void }} Debounced function with cancel and flush methods
+ * @param {boolean} [options.leading=false] - Execute on leading edge. Default
+ *   is `false`
+ * @param {boolean} [options.trailing=true] - Execute on trailing edge. Default
+ *   is `true`
+ *
+ * @returns {T & { cancel: () => void; flush: () => void }} Debounced function
+ *   with cancel and flush methods
  */
 export function debounce(func, wait, options = {}) {
     const { leading = false, trailing = true } = options;
@@ -72,6 +85,7 @@ export function debounce(func, wait, options = {}) {
 
     /**
      * @param {number} time
+     *
      * @returns {boolean}
      */
     function shouldInvoke(time) {
@@ -142,6 +156,7 @@ export function debounce(func, wait, options = {}) {
 
     /**
      * @this {any}
+     *
      * @param {...any} args
      */
     function debounced(...args) {
@@ -169,16 +184,21 @@ export function debounce(func, wait, options = {}) {
 
 /**
  * Memoize a function
+ *
  * @template {(...args: any[]) => any} T
+ *
  * @param {T} func - Function to memoize
  * @param {(...args: any[]) => string} [keyGenerator] - Optional key generator
- * @returns {T & { cache: Map<string, any>, clear: () => void }} Memoized function
+ *
+ * @returns {T & { cache: Map<string, any>; clear: () => void }} Memoized
+ *   function
  */
 export function memoize(func, keyGenerator) {
     const cache = new Map();
 
     /**
      * @this {any}
+     *
      * @param {...any} args
      */
     function memoized(...args) {
@@ -201,16 +221,24 @@ export function memoize(func, keyGenerator) {
 
 /**
  * Create a performance-optimized event handler
+ *
  * @template {Event} T
+ *
  * @param {(event: T) => void} handler - Event handler
  * @param {Object} [options] - Options
- * @param {boolean} [options.passive=true] - Use passive event listener
+ * @param {boolean} [options.passive=true] - Use passive event listener. Default
+ *   is `true`
  * @param {number} [options.throttle] - Throttle delay
  * @param {number} [options.debounce] - Debounce delay
+ *
  * @returns {(event: T) => void} Optimized handler
  */
 export function optimizeEventHandler(handler, options = {}) {
-    const { debounce: debounceMs, passive = true, throttle: throttleMs } = options;
+    const {
+        debounce: debounceMs,
+        passive = true,
+        throttle: throttleMs,
+    } = options;
 
     let optimizedHandler = handler;
 
@@ -228,9 +256,11 @@ export function optimizeEventHandler(handler, options = {}) {
 
 /**
  * Request idle callback with fallback to setTimeout
+ *
  * @param {() => void} callback - Callback to execute
  * @param {Object} [options] - Options
  * @param {number} [options.timeout] - Maximum time to wait
+ *
  * @returns {number} Request ID
  */
 export function requestIdleCallback(callback, options) {
@@ -245,9 +275,12 @@ export function requestIdleCallback(callback, options) {
 
 /**
  * Throttle a function
+ *
  * @template {(...args: any[]) => any} T
+ *
  * @param {T} func - Function to throttle
  * @param {number} wait - Wait time in milliseconds
+ *
  * @returns {T & { cancel: () => void }} Throttled function
  */
 export function throttle(func, wait) {

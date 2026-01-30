@@ -1,8 +1,11 @@
 /**
- * @fileoverview Unified Control Bar
- * @description Creates a unified bar combining fullscreen and color switcher controls
- * @author FitFileViewer Development Team
+ * Creates a unified bar combining fullscreen and color switcher controls
+ *
  * @version 1.0.0
+ *
+ * @file Unified Control Bar
+ *
+ * @author FitFileViewer Development Team
  */
 
 /**
@@ -24,7 +27,10 @@ export function initFilenameAutoScroll() {
                 existingState.disconnect();
             }
             if (typeof existingState.resizeHandler === "function") {
-                window.removeEventListener("resize", existingState.resizeHandler);
+                window.removeEventListener(
+                    "resize",
+                    existingState.resizeHandler
+                );
             }
         } catch {
             /* ignore */
@@ -53,7 +59,10 @@ export function initFilenameAutoScroll() {
             // Enable scrolling animation
             const scrollDistance = filenameWidth - availableWidth + 20; // +20 for padding
             filenameElement.classList.add("scrolling");
-            filenameText.style.setProperty("--scroll-distance", `${scrollDistance}px`);
+            filenameText.style.setProperty(
+                "--scroll-distance",
+                `${scrollDistance}px`
+            );
         } else {
             // Disable scrolling animation
             filenameElement.classList.remove("scrolling");
@@ -104,10 +113,14 @@ export function initUnifiedControlBar() {
     // Wait for DOM to be ready, then move controls into the bar
     const checkAndMoveControls = () => {
         // Find the fullscreen button wrapper
-        const fullscreenWrapper = document.querySelector("#global-fullscreen-btn-wrapper, .fullscreen-btn-wrapper");
+        const fullscreenWrapper = document.querySelector(
+            "#global-fullscreen-btn-wrapper, .fullscreen-btn-wrapper"
+        );
 
         // Find the color switcher
-        const colorSwitcher = document.querySelector("#quick-color-switcher, .quick-color-switcher");
+        const colorSwitcher = document.querySelector(
+            "#quick-color-switcher, .quick-color-switcher"
+        );
 
         if (fullscreenWrapper || colorSwitcher) {
             // Add to body first if not already there
@@ -128,7 +141,9 @@ export function initUnifiedControlBar() {
             if (fullscreenWrapper && !controlBar.contains(fullscreenWrapper)) {
                 // Remove from original position
                 if (fullscreenWrapper.parentElement) {
-                    fullscreenWrapper.parentElement.removeChild(fullscreenWrapper);
+                    fullscreenWrapper.parentElement.removeChild(
+                        fullscreenWrapper
+                    );
                 }
                 controlBar.append(fullscreenWrapper);
             }

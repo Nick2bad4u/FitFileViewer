@@ -1,33 +1,38 @@
 /**
- * Centralized State Management System for FitFileViewer
- * Provides reactive state management with event listeners and persistence
+ * Centralized State Management System for FitFileViewer Provides reactive state
+ * management with event listeners and persistence
  */
 
 /**
  * @typedef {Object} WindowState
+ *
  * @property {number} width
  * @property {number} height
- * @property {?number} x
- * @property {?number} y
+ * @property {number | null} x
+ * @property {number | null} y
  * @property {boolean} maximized
  */
 /**
  * @typedef {Object} DropOverlayState
+ *
  * @property {boolean} visible
  */
 /**
  * @typedef {Object} UIFileInfo
+ *
  * @property {boolean} hasFile
  * @property {string} displayName
  * @property {string} title
  */
 /**
  * @typedef {Object} LoadingIndicatorState
+ *
  * @property {number} progress
  * @property {boolean} active
  */
 /**
  * @typedef {Object} UIState
+ *
  * @property {string} activeTab
  * @property {number} dragCounter
  * @property {DropOverlayState} dropOverlay
@@ -41,17 +46,19 @@
  */
 /**
  * @typedef {Object} ChartsState
+ *
  * @property {boolean} isRendered
  * @property {boolean} controlsVisible
  * @property {string} selectedChart
  * @property {number} zoomLevel
- * @property {*} chartData
+ * @property {any} chartData
  * @property {Object<string, any>} chartOptions
  */
 /**
  * @typedef {Object} MapState
+ *
  * @property {boolean} isRendered
- * @property {*} center
+ * @property {any} center
  * @property {number} zoom
  * @property {number} selectedLap
  * @property {boolean} showElevationProfile
@@ -61,8 +68,9 @@
  */
 /**
  * @typedef {Object} TablesState
+ *
  * @property {boolean} isRendered
- * @property {?string} sortColumn
+ * @property {string | null} sortColumn
  * @property {string} sortDirection
  * @property {number} pageSize
  * @property {number} currentPage
@@ -70,22 +78,29 @@
  */
 /**
  * @typedef {Object} PerformanceState
- * @property {?number} lastLoadTime
+ *
+ * @property {number | null} lastLoadTime
  * @property {Object<string, number>} renderTimes
- * @property {?number} memoryUsage
+ * @property {number | null} memoryUsage
  */
 /**
  * @typedef {Object} SystemState
- * @property {?string} version
- * @property {?number} startupTime
+ *
+ * @property {string | null} version
+ * @property {number | null} startupTime
  * @property {string} mode
  * @property {boolean} initialized
  */
 /**
  * @typedef {Object} AppStateShape
- * @property {{ initialized: boolean, isOpeningFile: boolean, startTime: number }} app
- * @property {*} globalData
- * @property {*} currentFile
+ *
+ * @property {{
+ *     initialized: boolean;
+ *     isOpeningFile: boolean;
+ *     startTime: number;
+ * }} app
+ * @property {any} globalData
+ * @property {any} currentFile
  * @property {boolean} isLoading
  * @property {UIState} ui
  * @property {ChartsState} charts
@@ -96,6 +111,7 @@
  */
 /**
  * Central application state container
+ *
  * @type {AppStateShape}
  */
 const AppState = {
@@ -167,7 +183,10 @@ const AppState = {
             fileInfo: {
                 displayName: "",
                 hasFile: false,
-                title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+                title:
+                    typeof document !== "undefined" && document?.title
+                        ? document.title
+                        : "Fit File Viewer",
             },
             isFullscreen: false,
             loadingIndicator: {
@@ -192,24 +211,28 @@ const AppState = {
     MAX_HISTORY_SIZE = 50,
     /**
      * State change history for debugging
-     * @type {Array<Object>}
+     *
+     * @type {Object[]}
      */
     stateHistory = [],
     /**
      * Event listeners for state changes
+     *
      * @type {Map<string, Set<Function>>}
      */
     stateListeners = new Map();
 
 /**
- * Tracks whether initializeStateManager has completed to prevent duplicate subscriptions
- * @type {{initialized: boolean}}
+ * Tracks whether initializeStateManager has completed to prevent duplicate
+ * subscriptions
+ *
+ * @type {{ initialized: boolean }}
  */
 const stateManagerInitState = { initialized: false };
 
 /**
- * TEST-ONLY: Clear all registered state listeners.
- * This helps ensure unit tests don't leak subscriptions across suites.
+ * TEST-ONLY: Clear all registered state listeners. This helps ensure unit tests
+ * don't leak subscriptions across suites.
  */
 function __clearAllListenersForTests() {
     try {
@@ -222,6 +245,7 @@ function __clearAllListenersForTests() {
 
 /**
  * TEST-ONLY: Fully reset the state manager.
+ *
  * - Clears all listeners
  * - Clears history
  * - Resets AppState to initial values
@@ -247,9 +271,13 @@ function __resetStateManagerForTests() {
 
 /**
  * @typedef {Object} StateUpdateOptions
- * @property {boolean} [silent=false] If true, don't notify listeners of this update
- * @property {string} [source="unknown"] Source tag for debugging / history
- * @property {boolean} [merge=false] If true and both old & new values are plain objects, perform a shallow merge
+ *
+ * @property {boolean} [silent=false] If true, don't notify listeners of this
+ *   update. Default is `false`
+ * @property {string} [source="unknown"] Source tag for debugging / history.
+ *   Default is `"unknown"`
+ * @property {boolean} [merge=false] If true and both old & new values are plain
+ *   objects, perform a shallow merge. Default is `false`
  */
 
 /**
@@ -262,25 +290,33 @@ function clearStateHistory() {
 
 /**
  * Create reactive property on window object for backward compatibility
+ *
  * @param {string} propertyName - Name of the property to create
  * @param {string} statePath - Path in state to bind to
  */
 function createReactiveProperty(propertyName, statePath) {
     try {
         // Check if property already exists
-        const descriptor = Object.getOwnPropertyDescriptor(globalThis, propertyName);
+        const descriptor = Object.getOwnPropertyDescriptor(
+            globalThis,
+            propertyName
+        );
 
         if (descriptor) {
             // If property exists, check if it's already reactive
             if (descriptor.get && descriptor.set) {
-                console.log(`[StateManager] Property ${propertyName} is already reactive`);
+                console.log(
+                    `[StateManager] Property ${propertyName} is already reactive`
+                );
                 return;
             }
 
             // If it exists but isn't reactive, preserve the current value
             const currentValue = /** @type {any} */ (window)[propertyName];
             if (currentValue !== undefined && currentValue !== null) {
-                setState(statePath, currentValue, { source: `createReactiveProperty.${propertyName}` });
+                setState(statePath, currentValue, {
+                    source: `createReactiveProperty.${propertyName}`,
+                });
             }
         }
 
@@ -290,26 +326,38 @@ function createReactiveProperty(propertyName, statePath) {
                 return getState(statePath);
             },
             set(value) {
-                setState(statePath, value, { source: `window.${propertyName}` });
+                setState(statePath, value, {
+                    source: `window.${propertyName}`,
+                });
             },
         });
 
-        console.log(`[StateManager] Created reactive property: ${propertyName} -> ${statePath}`);
+        console.log(
+            `[StateManager] Created reactive property: ${propertyName} -> ${statePath}`
+        );
     } catch (error) {
-        console.warn(`[StateManager] Failed to create reactive property ${propertyName}:`, error);
+        console.warn(
+            `[StateManager] Failed to create reactive property ${propertyName}:`,
+            error
+        );
         // Fallback: just ensure the state path exists
         if (getState(statePath) === undefined) {
-            setState(statePath, null, { source: `createReactiveProperty.fallback.${propertyName}` });
+            setState(statePath, null, {
+                source: `createReactiveProperty.fallback.${propertyName}`,
+            });
         }
     }
 }
 
 /**
  * Helper function to get nested value from object
+ *
  * @private
+ *
  * @param {Object} obj - Source object
  * @param {string} path - Dot notation path
- * @returns {*} Value at path
+ *
+ * @returns {any} Value at path
  */
 function getNestedValue(obj, path) {
     const keys = path.split(".");
@@ -331,8 +379,10 @@ function getNestedValue(obj, path) {
 
 /**
  * Get state value by path
+ *
  * @param {string} path - Dot notation path to state property
- * @returns {*} State value
+ *
+ * @returns {any} State value
  */
 function getState(path) {
     if (!path) {
@@ -358,7 +408,8 @@ function getState(path) {
 
 /**
  * Get state change history for debugging
- * @returns {Array<Object>} Array of state changes
+ *
+ * @returns {Object[]} Array of state changes
  */
 function getStateHistory() {
     return [...stateHistory];
@@ -366,6 +417,7 @@ function getStateHistory() {
 
 /**
  * Get subscription information for debugging
+ *
  * @returns {Object} Subscription information
  */
 function getSubscriptions() {
@@ -392,7 +444,9 @@ function getSubscriptions() {
  */
 function initializeStateManager() {
     if (stateManagerInitState.initialized) {
-        console.log("[StateManager] initializeStateManager invoked multiple times; ignoring subsequent calls");
+        console.log(
+            "[StateManager] initializeStateManager invoked multiple times; ignoring subsequent calls"
+        );
         return;
     }
 
@@ -405,19 +459,30 @@ function initializeStateManager() {
 
     // Set up auto-persistence on certain state changes
     subscribe("ui", () => persistState(["ui"]));
-    subscribe("charts.controlsVisible", () => persistState(["charts.controlsVisible"]));
+    subscribe("charts.controlsVisible", () =>
+        persistState(["charts.controlsVisible"])
+    );
     subscribe("map.baseLayer", () => persistState(["map.baseLayer"]));
 
     stateManagerInitState.initialized = true;
 
-    console.log("[StateManager] Initialized with reactive properties and persistence");
+    console.log(
+        "[StateManager] Initialized with reactive properties and persistence"
+    );
 }
 
 /**
  * Load persisted state from localStorage
- * @param {Array<string>} paths - Array of state paths to load
+ *
+ * @param {string[]} paths - Array of state paths to load
  */
-function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
+function loadPersistedState(
+    paths = [
+        "ui",
+        "charts.controlsVisible",
+        "map.baseLayer",
+    ]
+) {
     try {
         const savedState = localStorage.getItem("fitFileViewer_state");
         if (!savedState) {
@@ -441,10 +506,12 @@ function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map.baseLa
 
 /**
  * Notify all listeners for a given path and its parent paths
+ *
  * @private
+ *
  * @param {string} path - State path that changed
- * @param {*} newValue - New value
- * @param {*} oldValue - Previous value
+ * @param {any} newValue - New value
+ * @param {any} oldValue - Previous value
  */
 function notifyListeners(path, newValue, oldValue) {
     // Notify exact path listeners
@@ -454,7 +521,10 @@ function notifyListeners(path, newValue, oldValue) {
             try {
                 callback(newValue, oldValue, path);
             } catch (error) {
-                console.error(`[StateManager] Error in listener for ${path}:`, error);
+                console.error(
+                    `[StateManager] Error in listener for ${path}:`,
+                    error
+                );
             }
         }
     }
@@ -471,7 +541,10 @@ function notifyListeners(path, newValue, oldValue) {
                 try {
                     callback(parentValue, parentValue, parentPath);
                 } catch (error) {
-                    console.error(`[StateManager] Error in parent listener for ${parentPath}:`, error);
+                    console.error(
+                        `[StateManager] Error in parent listener for ${parentPath}:`,
+                        error
+                    );
                 }
             }
         }
@@ -480,9 +553,16 @@ function notifyListeners(path, newValue, oldValue) {
 
 /**
  * Persist state to localStorage
- * @param {Array<string>} paths - Array of state paths to persist
+ *
+ * @param {string[]} paths - Array of state paths to persist
  */
-function persistState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
+function persistState(
+    paths = [
+        "ui",
+        "charts.controlsVisible",
+        "map.baseLayer",
+    ]
+) {
     const stateToSave = {};
 
     for (const path of paths) {
@@ -493,7 +573,10 @@ function persistState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"])
     }
 
     try {
-        localStorage.setItem("fitFileViewer_state", JSON.stringify(stateToSave));
+        localStorage.setItem(
+            "fitFileViewer_state",
+            JSON.stringify(stateToSave)
+        );
         console.log("[StateManager] State persisted to localStorage");
     } catch (error) {
         console.error("[StateManager] Failed to persist state:", error);
@@ -502,6 +585,7 @@ function persistState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"])
 
 /**
  * Reset state to initial values
+ *
  * @param {string} [path] - Optional path to reset only part of state
  */
 function resetState(path) {
@@ -578,7 +662,10 @@ function resetState(path) {
                 fileInfo: {
                     displayName: "",
                     hasFile: false,
-                    title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+                    title:
+                        typeof document !== "undefined" && document?.title
+                            ? document.title
+                            : "Fit File Viewer",
                 },
                 isFullscreen: false,
                 loadingIndicator: {
@@ -604,10 +691,12 @@ function resetState(path) {
 
 /**
  * Helper function to set nested value in object
+ *
  * @private
+ *
  * @param {Object} obj - Target object
  * @param {string} path - Dot notation path
- * @param {*} value - Value to set
+ * @param {any} value - Value to set
  */
 function setNestedValue(obj, path, value) {
     const keys = path.split(".");
@@ -622,7 +711,11 @@ function setNestedValue(obj, path, value) {
             return;
         }
         const container = /** @type {Record<string, any>} */ (target);
-        if (!Object.hasOwn(container, key) || typeof container[key] !== "object" || container[key] === null) {
+        if (
+            !Object.hasOwn(container, key) ||
+            typeof container[key] !== "object" ||
+            container[key] === null
+        ) {
             container[key] = {};
         }
         target = container[key];
@@ -635,8 +728,9 @@ function setNestedValue(obj, path, value) {
 
 /**
  * Set state value by path and notify listeners
+ *
  * @param {string} path - Dot notation path to state property
- * @param {*} value - New value to set
+ * @param {any} value - New value to set
  * @param {StateUpdateOptions} [options] - Optional update options
  */
 function setState(path, value, options = {}) {
@@ -656,7 +750,11 @@ function setState(path, value, options = {}) {
             break;
         }
         const container = /** @type {Record<string, any>} */ (target);
-        if (!Object.hasOwn(container, key) || typeof container[key] !== "object" || container[key] === null) {
+        if (
+            !Object.hasOwn(container, key) ||
+            typeof container[key] !== "object" ||
+            container[key] === null
+        ) {
             container[key] = {};
         }
         target = container[key];
@@ -709,14 +807,20 @@ function setState(path, value, options = {}) {
 
     // Log only if value changed, or always if source indicates debug/dev
     if (hasChanged || source.includes("dev") || source.includes("debug")) {
-        console.log(`[StateManager] ${path} updated by ${source}:`, { newValue: value, oldValue });
+        console.log(`[StateManager] ${path} updated by ${source}:`, {
+            newValue: value,
+            oldValue,
+        });
     }
 }
 
 /**
  * Subscribe to state changes for a specific path
- * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
+ *
+ * @param {string} path - Dot notation path to state property (e.g.,
+ *   'ui.activeTab')
  * @param {Function} callback - Function to call when state changes
+ *
  * @returns {Function} Unsubscribe function
  */
 function subscribe(path, callback) {
@@ -743,24 +847,33 @@ function subscribe(path, callback) {
 }
 
 /**
- * Subscribe to state changes ensuring there is only one active subscription for a given id.
+ * Subscribe to state changes ensuring there is only one active subscription for
+ * a given id.
  *
- * This is intended for UI initializers that may run multiple times due to re-renders.
- * It prevents leaking subscriptions across map/tab rebuilds.
+ * This is intended for UI initializers that may run multiple times due to
+ * re-renders. It prevents leaking subscriptions across map/tab rebuilds.
  *
- * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
- * @param {string} id - Unique identifier for this subscription (e.g., 'tabs:activeTab')
+ * @param {string} path - Dot notation path to state property (e.g.,
+ *   'ui.activeTab')
+ * @param {string} id - Unique identifier for this subscription (e.g.,
+ *   'tabs:activeTab')
  * @param {Function} callback - Function to call when state changes
+ *
  * @returns {Function} Unsubscribe function
  */
 function subscribeSingleton(path, id, callback) {
     /** @type {any} */
     const g = /** @type {any} */ (globalThis);
-    if (!g.__ffvSingletonStateSubscriptions || typeof g.__ffvSingletonStateSubscriptions !== "object") {
+    if (
+        !g.__ffvSingletonStateSubscriptions ||
+        typeof g.__ffvSingletonStateSubscriptions !== "object"
+    ) {
         g.__ffvSingletonStateSubscriptions = Object.create(null);
     }
 
-    const registry = /** @type {Record<string, Function>} */ (g.__ffvSingletonStateSubscriptions);
+    const registry = /** @type {Record<string, Function>} */ (
+        g.__ffvSingletonStateSubscriptions
+    );
     const key = typeof id === "string" ? id.trim() : "";
 
     if (!key) {
@@ -795,6 +908,7 @@ function subscribeSingleton(path, id, callback) {
 
 /**
  * Update state by merging with existing object
+ *
  * @param {string} path - Dot notation path to state property
  * @param {Object} updates - Object to merge with existing state
  * @param {StateUpdateOptions} [options] - Optional update options
@@ -827,7 +941,9 @@ export { subscribeSingleton };
 export { updateState };
 
 try {
-    const g = /** @type {any} */ (typeof globalThis === "object" ? globalThis : undefined);
+    const g = /** @type {any} */ (
+        typeof globalThis === "object" ? globalThis : undefined
+    );
     if (g && typeof g === "object") {
         const api = {
             __clearAllListenersForTests,
@@ -848,7 +964,10 @@ try {
             updateState,
         };
 
-        if (!g.__STATE_MANAGER_API__ || typeof g.__STATE_MANAGER_API__ !== "object") {
+        if (
+            !g.__STATE_MANAGER_API__ ||
+            typeof g.__STATE_MANAGER_API__ !== "object"
+        ) {
             Object.defineProperty(g, "__STATE_MANAGER_API__", {
                 configurable: true,
                 enumerable: false,

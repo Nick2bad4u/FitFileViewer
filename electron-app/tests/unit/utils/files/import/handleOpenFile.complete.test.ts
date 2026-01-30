@@ -1,5 +1,6 @@
 /**
- * @fileoverview Complete Tests for handleOpenFile module
+ * @file Complete Tests for handleOpenFile module
+ *
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -63,7 +64,9 @@ describe("handleOpenFile Module", () => {
         // Add mock implementations
         electronAPIMock.openFile.mockResolvedValue(["test.fit"]);
         electronAPIMock.readFile.mockResolvedValue(new ArrayBuffer(100));
-        electronAPIMock.parseFitFile.mockResolvedValue({ data: { sessions: [] } });
+        electronAPIMock.parseFitFile.mockResolvedValue({
+            data: { sessions: [] },
+        });
 
         // Assign the mock to window.electronAPI
         global.window.electronAPI = electronAPIMock;
@@ -73,14 +76,17 @@ describe("handleOpenFile Module", () => {
         global.window.sendFitFileToAltFitReader = vi.fn();
 
         // Import the module under test
-        handleOpenFileModule = await import("../../../../../utils/files/import/handleOpenFile.js");
+        handleOpenFileModule =
+            await import("../../../../../utils/files/import/handleOpenFile.js");
     });
 
     describe("Module Exports", () => {
         it("should export expected functions", () => {
             expect(typeof handleOpenFileModule.handleOpenFile).toBe("function");
             expect(typeof handleOpenFileModule.logWithContext).toBe("function");
-            expect(typeof handleOpenFileModule.validateElectronAPI).toBe("function");
+            expect(typeof handleOpenFileModule.validateElectronAPI).toBe(
+                "function"
+            );
             expect(typeof handleOpenFileModule.updateUIState).toBe("function");
         });
     });
@@ -88,17 +94,23 @@ describe("handleOpenFile Module", () => {
     describe("logWithContext", () => {
         it("should log info messages", () => {
             handleOpenFileModule.logWithContext("info message");
-            expect(console.info).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: info message"));
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringContaining("HandleOpenFile: info message")
+            );
         });
 
         it("should log warning messages", () => {
             handleOpenFileModule.logWithContext("warn message", "warn");
-            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: warn message"));
+            expect(console.warn).toHaveBeenCalledWith(
+                expect.stringContaining("HandleOpenFile: warn message")
+            );
         });
 
         it("should log error messages", () => {
             handleOpenFileModule.logWithContext("error message", "error");
-            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: error message"));
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining("HandleOpenFile: error message")
+            );
         });
 
         it("should handle exceptions when logging fails", () => {
@@ -128,7 +140,10 @@ describe("handleOpenFile Module", () => {
 
         it("should return false when required methods are missing", () => {
             const originalElectronAPI = global.window.electronAPI;
-            global.window.electronAPI = { readFile: vi.fn(), parseFitFile: vi.fn() }; // Missing openFile
+            global.window.electronAPI = {
+                readFile: vi.fn(),
+                parseFitFile: vi.fn(),
+            }; // Missing openFile
             expect(handleOpenFileModule.validateElectronAPI()).toBe(false);
             global.window.electronAPI = originalElectronAPI;
         });
@@ -213,11 +228,16 @@ describe("handleOpenFile Module", () => {
             try {
                 badUIElements.openFileBtn.disabled = true;
             } catch (error) {
-                handleOpenFileModule.logWithContext(`Error updating UI state: ${error}`, "error");
+                handleOpenFileModule.logWithContext(
+                    `Error updating UI state: ${error}`,
+                    "error"
+                );
             }
 
             // Should log the error
-            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Error updating UI state"));
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining("Error updating UI state")
+            );
         });
     });
 
@@ -232,13 +252,20 @@ describe("handleOpenFile Module", () => {
 
             // Mock successful file opening
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
-            global.window.electronAPI.parseFitFile.mockResolvedValue({ data: { sessions: [] } });
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
+            global.window.electronAPI.parseFitFile.mockResolvedValue({
+                data: { sessions: [] },
+            });
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(global.window.electronAPI.openFile).toHaveBeenCalled();
-            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith("test.fit");
+            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith(
+                "test.fit"
+            );
             expect(global.window.electronAPI.parseFitFile).toHaveBeenCalled();
             expect(result).toBe(true);
         });
@@ -253,7 +280,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
         });
@@ -266,7 +294,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -277,7 +306,9 @@ describe("handleOpenFile Module", () => {
 
         it("should handle empty files", async () => {
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(0));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(0)
+            );
 
             const mockParams = {
                 isOpeningFileRef: { value: false },
@@ -286,14 +317,22 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams, { validateFileSize: true });
+            const result = await handleOpenFileModule.handleOpenFile(
+                mockParams,
+                { validateFileSize: true }
+            );
 
             expect(result).toBe(false);
-            expect(mockParams.showNotification).toHaveBeenCalledWith("Selected file appears to be empty", "error");
+            expect(mockParams.showNotification).toHaveBeenCalledWith(
+                "Selected file appears to be empty",
+                "error"
+            );
         });
 
         it("should handle file open errors", async () => {
-            global.window.electronAPI.openFile.mockRejectedValue(new Error("Open error"));
+            global.window.electronAPI.openFile.mockRejectedValue(
+                new Error("Open error")
+            );
 
             const mockParams = {
                 isOpeningFileRef: { value: false },
@@ -302,7 +341,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -313,7 +353,9 @@ describe("handleOpenFile Module", () => {
 
         it("should handle file read errors", async () => {
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockRejectedValue(new Error("Read error"));
+            global.window.electronAPI.readFile.mockRejectedValue(
+                new Error("Read error")
+            );
 
             const mockParams = {
                 isOpeningFileRef: { value: false },
@@ -322,7 +364,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -333,8 +376,12 @@ describe("handleOpenFile Module", () => {
 
         it("should handle file parse errors", async () => {
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
-            global.window.electronAPI.parseFitFile.mockRejectedValue(new Error("Parse error"));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
+            global.window.electronAPI.parseFitFile.mockRejectedValue(
+                new Error("Parse error")
+            );
 
             const mockParams = {
                 isOpeningFileRef: { value: false },
@@ -343,7 +390,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -354,7 +402,9 @@ describe("handleOpenFile Module", () => {
 
         it("should handle parse result errors", async () => {
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue({
                 error: "Parse error",
                 details: "Invalid file format",
@@ -367,7 +417,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -378,7 +429,9 @@ describe("handleOpenFile Module", () => {
 
         it("should handle errors when displaying FIT data", async () => {
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
@@ -396,7 +449,8 @@ describe("handleOpenFile Module", () => {
             };
 
             // Should still return true since the file was parsed successfully
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(true);
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -406,8 +460,13 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file path array", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue(["test.fit", "second.fit"]);
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.openFile.mockResolvedValue([
+                "test.fit",
+                "second.fit",
+            ]);
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
@@ -419,10 +478,13 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(true);
-            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith("test.fit");
+            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith(
+                "test.fit"
+            );
         });
 
         it("should handle empty file path array", async () => {
@@ -435,7 +497,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalled();
@@ -450,7 +513,9 @@ describe("handleOpenFile Module", () => {
             };
 
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue(mockData);
 
             const mockParams = {
@@ -468,18 +533,23 @@ describe("handleOpenFile Module", () => {
             // Reset console.log mock to track calls
             console.log = vi.fn();
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(true);
             expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining("Debug: Parsed FIT data contains 2 sessions")
+                expect.stringContaining(
+                    "Debug: Parsed FIT data contains 2 sessions"
+                )
             );
         });
 
         it("should skip file size validation when option is disabled", async () => {
             // Empty file would normally fail
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(0));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(0)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue({
                 data: { sessions: [] },
             });
@@ -513,7 +583,9 @@ describe("handleOpenFile Module", () => {
             delete global.window.showFitData;
 
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
             global.window.electronAPI.parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
@@ -526,7 +598,8 @@ describe("handleOpenFile Module", () => {
             };
 
             // Should not throw errors when optional functions are missing
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(true);
             expect(mockParams.showNotification).not.toHaveBeenCalled();
@@ -537,9 +610,11 @@ describe("handleOpenFile Module", () => {
 
         it("should correctly clean up isOpeningFileRef in finally block", async () => {
             // Force an error in the middle of processing
-            global.window.electronAPI.parseFitFile.mockImplementationOnce(() => {
-                throw new Error("Unexpected error");
-            });
+            global.window.electronAPI.parseFitFile.mockImplementationOnce(
+                () => {
+                    throw new Error("Unexpected error");
+                }
+            );
 
             const mockParams = {
                 isOpeningFileRef: { value: false },
@@ -549,10 +624,13 @@ describe("handleOpenFile Module", () => {
             };
 
             global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(new ArrayBuffer(100));
+            global.window.electronAPI.readFile.mockResolvedValue(
+                new ArrayBuffer(100)
+            );
 
             // Should not resolve successfully
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
 
@@ -571,7 +649,8 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn(),
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(mockParams);
+            const result =
+                await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
             expect(mockParams.showNotification).toHaveBeenCalledWith(

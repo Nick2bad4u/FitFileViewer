@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for ui/tabs
- * @description Re-exports all modules in the ui/tabs category
+ * Re-exports all modules in the ui/tabs category
+ *
+ * @file Barrel Export for ui/tabs
  */
 export * from "./setupTabButton.js";
 export * from "./tabStateManager.js";

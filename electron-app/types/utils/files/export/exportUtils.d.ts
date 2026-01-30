@@ -1,22 +1,26 @@
 /**
  * Test-only: override internal dependencies (notifications, theme resolver)
+ *
  * @param {Partial<typeof __deps>} overrides
  */
 export function __setTestDeps(overrides: Partial<typeof __deps>): void;
 export namespace exportUtils {
     /**
      * Helper method to add combined CSV data to ZIP
+     *
      * @param {any} zip - JSZip instance
      * @param {any[]} charts - Array of Chart.js instances
      */
     function addCombinedCSVToZip(zip: any, charts: any[]): Promise<void>;
     /**
      * Initiates Gyazo OAuth authentication
+     *
      * @returns {Promise<string>} Access token
      */
     function authenticateWithGyazo(): Promise<string>;
     /**
      * Downloads chart as PNG image with theme-aware background
+     *
      * @param {ChartJSInstance} chart - Chart.js instance
      * @param {string} filename - Download filename
      */ /**
@@ -25,6 +29,7 @@ export namespace exportUtils {
     function clearGyazoAccessToken(): void;
     /**
      * Creates a combined image of all charts
+     *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */ /**
@@ -33,22 +38,32 @@ export namespace exportUtils {
     function clearGyazoConfig(): void;
     /**
      * Copies chart image to clipboard with theme background
+     *
      * @param {ChartJSInstance} chart - Chart.js instance
      */ function copyChartToClipboard(chart: ChartJSInstance): Promise<void>;
     /**
      * Copies combined charts image to clipboard
+     *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    function copyCombinedChartsToClipboard(charts: ChartJSInstance[]): Promise<void>;
-    function createCombinedChartsImage(charts: any, filename?: string): Promise<void>;
+    function copyCombinedChartsToClipboard(
+        charts: ChartJSInstance[]
+    ): Promise<void>;
+    function createCombinedChartsImage(
+        charts: any,
+        filename?: string
+    ): Promise<void>;
     /**
      * Creates the Gyazo OAuth authentication modal
+     *
      * @param {string} authUrl - OAuth authorization URL
      * @param {string} _state - CSRF protection state (unused)
      * @param {Function} resolve - Promise resolve function
      * @param {Function} reject - Promise reject function
      * @param {boolean} useServer - Whether to use server
-     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup hook invoked before rejecting
+     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup
+     *   hook invoked before rejecting
+     *
      * @returns {HTMLElement} Modal element
      */
     function createGyazoAuthModal(
@@ -62,80 +77,110 @@ export namespace exportUtils {
     function downloadChartAsPNG(chart: any, filename?: string): Promise<void>;
     /**
      * Exchanges authorization code for access token
+     *
      * @param {string} code - Authorization code
      * @param {string} redirectUri - Redirect URI used in OAuth flow
+     *
      * @returns {Promise<Object>} Token data with access_token
      */
-    function exchangeGyazoCodeForToken(code: string, redirectUri: string): Promise<Object>;
+    function exchangeGyazoCodeForToken(
+        code: string,
+        redirectUri: string
+    ): Promise<Object>;
     /**
      * Exports all charts and data as a ZIP file
+     *
      * @param {any[]} charts - Array of Chart.js instances
      */
     function exportAllAsZip(charts: any[]): Promise<void>;
     /**
      * Exports chart data as CSV
+     *
      * @param {any[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
-    function exportChartDataAsCSV(chartData: any[], fieldName: string, filename?: string): Promise<void>;
+    function exportChartDataAsCSV(
+        chartData: any[],
+        fieldName: string,
+        filename?: string
+    ): Promise<void>;
     /**
      * Exports chart data as JSON
+     *
      * @param {any[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
-    function exportChartDataAsJSON(chartData: any[], fieldName: string, filename?: string): Promise<void>;
+    function exportChartDataAsJSON(
+        chartData: any[],
+        fieldName: string,
+        filename?: string
+    ): Promise<void>;
     /**
      * Exports combined chart data as CSV
+     *
      * @param {any[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */
-    function exportCombinedChartsDataAsCSV(charts: any[], filename?: string): Promise<void>;
+    function exportCombinedChartsDataAsCSV(
+        charts: any[],
+        filename?: string
+    ): Promise<void>;
     /**
      * Gets the theme background color for exports
+     *
      * @returns {string} Background color based on export theme setting
      */
     function getExportThemeBackground(): string;
     /**
      * Gets the stored Gyazo access token
-     * @returns {string|null} Access token or null if not found
+     *
+     * @returns {string | null} Access token or null if not found
      */
     function getGyazoAccessToken(): string | null;
     /**
-     * Gets Gyazo configuration from user settings or defaults
-     * Gyazo OAuth/upload flows are excluded from coverage due to external auth, clipboard,
-     * and network side effects that are brittle in jsdom.
+     * Gets Gyazo configuration from user settings or defaults Gyazo
+     * OAuth/upload flows are excluded from coverage due to external auth,
+     * clipboard, and network side effects that are brittle in jsdom.
+     *
      * @returns {Object} Gyazo configuration object
      */
     function getGyazoConfig(): Object;
     /**
      * Checks if user is authenticated with Gyazo
+     *
      * @returns {boolean} True if authenticated, false otherwise
      */
     function isGyazoAuthenticated(): boolean;
     /**
      * Validates a Chart.js instance
+     *
      * @param {ChartJSInstance} chart - Chart.js instance to validate
+     *
      * @returns {boolean} True if chart is valid, false otherwise
      */
     function isValidChart(chart: ChartJSInstance): boolean;
     function printChart(chart: any): Promise<void>;
     /**
      * Prints multiple charts in a combined format
+     *
      * @param {any[]} charts - Array of Chart.js instances
      */
     function printCombinedCharts(charts: any[]): void;
     /**
      * Stores the Gyazo access token
+     *
      * @param {string} token - Access token to store
      */
     function setGyazoAccessToken(token: string): void;
     /**
      * Prints the chart with theme background
+     *
      * @param {ChartJSInstance} chart - Chart.js instance
      */ /**
      * Saves Gyazo configuration to user settings
+     *
      * @param {string} clientId - Gyazo client ID
      * @param {string} clientSecret - Gyazo client secret
      */
@@ -158,22 +203,28 @@ export namespace exportUtils {
     function showGyazoSetupGuide(): void;
     /**
      * Updates the authentication status in the Gyazo account manager modal
-     * @param {HTMLElement} modal - The modal element containing status indicators
+     *
+     * @param {HTMLElement} modal - The modal element containing status
+     *   indicators
      */
     function updateGyazoAuthStatus(modal: HTMLElement): void;
     /**
      * Uploads image to Gyazo using the new API format
+     *
      * @param {string} base64Image - Base64 encoded image
+     *
      * @returns {Promise<string>} Gyazo URL
      */
     function uploadToGyazo(base64Image: string): Promise<string>;
     /**
      * Gets Imgur configuration from localStorage with fallback
+     *
      * @returns {Object} Imgur configuration object
      */
     function getImgurConfig(): Object;
     /**
      * Saves Imgur configuration to localStorage
+     *
      * @param {string} clientId - Imgur client ID
      */
     function setImgurConfig(clientId: string): void;
@@ -183,12 +234,15 @@ export namespace exportUtils {
     function clearImgurConfig(): void;
     /**
      * Checks if Imgur is properly configured with a non-default client ID
+     *
      * @returns {boolean} True if configured with custom client ID
      */
     function isImgurConfigured(): boolean;
     /**
      * Uploads image to Imgur and returns URL
+     *
      * @param {string} base64Image - Base64 encoded image
+     *
      * @returns {Promise<string>} Imgur URL
      */
     function uploadToImgur(base64Image: string): Promise<string>; /**
@@ -201,7 +255,9 @@ export namespace exportUtils {
     function showImgurSetupGuide(): void;
     /**
      * Updates the status display in the Imgur account manager modal
-     * @param {HTMLElement} modal - The modal element containing status indicators
+     *
+     * @param {HTMLElement} modal - The modal element containing status
+     *   indicators
      */
     function updateImgurStatus(modal: HTMLElement): void;
 }
@@ -291,9 +347,9 @@ export type ExportResult = {
 };
 /**
  * @type {{
- *  showNotification: typeof __realShowNotification,
- *  detectCurrentTheme: typeof __realDetectCurrentTheme,
- *  getStorage: () => any
+ *     showNotification: typeof __realShowNotification;
+ *     detectCurrentTheme: typeof __realDetectCurrentTheme;
+ *     getStorage: () => any;
  * }}
  */
 declare let __deps: {

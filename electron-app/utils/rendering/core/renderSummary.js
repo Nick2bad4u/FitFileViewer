@@ -12,23 +12,27 @@ import { showColModal } from "../helpers/summaryColModal.js";
  */
 
 /**
- * Renders a summary of activity data, including main summary and lap summary tables,
- * into the DOM element with id 'content-summary'. Provides "Copy as CSV" buttons for both tables.
+ * Renders a summary of activity data, including main summary and lap summary
+ * tables, into the DOM element with id 'content-summary'. Provides "Copy as
+ * CSV" buttons for both tables.
  *
- * The summary is generated from either `sessionMesgs` or `recordMesgs` in the input data.
- * If lap data is available (`lapMesgs`), lap rows are appended to the same table.
- *
- * @param {Object} data - The activity data object.
- * @param {Array<Object>} [data.sessionMesgs] - Array of session message objects (optional).
- * @param {Array<Object>} [data.recordMesgs] - Array of record message objects (optional).
- * @param {Array<Object>} [data.lapMesgs] - Array of lap message objects (optional).
+ * The summary is generated from either `sessionMesgs` or `recordMesgs` in the
+ * input data. If lap data is available (`lapMesgs`), lap rows are appended to
+ * the same table.
  *
  * @example
- * renderSummary({
- *   sessionMesgs: [{ total_ascent: 100, total_descent: 80, ... }],
- *   recordMesgs: [{ timestamp: 123, distance: 1000, speed: 2.5, ... }, ...],
- *   lapMesgs: [{ lap_index: 1, total_time: 300, ... }, ...]
- * });
+ *     renderSummary({
+ *       sessionMesgs: [{ total_ascent: 100, total_descent: 80, ... }],
+ *       recordMesgs: [{ timestamp: 123, distance: 1000, speed: 2.5, ... }, ...],
+ *       lapMesgs: [{ lap_index: 1, total_time: 300, ... }, ...]
+ *     });
+ *
+ * @param {Object} data - The activity data object.
+ * @param {Object[]} [data.sessionMesgs] - Array of session message objects
+ *   (optional).
+ * @param {Object[]} [data.recordMesgs] - Array of record message objects
+ *   (optional).
+ * @param {Object[]} [data.lapMesgs] - Array of lap message objects (optional).
  */
 export function renderSummary(data) {
     const container = document.querySelector("#content-summary");
@@ -41,13 +45,16 @@ export function renderSummary(data) {
     /** @type {Set<string>} */
     const keySet = new Set();
     if (data && data.sessionMesgs) {
-        for (const row of data.sessionMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
+        for (const row of data.sessionMesgs)
+            for (const k of Object.keys(row || {})) keySet.add(k);
     }
     if (data && data.lapMesgs) {
-        for (const row of data.lapMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
+        for (const row of data.lapMesgs)
+            for (const k of Object.keys(row || {})) keySet.add(k);
     }
     if (data && data.recordMesgs) {
-        for (const row of data.recordMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
+        for (const row of data.recordMesgs)
+            for (const k of Object.keys(row || {})) keySet.add(k);
     }
     const allKeys = [...keySet];
     const fileKey = getStorageKey(data, allKeys);
@@ -57,7 +64,9 @@ export function renderSummary(data) {
     const initialPrefs = perFilePrefs ?? globalPrefs ?? [...allKeys];
     // Preferences can come from a different activity, so they may include keys that do not exist
     // in the current file. Filter them out so we don't render empty/blank columns.
-    const normalizedPrefs = orderSummaryColumnsNamedFirst(allKeys).filter((k) => initialPrefs.includes(k));
+    const normalizedPrefs = orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+        initialPrefs.includes(k)
+    );
     let visibleColumns = normalizedPrefs;
 
     const gearBtn = document.createElement("button");

@@ -1,8 +1,12 @@
 /**
  * Internal function to load a single FIT file as overlay
- * @param {File} file - File to load
- * @returns {Promise<{success: boolean, data?: Object, error?: string}>} Load result
+ *
  * @private
+ *
+ * @param {File} file - File to load
+ *
+ * @returns {Promise<{ success: boolean; data?: Object; error?: string }>} Load
+ *   result
  */
 export async function loadSingleOverlayFile(file) {
     // Keep consistent with main-process IPC safety caps.
@@ -12,18 +16,32 @@ export async function loadSingleOverlayFile(file) {
      * @param {unknown} name
      */
     const isFitName = (name) =>
-        typeof name === "string" && name.trim().length > 0 ? /\.fit$/iu.test(name.trim()) : true;
+        typeof name === "string" && name.trim().length > 0
+            ? /\.fit$/iu.test(name.trim())
+            : true;
 
     try {
         // Fast preflight checks (avoid reading/decoding obviously-invalid inputs)
         if (file && typeof file === "object") {
-            const fileInfo = /** @type {{ name?: unknown, size?: unknown }} */ (file);
+            const fileInfo = /** @type {{ name?: unknown; size?: unknown }} */ (
+                file
+            );
             const { name, size } = fileInfo;
             if (!isFitName(name)) {
-                return { error: "Only .fit files can be loaded as overlays", success: false };
+                return {
+                    error: "Only .fit files can be loaded as overlays",
+                    success: false,
+                };
             }
-            if (typeof size === "number" && Number.isFinite(size) && size > MAX_FIT_FILE_BYTES) {
-                return { error: "File size exceeds 100MB limit", success: false };
+            if (
+                typeof size === "number" &&
+                Number.isFinite(size) &&
+                size > MAX_FIT_FILE_BYTES
+            ) {
+                return {
+                    error: "File size exceeds 100MB limit",
+                    success: false,
+                };
             }
         }
 
@@ -43,18 +61,26 @@ export async function loadSingleOverlayFile(file) {
         if (!arrayBuffer) {
             arrayBuffer = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.addEventListener("load", (event) => resolve(/** @type {any} */ (event.target)?.result));
+                reader.addEventListener("load", (event) =>
+                    resolve(/** @type {any} */ (event.target)?.result)
+                );
                 reader.onerror = () => reject(new Error("Failed to read file"));
                 reader.readAsArrayBuffer(file);
             });
         }
 
         if (!(arrayBuffer instanceof ArrayBuffer)) {
-            return { error: "Failed to read file as ArrayBuffer", success: false };
+            return {
+                error: "Failed to read file as ArrayBuffer",
+                success: false,
+            };
         }
 
         if (arrayBuffer.byteLength === 0) {
-            return { error: "Selected file appears to be empty", success: false };
+            return {
+                error: "Selected file appears to be empty",
+                success: false,
+            };
         }
 
         if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
@@ -62,17 +88,27 @@ export async function loadSingleOverlayFile(file) {
         }
 
         if (!arrayBuffer || !globalThis.electronAPI?.decodeFitFile) {
-            return { error: "No file data or decoder not available", success: false };
+            return {
+                error: "No file data or decoder not available",
+                success: false,
+            };
         }
 
-        const fitData = await globalThis.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */ (arrayBuffer));
+        const fitData = await globalThis.electronAPI.decodeFitFile(
+            /** @type {ArrayBuffer} */ (arrayBuffer)
+        );
         if (!fitData || fitData.error) {
-            return { error: fitData?.error || "Failed to parse FIT file", success: false };
+            return {
+                error: fitData?.error || "Failed to parse FIT file",
+                success: false,
+            };
         }
 
         // Validate that file has at least one valid coordinate without allocating/filtering
         // the entire record set (which can be large).
-        const records = Array.isArray(fitData.recordMesgs) ? fitData.recordMesgs : null;
+        const records = Array.isArray(fitData.recordMesgs)
+            ? fitData.recordMesgs
+            : null;
         let hasValidLocation = false;
         if (records) {
             for (const r of records) {
@@ -88,13 +124,23 @@ export async function loadSingleOverlayFile(file) {
         }
 
         if (!records || records.length === 0 || !hasValidLocation) {
-            return { error: "No valid location data found in file", success: false };
+            return {
+                error: "No valid location data found in file",
+                success: false,
+            };
         }
 
         return { data: fitData, success: true };
     } catch (error) {
-        console.error("[loadSingleOverlayFile] Error processing file:", file?.name, error);
+        console.error(
+            "[loadSingleOverlayFile] Error processing file:",
+            file?.name,
+            error
+        );
         const anyErr = /** @type {any} */ (error);
-        return { error: anyErr?.message || "Unknown error processing file", success: false };
+        return {
+            error: anyErr?.message || "Unknown error processing file",
+            success: false,
+        };
     }
 }

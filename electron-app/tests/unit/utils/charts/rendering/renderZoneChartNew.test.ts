@@ -13,9 +13,12 @@ vi.mock("../../../../../utils/charts/components/createChartCanvas.js", () => ({
     createChartCanvas: (...args: any[]) => createChartCanvasMock(...args),
 }));
 
-vi.mock("../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-    chartBackgroundColorPlugin: chartBackgroundColorPluginStub,
-}));
+vi.mock(
+    "../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js",
+    () => ({
+        chartBackgroundColorPlugin: chartBackgroundColorPluginStub,
+    })
+);
 
 vi.mock("../../../../../utils/charts/theming/chartThemeUtils.js", () => ({
     detectCurrentTheme: (...args: any[]) => detectCurrentThemeMock(...args),
@@ -41,7 +44,9 @@ async function loadModule() {
 }
 
 function lightenColor(hex: string, delta: number) {
-    const sanitized = /^#?[\dA-Fa-f]{6}$/.test(hex) ? hex.replace("#", "") : "999999";
+    const sanitized = /^#?[\dA-Fa-f]{6}$/.test(hex)
+        ? hex.replace("#", "")
+        : "999999";
     const r = Math.min(255, Number.parseInt(sanitized.slice(0, 2), 16) + delta);
     const g = Math.min(255, Number.parseInt(sanitized.slice(2, 4), 16) + delta);
     const b = Math.min(255, Number.parseInt(sanitized.slice(4, 6), 16) + delta);
@@ -66,14 +71,25 @@ beforeEach(() => {
     getThemeConfigMock.mockReturnValue({
         colors: {
             shadowLight: "rgba(0, 0, 0, 0.15)",
-            zoneColors: ["#102030", "#405060", "#708090"],
+            zoneColors: [
+                "#102030",
+                "#405060",
+                "#708090",
+            ],
         },
     });
     getZoneTypeFromFieldMock.mockReturnValue("heartRate");
-    getChartZoneColorsMock.mockReturnValue(["#123456", "#789abc", "#def012"]);
+    getChartZoneColorsMock.mockReturnValue([
+        "#123456",
+        "#789abc",
+        "#def012",
+    ]);
     formatTimeMock.mockImplementation((value: unknown) => `formatted-${value}`);
 
-    chartConstructorMock = vi.fn().mockImplementation(function Chart(canvas: HTMLCanvasElement, config: any) {
+    chartConstructorMock = vi.fn().mockImplementation(function Chart(
+        canvas: HTMLCanvasElement,
+        config: any
+    ) {
         chartCalls.push({ canvas, config });
         return { destroy: vi.fn(), data: config.data };
     });
@@ -93,8 +109,18 @@ describe("renderZoneChartNew", () => {
     it("returns early when container is invalid or zone data is empty", async () => {
         const { renderZoneChart } = await loadModule();
 
-        renderZoneChart(null as unknown as HTMLElement, "No Render", [{ zone: 1 }], "chart-empty");
-        renderZoneChart(document.createElement("div"), "No Data", [], "chart-empty");
+        renderZoneChart(
+            null as unknown as HTMLElement,
+            "No Render",
+            [{ zone: 1 }],
+            "chart-empty"
+        );
+        renderZoneChart(
+            document.createElement("div"),
+            "No Data",
+            [],
+            "chart-empty"
+        );
 
         expect(createChartCanvasMock).not.toHaveBeenCalled();
         expect(chartConstructorMock).not.toHaveBeenCalled();
@@ -115,7 +141,10 @@ describe("renderZoneChartNew", () => {
         expect(container.querySelector("canvas")).toBeTruthy();
 
         // Debug: check if Chart was called
-        console.log("Chart constructor called:", chartConstructorMock.mock.calls.length);
+        console.log(
+            "Chart constructor called:",
+            chartConstructorMock.mock.calls.length
+        );
         console.log("chartCalls array length:", chartCalls.length);
         console.log("globalThis.Chart is:", typeof (globalThis as any).Chart);
 
@@ -130,14 +159,20 @@ describe("renderZoneChartNew", () => {
         const dataset = config.data.datasets[0];
         expect(dataset.data).toEqual([120, 60]);
         expect(dataset.backgroundColor).toEqual(["#123456", "#654321"]);
-        expect(dataset.hoverBackgroundColor).toEqual([lightenColor("#123456", 30), lightenColor("#654321", 30)]);
+        expect(dataset.hoverBackgroundColor).toEqual([
+            lightenColor("#123456", 30),
+            lightenColor("#654321", 30),
+        ]);
 
         expect((globalThis as any)._chartjsInstances).toHaveLength(1);
 
-        const legendLabels = config.options.plugins.legend.labels.generateLabels({
-            data: config.data,
-            getDatasetMeta: () => ({ data: [{ hidden: false }, { hidden: true }] }),
-        });
+        const legendLabels =
+            config.options.plugins.legend.labels.generateLabels({
+                data: config.data,
+                getDatasetMeta: () => ({
+                    data: [{ hidden: false }, { hidden: true }],
+                }),
+            });
         expect(legendLabels).toHaveLength(2);
         expect(legendLabels[0].text).toContain("formatted-120");
         expect(legendLabels[1].hidden).toBe(true);
@@ -146,7 +181,10 @@ describe("renderZoneChartNew", () => {
             dataset: { data: dataset.data },
             parsed: dataset.data[0],
         });
-        expect(tooltipLines).toEqual(["Time: formatted-120", "Percentage: 66.7%"]);
+        expect(tooltipLines).toEqual([
+            "Time: formatted-120",
+            "Percentage: 66.7%",
+        ]);
         expect(formatTimeMock).toHaveBeenCalledWith(120, true);
     });
 
@@ -169,9 +207,18 @@ describe("renderZoneChartNew", () => {
             { zone: 2, label: "P2", time: 100 },
         ];
 
-        renderZoneChart(container, "Power Zones", zoneData, "power-zone-chart", { chartType: "bar" });
+        renderZoneChart(
+            container,
+            "Power Zones",
+            zoneData,
+            "power-zone-chart",
+            { chartType: "bar" }
+        );
 
-        expect(createChartCanvasMock).toHaveBeenCalledWith("power-zone-chart", 0);
+        expect(createChartCanvasMock).toHaveBeenCalledWith(
+            "power-zone-chart",
+            0
+        );
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
 
         expect(chartCalls.length).toBeGreaterThan(0);
@@ -181,7 +228,10 @@ describe("renderZoneChartNew", () => {
 
         const dataset = config.data.datasets[0];
         expect(dataset.backgroundColor).toEqual(["#010203", "INVALID"]);
-        expect(dataset.hoverBackgroundColor).toEqual([lightenColor("#010203", 20), lightenColor("INVALID", 20)]);
+        expect(dataset.hoverBackgroundColor).toEqual([
+            lightenColor("#010203", 20),
+            lightenColor("INVALID", 20),
+        ]);
         expect(dataset.hoverBorderColor).toEqual(["#010203", "INVALID"]);
 
         const yTickResult = config.options.scales.y.ticks.callback(300);
@@ -193,15 +243,22 @@ describe("renderZoneChartNew", () => {
         });
         expect(tooltipLabel).toBe("Time: formatted-100");
 
-        expect(getZoneTypeFromFieldMock).toHaveBeenCalledWith("power-zone-chart");
-        expect(getChartZoneColorsMock).toHaveBeenCalledWith("power", zoneData.length);
+        expect(getZoneTypeFromFieldMock).toHaveBeenCalledWith(
+            "power-zone-chart"
+        );
+        expect(getChartZoneColorsMock).toHaveBeenCalledWith(
+            "power",
+            zoneData.length
+        );
     });
 
     it("logs an error when chart creation fails", async () => {
         chartConstructorMock.mockImplementation(() => {
             throw new Error("chart boom");
         });
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         const { renderZoneChart } = await loadModule();
 
@@ -210,7 +267,10 @@ describe("renderZoneChartNew", () => {
 
         renderZoneChart(container, "Errored Chart", zoneData, "error-chart");
 
-        expect(errorSpy).toHaveBeenCalledWith("[ChartJS] Failed to create zone chart", expect.any(Error));
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[ChartJS] Failed to create zone chart",
+            expect.any(Error)
+        );
         expect((globalThis as any)._chartjsInstances).toBeUndefined();
 
         errorSpy.mockRestore();

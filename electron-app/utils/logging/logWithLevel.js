@@ -2,7 +2,8 @@
  * Typed logging helper to avoid dynamic console[level] index signature errors
  * Provides consistent formatting and optional context object.
  *
- * @typedef {'log'|'info'|'warn'|'error'} LogLevel
+ * @typedef {"log" | "info" | "warn" | "error"} LogLevel
+ *
  * @param {LogLevel} level
  * @param {string} message
  * @param {Record<string, any>} [context]
@@ -12,7 +13,9 @@ export function logWithLevel(level, message, context) {
         // Allow tests that mock Object.keys to throw to reach our error path by opting in
         try {
             if (typeof globalThis !== "undefined")
-                /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = true;
+                /** @type {any} */ (
+                    globalThis
+                ).__vitest_object_keys_allow_throw = true;
         } catch {
             /* Ignore errors */
         }
@@ -20,7 +23,10 @@ export function logWithLevel(level, message, context) {
             timestamp = new Date().toISOString(),
             base = `${timestamp} ${prefix} ${String(message)}`;
         // Only treat context as an object if it's a plain object
-        const isObject = context != null && typeof context === "object" && !Array.isArray(context);
+        const isObject =
+            context != null &&
+            typeof context === "object" &&
+            !Array.isArray(context);
         /** @type {any} */
         let payload;
         if (isObject) {
@@ -76,7 +82,9 @@ export function logWithLevel(level, message, context) {
         // Reset throw-through flag to keep test runner stable
         try {
             if (typeof globalThis !== "undefined")
-                /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = false;
+                /** @type {any} */ (
+                    globalThis
+                ).__vitest_object_keys_allow_throw = false;
         } catch {
             /* Ignore errors */
         }

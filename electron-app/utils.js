@@ -2,16 +2,21 @@
 /**
  * Exposes utility functions globally for use in index.html and other scripts.
  *
- * Note: Exposing utilities globally is generally discouraged in modern JavaScript development
- * due to potential namespace pollution and security risks. In Electron apps, this can make
- * the application vulnerable to cross-site scripting (XSS) attacks if untrusted content is
- * loaded. This approach is used here to simplify integration with the Electron app's renderer
- * process, where direct access to these utilities is required in inline scripts.
+ * Note: Exposing utilities globally is generally discouraged in modern
+ * JavaScript development due to potential namespace pollution and security
+ * risks. In Electron apps, this can make the application vulnerable to
+ * cross-site scripting (XSS) attacks if untrusted content is loaded. This
+ * approach is used here to simplify integration with the Electron app's
+ * renderer process, where direct access to these utilities is required in
+ * inline scripts.
+ *
+ * @version 1.0.0
+ *
+ * @author FitFileViewer Team
+ *
+ * @namespace Utils
  *
  * @global
- * @namespace utils
- * @version 1.0.0
- * @author FitFileViewer Team
  */
 
 import {
@@ -38,8 +43,13 @@ import {
 
 /**
  * @typedef {Object} ConstantsType
+ *
  * @property {string} NAMESPACE
- * @property {{FUNCTION_NOT_AVAILABLE: string, INVALID_FUNCTION: string, NAMESPACE_COLLISION: string}} ERRORS
+ * @property {{
+ *     FUNCTION_NOT_AVAILABLE: string;
+ *     INVALID_FUNCTION: string;
+ *     NAMESPACE_COLLISION: string;
+ * }} ERRORS
  * @property {string} LOG_PREFIX
  * @property {string} VERSION
  */
@@ -59,9 +69,9 @@ const CONSTANTS = /** @type {ConstantsType} */ ({
 // Version loading idempotency guards
 /** @type {boolean} */
 let versionLoadStarted = false;
-/** @type {Promise<string>|null} */
+/** @type {Promise<string> | null} */
 let versionLoadPromise = null;
-/** @type {number|undefined} */
+/** @type {number | undefined} */
 let electronAPICheckTimerId;
 
 // Function to get version from electronAPI (idempotent)
@@ -80,17 +90,32 @@ async function loadVersionFromElectron() {
         try {
             if (
                 /** @type {any} */ (globalThis).electronAPI &&
-                typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
+                typeof (
+                    /** @type {any} */ (globalThis).electronAPI.getAppVersion
+                ) === "function"
             ) {
-                const version = await /** @type {any} */ (globalThis).electronAPI.getAppVersion();
+                const version = await /** @type {any} */ (
+                    globalThis
+                ).electronAPI.getAppVersion();
                 CONSTANTS.VERSION = version || "unknown";
-                logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
+                logWithContext(
+                    "info",
+                    `Version loaded from Electron: ${CONSTANTS.VERSION}`
+                );
                 return CONSTANTS.VERSION;
             }
-            logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
+            logWithContext(
+                "warn",
+                "electronAPI.getAppVersion not available, keeping default version"
+            );
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
-            logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+            logWithContext(
+                "warn",
+                "Failed to load version from Electron API:",
+                { error: errorMessage }
+            );
         }
         return CONSTANTS.VERSION;
     })();
@@ -103,7 +128,8 @@ if (globalThis.window !== undefined) {
     // Try immediately if electronAPI is already available
     if (
         /** @type {any} */ (globalThis).electronAPI &&
-        typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
+        typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) ===
+            "function"
     ) {
         // Fire and forget - don't need to await
         loadVersionFromElectron();
@@ -117,23 +143,30 @@ if (globalThis.window !== undefined) {
             }
             if (
                 /** @type {any} */ (globalThis).electronAPI &&
-                typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
+                typeof (
+                    /** @type {any} */ (globalThis).electronAPI.getAppVersion
+                ) === "function"
             ) {
                 // Fire and forget - don't need to await
                 loadVersionFromElectron();
             } else {
                 // Keep checking periodically for a short time
                 electronAPICheckTimerId = /** @type {number} */ (
-                    /** @type {unknown} */ (setTimeout(checkForElectronAPI, 100))
+                    /** @type {unknown} */ (
+                        setTimeout(checkForElectronAPI, 100)
+                    )
                 );
             }
         };
-        electronAPICheckTimerId = /** @type {number} */ (/** @type {unknown} */ (setTimeout(checkForElectronAPI, 100)));
+        electronAPICheckTimerId = /** @type {number} */ (
+            /** @type {unknown} */ (setTimeout(checkForElectronAPI, 100))
+        );
     }
 }
 
 /**
  * Enhanced logging with context
+ *
  * @param {string} level - Log level
  * @param {string} message - Log message
  * @param {Object} context - Additional context
@@ -153,13 +186,17 @@ function logWithContext(level, message, context = {}) {
 
 /**
  * Validation functions
+ *
  * @param {any} fn - Function to validate
  * @param {string} name - Function name
+ *
  * @returns {boolean} Is valid function
  */
 function validateFunction(fn, name) {
     if (typeof fn !== "function") {
-        logWithContext("error", `Invalid function: ${name}`, { type: typeof fn });
+        logWithContext("error", `Invalid function: ${name}`, {
+            type: typeof fn,
+        });
         return false;
     }
     return true;
@@ -201,6 +238,7 @@ const utils = {
 
 /**
  * @typedef {Object} AttachmentResult
+ *
  * @property {string} name
  * @property {string} reason
  * @property {string} type
@@ -208,6 +246,7 @@ const utils = {
 
 /**
  * @typedef {Object} CollisionResult
+ *
  * @property {string} name
  * @property {string} previousType
  * @property {string} newType
@@ -217,6 +256,7 @@ const utils = {
 
 /**
  * @typedef {Object} AttachmentResults
+ *
  * @property {string[]} successful
  * @property {AttachmentResult[]} failed
  * @property {CollisionResult[]} collisions
@@ -263,25 +303,38 @@ function attachUtilitiesToWindow() {
                 // If the same function is already attached, skip it silently
                 // @ts-expect-error - Dynamic window property access
                 if (window[key] === fn) {
-                    attachmentResults.successful.push(`${key} (already attached)`);
+                    attachmentResults.successful.push(
+                        `${key} (already attached)`
+                    );
                     continue;
                 }
 
                 // If both are functions, check if they're functionally equivalent
                 // @ts-expect-error - Dynamic window property access
-                if (typeof window[key] === "function" && typeof fn === "function") {
+                if (
+                    typeof window[key] === "function" &&
+                    typeof fn === "function"
+                ) {
                     // Functions with same name are likely the same, just re-exported
                     // @ts-expect-error - Dynamic window property access
-                    if (window[key].name === fn.name && (window[key].name === key || window[key].name === "")) {
+                    if (
+                        window[key].name === fn.name &&
+                        (window[key].name === key || window[key].name === "")
+                    ) {
                         attachmentResults.successful.push(`${key} (updated)`);
                     } else {
                         // Only log if the functions are genuinely different
                         // @ts-expect-error - Dynamic window property access
-                        const isDifferent = window[key].toString() !== fn.toString();
+                        const isDifferent =
+                            window[key].toString() !== fn.toString();
                         if (isDifferent) {
-                            logWithContext("info", `Function collision resolved for: ${key}`, {
-                                note: "Different implementations detected, using newer version",
-                            });
+                            logWithContext(
+                                "info",
+                                `Function collision resolved for: ${key}`,
+                                {
+                                    note: "Different implementations detected, using newer version",
+                                }
+                            );
                         }
                         attachmentResults.collisions.push({
                             name: key,
@@ -294,12 +347,16 @@ function attachUtilitiesToWindow() {
                     }
                 } else {
                     // Non-function collisions are more serious
-                    logWithContext("warn", `Type collision detected for: ${key}`, {
-                        // @ts-expect-error - Dynamic window property access
-                        existing: typeof window[key],
-                        new: typeof fn,
-                        overwriting: true,
-                    });
+                    logWithContext(
+                        "warn",
+                        `Type collision detected for: ${key}`,
+                        {
+                            // @ts-expect-error - Dynamic window property access
+                            existing: typeof window[key],
+                            new: typeof fn,
+                            overwriting: true,
+                        }
+                    );
                     attachmentResults.collisions.push({
                         name: key,
                         newType: typeof fn,
@@ -317,8 +374,11 @@ function attachUtilitiesToWindow() {
                 window[key] = fn;
                 attachmentResults.successful.push(key);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
-                logWithContext("error", `Failed to attach function: ${key}`, { error: errorMessage });
+                const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                logWithContext("error", `Failed to attach function: ${key}`, {
+                    error: errorMessage,
+                });
                 attachmentResults.failed.push({
                     name: key,
                     reason: errorMessage,
@@ -337,23 +397,36 @@ function attachUtilitiesToWindow() {
 
         // Log failures in development
         const isDevelopment =
-            (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
-            (globalThis.window !== undefined && globalThis.location && globalThis.location.protocol === "file:");
+            (typeof process !== "undefined" &&
+                process.env &&
+                process.env.NODE_ENV === "development") ||
+            (globalThis.window !== undefined &&
+                globalThis.location &&
+                globalThis.location.protocol === "file:");
         if (isDevelopment) {
             if (attachmentResults.failed.length > 0) {
-                logWithContext("warn", "Failed attachments:", { failed: attachmentResults.failed });
+                logWithContext("warn", "Failed attachments:", {
+                    failed: attachmentResults.failed,
+                });
             }
             // Only log serious collisions (non-function type mismatches)
-            const seriousCollisions = attachmentResults.collisions.filter((c) => c.serious);
+            const seriousCollisions = attachmentResults.collisions.filter(
+                (c) => c.serious
+            );
             if (seriousCollisions.length > 0) {
-                logWithContext("warn", "Serious namespace collisions:", { collisions: seriousCollisions });
+                logWithContext("warn", "Serious namespace collisions:", {
+                    collisions: seriousCollisions,
+                });
             }
         }
 
         return attachmentResults;
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        logWithContext("error", "Critical error during utility attachment:", { error: errorMessage });
+        const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+        logWithContext("error", "Critical error during utility attachment:", {
+            error: errorMessage,
+        });
         return {
             collisions: [],
             failed: [{ name: "ALL", reason: errorMessage, type: "unknown" }],
@@ -365,6 +438,7 @@ function attachUtilitiesToWindow() {
 
 /**
  * @typedef {Object} ValidationResults
+ *
  * @property {string[]} valid
  * @property {string[]} invalid
  */
@@ -378,8 +452,11 @@ const FitFileViewerUtils = {
                 // @ts-expect-error - Dynamic window property deletion
                 delete window[key];
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
-                logWithContext("error", `Failed to cleanup utility: ${key}`, { error: errorMessage });
+                const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                logWithContext("error", `Failed to cleanup utility: ${key}`, {
+                    error: errorMessage,
+                });
             }
         }
         logWithContext("info", "Utils cleanup completed");
@@ -389,7 +466,8 @@ const FitFileViewerUtils = {
     getAvailableUtils: () => Object.keys(utils),
     /**
      * @param {string} name - Utility name
-     * @returns {Function|null} The utility function or null
+     *
+     * @returns {Function | null} The utility function or null
      */
     getUtil: (name) => {
         if (!FitFileViewerUtils.isUtilAvailable(name)) {
@@ -402,6 +480,7 @@ const FitFileViewerUtils = {
 
     /**
      * @param {string} name - Utility name
+     *
      * @returns {boolean} Is utility available
      */
     isUtilAvailable: (name) =>
@@ -413,18 +492,22 @@ const FitFileViewerUtils = {
     /**
      * @param {string} utilName - Utility name
      * @param {...any} args - Arguments to pass
+     *
      * @returns {any} Result of utility execution
      */
     safeExecute: (utilName, ...args) => {
         const util = FitFileViewerUtils.getUtil(utilName);
         if (!util) {
-            throw new Error(`${CONSTANTS.ERRORS.FUNCTION_NOT_AVAILABLE}: ${utilName}`);
+            throw new Error(
+                `${CONSTANTS.ERRORS.FUNCTION_NOT_AVAILABLE}: ${utilName}`
+            );
         }
 
         try {
             return util(...args);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
             logWithContext("error", `Error executing utility: ${utilName}`, {
                 args: args.length,
                 error: errorMessage,
@@ -457,7 +540,7 @@ const FitFileViewerUtils = {
 };
 
 // Attach utilities to window after imports are loaded
-/** @type {AttachmentResults|undefined} */
+/** @type {AttachmentResults | undefined} */
 let attachmentResults;
 setTimeout(() => {
     attachmentResults = attachUtilitiesToWindow();
@@ -469,8 +552,12 @@ globalThis.FitFileViewerUtils = FitFileViewerUtils;
 
 // Development mode enhancements
 const isDevelopment =
-    (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
-    (globalThis.window !== undefined && globalThis.location && globalThis.location.protocol === "file:");
+    (typeof process !== "undefined" &&
+        process.env &&
+        process.env.NODE_ENV === "development") ||
+    (globalThis.window !== undefined &&
+        globalThis.location &&
+        globalThis.location.protocol === "file:");
 if (isDevelopment) {
     // Expose additional development helpers
     // @ts-expect-error - devUtilsHelpers assigned to window
@@ -482,11 +569,17 @@ if (isDevelopment) {
         validateUtils: FitFileViewerUtils.validateAllUtils,
     };
 
-    logWithContext("info", "Development helpers exposed on window.devUtilsHelpers");
+    logWithContext(
+        "info",
+        "Development helpers exposed on window.devUtilsHelpers"
+    );
 }
 
 // Report successful initialization
-logWithContext("info", `Utils module initialized successfully (v${CONSTANTS.VERSION})`);
+logWithContext(
+    "info",
+    `Utils module initialized successfully (v${CONSTANTS.VERSION})`
+);
 
 // Export for module usage (if needed)
 export default utils;

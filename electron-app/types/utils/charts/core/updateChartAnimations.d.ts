@@ -6,6 +6,7 @@
  *
  * @param {Object} chart - Chart.js chart instance to configure
  * @param {string} type - Chart type identifier for logging
- * @returns {Object|null} Modified chart instance or null if invalid input
+ *
+ * @returns {Object | null} Modified chart instance or null if invalid input
  */
 export function updateChartAnimations(chart: any, type: string): Object | null;

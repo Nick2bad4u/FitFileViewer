@@ -1,11 +1,12 @@
 /**
- * @fileoverview Chart configuration options for FitFileViewer
+ * @file Chart configuration options for FitFileViewer
  *
- * Defines the comprehensive configuration schema for chart customization
- * including data point limits, visualization types, styling options,
- * and unit preferences. Used by settings UI and chart rendering.
+ *   Defines the comprehensive configuration schema for chart customization
+ *   including data point limits, visualization types, styling options, and unit
+ *   preferences. Used by settings UI and chart rendering.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -22,11 +23,11 @@ const PERFORMANCE_THRESHOLDS = {
 /**
  * Allowed options for maximum number of chart points
  *
- * WARNING: Selecting very high values may cause significant performance
- * issues or browser crashes, especially with large datasets. UI components
- * should enforce reasonable limits or display warnings for large values.
+ * WARNING: Selecting very high values may cause significant performance issues
+ * or browser crashes, especially with large datasets. UI components should
+ * enforce reasonable limits or display warnings for large values.
  *
- * @type {(number|string)[]}
+ * @type {(number | string)[]}
  */
 export const maxPointsOptions = [
     1,
@@ -51,12 +52,15 @@ export const maxPointsOptions = [
 
 /**
  * Chart option configuration object
+ *
  * @typedef {Object} ChartOption
- * @property {string} id - Unique identifier for the option (used as settings key)
+ *
+ * @property {string} id - Unique identifier for the option (used as settings
+ *   key)
  * @property {string} label - Human-readable label for UI display
  * @property {string} type - Option type: "select", "toggle", "range"
- * @property {Array<*>} [options] - Allowed values for "select" or "toggle" types
- * @property {number|string|boolean} default - Default value for the option
+ * @property {any[]} [options] - Allowed values for "select" or "toggle" types
+ * @property {number | string | boolean} default - Default value for the option
  * @property {string} description - Description of the option for tooltips/help
  * @property {number} [min] - Minimum value (for "range" type)
  * @property {number} [max] - Maximum value (for "range" type)
@@ -70,19 +74,20 @@ export const maxPointsOptions = [
  * visualization types, styling preferences, and unit settings. Each option
  * specifies its type, allowed values, default, and description.
  *
- * @type {ChartOption[]}
- *
  * @example
- * import { chartOptionsConfig } from './chartOptionsConfig.js';
- * // Iterate over options to build a settings UI
- * chartOptionsConfig.forEach(opt => {
- *   console.log(`${opt.label}: ${opt.default}`);
- * });
+ *     import { chartOptionsConfig } from "./chartOptionsConfig.js";
+ *     // Iterate over options to build a settings UI
+ *     chartOptionsConfig.forEach((opt) => {
+ *         console.log(`${opt.label}: ${opt.default}`);
+ *     });
+ *
+ * @type {ChartOption[]}
  */
 export const chartOptionsConfig = [
     {
         default: DEFAULT_MAX_POINTS,
-        description: "Maximum number of data points to display (higher values may impact performance)",
+        description:
+            "Maximum number of data points to display (higher values may impact performance)",
         id: "maxpoints",
         label: "Max Points",
         options: maxPointsOptions,
@@ -94,36 +99,58 @@ export const chartOptionsConfig = [
             'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
         id: "chartType",
         label: "Chart Type",
-        options: ["line", "bar", "scatter", "area"],
+        options: [
+            "line",
+            "bar",
+            "scatter",
+            "area",
+        ],
         type: "select",
     },
     {
         default: "linear",
-        description: "Line interpolation method for smooth curves or stepped visualization",
+        description:
+            "Line interpolation method for smooth curves or stepped visualization",
         id: "interpolation",
         label: "Interpolation",
-        options: ["linear", "monotone", "step"],
+        options: [
+            "linear",
+            "monotone",
+            "step",
+        ],
         type: "select",
     },
     {
         default: "smooth",
-        description: "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
+        description:
+            "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
         id: "animation",
         label: "Animation",
-        options: ["smooth", "fast", "none"],
+        options: [
+            "smooth",
+            "fast",
+            "none",
+        ],
         type: "select",
     },
     {
         default: "auto",
-        description: "Background theme for exported chart images (auto uses current app theme)",
+        description:
+            "Background theme for exported chart images (auto uses current app theme)",
         id: "exportTheme",
         label: "Export Theme",
-        options: ["auto", "light", "dark", "transparent"],
+        options: [
+            "auto",
+            "light",
+            "dark",
+            "transparent",
+        ],
         type: "select",
     },
     {
         default: true,
-        description: "Show or hide chart grid lines for better data readability",
+        description:
+            "Show or hide chart grid lines for better data readability",
         id: "showGrid",
         label: "Grid",
         options: [true, false],
@@ -177,15 +204,25 @@ export const chartOptionsConfig = [
         description: "Units for time display on axes and tooltips",
         id: "timeUnits",
         label: "Time Units",
-        options: ["seconds", "minutes", "hours"],
+        options: [
+            "seconds",
+            "minutes",
+            "hours",
+        ],
         type: "select",
     },
     {
         default: "kilometers",
-        description: "Units for distance and altitude display on axes and tooltips",
+        description:
+            "Units for distance and altitude display on axes and tooltips",
         id: "distanceUnits",
         label: "Distance Units",
-        options: ["meters", "kilometers", "feet", "miles"],
+        options: [
+            "meters",
+            "kilometers",
+            "feet",
+            "miles",
+        ],
         type: "select",
     },
     {
@@ -200,8 +237,10 @@ export const chartOptionsConfig = [
 
 /**
  * Gets default value for a specific chart option
+ *
  * @param {string} optionId - The ID of the chart option
- * @returns {*} Default value for the option, or undefined if not found
+ *
+ * @returns {any} Default value for the option, or undefined if not found
  */
 export function getDefaultValue(optionId) {
     const option = chartOptionsConfig.find((opt) => opt.id === optionId);
@@ -210,8 +249,11 @@ export function getDefaultValue(optionId) {
 
 /**
  * Gets performance warning level for max points value
- * @param {number|string} maxPoints - Max points value to check
- * @returns {string|null} Warning level ("slow", "very-slow", "not-recommended") or null if no warning
+ *
+ * @param {number | string} maxPoints - Max points value to check
+ *
+ * @returns {string | null} Warning level ("slow", "very-slow",
+ *   "not-recommended") or null if no warning
  */
 export function getMaxPointsWarningLevel(maxPoints) {
     if (maxPoints === "all") {
@@ -232,8 +274,11 @@ export function getMaxPointsWarningLevel(maxPoints) {
 
 /**
  * Gets chart option configuration by ID
+ *
  * @param {string} optionId - The ID of the chart option
- * @returns {ChartOption|undefined} Chart option configuration or undefined if not found
+ *
+ * @returns {ChartOption | undefined} Chart option configuration or undefined if
+ *   not found
  */
 export function getOptionConfig(optionId) {
     return chartOptionsConfig.find((opt) => opt.id === optionId);
@@ -241,8 +286,10 @@ export function getOptionConfig(optionId) {
 
 /**
  * Validates if a value is valid for a given chart option
+ *
  * @param {string} optionId - The ID of the chart option
- * @param {*} value - Value to validate
+ * @param {any} value - Value to validate
+ *
  * @returns {boolean} True if value is valid for the option
  */
 export function isValidOptionValue(optionId, value) {
@@ -253,11 +300,17 @@ export function isValidOptionValue(optionId, value) {
 
     switch (option.type) {
         case "range": {
-            return typeof value === "number" && value >= (option.min || 0) && value <= (option.max || 1);
+            return (
+                typeof value === "number" &&
+                value >= (option.min || 0) &&
+                value <= (option.max || 1)
+            );
         }
 
         case "select": {
-            return Array.isArray(option.options) ? option.options.includes(value) : false;
+            return Array.isArray(option.options)
+                ? option.options.includes(value)
+                : false;
         }
 
         case "toggle": {

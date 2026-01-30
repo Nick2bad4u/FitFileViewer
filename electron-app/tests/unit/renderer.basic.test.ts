@@ -251,9 +251,18 @@ describe("renderer.js - Basic Test Coverage", () => {
                 return { isDevelopmentMode, getEnvironment };
             `;
 
-            const moduleFunction = new Function("window", "document", "console", moduleCode);
+            const moduleFunction = new Function(
+                "window",
+                "document",
+                "console",
+                moduleCode
+            );
 
-            const envUtils = moduleFunction(global.window, global.document, global.console);
+            const envUtils = moduleFunction(
+                global.window,
+                global.document,
+                global.console
+            );
 
             // Test localhost detection
             expect(envUtils.isDevelopmentMode()).toBe(true);
@@ -288,9 +297,18 @@ describe("renderer.js - Basic Test Coverage", () => {
                 return { isDevelopmentMode, getEnvironment };
             `;
 
-            const moduleFunction = new Function("window", "document", "console", moduleCode);
+            const moduleFunction = new Function(
+                "window",
+                "document",
+                "console",
+                moduleCode
+            );
 
-            const envUtils = moduleFunction(global.window, global.document, global.console);
+            const envUtils = moduleFunction(
+                global.window,
+                global.document,
+                global.console
+            );
 
             expect(envUtils.isDevelopmentMode()).toBe(false);
             expect(envUtils.getEnvironment()).toBe("production");
@@ -333,8 +351,17 @@ describe("renderer.js - Basic Test Coverage", () => {
                     return { isDevelopmentMode };
                 `;
 
-                const moduleFunction = new Function("window", "document", "console", moduleCode);
-                const result = moduleFunction(global.window, global.document, global.console);
+                const moduleFunction = new Function(
+                    "window",
+                    "document",
+                    "console",
+                    moduleCode
+                );
+                const result = moduleFunction(
+                    global.window,
+                    global.document,
+                    global.console
+                );
 
                 expect(result.isDevelopmentMode()).toBe(testCase.expected);
             }
@@ -385,7 +412,12 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const initFunction = new Function(initCode);
-            const result = await initFunction(mockMasterStateManager, mockAppActions, mockGetState, mockSubscribe);
+            const result = await initFunction(
+                mockMasterStateManager,
+                mockAppActions,
+                mockGetState,
+                mockSubscribe
+            );
 
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
             expect(result).toBeDefined();
@@ -394,7 +426,9 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle state manager initialization failure", async () => {
-            mockMasterStateManager.initialize.mockRejectedValue(new Error("Init failed"));
+            mockMasterStateManager.initialize.mockRejectedValue(
+                new Error("Init failed")
+            );
 
             const initCode = `
                 const mockMasterStateManager = arguments[0];
@@ -424,7 +458,9 @@ describe("renderer.js - Basic Test Coverage", () => {
 
             const initFunction = new Function(initCode);
 
-            await expect(initFunction(mockMasterStateManager, mockAppActions)).rejects.toThrow("Init failed");
+            await expect(
+                initFunction(mockMasterStateManager, mockAppActions)
+            ).rejects.toThrow("Init failed");
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
         });
     });
@@ -455,7 +491,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const errorFunction = new Function(errorCode);
-            const handler = errorFunction(mockShowNotification, mockMasterStateManager);
+            const handler = errorFunction(
+                mockShowNotification,
+                mockMasterStateManager
+            );
 
             const mockEvent = {
                 reason: new Error("Test rejection"),
@@ -464,7 +503,11 @@ describe("renderer.js - Basic Test Coverage", () => {
 
             handler(mockEvent);
 
-            expect(mockShowNotification).toHaveBeenCalledWith("Application error: Test rejection", "error", 5000);
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Application error: Test rejection",
+                "error",
+                5000
+            );
             expect(mockEvent.preventDefault).toHaveBeenCalled();
         });
 
@@ -491,7 +534,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const errorFunction = new Function(errorCode);
-            const handler = errorFunction(mockShowNotification, mockMasterStateManager);
+            const handler = errorFunction(
+                mockShowNotification,
+                mockMasterStateManager
+            );
 
             const mockEvent = {
                 error: new Error("Test uncaught error"),
@@ -499,7 +545,11 @@ describe("renderer.js - Basic Test Coverage", () => {
 
             handler(mockEvent);
 
-            expect(mockShowNotification).toHaveBeenCalledWith("Critical error: Test uncaught error", "error", 7000);
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Critical error: Test uncaught error",
+                "error",
+                7000
+            );
         });
 
         it("should handle notification failures gracefully", async () => {
@@ -527,7 +577,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const errorFunction = new Function(errorCode);
-            const handler = errorFunction(mockShowNotification, mockMasterStateManager);
+            const handler = errorFunction(
+                mockShowNotification,
+                mockMasterStateManager
+            );
 
             const mockEvent = {
                 reason: new Error("Test error"),
@@ -542,10 +595,16 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("DOM Validation", () => {
         it("should validate required DOM elements successfully", async () => {
-            global.document.getElementById = vi.fn().mockImplementation((id) => {
-                const requiredIds = ["openFileBtn", "notification", "loadingOverlay"];
-                return requiredIds.includes(id) ? { id } : null;
-            });
+            global.document.getElementById = vi
+                .fn()
+                .mockImplementation((id) => {
+                    const requiredIds = [
+                        "openFileBtn",
+                        "notification",
+                        "loadingOverlay",
+                    ];
+                    return requiredIds.includes(id) ? { id } : null;
+                });
 
             const validationCode = `
                 const mockDocument = arguments[0];
@@ -579,7 +638,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const validationFunction = new Function(validationCode);
-            const result = validationFunction(global.document, mockShowNotification);
+            const result = validationFunction(
+                global.document,
+                mockShowNotification
+            );
 
             expect(result).toBe(true);
             expect(mockShowNotification).not.toHaveBeenCalled();
@@ -620,7 +682,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const validationFunction = new Function(validationCode);
-            const result = validationFunction(global.document, mockShowNotification);
+            const result = validationFunction(
+                global.document,
+                mockShowNotification
+            );
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
@@ -748,12 +813,21 @@ describe("renderer.js - Basic Test Coverage", () => {
                 return APP_INFO;
             `;
 
-            const appInfoFunction = new Function("navigator", "performance", appInfoCode);
-            const appInfo = appInfoFunction(global.navigator, global.performance);
+            const appInfoFunction = new Function(
+                "navigator",
+                "performance",
+                appInfoCode
+            );
+            const appInfo = appInfoFunction(
+                global.navigator,
+                global.performance
+            );
 
             expect(appInfo.name).toBe("FIT File Viewer");
             expect(appInfo.version).toBe("21.1.0");
-            expect(appInfo.description).toBe("Advanced FIT file analysis and visualization tool");
+            expect(appInfo.description).toBe(
+                "Advanced FIT file analysis and visualization tool"
+            );
 
             const runtimeInfo = appInfo.getRuntimeInfo();
             expect(runtimeInfo.userAgent).toBe(global.navigator.userAgent);
@@ -826,7 +900,11 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(mockMasterStateManager, mockAppActions, global.window);
+            const cleanup = cleanupFunction(
+                mockMasterStateManager,
+                mockAppActions,
+                global.window
+            );
 
             cleanup();
 
@@ -871,7 +949,11 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(mockMasterStateManager, mockAppActions, global.window);
+            const cleanup = cleanupFunction(
+                mockMasterStateManager,
+                mockAppActions,
+                global.window
+            );
 
             // Should not throw
             expect(() => cleanup()).not.toThrow();
@@ -907,7 +989,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(mockMasterStateManager, mockAppActions);
+            const cleanup = cleanupFunction(
+                mockMasterStateManager,
+                mockAppActions
+            );
 
             // Should not throw even if cleanup fails
             expect(() => cleanup()).not.toThrow();
@@ -954,9 +1039,16 @@ describe("renderer.js - Basic Test Coverage", () => {
             };
 
             const initFunction = new Function(initCode);
-            await initFunction(mockSetupTheme, mockSetupListeners, dependencies);
+            await initFunction(
+                mockSetupTheme,
+                mockSetupListeners,
+                dependencies
+            );
 
-            expect(mockSetupTheme).toHaveBeenCalledWith(mockApplyTheme, mockListenForThemeChange);
+            expect(mockSetupTheme).toHaveBeenCalledWith(
+                mockApplyTheme,
+                mockListenForThemeChange
+            );
             expect(mockSetupListeners).toHaveBeenCalledWith(dependencies);
         });
 
@@ -995,7 +1087,11 @@ describe("renderer.js - Basic Test Coverage", () => {
             };
 
             const initFunction = new Function(initCode);
-            await initFunction(mockSetupTheme, mockSetupListeners, dependencies);
+            await initFunction(
+                mockSetupTheme,
+                mockSetupListeners,
+                dependencies
+            );
 
             expect(mockSetupTheme).toHaveBeenCalled();
             expect(mockSetupListeners).not.toHaveBeenCalled();
@@ -1032,7 +1128,9 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle recent files failure gracefully", async () => {
-            (global.window.electronAPI.recentFiles as any).mockRejectedValue(new Error("Recent files failed"));
+            (global.window.electronAPI.recentFiles as any).mockRejectedValue(
+                new Error("Recent files failed")
+            );
 
             const asyncCode = `
                 const mockWindow = arguments[0];
@@ -1121,9 +1219,15 @@ describe("renderer.js - Basic Test Coverage", () => {
             };
 
             const globalFunction = new Function(globalCode);
-            const result = globalFunction(global.window, mockCreateExportGPXButton, APP_INFO);
+            const result = globalFunction(
+                global.window,
+                mockCreateExportGPXButton,
+                APP_INFO
+            );
 
-            expect(result.createExportGPXButton).toBe(mockCreateExportGPXButton);
+            expect(result.createExportGPXButton).toBe(
+                mockCreateExportGPXButton
+            );
             expect(result.APP_INFO).toBe(APP_INFO);
         });
 
@@ -1150,7 +1254,11 @@ describe("renderer.js - Basic Test Coverage", () => {
             `;
 
             const devFunction = new Function(devCode);
-            const result = devFunction(global.window, mockShowNotification, mockHandleOpenFile);
+            const result = devFunction(
+                global.window,
+                mockShowNotification,
+                mockHandleOpenFile
+            );
 
             expect(result).toBeDefined();
             expect(result.showNotification).toBe(mockShowNotification);
@@ -1209,7 +1317,10 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("DOM Ready State Handling", () => {
         it("should handle loading document state", async () => {
-            const mockDoc = { ...global.document, readyState: "loading" } as any;
+            const mockDoc = {
+                ...global.document,
+                readyState: "loading",
+            } as any;
 
             const domCode = `
                 const mockDocument = arguments[0];
@@ -1228,11 +1339,17 @@ describe("renderer.js - Basic Test Coverage", () => {
             const result = domFunction(mockDoc, vi.fn());
 
             expect(result).toBe("waiting_for_dom");
-            expect(mockDoc.addEventListener).toHaveBeenCalledWith("DOMContentLoaded", expect.any(Function));
+            expect(mockDoc.addEventListener).toHaveBeenCalledWith(
+                "DOMContentLoaded",
+                expect.any(Function)
+            );
         });
 
         it("should handle complete document state", async () => {
-            const mockDoc = { ...global.document, readyState: "complete" } as any;
+            const mockDoc = {
+                ...global.document,
+                readyState: "complete",
+            } as any;
 
             const domCode = `
                 const mockDocument = arguments[0];
@@ -1252,7 +1369,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             const result = domFunction(mockDoc, global.window, vi.fn());
 
             expect(result).toBe("immediate_init");
-            expect(global.window.setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
+            expect(global.window.setTimeout).toHaveBeenCalledWith(
+                expect.any(Function),
+                0
+            );
         });
     });
 });

@@ -38,20 +38,28 @@ describe("createPowerZoneControlsSimple", () => {
         const controls = createPowerZoneControls(parent);
         expect(parent.contains(controls)).toBe(true);
 
-        const collapseBtn = controls.querySelector<HTMLButtonElement>(".power-zone-collapse-btn");
-        const content = controls.querySelector<HTMLElement>("#power-zone-content");
+        const collapseBtn = controls.querySelector<HTMLButtonElement>(
+            ".power-zone-collapse-btn"
+        );
+        const content = controls.querySelector<HTMLElement>(
+            "#power-zone-content"
+        );
         expect(collapseBtn).toBeTruthy();
         expect(content).toBeTruthy();
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("true");
         expect(content?.style.maxHeight).toBe("500px");
 
         collapseBtn?.click();
-        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe("true");
+        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
+            "true"
+        );
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
         expect(content?.style.maxHeight).toBe("0");
 
         collapseBtn?.click();
-        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe("false");
+        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
+            "false"
+        );
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("true");
         expect(content?.style.maxHeight).toBe("500px");
     });
@@ -78,8 +86,12 @@ describe("createPowerZoneControlsSimple", () => {
         document.body.append(parent);
 
         const controls = createPowerZoneControls(parent);
-        const collapseBtn = controls.querySelector<HTMLButtonElement>(".power-zone-collapse-btn");
-        const content = controls.querySelector<HTMLElement>("#power-zone-content");
+        const collapseBtn = controls.querySelector<HTMLButtonElement>(
+            ".power-zone-collapse-btn"
+        );
+        const content = controls.querySelector<HTMLElement>(
+            "#power-zone-content"
+        );
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
         expect(content?.style.maxHeight).toBe("0");
     });
@@ -88,7 +100,9 @@ describe("createPowerZoneControlsSimple", () => {
         const parent = document.createElement("div");
         document.body.append(parent);
         const controls = createPowerZoneControls(parent);
-        const content = controls.querySelector<HTMLElement>("#power-zone-content");
+        const content = controls.querySelector<HTMLElement>(
+            "#power-zone-content"
+        );
         expect(content).toBeTruthy();
 
         const existing = document.createElement("div");
@@ -109,7 +123,9 @@ describe("createPowerZoneControlsSimple", () => {
         expect(logSpy).toHaveBeenCalledWith(
             "[PowerZoneControls] Moved power_zone_doughnut control to power zone section"
         );
-        expect(logSpy).toHaveBeenCalledWith("[PowerZoneControls] Successfully moved 1 power zone controls");
+        expect(logSpy).toHaveBeenCalledWith(
+            "[PowerZoneControls] Successfully moved 1 power zone controls"
+        );
         expect(fieldContainer.style.marginTop).toBe("12px");
 
         logSpy.mockRestore();
@@ -121,7 +137,9 @@ describe("createPowerZoneControlsSimple", () => {
         movePowerZoneControlsToSection();
 
         expect(warnSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy).toHaveBeenCalledWith("[PowerZoneControls] Power zone content container not found");
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[PowerZoneControls] Power zone content container not found"
+        );
     });
 
     it("does not log when no power zone toggles exist", () => {
@@ -151,10 +169,14 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("reads power zone visibility preference from chart settings", () => {
-        const initialSettings = getPowerZoneVisibilitySettings() as { doughnutVisible: boolean };
+        const initialSettings = getPowerZoneVisibilitySettings() as {
+            doughnutVisible: boolean;
+        };
         expect(initialSettings.doughnutVisible).toBe(true);
         setChartFieldVisibility("power_zone_doughnut", "hidden");
-        const updatedSettings = getPowerZoneVisibilitySettings() as { doughnutVisible: boolean };
+        const updatedSettings = getPowerZoneVisibilitySettings() as {
+            doughnutVisible: boolean;
+        };
         expect(updatedSettings.doughnutVisible).toBe(false);
     });
 });

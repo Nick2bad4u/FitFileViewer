@@ -50,7 +50,11 @@ describe("createTables", () => {
             recordMesgs: [{ r: 1 }],
             aTable: [{ a: 1 }],
             invalid1: "not-an-array",
-            invalid2: [1, 2, 3],
+            invalid2: [
+                1,
+                2,
+                3,
+            ],
             invalid3: [{ ok: true }, ["nested-array-not-obj"]],
             empty: [],
         };
@@ -65,7 +69,12 @@ describe("createTables", () => {
 
         // Should render valid object arrays and in order:
         // recordMesgs first, then alphabetically (aTable, bTable, invalid3)
-        const expectedOrder = ["recordMesgs", "aTable", "bTable", "invalid3"];
+        const expectedOrder = [
+            "recordMesgs",
+            "aTable",
+            "bTable",
+            "invalid3",
+        ];
         expect(renderTable).toHaveBeenCalledTimes(expectedOrder.length);
 
         expectedOrder.forEach((key, idx) => {
@@ -92,7 +101,13 @@ describe("createTables", () => {
 
         createTables(dataFrames, container);
 
-        const expectedOrder = ["recordMesgs", "activityMesgs", "sessionMesgs", "140", "141"];
+        const expectedOrder = [
+            "recordMesgs",
+            "activityMesgs",
+            "sessionMesgs",
+            "140",
+            "141",
+        ];
         expect(renderTable).toHaveBeenCalledTimes(expectedOrder.length);
         expectedOrder.forEach((key, idx) => {
             expect(vi.mocked(renderTable).mock.calls[idx]?.[1]).toBe(key);

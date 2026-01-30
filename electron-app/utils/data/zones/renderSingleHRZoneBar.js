@@ -7,15 +7,22 @@ import { getChartZoneColors } from "./chartZoneColorUtils.js";
 
 /**
  * Renders a single heart rate zone bar (e.g., for a summary or lap)
+ *
  * @param {HTMLCanvasElement} canvas - Target canvas element
  * @param {Object[]} zoneData - Array of zone objects {label, value, color}
- * @param {Object} [options={}] - Chart options (theme, title, etc.)
- * @returns {*|null} Chart.js instance or null on error
+ * @param {Object} [options={}] - Chart options (theme, title, etc.). Default is
+ *   `{}`
+ *
+ * @returns {any | null} Chart.js instance or null on error
  */
 
 export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
     try {
-        if (!(/** @type {any} */ (globalThis).Chart) || !canvas || !Array.isArray(zoneData)) {
+        if (
+            !(/** @type {any} */ (globalThis).Chart) ||
+            !canvas ||
+            !Array.isArray(zoneData)
+        ) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         if (!canvas.classList.contains("chart-canvas")) {
@@ -30,7 +37,9 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
                 backgroundColor:
-                    /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
+                    /** @type {any} */ (zone).color ||
+                    savedColors[index] ||
+                    (theme === "dark" ? "#ef4444" : "#dc2626"),
                 borderColor: theme === "dark" ? "#333" : "#fff",
                 borderWidth: 1,
                 data: [/** @type {any} */ (zone).value], // Single value array for this zone
@@ -45,7 +54,8 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                     maintainAspectRatio: false,
                     plugins: {
                         chartBackgroundColorPlugin: {
-                            backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                            backgroundColor:
+                                theme === "dark" ? "#181c24" : "#ffffff",
                         },
                         legend: {
                             display: true,
@@ -59,7 +69,9 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             color: theme === "dark" ? "#fff" : "#000",
                             display: Boolean(options.title),
                             font: { size: 16, weight: "bold" },
-                            text: /** @type {any} */ (options).title || "Heart Rate Zones",
+                            text:
+                                /** @type {any} */ (options).title ||
+                                "Heart Rate Zones",
                         },
                         tooltip: {
                             backgroundColor: theme === "dark" ? "#222" : "#fff",
@@ -69,7 +81,10 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             callbacks: {
                                 /** @param {any} context */
                                 label(context) {
-                                    const timeFormatted = formatTime(context.parsed.y, true);
+                                    const timeFormatted = formatTime(
+                                        context.parsed.y,
+                                        true
+                                    );
                                     return `${context.dataset.label}: ${timeFormatted}`;
                                 },
                             },
@@ -110,7 +125,10 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                     scales: {
                         x: {
                             grid: {
-                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                                color:
+                                    theme === "dark"
+                                        ? "rgba(255,255,255,0.1)"
+                                        : "rgba(0,0,0,0.1)",
                             },
                             ticks: {
                                 color: theme === "dark" ? "#fff" : "#000",
@@ -124,7 +142,10 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                                color:
+                                    theme === "dark"
+                                        ? "rgba(255,255,255,0.1)"
+                                        : "rgba(0,0,0,0.1)",
                             },
                             ticks: {
                                 /** @param {any} value */
@@ -147,7 +168,10 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         return chart;
     } catch (error) {
         if (/** @type {any} */ (globalThis).showNotification) {
-            /** @type {any} */ globalThis.showNotification("Failed to render HR zone bar", "error");
+            /** @type {any} */ globalThis.showNotification(
+                "Failed to render HR zone bar",
+                "error"
+            );
         }
         console.error("[renderSingleHRZoneBar] Error:", error);
         return null;

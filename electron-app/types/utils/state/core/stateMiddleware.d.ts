@@ -4,14 +4,17 @@
 export function cleanupMiddleware(): void;
 /**
  * @param {string} name
- * @param {boolean} [enabled=true]
+ * @param {boolean} [enabled=true] Default is `true`
  */
 export function enableMiddleware(name: string, enabled?: boolean): boolean;
 /**
  * @param {string} phase
  * @param {MiddlewareContext} context
  */
-export function executeMiddleware(phase: string, context: MiddlewareContext): Promise<MiddlewareContext>;
+export function executeMiddleware(
+    phase: string,
+    context: MiddlewareContext
+): Promise<MiddlewareContext>;
 export function getMiddlewareInfo(): {
     name: string;
     priority: number;
@@ -31,9 +34,13 @@ export function initializeDefaultMiddleware(): void;
 /**
  * @param {string} name
  * @param {MiddlewareDefinition} middleware
- * @param {number} [priority=100]
+ * @param {number} [priority=100] Default is `100`
  */
-export function registerMiddleware(name: string, middleware: MiddlewareDefinition, priority?: number): void;
+export function registerMiddleware(
+    name: string,
+    middleware: MiddlewareDefinition,
+    priority?: number
+): void;
 /** @param {string} name */
 export function unregisterMiddleware(name: string): boolean;
 export const middlewareManager: StateMiddlewareManager;
@@ -92,12 +99,17 @@ export type MiddlewareContext = {
     _startTime?: number;
 };
 /**
- * A middleware phase handler. It may mutate and return the context, return a new context object,
- * return false to halt further middleware in the chain, or return void to continue.
+ * A middleware phase handler. It may mutate and return the context, return a
+ * new context object, return false to halt further middleware in the chain, or
+ * return void to continue.
  */
 export type MiddlewarePhaseHandler = (
     context: MiddlewareContext
-) => Promise<MiddlewareContext | false | void> | MiddlewareContext | false | void;
+) =>
+    | Promise<MiddlewareContext | false | void>
+    | MiddlewareContext
+    | false
+    | void;
 export type MiddlewareDefinition = {
     metadata?:
         | {
@@ -149,24 +161,35 @@ declare class StateMiddlewareManager {
     clear(): void;
     /**
      * Execute middleware for a specific phase
+     *
      * @param {string} phase - Middleware phase
      * @param {Object} context - Context object for the operation
+     *
      * @returns {Promise<Object>} Modified context
      */
     /**
      * @param {string} phase
      * @param {MiddlewareContext} context
+     *
      * @returns {Promise<MiddlewareContext>}
      */
-    execute(phase: string, context: MiddlewareContext): Promise<MiddlewareContext>;
+    execute(
+        phase: string,
+        context: MiddlewareContext
+    ): Promise<MiddlewareContext>;
     /**
      * Execute error handlers
+     *
      * @param {Error} error - Error that occurred
      * @param {Object} errorContext - Error context
      */
     /**
      * @param {Error} error
-     * @param {{middleware: string, phase: string, context: MiddlewareContext}} errorContext
+     * @param {{
+     *     middleware: string;
+     *     phase: string;
+     *     context: MiddlewareContext;
+     * }} errorContext
      */
     executeErrorHandlers(
         error: Error,
@@ -178,10 +201,17 @@ declare class StateMiddlewareManager {
     ): Promise<void>;
     /**
      * Get middleware information
+     *
      * @returns {Array} List of registered middleware with metadata
      */
     /**
-     * @returns {{name:string, priority:number, isEnabled:boolean, phases:string[], metadata:Object<string,any>}[]}
+     * @returns {{
+     *     name: string;
+     *     priority: number;
+     *     isEnabled: boolean;
+     *     phases: string[];
+     *     metadata: Object<string, any>;
+     * }[]}
      */
     getMiddlewareInfo(): {
         name: string;
@@ -194,42 +224,54 @@ declare class StateMiddlewareManager {
     }[];
     /**
      * Register middleware
+     *
      * @param {string} name - Middleware name
      * @param {Object} middleware - Middleware object with phase handlers
-     * @param {number} priority - Execution priority (lower = earlier, default: 100)
+     * @param {number} priority - Execution priority (lower = earlier, default:
+     *   100)
      */
     /**
      * @param {string} name
      * @param {MiddlewareDefinition} middleware
-     * @param {number} [priority=100]
+     * @param {number} [priority=100] Default is `100`
      */
-    register(name: string, middleware: MiddlewareDefinition, priority?: number): void;
+    register(
+        name: string,
+        middleware: MiddlewareDefinition,
+        priority?: number
+    ): void;
     /**
      * Enable/disable specific middleware
+     *
      * @param {string} name - Middleware name
      * @param {boolean} enabled - Whether to enable the middleware
      */
     /**
      * @param {string} name
      * @param {boolean} enabled
+     *
      * @returns {boolean}
      */
     setEnabled(name: string, enabled: boolean): boolean;
     /**
      * Enable/disable all middleware
+     *
      * @param {boolean} enabled - Whether to enable middleware system
      */
     /**
      * @param {boolean} enabled
+     *
      * @returns {void}
      */
     setGlobalEnabled(enabled: boolean): void;
     /**
      * Unregister middleware
+     *
      * @param {string} name - Middleware name
      */
     /**
      * @param {string} name
+     *
      * @returns {boolean}
      */
     unregister(name: string): boolean;
@@ -240,18 +282,25 @@ declare class StateMiddlewareManager {
     updateExecutionOrder(): void;
     /**
      * Wrap middleware handler with error handling and timing
+     *
      * @param {string} middlewareName - Name of middleware
      * @param {string} phase - Phase name
      * @param {Function} handler - Original handler
+     *
      * @returns {Function} Wrapped handler
      */
     /**
      * @param {string} middlewareName
      * @param {string} phase
      * @param {MiddlewarePhaseHandler} handler
+     *
      * @returns {MiddlewarePhaseHandler}
      */
-    wrapHandler(middlewareName: string, phase: string, handler: MiddlewarePhaseHandler): MiddlewarePhaseHandler;
+    wrapHandler(
+        middlewareName: string,
+        phase: string,
+        handler: MiddlewarePhaseHandler
+    ): MiddlewarePhaseHandler;
 }
 export namespace MIDDLEWARE_PHASES {
     let AFTER_GET: string;

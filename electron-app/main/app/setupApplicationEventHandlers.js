@@ -3,8 +3,15 @@ const { fileURLToPath } = require("node:url");
 const { CONSTANTS } = require("../constants");
 const { logWithContext } = require("../logging/logWithContext");
 const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu");
-const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../oauth/gyazoOAuthServer");
-const { appRef, browserWindowRef, shellRef } = require("../runtime/electronAccess");
+const {
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+} = require("../oauth/gyazoOAuthServer");
+const {
+    appRef,
+    browserWindowRef,
+    shellRef,
+} = require("../runtime/electronAccess");
 const { httpRef, path } = require("../runtime/nodeModules");
 const { validateExternalUrl } = require("../security/externalUrlPolicy");
 const { getAppState, setAppState } = require("../state/appState");
@@ -17,19 +24,22 @@ const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
 /**
  * Registry for app-level listeners so we can replace them safely.
  *
- * We intentionally do NOT short-circuit setupApplicationEventHandlers() on repeat calls,
- * because some unit/coverage tests expect app.on(...) to be invoked for their mock app.
- * Instead, we remove the previous listener (when supported) and re-add.
+ * We intentionally do NOT short-circuit setupApplicationEventHandlers() on
+ * repeat calls, because some unit/coverage tests expect app.on(...) to be
+ * invoked for their mock app. Instead, we remove the previous listener (when
+ * supported) and re-add.
  */
 const APP_LISTENER_REGISTRY = new Map();
 
 /**
  * Configure a conservative download policy.
  *
- * Why: the renderer uses blob: downloads for export features (CSV/JSON/ZIP/GPX).
- * However, a compromised renderer could also trigger arbitrary http(s) downloads.
+ * Why: the renderer uses blob: downloads for export features
+ * (CSV/JSON/ZIP/GPX). However, a compromised renderer could also trigger
+ * arbitrary http(s) downloads.
  *
  * Policy:
+ *
  * - Allow only blob: and data: URLs.
  * - Cancel everything else.
  *
@@ -44,8 +54,10 @@ function configureSessionDownloadPolicy(session) {
     try {
         session.on("will-download", (event, item) => {
             try {
-                const url = typeof item?.getURL === "function" ? item.getURL() : "";
-                const parsed = typeof url === "string" ? safeParseUrl(url) : null;
+                const url =
+                    typeof item?.getURL === "function" ? item.getURL() : "";
+                const parsed =
+                    typeof url === "string" ? safeParseUrl(url) : null;
                 const protocol = parsed?.protocol;
 
                 // Allow in-app export downloads.
@@ -89,8 +101,9 @@ function configureSessionDownloadPolicy(session) {
 /**
  * Deny-by-default permission hardening.
  *
- * FitFileViewer does not require runtime permissions like camera/microphone/geolocation.
- * If a future feature requires a permission, add an explicit allowlist here.
+ * FitFileViewer does not require runtime permissions like
+ * camera/microphone/geolocation. If a future feature requires a permission, add
+ * an explicit allowlist here.
  *
  * @param {any} session
  */
@@ -105,6 +118,7 @@ function configureSessionPermissionHandlers(session) {
      * can use about:blank. We explicitly do NOT allow http(s) origins.
      *
      * @param {any} details
+     *
      * @returns {boolean}
      */
     const isTrustedRequest = (details) => {
@@ -114,15 +128,24 @@ function configureSessionPermissionHandlers(session) {
         }
 
         const requestingUrl =
-            details && typeof details === "object" && typeof details.requestingUrl === "string"
+            details &&
+            typeof details === "object" &&
+            typeof details.requestingUrl === "string"
                 ? details.requestingUrl
-                : details && typeof details === "object" && typeof details.requestingURL === "string"
+                : details &&
+                    typeof details === "object" &&
+                    typeof details.requestingURL === "string"
                   ? details.requestingURL
-                  : details && typeof details === "object" && typeof details.requestingOrigin === "string"
+                  : details &&
+                      typeof details === "object" &&
+                      typeof details.requestingOrigin === "string"
                     ? details.requestingOrigin
                     : "";
 
-        const parsed = typeof requestingUrl === "string" && requestingUrl ? safeParseUrl(requestingUrl) : null;
+        const parsed =
+            typeof requestingUrl === "string" && requestingUrl
+                ? safeParseUrl(requestingUrl)
+                : null;
         const protocol = parsed?.protocol;
 
         // file:// is our primary renderer scheme.
@@ -141,14 +164,15 @@ function configureSessionPermissionHandlers(session) {
     /**
      * Ask the user once-per-session for a geolocation permission decision.
      *
-     * Electron does not show Chromium's permission prompt automatically when
-     * a permission request handler is installed; we must provide our own UX.
+     * Electron does not show Chromium's permission prompt automatically when a
+     * permission request handler is installed; we must provide our own UX.
      *
      * We intentionally keep this in main-process state (not persisted to disk)
      * to avoid storing sensitive decisions without explicit settings UI.
      *
      * @param {any} webContents
      * @param {any} details
+     *
      * @returns {Promise<boolean>}
      */
     const promptForGeolocationOncePerSession = async (webContents, details) => {
@@ -164,7 +188,9 @@ function configureSessionPermissionHandlers(session) {
         // In test mode we cannot show modal dialogs.
         if (isTestMode()) {
             try {
-                setAppState("permissions.geolocation.allowed", true, { source: "permissions.test" });
+                setAppState("permissions.geolocation.allowed", true, {
+                    source: "permissions.test",
+                });
             } catch {
                 /* ignore */
             }
@@ -175,7 +201,11 @@ function configureSessionPermissionHandlers(session) {
         let browserWindow = null;
         try {
             const BrowserWindow = browserWindowRef();
-            if (BrowserWindow && typeof BrowserWindow.fromWebContents === "function" && webContents) {
+            if (
+                BrowserWindow &&
+                typeof BrowserWindow.fromWebContents === "function" &&
+                webContents
+            ) {
                 browserWindow = BrowserWindow.fromWebContents(webContents);
             }
         } catch {
@@ -190,18 +220,21 @@ function configureSessionPermissionHandlers(session) {
                 // Fail closed if we cannot prompt.
                 allow = false;
             } else {
-                const messageBoxResult = await dialog.showMessageBox(browserWindow ?? undefined, {
-                    buttons: ["Allow", "Deny"],
-                    cancelId: 1,
-                    defaultId: 0,
-                    detail:
-                        "FitFileViewer can center the map on your current location if you allow access.\n\n" +
-                        "Your location is only used locally in the app.",
-                    message: "Allow FitFileViewer to access your location?",
-                    noLink: true,
-                    title: "Location permission",
-                    type: "question",
-                });
+                const messageBoxResult = await dialog.showMessageBox(
+                    browserWindow ?? undefined,
+                    {
+                        buttons: ["Allow", "Deny"],
+                        cancelId: 1,
+                        defaultId: 0,
+                        detail:
+                            "FitFileViewer can center the map on your current location if you allow access.\n\n" +
+                            "Your location is only used locally in the app.",
+                        message: "Allow FitFileViewer to access your location?",
+                        noLink: true,
+                        title: "Location permission",
+                        type: "question",
+                    }
+                );
                 allow = messageBoxResult?.response === 0;
             }
         } catch {
@@ -209,7 +242,9 @@ function configureSessionPermissionHandlers(session) {
         }
 
         try {
-            setAppState("permissions.geolocation.allowed", allow, { source: "permissions.geolocation" });
+            setAppState("permissions.geolocation.allowed", allow, {
+                source: "permissions.geolocation",
+            });
         } catch {
             /* ignore */
         }
@@ -217,7 +252,9 @@ function configureSessionPermissionHandlers(session) {
         if (!allow) {
             logWithContext("warn", "Geolocation permission denied by user", {
                 requestingUrl:
-                    details && typeof details === "object" && typeof details.requestingUrl === "string"
+                    details &&
+                    typeof details === "object" &&
+                    typeof details.requestingUrl === "string"
                         ? details.requestingUrl
                         : undefined,
             });
@@ -228,62 +265,64 @@ function configureSessionPermissionHandlers(session) {
 
     try {
         if (typeof session.setPermissionRequestHandler === "function") {
-            session.setPermissionRequestHandler((webContents, permission, callback, details) => {
-                // Only enable permissions we explicitly support.
-                if (permission !== "geolocation") {
-                    try {
-                         
-                        callback(false);
-                    } catch {
-                        /* ignore */
-                    }
-                    return;
-                }
-
-                // Unit tests expect a synchronous callback.
-                if (isTestMode()) {
-                    try {
-                        setAppState("permissions.geolocation.allowed", true, { source: "permissions.test" });
-                    } catch {
-                        /* ignore */
-                    }
-                    try {
-                         
-                        callback(true);
-                    } catch {
-                        /* ignore */
-                    }
-                    return;
-                }
-
-                if (!isTrustedRequest(details)) {
-                    try {
-                         
-                        callback(false);
-                    } catch {
-                        /* ignore */
-                    }
-                    return;
-                }
-
-                // Async prompt.
-                promptForGeolocationOncePerSession(webContents, details)
-                    .then((allow) => {
+            session.setPermissionRequestHandler(
+                (webContents, permission, callback, details) => {
+                    // Only enable permissions we explicitly support.
+                    if (permission !== "geolocation") {
                         try {
-                            callback(Boolean(allow));
-                        } catch {
-                            /* ignore */
-                        }
-                    })
-                    .catch(() => {
-                        try {
-                             
                             callback(false);
                         } catch {
                             /* ignore */
                         }
-                    });
-            });
+                        return;
+                    }
+
+                    // Unit tests expect a synchronous callback.
+                    if (isTestMode()) {
+                        try {
+                            setAppState(
+                                "permissions.geolocation.allowed",
+                                true,
+                                { source: "permissions.test" }
+                            );
+                        } catch {
+                            /* ignore */
+                        }
+                        try {
+                            callback(true);
+                        } catch {
+                            /* ignore */
+                        }
+                        return;
+                    }
+
+                    if (!isTrustedRequest(details)) {
+                        try {
+                            callback(false);
+                        } catch {
+                            /* ignore */
+                        }
+                        return;
+                    }
+
+                    // Async prompt.
+                    promptForGeolocationOncePerSession(webContents, details)
+                        .then((allow) => {
+                            try {
+                                callback(Boolean(allow));
+                            } catch {
+                                /* ignore */
+                            }
+                        })
+                        .catch(() => {
+                            try {
+                                callback(false);
+                            } catch {
+                                /* ignore */
+                            }
+                        });
+                }
+            );
         }
     } catch {
         /* ignore */
@@ -291,33 +330,37 @@ function configureSessionPermissionHandlers(session) {
 
     try {
         if (typeof session.setPermissionCheckHandler === "function") {
-            session.setPermissionCheckHandler((_webContents, permission, _requestingOrigin, details) => {
-                if (permission !== "geolocation") {
-                    return false;
-                }
-
-                if (!isTrustedRequest(details)) {
-                    return false;
-                }
-
-                try {
-                    const allowed = getAppState("permissions.geolocation.allowed");
-                    if (allowed === true) {
-                        return true;
-                    }
-                    if (allowed === false) {
+            session.setPermissionCheckHandler(
+                (_webContents, permission, _requestingOrigin, details) => {
+                    if (permission !== "geolocation") {
                         return false;
                     }
 
-                    // Undecided: allow the renderer to attempt the request so the
-                    // permission *request* handler can show our prompt.
-                    return true;
-                } catch {
-                    // Fail open for geolocation checks so we don't permanently block the
-                    // permission prompt in libraries that pre-check via navigator.permissions.
-                    return true;
+                    if (!isTrustedRequest(details)) {
+                        return false;
+                    }
+
+                    try {
+                        const allowed = getAppState(
+                            "permissions.geolocation.allowed"
+                        );
+                        if (allowed === true) {
+                            return true;
+                        }
+                        if (allowed === false) {
+                            return false;
+                        }
+
+                        // Undecided: allow the renderer to attempt the request so the
+                        // permission *request* handler can show our prompt.
+                        return true;
+                    } catch {
+                        // Fail open for geolocation checks so we don't permanently block the
+                        // permission prompt in libraries that pre-check via navigator.permissions.
+                        return true;
+                    }
                 }
-            });
+            );
         }
     } catch {
         /* ignore */
@@ -328,11 +371,13 @@ function configureSessionPermissionHandlers(session) {
  * Determines whether a file:// URL is safe to load inside the app.
  *
  * Security rationale:
- * - Allowing arbitrary file:// navigation lets a compromised renderer load local files into the
- *   DOM and potentially exfiltrate contents.
+ *
+ * - Allowing arbitrary file:// navigation lets a compromised renderer load local
+ *   files into the DOM and potentially exfiltrate contents.
  * - We only need to allow file URLs that belong to the application bundle.
  *
  * @param {string} candidate
+ *
  * @returns {boolean}
  */
 function isAllowedFileUrl(candidate) {
@@ -364,7 +409,10 @@ function isAllowedFileUrl(candidate) {
         /* ignore */
     }
 
-    if (typeof process !== "undefined" && typeof process.resourcesPath === "string") {
+    if (
+        typeof process !== "undefined" &&
+        typeof process.resourcesPath === "string"
+    ) {
         allowedRoots.push(process.resourcesPath);
     }
 
@@ -385,12 +433,14 @@ function isAllowedFileUrl(candidate) {
  * Determine whether a URL is allowed to load inside an Electron webContents.
  *
  * Notes:
- * - We preserve the legacy behavior that allows file:// and about:blank (used by tests and some
- *   internal flows like print windows).
+ *
+ * - We preserve the legacy behavior that allows file:// and about:blank (used by
+ *   tests and some internal flows like print windows).
  * - We allow select OAuth endpoints used by the Gyazo/Imgur account flows.
  * - Anything else is blocked and optionally opened externally.
  *
  * @param {string} candidate
+ *
  * @returns {boolean}
  */
 function isAllowedInAppUrl(candidate) {
@@ -402,7 +452,11 @@ function isAllowedInAppUrl(candidate) {
     if (trimmed === "about:blank") return true;
 
     // Allow devtools URLs in development mode.
-    if (isDevMode() && (trimmed.startsWith("chrome-devtools://") || trimmed.startsWith("devtools://"))) {
+    if (
+        isDevMode() &&
+        (trimmed.startsWith("chrome-devtools://") ||
+            trimmed.startsWith("devtools://"))
+    ) {
         return true;
     }
 
@@ -424,7 +478,9 @@ function isAllowedInAppUrl(candidate) {
 }
 
 /**
- * Determine whether the application is running in a mode where devtools URLs should be allowed.
+ * Determine whether the application is running in a mode where devtools URLs
+ * should be allowed.
+ *
  * @returns {boolean}
  */
 function isDevMode() {
@@ -445,9 +501,12 @@ function isTestMode() {
 
 /**
  * Best-effort set a hidden marker property.
+ *
  * @param {object} target
  * @param {string} key
- * @returns {boolean} true if this call set the marker, false if it was already set.
+ *
+ * @returns {boolean} True if this call set the marker, false if it was already
+ *   set.
  */
 function markOnce(target, key) {
     if (!target || typeof target !== "object") return true;
@@ -501,7 +560,9 @@ function registerAppListener(eventName, listener) {
 
 /**
  * Safely parse a URL string.
+ *
  * @param {string} url
+ *
  * @returns {URL | null}
  */
 function safeParseUrl(url) {
@@ -513,7 +574,8 @@ function safeParseUrl(url) {
 }
 
 /**
- * Registers core application-level Electron event handlers (activate, window-all-closed, etc.).
+ * Registers core application-level Electron event handlers (activate,
+ * window-all-closed, etc.).
  */
 function setupApplicationEventHandlers() {
     registerAppListener("activate", () => {
@@ -530,17 +592,29 @@ function setupApplicationEventHandlers() {
                 if (Array.isArray(windows) && windows.length === 0) {
                     const { createWindow } = require("../../windowStateUtils");
                     const win = createWindow();
-                    safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+                    safeCreateAppMenu(
+                        win,
+                        CONSTANTS.DEFAULT_THEME,
+                        getAppState("loadedFitFilePath")
+                    );
                 } else {
                     const win =
-                        (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
-                        getAppState("mainWindow");
+                        (BW && typeof BW.getFocusedWindow === "function"
+                            ? BW.getFocusedWindow()
+                            : null) || getAppState("mainWindow");
                     if (validateWindow(win, "app activate event")) {
-                        safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+                        safeCreateAppMenu(
+                            win,
+                            CONSTANTS.DEFAULT_THEME,
+                            getAppState("loadedFitFilePath")
+                        );
                     }
                 }
             } else {
-                logWithContext("warn", "BrowserWindow unavailable during activate; skipping window handling");
+                logWithContext(
+                    "warn",
+                    "BrowserWindow unavailable during activate; skipping window handling"
+                );
             }
         } catch {
             /* ignore errors during activation handling */
@@ -553,9 +627,13 @@ function setupApplicationEventHandlers() {
                 const theme = await getThemeFromRenderer(win);
                 safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (error) {
-                logWithContext("error", "Error setting menu on browser-window-focus:", {
-                    error: /** @type {Error} */ (error).message,
-                });
+                logWithContext(
+                    "error",
+                    "Error setting menu on browser-window-focus:",
+                    {
+                        error: /** @type {Error} */ (error).message,
+                    }
+                );
             }
         }
     });
@@ -578,9 +656,13 @@ function setupApplicationEventHandlers() {
                 const a = appRef();
                 if (a && a.quit) a.quit();
             } catch (error) {
-                logWithContext("error", "Failed to stop Gyazo server during quit:", {
-                    error: /** @type {Error} */ (error).message,
-                });
+                logWithContext(
+                    "error",
+                    "Failed to stop Gyazo server during quit:",
+                    {
+                        error: /** @type {Error} */ (error).message,
+                    }
+                );
                 const a2 = appRef();
                 if (a2 && a2.quit) a2.quit();
             }
@@ -609,6 +691,7 @@ function setupApplicationEventHandlers() {
 
             /**
              * Shared handler for will-navigate and will-redirect.
+             *
              * @param {any} event
              * @param {string} url
              */
@@ -622,7 +705,9 @@ function setupApplicationEventHandlers() {
                     /* ignore */
                 }
 
-                logWithContext("warn", "Blocked navigation to untrusted URL:", { url });
+                logWithContext("warn", "Blocked navigation to untrusted URL:", {
+                    url,
+                });
 
                 // Best-effort user experience improvement: open external links in the OS browser.
                 // Validation happens inside tryOpenExternal to ensure a single policy.
@@ -636,7 +721,11 @@ function setupApplicationEventHandlers() {
         if (contents && typeof contents.setWindowOpenHandler === "function") {
             contents.setWindowOpenHandler(({ url }) => {
                 if (!isAllowedInAppUrl(url)) {
-                    logWithContext("warn", "Blocked opening untrusted URL in new window:", { url });
+                    logWithContext(
+                        "warn",
+                        "Blocked opening untrusted URL in new window:",
+                        { url }
+                    );
                     if (typeof url === "string") tryOpenExternal(url);
                     return { action: "deny" };
                 }
@@ -645,7 +734,11 @@ function setupApplicationEventHandlers() {
         }
     });
 
-    if (process.env && process.env.GYAZO_CLIENT_ID && process.env.GYAZO_CLIENT_SECRET) {
+    if (
+        process.env &&
+        process.env.GYAZO_CLIENT_ID &&
+        process.env.GYAZO_CLIENT_SECRET
+    ) {
         setTimeout(() => {
             try {
                 const hasServer = Boolean(getAppState("gyazoServer"));
@@ -672,6 +765,7 @@ function setupApplicationEventHandlers() {
 
 /**
  * Best-effort open external URL.
+ *
  * @param {string} url
  */
 function tryOpenExternal(url) {

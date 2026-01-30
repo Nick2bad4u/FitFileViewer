@@ -3,7 +3,8 @@
  */
 /**
  * Add error to state
- * @param {Error|string} error - Error to add
+ *
+ * @param {Error | string} error - Error to add
  * @param {string} context - Error context
  */
 export function addError(error: Error | string, context?: string): void;
@@ -17,46 +18,59 @@ export function clearErrors(): void;
 export function clearGlobalData(): void;
 /**
  * Get current state value
+ *
  * @param {string} path - State path
- * @returns {*} State value
+ *
+ * @returns {any} State value
  */
 export function getState(path: string): any;
 /**
  * Set active tab
+ *
  * @param {string} tabId - Active tab identifier
  */
 export function setActiveTab(tabId: string): void;
 /**
  * Set chart controls visibility
+ *
  * @param {boolean} visible - Whether controls are visible
  */
 export function setChartControlsVisible(visible: boolean): void;
 /**
  * Set file opening state
+ *
  * @param {boolean} isOpening - Whether file is currently opening
- * @param {string|null} [filePath] - Path to file being opened
+ * @param {string | null} [filePath] - Path to file being opened
  */
-export function setFileOpeningState(isOpening: boolean, filePath?: string | null): void;
+export function setFileOpeningState(
+    isOpening: boolean,
+    filePath?: string | null
+): void;
 /**
  * Set global data (maintains backward compatibility)
+ *
  * @param {Object} data - FIT file data
  */
 export function setGlobalData(data: Object): void;
 /**
  * Set state value
+ *
  * @param {string} path - State path
- * @param {*} value - New value
+ * @param {any} value - New value
  */
 export function setState(path: string, value: any): boolean;
 /**
  * Set theme
+ *
  * @param {string} theme - Theme name
  */
 export function setTheme(theme: string): void;
 /**
  * Subscribe to state changes with cleanup
+ *
  * @param {string} event - Event name or state path
  * @param {Function} callback - Event handler
+ *
  * @returns {Function} Cleanup function
  */
 export function subscribe(event: string, callback: Function): Function;
@@ -176,36 +190,43 @@ declare class AppStateManager {
     validators: Map<any, any>;
     /**
      * Add state validator
+     *
      * @param {string} path - State path to validate
      * @param {Function} validator - Validation function
      */
     addValidator(path: string, validator: Function): void;
     /**
      * Emit event to all listeners
+     *
      * @param {string} event - Event name
-     * @param {*} data - Event data
+     * @param {any} data - Event data
      */
     emit(event: string, data: any): void;
     /**
      * Emits specific events based on state path changes
+     *
      * @param {string} path - State path that changed
-     * @param {*} newValue - New value
-     * @param {*} oldValue - Previous value
+     * @param {any} newValue - New value
+     * @param {any} oldValue - Previous value
      */
     emitSpecificEvents(path: string, newValue: any, oldValue: any): void;
     /**
      * Get state value by path
+     *
      * @param {string} path - Dot notation path (e.g., "data.globalData")
-     * @returns {*} State value
+     *
+     * @returns {any} State value
      */
     get(path: string): any;
     /**
      * Get debug information about current state
+     *
      * @returns {Object} Debug information
      */
     getDebugInfo(): Object;
     /**
      * Get current state snapshot
+     *
      * @returns {Object} Deep copy of current state
      */
     getSnapshot(): Object;
@@ -215,19 +236,23 @@ declare class AppStateManager {
     loadPersistedState(): void;
     /**
      * Remove event listener
+     *
      * @param {string} event - Event name
      * @param {Function} callback - Event handler to remove
      */
     off(event: string, callback: Function): void;
     /**
      * Add event listener
+     *
      * @param {string} event - Event name
      * @param {Function} callback - Event handler
+     *
      * @returns {Function} Cleanup function
      */
     on(event: string, callback: Function): Function;
     /**
      * Save specific state path to localStorage
+     *
      * @param {string} path - State path to persist
      */
     persistState(path: string): void;
@@ -237,8 +262,10 @@ declare class AppStateManager {
     reset(): void;
     /**
      * Set state value by path
+     *
      * @param {string} path - Dot notation path
-     * @param {*} value - New value
+     * @param {any} value - New value
+     *
      * @returns {boolean} Success status
      */
     set(path: string, value: any): boolean;
@@ -252,6 +279,7 @@ declare class AppStateManager {
     setupReactiveProperties(): void;
     /**
      * Update multiple state values atomically
+     *
      * @param {Object} updates - Object with path:value pairs
      */
     update(updates: Object): void;

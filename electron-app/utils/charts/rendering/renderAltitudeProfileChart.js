@@ -13,7 +13,19 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
  * @param {HTMLElement} container
  * @param {any[]} data
  * @param {number[]} labels
- * @param {{ maxPoints: number|"all", showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, showFill?: boolean, smoothing?: number, interpolation?: string, animationStyle?: string, theme?: string, distanceUnits?: string, timeUnits?: string }} options
+ * @param {{
+ *     maxPoints: number | "all";
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ *     showFill?: boolean;
+ *     smoothing?: number;
+ *     interpolation?: string;
+ *     animationStyle?: string;
+ *     theme?: string;
+ *     distanceUnits?: string;
+ *     timeUnits?: string;
+ * }} options
  */
 export function renderAltitudeProfileChart(container, data, labels, options) {
     try {
@@ -33,20 +45,24 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
 
         const hasAltitude = data.some(({ altitude, enhancedAltitude }) => {
             const preferredAltitude = enhancedAltitude ?? altitude;
-            return preferredAltitude !== undefined && preferredAltitude !== null;
+            return (
+                preferredAltitude !== undefined && preferredAltitude !== null
+            );
         });
 
         if (!hasAltitude) {
             return;
         }
 
-        const visibility = chartSettingsManager.getFieldVisibility("altitude_profile");
+        const visibility =
+            chartSettingsManager.getFieldVisibility("altitude_profile");
         if (visibility === "hidden") {
             return;
         }
 
         // Determine theme
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
         const { colors } = themeConfig || {};
@@ -59,7 +75,10 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             .map(({ altitude, enhancedAltitude }, index) => {
                 const preferredAltitude = enhancedAltitude ?? altitude;
 
-                if (preferredAltitude !== undefined && preferredAltitude !== null) {
+                if (
+                    preferredAltitude !== undefined &&
+                    preferredAltitude !== null
+                ) {
                     // Convert altitude if needed
                     let yVal = preferredAltitude;
                     if (distanceUnits === "feet" || distanceUnits === "miles") {
@@ -85,7 +104,9 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("altitude-profile", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas("altitude-profile", 0)
+        );
         canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
         if (colors?.shadow) {
@@ -108,7 +129,8 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             cubicInterpolationMode = "default";
         }
 
-        const altUnit = distanceUnits === "feet" || distanceUnits === "miles" ? "ft" : "m";
+        const altUnit =
+            distanceUnits === "feet" || distanceUnits === "miles" ? "ft" : "m";
 
         const config = {
             data: {
@@ -168,9 +190,14 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             /** @param {any[]} context */
                             title(context) {
                                 const val = context[0].parsed.x;
-                                const converted = convertTimeUnits(val, timeUnits);
-                                if (timeUnits === "hours") return `Time: ${converted.toFixed(2)}h`;
-                                if (timeUnits === "minutes") return `Time: ${converted.toFixed(1)}m`;
+                                const converted = convertTimeUnits(
+                                    val,
+                                    timeUnits
+                                );
+                                if (timeUnits === "hours")
+                                    return `Time: ${converted.toFixed(2)}h`;
+                                if (timeUnits === "minutes")
+                                    return `Time: ${converted.toFixed(1)}m`;
                                 return `Time: ${formatTime(val)}`;
                             },
                         },
@@ -222,9 +249,14 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         ticks: {
                             /** @param {any} value */
                             callback(value) {
-                                const converted = convertTimeUnits(value, timeUnits);
-                                if (timeUnits === "hours") return `${converted.toFixed(2)}h`;
-                                if (timeUnits === "minutes") return `${converted.toFixed(1)}m`;
+                                const converted = convertTimeUnits(
+                                    value,
+                                    timeUnits
+                                );
+                                if (timeUnits === "hours")
+                                    return `${converted.toFixed(2)}h`;
+                                if (timeUnits === "minutes")
+                                    return `${converted.toFixed(1)}m`;
                                 return formatTime(value, true);
                             },
                             color: textColor,
@@ -258,9 +290,14 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
 
         const chart = createManagedChart(canvas, config);
         if (chart) {
-            console.log("[ChartJS] Altitude Profile chart created successfully");
+            console.log(
+                "[ChartJS] Altitude Profile chart created successfully"
+            );
         }
     } catch (error) {
-        console.error("[ChartJS] Error rendering altitude profile chart:", error);
+        console.error(
+            "[ChartJS] Error rendering altitude profile chart:",
+            error
+        );
     }
 }

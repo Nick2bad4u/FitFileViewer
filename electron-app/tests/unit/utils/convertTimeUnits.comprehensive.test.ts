@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { convertTimeUnits, TIME_UNITS } from "../../../utils/formatting/converters/convertTimeUnits.js";
+import {
+    convertTimeUnits,
+    TIME_UNITS,
+} from "../../../utils/formatting/converters/convertTimeUnits.js";
 
 describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
     let mockConsole: {
@@ -21,39 +24,39 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
 
     describe("Input Validation", () => {
         it("should throw TypeError for null input", () => {
-            expect(() => convertTimeUnits(null as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received object"
-            );
+            expect(() =>
+                convertTimeUnits(null as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received object");
         });
 
         it("should throw TypeError for undefined input", () => {
-            expect(() => convertTimeUnits(undefined as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received undefined"
-            );
+            expect(() =>
+                convertTimeUnits(undefined as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received undefined");
         });
 
         it("should throw TypeError for string input", () => {
-            expect(() => convertTimeUnits("60" as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received string"
-            );
+            expect(() =>
+                convertTimeUnits("60" as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received string");
         });
 
         it("should throw TypeError for boolean input", () => {
-            expect(() => convertTimeUnits(true as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received boolean"
-            );
+            expect(() =>
+                convertTimeUnits(true as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received boolean");
         });
 
         it("should throw TypeError for object input", () => {
-            expect(() => convertTimeUnits({} as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received object"
-            );
+            expect(() =>
+                convertTimeUnits({} as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received object");
         });
 
         it("should throw TypeError for array input", () => {
-            expect(() => convertTimeUnits([] as any, TIME_UNITS.MINUTES)).toThrow(
-                "Expected seconds to be a number, received object"
-            );
+            expect(() =>
+                convertTimeUnits([] as any, TIME_UNITS.MINUTES)
+            ).toThrow("Expected seconds to be a number, received object");
         });
 
         it("should throw TypeError for NaN input", () => {
@@ -65,7 +68,10 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should warn for negative time values", () => {
             const result = convertTimeUnits(-60, TIME_UNITS.MINUTES);
             expect(result).toBe(-1); // Still converts but warns
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertTimeUnits] Negative time value:", -60);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertTimeUnits] Negative time value:",
+                -60
+            );
         });
     });
 
@@ -149,14 +155,19 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         });
 
         it("should handle Infinity input", () => {
-            expect(convertTimeUnits(Infinity, TIME_UNITS.MINUTES)).toBe(Infinity);
+            expect(convertTimeUnits(Infinity, TIME_UNITS.MINUTES)).toBe(
+                Infinity
+            );
             expect(convertTimeUnits(Infinity, TIME_UNITS.HOURS)).toBe(Infinity);
         });
 
         it("should handle negative infinity", () => {
             const result = convertTimeUnits(-Infinity, TIME_UNITS.MINUTES);
             expect(result).toBe(-Infinity);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertTimeUnits] Negative time value:", -Infinity);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertTimeUnits] Negative time value:",
+                -Infinity
+            );
         });
 
         it("should handle floating point precision edge cases", () => {
@@ -177,7 +188,9 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should handle empty string unit", () => {
             const result = convertTimeUnits(3600, "" as any);
             expect(result).toBe(3600);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertTimeUnits] Unknown unit '', defaulting to seconds");
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertTimeUnits] Unknown unit '', defaulting to seconds"
+            );
         });
 
         it("should handle null unit", () => {
@@ -200,18 +213,46 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
     describe("Performance and Precision", () => {
         it("should be consistent across multiple calls", () => {
             const testTime = 7200; // 2 hours
-            const results = Array.from({ length: 100 }, () => convertTimeUnits(testTime, TIME_UNITS.HOURS));
+            const results = Array.from({ length: 100 }, () =>
+                convertTimeUnits(testTime, TIME_UNITS.HOURS)
+            );
             const firstResult = results[0];
 
-            expect(results.every((result) => result === firstResult)).toBe(true);
+            expect(results.every((result) => result === firstResult)).toBe(
+                true
+            );
             expect(firstResult).toBe(2);
         });
 
         it("should handle rapid successive conversions", () => {
-            const testTimes = [60, 120, 180, 240, 300, 600, 900, 1200, 1800, 3600];
-            const expectedMinutes = [1, 2, 3, 4, 5, 10, 15, 20, 30, 60];
+            const testTimes = [
+                60,
+                120,
+                180,
+                240,
+                300,
+                600,
+                900,
+                1200,
+                1800,
+                3600,
+            ];
+            const expectedMinutes = [
+                1,
+                2,
+                3,
+                4,
+                5,
+                10,
+                15,
+                20,
+                30,
+                60,
+            ];
 
-            const results = testTimes.map((time) => convertTimeUnits(time, TIME_UNITS.MINUTES));
+            const results = testTimes.map((time) =>
+                convertTimeUnits(time, TIME_UNITS.MINUTES)
+            );
 
             results.forEach((result, index) => {
                 expect(result).toBe(expectedMinutes[index]);
@@ -255,10 +296,30 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
 
         it("should handle FIT file time data types", () => {
             // FIT files often contain time in seconds
-            const fitTimes = [0, 30, 60, 300, 600, 1800, 3600, 7200];
-            const expectedMinutes = [0, 0.5, 1, 5, 10, 30, 60, 120];
+            const fitTimes = [
+                0,
+                30,
+                60,
+                300,
+                600,
+                1800,
+                3600,
+                7200,
+            ];
+            const expectedMinutes = [
+                0,
+                0.5,
+                1,
+                5,
+                10,
+                30,
+                60,
+                120,
+            ];
 
-            const results = fitTimes.map((time) => convertTimeUnits(time, TIME_UNITS.MINUTES));
+            const results = fitTimes.map((time) =>
+                convertTimeUnits(time, TIME_UNITS.MINUTES)
+            );
 
             results.forEach((result, index) => {
                 expect(result).toBe(expectedMinutes[index]);
@@ -306,7 +367,15 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
     describe("Conversion Accuracy", () => {
         it("should maintain accuracy for round-trip conversions where possible", () => {
             // Test mathematical accuracy
-            const testTimes = [60, 120, 300, 600, 1800, 3600, 7200];
+            const testTimes = [
+                60,
+                120,
+                300,
+                600,
+                1800,
+                3600,
+                7200,
+            ];
 
             testTimes.forEach((time) => {
                 // Convert to minutes and back
@@ -363,7 +432,10 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
             expect(convertTimeUnits(480, TIME_UNITS.MINUTES)).toBe(8);
 
             // Marathon world record pace (approximately 2:01:39 = 7299 seconds)
-            expect(convertTimeUnits(7299, TIME_UNITS.HOURS)).toBeCloseTo(2.0275, 4);
+            expect(convertTimeUnits(7299, TIME_UNITS.HOURS)).toBeCloseTo(
+                2.0275,
+                4
+            );
         });
 
         it("should handle cycling session durations", () => {

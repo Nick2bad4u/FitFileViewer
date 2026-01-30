@@ -2,17 +2,27 @@ var Dt = Object.defineProperty;
 var ae = (e) => {
     throw TypeError(e);
 };
-var Bt = (e, t, i) => (t in e ? Dt(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : (e[t] = i));
+var Bt = (e, t, i) =>
+    t in e
+        ? Dt(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i })
+        : (e[t] = i);
 var q = (e, t, i) => Bt(e, typeof t != "symbol" ? t + "" : t, i),
     oe = (e, t, i) => t.has(e) || ae("Cannot " + i);
-var I = (e, t, i) => (oe(e, t, "read from private field"), i ? i.call(e) : t.get(e)),
+var I = (e, t, i) => (
+        oe(e, t, "read from private field"),
+        i ? i.call(e) : t.get(e)
+    ),
     U = (e, t, i) =>
         t.has(e)
             ? ae("Cannot add the same private member more than once")
             : t instanceof WeakSet
               ? t.add(e)
               : t.set(e, i),
-    V = (e, t, i, n) => (oe(e, t, "write to private field"), n ? n.call(e, i) : t.set(e, i), i);
+    V = (e, t, i, n) => (
+        oe(e, t, "write to private field"),
+        n ? n.call(e, i) : t.set(e, i),
+        i
+    );
 import {
     F as J,
     N as Rt,
@@ -32,15 +42,29 @@ import {
 } from "./isUnknown-BvXlyTdW.js";
 import { bf as Ct, ap as Ce, aV as ue } from "./index-LvWRIhnC.js";
 import { g as _ } from "./getMessagesForName-CXPND5Gu.js";
-import { e as Le, a as W, b as ce, d as de, c as ke } from "./binaryString-DLpsQS3c.js";
+import {
+    e as Le,
+    a as W,
+    b as ce,
+    d as de,
+    c as ke,
+} from "./binaryString-DLpsQS3c.js";
 (function () {
     try {
-        var e = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var e =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             t = new Error().stack;
         t &&
             ((e._sentryDebugIds = e._sentryDebugIds || {}),
             (e._sentryDebugIds[t] = "a0b9bbe9-9bc7-4833-9cb2-c3c56914b0b4"),
-            (e._sentryDebugIdIdentifier = "sentry-dbid-a0b9bbe9-9bc7-4833-9cb2-c3c56914b0b4"));
+            (e._sentryDebugIdIdentifier =
+                "sentry-dbid-a0b9bbe9-9bc7-4833-9cb2-c3c56914b0b4"));
     } catch {
         /* Ignore errors */
     }
@@ -168,7 +192,8 @@ const h = {
     },
     Zt = (e) => (He(e) ? null : e.length === 1 ? e[0] : e),
     He = (e) => e.reduce((t, i) => (i != null ? !1 : t), !0),
-    Gt = (e, t) => (Array.isArray(e) ? e.reduce((i, n) => (n != t ? !1 : i), !0) : e === t),
+    Gt = (e, t) =>
+        Array.isArray(e) ? e.reduce((i, n) => (n != t ? !1 : i), !0) : e === t,
     fe = { sanitizeValues: Zt, onlyNullValues: He, onlyInvalidValues: Gt };
 var v, S, H, R;
 const B = class B {
@@ -224,9 +249,15 @@ const B = class B {
     readBytes(t) {
         var n;
         if (I(this, v) + t > I(this, S).byteLength)
-            throw Error(`FIT Runtime Error end of stream at byte ${I(this, v)}`);
+            throw Error(
+                `FIT Runtime Error end of stream at byte ${I(this, v)}`
+            );
         const i = new Uint8Array(I(this, S), I(this, v), t);
-        return (V(this, v, I(this, v) + t), (n = I(this, R)) == null || n.addBytes(i, 0, t), i);
+        return (
+            V(this, v, I(this, v) + t),
+            (n = I(this, R)) == null || n.addBytes(i, 0, t),
+            i
+        );
     }
     readUInt8(t) {
         return this.readValue(T.BaseType.UINT8, 1, {
@@ -291,7 +322,11 @@ const B = class B {
     readString(t) {
         return this.readValue(T.BaseType.STRING, t);
     }
-    readValue(t, i, { endianness: n = B.LITTLE_ENDIAN, convertInvalidToNull: r = !0 } = {}) {
+    readValue(
+        t,
+        i,
+        { endianness: n = B.LITTLE_ENDIAN, convertInvalidToNull: r = !0 } = {}
+    ) {
         const s = T.BaseTypeDefinitions[t].size,
             o = T.BaseTypeDefinitions[t].invalid,
             l = this.readBytes(i);
@@ -350,7 +385,8 @@ const B = class B {
             ? fe.onlyInvalidValues(u, o)
                 ? null
                 : u
-            : (r && (u = u.map((c) => (c === o ? null : c))), fe.sanitizeValues(u));
+            : (r && (u = u.map((c) => (c === o ? null : c))),
+              fe.sanitizeValues(u));
     }
 };
 ((v = new WeakMap()),
@@ -361,7 +397,11 @@ const B = class B {
     q(B, "BIG_ENDIAN", !1));
 let A = B;
 new TextEncoder();
-var Ht = typeof global == "object" && global && global.Object === Object && global,
+var Ht =
+        typeof global == "object" &&
+        global &&
+        global.Object === Object &&
+        global,
     Wt = typeof self == "object" && self && self.Object === Object && self,
     Yt = Ht || Wt || Function("return this")(),
     O = Yt.Symbol,
@@ -390,7 +430,13 @@ var ti = "[object Null]",
     ii = "[object Undefined]",
     me = O ? O.toStringTag : void 0;
 function ni(e) {
-    return e == null ? (e === void 0 ? ii : ti) : me && me in Object(e) ? Jt(e) : ei(e);
+    return e == null
+        ? e === void 0
+            ? ii
+            : ti
+        : me && me in Object(e)
+          ? Jt(e)
+          : ei(e);
 }
 function ri(e) {
     return e != null && typeof e == "object";
@@ -400,7 +446,8 @@ function ai(e) {
     return typeof e == "symbol" || (ri(e) && ni(e) == si);
 }
 function oi(e, t) {
-    for (var i = -1, n = e == null ? 0 : e.length, r = Array(n); ++i < n; ) r[i] = t(e[i], i, e);
+    for (var i = -1, n = e == null ? 0 : e.length, r = Array(n); ++i < n; )
+        r[i] = t(e[i], i, e);
     return r;
 }
 var li = Array.isArray,
@@ -462,9 +509,30 @@ var qe = "\\ud800-\\udfff",
     Ei = "\\u200d",
     et = Si + "?",
     tt = "[" + Ni + "]?",
-    Mi = "(?:" + Ei + "(?:" + [Je, Xe, Qe].join("|") + ")" + tt + et + ")*",
+    Mi =
+        "(?:" +
+        Ei +
+        "(?:" +
+        [
+            Je,
+            Xe,
+            Qe,
+        ].join("|") +
+        ")" +
+        tt +
+        et +
+        ")*",
     Ai = tt + et + Mi,
-    Vi = "(?:" + [Je + X + "?", X, Xe, Qe, vi].join("|") + ")",
+    Vi =
+        "(?:" +
+        [
+            Je + X + "?",
+            X,
+            Xe,
+            Qe,
+            vi,
+        ].join("|") +
+        ")",
     Di = RegExp(Q + "(?=" + Q + ")|" + Vi + Ai, "g");
 function Bi(e) {
     return e.match(Di) || [];
@@ -486,7 +554,8 @@ function Ci(e) {
     return Ui(Y(e).toLowerCase());
 }
 function Li(e, t, i, n) {
-    for (var r = -1, s = e == null ? 0 : e.length; ++r < s; ) i = t(i, e[r], r, e);
+    for (var r = -1, s = e == null ? 0 : e.length; ++r < s; )
+        i = t(i, e[r], r, e);
     return i;
 }
 function ki(e) {
@@ -740,15 +809,55 @@ var it = "\\ud800-\\udfff",
     Te = "(?:" + ot + "(?:D|LL|M|RE|S|T|VE))?",
     mt = mn + "?",
     pt = "[" + un + "]?",
-    yn = "(?:" + hn + "(?:" + [pn, dt, ft].join("|") + ")" + pt + mt + ")*",
+    yn =
+        "(?:" +
+        hn +
+        "(?:" +
+        [
+            pn,
+            dt,
+            ft,
+        ].join("|") +
+        ")" +
+        pt +
+        mt +
+        ")*",
     bn = "\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])",
     Tn = "\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])",
     xn = pt + mt + yn,
-    _n = "(?:" + [dn, dt, ft].join("|") + ")" + xn,
+    _n =
+        "(?:" +
+        [
+            dn,
+            dt,
+            ft,
+        ].join("|") +
+        ")" +
+        xn,
     Fn = RegExp(
         [
-            D + "?" + ut + "+" + be + "(?=" + [ge, D, "$"].join("|") + ")",
-            gn + "+" + Te + "(?=" + [ge, D + ye, "$"].join("|") + ")",
+            D +
+                "?" +
+                ut +
+                "+" +
+                be +
+                "(?=" +
+                [
+                    ge,
+                    D,
+                    "$",
+                ].join("|") +
+                ")",
+            gn +
+                "+" +
+                Te +
+                "(?=" +
+                [
+                    ge,
+                    D + ye,
+                    "$",
+                ].join("|") +
+                ")",
             D + "?" + ye + "+" + be,
             D + "+" + Te,
             Tn,
@@ -762,7 +871,11 @@ function In(e) {
     return e.match(Fn) || [];
 }
 function wn(e, t, i) {
-    return ((e = Y(e)), (t = t), t === void 0 ? (Qi(e) ? In(e) : Ji(e)) : e.match(t) || []);
+    return (
+        (e = Y(e)),
+        (t = t),
+        t === void 0 ? (Qi(e) ? In(e) : Ji(e)) : e.match(t) || []
+    );
 }
 var Nn = "['’]",
     vn = RegExp(Nn, "g");
@@ -779,7 +892,13 @@ Object.entries(J).forEach(([e, t]) => {
     ht[t] = e;
 });
 function xe(e) {
-    return e && !(e.developer_data_index.rawFieldValue === null || e.developer_data_index.rawFieldValue === 255);
+    return (
+        e &&
+        !(
+            e.developer_data_index.rawFieldValue === null ||
+            e.developer_data_index.rawFieldValue === 255
+        )
+    );
 }
 function _e(e) {
     const t = {};
@@ -807,13 +926,19 @@ class Mn {
         if (!i) return;
         const n = _e(t);
         ((n.fieldType = ht[n.fitBaseTypeId]),
-            (n.key = [n.fieldName, n.developerDataIndex, n.fieldDefinitionNumber].join("_")),
+            (n.key = [
+                n.fieldName,
+                n.developerDataIndex,
+                n.fieldDefinitionNumber,
+            ].join("_")),
             i.fields.push(n));
     }
     lookupDeveloperDataField(t) {
         var r;
         const { developerDataIndex: i, fieldDefinitionNumber: n } = t;
-        return (r = this.definitions[i]) == null ? void 0 : r.fields.find((s) => s.fieldDefinitionNumber === n);
+        return (r = this.definitions[i]) == null
+            ? void 0
+            : r.fields.find((s) => s.fieldDefinitionNumber === n);
     }
     getDefinitions() {
         return Object.values(this.definitions).flatMap((t) => t.fields);
@@ -821,14 +946,25 @@ class Mn {
 }
 class An {
     constructor(t, i) {
-        ((this.mesgNum = t), (this.destFieldNum = i), (this.lastValue = 0), (this.accumulatedValue = 0));
+        ((this.mesgNum = t),
+            (this.destFieldNum = i),
+            (this.lastValue = 0),
+            (this.accumulatedValue = 0));
     }
     accumulate(t, i) {
         const n = (1 << i) - 1;
-        return ((this.accumulatedValue += (t - this.lastValue) & n), (this.lastValue = t), this.accumulatedValue);
+        return (
+            (this.accumulatedValue += (t - this.lastValue) & n),
+            (this.lastValue = t),
+            this.accumulatedValue
+        );
     }
     set(t) {
-        return ((this.accumulatedValue = t), (this.lastValue = 0), this.accumulatedValue);
+        return (
+            (this.accumulatedValue = t),
+            (this.lastValue = 0),
+            this.accumulatedValue
+        );
     }
 }
 class Vn {
@@ -836,7 +972,9 @@ class Vn {
         this.accumulatedFields = [];
     }
     getAccumField(t, i) {
-        let n = this.accumulatedFields.find((r) => r.mesgNum === t && r.destFieldNum === i);
+        let n = this.accumulatedFields.find(
+            (r) => r.mesgNum === t && r.destFieldNum === i
+        );
         return (n || ((n = new An(t, i)), this.accumulatedFields.push(n)), n);
     }
     set(t, i, n) {
@@ -849,10 +987,12 @@ class Vn {
 Array.prototype.findLastIndex ||
     Object.defineProperty(Array.prototype, "findLastIndex", {
         value(e) {
-            if (this == null) throw new TypeError('"this" is null or not defined');
+            if (this == null)
+                throw new TypeError('"this" is null or not defined');
             const t = Object(this),
                 i = t.length >>> 0;
-            if (typeof e != "function") throw new TypeError("predicate must be a function");
+            if (typeof e != "function")
+                throw new TypeError("predicate must be a function");
             const n = arguments[1];
             let r = i - 1;
             for (; r >= 0; ) {
@@ -863,9 +1003,11 @@ Array.prototype.findLastIndex ||
         },
     });
 function M(e, t) {
-    t.flatMap((n) => n.recordIndex.toString().split(",").map(Number)).forEach((n) => {
-        e.streamIndex.invalidRecords.add(n);
-    });
+    t.flatMap((n) => n.recordIndex.toString().split(",").map(Number)).forEach(
+        (n) => {
+            e.streamIndex.invalidRecords.add(n);
+        }
+    );
 }
 const Dn = 180 / 2 ** 31,
     Bn = new Date().getTimezoneOffset() * 60;
@@ -920,15 +1062,25 @@ function Fe(e, t, i, n, r) {
         { endianness: u, globalMessageNumber: f } = t,
         { previousTimestamps: c, timestampOffsets: d } = r,
         g = { fieldName: a, field: n, fieldDefinition: i },
-        m = ((y = n == null ? void 0 : n.components) == null ? void 0 : y.length) > 1,
+        m =
+            ((y = n == null ? void 0 : n.components) == null
+                ? void 0
+                : y.length) > 1,
         p = On(e, o, l, { endianness: u, convertInvalidToNull: !m });
     if (Number.isNaN(p)) return { ...g, rawFieldValue: null };
-    if (p === 0 && /int\d+z$/.test(n == null ? void 0 : n.fieldType)) return { ...g, rawFieldValue: null };
-    if (p == null || !n || n.components || n.subfields) return { ...g, rawFieldValue: p };
+    if (p === 0 && /int\d+z$/.test(n == null ? void 0 : n.fieldType))
+        return { ...g, rawFieldValue: null };
+    if (p == null || !n || n.components || n.subfields)
+        return { ...g, rawFieldValue: p };
     if ((n == null ? void 0 : n.fieldType) === "relative_date_time") {
         f in d || (d[f] = c.any - p);
         const x = p + d[f];
-        return { ...g, rawFieldValue: p, absoluteValue: x, fieldValue: $(x, n) };
+        return {
+            ...g,
+            rawFieldValue: p,
+            absoluteValue: x,
+            fieldValue: $(x, n),
+        };
     }
     return { ...g, rawFieldValue: p, fieldValue: $(p, n) };
 }
@@ -963,10 +1115,16 @@ class Ln {
             this.nextByte());
     }
     readBit() {
-        if (this.bitsAvailable <= 0) throw new Error("FIT Runtime Error no bits available.");
+        if (this.bitsAvailable <= 0)
+            throw new Error("FIT Runtime Error no bits available.");
         this.currentBit >= this.bitPerPosition && this.nextByte();
         const t = this.currentByte & 1;
-        return ((this.currentByte >>= 1), this.currentBit++, this.bitsAvailable--, t);
+        return (
+            (this.currentByte >>= 1),
+            this.currentBit++,
+            this.bitsAvailable--,
+            t
+        );
     }
     readBits(t) {
         let i = 0n;
@@ -974,8 +1132,10 @@ class Ln {
         return Number(i);
     }
     nextByte() {
-        if (this.currentArrayPosition >= this.array.length) throw new Error("FIT Runtime Error no bytes available.");
-        ((this.currentByte = this.array[this.currentArrayPosition++]), (this.currentBit = 0));
+        if (this.currentArrayPosition >= this.array.length)
+            throw new Error("FIT Runtime Error no bytes available.");
+        ((this.currentByte = this.array[this.currentArrayPosition++]),
+            (this.currentBit = 0));
     }
 }
 function kn(e, t, i, n) {
@@ -985,9 +1145,17 @@ function kn(e, t, i, n) {
         .map((a) => {
             var j;
             if (o.bitsAvailable <= 0) return null;
-            const { fieldDefNumber: u, scale: f, offset: c, units: d, bits: g, accumulate: m } = a,
+            const {
+                    fieldDefNumber: u,
+                    scale: f,
+                    offset: c,
+                    units: d,
+                    bits: g,
+                    accumulate: m,
+                } = a,
                 p = { ...r[u], scale: f, offset: c, units: d, accumulate: m };
-            if (Re(e)) return { fieldName: p.fieldName, field: p, fieldValue: null };
+            if (Re(e))
+                return { fieldName: p.fieldName, field: p, fieldValue: null };
             const y = J[p.fieldType],
                 x = (j = E[y]) == null ? void 0 : j.invalid;
             let b = o.readBits(g);
@@ -1010,7 +1178,13 @@ const ne = 31,
     Kn = Object.values(ie).find((e) => e.fieldName === "timestamp");
 function yt(e, { messageDefinition: t, timestamp: i }) {
     const { stream: n, accumulator: r, developerDataFields: s } = e,
-        { messageName: o, fieldDefinitions: l, fields: a, globalMessageNumber: u, developerFieldDefinitions: f } = t,
+        {
+            messageName: o,
+            fieldDefinitions: l,
+            fields: a,
+            globalMessageNumber: u,
+            developerFieldDefinitions: f,
+        } = t,
         c = {};
     (i &&
         Oe.includes(o) &&
@@ -1023,16 +1197,23 @@ function yt(e, { messageDefinition: t, timestamp: i }) {
         }),
         l.forEach((m) => {
             const { fieldDefinitionNumber: p, size: y, baseTypeNumber: x } = m;
-            if (y === 0 || x > $n) throw new Error("Invalid size or baseTypeNumber", y, x);
+            if (y === 0 || x > $n)
+                throw new Error("Invalid size or baseTypeNumber", y, x);
             const b = (a == null ? void 0 : a[p]) || ie[p],
                 N = Fe(n, t, m, b, e);
             ((c[N.fieldName] = N),
-                N.rawFieldValue !== null && b != null && b.accumulatorField && r.set(u, p, N.rawFieldValue));
+                N.rawFieldValue !== null &&
+                    b != null &&
+                    b.accumulatorField &&
+                    r.set(u, p, N.rawFieldValue));
         }),
         Object.values(c)
             .filter((m) => {
                 var p;
-                return m.rawFieldValue !== null && ((p = m.field) == null ? void 0 : p.subfields);
+                return (
+                    m.rawFieldValue !== null &&
+                    ((p = m.field) == null ? void 0 : p.subfields)
+                );
             })
             .forEach((m) => {
                 const { fieldName: p, field: y, rawFieldValue: x } = m,
@@ -1060,7 +1241,11 @@ function yt(e, { messageDefinition: t, timestamp: i }) {
         }
         const { fieldName: y } = m,
             x = c[y];
-        x ? (p ? (c[y].fieldValue = [c[y].fieldValue, m.fieldValue].flat()) : Object.assign(x, m)) : (c[y] = m);
+        x
+            ? p
+                ? (c[y].fieldValue = [c[y].fieldValue, m.fieldValue].flat())
+                : Object.assign(x, m)
+            : (c[y] = m);
     }
     for (; d.length > 0; ) {
         const { field: m, rawFieldValue: p, fieldValue: y } = d.shift();
@@ -1094,7 +1279,10 @@ function yt(e, { messageDefinition: t, timestamp: i }) {
     return c;
 }
 function bt(e, t) {
-    const i = e == null ? void 0 : e.filter((n) => t in n).map((n) => n[t].rawFieldValue);
+    const i =
+        e == null
+            ? void 0
+            : e.filter((n) => t in n).map((n) => n[t].rawFieldValue);
     return i != null && i.length ? Math.max(...i) : -1;
 }
 function qn(e, t) {
@@ -1118,7 +1306,12 @@ function Ie(e, t, { baseType: i, size: n, endianness: r }) {
     return W(f);
 }
 function Jn(e, t, i, n) {
-    const { endianness: r, localMessageType: s, fieldDefinitions: o, developerFieldDefinitions: l } = t,
+    const {
+            endianness: r,
+            localMessageType: s,
+            fieldDefinitions: o,
+            developerFieldDefinitions: l,
+        } = t,
         a = w.mesgNum[e],
         u = 0 | (s & 15),
         f = [new Uint8Array([u])];
@@ -1175,7 +1368,10 @@ function xt(e, t) {
                 var b;
                 const m = t.readByte();
                 if (f.has(m)) {
-                    const N = ((b = a == null ? void 0 : a[m]) == null ? void 0 : b.fieldName) || `field ${m}`;
+                    const N =
+                        ((b = a == null ? void 0 : a[m]) == null
+                            ? void 0
+                            : b.fieldName) || `field ${m}`;
                     c[m] = `Duplicate field definition: ${N}`;
                 }
                 f.add(m);
@@ -1208,7 +1404,11 @@ function xt(e, t) {
                 const p = t.readByte(),
                     y = t.readByte(),
                     x = t.readByte();
-                return { fieldDefinitionNumber: p, size: y, developerDataIndex: x };
+                return {
+                    fieldDefinitionNumber: p,
+                    size: y,
+                    developerDataIndex: x,
+                };
             });
     }
     return (
@@ -1229,7 +1429,12 @@ function xt(e, t) {
 function _t(e, t) {
     if (!e) return t;
     const i = new Set(e.fieldDefinitions.map((s) => s.fieldDefinitionNumber)),
-        n = [...e.fieldDefinitions, ...t.fieldDefinitions.filter((s) => !i.has(s.fieldDefinitionNumber))];
+        n = [
+            ...e.fieldDefinitions,
+            ...t.fieldDefinitions.filter(
+                (s) => !i.has(s.fieldDefinitionNumber)
+            ),
+        ];
     return {
         ...e,
         recordIndex: `${e.recordIndex},${t.recordIndex}`,
@@ -1256,12 +1461,48 @@ const er = {
         sub_sport: 0,
     },
     Ft = {
-        file_id: [0, 1, 4],
-        activity: [253, 0, 1, 5],
-        session: [253, 254, 2, 3, 4, 5, 6, 7, 8, 9],
-        lap: [253, 254, 2, 3, 4, 5, 6, 7, 8, 9],
+        file_id: [
+            0,
+            1,
+            4,
+        ],
+        activity: [
+            253,
+            0,
+            1,
+            5,
+        ],
+        session: [
+            253,
+            254,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+        ],
+        lap: [
+            253,
+            254,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+        ],
     },
-    we = ["start_time", "total_timer_time", "total_elapsed_time", "timestamp"],
+    we = [
+        "start_time",
+        "total_timer_time",
+        "total_elapsed_time",
+        "timestamp",
+    ],
     re = {
         lap: we,
         session: we,
@@ -1295,7 +1536,9 @@ function nr(e, { messageNumbers: t, definitions: i, repairDefinitions: n }) {
         o =
             (g = n[e]) == null
                 ? void 0
-                : g.messageDefinition.fieldDefinitions.filter(({ fieldDefinitionNumber: m }) => !s.includes(m)),
+                : g.messageDefinition.fieldDefinitions.filter(
+                      ({ fieldDefinitionNumber: m }) => !s.includes(m)
+                  ),
         a =
             64 |
             ((Object.values(i)
@@ -1304,24 +1547,46 @@ function nr(e, { messageNumbers: t, definitions: i, repairDefinitions: n }) {
                 1) &
                 15 &
                 15),
-        u = [new Uint8Array([a, 0, 0])];
+        u = [
+            new Uint8Array([
+                a,
+                0,
+                0,
+            ]),
+        ];
     (u.push(new Uint16Array([r])),
-        u.push(new Uint8Array([s.length + ((o == null ? void 0 : o.length) || 0)])),
+        u.push(
+            new Uint8Array([s.length + ((o == null ? void 0 : o.length) || 0)])
+        ),
         s.forEach((m) => {
             const { fieldName: p } = w.messages[r].fields[m],
                 y = er[p],
                 { size: x } = E[y];
-            u.push(new Uint8Array([m, x, y]));
+            u.push(
+                new Uint8Array([
+                    m,
+                    x,
+                    y,
+                ])
+            );
         }),
         o == null ||
             o.forEach(({ fieldDefinitionNumber: m, size: p, baseType: y }) => {
-                u.push(new Uint8Array([m, p, y]));
+                u.push(
+                    new Uint8Array([
+                        m,
+                        p,
+                        y,
+                    ])
+                );
             }));
     const f = W(u),
         c = A.fromByteArray(f),
         d = xt(c.readByte(), c);
     return (
-        t.includes(r) ? (i[r] = _t(i[r], d)) : ((i[r] = d), r === 0 ? t.unshift(r) : t.push(r)),
+        t.includes(r)
+            ? (i[r] = _t(i[r], d))
+            : ((i[r] = d), r === 0 ? t.unshift(r) : t.push(r)),
         { messageDefinition: d, definitionRecord: f }
     );
 }
@@ -1335,7 +1600,10 @@ function z(e, t, i) {
             o.push(f);
             const c = A.fromByteArray(f);
             c.readByte();
-            const d = yt({ ...i, stream: c }, { messageDefinition: l, developerDataFields: r });
+            const d = yt(
+                { ...i, stream: c },
+                { messageDefinition: l, developerDataFields: r }
+            );
             _(n, e).push(d);
         }));
 }
@@ -1380,7 +1648,10 @@ function ar(e, t, i, { weights: n, prefix: r }) {
 function or(e, t, i) {
     const n = t.split("_")[0],
         r = It(e, t);
-    if (r.filter(wt).length !== 0) return Math.round(r.reduce((s, o, l) => ar(s, o, l, { weights: i, prefix: n }), 0));
+    if (r.filter(wt).length !== 0)
+        return Math.round(
+            r.reduce((s, o, l) => ar(s, o, l, { weights: i, prefix: n }), 0)
+        );
 }
 function lr(e) {
     const { messages: t, issues: i } = e,
@@ -1493,7 +1764,11 @@ function hr(e, t, i) {
                 ? void 0
                 : n.filter((l) => {
                       var a;
-                      return l.timestamp && ((a = l.event) == null ? void 0 : a.fieldValue) === "timer";
+                      return (
+                          l.timestamp &&
+                          ((a = l.event) == null ? void 0 : a.fieldValue) ===
+                              "timer"
+                      );
                   });
     if (!(r != null && r.length)) return (i - t) * 1e3;
     let s = 0,
@@ -1546,8 +1821,14 @@ function gr(e, { startTime: t, endTime: i }) {
             total_elapsed_time: (i - t) * 1e3,
             total_timer_time: hr(r, t, i),
         },
-        u = (f = _(r, n)) == null ? void 0 : f.filter((c) => !o.has(c.recordIndex));
-    return (u != null && u.length && (a.message_index = bt(u, "message_index") + 1), z(n, [a], e));
+        u =
+            (f = _(r, n)) == null
+                ? void 0
+                : f.filter((c) => !o.has(c.recordIndex));
+    return (
+        u != null && u.length && (a.message_index = bt(u, "message_index") + 1),
+        z(n, [a], e)
+    );
 }
 function Z(e) {
     const {
@@ -1557,7 +1838,10 @@ function Z(e) {
 }
 function G(e) {
     if (!(!(e != null && e.start_time) || Re(e.total_elapsed_time)))
-        return e.start_time.rawFieldValue + e.total_elapsed_time.rawFieldValue / 1e3;
+        return (
+            e.start_time.rawFieldValue +
+            e.total_elapsed_time.rawFieldValue / 1e3
+        );
 }
 function yr(e, t) {
     return re[t].every((n) => {
@@ -1589,7 +1873,10 @@ function Nt(e, t, { startTime: i, endTime: n }) {
             const m = G(d);
             return ((a = n - m), a < -300 ? !0 : ((l = d), !1));
         });
-    return (c >= 0 && M(t, u.slice(c)), { currentMessages: s, lastEndTime: G(l), lastMessage: l });
+    return (
+        c >= 0 && M(t, u.slice(c)),
+        { currentMessages: s, lastEndTime: G(l), lastMessage: l }
+    );
 }
 function Tr(e, { startTime: t, endTime: i }) {
     const { issues: n } = e,
@@ -1669,7 +1956,10 @@ function Ee(e, t) {
             total_timer_time: Ne(s, "total_timer_time"),
         },
         f = _(n, i).filter((c) => !r.has(c.recordIndex)) || [];
-    return (f.length && (u.message_index = bt(f, "message_index") + 1), z(i, [u], e));
+    return (
+        f.length && (u.message_index = bt(f, "message_index") + 1),
+        z(i, [u], e)
+    );
 }
 function Me(e, t, i) {
     if (!(!t[e] || !i[e])) return t[e].rawFieldValue === i[e].rawFieldValue;
@@ -1683,7 +1973,9 @@ function _r(e, t, i) {
     let l = o ?? n,
         a = t.findIndex((d) => {
             var g;
-            return ((g = d.start_time) == null ? void 0 : g.rawFieldValue) >= l - 1;
+            return (
+                ((g = d.start_time) == null ? void 0 : g.rawFieldValue) >= l - 1
+            );
         });
     (a < 0 && (a = t.length - 1),
         s &&
@@ -1716,7 +2008,8 @@ function Fr(e, { startTime: t, endTime: i }) {
             endTime: i,
         }),
         u = _(r, "lap").filter((f) => !s.has(f.recordIndex));
-    ((!a || a < i - 10) && _r(e, u, { startTime: t, endTime: i, lastMessage: l, lastEndTime: a }),
+    ((!a || a < i - 10) &&
+        _r(e, u, { startTime: t, endTime: i, lastMessage: l, lastEndTime: a }),
         Z(e) > o &&
             n.push({
                 type: "repair",
@@ -1727,9 +2020,12 @@ function Fr(e, { startTime: t, endTime: i }) {
 }
 function Ir(e, t) {
     var n;
-    if (t.timestamp && t.local_timestamp) return t.local_timestamp - t.timestamp;
+    if (t.timestamp && t.local_timestamp)
+        return t.local_timestamp - t.timestamp;
     const i = (n = _(e, "device_settings")) == null ? void 0 : n[0];
-    return i != null && i.time_offset ? i.time_offset.rawFieldValue : new Date().getTimezoneOffset() * 60;
+    return i != null && i.time_offset
+        ? i.time_offset.rawFieldValue
+        : new Date().getTimezoneOffset() * 60;
 }
 function wr(e, { endTime: t }) {
     const i = "activity",
@@ -1737,7 +2033,9 @@ function wr(e, { endTime: t }) {
             messages: n,
             streamIndex: { invalidRecords: r },
         } = e,
-        s = _(n, "session").filter((u) => u.total_timer_time && !r.has(u.recordIndex)),
+        s = _(n, "session").filter(
+            (u) => u.total_timer_time && !r.has(u.recordIndex)
+        ),
         o = se(i, n, r),
         l = Ir(n, o),
         a = {
@@ -1745,7 +2043,10 @@ function wr(e, { endTime: t }) {
             local_timestamp: t + l,
             ...o,
             num_sessions: s.length,
-            total_timer_time: s.reduce((u, f) => u + f.total_timer_time.rawFieldValue, 0),
+            total_timer_time: s.reduce(
+                (u, f) => u + f.total_timer_time.rawFieldValue,
+                0
+            ),
         };
     return z(i, [a], e);
 }
@@ -1761,7 +2062,9 @@ function vr(e, t, i) {
     const n = _(t, "session").filter((o) => !i.has(o.recordIndex));
     if (n.length !== e.num_sessions.rawFieldValue) return !1;
     if (!e.total_timer_time) return !0;
-    const s = n.reduce((o, l) => o + l.total_timer_time.rawFieldValue, 0) - e.total_timer_time.rawFieldValue;
+    const s =
+        n.reduce((o, l) => o + l.total_timer_time.rawFieldValue, 0) -
+        e.total_timer_time.rawFieldValue;
     return Math.abs(s) < 1e4;
 }
 function Sr(e, t) {
@@ -1781,7 +2084,8 @@ function Sr(e, t) {
         l &&
             r.push({
                 type: "repair",
-                message: "The activity message is invalid or a valid activity messages is missing",
+                message:
+                    "The activity message is invalid or a valid activity messages is missing",
                 description:
                     "Invalid messages are marked in red, missing messages are added and displayed in blue in the tables below.",
             }));
@@ -1794,7 +2098,8 @@ function Mr(e) {
         try {
             const r = e.mergedRecords;
             if (!(r != null && r.length)) return;
-            const s = (i = r.at(0)) == null ? void 0 : i.timestamp.rawFieldValue,
+            const s =
+                    (i = r.at(0)) == null ? void 0 : i.timestamp.rawFieldValue,
                 o = (n = r.at(-1)) == null ? void 0 : n.timestamp.rawFieldValue,
                 l = { startTime: s, endTime: o };
             (cr(e, l), lr(e), Tr(e, l), Fr(e, l), Sr(e, l));
@@ -1821,7 +2126,8 @@ function Dr(e) {
                     } = r,
                     u = Array.isArray(l);
                 if (s) {
-                    if (u) throw new Error("HR mesg with multiple filtered bpm");
+                    if (u)
+                        throw new Error("HR mesg with multiple filtered bpm");
                     return (
                         (t = s.rawFieldValue - Number(a)),
                         { timestamp: s.rawFieldValue + Number(o), heartRate: l }
@@ -1829,8 +2135,14 @@ function Dr(e) {
                 }
                 if (!u) throw new Error("HR mesg with single filtered bpm");
                 const f = a.map(Number);
-                if (f.length !== l.length) throw new Error("HR mesg with mismatching event timestamp and filtered bpm");
-                return l.flatMap((c, d) => ({ timestamp: t + f[d], heartRate: c }));
+                if (f.length !== l.length)
+                    throw new Error(
+                        "HR mesg with mismatching event timestamp and filtered bpm"
+                    );
+                return l.flatMap((c, d) => ({
+                    timestamp: t + f[d],
+                    heartRate: c,
+                }));
             } catch {
                 return [];
             }
@@ -1851,7 +2163,10 @@ function Br(e, t) {
     var l;
     let i = !1;
     const n = _(e, "hr"),
-        r = (l = _(e, "record")) == null ? void 0 : l.filter((a) => a.timestamp);
+        r =
+            (l = _(e, "record")) == null
+                ? void 0
+                : l.filter((a) => a.timestamp);
     if (!n || !r) return !1;
     const s = Dr(n);
     let o = s.findIndex((a) => a.timestamp > r[0].timestamp.rawFieldValue - 1);
@@ -1860,12 +2175,18 @@ function Br(e, t) {
             var c;
             let u = 0,
                 f = 0;
-            for (; ((c = s[o]) == null ? void 0 : c.timestamp) < a.timestamp.rawFieldValue; )
+            for (
+                ;
+                ((c = s[o]) == null ? void 0 : c.timestamp) <
+                a.timestamp.rawFieldValue;
+            )
                 ((u += s[o].heartRate), f++, o++);
             if (f) {
                 i = !0;
                 const d = (u / f).toFixed(0);
-                a.heart_rate ? (a.heart_rate.fieldValue = d) : (a.heart_rate = { field: Vr, fieldValue: d });
+                a.heart_rate
+                    ? (a.heart_rate.fieldValue = d)
+                    : (a.heart_rate = { field: Vr, fieldValue: d });
             }
         }),
         i)
@@ -1888,7 +2209,12 @@ function vt(e) {
     return e
         .map((t) => {
             const { position_lat: i, position_long: n } = t;
-            return !i || !n ? null : { coordinates: [i.fieldValue, n.fieldValue].map(Number), msg: t };
+            return !i || !n
+                ? null
+                : {
+                      coordinates: [i.fieldValue, n.fieldValue].map(Number),
+                      msg: t,
+                  };
         })
         .filter(Boolean);
 }
@@ -1896,7 +2222,11 @@ function Rr(e) {
     const t = _(e, "location") ?? [],
         i = _(e, "course_point") ?? [],
         n = _(e, "hole") ?? [],
-        r = vt([...t, ...i, ...n]).map((s, o) => ({ ...s, key: `wp_${o}` }));
+        r = vt([
+            ...t,
+            ...i,
+            ...n,
+        ]).map((s, o) => ({ ...s, key: `wp_${o}` }));
     return (r == null ? void 0 : r.length) > 0 ? r : null;
 }
 function Or(e, t) {
@@ -1910,8 +2240,14 @@ function Ur(e) {
             ? void 0
             : i.map((n) => ({
                   coordinates: [
-                      [n.start_position_long.fieldValue, n.start_position_lat.fieldValue].map(Number),
-                      [n.end_position_long.fieldValue, n.end_position_lat.fieldValue].map(Number),
+                      [
+                          n.start_position_long.fieldValue,
+                          n.start_position_lat.fieldValue,
+                      ].map(Number),
+                      [
+                          n.end_position_long.fieldValue,
+                          n.end_position_lat.fieldValue,
+                      ].map(Number),
                   ],
                   msg: n,
               }));
@@ -1928,13 +2264,18 @@ function Cr(e, t) {
                   .filter((r) => {
                       var s;
                       return (
-                          ((s = r.lapTrigger) == null ? void 0 : s.fieldValue) !== "aaamanual" &&
+                          ((s = r.lapTrigger) == null
+                              ? void 0
+                              : s.fieldValue) !== "aaamanual" &&
                           r.start_position_lat &&
                           r.start_position_long
                       );
                   })
                   .map((r, s) => ({
-                      coordinates: [r.start_position_lat.fieldValue, r.start_position_long.fieldValue].map(Number),
+                      coordinates: [
+                          r.start_position_lat.fieldValue,
+                          r.start_position_long.fieldValue,
+                      ].map(Number),
                       msg: r,
                       key: `lap_${s}`,
                   }));
@@ -1942,17 +2283,28 @@ function Cr(e, t) {
 }
 function Lr(e, t) {
     var o;
-    const i = (o = _(e, "session")) == null ? void 0 : o.filter((l) => l.start_time && l.total_elapsed_time);
+    const i =
+        (o = _(e, "session")) == null
+            ? void 0
+            : o.filter((l) => l.start_time && l.total_elapsed_time);
     if (!(i != null && i.length)) return null;
     let n = 0,
-        r = i[0].start_time.rawFieldValue + i[0].total_elapsed_time.rawFieldValue;
+        r =
+            i[0].start_time.rawFieldValue +
+            i[0].total_elapsed_time.rawFieldValue;
     const s = i.slice(1).map((l) => {
         var f;
         const a = ((f = l.start_time) == null ? void 0 : f.rawFieldValue) ?? r,
             u = t.slice(n).findIndex((c) => c.msg.timestamp.rawFieldValue >= a);
         return ((n += u), (r += l.total_elapsed_time.rawFieldValue), n);
     });
-    return (s.push(t.length), s.map((l, a) => ({ positionRange: [a === 0 ? 0 : s[a - 1], l], msg: i[a] })));
+    return (
+        s.push(t.length),
+        s.map((l, a) => ({
+            positionRange: [a === 0 ? 0 : s[a - 1], l],
+            msg: i[a],
+        }))
+    );
 }
 function kr(e) {
     const {
@@ -1966,7 +2318,9 @@ function kr(e) {
             o = Or(t, i),
             l = Ur(t),
             a = o ? Lr(t, o) : null;
-        return r || o || l || s ? { waypoints: r, positions: o, sessions: a, lines: l, laps: s } : null;
+        return r || o || l || s
+            ? { waypoints: r, positions: o, sessions: a, lines: l, laps: s }
+            : null;
     } catch (r) {
         if ((Ce(r), L)) throw r;
         return (console.error(r), null);
@@ -1995,24 +2349,44 @@ function Pr(e) {
     const i = t.map(zr),
         n = {};
     (i.forEach((r) => {
-        const { data: s, field_num: o, mesg_num: l, parent_index: a, part_index: u } = r,
-            f = [l, a, o].join("-");
-        (n[f] || (n[f] = { mesg_num: l, parent_index: a, field_num: o, data: {} }), (n[f].data[u] = s));
+        const {
+                data: s,
+                field_num: o,
+                mesg_num: l,
+                parent_index: a,
+                part_index: u,
+            } = r,
+            f = [
+                l,
+                a,
+                o,
+            ].join("-");
+        (n[f] ||
+            (n[f] = { mesg_num: l, parent_index: a, field_num: o, data: {} }),
+            (n[f].data[u] = s));
     }),
-        Object.values(n).forEach(({ mesg_num: r, parent_index: s, field_num: o, data: l }) => {
-            var c;
-            const a = jr(l),
-                u = (c = e[r]) == null ? void 0 : c[s];
-            if (!u) return;
-            const f = Object.values(u).find((d) => {
-                var g;
-                return ((g = d.fieldDefinition) == null ? void 0 : g.fieldDefinitionNumber) === o;
-            });
-            ((f.memo = a),
-                t.forEach((d) => {
-                    d.parent_index.rawFieldValue === s && d.field_num.rawFieldValue === o && (d.data.memo = a);
-                }));
-        }));
+        Object.values(n).forEach(
+            ({ mesg_num: r, parent_index: s, field_num: o, data: l }) => {
+                var c;
+                const a = jr(l),
+                    u = (c = e[r]) == null ? void 0 : c[s];
+                if (!u) return;
+                const f = Object.values(u).find((d) => {
+                    var g;
+                    return (
+                        ((g = d.fieldDefinition) == null
+                            ? void 0
+                            : g.fieldDefinitionNumber) === o
+                    );
+                });
+                ((f.memo = a),
+                    t.forEach((d) => {
+                        d.parent_index.rawFieldValue === s &&
+                            d.field_num.rawFieldValue === o &&
+                            (d.data.memo = a);
+                    }));
+            }
+        ));
 }
 function Zr({ type: e, messageDefinition: t, message: i }) {
     return !1;
@@ -2041,7 +2415,9 @@ class Gr {
         const t = this.stream.position,
             i = this.stream.length - t,
             n = Math.min(i, 512);
-        (console.log("Remaining", i.toLocaleString()), console.log(de(this.stream.readBytes(n))), this.stream.seek(t));
+        (console.log("Remaining", i.toLocaleString()),
+            console.log(de(this.stream.readBytes(n))),
+            this.stream.seek(t));
     }
     log(t) {
         if (!ue) return;
@@ -2061,7 +2437,14 @@ class Gr {
         n.recordHeader = n.recordHeader.toString(2).padStart(8, "0");
         const { messageName: r } = t.messageDefinition ?? t.message;
         (this.log({ type: i, messageName: r }),
-            Zr(t) && console.log(this.state.indices.record, i, this.stream.position, r, n));
+            Zr(t) &&
+                console.log(
+                    this.state.indices.record,
+                    i,
+                    this.stream.position,
+                    r,
+                    n
+                ));
     }
 }
 async function Hr(e, t, i, n, r = 50) {
@@ -2129,7 +2512,8 @@ function Yr(e) {
     if (n.dataType !== ".FIT") throw new Error("Invalid file type");
     if (
         n.headerSize === 14 &&
-        ((n.headerCRC = e.readUInt16()), n.headerCRC !== 0 && n.headerCRC !== ke(e.slice(t, t + 12)))
+        ((n.headerCRC = e.readUInt16()),
+        n.headerCRC !== 0 && n.headerCRC !== ke(e.slice(t, t + 12)))
     )
         throw new Error("Invalid header CRC");
     return n;
@@ -2144,21 +2528,31 @@ function Kr(e) {
         o = Yr(t);
         const { headerSize: l, dataSize: a } = o;
         ((o.index = ++e.indices.file),
-            (i.files[e.indices.file] = { start: n, end: t.position, records: {} }),
+            (i.files[e.indices.file] = {
+                start: n,
+                end: t.position,
+                records: {},
+            }),
             e.fileHeaders.push(o),
             a && l + a <= r && ((s = !0), (r = l + a)),
             Wr(t, n, o));
     } catch (l) {
         if (!o) {
             if (n === 0) throw l;
-            ((e.recovering = !0), (e.hadErrors = !0), (e.timeMargins = 2), (e.recoveryPosition = n));
+            ((e.recovering = !0),
+                (e.hadErrors = !0),
+                (e.timeMargins = 2),
+                (e.recoveryPosition = n));
         }
         (L || console.error("Error fileHeader/checkFile", l), e.issues.push(l));
     }
     return { withCRC: s, maxPos: n + r };
 }
 const qr = 50;
-async function Jr(e, { stopRef: t, handleRecord: i, handleError: n, handleProgress: r }) {
+async function Jr(
+    e,
+    { stopRef: t, handleRecord: i, handleError: n, handleProgress: r }
+) {
     const { stream: s } = e,
         { withCRC: o, maxPos: l } = Kr(e);
     function a() {
@@ -2177,7 +2571,10 @@ function St(e, t) {
     const { streamIndex: i, stream: n, indices: r, recordStart: s } = e;
     ((t.recordIndex = ++r.record),
         (t.fileIndex = r.file),
-        (i.files[r.file].records[e.indices.record] = { start: s, end: n.position }));
+        (i.files[r.file].records[e.indices.record] = {
+            start: s,
+            end: n.position,
+        }));
 }
 const Qr = 10 * 365 * k,
     es = Math.floor(Date.now() / 1e3 - Ue) + 5 * 365 * k;
@@ -2191,12 +2588,19 @@ function De(e, t) {
 function is(e, { message: t, messageDefinition: i }) {
     const { timestamp: n, message_index: r } = t,
         { rawFieldValue: s, fieldValue: o } = n || {},
-        { messages: l, previousTimestamps: a, timestampOffsets: u, fileType: f = "activity", recovering: c } = e,
+        {
+            messages: l,
+            previousTimestamps: a,
+            timestampOffsets: u,
+            fileType: f = "activity",
+            recovering: c,
+        } = e,
         { messageName: d, globalMessageNumber: g } = i;
     if (
         (d === "file_id" &&
             ((e.fileType = t.type.fieldValue),
-            e.fileType === "activity" && (e.time_created = t.time_created.rawFieldValue)),
+            e.fileType === "activity" &&
+                (e.time_created = t.time_created.rawFieldValue)),
         f === "activity")
     ) {
         switch (d) {
@@ -2204,14 +2608,18 @@ function is(e, { message: t, messageDefinition: i }) {
             case "session":
                 if (!n) throw new Error(`Missing timestamp for ${d}`);
                 if (e.time_created && Math.abs(s - e.time_created) > 10 * k)
-                    throw new Error(`Invalid ${d} timestamp: ${o == null ? void 0 : o.toLocaleString()}`);
+                    throw new Error(
+                        `Invalid ${d} timestamp: ${o == null ? void 0 : o.toLocaleString()}`
+                    );
                 break;
             case "event":
             case "record":
                 if (c && !n) throw new Error(`Missing timestamp for ${d}`);
                 if (n) {
                     if (!De(s, a[d]))
-                        throw new Error(`Invalid ${d} timestamp: ${o == null ? void 0 : o.toLocaleString()}`);
+                        throw new Error(
+                            `Invalid ${d} timestamp: ${o == null ? void 0 : o.toLocaleString()}`
+                        );
                     ((a[d] = s), (a.any = s));
                 }
                 t.unixTimestamp = a[d] + Ue;
@@ -2223,14 +2631,27 @@ function is(e, { message: t, messageDefinition: i }) {
             } = n;
             if (m === "relative_date_time") {
                 const p = u[g];
-                if (s - p > 0.1 * k) throw new Error(`Invalid relative ${d} timestamp: ${s}`);
-            } else if (!De(s)) throw new Error(`Invalid ${d} timestamp: ${o.toLocaleString()}`);
+                if (s - p > 0.1 * k)
+                    throw new Error(`Invalid relative ${d} timestamp: ${s}`);
+            } else if (!De(s))
+                throw new Error(
+                    `Invalid ${d} timestamp: ${o.toLocaleString()}`
+                );
         }
-        if ((r == null ? void 0 : r.rawFieldValue) > ts(l, g)) throw new Error("Invalid message index");
+        if ((r == null ? void 0 : r.rawFieldValue) > ts(l, g))
+            throw new Error("Invalid message index");
     }
 }
-const ns = ["file_id", "file_creator", "activity"],
-    rs = ["record", "event", "session"];
+const ns = [
+        "file_id",
+        "file_creator",
+        "activity",
+    ],
+    rs = [
+        "record",
+        "event",
+        "session",
+    ];
 function Et(e, { localMessageType: t, timestamp: i, recordHeader: n }) {
     const {
             messages: r,
@@ -2250,7 +2671,8 @@ function Et(e, { localMessageType: t, timestamp: i, recordHeader: n }) {
     const y = r[g];
     if (y.length > 0 && ns.includes(m)) {
         const N = new Error(`Unexpected message type ${m}`);
-        if (s || g === 0) throw new Error(`Cannot add multiple messages of type ${m}`);
+        if (s || g === 0)
+            throw new Error(`Cannot add multiple messages of type ${m}`);
         ((N.record = o + 1), (N.position = c), l.push(N));
     }
     const x = i || Xr(e, m),
@@ -2274,7 +2696,10 @@ function ss(e, t) {
         n = (t & jn) >> 5,
         r = t & Pn;
     let s = i.any & (Zn + r);
-    return (s < i.any && (s += 32), Et(e, { localMessageType: n, timestamp: s, recordHeader: t }));
+    return (
+        s < i.any && (s += 32),
+        Et(e, { localMessageType: n, timestamp: s, recordHeader: t })
+    );
 }
 function as(e, t) {
     const i = t & gt;
@@ -2309,7 +2734,10 @@ function ls(e) {
     const { stream: t } = e;
     e.recordStart = t.position;
     const i = t.readByte() ?? 255;
-    return ((e.recoverPosition = t.position), i & zn ? ss(e, i) : i & Gn ? os(e, i) : as(e, i));
+    return (
+        (e.recoverPosition = t.position),
+        i & zn ? ss(e, i) : i & Gn ? os(e, i) : as(e, i)
+    );
 }
 function us(e) {
     const { messages: t } = e,
@@ -2322,7 +2750,8 @@ function us(e) {
     const n = {};
     ((e.mergedRecords = []),
         i.forEach((r) => {
-            (Object.assign(n, r), r.timestamp && e.mergedRecords.push({ ...n }));
+            (Object.assign(n, r),
+                r.timestamp && e.mergedRecords.push({ ...n }));
         }));
 }
 async function hs(e, t, i) {
@@ -2390,7 +2819,11 @@ async function hs(e, t, i) {
             n++,
             s.seek(Vt),
             r.recovering ||
-                ((F.record = K.record), (F.position = s.position), g.push(F), (r.recovering = !0), (r.hadErrors = !0)));
+                ((F.record = K.record),
+                (F.position = s.position),
+                g.push(F),
+                (r.recovering = !0),
+                (r.hadErrors = !0)));
     }
     function N() {
         const F = ls(r);
@@ -2408,10 +2841,12 @@ async function hs(e, t, i) {
         if ((console.error("Error parsing file", F), s.position === 0)) {
             const K = s.readString(9);
             if (/^\w+\s*=$/.test(K))
-                F.message = "This looks like a NASA FITS image file, see https://fits.gsfc.nasa.gov/";
+                F.message =
+                    "This looks like a NASA FITS image file, see https://fits.gsfc.nasa.gov/";
             else {
                 for (s.seek(0); s.readByte() === 0 && s.position < s.length; );
-                s.position === s.length && (F.message = "This file is empty (has only NULL-bytes)");
+                s.position === s.length &&
+                    (F.message = "This file is empty (has only NULL-bytes)");
             }
             s.seek(0);
         }
@@ -2432,7 +2867,9 @@ async function hs(e, t, i) {
             errors: a,
             devErrors: g,
             messages: u,
-            definitions: c.map((F) => f[F]).filter((F) => u[F.globalMessageNumber].length > 0),
+            definitions: c
+                .map((F) => f[F])
+                .filter((F) => u[F.globalMessageNumber].length > 0),
             developerFields: j,
             developerDataFields: d,
             fileHeaders: m,

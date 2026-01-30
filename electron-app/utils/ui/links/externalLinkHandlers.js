@@ -1,36 +1,44 @@
 /**
- * @fileoverview Utilities for external links rendered inside the Electron renderer.
+ * @file Utilities for external links rendered inside the Electron renderer.
  *
- * Why:
- * - We use `data-external-link` attributes in UI markup to indicate links that should open in the
- *   user's default browser.
- * - Centralizing the handler avoids duplicated logic across modals and reduces the risk of missing
- *   preventDefault() (which would otherwise trigger in-app navigation).
+ *   Why:
+ *
+ *   - We use `data-external-link` attributes in UI markup to indicate links that
+ *       should open in the user's default browser.
+ *   - Centralizing the handler avoids duplicated logic across modals and reduces
+ *       the risk of missing preventDefault() (which would otherwise trigger
+ *       in-app navigation).
  */
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 /**
- * Wires click/keyboard activation for links marked with `data-external-link` within a root.
+ * Wires click/keyboard activation for links marked with `data-external-link`
+ * within a root.
  *
- * This is designed to be called for modal roots (not the entire document) to keep event scope
- * predictable and avoid interfering with OAuth flows or internal links.
+ * This is designed to be called for modal roots (not the entire document) to
+ * keep event scope predictable and avoid interfering with OAuth flows or
+ * internal links.
  *
  * @param {Object} params
  * @param {ParentNode} params.root
  * @param {(url: string, error: Error) => void} [params.onOpenExternalError]
- * @returns {() => void} cleanup
+ *
+ * @returns {() => void} Cleanup
  */
 export function attachExternalLinkHandlers({ root, onOpenExternalError }) {
     /** @type {EventTarget | null} */
     const target =
-        root && typeof (/** @type {any} */ (root).addEventListener) === "function" ? /** @type {any} */ (root) : null;
+        root &&
+        typeof (/** @type {any} */ (root).addEventListener) === "function"
+            ? /** @type {any} */ (root)
+            : null;
 
     if (!target) {
         return () => {};
     }
 
-    /** @type {Array<() => void>} */
+    /** @type {(() => void)[]} */
     let cleanupFns = [
         // Delegate click handling to the root to avoid per-link loops.
         addEventListenerWithCleanup(target, "click", (e) => {
@@ -94,14 +102,21 @@ export function attachExternalLinkHandlers({ root, onOpenExternalError }) {
 function openExternal(url, onOpenExternalError) {
     const api =
         /** @type {any} */ (globalThis).electronAPI ??
-        /** @type {any} */ (globalThis.window ? /** @type {any} */ (globalThis).window.electronAPI : null);
+        /** @type {any} */ (
+            globalThis.window
+                ? /** @type {any} */ (globalThis).window.electronAPI
+                : null
+        );
 
     if (typeof api?.openExternal === "function") {
         // Renderer-facing API returns a promise.
         Promise.resolve(api.openExternal(url)).catch((error) => {
             if (typeof onOpenExternalError === "function") {
                 try {
-                    const err = error instanceof Error ? error : new Error(String(error));
+                    const err =
+                        error instanceof Error
+                            ? error
+                            : new Error(String(error));
                     onOpenExternalError(url, err);
                 } catch {
                     /* ignore */
@@ -120,9 +135,11 @@ function openExternal(url, onOpenExternalError) {
 }
 
 /**
- * Determine whether an event target represents an anchor marked for external navigation.
+ * Determine whether an event target represents an anchor marked for external
+ * navigation.
  *
  * @param {EventTarget | null} target
+ *
  * @returns {HTMLAnchorElement | null}
  */
 function resolveExternalLinkAnchor(target) {
@@ -142,12 +159,14 @@ function resolveExternalLinkAnchor(target) {
  * Validate an external URL coming from DOM markup.
  *
  * Security:
- * - allow only http/https
- * - reject embedded credentials
- * - reject whitespace/control characters
- * - reject non-string/empty inputs
+ *
+ * - Allow only http/https
+ * - Reject embedded credentials
+ * - Reject whitespace/control characters
+ * - Reject non-string/empty inputs
  *
  * @param {unknown} url
+ *
  * @returns {string | null}
  */
 function validateExternalHttpUrl(url) {

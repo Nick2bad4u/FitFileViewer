@@ -4,18 +4,21 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 /**
  * @typedef {Object} NotificationTypeConfig
+ *
  * @property {string} icon
  * @property {number} duration
  * @property {string} ariaLabel
  */
 /**
  * @typedef {Object} NotificationAction
+ *
  * @property {string} text
- * @property {()=>void} [onClick]
+ * @property {() => void} [onClick]
  * @property {string} [className]
  */
 /**
  * @typedef {Object} NotificationOptions
+ *
  * @property {string} [icon]
  * @property {boolean} [persistent]
  * @property {Function} [onClick]
@@ -23,12 +26,13 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
  */
 /**
  * @typedef {Object} QueuedNotification
+ *
  * @property {string} message
  * @property {keyof typeof NOTIFICATION_TYPES} type
- * @property {number|null} duration
+ * @property {number | null} duration
  * @property {string} icon
  * @property {string} ariaLabel
- * @property {Function|undefined} onClick
+ * @property {Function | undefined} onClick
  * @property {NotificationAction[]} actions
  * @property {number} timestamp
  * @property {(() => void) | undefined} resolveShown
@@ -45,7 +49,13 @@ const notificationQueue = [];
 // Notification type configurations with icons and default durations
 /**
  * Notification type map
- * @type {{info:NotificationTypeConfig,success:NotificationTypeConfig,error:NotificationTypeConfig,warning:NotificationTypeConfig}}
+ *
+ * @type {{
+ *     info: NotificationTypeConfig;
+ *     success: NotificationTypeConfig;
+ *     error: NotificationTypeConfig;
+ *     warning: NotificationTypeConfig;
+ * }}
  */
 const NOTIFICATION_TYPES = {
     error: { ariaLabel: "Error", duration: 6000, icon: "❌" },
@@ -55,13 +65,15 @@ const NOTIFICATION_TYPES = {
 };
 
 /**
- * Test-only helper to reset internal notification state between tests.
- * Not intended for production use.
+ * Test-only helper to reset internal notification state between tests. Not
+ * intended for production use.
  */
 export function __testResetNotifications() {
     notificationQueue.length = 0;
     isShowingNotification = false;
-    const el = /** @type {NotificationElement|null} */ (document.querySelector("#notification"));
+    const el = /** @type {NotificationElement | null} */ (
+        document.querySelector("#notification")
+    );
     if (el) {
         // Clear any pending timers and hide immediately
         if (el.hideTimeout) {
@@ -90,24 +102,34 @@ export function clearAllNotifications() {
 
 /**
  * Enhanced notification display with animations, icons, and queue management
+ *
  * @param {string} message - The message to display in the notification
- * @param {string} [type='info'] - The type of notification ('info', 'error', 'success', 'warning')
- * @param {number} [duration] - Duration in milliseconds (uses type default if not specified)
+ * @param {string} [type='info'] - The type of notification ('info', 'error',
+ *   'success', 'warning'). Default is `'info'`
+ * @param {number} [duration] - Duration in milliseconds (uses type default if
+ *   not specified)
  * @param {Object} [options] - Additional options
  * @param {string} [options.icon] - Custom icon to override default
  * @param {boolean} [options.persistent] - If true, notification won't auto-hide
  * @param {Function} [options.onClick] - Callback when notification is clicked
  * @param {NotificationAction[]} [options.actions] - Action buttons
+ *
  * @returns {Promise<void>} Promise that resolves when notification is shown
  */
 /**
  * @param {string} message
- * @param {keyof typeof NOTIFICATION_TYPES} [type="info"]
+ * @param {keyof typeof NOTIFICATION_TYPES} [type="info"] Default is `"info"`
  * @param {number} [duration]
  * @param {NotificationOptions} [options]
+ *
  * @returns {Promise<void>}
  */
-export async function showNotification(message, type = "info", duration = null, options = {}) {
+export async function showNotification(
+    message,
+    type = "info",
+    duration = null,
+    options = {}
+) {
     // Validate inputs
     if (!message || typeof message !== "string") {
         console.warn("showNotification: Invalid message provided");
@@ -115,13 +137,19 @@ export async function showNotification(message, type = "info", duration = null, 
     }
 
     if (!NOTIFICATION_TYPES[type]) {
-        console.warn(`showNotification: Unknown notification type '${type}', falling back to 'info'`);
+        console.warn(
+            `showNotification: Unknown notification type '${type}', falling back to 'info'`
+        );
         type = "info";
     }
 
     /** @type {NotificationTypeConfig} */
     const config = NOTIFICATION_TYPES[type];
-    const finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration;
+    const finalDuration = options.persistent
+        ? null
+        : typeof duration === "number"
+          ? duration
+          : config.duration;
 
     // Promise that resolves when THIS notification becomes visible
     /** @type {(value?: void) => void} */
@@ -158,6 +186,7 @@ export async function showNotification(message, type = "info", duration = null, 
 
 /**
  * Builds the notification content with icon, message, and actions
+ *
  * @param {HTMLElement} element - Notification DOM element
  * @param {Object} notification - Notification configuration
  */
@@ -171,13 +200,17 @@ async function buildNotificationContent(element, notification) {
 
     // Set accessibility attributes
     element.setAttribute("role", "alert");
-    element.setAttribute("aria-label", `${notification.ariaLabel}: ${notification.message}`);
+    element.setAttribute(
+        "aria-label",
+        `${notification.ariaLabel}: ${notification.message}`
+    );
     element.setAttribute("aria-live", "polite");
 
     // Create main content container
     const contentContainer = document.createElement("div");
     contentContainer.className = "notification-content";
-    contentContainer.style.cssText = "display: flex; align-items: center; gap: 12px; flex: 1;";
+    contentContainer.style.cssText =
+        "display: flex; align-items: center; gap: 12px; flex: 1;";
 
     // Add icon if provided
     if (notification.icon) {
@@ -201,7 +234,8 @@ async function buildNotificationContent(element, notification) {
     if (notification.actions.length > 0) {
         const actionsContainer = document.createElement("div");
         actionsContainer.className = "notification-actions";
-        actionsContainer.style.cssText = "display: flex; gap: 8px; margin-left: 12px;";
+        actionsContainer.style.cssText =
+            "display: flex; gap: 8px; margin-left: 12px;";
 
         for (const action of notification.actions) {
             const button = document.createElement("button");
@@ -225,8 +259,14 @@ async function buildNotificationContent(element, notification) {
     if (notification.onClick) {
         element.style.cursor = "pointer";
         addEventListenerWithCleanup(element, "click", (e) => {
-            const tgt = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
-            if (tgt && !tgt.closest(".notification-actions") && notification.onClick) {
+            const tgt = /** @type {HTMLElement | null} */ (
+                e.target instanceof HTMLElement ? e.target : null
+            );
+            if (
+                tgt &&
+                !tgt.closest(".notification-actions") &&
+                notification.onClick
+            ) {
                 notification.onClick();
                 hideNotification(element);
             }
@@ -249,8 +289,16 @@ async function buildNotificationContent(element, notification) {
 			opacity: 0.7;
 			transition: opacity 0.2s ease;
 		`;
-        addEventListenerWithCleanup(closeButton, "mouseover", () => (closeButton.style.opacity = "1"));
-        addEventListenerWithCleanup(closeButton, "mouseout", () => (closeButton.style.opacity = "0.7"));
+        addEventListenerWithCleanup(
+            closeButton,
+            "mouseover",
+            () => (closeButton.style.opacity = "1")
+        );
+        addEventListenerWithCleanup(
+            closeButton,
+            "mouseout",
+            () => (closeButton.style.opacity = "0.7")
+        );
         addEventListenerWithCleanup(closeButton, "click", (e) => {
             e.stopPropagation();
             hideNotification(element);
@@ -261,15 +309,19 @@ async function buildNotificationContent(element, notification) {
 
 /**
  * Displays a single notification with animations
+ *
  * @param {Object} notification - Notification object to display
+ *
  * @returns {Promise<void>} Promise that resolves when notification is hidden
  */
 /**
  * @param {QueuedNotification} notification
  */
 async function displayNotification(notification) {
-    /** @type {NotificationElement|null} */
-    const notificationElement = /** @type {any} */ (document.querySelector("#notification"));
+    /** @type {NotificationElement | null} */
+    const notificationElement = /** @type {any} */ (
+        document.querySelector("#notification")
+    );
     if (!notificationElement) {
         // Resolve shown even if the element is missing so callers don't hang
         if (typeof notification.resolveShown === "function") {
@@ -279,7 +331,9 @@ async function displayNotification(notification) {
                 notification.resolveShown = undefined;
             }
         }
-        console.warn("Notification element not found. Unable to display notification.");
+        console.warn(
+            "Notification element not found. Unable to display notification."
+        );
         return;
     }
 
@@ -324,7 +378,9 @@ async function displayNotification(notification) {
 
     // Return a promise that resolves after the display duration + transition time (used to serialize the queue)
     // Match hideNotification's 300ms transition to ensure proper sequencing in tests
-    const totalTime = notification.duration ? notification.duration + 300 : 1000;
+    const totalTime = notification.duration
+        ? notification.duration + 300
+        : 1000;
     return new Promise((resolve) => {
         setTimeout(() => resolve(), totalTime);
     });
@@ -332,6 +388,7 @@ async function displayNotification(notification) {
 
 /**
  * Hides the notification with animation
+ *
  * @param {HTMLElement} element - Notification DOM element
  */
 /**
@@ -373,7 +430,7 @@ async function processNotificationQueue() {
     }
 
     isShowingNotification = true;
-    /** @type {QueuedNotification|undefined} */
+    /** @type {QueuedNotification | undefined} */
     const notification = notificationQueue.shift();
 
     try {
@@ -392,11 +449,15 @@ async function processNotificationQueue() {
             }
         }
         // Log in two-argument form to preserve error object context for tests and debugging
-        const errObj = error instanceof Error ? error : new Error(String(error));
+        const errObj =
+            error instanceof Error ? error : new Error(String(error));
         console.error("Error displaying notification:", errObj);
         // Also log a single-string form for tests that assert substring matching on a single argument
         try {
-            const msg = errObj && typeof errObj.message === "string" ? errObj.message : String(errObj);
+            const msg =
+                errObj && typeof errObj.message === "string"
+                    ? errObj.message
+                    : String(errObj);
             console.error(`Error displaying notification: ${msg}`);
         } catch {
             /* No-op */
@@ -419,59 +480,79 @@ async function processNotificationQueue() {
 export const notify = {
     /**
      * Shows an error notification
+     *
      * @param {string} message - Message to display
      * @param {number} [duration] - Duration in milliseconds
      * @param {Object} [options] - Additional options
      */
-    error: (message, duration, options) => showNotification(message, "error", duration, options),
+    error: (message, duration, options) =>
+        showNotification(message, "error", duration, options),
 
     /**
      * Shows an info notification
+     *
      * @param {string} message - Message to display
      * @param {number} [duration] - Duration in milliseconds
      * @param {Object} [options] - Additional options
      */
-    info: (message, duration, options) => showNotification(message, "info", duration, options),
+    info: (message, duration, options) =>
+        showNotification(message, "info", duration, options),
 
     /**
      * Shows a persistent notification that requires user interaction to dismiss
+     *
      * @param {string} message - Message to display
-     * @param {string} [type='info'] - Notification type
+     * @param {string} [type='info'] - Notification type. Default is `'info'`
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
-            ...options,
-            persistent: true,
-        }),
+        showNotification(
+            message,
+            /** @type {keyof typeof NOTIFICATION_TYPES} */ (type),
+            undefined,
+            {
+                ...options,
+                persistent: true,
+            }
+        ),
 
     /**
      * Shows a success notification
+     *
      * @param {string} message - Message to display
      * @param {number} [duration] - Duration in milliseconds
      * @param {Object} [options] - Additional options
      */
-    success: (message, duration, options) => showNotification(message, "success", duration, options),
+    success: (message, duration, options) =>
+        showNotification(message, "success", duration, options),
 
     /**
      * Shows a warning notification
+     *
      * @param {string} message - Message to display
      * @param {number} [duration] - Duration in milliseconds
      * @param {Object} [options] - Additional options
      */
-    warning: (message, duration, options) => showNotification(message, "warning", duration, options),
+    warning: (message, duration, options) =>
+        showNotification(message, "warning", duration, options),
 
     /**
      * Shows a notification with action buttons
+     *
      * @param {string} message - Message to display
-     * @param {string} [type='info'] - Notification type
+     * @param {string} [type='info'] - Notification type. Default is `'info'`
      * @param {NotificationAction[]} actions - Action button definitions
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
-            ...options,
-            actions,
-            persistent: true,
-        }),
+        showNotification(
+            message,
+            /** @type {keyof typeof NOTIFICATION_TYPES} */ (type),
+            undefined,
+            {
+                ...options,
+                actions,
+                persistent: true,
+            }
+        ),
 };

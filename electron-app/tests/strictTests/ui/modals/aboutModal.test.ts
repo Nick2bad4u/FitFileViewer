@@ -13,8 +13,10 @@ vi.mock("../../../../utils/ui/modals/injectModalStyles.js", () => ({
 
 // Utilities to import after mocks
 const importModules = async () => {
-    const ensureAboutModalMod = await import("../../../../utils/ui/modals/ensureAboutModal.js");
-    const aboutModalMod = await import("../../../../utils/ui/modals/aboutModal.js");
+    const ensureAboutModalMod =
+        await import("../../../../utils/ui/modals/ensureAboutModal.js");
+    const aboutModalMod =
+        await import("../../../../utils/ui/modals/aboutModal.js");
     return { ...ensureAboutModalMod, ...aboutModalMod } as any;
 };
 
@@ -45,9 +47,16 @@ describe("About Modal - UI behaviors", () => {
             openExternal: vi.fn(),
             getAppVersion: vi.fn(async () => "1.2.3"),
             getElectronVersion: vi.fn(async () => "38.1.0"),
-            getNodeVersion: vi.fn(async () => process.versions?.node ?? "18.0.0"),
-            getChromeVersion: vi.fn(async () => process.versions?.chrome ?? "128.0.0"),
-            getPlatformInfo: vi.fn(async () => ({ platform: "testOS", arch: "x64" })),
+            getNodeVersion: vi.fn(
+                async () => process.versions?.node ?? "18.0.0"
+            ),
+            getChromeVersion: vi.fn(
+                async () => process.versions?.chrome ?? "128.0.0"
+            ),
+            getPlatformInfo: vi.fn(async () => ({
+                platform: "testOS",
+                arch: "x64",
+            })),
             getLicenseInfo: vi.fn(async () => "Unlicense"),
         };
 
@@ -67,7 +76,9 @@ describe("About Modal - UI behaviors", () => {
         expect(body?.innerHTML).toContain("Hello");
 
         // Close via the X button
-        const closeBtn = document.getElementById("about-modal-close") as HTMLButtonElement;
+        const closeBtn = document.getElementById(
+            "about-modal-close"
+        ) as HTMLButtonElement;
         expect(closeBtn).toBeTruthy();
         closeBtn.click();
 
@@ -81,18 +92,23 @@ describe("About Modal - UI behaviors", () => {
 
     it("toggles features and back to system info, reloading version info on return", async () => {
         const { ensureAboutModal, showAboutModal } = await importModules();
-        const { loadVersionInfo } = await import("../../../../utils/app/initialization/loadVersionInfo.js");
+        const { loadVersionInfo } =
+            await import("../../../../utils/app/initialization/loadVersionInfo.js");
 
         ensureAboutModal();
         showAboutModal();
 
-        const toggleBtn = document.getElementById("toggle-info-btn") as HTMLButtonElement;
+        const toggleBtn = document.getElementById(
+            "toggle-info-btn"
+        ) as HTMLButtonElement;
         expect(toggleBtn).toBeTruthy();
 
         // First click -> show features (content swapped after 150ms)
         toggleBtn.click();
         vi.advanceTimersByTime(200);
-        const section = document.getElementById("info-toggle-section") as HTMLElement;
+        const section = document.getElementById(
+            "info-toggle-section"
+        ) as HTMLElement;
         expect(section.innerHTML).toContain("features-title");
 
         // Second click -> back to system info and should trigger loadVersionInfo
@@ -113,7 +129,10 @@ describe("About Modal - UI behaviors", () => {
         expect(modal).toBeTruthy();
 
         // Dispatch Escape on document (listener registered in ensureAboutModal)
-        const evt = new KeyboardEvent("keydown", { key: "Escape", bubbles: true });
+        const evt = new KeyboardEvent("keydown", {
+            key: "Escape",
+            bubbles: true,
+        });
         document.dispatchEvent(evt);
 
         vi.advanceTimersByTime(350);
@@ -132,7 +151,9 @@ describe("About Modal - UI behaviors", () => {
         expect(link).toBeTruthy();
 
         link.click();
-        expect((window as any).electronAPI.openExternal).toHaveBeenCalledWith("https://electronjs.org/");
+        expect((window as any).electronAPI.openExternal).toHaveBeenCalledWith(
+            "https://electronjs.org/"
+        );
     });
 
     it("does not create duplicate modal elements when ensured multiple times", async () => {

@@ -57,20 +57,28 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(eventSpy.mock.calls.length).toBeGreaterThanOrEqual(1);
 
         // meta theme-color should exist and reflect dark
-        const meta1 = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+        const meta1 = document.querySelector(
+            'meta[name="theme-color"]'
+        ) as HTMLMetaElement | null;
         expect(meta1).not.toBeNull();
         expect(meta1!.content).toBe("#181a20");
 
         // Now test transition path (adds transient class and removes it after timeout)
         vi.useFakeTimers();
         theme.applyTheme("light", true);
-        expect(document.body.classList.contains("theme-transitioning")).toBe(true);
+        expect(document.body.classList.contains("theme-transitioning")).toBe(
+            true
+        );
         // fast-forward timer
         vi.advanceTimersByTime(300);
-        expect(document.body.classList.contains("theme-transitioning")).toBe(false);
+        expect(document.body.classList.contains("theme-transitioning")).toBe(
+            false
+        );
 
         // meta updated for light
-        const meta2 = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+        const meta2 = document.querySelector(
+            'meta[name="theme-color"]'
+        ) as HTMLMetaElement | null;
         expect(meta2).not.toBeNull();
         expect(meta2!.content).toBe("#f8fafc");
     });
@@ -94,7 +102,8 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
 
     test("getSystemTheme uses matchMedia and falls back when unavailable", () => {
         // with matchMedia
-        (globalThis as any).matchMedia = (query: string) => ({ matches: true }) as any;
+        (globalThis as any).matchMedia = (query: string) =>
+            ({ matches: true }) as any;
         expect(theme.getSystemTheme()).toBe("dark");
 
         // without matchMedia

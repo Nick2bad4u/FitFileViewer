@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for formatting
- * @description Re-exports all subcategories in the formatting category
+ * Re-exports all subcategories in the formatting category
+ *
+ * @file Main Category Barrel Export for formatting
  */
 import * as formattingConverters from "./converters/index.js";
 import * as formattingDisplay from "./display/index.js";

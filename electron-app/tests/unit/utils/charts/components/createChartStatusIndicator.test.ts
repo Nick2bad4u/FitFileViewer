@@ -4,7 +4,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Hoisted mock for getChartCounts with rich category data
-const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({ mockGetChartCounts: vi.fn() }));
+const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({
+    mockGetChartCounts: vi.fn(),
+}));
 
 vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
     getChartCounts: () => mockGetChartCounts(),
@@ -55,7 +57,9 @@ describe("createChartStatusIndicator", () => {
 
         const icon = indicator.querySelector(".status-icon");
         expect(icon?.textContent).toBe("✅");
-        expect(icon?.getAttribute("title")).toContain("All available charts are visible");
+        expect(icon?.getAttribute("title")).toContain(
+            "All available charts are visible"
+        );
 
         const statusText = indicator.querySelector(".status-text");
         expect(statusText?.innerHTML).toContain("4");
@@ -84,7 +88,10 @@ describe("createChartStatusIndicator", () => {
         const icon = indicator.querySelector(".status-icon");
         expect(icon?.textContent).toBe("⚠️");
 
-        const breakdown = /** @type {HTMLElement|null} */ document.querySelector(".status-breakdown");
+        const breakdown =
+            /** @type {HTMLElement | null} */ document.querySelector(
+                ".status-breakdown"
+            );
 
         // Hover in
         indicator.dispatchEvent(new Event("mouseenter"));
@@ -126,8 +133,13 @@ describe("createChartStatusIndicator", () => {
         const indicator = createChartStatusIndicator();
         indicator.dispatchEvent(new Event("click"));
 
-        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledTimes(1);
-        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledTimes(
+            1
+        );
+        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledWith({
+            behavior: "smooth",
+            block: "start",
+        });
         expect(fields.style.outline).toContain("2px solid");
         expect(fields.style.outlineOffset).toBe("4px");
 
@@ -155,7 +167,10 @@ describe("createChartStatusIndicator", () => {
         // Note: logic sets ✅ icon even when 0/0, but text is overwritten below
         expect(icon?.textContent).toBe("✅");
 
-        const statusText = /** @type {HTMLElement|null} */ indicator.querySelector(".status-text");
+        const statusText =
+            /** @type {HTMLElement | null} */ indicator.querySelector(
+                ".status-text"
+            );
         expect(statusText?.textContent).toBe("No charts available");
         expect(statusText?.style.color).toBe("var(--color-fg-muted)");
     });
@@ -194,12 +209,18 @@ describe("createChartStatusIndicator", () => {
     it("does not leak duplicate breakdown tooltips across re-renders", () => {
         const first = createChartStatusIndicator();
         document.body.append(first);
-        expect(document.querySelectorAll("#chart-status-indicator-breakdown").length).toBe(1);
+        expect(
+            document.querySelectorAll("#chart-status-indicator-breakdown")
+                .length
+        ).toBe(1);
 
         const second = createChartStatusIndicator();
         document.body.append(second);
 
         // A stable breakdown id is used to prevent orphaned tooltip buildup.
-        expect(document.querySelectorAll("#chart-status-indicator-breakdown").length).toBe(1);
+        expect(
+            document.querySelectorAll("#chart-status-indicator-breakdown")
+                .length
+        ).toBe(1);
     });
 });

@@ -6,7 +6,9 @@ describe("utils global attachment and API", () => {
     beforeEach(() => {
         vi.resetModules();
         // Ensure dev helpers are exposed
-        (process as any).env = Object.assign({}, process.env, { NODE_ENV: "development" });
+        (process as any).env = Object.assign({}, process.env, {
+            NODE_ENV: "development",
+        });
         // Provide minimal window shape
         (globalThis as any).window = Object.assign(globalThis.window || {}, {
             location: { protocol: "file:" },
@@ -25,8 +27,12 @@ describe("utils global attachment and API", () => {
         await new Promise((r) => setTimeout(r, 5));
 
         // Check a few utilities are attached on window
-        expect(typeof (globalThis as any).window.formatDistance).toBe("function");
-        expect(typeof (globalThis as any).window.renderSummary).toBe("function");
+        expect(typeof (globalThis as any).window.formatDistance).toBe(
+            "function"
+        );
+        expect(typeof (globalThis as any).window.renderSummary).toBe(
+            "function"
+        );
 
         // Dev helpers exposed
         const helpers = (globalThis as any).window.devUtilsHelpers;
@@ -35,7 +41,10 @@ describe("utils global attachment and API", () => {
 
         // Version propagated
         const { UTILS_CONSTANTS, FitFileViewerUtils } = mod as any;
-        expect(FitFileViewerUtils.version === "9.9.9" || UTILS_CONSTANTS.VERSION === "9.9.9").toBe(true);
+        expect(
+            FitFileViewerUtils.version === "9.9.9" ||
+                UTILS_CONSTANTS.VERSION === "9.9.9"
+        ).toBe(true);
 
         // FitFileViewerUtils core API
         const available = FitFileViewerUtils.getAvailableUtils();
@@ -46,7 +55,14 @@ describe("utils global attachment and API", () => {
         expect(typeof fn).toBe("function");
 
         // safeExecute should call the function; pick a function with simple behavior
-        const result = FitFileViewerUtils.safeExecute("formatArray", [1, 2, 3]);
+        const result = FitFileViewerUtils.safeExecute(
+            "formatArray",
+            [
+                1,
+                2,
+                3,
+            ]
+        );
         expect(result).toBeDefined();
 
         // validate utilities
@@ -54,7 +70,9 @@ describe("utils global attachment and API", () => {
         expect(Array.isArray(validation.valid)).toBe(true);
 
         // safeExecute should throw on unknown util
-        expect(() => FitFileViewerUtils.safeExecute("__missing__" as any)).toThrow();
+        expect(() =>
+            FitFileViewerUtils.safeExecute("__missing__" as any)
+        ).toThrow();
     });
 
     it("records collisions and cleanup removes globals", async () => {

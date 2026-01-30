@@ -23,7 +23,8 @@ vi.mock("../../../../utils/files/import/getOverlayFileName.js", () => ({
 }));
 
 // Import the module under test
-const mapDrawLapsModule = await import("../../../../utils/maps/layers/mapDrawLaps.js");
+const mapDrawLapsModule =
+    await import("../../../../utils/maps/layers/mapDrawLaps.js");
 const { drawOverlayForFitFile, mapDrawLaps } = mapDrawLapsModule;
 
 declare global {
@@ -166,7 +167,10 @@ describe("mapDrawLaps", () => {
 
         test("should handle fitData with no GPS data", () => {
             const mockFitData = {
-                recordMesgs: [{ timestamp: 1640995200 }, { timestamp: 1640995260 }],
+                recordMesgs: [
+                    { timestamp: 1640995200 },
+                    { timestamp: 1640995260 },
+                ],
                 lapMesgs: [],
             };
 
@@ -263,7 +267,9 @@ describe("mapDrawLaps", () => {
     describe("mapDrawLaps", () => {
         test("should not clear overlay state (overlays/tool layers persist)", () => {
             (globalThis as any)._overlayPolylines = { existing: "data" };
-            (globalThis as any)._mainPolylineOriginalBounds = { existing: "bounds" };
+            (globalThis as any)._mainPolylineOriginalBounds = {
+                existing: "bounds",
+            };
 
             mapDrawLaps(0, {
                 map: mockMap,
@@ -277,8 +283,12 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: vi.fn(),
             });
 
-            expect((globalThis as any)._overlayPolylines).toEqual({ existing: "data" });
-            expect((globalThis as any)._mainPolylineOriginalBounds).toBeUndefined();
+            expect((globalThis as any)._overlayPolylines).toEqual({
+                existing: "data",
+            });
+            expect(
+                (globalThis as any)._mainPolylineOriginalBounds
+            ).toBeUndefined();
         });
 
         test("should not remove non-activity layers from map", () => {
@@ -442,7 +452,8 @@ describe("mapDrawLaps", () => {
 
             // Verify polyline creation
             expect(mockLeaflet.polyline).toHaveBeenCalled();
-            const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+            const activityGroup =
+                mockLeaflet.featureGroup.mock.results[0]?.value;
             expect(activityGroup).toBeTruthy();
             expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
 
@@ -523,7 +534,8 @@ describe("mapDrawLaps", () => {
             // Verify single lap polyline creation
             expect(mockLeaflet.polyline).toHaveBeenCalled();
             {
-                const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+                const activityGroup =
+                    mockLeaflet.featureGroup.mock.results[0]?.value;
                 expect(activityGroup).toBeTruthy();
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }
@@ -604,7 +616,8 @@ describe("mapDrawLaps", () => {
             // Verify multiple polylines created (one for each lap)
             expect(mockLeaflet.polyline).toHaveBeenCalled();
             {
-                const activityGroup = mockLeaflet.featureGroup.mock.results[0]?.value;
+                const activityGroup =
+                    mockLeaflet.featureGroup.mock.results[0]?.value;
                 expect(activityGroup).toBeTruthy();
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }
@@ -741,7 +754,12 @@ describe("mapDrawLaps", () => {
         test("should handle missing position data in records", () => {
             (globalThis as any).globalData = {
                 recordMesgs: [
-                    { timestamp: 1000, altitude: 100, heartRate: 150, speed: 5.5 }, // Missing position
+                    {
+                        timestamp: 1000,
+                        altitude: 100,
+                        heartRate: 150,
+                        speed: 5.5,
+                    }, // Missing position
                     {
                         positionLat: 429496729,
                         positionLong: 858993459,

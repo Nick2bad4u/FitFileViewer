@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for app/initialization
- * @description Re-exports all modules in the app/initialization category
+ * Re-exports all modules in the app/initialization category
+ *
+ * @file Barrel Export for app/initialization
  */
 export * from "./getCurrentSettings.js";
 export * from "./loadSharedConfiguration.js";

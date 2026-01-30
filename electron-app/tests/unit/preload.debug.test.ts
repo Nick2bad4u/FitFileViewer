@@ -1,6 +1,7 @@
 /**
- * @file preload.debug.test.ts
- * @description Simple test to debug preload.js execution using Module cache injection
+ * Simple test to debug preload.js execution using Module cache injection
+ *
+ * @file Preload.debug.test.ts
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -78,19 +79,27 @@ describe("preload.js - Module Cache Injection Test", () => {
         delete require.cache[require.resolve("../../preload.js")];
 
         if (debugEnabled) {
-            process.stdout.write(`About to require preload.js with module cache injection\n`);
-            process.stdout.write(`Electron mock in cache: ${!!require.cache["electron"]}\n`);
-            process.stdout.write(`mockContextBridge exists: ${!!mockContextBridge}\n`);
+            process.stdout.write(
+                `About to require preload.js with module cache injection\n`
+            );
+            process.stdout.write(
+                `Electron mock in cache: ${!!require.cache["electron"]}\n`
+            );
+            process.stdout.write(
+                `mockContextBridge exists: ${!!mockContextBridge}\n`
+            );
         }
 
         // Check mock calls before require
-        const callsBefore = mockContextBridge.exposeInMainWorld.mock.calls.length;
+        const callsBefore =
+            mockContextBridge.exposeInMainWorld.mock.calls.length;
 
         // Require the preload.js file to execute it
         const preloadModule = require("../../preload.js");
 
         // Check mock calls after require
-        const callsAfter = mockContextBridge.exposeInMainWorld.mock.calls.length;
+        const callsAfter =
+            mockContextBridge.exposeInMainWorld.mock.calls.length;
 
         if (debugEnabled) {
             // Log results

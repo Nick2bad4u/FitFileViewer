@@ -1,5 +1,8 @@
 const { CONSTANTS } = require("../constants");
-const { registerIpcHandle, registerIpcListener } = require("../ipc/ipcRegistry");
+const {
+    registerIpcHandle,
+    registerIpcListener,
+} = require("../ipc/ipcRegistry");
 const { sendToRenderer } = require("../ipc/sendToRenderer");
 const { logWithContext } = require("../logging/logWithContext");
 const { browserWindowRef, dialogRef } = require("../runtime/electronAccess");
@@ -15,7 +18,11 @@ function setupMenuAndEventHandlers() {
     registerIpcListener("theme-changed", async (event, theme) => {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
-            safeCreateAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+            safeCreateAppMenu(
+                win,
+                theme || CONSTANTS.DEFAULT_THEME,
+                getAppState("loadedFitFilePath")
+            );
         }
     });
 
@@ -81,11 +88,14 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(win, {
-                    defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
-                    filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
-                    title: "Export As",
-                });
+                const { canceled, filePath } = await dialogRef().showSaveDialog(
+                    win,
+                    {
+                        defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
+                        filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
+                        title: "Export As",
+                    }
+                );
 
                 if (!canceled && filePath) {
                     sendToRenderer(win, "export-file", filePath);
@@ -104,18 +114,31 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(win, {
-                    defaultPath: loadedFilePath,
-                    filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
-                    title: "Save As",
-                });
+                const { canceled, filePath } = await dialogRef().showSaveDialog(
+                    win,
+                    {
+                        defaultPath: loadedFilePath,
+                        filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
+                        title: "Save As",
+                    }
+                );
 
                 if (!canceled && filePath) {
                     fs.copyFileSync(loadedFilePath, filePath);
-                    sendToRenderer(win, "show-notification", "File saved successfully.", "success");
+                    sendToRenderer(
+                        win,
+                        "show-notification",
+                        "File saved successfully.",
+                        "success"
+                    );
                 }
             } catch (error) {
-                sendToRenderer(win, "show-notification", `Save failed: ${error}`, "error");
+                sendToRenderer(
+                    win,
+                    "show-notification",
+                    `Save failed: ${error}`,
+                    "error"
+                );
                 logWithContext("error", "Failed to save file:", {
                     error: /** @type {Error} */ (error).message,
                 });
@@ -138,7 +161,10 @@ function setupMenuAndEventHandlers() {
         const filePath = fitFilePath || null;
         const resolvedTheme = theme || CONSTANTS.DEFAULT_THEME;
         const win = browserWindowRef().fromWebContents(event.sender);
-        logWithContext("info", "Manual menu injection requested", { fitFilePath: filePath, theme: resolvedTheme });
+        logWithContext("info", "Manual menu injection requested", {
+            fitFilePath: filePath,
+            theme: resolvedTheme,
+        });
         if (win) {
             safeCreateAppMenu(win, resolvedTheme, filePath);
         }

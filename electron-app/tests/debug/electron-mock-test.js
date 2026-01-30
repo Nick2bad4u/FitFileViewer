@@ -19,7 +19,10 @@ try {
 
     // Check if they have the expected methods
     if (contextBridge) {
-        console.log("contextBridge.exposeInMainWorld:", typeof contextBridge.exposeInMainWorld);
+        console.log(
+            "contextBridge.exposeInMainWorld:",
+            typeof contextBridge.exposeInMainWorld
+        );
     }
     if (ipcRenderer) {
         console.log("ipcRenderer.invoke:", typeof ipcRenderer.invoke);

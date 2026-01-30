@@ -1,10 +1,10 @@
 // @ts-nocheck
 /**
- * @vitest-environment jsdom
- * @file tabStateManager.comprehensive.test.js
- * @description Comprehensive test suite for tabStateManager.js with focus on exposing critical bugs
+ * Comprehensive test suite for tabStateManager.js with focus on exposing
+ * critical bugs
  *
  * CRITICAL BUG TESTING FOCUS:
+ *
  * - Memory leaks from missing unsubscribe mechanisms
  * - Race conditions in constructor and DOM manipulation
  * - State inconsistency between DOM and state manager
@@ -12,6 +12,10 @@
  * - Security issues with iframe manipulation
  * - Performance issues with DOM queries
  * - Integration issues with state management
+ *
+ * @file TabStateManager.comprehensive.test.js
+ *
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -33,7 +37,10 @@ vi.mock("../notifications/showNotification.js", () => ({
 }));
 
 // Import after mocking
-import { tabStateManager, TAB_CONFIG } from "../../../utils/ui/tabs/tabStateManager.js";
+import {
+    tabStateManager,
+    TAB_CONFIG,
+} from "../../../utils/ui/tabs/tabStateManager.js";
 
 describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
     /** @type {HTMLElement} */
@@ -63,7 +70,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         originalConsoleError = console.error;
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Reset most mocks but preserve subscribe calls from initialization
         mockGetState.mockClear();
@@ -163,10 +172,14 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             const totalCalls = mockSubscribe.mock.calls.length;
             if (totalCalls === 1) {
                 // Only our manual call happened, initialization didn't call subscribe
-                console.warn("WARNING: Subscribe was not called during module initialization");
+                console.warn(
+                    "WARNING: Subscribe was not called during module initialization"
+                );
             } else if (totalCalls >= 3) {
                 // Good, initialization happened + our manual call
-                console.log("SUCCESS: Subscribe was called during initialization");
+                console.log(
+                    "SUCCESS: Subscribe was called during initialization"
+                );
             }
         });
 
@@ -176,8 +189,14 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             mockSubscribe("globalData", vi.fn());
 
             expect(mockSubscribe).toHaveBeenCalled();
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
-            expect(mockSubscribe).toHaveBeenCalledWith("globalData", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "globalData",
+                expect.any(Function)
+            );
 
             // Check that no unsubscribe functions are stored
             // This is a potential memory leak - TabStateManager doesn't store unsubscribe functions
@@ -188,7 +207,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             tabStateManager.cleanup();
 
             // Verify cleanup doesn't actually unsubscribe (bug confirmed)
-            expect(consoleLogSpy).toHaveBeenCalledWith("[TabStateManager] cleanup invoked");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[TabStateManager] cleanup invoked"
+            );
         });
 
         it("should validate tab configuration integrity", () => {
@@ -276,7 +297,10 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                     const globalData = mockGetState("globalData");
                     // BUG: This check might fail for edge cases
                     if (!globalData || !globalData.recordMesgs) {
-                        mockShowNotification("Please load a FIT file first", "info");
+                        mockShowNotification(
+                            "Please load a FIT file first",
+                            "info"
+                        );
                         return;
                     }
                 }
@@ -285,12 +309,21 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             summaryBtn.addEventListener("click", clickHandler);
             summaryBtn.click();
 
-            expect(mockShowNotification).toHaveBeenCalledWith("Please load a FIT file first", "info");
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Please load a FIT file first",
+                "info"
+            );
         });
 
         it("BUG TEST: should expose tab name extraction edge cases", () => {
             // Test with invalid button IDs
-            const invalidButtons = ["invalid-id", "tab-", "tab-nonexistent", "", null];
+            const invalidButtons = [
+                "invalid-id",
+                "tab-",
+                "tab-nonexistent",
+                "",
+                null,
+            ];
 
             invalidButtons.forEach((buttonId) => {
                 if (buttonId === null) return;
@@ -370,13 +403,17 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
                 // BUG: Direct style manipulation could conflict with CSS
                 Object.values(TAB_CONFIG).forEach((config) => {
-                    const contentElement = document.getElementById(config.contentId);
+                    const contentElement = document.getElementById(
+                        config.contentId
+                    );
                     if (contentElement) {
                         contentElement.style.display = "none";
                     }
                 });
 
-                const activeContent = document.getElementById(tabConfig.contentId);
+                const activeContent = document.getElementById(
+                    tabConfig.contentId
+                );
                 if (activeContent) {
                     activeContent.style.display = "block";
                 }
@@ -390,7 +427,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
         it("BUG TEST: should expose error handling gaps in tab handlers", async () => {
             // Mock global functions to throw errors
-            global.window.renderChartJS = vi.fn().mockRejectedValue(new Error("Chart render failed"));
+            global.window.renderChartJS = vi
+                .fn()
+                .mockRejectedValue(new Error("Chart render failed"));
 
             const handleChartTabWithError = async (globalData) => {
                 if (!globalData || !globalData.recordMesgs) {
@@ -410,8 +449,13 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
             const mockData = { recordMesgs: [{ type: "record" }] };
 
-            await expect(handleChartTabWithError(mockData)).rejects.toThrow("Chart render failed");
-            expect(mockShowNotification).toHaveBeenCalledWith("Error loading Charts tab", "error");
+            await expect(handleChartTabWithError(mockData)).rejects.toThrow(
+                "Chart render failed"
+            );
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Error loading Charts tab",
+                "error"
+            );
         });
     });
 
@@ -495,7 +539,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
                 // Hide all content areas
                 Object.values(TAB_CONFIG).forEach((config) => {
-                    const contentElement = document.getElementById(config.contentId);
+                    const contentElement = document.getElementById(
+                        config.contentId
+                    );
                     if (contentElement) {
                         contentElement.style.display = "none";
                     }
@@ -503,17 +549,23 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 });
 
                 // Show active content area
-                const activeContent = document.getElementById(tabConfig.contentId);
+                const activeContent = document.getElementById(
+                    tabConfig.contentId
+                );
                 if (activeContent) {
                     activeContent.style.display = "block";
                 } else {
-                    console.warn(`Content element not found: ${tabConfig.contentId}`);
+                    console.warn(
+                        `Content element not found: ${tabConfig.contentId}`
+                    );
                 }
             };
 
             updateContentVisibility("summary");
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("Content element not found: content-summary");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "Content element not found: content-summary"
+            );
         });
     });
 
@@ -529,7 +581,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should expose unsafe DOM manipulation in handleDataTab", () => {
-            const bgContainer = document.getElementById("background-data-container");
+            const bgContainer = document.getElementById(
+                "background-data-container"
+            );
             const visibleContainer = document.getElementById("content-data");
 
             // Add spy to track DOM manipulation
@@ -537,7 +591,12 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             const appendChildSpy = vi.spyOn(visibleContainer, "appendChild");
 
             // Simulate handleDataTab logic
-            if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
+            if (
+                bgContainer &&
+                bgContainer.childNodes &&
+                bgContainer.childNodes.length > 0 &&
+                visibleContainer
+            ) {
                 visibleContainer.innerHTML = "";
 
                 // BUG: Moving nodes while iterating could cause issues
@@ -553,7 +612,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should expose race condition in content moving", () => {
-            const bgContainer = document.getElementById("background-data-container");
+            const bgContainer = document.getElementById(
+                "background-data-container"
+            );
             const visibleContainer = document.getElementById("content-data");
 
             // Simulate concurrent modification
@@ -591,7 +652,10 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
             // Test handleAltFitTab logic
             const handleAltFitTab = () => {
-                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("ffv/index.html")) {
+                if (
+                    iframe instanceof HTMLIFrameElement &&
+                    !iframe.src.includes("ffv/index.html")
+                ) {
                     // BUG: Direct src manipulation without validation
                     iframe.src = "ffv/index.html";
                 }
@@ -622,7 +686,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 callCount++;
                 if (callCount < 5) {
                     // Prevent infinite recursion in test
-                    mockSetState("ui.activeTab", "map", { source: "recursive" });
+                    mockSetState("ui.activeTab", "map", {
+                        source: "recursive",
+                    });
                 }
             });
 
@@ -654,7 +720,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                     name: activeTab,
                     config, // This will be undefined for invalid tab
                     element: config ? document.getElementById(config.id) : null,
-                    contentElement: config ? document.getElementById(config.contentId) : null,
+                    contentElement: config
+                        ? document.getElementById(config.contentId)
+                        : null,
                 };
             };
 
@@ -673,7 +741,8 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             const handlerCounts = {};
             Object.values(TAB_CONFIG).forEach((config) => {
                 if (config.handler) {
-                    handlerCounts[config.handler] = (handlerCounts[config.handler] || 0) + 1;
+                    handlerCounts[config.handler] =
+                        (handlerCounts[config.handler] || 0) + 1;
                 }
             });
 
@@ -691,7 +760,14 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
         it("BUG TEST: should validate tab availability logic", () => {
             // Test updateTabAvailability with edge cases
-            const testData = [null, undefined, {}, { recordMesgs: null }, { recordMesgs: [] }, { recordMesgs: [{}] }];
+            const testData = [
+                null,
+                undefined,
+                {},
+                { recordMesgs: null },
+                { recordMesgs: [] },
+                { recordMesgs: [{}] },
+            ];
 
             testData.forEach((globalData) => {
                 // FIXED: Proper logic to check for valid data
@@ -704,7 +780,11 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
                 // BUG EXPOSED: The original logic would consider empty arrays as valid data
                 // This exposes the bug where empty array is truthy but should be false for tab availability
-                if (globalData && globalData.recordMesgs !== null && Array.isArray(globalData.recordMesgs)) {
+                if (
+                    globalData &&
+                    globalData.recordMesgs !== null &&
+                    Array.isArray(globalData.recordMesgs)
+                ) {
                     expect(hasData).toBe(globalData.recordMesgs.length > 0);
                 }
             });

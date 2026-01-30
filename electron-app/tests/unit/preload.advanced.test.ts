@@ -32,7 +32,10 @@ describe("preload.js - Advanced Test Coverage", () => {
         };
 
         // Load preload script source
-        preloadCode = readFileSync(join(__dirname, "../../preload.js"), "utf-8");
+        preloadCode = readFileSync(
+            join(__dirname, "../../preload.js"),
+            "utf-8"
+        );
     });
 
     afterEach(() => {
@@ -94,7 +97,10 @@ describe("preload.js - Advanced Test Coverage", () => {
         test("should expose electronAPI to main world", () => {
             createPreloadEnvironment();
 
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.any(Object)
+            );
         });
 
         test("should validate API before exposing", () => {
@@ -156,7 +162,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.openFile();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("dialog:openFile");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "dialog:openFile"
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -170,16 +178,23 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.readFile("test.fit");
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("file:read", "test.fit");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "file:read",
+                "test.fit"
+            );
             expect(result).toBe("mock-result");
         });
 
         test("should handle file operation errors gracefully", async () => {
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("File not found"));
+            mockIpcRenderer.invoke.mockRejectedValue(
+                new Error("File not found")
+            );
 
             const { exposedAPI } = createPreloadEnvironment();
 
-            await expect(exposedAPI.readFile("nonexistent.fit")).rejects.toThrow("File not found");
+            await expect(
+                exposedAPI.readFile("nonexistent.fit")
+            ).rejects.toThrow("File not found");
         });
     });
 
@@ -189,7 +204,10 @@ describe("preload.js - Advanced Test Coverage", () => {
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.parseFitFile(arrayBuffer);
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("fit:parse", arrayBuffer);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "fit:parse",
+                arrayBuffer
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -198,17 +216,24 @@ describe("preload.js - Advanced Test Coverage", () => {
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.decodeFitFile(arrayBuffer);
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("fit:decode", arrayBuffer);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "fit:decode",
+                arrayBuffer
+            );
             expect(result).toBe("mock-result");
         });
 
         test("should handle FIT parsing errors", async () => {
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("Invalid FIT file"));
+            mockIpcRenderer.invoke.mockRejectedValue(
+                new Error("Invalid FIT file")
+            );
 
             const { exposedAPI } = createPreloadEnvironment();
             const arrayBuffer = new ArrayBuffer(8);
 
-            await expect(exposedAPI.parseFitFile(arrayBuffer)).rejects.toThrow("Invalid FIT file");
+            await expect(exposedAPI.parseFitFile(arrayBuffer)).rejects.toThrow(
+                "Invalid FIT file"
+            );
         });
     });
 
@@ -217,7 +242,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.recentFiles();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("recentFiles:get");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "recentFiles:get"
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -225,7 +252,10 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.addRecentFile("new.fit");
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("recentFiles:add", "new.fit");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "recentFiles:add",
+                "new.fit"
+            );
             expect(result).toBe("mock-result");
         });
     });
@@ -243,7 +273,10 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             exposedAPI.sendThemeChanged("light");
 
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith("theme-changed", "light");
+            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+                "theme-changed",
+                "light"
+            );
         });
     });
 
@@ -260,7 +293,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.getAppVersion();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("getAppVersion");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "getAppVersion"
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -268,7 +303,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.getPlatformInfo();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("getPlatformInfo");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "getPlatformInfo"
+            );
             expect(result).toBe("mock-result");
         });
     });
@@ -278,16 +315,23 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.openExternal("https://example.com");
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("shell:openExternal", "https://example.com");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "shell:openExternal",
+                "https://example.com"
+            );
             expect(result).toBe("mock-result");
         });
 
         test("should handle external browser errors", async () => {
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("Cannot open URL"));
+            mockIpcRenderer.invoke.mockRejectedValue(
+                new Error("Cannot open URL")
+            );
 
             const { exposedAPI } = createPreloadEnvironment();
 
-            await expect(exposedAPI.openExternal("invalid-url")).rejects.toThrow("Cannot open URL");
+            await expect(
+                exposedAPI.openExternal("invalid-url")
+            ).rejects.toThrow("Cannot open URL");
         });
     });
 
@@ -296,7 +340,10 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.startGyazoServer(3000);
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:server:start", 3000);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "gyazo:server:start",
+                3000
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -304,7 +351,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.stopGyazoServer();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:server:stop");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "gyazo:server:stop"
+            );
             expect(result).toBe("mock-result");
         });
     });
@@ -316,7 +365,10 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onMenuOpenFile(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "menu-open-file",
+                expect.any(Function)
+            );
         });
 
         test("should provide onMenuOpenOverlay method", () => {
@@ -325,7 +377,10 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onMenuOpenOverlay(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "menu-open-overlay",
+                expect.any(Function)
+            );
         });
 
         test("should provide onOpenRecentFile method", () => {
@@ -334,7 +389,10 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onOpenRecentFile(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("open-recent-file", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "open-recent-file",
+                expect.any(Function)
+            );
         });
 
         test("should provide onSetTheme method", () => {
@@ -343,7 +401,10 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onSetTheme(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("set-theme", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "set-theme",
+                expect.any(Function)
+            );
         });
 
         test("should validate callback functions in event handlers", () => {
@@ -352,7 +413,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             // Try to register with invalid callback
             exposedAPI.onMenuOpenFile("not-a-function");
 
-            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] onMenuOpenFile: callback must be a function");
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                "[preload.js] onMenuOpenFile: callback must be a function"
+            );
 
             exposedAPI.onMenuOpenOverlay("not-a-function");
 
@@ -369,14 +432,19 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onUpdateEvent("update-available", callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("update-available", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "update-available",
+                expect.any(Function)
+            );
         });
 
         test("should provide checkForUpdates method", () => {
             const { exposedAPI } = createPreloadEnvironment();
             exposedAPI.checkForUpdates();
 
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith("menu-check-for-updates");
+            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+                "menu-check-for-updates"
+            );
         });
 
         test("should provide installUpdate method", () => {
@@ -390,7 +458,10 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             exposedAPI.setFullScreen(true);
 
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith("set-fullscreen", true);
+            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+                "set-fullscreen",
+                true
+            );
         });
 
         test("should validate parameters in onUpdateEvent", () => {
@@ -400,7 +471,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             // Try with invalid event name
             exposedAPI.onUpdateEvent(123, callback);
 
-            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] onUpdateEvent: eventName must be a string");
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                "[preload.js] onUpdateEvent: eventName must be a string"
+            );
         });
     });
 
@@ -411,21 +484,31 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             exposedAPI.onIpc("custom-channel", callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith("custom-channel", expect.any(Function));
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "custom-channel",
+                expect.any(Function)
+            );
         });
 
         test("should provide send method", () => {
             const { exposedAPI } = createPreloadEnvironment();
             exposedAPI.send("custom-channel", "arg1", "arg2");
 
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith("custom-channel", "arg1", "arg2");
+            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+                "custom-channel",
+                "arg1",
+                "arg2"
+            );
         });
 
         test("should provide invoke method", async () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.invoke("custom-channel", "arg1");
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("custom-channel", "arg1");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "custom-channel",
+                "arg1"
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -435,7 +518,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             // Try with invalid channel (should trigger validateString error)
             exposedAPI.send(123, "data");
 
-            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] send: channel must be a string");
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                "[preload.js] send: channel must be a string"
+            );
         });
 
         test("should handle invoke errors properly", async () => {
@@ -443,7 +528,9 @@ describe("preload.js - Advanced Test Coverage", () => {
 
             const { exposedAPI } = createPreloadEnvironment();
 
-            await expect(exposedAPI.invoke("failing-channel")).rejects.toThrow("IPC Error");
+            await expect(exposedAPI.invoke("failing-channel")).rejects.toThrow(
+                "IPC Error"
+            );
         });
 
         test("should reject invoke with invalid channel", async () => {
@@ -456,9 +543,16 @@ describe("preload.js - Advanced Test Coverage", () => {
     describe("Development Tools", () => {
         test("should provide injectMenu method", async () => {
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.injectMenu("dark", "/path/to/file.fit");
+            const result = await exposedAPI.injectMenu(
+                "dark",
+                "/path/to/file.fit"
+            );
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("devtools-inject-menu", "dark", "/path/to/file.fit");
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "devtools-inject-menu",
+                "dark",
+                "/path/to/file.fit"
+            );
             expect(result).toBe("mock-result");
         });
 
@@ -466,12 +560,18 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.injectMenu();
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("devtools-inject-menu", null, null);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "devtools-inject-menu",
+                null,
+                null
+            );
             expect(result).toBe("mock-result");
         });
 
         test("should handle injectMenu errors gracefully", async () => {
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("Inject failed"));
+            mockIpcRenderer.invoke.mockRejectedValue(
+                new Error("Inject failed")
+            );
 
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.injectMenu("dark");
@@ -513,11 +613,19 @@ describe("preload.js - Advanced Test Coverage", () => {
 
     describe("Development Mode Features", () => {
         test("should expose development tools in development mode", () => {
-            const { devTools } = createPreloadEnvironment({ NODE_ENV: "development" });
+            const { devTools } = createPreloadEnvironment({
+                NODE_ENV: "development",
+            });
 
             // Should expose both electronAPI and devTools
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("devTools", expect.any(Object));
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.any(Object)
+            );
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "devTools",
+                expect.any(Object)
+            );
 
             expect(devTools).toBeDefined();
             expect(devTools.getPreloadInfo).toBeDefined();
@@ -529,8 +637,13 @@ describe("preload.js - Advanced Test Coverage", () => {
             createPreloadEnvironment({ NODE_ENV: "production" });
 
             // Should only expose electronAPI
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(1);
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(
+                1
+            );
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.any(Object)
+            );
         });
     });
 
@@ -553,15 +666,25 @@ describe("preload.js - Advanced Test Coverage", () => {
             });
 
             const mockProcess = { env, once: vi.fn() };
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
             const mockConsole = { log: consoleSpy, error: consoleSpy };
 
             expect(() => {
-                const func = new Function("require", "process", "console", preloadCode);
+                const func = new Function(
+                    "require",
+                    "process",
+                    "console",
+                    preloadCode
+                );
                 func(mockRequire, mockProcess, mockConsole);
             }).not.toThrow();
 
-            expect(consoleSpy).toHaveBeenCalledWith("[preload.js] Failed to expose electronAPI:", expect.any(Error));
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[preload.js] Failed to expose electronAPI:",
+                expect.any(Error)
+            );
 
             consoleSpy.mockRestore();
         });
@@ -571,7 +694,9 @@ describe("preload.js - Advanced Test Coverage", () => {
                 throw new Error("Send failed");
             });
 
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
             const { exposedAPI } = createPreloadEnvironment();
 
             expect(() => {
@@ -586,13 +711,18 @@ describe("preload.js - Advanced Test Coverage", () => {
         test("should handle process exit cleanup", () => {
             const { mockProcess } = createPreloadEnvironment();
 
-            expect(mockProcess.once).toHaveBeenCalledWith("beforeExit", expect.any(Function));
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
+            );
         });
 
         test("should log successful initialization", () => {
             createPreloadEnvironment({ NODE_ENV: "development" });
 
-            expect(consoleSpy.log).toHaveBeenCalledWith("[preload.js] Preload script initialized successfully");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[preload.js] Preload script initialized successfully"
+            );
         });
     });
 });

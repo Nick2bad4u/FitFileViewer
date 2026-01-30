@@ -1,9 +1,16 @@
 /**
- * @fileoverview Tests for State Manager Core Module
- * @description Comprehensive tests covering all state management functionality
+ * Comprehensive tests covering all state management functionality
+ *
+ * @file Tests for State Manager Core Module
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { getState, setState, subscribe, updateState, resetState } from "../../../utils/state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+    resetState,
+} from "../../../utils/state/core/stateManager.js";
 
 describe("State Manager Core", () => {
     beforeEach(() => {
@@ -35,7 +42,11 @@ describe("State Manager Core", () => {
 
         it("should handle complex objects", () => {
             const complexObj = {
-                array: [1, 2, 3],
+                array: [
+                    1,
+                    2,
+                    3,
+                ],
                 nested: { prop: "value" },
                 func: () => {},
             };
@@ -43,7 +54,11 @@ describe("State Manager Core", () => {
             setState("complex", complexObj);
             const result = getState("complex");
 
-            expect(result.array).toEqual([1, 2, 3]);
+            expect(result.array).toEqual([
+                1,
+                2,
+                3,
+            ]);
             expect(result.nested.prop).toBe("value");
             expect(typeof result.func).toBe("function");
         });
@@ -72,7 +87,11 @@ describe("State Manager Core", () => {
 
             setState("test.source", "value", { source: "test-suite" });
 
-            expect(mockSubscriber).toHaveBeenCalledWith("value", undefined, "test.source");
+            expect(mockSubscriber).toHaveBeenCalledWith(
+                "value",
+                undefined,
+                "test.source"
+            );
         });
     });
 
@@ -83,7 +102,11 @@ describe("State Manager Core", () => {
 
             setState("test.subscription", "new value");
 
-            expect(mockSubscriber).toHaveBeenCalledWith("new value", undefined, "test.subscription");
+            expect(mockSubscriber).toHaveBeenCalledWith(
+                "new value",
+                undefined,
+                "test.subscription"
+            );
         });
 
         it("should provide old value in subscription callbacks", () => {
@@ -93,7 +116,11 @@ describe("State Manager Core", () => {
 
             setState("test.old-value", "updated");
 
-            expect(mockSubscriber).toHaveBeenCalledWith("updated", "initial", "test.old-value");
+            expect(mockSubscriber).toHaveBeenCalledWith(
+                "updated",
+                "initial",
+                "test.old-value"
+            );
         });
 
         it("should support multiple subscribers for the same path", () => {
@@ -105,8 +132,16 @@ describe("State Manager Core", () => {
 
             setState("test.multiple", "value");
 
-            expect(subscriber1).toHaveBeenCalledWith("value", undefined, "test.multiple");
-            expect(subscriber2).toHaveBeenCalledWith("value", undefined, "test.multiple");
+            expect(subscriber1).toHaveBeenCalledWith(
+                "value",
+                undefined,
+                "test.multiple"
+            );
+            expect(subscriber2).toHaveBeenCalledWith(
+                "value",
+                undefined,
+                "test.multiple"
+            );
         });
 
         it("should unsubscribe successfully", () => {
@@ -141,7 +176,8 @@ describe("State Manager Core", () => {
         });
 
         it("should handle very deep nesting levels", () => {
-            const deepPath = "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z";
+            const deepPath =
+                "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z";
 
             setState(deepPath, "deep value");
             expect(getState(deepPath)).toBe("deep value");
@@ -211,7 +247,9 @@ describe("State Manager Core", () => {
         });
 
         it("should handle setState with invalid final key", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             setState("test.", "value");
             setState("test..invalid", "value");
@@ -248,7 +286,11 @@ describe("State Manager Core", () => {
 
             setState("parent.child", "value");
 
-            expect(childCallback).toHaveBeenCalledWith("value", undefined, "parent.child");
+            expect(childCallback).toHaveBeenCalledWith(
+                "value",
+                undefined,
+                "parent.child"
+            );
             expect(parentCallback).toHaveBeenCalled();
         });
 
@@ -257,7 +299,9 @@ describe("State Manager Core", () => {
                 throw new Error("Test error");
             });
             const normalCallback = vi.fn();
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             subscribe("error.test", errorCallback);
             subscribe("error.test", normalCallback);
@@ -275,7 +319,9 @@ describe("State Manager Core", () => {
             const errorCallback = vi.fn(() => {
                 throw new Error("Parent error");
             });
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             subscribe("parent", errorCallback);
             setState("parent.child", "value");
@@ -338,12 +384,16 @@ describe("State Manager Core", () => {
         });
 
         it("should log state changes", () => {
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             setState("log.test", "value", { source: "test-source" });
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining("[StateManager] log.test updated by test-source:"),
+                expect.stringContaining(
+                    "[StateManager] log.test updated by test-source:"
+                ),
                 expect.any(Object)
             );
 

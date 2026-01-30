@@ -1,18 +1,19 @@
 /**
- * Creates a persistent global chart status indicator that's always visible
- * at the top of the chart tab, regardless of settings panel visibility
+ * Creates a persistent global chart status indicator that's always visible at
+ * the top of the chart tab, regardless of settings panel visibility
  *
- * Provides visual feedback about chart availability and visibility status,
- * with quick access to settings for enabling hidden charts.
- *
- * @returns {HTMLElement|null} The created indicator element or null on failure
+ * Provides visual feedback about chart availability and visibility status, with
+ * quick access to settings for enabling hidden charts.
  *
  * @example
- * // Create or update the global chart status indicator
- * const indicator = createGlobalChartStatusIndicator();
- * if (indicator) {
- *     console.log("Chart status indicator created successfully");
- * }
+ *     // Create or update the global chart status indicator
+ *     const indicator = createGlobalChartStatusIndicator();
+ *     if (indicator) {
+ *         console.log("Chart status indicator created successfully");
+ *     }
+ *
+ * @returns {HTMLElement | null} The created indicator element or null on
+ *   failure
  */
 export function createGlobalChartStatusIndicator(): HTMLElement | null;
 /**

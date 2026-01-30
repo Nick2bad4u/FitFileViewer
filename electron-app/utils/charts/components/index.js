@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for charts/components
- * @description Re-exports all modules in the charts/components category
+ * Re-exports all modules in the charts/components category
+ *
+ * @file Barrel Export for charts/components
  */
 // Note: chartStatusIndicator exports ChartCounts again via getChartCounts; avoid re-export to prevent duplicate symbol.
 export * from "./createChartCanvas.js";

@@ -1,19 +1,24 @@
 import { renderTable } from "../core/renderTable.js";
 
 /**
- * Renders all data tables from the provided dataFrames object into the specified container.
+ * Renders all data tables from the provided dataFrames object into the
+ * specified container.
  *
  * - Uses Arquero (window.aq) to convert arrays to tables.
  * - Renders each table using renderTable().
  * - 'recordMesgs' is always rendered first, then other tables alphabetically.
  *
- * @param {Object} dataFrames - An object where each key is a table name and the value is an array of row objects.
- * @param {HTMLElement} [containerOverride] - Optional container element to render tables into. Defaults to element with id 'content-data'.
+ * @param {Object} dataFrames - An object where each key is a table name and the
+ *   value is an array of row objects.
+ * @param {HTMLElement} [containerOverride] - Optional container element to
+ *   render tables into. Defaults to element with id 'content-data'.
  *
- * Note: The `renderTable` function receives an additional `index` parameter, which represents the order of the table being rendered.
+ *   Note: The `renderTable` function receives an additional `index` parameter,
+ *   which represents the order of the table being rendered.
  */
 export function createTables(dataFrames, containerOverride) {
-    const container = containerOverride || document.querySelector("#content-data");
+    const container =
+        containerOverride || document.querySelector("#content-data");
     if (!container) {
         console.error(
             '[ERROR] Container element with id "content-data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
@@ -26,21 +31,27 @@ export function createTables(dataFrames, containerOverride) {
     }
     /**
      * @param {unknown} row
+     *
      * @returns {row is Record<string, unknown>}
      */
-    const isRowObject = (row) => Boolean(row) && typeof row === "object" && !Array.isArray(row);
+    const isRowObject = (row) =>
+        Boolean(row) && typeof row === "object" && !Array.isArray(row);
 
     const keys = Object.keys(dataFrames).filter((key) => {
-        const rows = /** @type {unknown} */ (/** @type {any} */ (dataFrames)[key]);
+        const rows = /** @type {unknown} */ (
+            /** @type {any} */ (dataFrames)[key]
+        );
         // Some datasets can contain occasional null entries; render what we can instead of dropping the entire table.
         return Array.isArray(rows) && rows.some((row) => isRowObject(row));
     });
 
     /**
      * Treat message tables with numeric-only keys (e.g. "140", "141") as
-     * low-priority / misc device data. Keep them at the bottom of the Raw Data tab.
+     * low-priority / misc device data. Keep them at the bottom of the Raw Data
+     * tab.
      *
-     * This mirrors the Summary tab behavior where numbered-only columns are placed last.
+     * This mirrors the Summary tab behavior where numbered-only columns are
+     * placed last.
      *
      * @param {string} key
      */
@@ -67,14 +78,18 @@ export function createTables(dataFrames, containerOverride) {
 
     for (const [index, key] of keys.entries()) {
         try {
-            const rows = /** @type {unknown[]} */ (/** @type {any} */ (dataFrames)[key]);
+            const rows = /** @type {unknown[]} */ (
+                /** @type {any} */ (dataFrames)[key]
+            );
             if (!Array.isArray(rows) || rows.length === 0) {
                 continue;
             }
 
             const validRows = rows.filter((row) => isRowObject(row));
             if (validRows.length === 0) {
-                console.warn(`[WARNING] Skipping table for key: ${key} as it has no compatible rows.`);
+                console.warn(
+                    `[WARNING] Skipping table for key: ${key} as it has no compatible rows.`
+                );
                 continue;
             }
 

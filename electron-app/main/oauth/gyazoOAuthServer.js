@@ -7,10 +7,11 @@ const { validateWindow } = require("../window/windowValidation");
  * Apply common security headers for all responses.
  *
  * The callback server is bound to localhost, but we still:
- * - disable MIME sniffing
- * - prevent caching (OAuth codes should not be stored)
- * - prevent framing
- * - restrict resource loading
+ *
+ * - Disable MIME sniffing
+ * - Prevent caching (OAuth codes should not be stored)
+ * - Prevent framing
+ * - Restrict resource loading
  *
  * @param {any} res
  */
@@ -33,10 +34,12 @@ function applyStandardHeaders(res) {
 }
 
 /**
- * Minimal HTML escaping for user-controlled strings rendered into OAuth callback pages.
- * This server is bound to localhost, but we still escape to prevent reflected injection.
+ * Minimal HTML escaping for user-controlled strings rendered into OAuth
+ * callback pages. This server is bound to localhost, but we still escape to
+ * prevent reflected injection.
  *
  * @param {string} value
+ *
  * @returns {string}
  */
 function escapeHtml(value) {
@@ -49,11 +52,15 @@ function escapeHtml(value) {
 }
 
 /**
- * Starts the local OAuth callback server used for Gyazo integrations. The implementation mirrors the
- * previous main.js logic, including informative logging and defensive error handling for tests.
+ * Starts the local OAuth callback server used for Gyazo integrations. The
+ * implementation mirrors the previous main.js logic, including informative
+ * logging and defensive error handling for tests.
  *
- * @param {number} [port=3000] - Desired port for the callback server.
- * @returns {Promise<{ success: boolean, message: string, port?: number }>} Server status payload.
+ * @param {number} [port=3000] - Desired port for the callback server. Default
+ *   is `3000`
+ *
+ * @returns {Promise<{ success: boolean; message: string; port?: number }>}
+ *   Server status payload.
  */
 async function startGyazoOAuthServer(port = 3000) {
     const existingServer = getAppState("gyazoServer");
@@ -85,7 +92,10 @@ async function startGyazoOAuthServer(port = 3000) {
 
                 // OAuth callback is a simple browser redirect; there is no need for CORS.
                 // Restrict methods to reduce attack surface.
-                const method = typeof req.method === "string" ? req.method.toUpperCase() : "";
+                const method =
+                    typeof req.method === "string"
+                        ? req.method.toUpperCase()
+                        : "";
                 if (method !== "GET" && method !== "HEAD") {
                     res.writeHead(405, { "Content-Type": "text/plain" });
                     res.end("Method Not Allowed");
@@ -160,8 +170,13 @@ async function startGyazoOAuthServer(port = 3000) {
                         `);
                         /* c8 ignore stop */
                         const mainWindow = getAppState("mainWindow");
-                        if (validateWindow(mainWindow, "gyazo-oauth-callback")) {
-                            mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
+                        if (
+                            validateWindow(mainWindow, "gyazo-oauth-callback")
+                        ) {
+                            mainWindow.webContents.send(
+                                "gyazo-oauth-callback",
+                                { code, state }
+                            );
                         }
                     } else {
                         res.writeHead(400, { "Content-Type": "text/html" });
@@ -196,13 +211,20 @@ async function startGyazoOAuthServer(port = 3000) {
 
             server.on("error", (err) => {
                 if (/** @type {any} */ (err).code === "EADDRINUSE") {
-                    logWithContext("warn", `Port ${port} is in use, trying port ${port + 1}`);
+                    logWithContext(
+                        "warn",
+                        `Port ${port} is in use, trying port ${port + 1}`
+                    );
                     if (port < 3010) {
                         startGyazoOAuthServer(port + 1)
                             .then(resolve)
                             .catch(reject);
                     } else {
-                        reject(new Error("Unable to find an available port for OAuth callback server"));
+                        reject(
+                            new Error(
+                                "Unable to find an available port for OAuth callback server"
+                            )
+                        );
                     }
                 } else {
                     reject(err);
@@ -212,7 +234,10 @@ async function startGyazoOAuthServer(port = 3000) {
             server.listen(port, "localhost", () => {
                 setAppState("gyazoServer", server);
                 setAppState("gyazoServerPort", port);
-                logWithContext("info", `Gyazo OAuth callback server started on http://localhost:${port}`);
+                logWithContext(
+                    "info",
+                    `Gyazo OAuth callback server started on http://localhost:${port}`
+                );
                 resolve({
                     message: `OAuth callback server started on port ${port}`,
                     port,
@@ -231,7 +256,8 @@ async function startGyazoOAuthServer(port = 3000) {
 /**
  * Stops the Gyazo OAuth callback server if it is currently running.
  *
- * @returns {Promise<{ success: boolean, message: string }>} Server shutdown payload.
+ * @returns {Promise<{ success: boolean; message: string }>} Server shutdown
+ *   payload.
  */
 async function stopGyazoOAuthServer() {
     return new Promise((resolve) => {
@@ -239,7 +265,10 @@ async function stopGyazoOAuthServer() {
         if (gyazoServer) {
             try {
                 gyazoServer.close(() => {
-                    logWithContext("info", "Gyazo OAuth callback server stopped");
+                    logWithContext(
+                        "info",
+                        "Gyazo OAuth callback server stopped"
+                    );
                     setAppState("gyazoServer", null);
                     setAppState("gyazoServerPort", null);
                     resolve({
@@ -248,9 +277,13 @@ async function stopGyazoOAuthServer() {
                     });
                 });
             } catch (error) {
-                logWithContext("warn", "Failed to close Gyazo OAuth callback server", {
-                    error: /** @type {Error} */ (error)?.message,
-                });
+                logWithContext(
+                    "warn",
+                    "Failed to close Gyazo OAuth callback server",
+                    {
+                        error: /** @type {Error} */ (error)?.message,
+                    }
+                );
                 setAppState("gyazoServer", null);
                 setAppState("gyazoServerPort", null);
                 resolve({

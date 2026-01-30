@@ -6,6 +6,7 @@ import { showNotification } from "../notifications/showNotification.js";
 
 /**
  * @typedef {object} PowerEstimationSettings
+ *
  * @property {boolean} enabled
  * @property {number} riderWeightKg
  * @property {number} bikeWeightKg
@@ -25,8 +26,8 @@ import { showNotification } from "../notifications/showNotification.js";
  * Open the Power Estimation settings modal.
  *
  * @param {{
- *  hasRealPower: boolean,
- *  onApply: (settings: PowerEstimationSettings) => void
+ *     hasRealPower: boolean;
+ *     onApply: (settings: PowerEstimationSettings) => void;
  * }} params
  */
 export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
@@ -75,23 +76,27 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
 
     const title = document.createElement("div");
     title.textContent = "⚡ Estimated Power (Experimental)";
-    title.style.cssText = "font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;";
+    title.style.cssText =
+        "font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;";
 
     const note = document.createElement("div");
-    note.style.cssText = "color: var(--color-fg-muted); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;";
+    note.style.cssText =
+        "color: var(--color-fg-muted); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;";
     note.textContent = hasRealPower
         ? "This file contains real power data. Estimated power will not be applied."
         : "This estimates power from speed + elevation/grade using a physics-based model (virtual power). Results are approximate.";
 
     const form = document.createElement("div");
-    form.style.cssText = "display: grid; grid-template-columns: 1fr 1fr; gap: 10px;";
+    form.style.cssText =
+        "display: grid; grid-template-columns: 1fr 1fr; gap: 10px;";
 
     const makeField = (labelText, inputEl) => {
         const wrap = document.createElement("label");
         wrap.style.cssText = "display:flex; flex-direction:column; gap:6px;";
         const label = document.createElement("span");
         label.textContent = labelText;
-        label.style.cssText = "font-size: 0.85rem; color: var(--color-fg-muted);";
+        label.style.cssText =
+            "font-size: 0.85rem; color: var(--color-fg-muted);";
         wrap.append(label, inputEl);
         return wrap;
     };
@@ -118,19 +123,48 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
     enabledInput.checked = current.enabled;
 
     const enabledWrap = document.createElement("label");
-    enabledWrap.style.cssText = "grid-column: 1 / -1; display:flex; align-items:center; gap:10px; margin-bottom: 4px;";
+    enabledWrap.style.cssText =
+        "grid-column: 1 / -1; display:flex; align-items:center; gap:10px; margin-bottom: 4px;";
     const enabledText = document.createElement("span");
     enabledText.textContent = "Enable estimated power for files without power";
     enabledWrap.append(enabledInput, enabledText);
 
-    const riderWeight = makeNumber(current.riderWeightKg, { min: 30, max: 200, step: 0.5 });
-    const bikeWeight = makeNumber(current.bikeWeightKg, { min: 1, max: 40, step: 0.5 });
-    const crr = makeNumber(current.crr, { min: 0.001, max: 0.03, step: 0.0005 });
+    const riderWeight = makeNumber(current.riderWeightKg, {
+        min: 30,
+        max: 200,
+        step: 0.5,
+    });
+    const bikeWeight = makeNumber(current.bikeWeightKg, {
+        min: 1,
+        max: 40,
+        step: 0.5,
+    });
+    const crr = makeNumber(current.crr, {
+        min: 0.001,
+        max: 0.03,
+        step: 0.0005,
+    });
     const cda = makeNumber(current.cda, { min: 0.15, max: 0.8, step: 0.01 });
-    const eta = makeNumber(current.drivetrainEfficiency, { min: 0.85, max: 1, step: 0.01 });
-    const wind = makeNumber(current.windSpeedMps, { min: -20, max: 20, step: 0.5 });
-    const gradeWindow = makeNumber(current.gradeWindowMeters, { min: 5, max: 200, step: 1 });
-    const maxPower = makeNumber(current.maxPowerW, { min: 500, max: 4000, step: 50 });
+    const eta = makeNumber(current.drivetrainEfficiency, {
+        min: 0.85,
+        max: 1,
+        step: 0.01,
+    });
+    const wind = makeNumber(current.windSpeedMps, {
+        min: -20,
+        max: 20,
+        step: 0.5,
+    });
+    const gradeWindow = makeNumber(current.gradeWindowMeters, {
+        min: 5,
+        max: 200,
+        step: 1,
+    });
+    const maxPower = makeNumber(current.maxPowerW, {
+        min: 500,
+        max: 4000,
+        step: 50,
+    });
 
     form.append(
         makeField("Rider weight (kg)", riderWeight),
@@ -144,7 +178,8 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
     );
 
     const actions = document.createElement("div");
-    actions.style.cssText = "display:flex; justify-content:flex-end; gap:10px; margin-top: 14px;";
+    actions.style.cssText =
+        "display:flex; justify-content:flex-end; gap:10px; margin-top: 14px;";
 
     const cancel = document.createElement("button");
     cancel.className = "themed-btn";
@@ -171,7 +206,8 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         /**
          * @param {string} label
          * @param {number} value
-         * @param {{ min?: number, max?: number, allowNegative?: boolean }} [opts]
+         * @param {{ min?: number; max?: number; allowNegative?: boolean }} [opts]
+         *
          * @returns {boolean}
          */
         function validateNumber(label, value, opts) {
@@ -180,29 +216,89 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
                 return false;
             }
             if (!opts?.allowNegative && value < 0) {
-                showNotification(`${label} must be a positive number.`, "error");
+                showNotification(
+                    `${label} must be a positive number.`,
+                    "error"
+                );
                 return false;
             }
             if (typeof opts?.min === "number" && value < opts.min) {
-                showNotification(`${label} must be at least ${opts.min}.`, "error");
+                showNotification(
+                    `${label} must be at least ${opts.min}.`,
+                    "error"
+                );
                 return false;
             }
             if (typeof opts?.max === "number" && value > opts.max) {
-                showNotification(`${label} must be at most ${opts.max}.`, "error");
+                showNotification(
+                    `${label} must be at most ${opts.max}.`,
+                    "error"
+                );
                 return false;
             }
             return true;
         }
 
-        if (!validateNumber("Rider weight", parsed.riderWeightKg, { min: 30, max: 200 })) return;
-        if (!validateNumber("Bike + gear weight", parsed.bikeWeightKg, { min: 1, max: 40 })) return;
+        if (
+            !validateNumber("Rider weight", parsed.riderWeightKg, {
+                min: 30,
+                max: 200,
+            })
+        )
+            return;
+        if (
+            !validateNumber("Bike + gear weight", parsed.bikeWeightKg, {
+                min: 1,
+                max: 40,
+            })
+        )
+            return;
         // Keep the label text containing "Rolling Resistance" to satisfy tests and user clarity.
-        if (!validateNumber("Rolling Resistance", parsed.crr, { min: 0.001, max: 0.03 })) return;
-        if (!validateNumber("Aerodynamic CdA", parsed.cda, { min: 0.15, max: 0.8 })) return;
-        if (!validateNumber("Drivetrain efficiency", parsed.drivetrainEfficiency, { min: 0.85, max: 1 })) return;
-        if (!validateNumber("Wind", parsed.windSpeedMps, { allowNegative: true, min: -20, max: 20 })) return;
-        if (!validateNumber("Grade smoothing window", parsed.gradeWindowMeters, { min: 5, max: 200 })) return;
-        if (!validateNumber("Max power clamp", parsed.maxPowerW, { min: 500, max: 4000 })) return;
+        if (
+            !validateNumber("Rolling Resistance", parsed.crr, {
+                min: 0.001,
+                max: 0.03,
+            })
+        )
+            return;
+        if (
+            !validateNumber("Aerodynamic CdA", parsed.cda, {
+                min: 0.15,
+                max: 0.8,
+            })
+        )
+            return;
+        if (
+            !validateNumber(
+                "Drivetrain efficiency",
+                parsed.drivetrainEfficiency,
+                { min: 0.85, max: 1 }
+            )
+        )
+            return;
+        if (
+            !validateNumber("Wind", parsed.windSpeedMps, {
+                allowNegative: true,
+                min: -20,
+                max: 20,
+            })
+        )
+            return;
+        if (
+            !validateNumber(
+                "Grade smoothing window",
+                parsed.gradeWindowMeters,
+                { min: 5, max: 200 }
+            )
+        )
+            return;
+        if (
+            !validateNumber("Max power clamp", parsed.maxPowerW, {
+                min: 500,
+                max: 4000,
+            })
+        )
+            return;
 
         setPowerEstimationSettings(parsed);
         try {

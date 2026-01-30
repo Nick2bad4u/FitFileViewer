@@ -1,11 +1,15 @@
 /**
- * @fileoverview Comprehensive test suite for renderChartJS.js utility functions
- * @description Tests core chart rendering utilities to improve coverage from 0% to high coverage.
+ * Tests core chart rendering utilities to improve coverage from 0% to high
+ * coverage.
  *
- * This test focuses on testing individual utility functions first, then building up to more complex operations.
+ * This test focuses on testing individual utility functions first, then
+ * building up to more complex operations.
  *
- * TARGET: renderChartJS.js has 1,499 lines with 0% coverage - highest impact opportunity
- * GOAL: Achieve high statement, function, and branch coverage for this critical file
+ * TARGET: renderChartJS.js has 1,499 lines with 0% coverage - highest impact
+ * opportunity GOAL: Achieve high statement, function, and branch coverage for
+ * this critical file
+ *
+ * @file Comprehensive test suite for renderChartJS.js utility functions
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
@@ -145,12 +149,15 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
             updatePreviousChartState(chartCount, visibleFields, timestamp);
 
             expect(previousChartState.chartCount).toBe(chartCount);
-            expect(previousChartState.fieldsRendered).toHaveLength(visibleFields);
+            expect(previousChartState.fieldsRendered).toHaveLength(
+                visibleFields
+            );
             expect(previousChartState.lastRenderTimestamp).toBe(timestamp);
         });
 
         test("should call updateState with correct parameters", async () => {
-            const { updateState } = await import("../../../utils/state/core/stateManager.js");
+            const { updateState } =
+                await import("../../../utils/state/core/stateManager.js");
 
             const chartCount = 10;
             const visibleFields = 7;
@@ -195,7 +202,11 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
             // First set some values
             previousChartState.chartCount = 10;
             // @ts-ignore - Working around TypeScript inference issue
-            previousChartState.fieldsRendered = ["field1", "field2", "field3"];
+            previousChartState.fieldsRendered = [
+                "field1",
+                "field2",
+                "field3",
+            ];
             previousChartState.lastRenderTimestamp = Date.now();
 
             // Reset the state
@@ -252,7 +263,11 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
         test("should return false when currently rendering", () => {
             // Mock state to have data but currently rendering
             globalMockState.data.set("globalData", {
-                recordMesgs: [1, 2, 3],
+                recordMesgs: [
+                    1,
+                    2,
+                    3,
+                ],
             });
             globalMockState.data.set("charts.isRendering", true);
 
@@ -288,7 +303,11 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
             globalMockState.data.set("charts.lastRenderTime", 1234567890);
             globalMockState.data.set("performance.renderTimes.chart", 150);
             globalMockState.data.set("globalData", {
-                recordMesgs: [1, 2, 3],
+                recordMesgs: [
+                    1,
+                    2,
+                    3,
+                ],
             });
 
             const status = getChartStatus();
@@ -367,7 +386,8 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
 
 describe("chartActions object - State Actions", () => {
     test("should correctly start rendering process", async () => {
-        const { setState } = await import("../../../utils/state/core/stateManager.js");
+        const { setState } =
+            await import("../../../utils/state/core/stateManager.js");
 
         chartActions.startRendering();
 
@@ -383,8 +403,10 @@ describe("chartActions object - State Actions", () => {
     });
 
     test("should correctly complete rendering process on success", async () => {
-        const { updateState, setState } = await import("../../../utils/state/core/stateManager.js");
-        const { AppActions } = await import("../../../utils/app/lifecycle/appActions.js");
+        const { updateState, setState } =
+            await import("../../../utils/state/core/stateManager.js");
+        const { AppActions } =
+            await import("../../../utils/app/lifecycle/appActions.js");
 
         chartActions.completeRendering(true, 5, 250);
 
@@ -411,13 +433,17 @@ describe("chartActions object - State Actions", () => {
         );
 
         if ((AppActions as any).notifyChartRenderComplete) {
-            expect((AppActions as any).notifyChartRenderComplete).toHaveBeenCalledWith(5);
+            expect(
+                (AppActions as any).notifyChartRenderComplete
+            ).toHaveBeenCalledWith(5);
         }
     });
 
     test("should correctly complete rendering process on failure", async () => {
-        const { updateState, setState } = await import("../../../utils/state/core/stateManager.js");
-        const { AppActions } = await import("../../../utils/app/lifecycle/appActions.js");
+        const { updateState, setState } =
+            await import("../../../utils/state/core/stateManager.js");
+        const { AppActions } =
+            await import("../../../utils/app/lifecycle/appActions.js");
 
         chartActions.completeRendering(false, 0, 100);
 
@@ -437,7 +463,9 @@ describe("chartActions object - State Actions", () => {
 
         // Should not update performance or notify on failure
         if ((AppActions as any).notifyChartRenderComplete) {
-            expect((AppActions as any).notifyChartRenderComplete).not.toHaveBeenCalled();
+            expect(
+                (AppActions as any).notifyChartRenderComplete
+            ).not.toHaveBeenCalled();
         }
     });
 });

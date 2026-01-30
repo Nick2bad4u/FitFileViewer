@@ -3,7 +3,17 @@
  * Electron's legacy renderer constraints (no additional dependencies).
  */
 
-const RESERVED_FILENAME_CHARACTERS = new Set([":", "?", '"', "*", "/", "\\", "<", ">", "|"]); // Sorted for lint rules
+const RESERVED_FILENAME_CHARACTERS = new Set([
+    ":",
+    "?",
+    '"',
+    "*",
+    "/",
+    "\\",
+    "<",
+    ">",
+    "|",
+]); // Sorted for lint rules
 const RESERVED_DEVICE_NAMES = new Set([
     "AUX",
     "CLOCK$",
@@ -37,15 +47,18 @@ const PATH_SPLIT_REGEX = /[\\/]+/u;
 
 /**
  * Builds a safe download name from an arbitrary path/label. If the source lacks
- * an extension, `defaultExtension` is appended after sanitisation. The result is
- * always safe to assign to the `download` attribute of an anchor element.
+ * an extension, `defaultExtension` is appended after sanitisation. The result
+ * is always safe to assign to the `download` attribute of an anchor element.
  *
- * @param {string} candidatePath - Raw file path or label suggested by the user/app.
- * @param {{ defaultExtension?: string, fallbackBase?: string }} [options]
+ * @param {string} candidatePath - Raw file path or label suggested by the
+ *   user/app.
+ * @param {{ defaultExtension?: string; fallbackBase?: string }} [options]
+ *
  * @returns {string}
  */
 export function buildDownloadFilename(candidatePath, options = {}) {
-    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } = options;
+    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } =
+        options;
     const pathSegment = typeof candidatePath === "string" ? candidatePath : "";
     const leaf = pathSegment.split(PATH_SPLIT_REGEX).pop() ?? "";
     const dotIndex = leaf.lastIndexOf(".");
@@ -53,7 +66,10 @@ export function buildDownloadFilename(candidatePath, options = {}) {
     const rawBase = dotIndex > 0 ? leaf.slice(0, dotIndex) : leaf;
     const rawExtension = dotIndex > 0 ? leaf.slice(dotIndex + 1) : "";
 
-    const sanitizedBase = sanitizeFilenameComponent(rawBase || leaf, fallbackBase);
+    const sanitizedBase = sanitizeFilenameComponent(
+        rawBase || leaf,
+        fallbackBase
+    );
     const extensionSource = defaultExtension || rawExtension;
     const sanitizedExtension = sanitizeFileExtension(extensionSource);
 
@@ -69,8 +85,11 @@ export function buildDownloadFilename(candidatePath, options = {}) {
  * lower-cased for consistency.
  *
  * @param {string} extension - Raw file extension (with or without leading dot).
- * @param {string} [fallback=""] - Optional fallback extension when sanitisation empties the value.
- * @returns {string} A safe extension without leading dots. Empty string when sanitisation fails.
+ * @param {string} [fallback=""] - Optional fallback extension when sanitisation
+ *   empties the value. Default is `""`
+ *
+ * @returns {string} A safe extension without leading dots. Empty string when
+ *   sanitisation fails.
  */
 export function sanitizeFileExtension(extension, fallback = "") {
     if (typeof extension !== "string" || extension.length === 0) {
@@ -97,23 +116,31 @@ export function sanitizeFileExtension(extension, fallback = "") {
 /**
  * Safely transforms an arbitrary string into a file-system friendly segment.
  * Reserved Windows characters, ASCII control codes (0x00-0x1F), trailing dots
- * and leading periods are stripped. Whitespace collapses to single underscores.
+ * and leading periods are stripped. Whitespace collapses to single
+ * underscores.
  *
  * @param {string} value - Original label that needs to become file-name safe.
- * @param {string} [fallback="file"] - Replacement when the input sanitises to nothing.
+ * @param {string} [fallback="file"] - Replacement when the input sanitises to
+ *   nothing. Default is `"file"`
+ *
  * @returns {string} Sanitised file name component without an extension.
  */
-export function sanitizeFilenameComponent(value, fallback = DEFAULT_FALLBACK_BASE) {
+export function sanitizeFilenameComponent(
+    value,
+    fallback = DEFAULT_FALLBACK_BASE
+) {
     return sanitiseFilenameInternal(value, fallback, 0);
 }
 
 /**
- * Internal helper that performs the heavy lifting for name sanitisation.
- * A recursion guard is included so malicious inputs cannot cause stack growth.
+ * Internal helper that performs the heavy lifting for name sanitisation. A
+ * recursion guard is included so malicious inputs cannot cause stack growth.
  *
  * @param {unknown} value - Raw value to sanitise.
- * @param {string} fallback - Fallback value when the primary input yields nothing.
+ * @param {string} fallback - Fallback value when the primary input yields
+ *   nothing.
  * @param {number} depth - Recursion depth guard.
+ *
  * @returns {string}
  */
 function sanitiseFilenameInternal(value, fallback, depth) {
@@ -125,7 +152,11 @@ function sanitiseFilenameInternal(value, fallback, depth) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
 
     let normalised = "";
@@ -152,7 +183,11 @@ function sanitiseFilenameInternal(value, fallback, depth) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
 
     if (RESERVED_DEVICE_NAMES.has(compacted.toUpperCase())) {

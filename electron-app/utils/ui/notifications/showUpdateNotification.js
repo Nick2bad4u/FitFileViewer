@@ -1,6 +1,6 @@
 /**
- * Update Notification Utility
- * Specialized utility for showing update-related notifications with actions
+ * Update Notification Utility Specialized utility for showing update-related
+ * notifications with actions
  */
 
 import { createRendererLogger } from "../../logging/rendererLogger.js";
@@ -24,25 +24,33 @@ const BUTTON_TEXTS = {
 const log = createRendererLogger(LOG_SCOPE);
 
 /**
- * Shows update notifications with enhanced features and error handling
- * Supports different update states and provides appropriate action buttons
+ * Shows update notifications with enhanced features and error handling Supports
+ * different update states and provides appropriate action buttons
+ *
+ * @example
+ *     // Basic notification
+ *     showUpdateNotification("Update available", "info");
+ *
+ * @example
+ *     // Update downloaded notification with restart option
+ *     showUpdateNotification(
+ *         "Update downloaded",
+ *         "success",
+ *         0,
+ *         "update-downloaded"
+ *     );
+ *
+ * @example
+ *     // Simple update available with action
+ *     showUpdateNotification("Update ready", "info", 6000, true);
  *
  * @param {string} message - The notification message to display
- * @param {string} type - Notification type ("info", "warning", "error", "success")
- * @param {number} duration - Auto-hide duration in milliseconds (0 = no auto-hide)
- * @param {boolean|string} withAction - Action type: false, true, or "update-downloaded"
- *
- * @example
- * // Basic notification
- * showUpdateNotification("Update available", "info");
- *
- * @example
- * // Update downloaded notification with restart option
- * showUpdateNotification("Update downloaded", "success", 0, "update-downloaded");
- *
- * @example
- * // Simple update available with action
- * showUpdateNotification("Update ready", "info", 6000, true);
+ * @param {string} type - Notification type ("info", "warning", "error",
+ *   "success")
+ * @param {number} duration - Auto-hide duration in milliseconds (0 = no
+ *   auto-hide)
+ * @param {boolean | string} withAction - Action type: false, true, or
+ *   "update-downloaded"
  */
 export function showUpdateNotification(
     message,
@@ -102,6 +110,7 @@ export function showUpdateNotification(
 
 /**
  * Clear notification content
+ *
  * @param {HTMLElement} notification - Notification element
  */
 function clearNotificationContent(notification) {
@@ -118,9 +127,11 @@ function clearNotificationContent(notification) {
 
 /**
  * Create a themed button element
+ *
  * @param {string} text - Button text
  * @param {Function} clickHandler - Click event handler
  * @param {Object} styles - Additional styles
+ *
  * @returns {HTMLElement} Button element
  */
 function createThemedButton(text, clickHandler, styles = {}) {
@@ -145,11 +156,15 @@ function createThemedButton(text, clickHandler, styles = {}) {
 
 /**
  * Create simple update action button
+ *
  * @param {HTMLElement} notification - Notification element
  */
 function createUpdateActionButton(notification) {
     try {
-        const button = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
+        const button = createThemedButton(
+            BUTTON_TEXTS.RESTART_UPDATE,
+            handleUpdateInstall
+        );
 
         if (button) {
             notification.append(button);
@@ -164,16 +179,24 @@ function createUpdateActionButton(notification) {
 
 /**
  * Create update downloaded action buttons
+ *
  * @param {HTMLElement} notification - Notification element
  */
 function createUpdateDownloadedButtons(notification) {
     try {
         // Restart & Update button
         const // Later button
-            laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
-                marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
-            }),
-            restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
+            laterBtn = createThemedButton(
+                BUTTON_TEXTS.LATER,
+                () => hideNotification(notification),
+                {
+                    marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
+                }
+            ),
+            restartBtn = createThemedButton(
+                BUTTON_TEXTS.RESTART_UPDATE,
+                handleUpdateInstall
+            );
 
         if (restartBtn && laterBtn) {
             notification.append(restartBtn);
@@ -189,10 +212,13 @@ function createUpdateDownloadedButtons(notification) {
 
 /**
  * Get notification element with validation
- * @returns {HTMLElement|null} Notification element or null if not found
+ *
+ * @returns {HTMLElement | null} Notification element or null if not found
  */
 function getNotificationElement() {
-    const notification = document.getElementById(NOTIFICATION_CONSTANTS.NOTIFICATION_ID);
+    const notification = document.getElementById(
+        NOTIFICATION_CONSTANTS.NOTIFICATION_ID
+    );
     if (!notification) {
         log("error", "Notification element not found in DOM");
         return null;
@@ -212,12 +238,15 @@ function handleUpdateInstall() {
             log("error", "Cannot install update - electronAPI not available");
         }
     } catch (error) {
-        log("error", "Failed to install update", { error: /** @type {Error} */ (error).message });
+        log("error", "Failed to install update", {
+            error: /** @type {Error} */ (error).message,
+        });
     }
 }
 
 /**
  * Hide notification with validation
+ *
  * @param {HTMLElement} notification - Notification element
  */
 function hideNotification(notification) {
@@ -227,12 +256,15 @@ function hideNotification(notification) {
             log("info", "Notification hidden");
         }
     } catch (error) {
-        log("error", "Failed to hide notification", { error: /** @type {Error} */ (error).message });
+        log("error", "Failed to hide notification", {
+            error: /** @type {Error} */ (error).message,
+        });
     }
 }
 
 /**
  * Enhanced logging with context
+ *
  * @param {string} level - Log level (info, warn, error)
  * @param {string} message - Log message
  * @param {Object} context - Additional context
@@ -254,12 +286,14 @@ function setupAutoHide(notification, duration) {
 
 /**
  * Validate electronAPI availability
+ *
  * @returns {boolean} True if electronAPI is available
  */
 function validateElectronAPI() {
     const hasAPI =
         /** @type {any} */ (globalThis).electronAPI &&
-        typeof (/** @type {any} */ (globalThis).electronAPI.installUpdate) === "function";
+        typeof (/** @type {any} */ (globalThis).electronAPI.installUpdate) ===
+            "function";
     if (!hasAPI) {
         log("warn", "electronAPI.installUpdate not available");
     }

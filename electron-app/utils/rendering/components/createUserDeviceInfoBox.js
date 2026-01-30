@@ -8,6 +8,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} UserProfileData
+ *
  * @property {string} [friendlyName] - Friendly name or device name
  * @property {string} [gender] - User gender
  * @property {number} [age] - User age in years
@@ -18,7 +19,8 @@ import { getThemeConfig } from "../../theming/core/theme.js";
  * @property {string} [weightSetting] - Weight unit setting
  * @property {number} [restingHeartRate] - Resting heart rate in BPM
  * @property {number} [defaultMaxHeartRate] - Maximum heart rate in BPM
- * @property {number} [defaultMaxRunningHeartRate] - Max running heart rate in BPM
+ * @property {number} [defaultMaxRunningHeartRate] - Max running heart rate in
+ *   BPM
  * @property {number} [defaultMaxBikingHeartRate] - Max biking heart rate in BPM
  * @property {string} [hrSetting] - Heart rate setting preference
  * @property {string} [speedSetting] - Speed unit setting
@@ -32,15 +34,18 @@ import { getThemeConfig } from "../../theming/core/theme.js";
  * @property {string} [wakeTime] - Wake time setting
  * @property {string} [sleepTime] - Sleep time setting
  * @property {string} [heightSetting] - Height unit setting
- * @property {number} [userRunningStepLength] - Running step length in millimeters
- * @property {number} [userWalkingStepLength] - Walking step length in millimeters
+ * @property {number} [userRunningStepLength] - Running step length in
+ *   millimeters
+ * @property {number} [userWalkingStepLength] - Walking step length in
+ *   millimeters
  * @property {string} [depthSetting] - Depth unit setting
  * @property {number} [diveCount] - Number of dives recorded
  */
 
 /**
  * @typedef {Object} DeviceInfo
- * @property {string|number} [deviceIndex] - Device index
+ *
+ * @property {string | number} [deviceIndex] - Device index
  * @property {string} [deviceType] - Type of device
  * @property {string} [manufacturer] - Device manufacturer
  * @property {string} [product] - Product name
@@ -58,7 +63,9 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} FitGlobalData
- * @property {UserProfileData[]} [userProfileMesgs] - Array of user profile messages
+ *
+ * @property {UserProfileData[]} [userProfileMesgs] - Array of user profile
+ *   messages
  * @property {DeviceInfo[]} [deviceInfoMesgs] - Array of device info messages
  * @property {Object[]} [recordMesgs] - Array of record messages
  * @property {string} [cachedFilePath] - Cached file path
@@ -66,6 +73,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} ThemeColors
+ *
  * @property {string} primary - Primary theme color
  * @property {string} accent - Accent theme color
  * @property {string} background - Background color
@@ -87,24 +95,30 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} ThemeConfig
+ *
  * @property {ThemeColors} colors - Theme color configuration
  * @property {string} [name] - Theme name
  */
 
 /**
  * Creates an info box displaying user profile and device information
+ *
  * @param {HTMLElement} container - Container to append the info box to
  */
 export function createUserDeviceInfoBox(container) {
     try {
         /** @type {UserProfileData} */
         const /** @type {DeviceInfo[]} */
-            deviceInfos = /** @type {any} */ (globalThis).globalData?.deviceInfoMesgs || [],
+            deviceInfos =
+                /** @type {any} */ (globalThis).globalData?.deviceInfoMesgs ||
+                [],
             infoBox = document.createElement("div"),
             // Get theme configuration using the established theme system
             /** @type {ThemeConfig} */
             themeConfig = /** @type {ThemeConfig} */ (getThemeConfig()),
-            userProfile = /** @type {any} */ (globalThis).globalData?.userProfileMesgs?.[0] || {},
+            userProfile =
+                /** @type {any} */ (globalThis).globalData
+                    ?.userProfileMesgs?.[0] || {},
             /** @type {ThemeColors} */
             { colors } = themeConfig; // Create info box container with theme-aware styling and hover effects
         infoBox.className = "user-device-info-box chart-info-section";
@@ -231,8 +245,26 @@ export function createUserDeviceInfoBox(container) {
         // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
         userSection.replaceChildren(
             sanitizeHtmlAllowlist(rawUserSectionHtml, {
-                allowedAttributes: ["aria-label", "class", "id", "role", "style", "tabindex", "title"],
-                allowedTags: ["DIV", "H1", "H2", "H3", "H4", "H5", "H6", "SPAN", "STRONG"],
+                allowedAttributes: [
+                    "aria-label",
+                    "class",
+                    "id",
+                    "role",
+                    "style",
+                    "tabindex",
+                    "title",
+                ],
+                allowedTags: [
+                    "DIV",
+                    "H1",
+                    "H2",
+                    "H3",
+                    "H4",
+                    "H5",
+                    "H6",
+                    "SPAN",
+                    "STRONG",
+                ],
                 stripUrlInStyle: true,
             })
         );
@@ -264,9 +296,14 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+                deviceInfos.find(
+                    (d) =>
+                        d.sourceType === "local" && d.deviceIndex === "creator"
+                ) || deviceInfos[0],
             sensors = deviceInfos.filter(
-                (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
+                (d) =>
+                    d.sourceType === "antplus" ||
+                    (d.sourceType === "local" && d.deviceIndex !== "creator")
             );
         let deviceHtml = `
             <h3 style="margin: 0 0 20px 0; color: ${colors.text}; font-size: 18px; font-weight: 700; border-bottom: 3px solid ${colors.primary}; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, ${colors.primary}, ${colors.accent}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
@@ -372,8 +409,26 @@ export function createUserDeviceInfoBox(container) {
         // Security: sanitize HTML before inserting.
         deviceSection.replaceChildren(
             sanitizeHtmlAllowlist(deviceHtml, {
-                allowedAttributes: ["aria-label", "class", "id", "role", "style", "tabindex", "title"],
-                allowedTags: ["DIV", "H1", "H2", "H3", "H4", "H5", "H6", "SPAN", "STRONG"],
+                allowedAttributes: [
+                    "aria-label",
+                    "class",
+                    "id",
+                    "role",
+                    "style",
+                    "tabindex",
+                    "title",
+                ],
+                allowedTags: [
+                    "DIV",
+                    "H1",
+                    "H2",
+                    "H3",
+                    "H4",
+                    "H5",
+                    "H6",
+                    "SPAN",
+                    "STRONG",
+                ],
                 stripUrlInStyle: true,
             })
         );
@@ -385,7 +440,10 @@ export function createUserDeviceInfoBox(container) {
         // Add info box to container
         container.append(infoBox);
 
-        console.log("[ChartJS] User and device info box created with theme:", themeConfig.name || "default");
+        console.log(
+            "[ChartJS] User and device info box created with theme:",
+            themeConfig.name || "default"
+        );
     } catch (error) {
         console.error("[ChartJS] Error creating user/device info box:", error);
     }

@@ -61,7 +61,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
     it("should load the stateIntegration module successfully", async () => {
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
             expect(module).toBeDefined();
             expect(typeof module).toBe("object");
         } catch (error) {
@@ -72,7 +73,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
     it("should handle StateMigrationHelper instantiation", async () => {
         try {
-            const { StateMigrationHelper } = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const { StateMigrationHelper } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
             if (StateMigrationHelper) {
                 const helper = new StateMigrationHelper();
                 expect(helper).toBeDefined();
@@ -93,7 +95,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
     it("should handle initialization functions", async () => {
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Test various initialization functions if they exist
             if (module.initializeAppState) {
@@ -108,19 +111,27 @@ describe("stateIntegration.js - Essential Coverage", () => {
             }
 
             if (module.initializeCompleteStateSystem) {
-                expect(typeof module.initializeCompleteStateSystem).toBe("function");
+                expect(typeof module.initializeCompleteStateSystem).toBe(
+                    "function"
+                );
             }
 
             if (module.integrateWithRendererUtils) {
-                expect(typeof module.integrateWithRendererUtils).toBe("function");
+                expect(typeof module.integrateWithRendererUtils).toBe(
+                    "function"
+                );
             }
 
             if (module.migrateChartControlsState) {
-                expect(typeof module.migrateChartControlsState).toBe("function");
+                expect(typeof module.migrateChartControlsState).toBe(
+                    "function"
+                );
             }
 
             if (module.setupStatePerformanceMonitoring) {
-                expect(typeof module.setupStatePerformanceMonitoring).toBe("function");
+                expect(typeof module.setupStatePerformanceMonitoring).toBe(
+                    "function"
+                );
             }
 
             if (module.setupStatePersistence) {
@@ -135,7 +146,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     it("should handle performance monitoring scenarios", async () => {
         expect.hasAssertions();
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             if (module.setupStatePerformanceMonitoring) {
                 // Test with performance.memory available
@@ -165,7 +177,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     it("should handle state persistence scenarios", async () => {
         expect.hasAssertions();
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             if (module.setupStatePersistence) {
                 // Test localStorage persistence
@@ -195,7 +208,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     it("should handle debug utilities", async () => {
         expect.hasAssertions();
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Test debug mode scenarios
             (globalThis as any).__DEVELOPMENT__ = true;
@@ -233,7 +247,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     it("should handle backward compatibility scenarios", async () => {
         expect.hasAssertions();
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Set up legacy state structure
             (globalThis as any).globalData = { legacy: true };
@@ -266,7 +281,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     it("should handle renderer integration scenarios", async () => {
         expect.hasAssertions();
         try {
-            const module = await import("../../../../../utils/state/integration/stateIntegration.js");
+            const module =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Mock renderer utils
             (globalThis as any).rendererUtils = {

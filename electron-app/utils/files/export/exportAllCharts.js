@@ -2,7 +2,10 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { exportUtils } from "./exportUtils.js";
 
 export function exportAllCharts() {
-    if (!globalThis._chartjsInstances || globalThis._chartjsInstances.length === 0) {
+    if (
+        !globalThis._chartjsInstances ||
+        globalThis._chartjsInstances.length === 0
+    ) {
         showNotification("No charts available to export", "warning");
         return;
     }
@@ -13,7 +16,10 @@ export function exportAllCharts() {
                 filename = `${field.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
             exportUtils.downloadChartAsPNG(chart, filename);
         }
-        showNotification(`Exported ${globalThis._chartjsInstances.length} charts`, "success");
+        showNotification(
+            `Exported ${globalThis._chartjsInstances.length} charts`,
+            "success"
+        );
     } catch (error) {
         console.error("Error exporting all charts:", error);
         showNotification("Failed to export charts", "error");

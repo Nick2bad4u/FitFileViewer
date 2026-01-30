@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for state
- * @description Re-exports all subcategories in the state category
+ * Re-exports all subcategories in the state category
+ *
+ * @file Main Category Barrel Export for state
  */
 
 import * as stateCore from "./core/index.js";

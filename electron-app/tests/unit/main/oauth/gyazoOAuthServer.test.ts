@@ -59,9 +59,12 @@ describe("gyazoOAuthServer", () => {
         mockServer.on.mockClear();
 
         // Inject mocks for the CJS requires used by the module under test.
-        injectCjsMock(require.resolve("../../../../main/logging/logWithContext"), {
-            logWithContext: (...args: any[]) => mockLogWithContext(...args),
-        });
+        injectCjsMock(
+            require.resolve("../../../../main/logging/logWithContext"),
+            {
+                logWithContext: (...args: any[]) => mockLogWithContext(...args),
+            }
+        );
         injectCjsMock(require.resolve("../../../../main/runtime/nodeModules"), {
             httpRef: () => mockHttp,
         });
@@ -69,22 +72,33 @@ describe("gyazoOAuthServer", () => {
             getAppState: (key: string) => state.get(key),
             setAppState: (key: string, value: any) => state.set(key, value),
         });
-        injectCjsMock(require.resolve("../../../../main/window/windowValidation"), {
-            validateWindow: () => true,
-        });
+        injectCjsMock(
+            require.resolve("../../../../main/window/windowValidation"),
+            {
+                validateWindow: () => true,
+            }
+        );
 
         // Ensure we reload the module under test with the new cache injections.
-        const sutPath = require.resolve("../../../../main/oauth/gyazoOAuthServer.js");
-        const cache = (require as unknown as { cache: Record<string, any> }).cache;
+        const sutPath =
+            require.resolve("../../../../main/oauth/gyazoOAuthServer.js");
+        const cache = (require as unknown as { cache: Record<string, any> })
+            .cache;
         delete cache[sutPath];
     });
 
     it("starts server and applies safe headers (no CORS)", async () => {
-        const { startGyazoOAuthServer } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        const {
+            startGyazoOAuthServer,
+        } = require("../../../../main/oauth/gyazoOAuthServer.js");
 
         const result = await startGyazoOAuthServer(3000);
         expect(result.success).toBe(true);
-        expect(mockServer.listen).toHaveBeenCalledWith(3000, "localhost", expect.any(Function));
+        expect(mockServer.listen).toHaveBeenCalledWith(
+            3000,
+            "localhost",
+            expect.any(Function)
+        );
         expect(requestHandler).toBeTypeOf("function");
 
         const res = makeRes();
@@ -93,11 +107,17 @@ describe("gyazoOAuthServer", () => {
         // Ensure standard headers exist and no Access-Control-* headers were set
         expect(res.headers["X-Content-Type-Options"]).toBe("nosniff");
         expect(res.headers["Cache-Control"]).toBe("no-store");
-        expect(Object.keys(res.headers).some((k) => k.toLowerCase().startsWith("access-control-"))).toBe(false);
+        expect(
+            Object.keys(res.headers).some((k) =>
+                k.toLowerCase().startsWith("access-control-")
+            )
+        ).toBe(false);
     });
 
     it("rejects non-GET/HEAD methods", async () => {
-        const { startGyazoOAuthServer } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        const {
+            startGyazoOAuthServer,
+        } = require("../../../../main/oauth/gyazoOAuthServer.js");
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -107,11 +127,19 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("escapes error parameter in HTML response", async () => {
-        const { startGyazoOAuthServer } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        const {
+            startGyazoOAuthServer,
+        } = require("../../../../main/oauth/gyazoOAuthServer.js");
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
-        requestHandler!({ method: "GET", url: "/gyazo/callback?error=%3Cscript%3Ealert(1)%3C%2Fscript%3E" }, res);
+        requestHandler!(
+            {
+                method: "GET",
+                url: "/gyazo/callback?error=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+            },
+            res
+        );
 
         const html = String((res.end as any).mock.calls[0][0]);
         expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
@@ -119,7 +147,9 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("sends callback payload to mainWindow when code/state are present", async () => {
-        const { startGyazoOAuthServer } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        const {
+            startGyazoOAuthServer,
+        } = require("../../../../main/oauth/gyazoOAuthServer.js");
 
         const send = vi.fn();
         state.set("mainWindow", { webContents: { send } });
@@ -127,13 +157,22 @@ describe("gyazoOAuthServer", () => {
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
-        requestHandler!({ method: "GET", url: "/gyazo/callback?code=abc&state=xyz" }, res);
+        requestHandler!(
+            { method: "GET", url: "/gyazo/callback?code=abc&state=xyz" },
+            res
+        );
 
-        expect(send).toHaveBeenCalledWith("gyazo-oauth-callback", { code: "abc", state: "xyz" });
+        expect(send).toHaveBeenCalledWith("gyazo-oauth-callback", {
+            code: "abc",
+            state: "xyz",
+        });
     });
 
     it("stop server clears state even if close throws", async () => {
-        const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        const {
+            startGyazoOAuthServer,
+            stopGyazoOAuthServer,
+        } = require("../../../../main/oauth/gyazoOAuthServer.js");
 
         await startGyazoOAuthServer(3000);
         // Force close to throw

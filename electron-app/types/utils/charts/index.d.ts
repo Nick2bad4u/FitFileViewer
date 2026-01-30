@@ -30,20 +30,46 @@ export * from "./theming/getThemeColors.js";
 export { renderLapZoneCharts } from "./rendering/renderLapZoneCharts.js";
 export { renderZoneChart as renderZoneChartNew } from "./rendering/renderZoneChartNew.js";
 declare namespace _default {
-    function addChartHoverEffects(): Promise<typeof import("./plugins/addChartHoverEffects.js")>;
-    function chartBackgroundColorPlugin(): Promise<typeof import("./plugins/chartBackgroundColorPlugin.js")>;
-    function chartColorSchemes(): Promise<typeof import("./theming/chartColorSchemes.js")>;
-    function chartStateManager(): Promise<typeof import("./core/chartStateManager.js")>;
-    function chartTabIntegration(): Promise<typeof import("./core/chartTabIntegration.js")>;
-    function chartThemeListener(): Promise<typeof import("./theming/chartThemeListener.js")>;
+    function addChartHoverEffects(): Promise<
+        typeof import("./plugins/addChartHoverEffects.js")
+    >;
+    function chartBackgroundColorPlugin(): Promise<
+        typeof import("./plugins/chartBackgroundColorPlugin.js")
+    >;
+    function chartColorSchemes(): Promise<
+        typeof import("./theming/chartColorSchemes.js")
+    >;
+    function chartStateManager(): Promise<
+        typeof import("./core/chartStateManager.js")
+    >;
+    function chartTabIntegration(): Promise<
+        typeof import("./core/chartTabIntegration.js")
+    >;
+    function chartThemeListener(): Promise<
+        typeof import("./theming/chartThemeListener.js")
+    >;
     function chartUpdater(): Promise<typeof import("./core/chartUpdater.js")>;
-    function createChartCanvas(): Promise<typeof import("./components/createChartCanvas.js")>;
-    function createEnhancedChart(): Promise<typeof import("./components/createEnhancedChart.js")>;
-    function renderAltitudeProfileChart(): Promise<typeof import("./rendering/renderAltitudeProfileChart.js")>;
+    function createChartCanvas(): Promise<
+        typeof import("./components/createChartCanvas.js")
+    >;
+    function createEnhancedChart(): Promise<
+        typeof import("./components/createEnhancedChart.js")
+    >;
+    function renderAltitudeProfileChart(): Promise<
+        typeof import("./rendering/renderAltitudeProfileChart.js")
+    >;
     function renderChartJS(): Promise<typeof import("./core/renderChartJS.js")>;
-    function renderEventMessagesChart(): Promise<typeof import("./rendering/renderEventMessagesChart.js")>;
-    function renderGPSTimeChart(): Promise<typeof import("./rendering/renderGPSTimeChart.js")>;
-    function renderGPSTrackChart(): Promise<typeof import("./rendering/renderGPSTrackChart.js")>;
-    function renderLapZoneChart(): Promise<typeof import("./rendering/renderLapZoneChart.js")>;
+    function renderEventMessagesChart(): Promise<
+        typeof import("./rendering/renderEventMessagesChart.js")
+    >;
+    function renderGPSTimeChart(): Promise<
+        typeof import("./rendering/renderGPSTimeChart.js")
+    >;
+    function renderGPSTrackChart(): Promise<
+        typeof import("./rendering/renderGPSTrackChart.js")
+    >;
+    function renderLapZoneChart(): Promise<
+        typeof import("./rendering/renderLapZoneChart.js")
+    >;
 }
 export default _default;

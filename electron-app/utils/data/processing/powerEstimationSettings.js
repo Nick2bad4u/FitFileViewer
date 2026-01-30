@@ -1,11 +1,15 @@
 /**
- * @fileoverview Persistence + defaults for estimated cycling power settings.
+ * @file Persistence + defaults for estimated cycling power settings.
  */
 
-import { getPowerEstimationSetting, setPowerEstimationSetting } from "../../state/domain/settingsStateManager.js";
+import {
+    getPowerEstimationSetting,
+    setPowerEstimationSetting,
+} from "../../state/domain/settingsStateManager.js";
 
 /**
  * @typedef {object} PowerEstimationSettings
+ *
  * @property {boolean} enabled
  * @property {number} riderWeightKg
  * @property {number} bikeWeightKg

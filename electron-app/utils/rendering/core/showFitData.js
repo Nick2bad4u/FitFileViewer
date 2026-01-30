@@ -1,18 +1,22 @@
 /**
- * FIT data display utility for FitFileViewer
- * Handles the display and management of loaded FIT file data with state management integration
+ * FIT data display utility for FitFileViewer Handles the display and management
+ * of loaded FIT file data with state management integration
  */
 
 /**
  * @typedef {Object} FitDataObject
+ *
  * @property {string} [cachedFileName] - Cached filename for performance
  * @property {string} [cachedFilePath] - Cached filepath for performance
  */
 
 /**
  * @typedef {Object} DisplayOptions
- * @property {boolean} [resetRenderStates=true] - Whether to reset rendering states
- * @property {boolean} [updateUI=true] - Whether to update UI elements
+ *
+ * @property {boolean} [resetRenderStates=true] - Whether to reset rendering
+ *   states. Default is `true`
+ * @property {boolean} [updateUI=true] - Whether to update UI elements. Default
+ *   is `true`
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
@@ -44,22 +48,26 @@ const DISPLAY_CONSTANTS = {
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
 
 /**
- * Shows FIT data in the UI and updates application state
- * Used by Electron main process to display loaded FIT file data
+ * Shows FIT data in the UI and updates application state Used by Electron main
+ * process to display loaded FIT file data
+ *
+ * @example
+ *     // Show FIT data with default options
+ *     showFitData(parsedData, "/path/to/file.fit");
+ *
+ * @example
+ *     // Show data without resetting render states
+ *     showFitData(parsedData, "/path/to/file.fit", {
+ *         resetRenderStates: false,
+ *     });
  *
  * @param {Object} data - Parsed FIT file data
  * @param {string} [filePath] - Path to the FIT file
- * @param {Object} [options={}] - Display options
- * @param {boolean} [options.resetRenderStates=true] - Whether to reset rendering states
+ * @param {Object} [options={}] - Display options. Default is `{}`
+ * @param {boolean} [options.resetRenderStates=true] - Whether to reset
+ *   rendering states. Default is `true`
  * @param {boolean} [options.updateUI=true] - Whether to update UI elements
- *
- * @example
- * // Show FIT data with default options
- * showFitData(parsedData, "/path/to/file.fit");
- *
- * @example
- * // Show data without resetting render states
- * showFitData(parsedData, "/path/to/file.fit", { resetRenderStates: false });
+ *   Default is `true`
  *
  * @public
  */
@@ -89,14 +97,22 @@ export function showFitData(data, filePath, options = {}) {
         // Apply estimated power early so Charts/Summary/Tables can consume it immediately.
         // This only applies to cycling-like activities that lack real power, and only when enabled.
         try {
-            if (globalThis.globalData && Array.isArray(/** @type {any} */ (globalThis.globalData).recordMesgs)) {
+            if (
+                globalThis.globalData &&
+                Array.isArray(
+                    /** @type {any} */ (globalThis.globalData).recordMesgs
+                )
+            ) {
                 applyEstimatedPowerToRecords({
-                    recordMesgs: /** @type {Array<Record<string, unknown>>} */ (
+                    recordMesgs: /** @type {Record<string, unknown>[]} */ (
                         /** @type {any} */ (globalThis.globalData).recordMesgs
                     ),
-                    sessionMesgs: Array.isArray(/** @type {any} */ (globalThis.globalData).sessionMesgs)
-                        ? /** @type {Array<Record<string, unknown>>} */ (
-                              /** @type {any} */ (globalThis.globalData).sessionMesgs
+                    sessionMesgs: Array.isArray(
+                        /** @type {any} */ (globalThis.globalData).sessionMesgs
+                    )
+                        ? /** @type {Record<string, unknown>[]} */ (
+                              /** @type {any} */ (globalThis.globalData)
+                                  .sessionMesgs
                           )
                         : undefined,
                     settings: getPowerEstimationSettings(),
@@ -108,7 +124,10 @@ export function showFitData(data, filePath, options = {}) {
 
         // Reset rendering states if requested
         if (config.resetRenderStates) {
-            log("info", "resetRenderStates option is deprecated and now handled by AppActions");
+            log(
+                "info",
+                "resetRenderStates option is deprecated and now handled by AppActions"
+            );
         }
 
         // Handle file path and UI updates
@@ -125,14 +144,21 @@ export function showFitData(data, filePath, options = {}) {
                 if (typeof globalThis.scrollTo === "function") {
                     const prefersReducedMotion =
                         typeof globalThis.matchMedia === "function" &&
-                        globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                        globalThis.matchMedia(
+                            "(prefers-reduced-motion: reduce)"
+                        ).matches;
 
-                    (globalThis.requestAnimationFrame || globalThis.setTimeout)(() => {
-                        globalThis.scrollTo({
-                            top: 0,
-                            behavior: prefersReducedMotion ? "auto" : "smooth",
-                        });
-                    }, 0);
+                    (globalThis.requestAnimationFrame || globalThis.setTimeout)(
+                        () => {
+                            globalThis.scrollTo({
+                                top: 0,
+                                behavior: prefersReducedMotion
+                                    ? "auto"
+                                    : "smooth",
+                            });
+                        },
+                        0
+                    );
                 }
             } catch {
                 /* no-op */
@@ -148,7 +174,9 @@ export function showFitData(data, filePath, options = {}) {
                     indicatorError instanceof Error
                         ? indicatorError.message
                         : "Unknown error creating chart status indicator";
-                log("warn", "Error creating chart status indicator", { error: errorMessage });
+                log("warn", "Error creating chart status indicator", {
+                    error: errorMessage,
+                });
             }
         }
 
@@ -156,7 +184,10 @@ export function showFitData(data, filePath, options = {}) {
             filePath,
         });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error showing FIT data";
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : "Unknown error showing FIT data";
         log("error", "Error showing FIT data", {
             error: errorMessage,
             filePath,
@@ -193,12 +224,14 @@ export function showFitData(data, filePath, options = {}) {
     // Use setTimeout to ensure this happens after DOM updates and tab handlers are ready
     setTimeout(() => {
         // Use type assertion for window extensions
-        const windowExt = /** @type {Window & {
-            updateTabVisibility?: Function,
-            updateActiveTab?: Function,
-            renderMap?: Function,
-            isMapRendered?: boolean
-        }} */ (globalThis);
+        const windowExt = /**
+         * @type {Window & {
+         *     updateTabVisibility?: Function;
+         *     updateActiveTab?: Function;
+         *     renderMap?: Function;
+         *     isMapRendered?: boolean;
+         * }}
+         */ (globalThis);
 
         if (windowExt.updateTabVisibility && windowExt.updateActiveTab) {
             windowExt.updateTabVisibility("content-map");
@@ -215,8 +248,10 @@ export function showFitData(data, filePath, options = {}) {
 
 /**
  * Enables tab buttons and notifies the main process
- * @param {string} filePath - Path of the loaded file
+ *
  * @private
+ *
+ * @param {string} filePath - Path of the loaded file
  */
 function enableTabsAndNotify(filePath) {
     try {
@@ -230,27 +265,42 @@ function enableTabsAndNotify(filePath) {
             globalThis.electronAPI.notifyFitFileLoaded(filePath);
         } else if (globalThis.electronAPI?.send) {
             // Backward compatibility for older preload builds.
-            globalThis.electronAPI.send(DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED_IPC, filePath);
+            globalThis.electronAPI.send(
+                DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED_IPC,
+                filePath
+            );
         }
 
         // Dispatch custom event for other components
-        const event = new CustomEvent(DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED, {
-            detail: { filePath },
-        });
+        const event = new CustomEvent(
+            DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED,
+            {
+                detail: { filePath },
+            }
+        );
         globalThis.dispatchEvent(event);
 
         log("info", "Tabs enabled and notifications sent", { filePath });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error enabling tabs and notifications";
-        log("error", "Error enabling tabs and notifications", { error: errorMessage, filePath });
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : "Unknown error enabling tabs and notifications";
+        log("error", "Error enabling tabs and notifications", {
+            error: errorMessage,
+            filePath,
+        });
     }
 }
 
 /**
  * Extracts filename from a file path
- * @param {string} filePath - Full file path
- * @returns {string} Filename only
+ *
  * @private
+ *
+ * @param {string} filePath - Full file path
+ *
+ * @returns {string} Filename only
  */
 function extractFileName(filePath) {
     if (!filePath || typeof filePath !== "string") {
@@ -261,10 +311,13 @@ function extractFileName(filePath) {
 
 /**
  * Manages file name caching for performance
+ *
+ * @private
+ *
  * @param {FitDataObject} data - FIT data object
  * @param {string} filePath - Path of the file
+ *
  * @returns {string} Cached or newly computed filename
- * @private
  */
 function getCachedFileName(data, filePath) {
     try {
@@ -272,7 +325,10 @@ function getCachedFileName(data, filePath) {
         const dataWithCache = /** @type {FitDataObject} */ (data);
 
         // Check if we can use cached filename
-        if (dataWithCache.cachedFileName && dataWithCache.cachedFilePath === filePath) {
+        if (
+            dataWithCache.cachedFileName &&
+            dataWithCache.cachedFilePath === filePath
+        ) {
             return dataWithCache.cachedFileName;
         }
 
@@ -283,8 +339,14 @@ function getCachedFileName(data, filePath) {
 
         return fileName;
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error managing file name cache";
-        log("error", "Error managing file name cache", { error: errorMessage, filePath });
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : "Unknown error managing file name cache";
+        log("error", "Error managing file name cache", {
+            error: errorMessage,
+            filePath,
+        });
         return extractFileName(filePath);
     }
 }
@@ -298,8 +360,12 @@ function integrateFitState(data, filePath) {
                 try {
                     manager.startFileLoading(filePath);
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : String(error);
-                    log("warn", "Unable to start file loading state", { error: message, filePath });
+                    const message =
+                        error instanceof Error ? error.message : String(error);
+                    log("warn", "Unable to start file loading state", {
+                        error: message,
+                        filePath,
+                    });
                 }
             }
 
@@ -310,21 +376,32 @@ function integrateFitState(data, filePath) {
         AppActions.loadFile(data, filePath ?? null);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log("error", "Failed to integrate FIT state", { error: message, filePath });
+        log("error", "Failed to integrate FIT state", {
+            error: message,
+            filePath,
+        });
         AppActions.loadFile(data, filePath ?? null);
     }
 }
 
 function resolveFitFileStateManager() {
-    const candidate = /** @type {unknown} */ (globalThis.__FFV_fitFileStateManager);
+    const candidate = /** @type {unknown} */ (
+        globalThis.__FFV_fitFileStateManager
+    );
 
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoaded" in candidate &&
-        typeof (/** @type {{ handleFileLoaded?: unknown }} */ (candidate).handleFileLoaded) === "function"
+        typeof (
+            /** @type {{ handleFileLoaded?: unknown }} */ (candidate)
+                .handleFileLoaded
+        ) === "function"
     ) {
-        return /** @type {{ handleFileLoaded: Function; startFileLoading?: (filePath: string) => void }} */ (candidate);
+        return /** @type {{
+         *     handleFileLoaded: Function;
+         *     startFileLoading?: (filePath: string) => void;
+         * }} */ (candidate);
     }
 
     return null;
@@ -332,15 +409,19 @@ function resolveFitFileStateManager() {
 
 /**
  * Updates UI elements to show active file information
- * @param {string} fileName - Name of the active file
+ *
  * @private
+ *
+ * @param {string} fileName - Name of the active file
  */
 function updateFileState(fileName) {
     try {
         const { TITLE_PREFIX } = DISPLAY_CONSTANTS,
             hasFile = Boolean(fileName),
             sanitizedName = hasFile ? fileName : "",
-            title = hasFile ? `${TITLE_PREFIX} - ${sanitizedName}` : TITLE_PREFIX;
+            title = hasFile
+                ? `${TITLE_PREFIX} - ${sanitizedName}`
+                : TITLE_PREFIX;
 
         setState(
             "ui.fileInfo",
@@ -351,11 +432,22 @@ function updateFileState(fileName) {
             },
             { source: "showFitData.updateFileState" }
         );
-        setState("ui.unloadButtonVisible", hasFile, { source: "showFitData.updateFileState" });
+        setState("ui.unloadButtonVisible", hasFile, {
+            source: "showFitData.updateFileState",
+        });
 
-        log("info", "File state updated for display", { fileName: sanitizedName, hasFile });
+        log("info", "File state updated for display", {
+            fileName: sanitizedName,
+            hasFile,
+        });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error updating file display";
-        log("error", "Error updating file display", { error: errorMessage, fileName });
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : "Unknown error updating file display";
+        log("error", "Error updating file display", {
+            error: errorMessage,
+            fileName,
+        });
     }
 }

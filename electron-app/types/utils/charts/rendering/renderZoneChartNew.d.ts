@@ -1,5 +1,6 @@
 /**
  * @typedef {Object} ZoneDataItem
+ *
  * @property {number} [zone]
  * @property {string} [label]
  * @property {number} [time]
@@ -7,6 +8,7 @@
  */
 /**
  * @typedef {Object} RenderZoneChartOptions
+ *
  * @property {string} [chartType] - "doughnut" | "bar"
  * @property {boolean} [showLegend]
  */

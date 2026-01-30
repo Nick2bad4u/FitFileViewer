@@ -34,11 +34,23 @@ describe("createMarkerCountSelector", () => {
         const el = createMarkerCountSelector();
         const select = el.querySelector("select")! as HTMLSelectElement;
         // Wheel down -> next option
-        select.dispatchEvent(new WheelEvent("wheel", { deltaY: 1, bubbles: true, cancelable: true }));
+        select.dispatchEvent(
+            new WheelEvent("wheel", {
+                deltaY: 1,
+                bubbles: true,
+                cancelable: true,
+            })
+        );
         // Value should change from default 50 to next (100)
         expect(select.value).toBe("100");
         // Wheel up -> previous option
-        select.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, bubbles: true, cancelable: true }));
+        select.dispatchEvent(
+            new WheelEvent("wheel", {
+                deltaY: -1,
+                bubbles: true,
+                cancelable: true,
+            })
+        );
         expect(select.value).toBe("50");
     });
 });

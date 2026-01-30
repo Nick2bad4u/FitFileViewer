@@ -1,12 +1,16 @@
 /**
- * @fileoverview Lazy Rendering Utilities
- * @description Provides utilities for deferring rendering until elements are visible
+ * Provides utilities for deferring rendering until elements are visible
+ *
+ * @file Lazy Rendering Utilities
  */
 
 /**
  * Batch DOM reads to avoid layout thrashing
+ *
  * @template T
+ *
  * @param {() => T[]} readCallback - Callback that reads from DOM
+ *
  * @returns {Promise<T[]>} Promise with read results
  */
 export function batchDOMReads(readCallback) {
@@ -36,7 +40,9 @@ export function batchDOMReads(readCallback) {
 
 /**
  * Batch DOM writes to avoid layout thrashing
+ *
  * @param {() => void} writeCallback - Callback that writes to DOM
+ *
  * @returns {Promise<void>}
  */
 export function batchDOMWrites(writeCallback) {
@@ -66,13 +72,17 @@ export function batchDOMWrites(writeCallback) {
 
 /**
  * Create a lazy renderer that only renders when element is visible
+ *
  * @param {HTMLElement} element - Element to observe
- * @param {() => void | Promise<void>} renderCallback - Callback to execute when visible
+ * @param {() => void | Promise<void>} renderCallback - Callback to execute when
+ *   visible
  * @param {Object} [options] - Options
- * @param {number} [options.threshold=0.1] - Intersection threshold (0-1)
- * @param {string} [options.rootMargin='0px'] - Root margin
- * @param {boolean} [options.once=true] - Only trigger once
- * @returns {{ disconnect: () => void, observe: () => void }} Observer controls
+ * @param {number} [options.threshold=0.1] - Intersection threshold (0-1).
+ *   Default is `0.1`
+ * @param {string} [options.rootMargin='0px'] - Root margin. Default is `'0px'`
+ * @param {boolean} [options.once=true] - Only trigger once. Default is `true`
+ *
+ * @returns {{ disconnect: () => void; observe: () => void }} Observer controls
  */
 export function createLazyRenderer(element, renderCallback, options = {}) {
     const { once = true, rootMargin = "0px", threshold = 0.1 } = options;
@@ -84,18 +94,26 @@ export function createLazyRenderer(element, renderCallback, options = {}) {
         for (const entry of entries) {
             if (entry.isIntersecting && (!once || !hasRendered)) {
                 hasRendered = true;
-                console.log("[LazyRenderer] Element visible, triggering render");
+                console.log(
+                    "[LazyRenderer] Element visible, triggering render"
+                );
 
                 // Execute callback
                 try {
                     const result = renderCallback();
                     if (result instanceof Promise) {
                         result.catch((error) => {
-                            console.error("[LazyRenderer] Render callback error:", error);
+                            console.error(
+                                "[LazyRenderer] Render callback error:",
+                                error
+                            );
                         });
                     }
                 } catch (error) {
-                    console.error("[LazyRenderer] Render callback error:", error);
+                    console.error(
+                        "[LazyRenderer] Render callback error:",
+                        error
+                    );
                 }
 
                 // Disconnect if once=true
@@ -109,7 +127,9 @@ export function createLazyRenderer(element, renderCallback, options = {}) {
     const observe = () => {
         if (typeof IntersectionObserver === "undefined") {
             // Fallback: immediately execute if IntersectionObserver not available
-            console.warn("[LazyRenderer] IntersectionObserver not available, rendering immediately");
+            console.warn(
+                "[LazyRenderer] IntersectionObserver not available, rendering immediately"
+            );
             try {
                 renderCallback();
             } catch (error) {
@@ -141,9 +161,11 @@ export function createLazyRenderer(element, renderCallback, options = {}) {
 
 /**
  * Defer execution until browser is idle
+ *
  * @param {() => void | Promise<void>} callback - Callback to execute
  * @param {Object} [options] - Options
- * @param {number} [options.timeout=2000] - Maximum timeout
+ * @param {number} [options.timeout=2000] - Maximum timeout. Default is `2000`
+ *
  * @returns {number} Request ID
  */
 export function deferUntilIdle(callback, options = {}) {
@@ -174,8 +196,10 @@ export function deferUntilIdle(callback, options = {}) {
 
 /**
  * Check if element is visible in viewport
+ *
  * @param {HTMLElement} element - Element to check
- * @param {number} [threshold=0] - Threshold (0-1)
+ * @param {number} [threshold=0] - Threshold (0-1). Default is `0`
+ *
  * @returns {boolean} True if visible
  */
 export function isElementVisible(element, threshold = 0) {
@@ -184,12 +208,18 @@ export function isElementVisible(element, threshold = 0) {
     }
 
     const rect = element.getBoundingClientRect();
-    const viewportHeight = globalThis.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth = globalThis.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight =
+        globalThis.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth =
+        globalThis.innerWidth || document.documentElement.clientWidth;
 
-    const verticalVisible = rect.bottom >= viewportHeight * threshold && rect.top <= viewportHeight * (1 - threshold);
+    const verticalVisible =
+        rect.bottom >= viewportHeight * threshold &&
+        rect.top <= viewportHeight * (1 - threshold);
 
-    const horizontalVisible = rect.right >= viewportWidth * threshold && rect.left <= viewportWidth * (1 - threshold);
+    const horizontalVisible =
+        rect.right >= viewportWidth * threshold &&
+        rect.left <= viewportWidth * (1 - threshold);
 
     return verticalVisible && horizontalVisible;
 }

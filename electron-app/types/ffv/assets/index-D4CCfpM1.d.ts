@@ -13,10 +13,10 @@ declare namespace T {
     }
 }
 /**
- * @license lucide-react v0.396.0 - ISC
+ * @license Lucide-react v0.396.0 - ISC
  *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
+ *   This source code is licensed under the ISC license. See the LICENSE file in
+ *   the root directory of this source tree.
  */ declare const F: any;
 export { T as D, F as a };
 //# sourceMappingURL=index-D4CCfpM1.d.ts.map

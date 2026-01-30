@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock heavy dependencies used inside renderMap
-vi.mock("../../../../utils/maps/controls/mapMeasureTool.js", () => ({ addSimpleMeasureTool: vi.fn() }));
-vi.mock("../../../../utils/maps/controls/mapLapSelector.js", () => ({ addLapSelector: vi.fn() }));
+vi.mock("../../../../utils/maps/controls/mapMeasureTool.js", () => ({
+    addSimpleMeasureTool: vi.fn(),
+}));
+vi.mock("../../../../utils/maps/controls/mapLapSelector.js", () => ({
+    addLapSelector: vi.fn(),
+}));
 vi.mock("../../../../utils/maps/layers/mapDrawLaps.js", () => ({
     mapDrawLaps: vi.fn(),
     drawOverlayForFitFile: vi.fn(),
@@ -11,7 +15,10 @@ vi.mock("../../../../utils/theming/specific/updateMapTheme.js", () => ({
     installUpdateMapThemeListeners: vi.fn(),
     updateMapTheme: vi.fn(),
 }));
-vi.mock("../../../../utils/maps/layers/mapIcons.js", () => ({ createEndIcon: vi.fn(), createStartIcon: vi.fn() }));
+vi.mock("../../../../utils/maps/layers/mapIcons.js", () => ({
+    createEndIcon: vi.fn(),
+    createStartIcon: vi.fn(),
+}));
 vi.mock("../../../../utils/maps/controls/mapActionButtons.js", () => ({
     createMapThemeToggle: vi.fn(() => {
         const el = document.createElement("button");
@@ -39,13 +46,16 @@ vi.mock("../../../../utils/ui/controls/createMarkerCountSelector.js", () => ({
         return el;
     }),
 }));
-vi.mock("../../../../utils/rendering/components/createShownFilesList.js", () => ({
-    createShownFilesList: vi.fn(() => {
-        const el = document.createElement("div");
-        el.className = "mock-shown-files";
-        return el;
-    }),
-}));
+vi.mock(
+    "../../../../utils/rendering/components/createShownFilesList.js",
+    () => ({
+        createShownFilesList: vi.fn(() => {
+            const el = document.createElement("div");
+            el.className = "mock-shown-files";
+            return el;
+        }),
+    })
+);
 vi.mock("../../../../utils/ui/controls/createAddFitFileToMapButton.js", () => ({
     createAddFitFileToMapButton: vi.fn(() => {
         const el = document.createElement("button");
@@ -67,18 +77,28 @@ vi.mock("../../../../utils/files/export/createPrintButton.js", () => ({
         return el;
     }),
 }));
-vi.mock("../../../../utils/ui/controls/createElevationProfileButton.js", () => ({
-    createElevationProfileButton: vi.fn(() => {
-        const el = document.createElement("button");
-        el.id = "mock-elev-profile";
-        return el;
-    }),
+vi.mock(
+    "../../../../utils/ui/controls/createElevationProfileButton.js",
+    () => ({
+        createElevationProfileButton: vi.fn(() => {
+            const el = document.createElement("button");
+            el.id = "mock-elev-profile";
+            return el;
+        }),
+    })
+);
+vi.mock("../../../../utils/charts/theming/chartOverlayColorPalette.js", () => ({
+    chartOverlayColorPalette: {},
 }));
-vi.mock("../../../../utils/charts/theming/chartOverlayColorPalette.js", () => ({ chartOverlayColorPalette: {} }));
-vi.mock("../../../../utils/ui/controls/createElevationProfileButton.js", () => ({
-    createElevationProfileButton: vi.fn(),
+vi.mock(
+    "../../../../utils/ui/controls/createElevationProfileButton.js",
+    () => ({
+        createElevationProfileButton: vi.fn(),
+    })
+);
+vi.mock("../../../../utils/maps/controls/mapFullscreenControl.js", () => ({
+    addFullscreenControl: vi.fn(),
 }));
-vi.mock("../../../../utils/maps/controls/mapFullscreenControl.js", () => ({ addFullscreenControl: vi.fn() }));
 
 // Helper to import subject under test after environment prepared
 const importSUT = async () => {
@@ -144,8 +164,12 @@ describe("renderMap core", () => {
         const { L, map, handlers } = makeLeafletStub();
         (globalThis as any).L = L;
         // Ensure elevation profile button factory returns a DOM node
-        const elevMod = await import("../../../../utils/ui/controls/createElevationProfileButton.js");
-        vi.spyOn(elevMod as any, "createElevationProfileButton").mockImplementation(() => {
+        const elevMod =
+            await import("../../../../utils/ui/controls/createElevationProfileButton.js");
+        vi.spyOn(
+            elevMod as any,
+            "createElevationProfileButton"
+        ).mockImplementation(() => {
             const el = document.createElement("button");
             el.id = "spy-elev-profile";
             return el as any;
@@ -161,7 +185,9 @@ describe("renderMap core", () => {
         expect(controlsDiv).toBeTruthy();
 
         // Custom map type button exists and expands layer control on click
-        const btn = document.querySelector(".custom-maptype-btn") as HTMLDivElement;
+        const btn = document.querySelector(
+            ".custom-maptype-btn"
+        ) as HTMLDivElement;
         expect(btn).toBeTruthy();
 
         // Fake a layers control DOM to check expansion then collapse behavior
@@ -170,19 +196,31 @@ describe("renderMap core", () => {
         document.body.appendChild(layersPanel);
 
         btn.click();
-        expect(layersPanel.classList.contains("leaflet-control-layers-expanded")).toBe(true);
+        expect(
+            layersPanel.classList.contains("leaflet-control-layers-expanded")
+        ).toBe(true);
 
         // Clicking outside collapses it
         document.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-        expect(layersPanel.classList.contains("leaflet-control-layers-expanded")).toBe(false);
+        expect(
+            layersPanel.classList.contains("leaflet-control-layers-expanded")
+        ).toBe(false);
 
         // Zoom slider exists and reflects current zoom
-        const slider = document.querySelector("#zoom-slider-input") as HTMLInputElement;
-        const label = document.querySelector("#zoom-slider-current") as HTMLElement;
+        const slider = document.querySelector(
+            "#zoom-slider-input"
+        ) as HTMLInputElement;
+        const label = document.querySelector(
+            "#zoom-slider-current"
+        ) as HTMLElement;
         expect(slider).toBeTruthy();
         expect(label).toBeTruthy();
         expect(Number(slider.value)).toBe(
-            Math.round(((map.getZoom() - map.getMinZoom()) / (map.getMaxZoom() - map.getMinZoom())) * 100)
+            Math.round(
+                ((map.getZoom() - map.getMinZoom()) /
+                    (map.getMaxZoom() - map.getMinZoom())) *
+                    100
+            )
         );
 
         // Change slider -> map.setZoom called on change
@@ -194,15 +232,25 @@ describe("renderMap core", () => {
         // Simulate map zoom event updating slider back
         handlers["zoomend"]?.forEach((cb) => cb());
         expect(slider.value).toBe(
-            String(Math.round(((map.getZoom() - map.getMinZoom()) / (map.getMaxZoom() - map.getMinZoom())) * 100))
+            String(
+                Math.round(
+                    ((map.getZoom() - map.getMinZoom()) /
+                        (map.getMaxZoom() - map.getMinZoom())) *
+                        100
+                )
+            )
         );
     });
 
     it("removes previous map instance and children to avoid stale state", async () => {
         const { L } = makeLeafletStub();
         (globalThis as any).L = L;
-        const elevMod = await import("../../../../utils/ui/controls/createElevationProfileButton.js");
-        vi.spyOn(elevMod as any, "createElevationProfileButton").mockImplementation(() => {
+        const elevMod =
+            await import("../../../../utils/ui/controls/createElevationProfileButton.js");
+        vi.spyOn(
+            elevMod as any,
+            "createElevationProfileButton"
+        ).mockImplementation(() => {
             const el = document.createElement("button");
             el.id = "spy-elev-profile";
             return el as any;

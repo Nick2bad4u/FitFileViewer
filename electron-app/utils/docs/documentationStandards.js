@@ -1,15 +1,19 @@
 // @ts-nocheck
 /**
- * @fileoverview JSDoc Documentation Templates and Standards
- * @description Provides consistent documentation patterns for the FitFileViewer codebase
- * @author FitFileViewer Development Team
+ * Provides consistent documentation patterns for the FitFileViewer codebase
+ *
  * @version 1.0.0
+ *
+ * @file JSDoc Documentation Templates and Standards
+ *
+ * @author FitFileViewer Development Team
  */
 
 /**
- * Documentation standards and requirements for consistency across the FitFileViewer codebase.
- * This file defines the patterns that should be followed for JSDoc comments to ensure
- * consistency, completeness, and maintainability.
+ * Documentation standards and requirements for consistency across the
+ * FitFileViewer codebase. This file defines the patterns that should be
+ * followed for JSDoc comments to ensure consistency, completeness, and
+ * maintainability.
  */
 
 /**

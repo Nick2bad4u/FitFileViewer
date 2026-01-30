@@ -7,7 +7,8 @@ describe("showUpdateNotification", () => {
     });
 
     it("returns early when notification element missing", async () => {
-        const mod = await import("../../../../utils/ui/notifications/showUpdateNotification.js");
+        const mod =
+            await import("../../../../utils/ui/notifications/showUpdateNotification.js");
         // Should not throw
         mod.showUpdateNotification("msg", "info");
         // Nothing to assert in DOM
@@ -20,9 +21,15 @@ describe("showUpdateNotification", () => {
         document.body.appendChild(host);
         (window as any).electronAPI = { installUpdate: vi.fn() };
 
-        const { showUpdateNotification } = await import("../../../../utils/ui/notifications/showUpdateNotification.js");
+        const { showUpdateNotification } =
+            await import("../../../../utils/ui/notifications/showUpdateNotification.js");
 
-        showUpdateNotification("Update ready", "success", 0, "update-downloaded");
+        showUpdateNotification(
+            "Update ready",
+            "success",
+            0,
+            "update-downloaded"
+        );
         const buttons = host.querySelectorAll("button");
         expect(buttons).toHaveLength(2);
         expect(host.textContent).toContain("Update ready");
@@ -43,7 +50,8 @@ describe("showUpdateNotification", () => {
         (window as any).electronAPI = { installUpdate: vi.fn() };
         vi.useFakeTimers();
 
-        const { showUpdateNotification } = await import("../../../../utils/ui/notifications/showUpdateNotification.js");
+        const { showUpdateNotification } =
+            await import("../../../../utils/ui/notifications/showUpdateNotification.js");
         showUpdateNotification("Update available", "info", 1234, true);
         expect(host.querySelectorAll("button")).toHaveLength(1);
         // Advance timers to trigger auto hide

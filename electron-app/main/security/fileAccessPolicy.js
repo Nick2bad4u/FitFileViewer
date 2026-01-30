@@ -8,18 +8,22 @@ const MAX_APPROVED_FIT_FILES = 500;
  * In-memory allowlist for renderer-initiated file reads.
  *
  * Why this exists:
+ *
  * - `file:read` is an IPC bridge from renderer -> main.
- * - If the renderer is ever compromised (XSS, dependency bug), unrestricted file reads become
- *   an immediate local file disclosure primitive.
+ * - If the renderer is ever compromised (XSS, dependency bug), unrestricted file
+ *   reads become an immediate local file disclosure primitive.
  *
  * Design:
- * - Only allow reading files that the application has explicitly "approved" via a trusted
- *   user flow (e.g. native file dialog selection or main-process menu action).
+ *
+ * - Only allow reading files that the application has explicitly "approved" via a
+ *   trusted user flow (e.g. native file dialog selection or main-process menu
+ *   action).
  * - Keep approval state in the main process only.
  *
  * Notes:
- * - This is intentionally conservative: it is better to block a read and log than to allow
- *   arbitrary filesystem access via IPC.
+ *
+ * - This is intentionally conservative: it is better to block a read and log than
+ *   to allow arbitrary filesystem access via IPC.
  */
 
 /**
@@ -27,7 +31,9 @@ const MAX_APPROVED_FIT_FILES = 500;
  */
 
 /**
- * @typedef {typeof globalThis & { __ffvFileAccessPolicyState?: FileAccessPolicyState }} FileAccessPolicyGlobal
+ * @typedef {typeof globalThis & {
+ *     __ffvFileAccessPolicyState?: FileAccessPolicyState;
+ * }} FileAccessPolicyGlobal
  */
 
 /**
@@ -39,9 +45,11 @@ function __resetForTests() {
 
 /**
  * Approve a FIT file path for subsequent reads.
+ *
  * @param {unknown} filePath
  * @param {{ source?: string }} [options]
- * @returns {string} validated path
+ *
+ * @returns {string} Validated path
  */
 function approveFilePath(filePath, options = {}) {
     const validated = validateFilePathInput(filePath);
@@ -64,7 +72,9 @@ function approveFilePath(filePath, options = {}) {
     // Optional debug breadcrumb (kept low-noise)
     if (options.source && process.env.NODE_ENV !== "production") {
         try {
-            console.log(`[FileAccessPolicy] Approved: ${validated} (source=${options.source})`);
+            console.log(
+                `[FileAccessPolicy] Approved: ${validated} (source=${options.source})`
+            );
         } catch {
             /* ignore */
         }
@@ -75,6 +85,7 @@ function approveFilePath(filePath, options = {}) {
 
 /**
  * Best-effort bulk approval. Invalid entries are ignored.
+ *
  * @param {unknown} filePaths
  * @param {{ source?: string }} [options]
  */
@@ -94,8 +105,10 @@ function approveFilePaths(filePaths, options = {}) {
 
 /**
  * Assert that a requested file read is allowed.
+ *
  * @param {unknown} filePath
- * @returns {string} validated path
+ *
+ * @returns {string} Validated path
  */
 function assertFileReadAllowed(filePath) {
     const validated = validateFilePathInput(filePath);
@@ -117,7 +130,10 @@ function assertFileReadAllowed(filePath) {
 function getState() {
     /** @type {FileAccessPolicyGlobal} */
     const g = globalThis;
-    if (!g.__ffvFileAccessPolicyState || typeof g.__ffvFileAccessPolicyState !== "object") {
+    if (
+        !g.__ffvFileAccessPolicyState ||
+        typeof g.__ffvFileAccessPolicyState !== "object"
+    ) {
         Object.defineProperty(g, "__ffvFileAccessPolicyState", {
             configurable: true,
             enumerable: false,
@@ -131,6 +147,7 @@ function getState() {
 
 /**
  * @param {string} filePath
+ *
  * @returns {boolean}
  */
 function hasFitExtension(filePath) {
@@ -139,6 +156,7 @@ function hasFitExtension(filePath) {
 
 /**
  * @param {unknown} filePath
+ *
  * @returns {boolean}
  */
 function isApprovedFilePath(filePath) {
@@ -155,6 +173,7 @@ function isApprovedFilePath(filePath) {
 
 /**
  * @param {unknown} filePath
+ *
  * @returns {filePath is string}
  */
 function isNonEmptyString(filePath) {
@@ -162,13 +181,15 @@ function isNonEmptyString(filePath) {
 }
 
 /**
- * Validate that a value is a well-formed absolute filesystem path to a .fit file.
+ * Validate that a value is a well-formed absolute filesystem path to a .fit
+ * file.
  *
  * This does NOT approve anything; it's intended for callers that need to filter
  * user-provided or persisted lists (e.g., recent-files.json) without mutating
  * allowlist state.
  *
  * @param {unknown} filePath
+ *
  * @returns {filePath is string}
  */
 function isValidFitFilePathCandidate(filePath) {
@@ -181,21 +202,27 @@ function isValidFitFilePathCandidate(filePath) {
 }
 
 /**
- * Detect whether a path is Windows-style (drive letter or UNC).
- * This is important because Vitest may run on non-Windows platforms while
- * our fixtures/tests still use Windows-like paths (e.g., "C:/file.fit").
+ * Detect whether a path is Windows-style (drive letter or UNC). This is
+ * important because Vitest may run on non-Windows platforms while our
+ * fixtures/tests still use Windows-like paths (e.g., "C:/file.fit").
  *
  * @param {string} filePath
+ *
  * @returns {boolean}
  */
 function isWindowsStylePath(filePath) {
     // Drive-letter paths:  C:\x or C:/x
     // UNC paths:           \\server\share\x   or //server/share/x
-    return /^[A-Za-z]:[/\\]/.test(filePath) || /^\\\\/.test(filePath) || /^\/\//.test(filePath);
+    return (
+        /^[A-Za-z]:[/\\]/.test(filePath) ||
+        /^\\\\/.test(filePath) ||
+        /^\/\//.test(filePath)
+    );
 }
 
 /**
  * @param {string} filePath
+ *
  * @returns {string}
  */
 function normalizeKey(filePath) {
@@ -227,7 +254,9 @@ function normalizeKey(filePath) {
 
 /**
  * Validate and normalize an IPC-provided file path.
+ *
  * @param {unknown} filePath
+ *
  * @returns {string}
  */
 function validateFilePathInput(filePath) {
@@ -260,7 +289,8 @@ function validateFilePathInput(filePath) {
         throw new Error("Invalid file path provided");
     }
 
-    const isAbsolute = path.posix.isAbsolute(trimmed) || path.win32.isAbsolute(trimmed);
+    const isAbsolute =
+        path.posix.isAbsolute(trimmed) || path.win32.isAbsolute(trimmed);
     if (!isAbsolute) {
         throw new Error("Only absolute file paths are allowed");
     }

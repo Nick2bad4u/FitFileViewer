@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDownloadFilename, sanitizeFileExtension, sanitizeFilenameComponent } from "./sanitizeFilename.js";
+import {
+    buildDownloadFilename,
+    sanitizeFileExtension,
+    sanitizeFilenameComponent,
+} from "./sanitizeFilename.js";
 
 describe("sanitizeFilenameComponent", () => {
     it("replaces reserved characters and control codes with underscores", () => {
-        const result = sanitizeFilenameComponent("My:\u0000Bad?Name*", "fallback");
+        const result = sanitizeFilenameComponent(
+            "My:\u0000Bad?Name*",
+            "fallback"
+        );
         expect(result).toBe("My_Bad_Name");
     });
 
@@ -19,7 +26,10 @@ describe("sanitizeFilenameComponent", () => {
     });
 
     it("falls back to a sanitised default when input is unusable", () => {
-        const result = sanitizeFilenameComponent("\u0000\u0001", "*fallback name*");
+        const result = sanitizeFilenameComponent(
+            "\u0000\u0001",
+            "*fallback name*"
+        );
         expect(result).toBe("fallback_name");
     });
 
@@ -48,7 +58,10 @@ describe("buildDownloadFilename", () => {
     });
 
     it("applies default extension and fallback", () => {
-        const result = buildDownloadFilename("", { defaultExtension: "csv", fallbackBase: "analysis" });
+        const result = buildDownloadFilename("", {
+            defaultExtension: "csv",
+            fallbackBase: "analysis",
+        });
         expect(result).toBe("analysis.csv");
     });
 

@@ -4,6 +4,7 @@ import { loadOverlayFiles } from "./loadOverlayFiles.js";
 
 /**
  * File selector configuration
+ *
  * @readonly
  */
 const FILE_SELECTOR_CONFIG = {
@@ -25,14 +26,15 @@ const PROCESSED_INPUTS = new WeakSet();
 /**
  * Opens a file selector dialog for choosing FIT files as overlays
  *
- * Creates a hidden file input element, triggers the file selection dialog,
- * and processes selected files for overlay loading. Handles multiple file
- * selection and provides error feedback through notifications.
+ * Creates a hidden file input element, triggers the file selection dialog, and
+ * processes selected files for overlay loading. Handles multiple file selection
+ * and provides error feedback through notifications.
+ *
+ * @example
+ *     // Open file selector for overlay files
+ *     openFileSelector();
  *
  * @returns {void}
- * @example
- * // Open file selector for overlay files
- * openFileSelector();
  */
 export async function openFileSelector() {
     const { electronAPI } = /** @type {any} */ (globalThis);
@@ -45,7 +47,11 @@ export async function openFileSelector() {
             }
 
             const facadeFiles = selectedPaths
-                .filter((filePath) => typeof filePath === "string" && filePath.trim().length > 0)
+                .filter(
+                    (filePath) =>
+                        typeof filePath === "string" &&
+                        filePath.trim().length > 0
+                )
                 .map((filePath) => createNativeFileFacade(filePath));
 
             if (facadeFiles.length === 0) {
@@ -59,7 +65,10 @@ export async function openFileSelector() {
                 `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
                 error
             );
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
             LoadingOverlay.hide();
             return;
         }
@@ -74,7 +83,10 @@ export async function openFileSelector() {
             `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
             error
         );
-        showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+        showNotification(
+            FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+            "error"
+        );
         LoadingOverlay.hide();
     }
 }
@@ -83,14 +95,18 @@ const PATH_SEPARATOR_REGEX = /[/\\]+/g;
 
 /**
  * Creates and configures the file input element
- * @returns {HTMLInputElement} Configured file input element
+ *
  * @private
+ *
+ * @returns {HTMLInputElement} Configured file input element
  */
 function createFileInput() {
     const input = document.createElement("input");
     // In JSDOM tests, setting type="file" can make the `files` property non-configurable,
     // Which prevents tests from redefining it. Detect JSDOM and skip setting type there.
-    const isJsdom = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || "");
+    const isJsdom =
+        typeof navigator !== "undefined" &&
+        /jsdom/i.test(navigator.userAgent || "");
     if (!isJsdom) {
         input.type = FILE_SELECTOR_CONFIG.INPUT_TYPE;
     }
@@ -102,12 +118,13 @@ function createFileInput() {
 }
 
 /**
- * Creates a single-run processor for an input element.
- * Ensures that handleFilesFromInput executes at most once per element and
- * provides a promise that resolves when processing completes.
+ * Creates a single-run processor for an input element. Ensures that
+ * handleFilesFromInput executes at most once per element and provides a promise
+ * that resolves when processing completes.
  *
  * @param {HTMLInputElement} input
- * @returns {{ run: (origin?: string) => Promise<void>, done: Promise<void> }}
+ *
+ * @returns {{ run: (origin?: string) => Promise<void>; done: Promise<void> }}
  */
 function createInputProcessingController(input) {
     let handled = false;
@@ -139,7 +156,10 @@ function createInputProcessingController(input) {
                 error,
                 `(source: ${origin})`
             );
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
         } finally {
             LoadingOverlay.hide();
             finalize();
@@ -177,21 +197,34 @@ function getFileNameFromPath(filePath) {
 
 /**
  * Extracts files from the provided input element and dispatches to loader
+ *
  * @param {HTMLInputElement} input
  */
 async function handleFilesFromInput(input) {
     /** @type {File[]} */
     const merged = [];
     const nativeList = /** @type {any} */ (input).files;
-    if (nativeList && typeof nativeList.length === "number" && nativeList.length > 0) {
+    if (
+        nativeList &&
+        typeof nativeList.length === "number" &&
+        nativeList.length > 0
+    ) {
         merged.push(...nativeList);
     }
     const selected = /** @type {any} */ (input).selectedFiles;
-    if (selected && typeof selected.length === "number" && selected.length > 0) {
+    if (
+        selected &&
+        typeof selected.length === "number" &&
+        selected.length > 0
+    ) {
         merged.push(...selected);
     }
     const injected = /** @type {any} */ (input).__files;
-    if (injected && typeof injected.length === "number" && injected.length > 0) {
+    if (
+        injected &&
+        typeof injected.length === "number" &&
+        injected.length > 0
+    ) {
         merged.push(...injected);
     }
 
@@ -206,16 +239,24 @@ async function handleFilesFromInput(input) {
     }
 
     if (unique.length === 0) {
-        console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`);
+        console.debug(
+            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`
+        );
         return;
     }
 
     const fileArray = unique;
-    console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
+    console.debug(
+        `${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`
+    );
     // Support test-time injection via window.loadOverlayFiles
     const injectedLoader =
-        /** @type {any} */ (globalThis)?.loadOverlayFiles ?? /** @type {any} */ (globalThis)?.loadOverlayFiles;
-    const loader = typeof injectedLoader === "function" ? injectedLoader : loadOverlayFiles;
+        /** @type {any} */ (globalThis)?.loadOverlayFiles ??
+        /** @type {any} */ (globalThis)?.loadOverlayFiles;
+    const loader =
+        typeof injectedLoader === "function"
+            ? injectedLoader
+            : loadOverlayFiles;
     await loader(fileArray);
 }
 
@@ -233,8 +274,10 @@ function setupFileInputHandler(input) {
 
 /**
  * Triggers the file selection dialog and cleans up the input element
- * @param {HTMLInputElement} input - File input element to trigger
+ *
  * @private
+ *
+ * @param {HTMLInputElement} input - File input element to trigger
  */
 async function triggerFileSelection(input, controller) {
     // Temporarily add to DOM to enable click trigger

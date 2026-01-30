@@ -1,21 +1,32 @@
 /**
- * @fileoverview Basic Test Coverage for renderChartJS.js
- * @description Tests the core chart rendering functionality with Chart.js library integration
+ * Tests the core chart rendering functionality with Chart.js library
+ * integration
  *
- * This test file targets the largest remaining zero-coverage file (1499 lines) to maximize
- * test coverage impact. It includes comprehensive mocking for all 26 dependencies and covers
- * the main exported functions and objects.
+ * This test file targets the largest remaining zero-coverage file (1499 lines)
+ * to maximize test coverage impact. It includes comprehensive mocking for all
+ * 26 dependencies and covers the main exported functions and objects.
  *
  * Target Coverage Areas:
+ *
  * - Chart rendering pipeline and validation
  * - State management integration
  * - Theme and styling systems
  * - Performance monitoring and error handling
  * - Chart.js library integration
  * - Export and utility functions
+ *
+ * @file Basic Test Coverage for renderChartJS.js
  */
 
-import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from "vitest";
+import {
+    describe,
+    it,
+    expect,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    vi,
+} from "vitest";
 
 // Ensure window has necessary methods mocked
 if (typeof window !== "undefined") {
@@ -173,7 +184,10 @@ vi.mock("../rendering/renderTimeInZoneCharts.js", () => ({
 }));
 
 vi.mock("../rendering/renderPerformanceAnalysisCharts.js", () => ({
-    renderPerformanceAnalysisCharts: vi.fn(() => ({ success: true, chartCount: 3 })),
+    renderPerformanceAnalysisCharts: vi.fn(() => ({
+        success: true,
+        chartCount: 3,
+    })),
 }));
 
 vi.mock("../rendering/renderGPSTrackChart.js", () => ({
@@ -251,7 +265,10 @@ Object.assign(window, {
 // Add theme module mocks
 vi.mock("../../../utils/charts/theming/chartThemeUtils.js", () => ({
     detectCurrentTheme: vi.fn(() => "light"),
-    getChartThemeColors: vi.fn(() => ({ primary: "#007bff", secondary: "#6c757d" })),
+    getChartThemeColors: vi.fn(() => ({
+        primary: "#007bff",
+        secondary: "#6c757d",
+    })),
     applyThemeToChart: vi.fn(),
 }));
 
@@ -559,7 +576,9 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
         });
 
         it("should have startTracking method", () => {
-            expect(typeof chartPerformanceMonitor.startTracking).toBe("function");
+            expect(typeof chartPerformanceMonitor.startTracking).toBe(
+                "function"
+            );
         });
 
         it("should have endTracking method", () => {
@@ -568,7 +587,8 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
         it("should handle tracking operations", () => {
             expect(() => {
-                const trackingId = chartPerformanceMonitor.startTracking("test");
+                const trackingId =
+                    chartPerformanceMonitor.startTracking("test");
                 chartPerformanceMonitor.endTracking(trackingId);
             }).not.toThrow();
         });

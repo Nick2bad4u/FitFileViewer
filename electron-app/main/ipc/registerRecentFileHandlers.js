@@ -1,5 +1,6 @@
 /**
  * Registers IPC handlers for managing recent FIT files.
+ *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {(filePath: string) => void} options.addRecentFile
@@ -9,7 +10,11 @@
  * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
  * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
  * @param {(key: string) => any} options.getAppState
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  */
 function registerRecentFileHandlers({
     registerIpcHandle,
@@ -27,13 +32,13 @@ function registerRecentFileHandlers({
     }
 
     /**
-     * Main-process file read policy (best-effort).
-     * If unavailable, we fall back to legacy behavior.
+     * Main-process file read policy (best-effort). If unavailable, we fall back
+     * to legacy behavior.
      *
      * @type {null | {
-     *  approveFilePath: (path: unknown, options?: { source?: string }) => string,
-     *  isApprovedFilePath: (path: unknown) => boolean,
-     *  isValidFitFilePathCandidate?: (path: unknown) => path is string,
+     *     approveFilePath: (path: unknown, options?: { source?: string }) => string;
+     *     isApprovedFilePath: (path: unknown) => boolean;
+     *     isValidFitFilePathCandidate?: (path: unknown) => path is string;
      * }}
      */
     let fileAccessPolicy = null;
@@ -46,12 +51,16 @@ function registerRecentFileHandlers({
     /**
      * Sanitize a persisted recent-files list.
      *
-     * The recent files JSON is a persistence layer, not a trust boundary. We therefore:
-     * - enforce strings only
-     * - trim whitespace
-     * - require well-formed absolute .fit paths when the policy module is available
+     * The recent files JSON is a persistence layer, not a trust boundary. We
+     * therefore:
+     *
+     * - Enforce strings only
+     * - Trim whitespace
+     * - Require well-formed absolute .fit paths when the policy module is
+     *   available
      *
      * @param {unknown} list
+     *
      * @returns {string[]}
      */
     function sanitizeRecentFilesList(list) {
@@ -107,36 +116,54 @@ function registerRecentFileHandlers({
     registerIpcHandle("recentFiles:approve", async (_event, filePath) => {
         try {
             if (!fileAccessPolicy) {
-                logWithContext?.("warn", "Rejected recentFiles:approve because file access policy is unavailable", {
-                    filePath,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:approve because file access policy is unavailable",
+                    {
+                        filePath,
+                    }
+                );
                 return false;
             }
 
             if (typeof filePath !== "string" || filePath.trim().length === 0) {
-                logWithContext?.("warn", "Rejected recentFiles:approve for invalid path", {
-                    filePath,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:approve for invalid path",
+                    {
+                        filePath,
+                    }
+                );
                 return false;
             }
 
             const trimmed = filePath.trim();
             const list = sanitizeRecentFilesList(loadRecentFiles());
             if (!list.includes(trimmed)) {
-                logWithContext?.("warn", "Rejected recentFiles:approve for path not in recent list", {
-                    filePath: trimmed,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:approve for path not in recent list",
+                    {
+                        filePath: trimmed,
+                    }
+                );
                 return false;
             }
 
             try {
-                fileAccessPolicy.approveFilePath(trimmed, { source: "recentFiles:approve" });
+                fileAccessPolicy.approveFilePath(trimmed, {
+                    source: "recentFiles:approve",
+                });
                 return true;
             } catch (policyError) {
-                logWithContext?.("warn", "Rejected recentFiles:approve due to policy validation", {
-                    error: /** @type {Error} */ (policyError)?.message,
-                    filePath: trimmed,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:approve due to policy validation",
+                    {
+                        error: /** @type {Error} */ (policyError)?.message,
+                        filePath: trimmed,
+                    }
+                );
                 return false;
             }
         } catch (error) {
@@ -150,9 +177,13 @@ function registerRecentFileHandlers({
     registerIpcHandle("recentFiles:add", async (_event, filePath) => {
         try {
             if (typeof filePath !== "string" || filePath.trim().length === 0) {
-                logWithContext?.("warn", "Rejected recentFiles:add for invalid path", {
-                    filePath,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:add for invalid path",
+                    {
+                        filePath,
+                    }
+                );
                 return sanitizeRecentFilesList(loadRecentFiles());
             }
 
@@ -161,18 +192,26 @@ function registerRecentFileHandlers({
             // arbitrary paths here (especially when the policy module is missing), a compromised
             // renderer could escalate into arbitrary local file reads.
             if (!fileAccessPolicy) {
-                logWithContext?.("warn", "Rejected recentFiles:add because file access policy is unavailable", {
-                    filePath,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:add because file access policy is unavailable",
+                    {
+                        filePath,
+                    }
+                );
                 return sanitizeRecentFilesList(loadRecentFiles());
             }
 
             // Security hardening: do not allow the renderer to arbitrarily add new file paths
             // unless they've already been approved via a trusted flow (e.g., dialog selection).
             if (!fileAccessPolicy.isApprovedFilePath(filePath)) {
-                logWithContext?.("warn", "Rejected recentFiles:add for unapproved path", {
-                    filePath,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Rejected recentFiles:add for unapproved path",
+                    {
+                        filePath,
+                    }
+                );
                 return sanitizeRecentFilesList(loadRecentFiles());
             }
 
@@ -186,9 +225,13 @@ function registerRecentFileHandlers({
                 const theme = await getThemeFromRenderer(win);
                 safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (menuError) {
-                logWithContext?.("warn", "Failed to refresh menu after recent file add", {
-                    error: /** @type {Error} */ (menuError)?.message,
-                });
+                logWithContext?.(
+                    "warn",
+                    "Failed to refresh menu after recent file add",
+                    {
+                        error: /** @type {Error} */ (menuError)?.message,
+                    }
+                );
             }
 
             return sanitizeRecentFilesList(loadRecentFiles());
@@ -203,12 +246,14 @@ function registerRecentFileHandlers({
 
 /**
  * Resolves a BrowserWindow instance suitable for menu updates.
+ *
  * @param {() => any} browserWindowRef
  * @param {any} fallback
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {
-        const api = typeof browserWindowRef === "function" ? browserWindowRef() : null;
+        const api =
+            typeof browserWindowRef === "function" ? browserWindowRef() : null;
         if (api && typeof api.getFocusedWindow === "function") {
             const focused = api.getFocusedWindow();
             if (focused) {

@@ -1,6 +1,8 @@
 /**
  * Creates global chart status indicator from pre-calculated counts
- * @param {import('../core/getChartCounts.js').ChartCounts} counts - Pre-calculated chart counts
+ *
+ * @param {import("../core/getChartCounts.js").ChartCounts} counts -
+ *   Pre-calculated chart counts
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
@@ -79,7 +81,11 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             countSpan.textContent = String(counts.visible);
             statusText.append(countSpan);
 
-            statusText.append(document.createTextNode(` of ${counts.available} available charts`));
+            statusText.append(
+                document.createTextNode(
+                    ` of ${counts.available} available charts`
+                )
+            );
             statusText.style.color = "var(--color-fg)";
         }
 
@@ -100,16 +106,27 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.textContent = "⚙️ Show Settings";
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
-                const toggleBtn = document.querySelector("#chart-controls-toggle"),
-                    wrapper = document.querySelector("#chartjs-settings-wrapper");
-                if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
+                const toggleBtn = document.querySelector(
+                        "#chart-controls-toggle"
+                    ),
+                    wrapper = document.querySelector(
+                        "#chartjs-settings-wrapper"
+                    );
+                if (
+                    wrapper instanceof HTMLElement &&
+                    toggleBtn instanceof HTMLElement
+                ) {
                     wrapper.style.display = "block";
                     toggleBtn.textContent = "▼ Hide Controls";
                     toggleBtn.setAttribute("aria-expanded", "true");
-                    const fieldsSection = document.querySelector(".fields-section");
+                    const fieldsSection =
+                        document.querySelector(".fields-section");
                     if (fieldsSection instanceof HTMLElement) {
                         setTimeout(() => {
-                            fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                            fieldsSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }, 100);
                     }
                 }
@@ -215,7 +232,10 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
 
         return globalIndicator;
     } catch (error) {
-        console.error("[ChartStatus] Error creating global chart status indicator from counts:", error);
+        console.error(
+            "[ChartStatus] Error creating global chart status indicator from counts:",
+            error
+        );
         return null;
     }
 }

@@ -6,6 +6,7 @@ import { createChartCanvas } from "../components/createChartCanvas.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 /**
  * @typedef {Object} LapZoneDatum
+ *
  * @property {string} label
  * @property {number} value
  * @property {string} color
@@ -13,11 +14,13 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
  */
 /**
  * @typedef {Object} LapZoneEntry
+ *
  * @property {string} lapLabel
  * @property {LapZoneDatum[]} zones
  */
 /**
  * @typedef {Object} LapZoneVisibility
+ *
  * @property {boolean} hrStackedVisible
  * @property {boolean} hrIndividualVisible
  * @property {boolean} powerStackedVisible
@@ -25,6 +28,7 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
  */
 /**
  * @typedef {Object} LapZoneChartsOptions
+ *
  * @property {LapZoneVisibility} [visibilitySettings]
  */
 
@@ -35,13 +39,21 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
  */
 export function renderLapZoneCharts(container, options = {}) {
     try {
-        const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isTestEnvironment =
+            typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
-            isTestEnvironment || (isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+            isTestEnvironment ||
+            (isDevEnvironment &&
+                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
         const isVerboseDebugLoggingEnabled =
             isTestEnvironment ||
-            (isDebugLoggingEnabled && Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose));
+            (isDebugLoggingEnabled &&
+                Boolean(
+                    /** @type {any} */ (globalThis).__FFV_debugChartsVerbose
+                ));
 
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderLapZoneCharts called");
@@ -49,20 +61,35 @@ export function renderLapZoneCharts(container, options = {}) {
 
         if (!globalThis.globalData || !globalThis.globalData.timeInZoneMesgs) {
             if (isDebugLoggingEnabled) {
-                console.log("[ChartJS] No timeInZoneMesgs available for lap zone charts");
+                console.log(
+                    "[ChartJS] No timeInZoneMesgs available for lap zone charts"
+                );
             }
             return;
         }
 
         const { timeInZoneMesgs } = globalThis.globalData,
-            lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+            lapZoneMsgs = timeInZoneMesgs.filter(
+                (/** @type {any} */ msg) => msg.referenceMesg === "lap"
+            ),
             // Get theme configuration (used for logging and downstream hover styling)
             themeConfig = /** @type {any} */ (getThemeConfig() || {});
-        if (themeConfig && typeof themeConfig === "object" && themeConfig.name && isDebugLoggingEnabled) {
-            console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
+        if (
+            themeConfig &&
+            typeof themeConfig === "object" &&
+            themeConfig.name &&
+            isDebugLoggingEnabled
+        ) {
+            console.log(
+                "[renderLapZoneCharts] Using theme config:",
+                themeConfig.name
+            );
         }
         if (isDebugLoggingEnabled) {
-            console.log("[ChartJS] Found timeInZoneMesgs:", timeInZoneMesgs.length);
+            console.log(
+                "[ChartJS] Found timeInZoneMesgs:",
+                timeInZoneMesgs.length
+            );
         }
 
         if (lapZoneMsgs.length === 0) {
@@ -91,6 +118,7 @@ export function renderLapZoneCharts(container, options = {}) {
         // Helper function to parse zone arrays safely
         /**
          * @param {unknown} val
+         *
          * @returns {any[]}
          */
         function safeParseArray(val) {
@@ -127,7 +155,10 @@ export function renderLapZoneCharts(container, options = {}) {
                         })),
                     };
                 })
-                .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
+                .filter(
+                    (/** @type {LapZoneEntry} */ lap) =>
+                        Array.isArray(lap.zones) && lap.zones.length > 0
+                ),
             // Find which HR zones have any meaningful data across all laps
             /** @type {Record<number, number>} */
             hrZoneTotals = {};
@@ -141,18 +172,27 @@ export function renderLapZoneCharts(container, options = {}) {
             }
         }
         const meaningfulHRZones = Object.keys(hrZoneTotals)
-                .filter((zoneIndex) => (hrZoneTotals[Number(zoneIndex)] || 0) > 0)
+                .filter(
+                    (zoneIndex) => (hrZoneTotals[Number(zoneIndex)] || 0) > 0
+                )
                 .map(Number),
             // Filter to only include meaningful zones
             hrZoneData = hrZoneDataRaw
                 .map((/** @type {LapZoneEntry} */ lap) => ({
                     ...lap,
-                    zones: lap.zones.filter((zone) => meaningfulHRZones.includes(zone.zoneIndex)),
+                    zones: lap.zones.filter((zone) =>
+                        meaningfulHRZones.includes(zone.zoneIndex)
+                    ),
                 }))
-                .filter((/** @type {LapZoneEntry} */ lap) => lap.zones.length > 0);
+                .filter(
+                    (/** @type {LapZoneEntry} */ lap) => lap.zones.length > 0
+                );
 
         if (isDebugLoggingEnabled) {
-            console.log("[ChartJS] HR Zone filtering - meaningfulHRZones:", meaningfulHRZones);
+            console.log(
+                "[ChartJS] HR Zone filtering - meaningfulHRZones:",
+                meaningfulHRZones
+            );
         }
         if (isVerboseDebugLoggingEnabled) {
             console.log("[ChartJS] HR Zone data after filtering:", hrZoneData);
@@ -173,7 +213,10 @@ export function renderLapZoneCharts(container, options = {}) {
                         })),
                     };
                 })
-                .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
+                .filter(
+                    (/** @type {LapZoneEntry} */ lap) =>
+                        Array.isArray(lap.zones) && lap.zones.length > 0
+                ),
             // Find which Power zones have any meaningful data across all laps
             /** @type {Record<number, number>} */
             pwrZoneTotals = {};
@@ -187,21 +230,33 @@ export function renderLapZoneCharts(container, options = {}) {
             }
         }
         const meaningfulPowerZones = Object.keys(pwrZoneTotals)
-                .filter((zoneIndex) => (pwrZoneTotals[Number(zoneIndex)] || 0) > 0)
+                .filter(
+                    (zoneIndex) => (pwrZoneTotals[Number(zoneIndex)] || 0) > 0
+                )
                 .map(Number),
             // Filter to only include meaningful zones
             pwrZoneData = pwrZoneDataRaw
                 .map((/** @type {LapZoneEntry} */ lap) => ({
                     ...lap,
-                    zones: lap.zones.filter((zone) => meaningfulPowerZones.includes(zone.zoneIndex)),
+                    zones: lap.zones.filter((zone) =>
+                        meaningfulPowerZones.includes(zone.zoneIndex)
+                    ),
                 }))
-                .filter((/** @type {LapZoneEntry} */ lap) => lap.zones.length > 0);
+                .filter(
+                    (/** @type {LapZoneEntry} */ lap) => lap.zones.length > 0
+                );
 
         if (isDebugLoggingEnabled) {
-            console.log("[ChartJS] Power Zone filtering - meaningfulPowerZones:", meaningfulPowerZones);
+            console.log(
+                "[ChartJS] Power Zone filtering - meaningfulPowerZones:",
+                meaningfulPowerZones
+            );
         }
         if (isVerboseDebugLoggingEnabled) {
-            console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData);
+            console.log(
+                "[ChartJS] Power Zone data after filtering:",
+                pwrZoneData
+            );
         }
         // Chart 1: Lap Heart Rate Zone Lap Bar Stacked
         if (visibility.hrStackedVisible && hrZoneData.length > 0) {
@@ -248,10 +303,16 @@ export function renderLapZoneCharts(container, options = {}) {
             // Use session-level HR zone data if available, otherwise aggregate from laps
             let sessionHRZones = null;
 
-            if (globalThis.heartRateZones && globalThis.heartRateZones.length > 0) {
+            if (
+                globalThis.heartRateZones &&
+                globalThis.heartRateZones.length > 0
+            ) {
                 sessionHRZones = globalThis.heartRateZones;
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] Using session HR zone data:", sessionHRZones);
+                    console.log(
+                        "[ChartJS] Using session HR zone data:",
+                        sessionHRZones
+                    );
                 }
 
                 // Check if data has 'time' property and convert to 'value' if needed
@@ -260,14 +321,17 @@ export function renderLapZoneCharts(container, options = {}) {
                     value: zone.value || zone.time || 0,
                 }));
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] HR zone data after value mapping:", sessionHRZones);
+                    console.log(
+                        "[ChartJS] HR zone data after value mapping:",
+                        sessionHRZones
+                    );
                 }
             } else if (hrZoneData.length > 0) {
                 if (isDebugLoggingEnabled) {
                     console.log("[ChartJS] Aggregating HR zone data from laps");
                 }
                 // Aggregate zone data from all laps
-                /** @type {Record<string, {label:string,value:number,color:string}>} */
+                /** @type {Record<string, { label: string; value: number; color: string }>} */
                 const aggregatedZones = {};
                 for (const lap of hrZoneData) {
                     for (const zone of lap.zones) {
@@ -284,21 +348,31 @@ export function renderLapZoneCharts(container, options = {}) {
                 }
                 sessionHRZones = Object.values(aggregatedZones);
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] Aggregated HR zones:", sessionHRZones);
+                    console.log(
+                        "[ChartJS] Aggregated HR zones:",
+                        sessionHRZones
+                    );
                 }
             }
 
             if (sessionHRZones && sessionHRZones.length > 0) {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartJS] Rendering HR zone bar with data:", sessionHRZones);
+                    console.log(
+                        "[ChartJS] Rendering HR zone bar with data:",
+                        sessionHRZones
+                    );
                 }
                 const canvas3 = createChartCanvas("single-lap-hr", 0);
                 canvas3.id = "chartjs-canvas-single-lap-hr";
                 container.append(canvas3);
 
-                const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
-                    title: "HR Zone by Lap (Individual)",
-                });
+                const singleHRChart = renderSingleHRZoneBar(
+                    canvas3,
+                    sessionHRZones,
+                    {
+                        title: "HR Zone by Lap (Individual)",
+                    }
+                );
                 if (singleHRChart) {
                     if (!Array.isArray(globalThis._chartjsInstances)) {
                         globalThis._chartjsInstances = [];
@@ -307,7 +381,9 @@ export function renderLapZoneCharts(container, options = {}) {
                 }
             } else {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartJS] No HR zone data available for Chart 3");
+                    console.log(
+                        "[ChartJS] No HR zone data available for Chart 3"
+                    );
                 }
             }
         }
@@ -327,7 +403,10 @@ export function renderLapZoneCharts(container, options = {}) {
             if (globalThis.powerZones && globalThis.powerZones.length > 0) {
                 sessionPowerZones = globalThis.powerZones;
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] Using session Power zone data:", sessionPowerZones);
+                    console.log(
+                        "[ChartJS] Using session Power zone data:",
+                        sessionPowerZones
+                    );
                 }
 
                 // Check if data has 'time' property and convert to 'value' if needed
@@ -336,14 +415,19 @@ export function renderLapZoneCharts(container, options = {}) {
                     value: zone.value || zone.time || 0,
                 }));
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] Power zone data after value mapping:", sessionPowerZones);
+                    console.log(
+                        "[ChartJS] Power zone data after value mapping:",
+                        sessionPowerZones
+                    );
                 }
             } else if (pwrZoneData.length > 0) {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartJS] Aggregating Power zone data from laps");
+                    console.log(
+                        "[ChartJS] Aggregating Power zone data from laps"
+                    );
                 }
                 // Aggregate zone data from all laps
-                /** @type {Record<string, {label:string,value:number,color:string}>} */
+                /** @type {Record<string, { label: string; value: number; color: string }>} */
                 const aggregatedZones = {};
                 for (const lap of pwrZoneData) {
                     for (const zone of lap.zones) {
@@ -360,13 +444,19 @@ export function renderLapZoneCharts(container, options = {}) {
                 }
                 sessionPowerZones = Object.values(aggregatedZones);
                 if (isVerboseDebugLoggingEnabled) {
-                    console.log("[ChartJS] Aggregated Power zones:", sessionPowerZones);
+                    console.log(
+                        "[ChartJS] Aggregated Power zones:",
+                        sessionPowerZones
+                    );
                 }
             }
 
             if (sessionPowerZones && sessionPowerZones.length > 0) {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartJS] Rendering Power zone bar with data:", sessionPowerZones);
+                    console.log(
+                        "[ChartJS] Rendering Power zone bar with data:",
+                        sessionPowerZones
+                    );
                 }
                 const canvas4 = createChartCanvas("single-lap-power", 0);
                 canvas4.id = "chartjs-canvas-single-lap-power";
@@ -374,7 +464,11 @@ export function renderLapZoneCharts(container, options = {}) {
 
                 const singlePwrChart = renderSinglePowerZoneBar(
                     canvas4,
-                    /** @type {{label:string,value:number,color:string}[]} */ (sessionPowerZones),
+                    /** @type {{
+                     *     label: string;
+                     *     value: number;
+                     *     color: string;
+                     * }[]} */ (sessionPowerZones),
                     {
                         title: "Power Zone by Lap (Individual)",
                     }
@@ -387,7 +481,9 @@ export function renderLapZoneCharts(container, options = {}) {
                 }
             } else {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartJS] No Power zone data available for Chart 4");
+                    console.log(
+                        "[ChartJS] No Power zone data available for Chart 4"
+                    );
                 }
             }
         }
@@ -398,7 +494,10 @@ export function renderLapZoneCharts(container, options = {}) {
     } catch (error) {
         console.error("[ChartJS] Error rendering lap zone charts:", error);
         if (globalThis.showNotification) {
-            globalThis.showNotification("Failed to render lap zone charts", "error");
+            globalThis.showNotification(
+                "Failed to render lap zone charts",
+                "error"
+            );
         }
     }
 }

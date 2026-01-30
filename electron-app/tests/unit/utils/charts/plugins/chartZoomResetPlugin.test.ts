@@ -22,7 +22,8 @@ describe("chartZoomResetPlugin", () => {
 
     beforeEach(async () => {
         // Import the module under test
-        const module = await import("../../../../../utils/charts/plugins/chartZoomResetPlugin.js");
+        const module =
+            await import("../../../../../utils/charts/plugins/chartZoomResetPlugin.js");
         plugin = module.chartZoomResetPlugin;
 
         // Mock canvas and context
@@ -72,7 +73,11 @@ describe("chartZoomResetPlugin", () => {
         it("should draw button when chart is zoomed", () => {
             plugin.afterDraw(mockChart);
             expect(mockCtx.save).toHaveBeenCalled();
-            expect(mockCtx.fillText).toHaveBeenCalledWith("🔄 Reset Zoom", expect.any(Number), expect.any(Number));
+            expect(mockCtx.fillText).toHaveBeenCalledWith(
+                "🔄 Reset Zoom",
+                expect.any(Number),
+                expect.any(Number)
+            );
             expect(mockChart._zoomResetBtnBounds).toBeTruthy();
         });
 
@@ -103,7 +108,9 @@ describe("chartZoomResetPlugin", () => {
         });
 
         it("should do nothing when event is not a click or touchend", () => {
-            plugin.afterEvent(mockChart, { event: { type: "mousemove", native: {} } });
+            plugin.afterEvent(mockChart, {
+                event: { type: "mousemove", native: {} },
+            });
             expect(mockChart.resetZoom).not.toHaveBeenCalled();
         });
 
@@ -197,7 +204,8 @@ describe("chartZoomResetPlugin", () => {
     describe("roundRect polyfill", () => {
         it("should test the roundRect polyfill", async () => {
             // Save the original CanvasRenderingContext2D if it exists
-            const originalCanvasRenderingContext2D = global.CanvasRenderingContext2D;
+            const originalCanvasRenderingContext2D =
+                global.CanvasRenderingContext2D;
 
             // Create a mock context without roundRect
             const mockContext = {
@@ -213,7 +221,9 @@ describe("chartZoomResetPlugin", () => {
                 const mockProto = {} as any;
 
                 // Set global CanvasRenderingContext2D
-                global.CanvasRenderingContext2D = { prototype: mockProto } as any;
+                global.CanvasRenderingContext2D = {
+                    prototype: mockProto,
+                } as any;
 
                 // Re-import the module to trigger polyfill
                 vi.resetModules();
@@ -221,24 +231,55 @@ describe("chartZoomResetPlugin", () => {
 
                 // Add the roundRect function manually for testing purposes
                 if (!mockProto.roundRect) {
-                    mockProto.roundRect = function (x: number, y: number, width: number, height: number, radius: any) {
+                    mockProto.roundRect = function (
+                        x: number,
+                        y: number,
+                        width: number,
+                        height: number,
+                        radius: any
+                    ) {
                         let r;
                         if (typeof radius === "number") {
-                            r = { tl: radius, tr: radius, br: radius, bl: radius };
+                            r = {
+                                tl: radius,
+                                tr: radius,
+                                br: radius,
+                                bl: radius,
+                            };
                         } else if (radius && typeof radius === "object") {
                             const o = radius;
-                            r = { tl: o.tl || 0, tr: o.tr || 0, br: o.br || 0, bl: o.bl || 0 };
+                            r = {
+                                tl: o.tl || 0,
+                                tr: o.tr || 0,
+                                br: o.br || 0,
+                                bl: o.bl || 0,
+                            };
                         } else {
                             r = { tl: 5, tr: 5, br: 5, bl: 5 };
                         }
                         this.beginPath();
                         this.moveTo(x + r.tl, y);
                         this.lineTo(x + width - r.tr, y);
-                        this.quadraticCurveTo(x + width, y, x + width, y + r.tr);
+                        this.quadraticCurveTo(
+                            x + width,
+                            y,
+                            x + width,
+                            y + r.tr
+                        );
                         this.lineTo(x + width, y + height - r.br);
-                        this.quadraticCurveTo(x + width, y + height, x + width - r.br, y + height);
+                        this.quadraticCurveTo(
+                            x + width,
+                            y + height,
+                            x + width - r.br,
+                            y + height
+                        );
                         this.lineTo(x + r.bl, y + height);
-                        this.quadraticCurveTo(x, y + height, x, y + height - r.bl);
+                        this.quadraticCurveTo(
+                            x,
+                            y + height,
+                            x,
+                            y + height - r.bl
+                        );
                         this.lineTo(x, y + r.tl);
                         this.quadraticCurveTo(x, y, x + r.tl, y);
                         this.closePath();
@@ -250,7 +291,14 @@ describe("chartZoomResetPlugin", () => {
                 expect(typeof mockProto.roundRect).toBe("function");
 
                 // Call the polyfill and check results
-                const result = mockProto.roundRect.call(mockContext, 10, 20, 100, 50, 5);
+                const result = mockProto.roundRect.call(
+                    mockContext,
+                    10,
+                    20,
+                    100,
+                    50,
+                    5
+                );
                 expect(mockContext.beginPath).toHaveBeenCalled();
                 expect(mockContext.moveTo).toHaveBeenCalled();
                 expect(mockContext.lineTo).toHaveBeenCalled();
@@ -259,11 +307,17 @@ describe("chartZoomResetPlugin", () => {
                 expect(result).toBe(mockContext);
 
                 // Test with object radius
-                mockProto.roundRect.call(mockContext, 10, 20, 100, 50, { tl: 5, tr: 10, br: 15, bl: 20 });
+                mockProto.roundRect.call(mockContext, 10, 20, 100, 50, {
+                    tl: 5,
+                    tr: 10,
+                    br: 15,
+                    bl: 20,
+                });
                 expect(mockContext.beginPath).toHaveBeenCalledTimes(2);
             } finally {
                 // Restore original object if it existed
-                global.CanvasRenderingContext2D = originalCanvasRenderingContext2D;
+                global.CanvasRenderingContext2D =
+                    originalCanvasRenderingContext2D;
             }
         });
     });

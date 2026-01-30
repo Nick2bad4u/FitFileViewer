@@ -10,7 +10,10 @@ describe("preload.js - Development mode coverage", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        preloadCode = fs.readFileSync(path.resolve(__dirname, "../../preload.js"), "utf-8");
+        preloadCode = fs.readFileSync(
+            path.resolve(__dirname, "../../preload.js"),
+            "utf-8"
+        );
         originalElectronAPI = (globalThis as any).electronAPI;
         originalDevTools = (globalThis as any).devTools;
         delete (globalThis as any).electronAPI;
@@ -19,7 +22,8 @@ describe("preload.js - Development mode coverage", () => {
 
     afterEach(() => {
         // restore globals if they existed
-        if (originalElectronAPI) (globalThis as any).electronAPI = originalElectronAPI;
+        if (originalElectronAPI)
+            (globalThis as any).electronAPI = originalElectronAPI;
         if (originalDevTools) (globalThis as any).devTools = originalDevTools;
     });
 
@@ -31,19 +35,25 @@ describe("preload.js - Development mode coverage", () => {
         } as const;
 
         const contextBridge = {
-            exposeInMainWorld: vi.fn().mockImplementation((name: string, api: any) => {
-                (globalThis as any)[name] = api;
-            }),
+            exposeInMainWorld: vi
+                .fn()
+                .mockImplementation((name: string, api: any) => {
+                    (globalThis as any)[name] = api;
+                }),
         };
 
         const logs: any[] = [];
         const errors: any[] = [];
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation((...args: any[]) => {
-            logs.push(args);
-        });
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation((...args: any[]) => {
-            errors.push(args);
-        });
+        const consoleLogSpy = vi
+            .spyOn(console, "log")
+            .mockImplementation((...args: any[]) => {
+                logs.push(args);
+            });
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args: any[]) => {
+                errors.push(args);
+            });
 
         const onceCalls: Array<{ event: string; cb: Function }> = [];
         const mockProcess = {
@@ -54,11 +64,17 @@ describe("preload.js - Development mode coverage", () => {
         } as any;
 
         const mockRequire = vi.fn((mod: string) => {
-            if (mod === "electron") return { ipcRenderer, contextBridge } as any;
+            if (mod === "electron")
+                return { ipcRenderer, contextBridge } as any;
             throw new Error(`Unknown module: ${mod}`);
         });
 
-        const runner = new Function("require", "console", "process", preloadCode);
+        const runner = new Function(
+            "require",
+            "console",
+            "process",
+            preloadCode
+        );
         runner(mockRequire as any, console, mockProcess as any);
 
         // electronAPI should be exposed
@@ -87,22 +103,44 @@ describe("preload.js - Development mode coverage", () => {
 
         // logAPIState should log current state
         devTools.logAPIState();
-        expect(logs.some((args) => String(args[0]).includes("Current API State"))).toBe(true);
+        expect(
+            logs.some((args) => String(args[0]).includes("Current API State"))
+        ).toBe(true);
 
         // Should have logged successful exposure and API structure messages
-        expect(logs.some((args) => String(args[0]).includes("Successfully exposed electronAPI to main world"))).toBe(
-            true
-        );
-        expect(logs.some((args) => String(args[0]).includes("API Structure:"))).toBe(true);
+        expect(
+            logs.some((args) =>
+                String(args[0]).includes(
+                    "Successfully exposed electronAPI to main world"
+                )
+            )
+        ).toBe(true);
+        expect(
+            logs.some((args) => String(args[0]).includes("API Structure:"))
+        ).toBe(true);
         // Development tools exposed and final init log
-        expect(logs.some((args) => String(args[0]).includes("Development tools exposed"))).toBe(true);
-        expect(logs.some((args) => String(args[0]).includes("Preload script initialized successfully"))).toBe(true);
+        expect(
+            logs.some((args) =>
+                String(args[0]).includes("Development tools exposed")
+            )
+        ).toBe(true);
+        expect(
+            logs.some((args) =>
+                String(args[0]).includes(
+                    "Preload script initialized successfully"
+                )
+            )
+        ).toBe(true);
 
         // Simulate beforeExit to hit cleanup log
         const beforeExit = onceCalls.find((c) => c.event === "beforeExit");
         expect(beforeExit).toBeDefined();
         beforeExit!.cb();
-        expect(logs.some((args) => String(args[0]).includes("Process exiting, performing cleanup"))).toBe(true);
+        expect(
+            logs.some((args) =>
+                String(args[0]).includes("Process exiting, performing cleanup")
+            )
+        ).toBe(true);
 
         // Ensure no unexpected errors were logged
         expect(errors.length).toBe(0);

@@ -1,8 +1,8 @@
 /**
  * Summary column selector modal.
  *
- * Split out of renderSummaryHelpers.js to keep files below the eslint max-lines limit
- * and to keep modal-only UI logic isolated.
+ * Split out of renderSummaryHelpers.js to keep files below the eslint max-lines
+ * limit and to keep modal-only UI logic isolated.
  */
 
 import {
@@ -15,12 +15,13 @@ import {
 
 /**
  * @param {{
- *  allKeys: string[];
- *  data: unknown;
- *  renderTable: () => void;
- *  setVisibleColumns: (cols: string[]) => void;
- *  visibleColumns: string[];
+ *     allKeys: string[];
+ *     data: unknown;
+ *     renderTable: () => void;
+ *     setVisibleColumns: (cols: string[]) => void;
+ *     visibleColumns: string[];
  * }} params
+ *
  * @returns {void}
  */
 export function showColModal({
@@ -45,7 +46,7 @@ export function showColModal({
     /** @type {string[]} */
     let displayedKeys = [...displayKeys];
 
-    /** @type {number|null} */
+    /** @type {number | null} */
     let lastCheckedIndex = null;
 
     const overlay = document.createElement("div");
@@ -71,7 +72,9 @@ export function showColModal({
     modal.append(header);
 
     const globalData =
-        /** @type {any} */ (globalThis.window)?.globalData ?? /** @type {any} */ (globalThis).globalData ?? {};
+        /** @type {any} */ (globalThis.window)?.globalData ??
+        /** @type {any} */ (globalThis).globalData ??
+        {};
     const prefsKeyForFile = getStorageKey(globalData, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 
@@ -120,10 +123,11 @@ export function showColModal({
 
     /**
      * Render a badge that can optionally show a hover tooltip listing columns.
+     *
      * @param {{
-     *  label: string;
-     *  variant: 'ok'|'warn'|'off';
-     *  columns: string[]|null;
+     *     label: string;
+     *     variant: "ok" | "warn" | "off";
+     *     columns: string[] | null;
      * }} params
      */
     const createBadge = ({ label, variant, columns }) => {
@@ -132,14 +136,15 @@ export function showColModal({
         b.className = `summary-col-badge summary-col-badge--${variant}`;
         b.textContent = label;
         b.disabled = !columns || columns.length === 0;
-        b.title = columns && columns.length > 0 ? "Click to preview" : "Not set";
+        b.title =
+            columns && columns.length > 0 ? "Click to preview" : "Not set";
         return b;
     };
 
     /**
      * @param {HTMLElement} anchor
      * @param {string} titleText
-     * @param {string[]|null} cols
+     * @param {string[] | null} cols
      */
     const showTooltip = (anchor, titleText, cols) => {
         if (!cols || cols.length === 0) return;
@@ -162,7 +167,10 @@ export function showColModal({
 
         const rect = anchor.getBoundingClientRect();
         const top = rect.bottom + 8;
-        const left = Math.min(rect.left, Math.max(8, globalThis.innerWidth - 420));
+        const left = Math.min(
+            rect.left,
+            Math.max(8, globalThis.innerWidth - 420)
+        );
         tooltip.style.top = `${Math.min(top, globalThis.innerHeight - 320)}px`;
         tooltip.style.left = `${left}px`;
         tooltip.style.display = "block";
@@ -201,18 +209,24 @@ export function showColModal({
     const getFileSavedCols = () => loadColPrefs(prefsKeyForFile);
 
     /**
-     * Normalize a saved column list to the current file's key universe + named-first ordering.
-     * @param {string[]|null} cols
+     * Normalize a saved column list to the current file's key universe +
+     * named-first ordering.
+     *
+     * @param {string[] | null} cols
+     *
      * @returns {string[]}
      */
     const normalizeCols = (cols) => {
         if (!cols || cols.length === 0) return [];
-        return orderSummaryColumnsNamedFirst(allKeys).filter((k) => cols.includes(k));
+        return orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+            cols.includes(k)
+        );
     };
 
     /**
-     * @param {string[]|null} a
-     * @param {string[]|null} b
+     * @param {string[] | null} a
+     * @param {string[] | null} b
+     *
      * @returns {boolean}
      */
     const sameCols = (a, b) => {
@@ -227,23 +241,29 @@ export function showColModal({
 
     /**
      * Returns the "baseline" selection used when no per-file override exists.
-     * Baseline = global default (if set), otherwise built-in default (all keys, named-first).
+     * Baseline = global default (if set), otherwise built-in default (all keys,
+     * named-first).
      *
      * @returns {string[]}
      */
     const getBaselineCols = () => {
         const globalCols = getGlobalDefaultCols();
-        const baselineRaw = globalCols && globalCols.length > 0 ? globalCols : orderSummaryColumnsNamedFirst(allKeys);
-        return orderSummaryColumnsNamedFirst(allKeys).filter((k) => baselineRaw.includes(k));
+        const baselineRaw =
+            globalCols && globalCols.length > 0
+                ? globalCols
+                : orderSummaryColumnsNamedFirst(allKeys);
+        return orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+            baselineRaw.includes(k)
+        );
     };
 
     /**
      * Persist the current selection for the current file.
      *
-     * Important UX detail:
-     * If the current selection matches the baseline (global default when set, otherwise the built-in default),
-     * we remove the per-file key instead of saving it. This ensures that "switching off" a file override
-     * actually stays off across tab switches and app restarts.
+     * Important UX detail: If the current selection matches the baseline
+     * (global default when set, otherwise the built-in default), we remove the
+     * per-file key instead of saving it. This ensures that "switching off" a
+     * file override actually stays off across tab switches and app restarts.
      *
      * @param {string[]} cols
      */
@@ -264,8 +284,9 @@ export function showColModal({
     };
 
     /**
-     * @param {string[]|null} base
+     * @param {string[] | null} base
      * @param {string[]} current
+     *
      * @returns {{ added: number; removed: number }}
      */
     const diffCounts = (base, current) => {
@@ -298,17 +319,21 @@ export function showColModal({
         const fileCols = normalizeCols(getFileSavedCols());
 
         const hasGlobalDefault = globalCols.length > 0;
-        const fileOverrideActive = fileCols.length > 0 && !sameCols(fileCols, baseline);
+        const fileOverrideActive =
+            fileCols.length > 0 && !sameCols(fileCols, baseline);
 
         const isDefaultSelection = sameCols(baseline, visibleColumns);
-        const isSavedFileSelection = fileOverrideActive && sameCols(fileCols, visibleColumns);
+        const isSavedFileSelection =
+            fileOverrideActive && sameCols(fileCols, visibleColumns);
 
         if (isDefaultSelection) {
             statusBar.dataset.mode = hasGlobalDefault ? "global" : "custom";
             statusText.textContent = hasGlobalDefault
                 ? "This file is using: Default (Global)"
                 : "This file is using: Default";
-            statusHint.textContent = fileOverrideActive ? "(a file override existed and was cleared)" : "";
+            statusHint.textContent = fileOverrideActive
+                ? "(a file override existed and was cleared)"
+                : "";
             return;
         }
 
@@ -322,7 +347,8 @@ export function showColModal({
             const parts = [];
             if (added > 0) parts.push(`+${added}`);
             if (removed > 0) parts.push(`-${removed}`);
-            statusHint.textContent = parts.length > 0 ? `vs global default: ${parts.join(" ")}` : "";
+            statusHint.textContent =
+                parts.length > 0 ? `vs global default: ${parts.join(" ")}` : "";
         } else {
             statusHint.textContent = "";
         }
@@ -342,9 +368,13 @@ export function showColModal({
     });
 
     const wireBadgeTooltip = (badgeEl, titleText, getCols) => {
-        badgeEl.addEventListener("mouseenter", () => showTooltip(badgeEl, titleText, getCols()));
+        badgeEl.addEventListener("mouseenter", () =>
+            showTooltip(badgeEl, titleText, getCols())
+        );
         badgeEl.addEventListener("mouseleave", hideTooltip);
-        badgeEl.addEventListener("focus", () => showTooltip(badgeEl, titleText, getCols()));
+        badgeEl.addEventListener("focus", () =>
+            showTooltip(badgeEl, titleText, getCols())
+        );
         badgeEl.addEventListener("blur", hideTooltip);
         badgeEl.addEventListener("click", (e) => {
             e.preventDefault();
@@ -359,8 +389,16 @@ export function showColModal({
         });
     };
 
-    wireBadgeTooltip(globalBadge, "Global default columns", getGlobalDefaultCols);
-    wireBadgeTooltip(fileBadge, "Saved override columns for this file", getFileSavedCols);
+    wireBadgeTooltip(
+        globalBadge,
+        "Global default columns",
+        getGlobalDefaultCols
+    );
+    wireBadgeTooltip(
+        fileBadge,
+        "Saved override columns for this file",
+        getFileSavedCols
+    );
 
     badges.append(globalBadge, fileBadge);
 
@@ -379,7 +417,8 @@ export function showColModal({
     const resetBtn = document.createElement("button");
     resetBtn.className = "themed-btn";
     resetBtn.textContent = "Reset to Default";
-    resetBtn.title = "Stop overriding this file and go back to the default column selection";
+    resetBtn.title =
+        "Stop overriding this file and go back to the default column selection";
     resetBtn.addEventListener("click", () => {
         hideTooltip();
         const ordered = getBaselineCols();
@@ -394,7 +433,8 @@ export function showColModal({
     const makeGlobalDefaultBtn = document.createElement("button");
     makeGlobalDefaultBtn.className = "themed-btn";
     makeGlobalDefaultBtn.textContent = "Make Global Default";
-    makeGlobalDefaultBtn.title = "Use this selection as the default for future files";
+    makeGlobalDefaultBtn.title =
+        "Use this selection as the default for future files";
     makeGlobalDefaultBtn.addEventListener("click", () => {
         saveColPrefs(prefsKeyGlobal, visibleColumns);
         // Now that the global default matches the selection, clear redundant per-file override.
@@ -440,6 +480,7 @@ export function showColModal({
 
     /**
      * Create a mousedown handler for range selection with Shift.
+     *
      * @param {number} idx
      * @param {string} key
      */
@@ -464,7 +505,9 @@ export function showColModal({
                         newCols = newCols.filter((x) => x !== k);
                     }
                 }
-                newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) => newCols.includes(k));
+                newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+                    newCols.includes(k)
+                );
                 updateVisibleColumns(newCols);
                 updateColList();
                 updateStatus();
@@ -476,12 +519,13 @@ export function showColModal({
 
     /**
      * Create a change handler for single checkbox toggle.
+     *
      * @param {number} idx
      * @param {string} key
      * @param {HTMLInputElement} loopCheckbox
      */
     function createChangeHandler(idx, key, loopCheckbox) {
-        /** @param {Event & { shiftKey?: boolean}} e */
+        /** @param {Event & { shiftKey?: boolean }} e */
         return (e) => {
             if (e.shiftKey && lastCheckedIndex !== null) {
                 return; // handled in mousedown
@@ -496,9 +540,14 @@ export function showColModal({
                 newCols = newCols.filter((k) => k !== key);
             }
             newCols = allKeys.filter((k) => newCols.includes(k));
-            newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) => newCols.includes(k));
+            newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+                newCols.includes(k)
+            );
             updateVisibleColumns(newCols);
-            selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
+            selectAllBtn.textContent =
+                newCols.length === allKeys.length
+                    ? "Deselect All"
+                    : "Select All";
             updateColList();
             updateStatus();
             reRenderTable();
@@ -508,13 +557,16 @@ export function showColModal({
 
     /**
      * Refresh checkbox list based on current visibleColumns
+     *
      * @returns {void}
      */
     function updateColList() {
         colList.innerHTML = "";
 
         if (filterText.length > 0) {
-            displayedKeys = displayKeys.filter((k) => k.toLowerCase().includes(filterText));
+            displayedKeys = displayKeys.filter((k) =>
+                k.toLowerCase().includes(filterText)
+            );
         } else {
             displayedKeys = [...displayKeys];
         }
@@ -542,14 +594,23 @@ export function showColModal({
             loopCheckbox.type = "checkbox";
             loopCheckbox.checked = visibleColumns.includes(key);
             loopCheckbox.tabIndex = 0;
-            loopCheckbox.addEventListener("mousedown", createMouseDownHandler(idx, key));
-            loopCheckbox.addEventListener("change", createChangeHandler(idx, key, loopCheckbox));
+            loopCheckbox.addEventListener(
+                "mousedown",
+                createMouseDownHandler(idx, key)
+            );
+            loopCheckbox.addEventListener(
+                "change",
+                createChangeHandler(idx, key, loopCheckbox)
+            );
             loopLabel.append(loopCheckbox);
             loopLabel.append(document.createTextNode(key));
             colList.append(loopLabel);
         }
 
-        selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
+        selectAllBtn.textContent =
+            visibleColumns.length === allKeys.length
+                ? "Deselect All"
+                : "Select All";
         updateSelectedCount();
         updateStatus();
 
@@ -558,9 +619,15 @@ export function showColModal({
         fileBadge.disabled = !fileCols || fileCols.length === 0;
     }
 
-    selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
+    selectAllBtn.textContent =
+        visibleColumns.length === allKeys.length
+            ? "Deselect All"
+            : "Select All";
     selectAllBtn.addEventListener("click", () => {
-        const newCols = visibleColumns.length === allKeys.length ? [] : [...orderSummaryColumnsNamedFirst(allKeys)];
+        const newCols =
+            visibleColumns.length === allKeys.length
+                ? []
+                : [...orderSummaryColumnsNamedFirst(allKeys)];
         updateVisibleColumns(newCols);
         updateColList();
         updateStatus();

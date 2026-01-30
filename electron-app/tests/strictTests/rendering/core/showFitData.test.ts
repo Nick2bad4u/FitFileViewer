@@ -7,9 +7,12 @@ vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     subscribe: vi.fn(() => () => {}),
 }));
 
-vi.mock("../../../../utils/charts/components/createGlobalChartStatusIndicator.js", () => ({
-    createGlobalChartStatusIndicator: vi.fn(),
-}));
+vi.mock(
+    "../../../../utils/charts/components/createGlobalChartStatusIndicator.js",
+    () => ({
+        createGlobalChartStatusIndicator: vi.fn(),
+    })
+);
 
 async function loadModule() {
     return await import("../../../../utils/rendering/core/showFitData.js");
@@ -57,7 +60,9 @@ describe("showFitData", () => {
             ])
         );
 
-        const fileInfoCall = setStateCalls.find((call) => call[0] === "ui.fileInfo");
+        const fileInfoCall = setStateCalls.find(
+            (call) => call[0] === "ui.fileInfo"
+        );
         expect(fileInfoCall?.[1]).toEqual(
             expect.objectContaining({
                 displayName: "file.fit",
@@ -66,11 +71,17 @@ describe("showFitData", () => {
             })
         );
 
-        expect(setState).toHaveBeenCalledWith("currentFile", filePath, expect.any(Object));
+        expect(setState).toHaveBeenCalledWith(
+            "currentFile",
+            filePath,
+            expect.any(Object)
+        );
 
         // setTimeout branch for tab visibility and map render
         vi.runAllTimers();
-        expect((window as any).updateTabVisibility).toHaveBeenCalledWith("content-map");
+        expect((window as any).updateTabVisibility).toHaveBeenCalledWith(
+            "content-map"
+        );
         expect((window as any).updateActiveTab).toHaveBeenCalledWith("tab-map");
         expect((window as any).renderMap).toHaveBeenCalled();
 

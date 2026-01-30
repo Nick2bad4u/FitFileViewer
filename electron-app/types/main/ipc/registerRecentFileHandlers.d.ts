@@ -1,5 +1,6 @@
 /**
  * Registers IPC handlers for managing recent FIT files.
+ *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {(filePath: string) => void} options.addRecentFile
@@ -9,7 +10,11 @@
  * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
  * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
  * @param {(key: string) => any} options.getAppState
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  */
 export function registerRecentFileHandlers({
     registerIpcHandle,
@@ -28,7 +33,15 @@ export function registerRecentFileHandlers({
     browserWindowRef: () => any;
     mainWindow: any;
     getThemeFromRenderer: (win: any) => Promise<string>;
-    safeCreateAppMenu: (win: any, theme: string, loadedFitFilePath?: string) => void;
+    safeCreateAppMenu: (
+        win: any,
+        theme: string,
+        loadedFitFilePath?: string
+    ) => void;
     getAppState: (key: string) => any;
-    logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
+    logWithContext: (
+        level: "error" | "warn" | "info",
+        message: string,
+        context?: Record<string, any>
+    ) => void;
 }): void;

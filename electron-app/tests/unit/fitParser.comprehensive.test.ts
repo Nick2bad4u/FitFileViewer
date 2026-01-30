@@ -77,7 +77,10 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                         videos: "/mock/path/videos",
                         home: "/mock/path/home",
                     };
-                    return (paths as Record<string, string>)[name] || `/mock/path/${name}`;
+                    return (
+                        (paths as Record<string, string>)[name] ||
+                        `/mock/path/${name}`
+                    );
                 }),
                 isPackaged: false,
                 getVersion: vi.fn(() => "1.0.0"),
@@ -128,7 +131,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         };
 
         mockStream = {
-            buffer: Buffer.from([1, 2, 3, 4]),
+            buffer: Buffer.from([
+                1,
+                2,
+                3,
+                4,
+            ]),
         };
 
         mockFitSDK.Decoder.mockImplementation(function MockDecoder() {
@@ -170,7 +178,11 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
     describe("FitDecodeError", () => {
         it("should create error with correct properties", () => {
-            const error = new fitParser.FitDecodeError("Test error", { code: "TEST" }, { source: "test" });
+            const error = new fitParser.FitDecodeError(
+                "Test error",
+                { code: "TEST" },
+                { source: "test" }
+            );
 
             expect(error.name).toBe("FitDecodeError");
             expect(error.message).toBe("Test error");
@@ -181,7 +193,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should serialize to JSON correctly", () => {
-            const error = new fitParser.FitDecodeError("Test error", { code: "TEST" });
+            const error = new fitParser.FitDecodeError("Test error", {
+                code: "TEST",
+            });
             const json = error.toJSON();
 
             expect(json.name).toBe("FitDecodeError");
@@ -200,21 +214,27 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 performanceMonitor: mockPerformanceMonitor,
             });
 
-            expect(console.log).toHaveBeenCalledWith("[FitParser] State management initialized", {
-                hasSettings: true,
-                hasFitFileState: true,
-                hasPerformanceMonitor: true,
-            });
+            expect(console.log).toHaveBeenCalledWith(
+                "[FitParser] State management initialized",
+                {
+                    hasSettings: true,
+                    hasFitFileState: true,
+                    hasPerformanceMonitor: true,
+                }
+            );
         });
 
         it("should initialize state management with no managers", () => {
             fitParser.initializeStateManagement();
 
-            expect(console.log).toHaveBeenCalledWith("[FitParser] State management initialized", {
-                hasSettings: false,
-                hasFitFileState: false,
-                hasPerformanceMonitor: false,
-            });
+            expect(console.log).toHaveBeenCalledWith(
+                "[FitParser] State management initialized",
+                {
+                    hasSettings: false,
+                    hasFitFileState: false,
+                    hasPerformanceMonitor: false,
+                }
+            );
         });
 
         it("should initialize state management with partial managers", () => {
@@ -222,11 +242,14 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 settingsStateManager: mockSettingsStateManager,
             });
 
-            expect(console.log).toHaveBeenCalledWith("[FitParser] State management initialized", {
-                hasSettings: true,
-                hasFitFileState: false,
-                hasPerformanceMonitor: false,
-            });
+            expect(console.log).toHaveBeenCalledWith(
+                "[FitParser] State management initialized",
+                {
+                    hasSettings: true,
+                    hasFitFileState: false,
+                    hasPerformanceMonitor: false,
+                }
+            );
         });
     });
 
@@ -277,7 +300,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const result = fitParser.validateDecoderOptions(null);
 
             expect(result.isValid).toBe(true);
-            expect(result.validatedOptions).toMatchObject(fitParser.getDefaultDecoderOptions());
+            expect(result.validatedOptions).toMatchObject(
+                fitParser.getDefaultDecoderOptions()
+            );
         });
 
         it("should get persisted decoder options from state manager", () => {
@@ -291,7 +316,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const options = fitParser.getPersistedDecoderOptions();
 
-            expect(mockSettingsStateManager.getCategory).toHaveBeenCalledWith("decoder");
+            expect(mockSettingsStateManager.getCategory).toHaveBeenCalledWith(
+                "decoder"
+            );
             expect(options.applyScaleAndOffset).toBe(false);
         });
 
@@ -308,7 +335,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             // Force import of electron-conf mock from earlier doMock in beforeEach
             const { Conf } = await import("electron-conf");
             expect(Conf).toBeDefined();
-            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            const result = fitParser.updateDecoderOptions({
+                applyScaleAndOffset: true,
+            });
             expect(result.success).toBe(true);
         });
 
@@ -331,7 +360,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const result = fitParser.updateDecoderOptions(newOptions);
 
             expect(result.success).toBe(true);
-            expect(mockSettingsStateManager.updateCategory).toHaveBeenCalledWith(
+            expect(
+                mockSettingsStateManager.updateCategory
+            ).toHaveBeenCalledWith(
                 "decoder",
                 expect.objectContaining({ applyScaleAndOffset: false })
             );
@@ -348,7 +379,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             } as any);
             const { Conf } = await import("electron-conf");
             expect(Conf).toBeDefined();
-            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: false });
+            const result = fitParser.updateDecoderOptions({
+                applyScaleAndOffset: false,
+            });
             expect(result.success).toBe(true);
         });
 
@@ -356,24 +389,32 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             fitParser.initializeStateManagement(undefined as any);
             const { Conf } = await import("electron-conf");
             expect(Conf).toBeDefined();
-            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            const result = fitParser.updateDecoderOptions({
+                applyScaleAndOffset: true,
+            });
             expect(result.success).toBe(true);
         });
 
         it("should handle settings state manager update failure and fallback to electron-conf (smoke)", async () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
-                    updateCategory: vi.fn().mockRejectedValue(new Error("reject")),
+                    updateCategory: vi
+                        .fn()
+                        .mockRejectedValue(new Error("reject")),
                     getCategory: vi.fn(),
                 },
             } as any);
-            const res = fitParser.updateDecoderOptions({ applyScaleAndOffset: false });
+            const res = fitParser.updateDecoderOptions({
+                applyScaleAndOffset: false,
+            });
             expect(res.success).toBe(true);
         });
 
         it("should use electron-conf directly when no settings state manager (smoke)", async () => {
             fitParser.initializeStateManagement({} as any);
-            const res = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            const res = fitParser.updateDecoderOptions({
+                applyScaleAndOffset: true,
+            });
             expect(res.success).toBe(true);
         });
 
@@ -395,7 +436,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         it("should reset decoder options to defaults", () => {
             const result = fitParser.resetDecoderOptions();
             expect(result.success).toBe(true);
-            expect(result.options).toMatchObject(fitParser.getDefaultDecoderOptions());
+            expect(result.options).toMatchObject(
+                fitParser.getDefaultDecoderOptions()
+            );
         });
     });
 
@@ -409,7 +452,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should successfully decode a valid FIT file", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]); // Mock FIT header
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]); // Mock FIT header
 
             const result = await fitParser.decodeFitFile(buffer);
 
@@ -417,59 +465,110 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(mockFitSDK.Decoder).toHaveBeenCalled();
             expect(mockDecoder.checkIntegrity).toHaveBeenCalled();
             expect(mockDecoder.read).toHaveBeenCalled();
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(100);
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(100);
             expect(mockFitFileStateManager.handleFileLoaded).toHaveBeenCalled();
             expect(result).toBeDefined();
             expect(result.activity).toBeDefined();
         });
 
         it("should handle Uint8Array input", async () => {
-            const uint8Array = new Uint8Array([0x0e, 0x10, 0x43, 0x08]);
+            const uint8Array = new Uint8Array([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
 
             const result = await fitParser.decodeFitFile(uint8Array);
 
-            expect(mockFitSDK.Stream.fromBuffer).toHaveBeenCalledWith(Buffer.from(uint8Array));
+            expect(mockFitSDK.Stream.fromBuffer).toHaveBeenCalledWith(
+                Buffer.from(uint8Array)
+            );
             expect(result).toBeDefined();
         });
 
         it("should track progress during decoding", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
 
             await fitParser.decodeFitFile(buffer);
 
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(10); // Starting
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(30); // SDK loaded
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(50); // Integrity check
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(70); // Starting decode
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(90); // Applying labels
-            expect(mockFitFileStateManager.updateLoadingProgress).toHaveBeenCalledWith(100); // Complete
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(10); // Starting
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(30); // SDK loaded
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(50); // Integrity check
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(70); // Starting decode
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(90); // Applying labels
+            expect(
+                mockFitFileStateManager.updateLoadingProgress
+            ).toHaveBeenCalledWith(100); // Complete
         });
 
         it("should track performance timing", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
 
             await fitParser.decodeFitFile(buffer);
 
-            expect(mockPerformanceMonitor.startTimer).toHaveBeenCalledWith(expect.stringMatching(/fitFile_decode_/));
-            expect(mockPerformanceMonitor.endTimer).toHaveBeenCalledWith(expect.stringMatching(/fitFile_decode_/));
+            expect(mockPerformanceMonitor.startTimer).toHaveBeenCalledWith(
+                expect.stringMatching(/fitFile_decode_/)
+            );
+            expect(mockPerformanceMonitor.endTimer).toHaveBeenCalledWith(
+                expect.stringMatching(/fitFile_decode_/)
+            );
         });
 
         it("should use custom decoder options", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             const customOptions = { applyScaleAndOffset: false };
 
             await fitParser.decodeFitFile(buffer, customOptions);
 
-            expect(mockDecoder.read).toHaveBeenCalledWith(expect.objectContaining({ applyScaleAndOffset: false }));
+            expect(mockDecoder.read).toHaveBeenCalledWith(
+                expect.objectContaining({ applyScaleAndOffset: false })
+            );
         });
 
         it("should handle invalid input buffer", async () => {
-            await expect(fitParser.decodeFitFile(null)).rejects.toThrow("Input is not a valid Buffer or Uint8Array");
-            expect(mockFitFileStateManager.handleFileLoadingError).toHaveBeenCalled();
+            await expect(fitParser.decodeFitFile(null)).rejects.toThrow(
+                "Input is not a valid Buffer or Uint8Array"
+            );
+            expect(
+                mockFitFileStateManager.handleFileLoadingError
+            ).toHaveBeenCalled();
         });
 
         it("should handle integrity check failure", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockDecoder.checkIntegrity.mockReturnValue(false);
             mockDecoder.getIntegrityErrors.mockReturnValue(["CRC mismatch"]);
 
@@ -477,11 +576,18 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             expect(result.error).toBeDefined();
             expect(result.error).toContain("FIT file integrity check failed");
-            expect(mockFitFileStateManager.handleFileLoadingError).toHaveBeenCalled();
+            expect(
+                mockFitFileStateManager.handleFileLoadingError
+            ).toHaveBeenCalled();
         });
 
         it("should handle decoding errors", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockDecoder.read.mockReturnValue({
                 messages: {},
                 errors: ["Invalid message type"],
@@ -491,11 +597,18 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             expect(result.error).toBeDefined();
             expect(result.error).toContain("Decoding errors occurred");
-            expect(mockFitFileStateManager.handleFileLoadingError).toHaveBeenCalled();
+            expect(
+                mockFitFileStateManager.handleFileLoadingError
+            ).toHaveBeenCalled();
         });
 
         it("should handle empty messages result", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockDecoder.read.mockReturnValue({
                 messages: {},
                 errors: [],
@@ -505,11 +618,18 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             expect(result.error).toBeDefined();
             expect(result.error).toContain("No valid messages decoded");
-            expect(mockFitFileStateManager.handleFileLoadingError).toHaveBeenCalled();
+            expect(
+                mockFitFileStateManager.handleFileLoadingError
+            ).toHaveBeenCalled();
         });
 
         it("should handle SDK import failure", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
 
             // Mock import failure by providing a mock SDK that throws
             const failingSDK = {
@@ -519,17 +639,30 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 Stream: mockFitSDK.Stream,
             };
 
-            const result = await fitParser.decodeFitFile(buffer, {}, failingSDK);
+            const result = await fitParser.decodeFitFile(
+                buffer,
+                {},
+                failingSDK
+            );
 
             expect(result.error).toBeDefined();
-            expect(mockFitFileStateManager.handleFileLoadingError).toHaveBeenCalled();
+            expect(
+                mockFitFileStateManager.handleFileLoadingError
+            ).toHaveBeenCalled();
         });
 
         it("should handle state manager progress update failures gracefully", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
-            mockFitFileStateManager.updateLoadingProgress.mockImplementation(() => {
-                throw new Error("State update failed");
-            });
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
+            mockFitFileStateManager.updateLoadingProgress.mockImplementation(
+                () => {
+                    throw new Error("State update failed");
+                }
+            );
 
             const result = await fitParser.decodeFitFile(buffer);
 
@@ -542,11 +675,18 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle state manager error update failures gracefully", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockDecoder.checkIntegrity.mockReturnValue(false);
-            mockFitFileStateManager.handleFileLoadingError.mockImplementation(() => {
-                throw new Error("Error state update failed");
-            });
+            mockFitFileStateManager.handleFileLoadingError.mockImplementation(
+                () => {
+                    throw new Error("Error state update failed");
+                }
+            );
 
             const result = await fitParser.decodeFitFile(buffer);
 
@@ -558,7 +698,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle generic exceptions", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockFitSDK.Decoder.mockImplementation(function ThrowingDecoder() {
                 throw new Error("Unexpected error");
             });
@@ -567,14 +712,24 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             expect(result.error).toBeDefined();
             expect(result.details).toBeDefined();
-            expect(console.error).toHaveBeenCalledWith("[FitParser] Failed to decode file", expect.any(Error));
+            expect(console.error).toHaveBeenCalledWith(
+                "[FitParser] Failed to decode file",
+                expect.any(Error)
+            );
         });
 
         it("should handle exceptions without message or stack", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
-            mockFitSDK.Decoder.mockImplementation(function StringErrorDecoder() {
-                throw "String error";
-            });
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
+            mockFitSDK.Decoder.mockImplementation(
+                function StringErrorDecoder() {
+                    throw "String error";
+                }
+            );
 
             const result = await fitParser.decodeFitFile(buffer);
 
@@ -583,15 +738,24 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle fitFileStateManager.updateLoadingProgress failure", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             const progressError = new Error("Progress update failed");
 
             // Setup state manager with failing progress update
-            mockFitFileStateManager.updateLoadingProgress.mockImplementation(() => {
-                throw progressError;
-            });
+            mockFitFileStateManager.updateLoadingProgress.mockImplementation(
+                () => {
+                    throw progressError;
+                }
+            );
 
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleWarnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             const result = await fitParser.decodeFitFile(buffer);
 
@@ -605,7 +769,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle state error update failure when no messages decoded", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             const stateError = new Error("State update failed");
 
             // Mock decoder to return empty messages
@@ -613,22 +782,36 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             mockDecoder.read.mockReturnValue({}); // Empty messages object
 
             // Setup state manager with failing error state update
-            mockFitFileStateManager.handleFileLoadingError.mockImplementation(() => {
-                throw stateError;
-            });
+            mockFitFileStateManager.handleFileLoadingError.mockImplementation(
+                () => {
+                    throw stateError;
+                }
+            );
 
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleWarnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBe("No valid messages decoded, FIT file might be corrupted.");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[FitParser] Failed to update error state:", stateError);
+            expect(result.error).toBe(
+                "No valid messages decoded, FIT file might be corrupted."
+            );
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[FitParser] Failed to update error state:",
+                stateError
+            );
 
             consoleWarnSpy.mockRestore();
         });
 
         it("should handle state error update failure in generic exception handling", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             const decodingError = new Error("Decoding failed");
             const stateError = new Error("State update failed");
 
@@ -638,15 +821,22 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             });
 
             // Setup state manager with failing error state update
-            mockFitFileStateManager.handleFileLoadingError.mockImplementation(() => {
-                throw stateError;
-            });
+            mockFitFileStateManager.handleFileLoadingError.mockImplementation(
+                () => {
+                    throw stateError;
+                }
+            );
 
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleWarnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[FitParser] Failed to update error state:", stateError);
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[FitParser] Failed to update error state:",
+                stateError
+            );
             expect(result.error).toBe("Decoding failed");
 
             consoleWarnSpy.mockRestore();
@@ -717,7 +907,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
     describe("Edge Cases and Error Handling", () => {
         it("should handle missing integrity check method", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             delete mockDecoder.getIntegrityErrors;
             mockDecoder.checkIntegrity.mockReturnValue(false);
 
@@ -727,7 +922,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle decoder without read method", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             delete mockDecoder.read;
 
             const result = await fitParser.decodeFitFile(buffer);
@@ -736,13 +936,20 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should handle performance monitor timing failures", async () => {
-            const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
+            const buffer = Buffer.from([
+                0x0e,
+                0x10,
+                0x43,
+                0x08,
+            ]);
             mockPerformanceMonitor.endTimer.mockImplementation(() => {
                 throw new Error("Timer error");
             });
 
             // Performance monitor errors should be thrown since endTimer is not wrapped in try-catch
-            await expect(fitParser.decodeFitFile(buffer)).rejects.toThrow("Timer error");
+            await expect(fitParser.decodeFitFile(buffer)).rejects.toThrow(
+                "Timer error"
+            );
         });
     });
 });

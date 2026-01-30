@@ -1,5 +1,6 @@
 /**
  * Time conversion constants
+ *
  * @readonly
  */
 const TIME_CONVERSIONS = {
@@ -9,6 +10,7 @@ const TIME_CONVERSIONS = {
 
 /**
  * Supported time units
+ *
  * @readonly
  */
 export const TIME_UNITS = {
@@ -19,18 +21,24 @@ export const TIME_UNITS = {
 
 /**
  * Converts time from seconds to user's preferred units
+ *
+ * @example
+ *     // Convert 3600 seconds to hours
+ *     const hours = convertTimeUnits(3600, TIME_UNITS.HOURS); // 1
+ *
  * @param {number} seconds - Time in seconds
  * @param {string} targetUnit - Target unit (seconds, minutes, hours)
+ *
  * @returns {number} Converted time value
+ *
  * @throws {TypeError} If seconds is not a number
- * @example
- * // Convert 3600 seconds to hours
- * const hours = convertTimeUnits(3600, TIME_UNITS.HOURS); // 1
  */
 export function convertTimeUnits(seconds, targetUnit) {
     // Input validation
     if (typeof seconds !== "number" || isNaN(seconds)) {
-        throw new TypeError(`Expected seconds to be a number, received ${typeof seconds}`);
+        throw new TypeError(
+            `Expected seconds to be a number, received ${typeof seconds}`
+        );
     }
 
     if (seconds < 0) {
@@ -49,7 +57,9 @@ export function convertTimeUnits(seconds, targetUnit) {
                 return seconds;
             }
             default: {
-                console.warn(`[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`);
+                console.warn(
+                    `[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`
+                );
                 return seconds;
             }
         }

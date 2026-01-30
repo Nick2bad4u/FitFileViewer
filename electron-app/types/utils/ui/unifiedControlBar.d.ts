@@ -1,8 +1,11 @@
 /**
- * @fileoverview Unified Control Bar
- * @description Creates a unified bar combining fullscreen and color switcher controls
- * @author FitFileViewer Development Team
+ * Creates a unified bar combining fullscreen and color switcher controls
+ *
  * @version 1.0.0
+ *
+ * @file Unified Control Bar
+ *
+ * @author FitFileViewer Development Team
  */
 /**
  * Adds auto-scroll animation to active filename

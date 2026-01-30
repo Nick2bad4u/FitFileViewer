@@ -5,35 +5,60 @@ import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 /**
- * Renders a chart showing GPS position (latitude and longitude) plotted against time.
- * This allows users to correlate specific timestamps with exact GPS locations,
- * making it easy to identify where events like top speed occurred.
+ * Renders a chart showing GPS position (latitude and longitude) plotted against
+ * time. This allows users to correlate specific timestamps with exact GPS
+ * locations, making it easy to identify where events like top speed occurred.
  *
  * @param {HTMLElement} container - Container element for the chart
- * @param {any[]} data - Array of record messages with position and timestamp data
- * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options - Chart configuration options
+ * @param {any[]} data - Array of record messages with position and timestamp
+ *   data
+ * @param {{
+ *     maxPoints: number | "all";
+ *     showPoints?: boolean;
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ * }} options
+ *   - Chart configuration options
  */
 export function renderGPSTimeChart(container, data, options) {
     try {
-        const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+        const isTestEnvironment =
+            typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
-            isTestEnvironment || (isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+            isTestEnvironment ||
+            (isDevEnvironment &&
+                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTimeChart called");
         }
 
         // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
-        const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
+        const safeData = Array.isArray(data)
+            ? data.filter((row) => row && typeof row === "object")
+            : [];
 
         // Check if GPS position and timestamp data are available
-        const hasLatitude = safeData.some((row) => row.positionLat !== undefined && row.positionLat !== null),
-            hasLongitude = safeData.some((row) => row.positionLong !== undefined && row.positionLong !== null),
-            hasTimestamp = safeData.some((row) => row.timestamp !== undefined && row.timestamp !== null);
+        const hasLatitude = safeData.some(
+                (row) =>
+                    row.positionLat !== undefined && row.positionLat !== null
+            ),
+            hasLongitude = safeData.some(
+                (row) =>
+                    row.positionLong !== undefined && row.positionLong !== null
+            ),
+            hasTimestamp = safeData.some(
+                (row) => row.timestamp !== undefined && row.timestamp !== null
+            );
 
         if (!hasLatitude || !hasLongitude || !hasTimestamp) {
             if (isDebugLoggingEnabled) {
-                console.log("[ChartJS] No GPS position or timestamp data available");
+                console.log(
+                    "[ChartJS] No GPS position or timestamp data available"
+                );
             }
             return;
         }
@@ -73,7 +98,8 @@ export function renderGPSTimeChart(container, data, options) {
                 const lat = (row.positionLat * 180) / 2 ** 31,
                     lng = (row.positionLong * 180) / 2 ** 31,
                     // Calculate elapsed time in seconds
-                    elapsedSeconds = (new Date(row.timestamp).getTime() - startTime) / 1000;
+                    elapsedSeconds =
+                        (new Date(row.timestamp).getTime() - startTime) / 1000;
 
                 latitudeData.push({
                     elapsedSeconds,
@@ -101,7 +127,10 @@ export function renderGPSTimeChart(container, data, options) {
 
         // Apply data point limiting
         if (options.maxPoints !== "all") {
-            const maxPoints = typeof options.maxPoints === "number" ? options.maxPoints : 1000;
+            const maxPoints =
+                typeof options.maxPoints === "number"
+                    ? options.maxPoints
+                    : 1000;
             if (latitudeData.length > maxPoints) {
                 const step = Math.ceil(latitudeData.length / maxPoints);
                 latitudeData = latitudeData.filter((_, i) => i % step === 0);
@@ -110,13 +139,23 @@ export function renderGPSTimeChart(container, data, options) {
         }
 
         if (isDebugLoggingEnabled) {
-            console.log(`[ChartJS] Creating GPS time chart with ${latitudeData.length} points`);
+            console.log(
+                `[ChartJS] Creating GPS time chart with ${latitudeData.length} points`
+            );
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-time", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas("gps-time", 0)
+        );
         if (themeConfig?.colors) {
-            canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
-            if (typeof themeConfig.colors.shadow === "string" && themeConfig.colors.shadow.length > 0) {
+            canvas.style.background =
+                themeConfig.colors.bgPrimary ||
+                themeConfig.colors.chartBackground ||
+                "#000";
+            if (
+                typeof themeConfig.colors.shadow === "string" &&
+                themeConfig.colors.shadow.length > 0
+            ) {
                 canvas.style.boxShadow = themeConfig.colors.shadow;
             }
         }
@@ -125,7 +164,9 @@ export function renderGPSTimeChart(container, data, options) {
 
         /**
          * Format elapsed seconds to human-readable time string
+         *
          * @param {number} seconds - Elapsed seconds
+         *
          * @returns {string} Formatted time string
          */
         function formatElapsedTime(seconds) {
@@ -202,7 +243,9 @@ export function renderGPSTimeChart(container, data, options) {
                             label(context) {
                                 const point = context.raw,
                                     isLatitude = context.datasetIndex === 0,
-                                    coordType = isLatitude ? "Latitude" : "Longitude";
+                                    coordType = isLatitude
+                                        ? "Latitude"
+                                        : "Longitude";
 
                                 return [
                                     `${coordType}: ${point.y.toFixed(6)}°`,
@@ -214,7 +257,9 @@ export function renderGPSTimeChart(container, data, options) {
                             title(tooltipItems) {
                                 if (tooltipItems.length > 0) {
                                     const point = tooltipItems[0].raw;
-                                    return new Date(point.timestamp).toLocaleString();
+                                    return new Date(
+                                        point.timestamp
+                                    ).toLocaleString();
                                 }
                                 return "";
                             },
@@ -239,7 +284,8 @@ export function renderGPSTimeChart(container, data, options) {
                         },
                         zoom: {
                             drag: {
-                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                backgroundColor:
+                                    themeConfig.colors.primaryAlpha,
                                 borderColor: themeConfig.colors.primary,
                                 borderWidth: 2,
                                 enabled: true,

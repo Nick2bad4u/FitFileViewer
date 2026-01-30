@@ -43,7 +43,9 @@ describe("chartBackgroundColorPlugin.beforeDraw", () => {
         const ctx = createMockCtx();
         const chart: any = { canvas, ctx, options: {} };
 
-        chartBackgroundColorPlugin.beforeDraw(chart, { backgroundColor: "#ff0000" });
+        chartBackgroundColorPlugin.beforeDraw(chart, {
+            backgroundColor: "#ff0000",
+        });
 
         // @ts-ignore
         expect((ctx as any)._fillStyle).toBe("#ff0000");

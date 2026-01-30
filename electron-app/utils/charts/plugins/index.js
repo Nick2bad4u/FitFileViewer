@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for charts/plugins
- * @description Re-exports all modules in the charts/plugins category
+ * Re-exports all modules in the charts/plugins category
+ *
+ * @file Barrel Export for charts/plugins
  */
 export * from "./addChartHoverEffects.js";
 export * from "./chartBackgroundColorPlugin.js";

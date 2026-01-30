@@ -21,7 +21,10 @@ afterEach(() => {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w: any = window as any;
-        if (w.FitFileViewerUtils && typeof w.FitFileViewerUtils.cleanup === "function") {
+        if (
+            w.FitFileViewerUtils &&
+            typeof w.FitFileViewerUtils.cleanup === "function"
+        ) {
             w.FitFileViewerUtils.cleanup();
         }
     } catch {
@@ -68,7 +71,13 @@ describe("utils.js – global exposure and helpers", () => {
         );
 
         // And they should be functions on window
-        for (const key of ["formatDistance", "formatDuration", "renderMap", "renderSummary", "updateActiveTab"]) {
+        for (const key of [
+            "formatDistance",
+            "formatDuration",
+            "renderMap",
+            "renderSummary",
+            "updateActiveTab",
+        ]) {
             expect(typeof w[key]).toBe("function");
             expect(w.FitFileViewerUtils.isUtilAvailable(key)).toBe(true);
         }
@@ -94,7 +103,9 @@ describe("utils.js – global exposure and helpers", () => {
         const w: any = window as any;
         expect(w.FitFileViewerUtils.version).toBe("9.9.9");
         // Ensure electronAPI was queried
-        expect((window as any).electronAPI.getAppVersion).toHaveBeenCalledTimes(1);
+        expect((window as any).electronAPI.getAppVersion).toHaveBeenCalledTimes(
+            1
+        );
     });
 
     it("safeExecute throws for unknown utility and succeeds for known one", async () => {
@@ -105,10 +116,14 @@ describe("utils.js – global exposure and helpers", () => {
         const w: any = window as any;
 
         // Unknown util should throw
-        expect(() => w.FitFileViewerUtils.safeExecute("__does_not_exist__")).toThrow();
+        expect(() =>
+            w.FitFileViewerUtils.safeExecute("__does_not_exist__")
+        ).toThrow();
 
         // Known util should execute without throwing; we don't assert exact return shape to avoid coupling
-        expect(() => w.FitFileViewerUtils.safeExecute("formatDistance", 1000)).not.toThrow();
+        expect(() =>
+            w.FitFileViewerUtils.safeExecute("formatDistance", 1000)
+        ).not.toThrow();
     });
 
     it("exposes dev helpers in development and records collisions", async () => {

@@ -2,8 +2,11 @@
  * Folder-based FIT file browser tab.
  *
  * This is intentionally lightweight:
- * - The main process owns the persisted root folder and enforces that listings remain within it.
- * - The renderer requests directory listings and can open a selected .fit file by path.
+ *
+ * - The main process owns the persisted root folder and enforces that listings
+ *   remain within it.
+ * - The renderer requests directory listings and can open a selected .fit file by
+ *   path.
  */
 
 import pLimitCompat from "../../async/pLimitCompat.js";
@@ -12,8 +15,17 @@ import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
-/** @typedef {{ name: string, kind: 'dir'|'file', relPath: string, fullPath: string }} FitBrowserEntry */
-/** @typedef {{ root: string|null, relPath: string, entries: FitBrowserEntry[] }} FitBrowserListResponse */
+/** @typedef {{
+ *     name: string;
+ *     kind: "dir" | "file";
+ *     relPath: string;
+ *     fullPath: string;
+ * }} FitBrowserEntry */
+/** @typedef {{
+ *     root: string | null;
+ *     relPath: string;
+ *     entries: FitBrowserEntry[];
+ * }} FitBrowserListResponse */
 
 const TAB_STATE_PATH_REL = "browser.relPath";
 const TAB_STATE_VIEW = "browser.view";
@@ -23,18 +35,20 @@ const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
 
-/** @typedef {'km' | 'mi'} DistanceUnit */
+/** @typedef {"km" | "mi"} DistanceUnit */
 
 /**
  * @typedef {object} CalendarState
+ *
  * @property {Date} monthStart
  * @property {string} selectedDayKey
  */
 
-/** @typedef {'files' | 'library' | 'calendar'} BrowserView */
+/** @typedef {"files" | "library" | "calendar"} BrowserView */
 
 /**
  * @typedef {object} FitLibraryItem
+ *
  * @property {string} fullPath
  * @property {string} fileName
  * @property {Date} startTime
@@ -107,14 +121,18 @@ export async function renderFileBrowserTab() {
                 }
 
                 // Reset the relative path when a new root is chosen.
-                setState(TAB_STATE_PATH_REL, "", { source: "fileBrowser.pickFolder" });
+                setState(TAB_STATE_PATH_REL, "", {
+                    source: "fileBrowser.pickFolder",
+                });
                 await refreshActiveView();
             });
         }
 
         const filesBtn = document.getElementById("fit-browser-view-files");
         const libraryBtn = document.getElementById("fit-browser-view-library");
-        const calendarBtn = document.getElementById("fit-browser-view-calendar");
+        const calendarBtn = document.getElementById(
+            "fit-browser-view-calendar"
+        );
 
         const setView = async (/** @type {BrowserView} */ view) => {
             setState(TAB_STATE_VIEW, view, { source: "fileBrowser.setView" });
@@ -134,11 +152,16 @@ export async function renderFileBrowserTab() {
  * @param {number} deltaMonths
  */
 function addMonths(monthStart, deltaMonths) {
-    return new Date(monthStart.getFullYear(), monthStart.getMonth() + deltaMonths, 1);
+    return new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth() + deltaMonths,
+        1
+    );
 }
 
 /**
  * @param {unknown} value
+ *
  * @returns {Date | null}
  */
 function coerceToDate(value) {
@@ -160,6 +183,7 @@ function coerceToDate(value) {
 
 /**
  * @param {unknown} value
+ *
  * @returns {number}
  */
 function coerceToNumber(value) {
@@ -179,8 +203,12 @@ function computeLibraryTotals(items, lastDays) {
     const now = new Date();
     const startOfWeek = startOfLocalWeek(now);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const safeLastDays = Number.isFinite(lastDays) ? Math.max(1, Math.min(3650, Math.floor(lastDays))) : 30;
-    const startOfLastDays = new Date(now.getTime() - safeLastDays * 24 * 60 * 60 * 1000);
+    const safeLastDays = Number.isFinite(lastDays)
+        ? Math.max(1, Math.min(3650, Math.floor(lastDays)))
+        : 30;
+    const startOfLastDays = new Date(
+        now.getTime() - safeLastDays * 24 * 60 * 60 * 1000
+    );
 
     let weekDistance = 0;
     let monthDistance = 0;
@@ -211,23 +239,31 @@ function computeLibraryTotals(items, lastDays) {
 
 /**
  * @param {ElectronAPI} api
- * @param {{ fullPath: string, name: string }} file
+ * @param {{ fullPath: string; name: string }} file
+ *
  * @returns {Promise<FitLibraryItem | null>}
  */
 async function decodeLibraryItem(api, file) {
     try {
         const buf = await api.readFile(file.fullPath);
         const decoded = await api.decodeFitFile(buf);
-        const session = decoded && typeof decoded === "object" ? /** @type {any} */ (decoded).sessionMesgs?.[0] : null;
+        const session =
+            decoded && typeof decoded === "object"
+                ? /** @type {any} */ (decoded).sessionMesgs?.[0]
+                : null;
 
-        const startRaw = session?.start_time ?? session?.startTime ?? session?.timestamp;
+        const startRaw =
+            session?.start_time ?? session?.startTime ?? session?.timestamp;
         const startTime = coerceToDate(startRaw);
         if (!startTime) {
             return null;
         }
 
-        const totalDistanceM = coerceToNumber(session?.total_distance ?? session?.totalDistance ?? 0);
-        const sport = typeof session?.sport === "string" ? session.sport : undefined;
+        const totalDistanceM = coerceToNumber(
+            session?.total_distance ?? session?.totalDistance ?? 0
+        );
+        const sport =
+            typeof session?.sport === "string" ? session.sport : undefined;
 
         return {
             fileName: file.name,
@@ -272,16 +308,22 @@ function getCalendarState() {
         const selectedRaw = localStorage.getItem(CAL_PREFS_SELECTED_DAY_KEY);
 
         const monthStart = parseMonthKey(monthRaw) ?? defaultMonthStart;
-        const selectedDayKey = typeof selectedRaw === "string" && selectedRaw ? selectedRaw : defaultSelected;
+        const selectedDayKey =
+            typeof selectedRaw === "string" && selectedRaw
+                ? selectedRaw
+                : defaultSelected;
 
         return { monthStart, selectedDayKey };
     } catch {
-        return { monthStart: defaultMonthStart, selectedDayKey: defaultSelected };
+        return {
+            monthStart: defaultMonthStart,
+            selectedDayKey: defaultSelected,
+        };
     }
 }
 
 /**
- * @returns {ElectronAPI|null}
+ * @returns {ElectronAPI | null}
  */
 function getElectronAPI() {
     const api = /** @type {unknown} */ (globalThis.electronAPI);
@@ -292,14 +334,16 @@ function getElectronAPI() {
 }
 
 /**
- * @returns {{ lastDays: number, unit: DistanceUnit }}
+ * @returns {{ lastDays: number; unit: DistanceUnit }}
  */
 function getLibraryPrefs() {
     try {
         const lastDaysRaw = localStorage.getItem(LIB_PREFS_LAST_DAYS_KEY);
         const unitRaw = localStorage.getItem(LIB_PREFS_UNIT_KEY);
-        const n = typeof lastDaysRaw === "string" ? Number(lastDaysRaw) : Number.NaN;
-        const lastDays = Number.isFinite(n) && n >= 1 && n <= 3650 ? Math.floor(n) : 30;
+        const n =
+            typeof lastDaysRaw === "string" ? Number(lastDaysRaw) : Number.NaN;
+        const lastDays =
+            Number.isFinite(n) && n >= 1 && n <= 3650 ? Math.floor(n) : 30;
         const unit = unitRaw === "mi" ? "mi" : "km";
         return { lastDays, unit };
     } catch {
@@ -316,6 +360,7 @@ function getLibraryStorageKey(root) {
 
 /**
  * @param {FitLibraryItem[]} items
+ *
  * @returns {Map<string, FitLibraryItem[]>}
  */
 function groupItemsByDay(items) {
@@ -335,17 +380,27 @@ function groupItemsByDay(items) {
 
 /**
  * @param {unknown} value
+ *
  * @returns {value is FitBrowserListResponse}
  */
 function isFitBrowserListResponse(value) {
     if (!value || typeof value !== "object") return false;
-    const v = /** @type {{ root?: unknown, relPath?: unknown, entries?: unknown }} */ (value);
-    if (v.root !== null && typeof v.root !== "string" && v.root !== undefined) return false;
+    const v =
+        /** @type {{ root?: unknown; relPath?: unknown; entries?: unknown }} */ (
+            value
+        );
+    if (v.root !== null && typeof v.root !== "string" && v.root !== undefined)
+        return false;
     if (typeof v.relPath !== "string") return false;
     if (!Array.isArray(v.entries)) return false;
     return v.entries.every((e) => {
         if (!e || typeof e !== "object") return false;
-        const entry = /** @type {{ name?: unknown, kind?: unknown, relPath?: unknown, fullPath?: unknown }} */ (e);
+        const entry = /** @type {{
+         *     name?: unknown;
+         *     kind?: unknown;
+         *     relPath?: unknown;
+         *     fullPath?: unknown;
+         * }} */ (e);
         return (
             typeof entry.name === "string" &&
             (entry.kind === "dir" || entry.kind === "file") &&
@@ -359,10 +414,11 @@ function isFitBrowserListResponse(value) {
  * Recursively list all FIT files under the browser root.
  *
  * @param {ElectronAPI} api
- * @returns {Promise<Array<{ fullPath: string, name: string }>>}
+ *
+ * @returns {Promise<{ fullPath: string; name: string }[]>}
  */
 async function listAllFitFiles(api) {
-    /** @type {Array<{ fullPath: string, name: string }>} */
+    /** @type {{ fullPath: string; name: string }[]} */
     const out = [];
 
     const limit = pLimitCompat(6);
@@ -371,6 +427,7 @@ async function listAllFitFiles(api) {
 
     /**
      * @param {string} relPath
+     *
      * @returns {Promise<void>}
      */
     const walk = async (relPath) => {
@@ -406,7 +463,8 @@ async function listAllFitFiles(api) {
 
 /**
  * @param {string} root
- * @returns {{ items: FitLibraryItem[], scannedAt: number } | null}
+ *
+ * @returns {{ items: FitLibraryItem[]; scannedAt: number } | null}
  */
 function loadPersistedLibraryCache(root) {
     try {
@@ -420,7 +478,8 @@ function loadPersistedLibraryCache(root) {
             return null;
         }
 
-        const { items: itemsRaw, scannedAt } = /** @type {{ items?: unknown, scannedAt?: unknown }} */ (parsed);
+        const { items: itemsRaw, scannedAt } =
+            /** @type {{ items?: unknown; scannedAt?: unknown }} */ (parsed);
         if (!Array.isArray(itemsRaw)) {
             return null;
         }
@@ -428,8 +487,10 @@ function loadPersistedLibraryCache(root) {
         /** @type {FitLibraryItem[]} */
         const items = [];
         for (const it of itemsRaw) {
-            const fullPath = typeof it?.fullPath === "string" ? it.fullPath : "";
-            const fileName = typeof it?.fileName === "string" ? it.fileName : "";
+            const fullPath =
+                typeof it?.fullPath === "string" ? it.fullPath : "";
+            const fileName =
+                typeof it?.fileName === "string" ? it.fileName : "";
             const startTime = coerceToDate(it?.startTime);
             const totalDistanceM = coerceToNumber(it?.totalDistanceM);
             const sport = typeof it?.sport === "string" ? it.sport : undefined;
@@ -437,12 +498,20 @@ function loadPersistedLibraryCache(root) {
             if (!fullPath || !fileName || !startTime) {
                 continue;
             }
-            items.push({ fileName, fullPath, sport, startTime, totalDistanceM });
+            items.push({
+                fileName,
+                fullPath,
+                sport,
+                startTime,
+                totalDistanceM,
+            });
         }
 
         items.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
         const normalizedScannedAt =
-            typeof scannedAt === "number" && Number.isFinite(scannedAt) ? scannedAt : Date.now();
+            typeof scannedAt === "number" && Number.isFinite(scannedAt)
+                ? scannedAt
+                : Date.now();
 
         return { items, scannedAt: normalizedScannedAt };
     } catch {
@@ -452,21 +521,31 @@ function loadPersistedLibraryCache(root) {
 
 /**
  * @param {string} root
- * @returns {{ items: FitLibraryItem[], scannedAt: number } | null}
+ *
+ * @returns {{ items: FitLibraryItem[]; scannedAt: number } | null}
  */
 function loadSessionLibraryCache(root) {
     const cached = /** @type {unknown} */ (globalThis.__ffvLibraryCache);
-    const cacheObj = (cached && typeof cached === "object" && /** @type {Record<string, unknown>} */ (cached)) || null;
-    const cachedForRoot = cacheObj && typeof cacheObj[root] === "object" && cacheObj[root];
+    const cacheObj =
+        (cached &&
+            typeof cached === "object" &&
+            /** @type {Record<string, unknown>} */ (cached)) ||
+        null;
+    const cachedForRoot =
+        cacheObj && typeof cacheObj[root] === "object" && cacheObj[root];
     return (cachedForRoot && /** @type {any} */ (cachedForRoot)) || null;
 }
 
 /**
  * @param {string} relPath
+ *
  * @returns {string}
  */
 function parentRelPath(relPath) {
-    const normalized = relPath.replaceAll("\\", "/").replace(/^\/+/, "").replace(/\/+$/, "");
+    const normalized = relPath
+        .replaceAll("\\", "/")
+        .replace(/^\/+/, "")
+        .replace(/\/+$/, "");
     const idx = normalized.lastIndexOf("/");
     if (idx === -1) return "";
     return normalized.slice(0, idx);
@@ -474,6 +553,7 @@ function parentRelPath(relPath) {
 
 /**
  * @param {unknown} raw
+ *
  * @returns {Date | null}
  */
 function parseMonthKey(raw) {
@@ -494,7 +574,10 @@ function parseMonthKey(raw) {
  */
 function persistCalendarState(state) {
     try {
-        localStorage.setItem(CAL_PREFS_MONTH_KEY, formatMonthKey(state.monthStart));
+        localStorage.setItem(
+            CAL_PREFS_MONTH_KEY,
+            formatMonthKey(state.monthStart)
+        );
         localStorage.setItem(CAL_PREFS_SELECTED_DAY_KEY, state.selectedDayKey);
     } catch {
         /* ignore */
@@ -503,7 +586,7 @@ function persistCalendarState(state) {
 
 /**
  * @param {string} root
- * @param {{ items: FitLibraryItem[], totals: any, scannedAt: number }} payload
+ * @param {{ items: FitLibraryItem[]; totals: any; scannedAt: number }} payload
  */
 function persistLibraryCache(root, payload) {
     try {
@@ -517,14 +600,17 @@ function persistLibraryCache(root, payload) {
                 totalDistanceM: it.totalDistanceM,
             })),
         };
-        localStorage.setItem(getLibraryStorageKey(root), JSON.stringify(serializable));
+        localStorage.setItem(
+            getLibraryStorageKey(root),
+            JSON.stringify(serializable)
+        );
     } catch {
         /* ignore */
     }
 }
 
 /**
- * @param {{ lastDays: number, unit: DistanceUnit }} prefs
+ * @param {{ lastDays: number; unit: DistanceUnit }} prefs
  */
 function persistLibraryPrefs(prefs) {
     try {
@@ -538,7 +624,11 @@ function persistLibraryPrefs(prefs) {
 async function refreshActiveView() {
     const rawView = getState(TAB_STATE_VIEW);
     const view = /** @type {BrowserView} */ (
-        rawView === "calendar" ? "calendar" : rawView === "library" ? "library" : "files"
+        rawView === "calendar"
+            ? "calendar"
+            : rawView === "library"
+              ? "library"
+              : "files"
     );
     const filesBtn = document.getElementById("fit-browser-view-files");
     const libraryBtn = document.getElementById("fit-browser-view-library");
@@ -548,21 +638,48 @@ async function refreshActiveView() {
     const calendarEl = document.getElementById("fit-browser-calendar");
 
     if (filesBtn) {
-        filesBtn.setAttribute("aria-selected", view === "files" ? "true" : "false");
-        filesBtn.classList.toggle("file-browser__seg-btn--active", view === "files");
+        filesBtn.setAttribute(
+            "aria-selected",
+            view === "files" ? "true" : "false"
+        );
+        filesBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "files"
+        );
     }
     if (libraryBtn) {
-        libraryBtn.setAttribute("aria-selected", view === "library" ? "true" : "false");
-        libraryBtn.classList.toggle("file-browser__seg-btn--active", view === "library");
+        libraryBtn.setAttribute(
+            "aria-selected",
+            view === "library" ? "true" : "false"
+        );
+        libraryBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "library"
+        );
     }
     if (calendarBtn) {
-        calendarBtn.setAttribute("aria-selected", view === "calendar" ? "true" : "false");
-        calendarBtn.classList.toggle("file-browser__seg-btn--active", view === "calendar");
+        calendarBtn.setAttribute(
+            "aria-selected",
+            view === "calendar" ? "true" : "false"
+        );
+        calendarBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "calendar"
+        );
     }
 
-    setElementVisible(listEl instanceof HTMLElement ? listEl : null, view === "files");
-    setElementVisible(libraryEl instanceof HTMLElement ? libraryEl : null, view === "library");
-    setElementVisible(calendarEl instanceof HTMLElement ? calendarEl : null, view === "calendar");
+    setElementVisible(
+        listEl instanceof HTMLElement ? listEl : null,
+        view === "files"
+    );
+    setElementVisible(
+        libraryEl instanceof HTMLElement ? libraryEl : null,
+        view === "library"
+    );
+    setElementVisible(
+        calendarEl instanceof HTMLElement ? calendarEl : null,
+        view === "calendar"
+    );
 
     if (view === "files") {
         await refreshListing();
@@ -586,32 +703,43 @@ async function refreshListing() {
         return;
     }
 
-    if (!api || typeof api.getFitBrowserFolder !== "function" || typeof api.listFitBrowserFolder !== "function") {
+    if (
+        !api ||
+        typeof api.getFitBrowserFolder !== "function" ||
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         listEl.textContent = "";
         return;
     }
 
     const root = await api.getFitBrowserFolder();
-    const rel = typeof getState(TAB_STATE_PATH_REL) === "string" ? String(getState(TAB_STATE_PATH_REL)) : "";
+    const rel =
+        typeof getState(TAB_STATE_PATH_REL) === "string"
+            ? String(getState(TAB_STATE_PATH_REL))
+            : "";
 
     if (!root) {
         pathEl.textContent = "No folder selected";
-        listEl.innerHTML = '<div class="file-browser__empty">Choose a folder to browse .fit files.</div>';
+        listEl.innerHTML =
+            '<div class="file-browser__empty">Choose a folder to browse .fit files.</div>';
         return;
     }
 
     const responseRaw = await api.listFitBrowserFolder(rel);
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
-        listEl.innerHTML = '<div class="file-browser__empty">Unable to list folder.</div>';
+        listEl.innerHTML =
+            '<div class="file-browser__empty">Unable to list folder.</div>';
         return;
     }
 
     const response = /** @type {FitBrowserListResponse} */ (responseRaw);
     const { entries, relPath } = response;
 
-    const displayPath = relPath ? `${root} / ${relPath.replaceAll("/", " / ")}` : root;
+    const displayPath = relPath
+        ? `${root} / ${relPath.replaceAll("/", " / ")}`
+        : root;
     pathEl.textContent = displayPath;
 
     listEl.innerHTML = "";
@@ -622,7 +750,9 @@ async function refreshListing() {
         up.className = "file-browser__item file-browser__item--dir";
         up.textContent = "..";
         up.addEventListener("click", async () => {
-            setState(TAB_STATE_PATH_REL, parentRelPath(relPath), { source: "fileBrowser.up" });
+            setState(TAB_STATE_PATH_REL, parentRelPath(relPath), {
+                source: "fileBrowser.up",
+            });
             await refreshListing();
         });
         listEl.append(up);
@@ -645,7 +775,9 @@ async function refreshListing() {
 
         if (kind === "dir") {
             btn.addEventListener("click", async () => {
-                setState(TAB_STATE_PATH_REL, entryRelPath, { source: "fileBrowser.enterDir" });
+                setState(TAB_STATE_PATH_REL, entryRelPath, {
+                    source: "fileBrowser.enterDir",
+                });
                 await refreshListing();
             });
         } else {
@@ -654,7 +786,10 @@ async function refreshListing() {
 
                 await openFitFileFromPath({
                     filePath: fullPath,
-                    openFileBtn: openFileBtn instanceof HTMLElement ? openFileBtn : undefined,
+                    openFileBtn:
+                        openFileBtn instanceof HTMLElement
+                            ? openFileBtn
+                            : undefined,
                     showNotification,
                 });
             });
@@ -666,7 +801,7 @@ async function refreshListing() {
 
 /**
  * @param {string} root
- * @param {{ items: FitLibraryItem[], scannedAt: number } | null} payload
+ * @param {{ items: FitLibraryItem[]; scannedAt: number } | null} payload
  */
 function renderCalendarResults(root, payload) {
     const titleEl = document.getElementById("fit-calendar-title");
@@ -681,8 +816,10 @@ function renderCalendarResults(root, payload) {
         if (titleEl) {
             titleEl.textContent = "Calendar";
         }
-        gridEl.innerHTML = '<div class="file-browser__empty">No scan results yet. Click “Scan folder”.</div>';
-        panelEl.innerHTML = '<div class="file-calendar__panelEmpty">No activities to display.</div>';
+        gridEl.innerHTML =
+            '<div class="file-browser__empty">No scan results yet. Click “Scan folder”.</div>';
+        panelEl.innerHTML =
+            '<div class="file-calendar__panelEmpty">No activities to display.</div>';
         return;
     }
 
@@ -693,19 +830,26 @@ function renderCalendarResults(root, payload) {
 
     /**
      * @param {number} count
+     *
      * @returns {string}
      */
-    const formatActivityLabel = (count) => `${count} ${count === 1 ? "activity" : "activities"}`;
+    const formatActivityLabel = (count) =>
+        `${count} ${count === 1 ? "activity" : "activities"}`;
 
     /**
-     * @param {string|undefined} sport
-     * @returns {{ key: string, label: string, emoji: string }}
+     * @param {string | undefined} sport
+     *
+     * @returns {{ key: string; label: string; emoji: string }}
      */
     const getSportBadge = (sport) => {
         const raw = typeof sport === "string" ? sport.trim() : "";
         const s = raw.toLowerCase();
 
-        if (s.includes("cycling") || s.includes("bike") || s.includes("biking")) {
+        if (
+            s.includes("cycling") ||
+            s.includes("bike") ||
+            s.includes("biking")
+        ) {
             return { key: "cycling", label: "Cycling", emoji: "🚴" };
         }
         if (s.includes("run")) {
@@ -730,15 +874,30 @@ function renderCalendarResults(root, payload) {
 
     const state = getCalendarState();
     const { monthStart, selectedDayKey } = state;
-    const monthLabel = monthStart.toLocaleString(undefined, { month: "long", year: "numeric" });
+    const monthLabel = monthStart.toLocaleString(undefined, {
+        month: "long",
+        year: "numeric",
+    });
     if (titleEl) {
         titleEl.textContent = `${monthLabel} — ${root}`;
     }
 
     const itemsByDay = groupItemsByDay(payload.items);
 
-    const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const firstDay = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1);
+    const weekdayLabels = [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun",
+    ];
+    const firstDay = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth(),
+        1
+    );
     const firstDow = firstDay.getDay();
     const firstIso = firstDow === 0 ? 7 : firstDow;
     const offset = firstIso - 1; // 0..6 where 0 is Monday
@@ -762,18 +921,22 @@ function renderCalendarResults(root, payload) {
         const isSelected = dayKey === selectedDayKey;
 
         const dayItems = itemsByDay.get(dayKey) ?? [];
-        const dayDistance = dayItems.reduce((acc, it) => acc + it.totalDistanceM, 0);
+        const dayDistance = dayItems.reduce(
+            (acc, it) => acc + it.totalDistanceM,
+            0
+        );
 
         const classes = ["file-calendar__day"];
         if (!inMonth) classes.push("file-calendar__day--outside");
         if (isToday) classes.push("file-calendar__day--today");
         if (isSelected) classes.push("file-calendar__day--selected");
-        if (dayItems.length > 0) classes.push("file-calendar__day--hasActivities");
+        if (dayItems.length > 0)
+            classes.push("file-calendar__day--hasActivities");
         if (dayItems.length > 1) classes.push("file-calendar__day--multi");
 
         let meta = "";
         if (dayItems.length > 0) {
-            /** @type {Map<string, { key: string, label: string, emoji: string, count: number }>} */
+            /** @type {Map<string, { key: string; label: string; emoji: string; count: number }>} */
             const bySport = new Map();
             for (const it of dayItems) {
                 const badge = getSportBadge(it.sport);
@@ -785,7 +948,9 @@ function renderCalendarResults(root, payload) {
                 }
             }
 
-            const badges = [...bySport.values()].sort((a, b) => b.count - a.count);
+            const badges = [...bySport.values()].sort(
+                (a, b) => b.count - a.count
+            );
             const badgeMax = 3;
             const shown = badges.slice(0, badgeMax);
             const remainder = Math.max(0, badges.length - shown.length);
@@ -824,7 +989,9 @@ function renderCalendarResults(root, payload) {
 
     for (const btn of gridEl.querySelectorAll(".file-calendar__day")) {
         btn.addEventListener("click", () => {
-            const { day: dayKeyRaw } = /** @type {DOMStringMap} */ (btn.dataset);
+            const { day: dayKeyRaw } = /** @type {DOMStringMap} */ (
+                btn.dataset
+            );
             const dayKey = dayKeyRaw || "";
             if (!dayKey) return;
             const next = { ...getCalendarState(), selectedDayKey: dayKey };
@@ -845,7 +1012,10 @@ function renderCalendarResults(root, payload) {
             continue;
         }
 
-        const dayDistance = dayItems.reduce((acc, it) => acc + it.totalDistanceM, 0);
+        const dayDistance = dayItems.reduce(
+            (acc, it) => acc + it.totalDistanceM,
+            0
+        );
         btn.dataset.tooltip = `${dayKey} • ${fmt(dayDistance)} ${unitLabel} • ${formatActivityLabel(dayItems.length)}`;
     }
 
@@ -870,7 +1040,10 @@ function renderCalendarResults(root, payload) {
         .slice()
         .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
         .map((it) => {
-            const when = it.startTime.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+            const when = it.startTime.toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
             const dist = fmt(it.totalDistanceM);
             const sport = it.sport ? ` — ${escapeHtml(it.sport)}` : "";
             const badge = getSportBadge(it.sport);
@@ -893,13 +1066,18 @@ function renderCalendarResults(root, payload) {
 
     for (const btn of panelEl.querySelectorAll(".file-library__row")) {
         btn.addEventListener("click", async () => {
-            const { fullpath: encodedRaw } = /** @type {DOMStringMap} */ (btn.dataset);
+            const { fullpath: encodedRaw } = /** @type {DOMStringMap} */ (
+                btn.dataset
+            );
             const encoded = encodedRaw || "";
             const fullPath = decodeURIComponent(encoded);
             const openFileBtn = document.getElementById("openFileBtn");
             await openFitFileFromPath({
                 filePath: fullPath,
-                openFileBtn: openFileBtn instanceof HTMLElement ? openFileBtn : undefined,
+                openFileBtn:
+                    openFileBtn instanceof HTMLElement
+                        ? openFileBtn
+                        : undefined,
                 showNotification,
             });
         });
@@ -913,7 +1091,10 @@ async function renderCalendarView() {
     const api = getElectronAPI();
     const pathEl = document.getElementById("fit-browser-current-path");
     const calendarEl = document.getElementById("fit-browser-calendar");
-    if (!(calendarEl instanceof HTMLElement) || !(pathEl instanceof HTMLElement)) {
+    if (
+        !(calendarEl instanceof HTMLElement) ||
+        !(pathEl instanceof HTMLElement)
+    ) {
         return;
     }
 
@@ -926,11 +1107,13 @@ async function renderCalendarView() {
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
-        calendarEl.innerHTML = '<div class="file-browser__empty">Choose a folder to view the calendar.</div>';
+        calendarEl.innerHTML =
+            '<div class="file-browser__empty">Choose a folder to view the calendar.</div>';
         return;
     }
 
-    const cached = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    const cached =
+        loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
 
     if (!calendarEl.dataset.ffvCalendarInitialized) {
         calendarEl.dataset.ffvCalendarInitialized = "true";
@@ -959,13 +1142,19 @@ async function renderCalendarView() {
             const st = getCalendarState();
             const next = { ...st, monthStart: addMonths(st.monthStart, -1) };
             persistCalendarState(next);
-            renderCalendarResults(root, loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root));
+            renderCalendarResults(
+                root,
+                loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root)
+            );
         });
         nextBtn?.addEventListener("click", () => {
             const st = getCalendarState();
             const next = { ...st, monthStart: addMonths(st.monthStart, 1) };
             persistCalendarState(next);
-            renderCalendarResults(root, loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root));
+            renderCalendarResults(
+                root,
+                loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root)
+            );
         });
         todayBtn?.addEventListener("click", () => {
             const now = new Date();
@@ -974,12 +1163,18 @@ async function renderCalendarView() {
                 selectedDayKey: formatLocalDayKey(now),
             };
             persistCalendarState(next);
-            renderCalendarResults(root, loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root));
+            renderCalendarResults(
+                root,
+                loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root)
+            );
         });
         scanBtn?.addEventListener("click", async () => {
             // Scan and then re-render calendar.
             await scanAndRenderLibrary(root);
-            renderCalendarResults(root, loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root));
+            renderCalendarResults(
+                root,
+                loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root)
+            );
         });
     }
 
@@ -988,7 +1183,7 @@ async function renderCalendarView() {
 
 /**
  * @param {string} root
- * @param {{ items: FitLibraryItem[], scannedAt: number }} payload
+ * @param {{ items: FitLibraryItem[]; scannedAt: number }} payload
  */
 function renderLibraryResults(root, payload) {
     const statusEl = document.getElementById("fit-library-status");
@@ -1003,7 +1198,9 @@ function renderLibraryResults(root, payload) {
 
     if (statusEl) {
         const scanned = payload?.scannedAt ? new Date(payload.scannedAt) : null;
-        statusEl.textContent = scanned ? `Scanned ${scanned.toLocaleString()} — ${root}` : root;
+        statusEl.textContent = scanned
+            ? `Scanned ${scanned.toLocaleString()} — ${root}`
+            : root;
     }
 
     if (cardsEl) {
@@ -1019,9 +1216,12 @@ function renderLibraryResults(root, payload) {
     }
 
     if (listEl) {
-        const items = Array.isArray(payload?.items) ? payload.items.slice(0, 50) : [];
+        const items = Array.isArray(payload?.items)
+            ? payload.items.slice(0, 50)
+            : [];
         if (items.length === 0) {
-            listEl.innerHTML = '<div class="file-browser__empty">No activities decoded.</div>';
+            listEl.innerHTML =
+                '<div class="file-browser__empty">No activities decoded.</div>';
             return;
         }
 
@@ -1048,7 +1248,10 @@ function renderLibraryResults(root, payload) {
                 const openFileBtn = document.getElementById("openFileBtn");
                 await openFitFileFromPath({
                     filePath: fullPath,
-                    openFileBtn: openFileBtn instanceof HTMLElement ? openFileBtn : undefined,
+                    openFileBtn:
+                        openFileBtn instanceof HTMLElement
+                            ? openFileBtn
+                            : undefined,
                     showNotification,
                 });
             });
@@ -1061,11 +1264,18 @@ async function renderLibraryView() {
     const pathEl = document.getElementById("fit-browser-current-path");
     const libraryEl = document.getElementById("fit-browser-library");
 
-    if (!(libraryEl instanceof HTMLElement) || !(pathEl instanceof HTMLElement)) {
+    if (
+        !(libraryEl instanceof HTMLElement) ||
+        !(pathEl instanceof HTMLElement)
+    ) {
         return;
     }
 
-    if (!api || typeof api.getFitBrowserFolder !== "function" || typeof api.listFitBrowserFolder !== "function") {
+    if (
+        !api ||
+        typeof api.getFitBrowserFolder !== "function" ||
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         libraryEl.innerHTML = "";
         return;
@@ -1074,7 +1284,8 @@ async function renderLibraryView() {
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
-        libraryEl.innerHTML = '<div class="file-browser__empty">Choose a folder to build a library summary.</div>';
+        libraryEl.innerHTML =
+            '<div class="file-browser__empty">Choose a folder to build a library summary.</div>';
         return;
     }
 
@@ -1121,17 +1332,28 @@ async function renderLibraryView() {
 
         // Initialize controls from persisted prefs.
         const prefs = getLibraryPrefs();
-        const daysInput = /** @type {HTMLInputElement | null} */ (document.getElementById("fit-library-days"));
-        const unitSelect = /** @type {HTMLSelectElement | null} */ (document.getElementById("fit-library-unit"));
+        const daysInput = /** @type {HTMLInputElement | null} */ (
+            document.getElementById("fit-library-days")
+        );
+        const unitSelect = /** @type {HTMLSelectElement | null} */ (
+            document.getElementById("fit-library-unit")
+        );
 
         if (daysInput) {
             daysInput.value = String(prefs.lastDays);
             daysInput.addEventListener("change", () => {
                 const next = Number(daysInput.value);
-                const nextDays = Number.isFinite(next) ? Math.max(1, Math.min(3650, Math.floor(next))) : prefs.lastDays;
-                persistLibraryPrefs({ ...getLibraryPrefs(), lastDays: nextDays });
+                const nextDays = Number.isFinite(next)
+                    ? Math.max(1, Math.min(3650, Math.floor(next)))
+                    : prefs.lastDays;
+                persistLibraryPrefs({
+                    ...getLibraryPrefs(),
+                    lastDays: nextDays,
+                });
 
-                const cached = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+                const cached =
+                    loadPersistedLibraryCache(root) ??
+                    loadSessionLibraryCache(root);
                 if (cached) {
                     renderLibraryResults(root, cached);
                 }
@@ -1144,7 +1366,9 @@ async function renderLibraryView() {
                 const nextUnit = unitSelect.value === "mi" ? "mi" : "km";
                 persistLibraryPrefs({ ...getLibraryPrefs(), unit: nextUnit });
 
-                const cached = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+                const cached =
+                    loadPersistedLibraryCache(root) ??
+                    loadSessionLibraryCache(root);
                 if (cached) {
                     renderLibraryResults(root, cached);
                 }
@@ -1153,7 +1377,8 @@ async function renderLibraryView() {
     }
 
     // If we have cached results for this root (session + persisted), show them.
-    const cachedForRoot = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    const cachedForRoot =
+        loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
     if (cachedForRoot) {
         renderLibraryResults(root, cachedForRoot);
         return;
@@ -1161,7 +1386,8 @@ async function renderLibraryView() {
 
     const statusEl = document.getElementById("fit-library-status");
     if (statusEl) {
-        statusEl.textContent = "Click ‘Scan folder’ to compute weekly/monthly totals.";
+        statusEl.textContent =
+            "Click ‘Scan folder’ to compute weekly/monthly totals.";
     }
 }
 
@@ -1171,8 +1397,15 @@ async function renderLibraryView() {
 async function scanAndRenderLibrary(root) {
     const api = getElectronAPI();
     const statusEl = document.getElementById("fit-library-status");
-    if (!api || typeof api.listFitBrowserFolder !== "function" || typeof api.readFile !== "function") {
-        showNotification("Library scan is unavailable (Electron API missing).", "error");
+    if (
+        !api ||
+        typeof api.listFitBrowserFolder !== "function" ||
+        typeof api.readFile !== "function"
+    ) {
+        showNotification(
+            "Library scan is unavailable (Electron API missing).",
+            "error"
+        );
         return;
     }
 
@@ -1232,7 +1465,8 @@ async function scanAndRenderLibrary(root) {
 }
 
 /**
- * Ensure view sections are mutually exclusive even if the browser's [hidden] styling is overridden.
+ * Ensure view sections are mutually exclusive even if the browser's [hidden]
+ * styling is overridden.
  *
  * @param {HTMLElement | null} el
  * @param {boolean} visible
@@ -1245,6 +1479,7 @@ function setElementVisible(el, visible) {
 
 /**
  * ISO-like Monday week start (local).
+ *
  * @param {Date} date
  */
 function startOfLocalWeek(date) {
@@ -1258,10 +1493,13 @@ function startOfLocalWeek(date) {
 
 /**
  * @param {string} root
- * @param {{ items: FitLibraryItem[], scannedAt: number }} payload
+ * @param {{ items: FitLibraryItem[]; scannedAt: number }} payload
  */
 function writeSessionLibraryCache(root, payload) {
-    if (!globalThis.__ffvLibraryCache || typeof globalThis.__ffvLibraryCache !== "object") {
+    if (
+        !globalThis.__ffvLibraryCache ||
+        typeof globalThis.__ffvLibraryCache !== "object"
+    ) {
         globalThis.__ffvLibraryCache = {};
     }
     /** @type {any} */ (globalThis.__ffvLibraryCache)[root] = payload;

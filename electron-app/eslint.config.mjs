@@ -52,7 +52,6 @@ import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 
-
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
@@ -198,8 +197,7 @@ export default defineConfig([
             unicorn: pluginUnicorn,
             "unused-imports": pluginUnusedImports,
             "write-good-comments": pluginWriteGood,
-
-         },
+        },
         rules: {
             "array-callback-return": "warn", // Warn about missing returns in array callbacks
             camelcase: "off", // Allow snake_case and other naming patterns for test variables and external APIs
@@ -1319,6 +1317,7 @@ export default defineConfig([
             "sonarjs/too-many-break-or-continue-in-loop": "warn",
             "sort-imports": "off",
             "sort-keys": "off",
+            "import-x/no-named-as-default-member": "off",
             "perfectionist/sort-objects": "off",
             // Config files routinely import devDependencies and local tooling.
             "n/no-extraneous-import": "off",

@@ -62,12 +62,19 @@ describe("formatTime.strict branches", () => {
     it("logs error and returns fallback when converter throws", async () => {
         vi.resetModules();
         // Mock the converter module to throw
-        vi.doMock("../../../../../utils/formatting/converters/convertTimeUnits.js", () => ({
-            TIME_UNITS: { SECONDS: "seconds", MINUTES: "minutes", HOURS: "hours" },
-            convertTimeUnits: () => {
-                throw new Error("convert fail");
-            },
-        }));
+        vi.doMock(
+            "../../../../../utils/formatting/converters/convertTimeUnits.js",
+            () => ({
+                TIME_UNITS: {
+                    SECONDS: "seconds",
+                    MINUTES: "minutes",
+                    HOURS: "hours",
+                },
+                convertTimeUnits: () => {
+                    throw new Error("convert fail");
+                },
+            })
+        );
         const { formatTime } = await fresh();
         const err = vi.spyOn(console, "error").mockImplementation(() => {});
         expect(formatTime(10, true)).toBe("0:00");

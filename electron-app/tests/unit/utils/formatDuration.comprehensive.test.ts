@@ -21,39 +21,57 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         });
 
         it("should throw error for empty string input", () => {
-            expect(() => formatDuration("")).toThrow("Invalid duration input: Empty string input");
+            expect(() => formatDuration("")).toThrow(
+                "Invalid duration input: Empty string input"
+            );
         });
 
         it("should throw error for whitespace-only string input", () => {
-            expect(() => formatDuration("   ")).toThrow("Invalid duration input: Empty string input");
+            expect(() => formatDuration("   ")).toThrow(
+                "Invalid duration input: Empty string input"
+            );
         });
 
         it("should throw error for non-numeric string input", () => {
-            expect(() => formatDuration("invalid")).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration("invalid")).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
 
         it("should throw error for NaN input", () => {
-            expect(() => formatDuration(NaN)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration(NaN)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
 
         it("should throw error for Infinity input", () => {
-            expect(() => formatDuration(Infinity)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration(Infinity)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
 
         it("should throw error for negative Infinity input", () => {
-            expect(() => formatDuration(-Infinity)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration(-Infinity)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
 
         it("should throw error for negative number input", () => {
-            expect(() => formatDuration(-10)).toThrow("Invalid duration input: Duration cannot be negative");
+            expect(() => formatDuration(-10)).toThrow(
+                "Invalid duration input: Duration cannot be negative"
+            );
         });
 
         it("should throw error for negative decimal input", () => {
-            expect(() => formatDuration(-5.5)).toThrow("Invalid duration input: Duration cannot be negative");
+            expect(() => formatDuration(-5.5)).toThrow(
+                "Invalid duration input: Duration cannot be negative"
+            );
         });
 
         it("should throw error for array input", () => {
-            expect(() => formatDuration([30] as any)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration([30] as any)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
 
         it("should throw error for object input", () => {
@@ -63,7 +81,9 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         });
 
         it("should throw error for boolean input", () => {
-            expect(() => formatDuration(true as any)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration(true as any)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
     });
 
@@ -271,9 +291,23 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         });
 
         it("should handle repeated calls efficiently", () => {
-            const inputs = [0, 30, 90, 150, 3600, 7320];
+            const inputs = [
+                0,
+                30,
+                90,
+                150,
+                3600,
+                7320,
+            ];
             const results = inputs.map((input) => formatDuration(input));
-            expect(results).toEqual(["0 sec", "30 sec", "1 min 30 sec", "2 min 30 sec", "1 hr 0 min", "2 hrs 2 min"]);
+            expect(results).toEqual([
+                "0 sec",
+                "30 sec",
+                "1 min 30 sec",
+                "2 min 30 sec",
+                "1 hr 0 min",
+                "2 hrs 2 min",
+            ]);
         });
 
         it("should handle mixed input types consistently", () => {
@@ -304,16 +338,28 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
 
     describe("Error Handling and Recovery", () => {
         it("should provide clear error messages for invalid inputs", () => {
-            expect(() => formatDuration("abc")).toThrow("Invalid duration input: Input must be a finite number");
-            expect(() => formatDuration(-5)).toThrow("Invalid duration input: Duration cannot be negative");
-            expect(() => formatDuration("")).toThrow("Invalid duration input: Empty string input");
+            expect(() => formatDuration("abc")).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
+            expect(() => formatDuration(-5)).toThrow(
+                "Invalid duration input: Duration cannot be negative"
+            );
+            expect(() => formatDuration("")).toThrow(
+                "Invalid duration input: Empty string input"
+            );
         });
 
         it("should handle type coercion edge cases", () => {
             // These should all throw errors with appropriate messages
-            expect(() => formatDuration({} as any)).toThrow("Invalid duration input: Input must be a finite number");
-            expect(() => formatDuration([] as any)).toThrow("Invalid duration input: Input must be a finite number");
-            expect(() => formatDuration(false as any)).toThrow("Invalid duration input: Input must be a finite number");
+            expect(() => formatDuration({} as any)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
+            expect(() => formatDuration([] as any)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
+            expect(() => formatDuration(false as any)).toThrow(
+                "Invalid duration input: Input must be a finite number"
+            );
         });
     });
 });

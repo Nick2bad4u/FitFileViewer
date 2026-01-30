@@ -35,35 +35,45 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "Test info message");
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test info message");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test info message"
+            );
         });
 
         it("should log with warn level", () => {
             logWithLevel("warn", "Test warning message");
 
             expect(consoleSpy.warn).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.warn).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test warning message");
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test warning message"
+            );
         });
 
         it("should log with error level", () => {
             logWithLevel("error", "Test error message");
 
             expect(consoleSpy.error).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.error).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test error message");
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test error message"
+            );
         });
 
         it("should log with log level (default case)", () => {
             logWithLevel("log", "Test log message");
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.log).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test log message");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test log message"
+            );
         });
 
         it("should default to console.log for unknown level", () => {
             logWithLevel("unknown" as any, "Test unknown level");
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.log).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test unknown level");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test unknown level"
+            );
         });
     });
 
@@ -73,7 +83,10 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "User logged in", context);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] User logged in", context);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] User logged in",
+                context
+            );
         });
 
         it("should log with context object for warn level", () => {
@@ -103,7 +116,10 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("log", "Processing data", context);
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.log).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Processing data", context);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Processing data",
+                context
+            );
         });
     });
 
@@ -112,21 +128,27 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "Test message", null as any);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test message");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test message"
+            );
         });
 
         it("should not log context for undefined context", () => {
             logWithLevel("info", "Test message", undefined);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test message");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test message"
+            );
         });
 
         it("should not log context for empty object", () => {
             logWithLevel("info", "Test message", {});
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test message");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test message"
+            );
         });
 
         it("should log context for object with properties", () => {
@@ -134,7 +156,10 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "Test message", context);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test message", context);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test message",
+                context
+            );
         });
 
         it("should handle context with nested objects", () => {
@@ -145,18 +170,28 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "Complex context", context);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Complex context", context);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Complex context",
+                context
+            );
         });
 
         it("should handle context with arrays", () => {
             const context = {
-                items: ["item1", "item2", "item3"],
+                items: [
+                    "item1",
+                    "item2",
+                    "item3",
+                ],
                 count: 3,
             };
             logWithLevel("info", "Array context", context);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Array context", context);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Array context",
+                context
+            );
         });
     });
 
@@ -165,7 +200,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "");
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] ");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] "
+            );
         });
 
         it("should handle multi-line message", () => {
@@ -173,15 +210,20 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", multiLineMessage);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Line 1\nLine 2\nLine 3");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Line 1\nLine 2\nLine 3"
+            );
         });
 
         it("should handle message with special characters", () => {
-            const specialMessage = "Special chars: !@#$%^&*()[]{}|\\:\";'<>?,./ 中文 🚀";
+            const specialMessage =
+                "Special chars: !@#$%^&*()[]{}|\\:\";'<>?,./ 中文 🚀";
             logWithLevel("info", specialMessage);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith(`2023-01-01T12:00:00.000Z [FFV] ${specialMessage}`);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                `2023-01-01T12:00:00.000Z [FFV] ${specialMessage}`
+            );
         });
 
         it("should handle very long message", () => {
@@ -189,7 +231,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", longMessage);
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.info).toHaveBeenCalledWith(`2023-01-01T12:00:00.000Z [FFV] ${longMessage}`);
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                `2023-01-01T12:00:00.000Z [FFV] ${longMessage}`
+            );
         });
     });
 
@@ -198,7 +242,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "Test message");
 
             const call = consoleSpy.info.mock.calls[0][0];
-            expect(call).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[FFV\] Test message$/);
+            expect(call).toMatch(
+                /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[FFV\] Test message$/
+            );
         });
 
         it("should update timestamp for different calls", () => {
@@ -209,8 +255,12 @@ describe("logWithLevel.js - Logging Utility", () => {
 
             logWithLevel("info", "Second message");
 
-            expect(consoleSpy.info.mock.calls[0][0]).toContain("2023-01-01T12:00:00.000Z");
-            expect(consoleSpy.info.mock.calls[1][0]).toContain("2023-01-01T12:01:00.000Z");
+            expect(consoleSpy.info.mock.calls[0][0]).toContain(
+                "2023-01-01T12:00:00.000Z"
+            );
+            expect(consoleSpy.info.mock.calls[1][0]).toContain(
+                "2023-01-01T12:01:00.000Z"
+            );
         });
     });
 
@@ -224,7 +274,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             // Should not throw, should fallback to minimal logging
             expect(() => logWithLevel("info", "Test message")).not.toThrow();
 
-            expect(consoleSpy.log).toHaveBeenCalledWith("[FFV][logWithLevel] Logging failure");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[FFV][logWithLevel] Logging failure"
+            );
         });
 
         it("should handle Date.prototype.toISOString throwing error", () => {
@@ -237,7 +289,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             // Should not throw, should fallback to minimal logging
             expect(() => logWithLevel("info", "Test message")).not.toThrow();
 
-            expect(consoleSpy.log).toHaveBeenCalledWith("[FFV][logWithLevel] Logging failure");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[FFV][logWithLevel] Logging failure"
+            );
 
             // Restore original method
             Date.prototype.toISOString = originalToISOString;
@@ -259,9 +313,13 @@ describe("logWithLevel.js - Logging Utility", () => {
             });
 
             // Should not throw, should fallback to minimal logging
-            expect(() => logWithLevel("info", "Test message", problematicContext)).not.toThrow();
+            expect(() =>
+                logWithLevel("info", "Test message", problematicContext)
+            ).not.toThrow();
 
-            expect(consoleSpy.log).toHaveBeenCalledWith("[FFV][logWithLevel] Logging failure");
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[FFV][logWithLevel] Logging failure"
+            );
 
             // Restore original method
             Object.keys = originalObjectKeys;
@@ -270,7 +328,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Performance and Memory", () => {
         it("should handle multiple rapid calls efficiently", () => {
-            const messages = Array.from({ length: 100 }, (_, i) => `Message ${i}`);
+            const messages = Array.from(
+                { length: 100 },
+                (_, i) => `Message ${i}`
+            );
 
             messages.forEach((message) => {
                 logWithLevel("info", message);
@@ -287,9 +348,12 @@ describe("logWithLevel.js - Logging Utility", () => {
             context.data = "modified";
 
             // The logged call should have captured the original state
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Test message", {
-                data: "test",
-            });
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Test message",
+                {
+                    data: "test",
+                }
+            );
         });
     });
 
@@ -335,7 +399,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
             logWithLevel("log", "Debug trace", debugContext);
 
-            expect(consoleSpy.log).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] Debug trace", debugContext);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] Debug trace",
+                debugContext
+            );
         });
 
         it("should handle error reporting scenarios", () => {
@@ -376,7 +443,11 @@ describe("logWithLevel.js - Logging Utility", () => {
                 },
             };
 
-            logWithLevel("info", "File processing completed", structuredContext);
+            logWithLevel(
+                "info",
+                "File processing completed",
+                structuredContext
+            );
 
             expect(consoleSpy.info).toHaveBeenCalledWith(
                 "2023-01-01T12:00:00.000Z [FFV] File processing completed",
@@ -404,10 +475,17 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Type Safety and Validation", () => {
         it("should accept all valid log levels", () => {
-            const validLevels: Array<"log" | "info" | "warn" | "error"> = ["log", "info", "warn", "error"];
+            const validLevels: Array<"log" | "info" | "warn" | "error"> = [
+                "log",
+                "info",
+                "warn",
+                "error",
+            ];
 
             validLevels.forEach((level) => {
-                expect(() => logWithLevel(level, `Test ${level} message`)).not.toThrow();
+                expect(() =>
+                    logWithLevel(level, `Test ${level} message`)
+                ).not.toThrow();
             });
         });
 
@@ -415,7 +493,9 @@ describe("logWithLevel.js - Logging Utility", () => {
             logWithLevel("info", "String message");
 
             // The function expects string, but testing runtime behavior if non-string passed
-            expect(consoleSpy.info).toHaveBeenCalledWith("2023-01-01T12:00:00.000Z [FFV] String message");
+            expect(consoleSpy.info).toHaveBeenCalledWith(
+                "2023-01-01T12:00:00.000Z [FFV] String message"
+            );
         });
     });
 });

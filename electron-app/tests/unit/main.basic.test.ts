@@ -272,11 +272,17 @@ describe("main.js - Basic Test Coverage", () => {
         });
 
         // Create a mock module from our test implementation
-        const moduleFactory = new Function("require", "module", "exports", mainModuleMock);
+        const moduleFactory = new Function(
+            "require",
+            "module",
+            "exports",
+            mainModuleMock
+        );
         const mockModule = { exports: {} };
         // Provide a custom minimal CommonJS-like require so destructuring works
         /**
          * Minimal test require implementation.
+         *
          * @param {string} id
          */
         const testRequire = (id) => {
@@ -315,7 +321,9 @@ describe("main.js - Basic Test Coverage", () => {
         });
 
         it("should have proper dialog filters", () => {
-            expect(mainModule.CONSTANTS.DIALOG_FILTERS.FIT_FILES).toEqual([{ name: "FIT Files", extensions: ["fit"] }]);
+            expect(mainModule.CONSTANTS.DIALOG_FILTERS.FIT_FILES).toEqual([
+                { name: "FIT Files", extensions: ["fit"] },
+            ]);
         });
     });
 
@@ -355,11 +363,15 @@ describe("main.js - Basic Test Coverage", () => {
                 },
             };
 
-            expect(mainModule.validateWindow(validWindow, "test context")).toBe(true);
+            expect(mainModule.validateWindow(validWindow, "test context")).toBe(
+                true
+            );
         });
 
         it("should handle invalid windows gracefully", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             expect(mainModule.validateWindow(null, "test context")).toBe(false);
             expect(consoleSpy).toHaveBeenCalled();
@@ -393,11 +405,15 @@ describe("main.js - Basic Test Coverage", () => {
                 isDestroyed: () => false,
                 webContents: {
                     isDestroyed: () => false,
-                    executeJavaScript: vi.fn().mockRejectedValue(new Error("JS execution failed")),
+                    executeJavaScript: vi
+                        .fn()
+                        .mockRejectedValue(new Error("JS execution failed")),
                 },
             };
 
-            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             const theme = await mainModule.getThemeFromRenderer(mockWindow);
             expect(theme).toBe(mainModule.CONSTANTS.DEFAULT_THEME);
@@ -431,11 +447,16 @@ describe("main.js - Basic Test Coverage", () => {
             };
 
             mainModule.sendToRenderer(mockWindow, "test-channel", "test-data");
-            expect(mockWindow.webContents.send).toHaveBeenCalledWith("test-channel", "test-data");
+            expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+                "test-channel",
+                "test-data"
+            );
         });
 
         it("should not send messages to invalid windows", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             mainModule.sendToRenderer(null, "test-channel", "test-data");
 
@@ -447,7 +468,9 @@ describe("main.js - Basic Test Coverage", () => {
 
     describe("Logging Functions", () => {
         it("should log with context and timestamp", () => {
-            const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "info")
+                .mockImplementation(() => {});
 
             mainModule.logWithContext("info", "Test message", { key: "value" });
 
@@ -460,7 +483,9 @@ describe("main.js - Basic Test Coverage", () => {
         });
 
         it("should handle logging without context", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             mainModule.logWithContext("warn", "Test warning");
 
@@ -486,12 +511,16 @@ describe("main.js - Basic Test Coverage", () => {
         });
 
         it("should handle auto-updater setup with invalid window", () => {
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             mainModule.setupAutoUpdater(null);
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Cannot setup auto-updater: main window is not usable")
+                expect.stringContaining(
+                    "Cannot setup auto-updater: main window is not usable"
+                )
             );
             consoleSpy.mockRestore();
         });
@@ -523,19 +552,28 @@ describe("main.js - Basic Test Coverage", () => {
         it("should setup dialog open file handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("dialog:openFile", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "dialog:openFile",
+                expect.any(Function)
+            );
         });
 
         it("should setup file read handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("file:read", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "file:read",
+                expect.any(Function)
+            );
         });
 
         it("should setup shell external handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "shell:openExternal",
+                expect.any(Function)
+            );
         });
     });
 
@@ -543,7 +581,10 @@ describe("main.js - Basic Test Coverage", () => {
         it("should setup theme change handler", () => {
             mainModule.setupMenuAndEventHandlers();
 
-            expect(mockIpcMain.on).toHaveBeenCalledWith("theme-changed", expect.any(Function));
+            expect(mockIpcMain.on).toHaveBeenCalledWith(
+                "theme-changed",
+                expect.any(Function)
+            );
         });
     });
 
@@ -551,13 +592,19 @@ describe("main.js - Basic Test Coverage", () => {
         it("should setup app activate handler", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith("activate", expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith(
+                "activate",
+                expect.any(Function)
+            );
         });
 
         it("should setup window all closed handler", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith("window-all-closed", expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith(
+                "window-all-closed",
+                expect.any(Function)
+            );
         });
     });
 
@@ -587,12 +634,17 @@ describe("main.js - Basic Test Coverage", () => {
 
     describe("Error Handling", () => {
         it("should handle dialog errors gracefully", async () => {
-            mockDialog.showOpenDialog.mockRejectedValue(new Error("Dialog failed"));
+            mockDialog.showOpenDialog.mockRejectedValue(
+                new Error("Dialog failed")
+            );
 
             try {
                 mainModule.setupIPCHandlers(mockCreateWindow());
                 // This tests the setup, actual error handling would be in the handler
-                expect(mockIpcMain.handle).toHaveBeenCalledWith("dialog:openFile", expect.any(Function));
+                expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                    "dialog:openFile",
+                    expect.any(Function)
+                );
             } catch (error) {
                 // Should not reach here in normal operation
                 expect(true).toBe(false);
@@ -602,7 +654,10 @@ describe("main.js - Basic Test Coverage", () => {
         it("should validate URLs in shell handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "shell:openExternal",
+                expect.any(Function)
+            );
 
             // The URL validation logic is tested through the handler setup
             expect(true).toBe(true);
@@ -614,13 +669,19 @@ describe("main.js - Basic Test Coverage", () => {
             // Test setup verifies the handler registration
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith("window-all-closed", expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith(
+                "window-all-closed",
+                expect.any(Function)
+            );
         });
 
         it("should handle app activation", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith("activate", expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith(
+                "activate",
+                expect.any(Function)
+            );
         });
     });
 });

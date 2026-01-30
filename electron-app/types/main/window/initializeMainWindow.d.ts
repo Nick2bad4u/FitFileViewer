@@ -1,5 +1,6 @@
 /**
  * Create or reuse the main application window and wire core lifecycle handlers.
+ *
  * @param {Object} options
  * @param {Function} options.browserWindowRef
  * @param {Function} options.getAppState
@@ -11,6 +12,7 @@
  * @param {Function} options.resolveAutoUpdater
  * @param {Function} options.setupAutoUpdater
  * @param {Function} options.logWithContext
+ *
  * @returns {Promise<any>}
  */
 export function initializeMainWindow({

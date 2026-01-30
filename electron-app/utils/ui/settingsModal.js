@@ -1,8 +1,11 @@
 /**
- * @fileoverview Settings Modal
- * @description Provides a settings UI for theme and accent color customization
- * @author FitFileViewer Development Team
+ * Provides a settings UI for theme and accent color customization
+ *
  * @version 1.0.0
+ *
+ * @file Settings Modal
+ *
+ * @author FitFileViewer Development Team
  */
 
 import {
@@ -11,7 +14,12 @@ import {
     resetAccentColor,
     setAccentColor,
 } from "../theming/core/accentColor.js";
-import { applyTheme, getEffectiveTheme, loadTheme, THEME_MODES } from "../theming/core/theme.js";
+import {
+    applyTheme,
+    getEffectiveTheme,
+    loadTheme,
+    THEME_MODES,
+} from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 
 /**
@@ -56,7 +64,8 @@ export async function showSettingsModal() {
         document.body.append(modal);
 
         // Inject styles (from aboutModal styles)
-        const { injectModalStyles } = await import("./modals/injectModalStyles.js");
+        const { injectModalStyles } =
+            await import("./modals/injectModalStyles.js");
         injectModalStyles();
     }
 
@@ -65,10 +74,14 @@ export async function showSettingsModal() {
 
     // Get current theme and accent color
     const currentTheme = loadTheme();
-    const safeTheme = Object.values(THEME_MODES).includes(currentTheme) ? currentTheme : THEME_MODES.AUTO;
+    const safeTheme = Object.values(THEME_MODES).includes(currentTheme)
+        ? currentTheme
+        : THEME_MODES.AUTO;
     const effectiveTheme = getEffectiveTheme(safeTheme);
     const currentAccent = getEffectiveAccentColor(effectiveTheme);
-    const safeAccent = isValidHexColor(currentAccent) ? currentAccent : getEffectiveAccentColor(effectiveTheme);
+    const safeAccent = isValidHexColor(currentAccent)
+        ? currentAccent
+        : getEffectiveAccentColor(effectiveTheme);
 
     // Set modal content
     modal.innerHTML = createSettingsModalContent(safeTheme, safeAccent);
@@ -89,8 +102,10 @@ export async function showSettingsModal() {
 
 /**
  * Creates the settings modal HTML content
+ *
  * @param {string} currentTheme - Current theme mode
  * @param {string} currentAccent - Current accent color
+ *
  * @returns {string} HTML content
  */
 function createSettingsModalContent(currentTheme, currentAccent) {
@@ -394,6 +409,7 @@ function injectSettingsModalStyles() {
 
 /**
  * Sets up event handlers for the settings modal
+ *
  * @param {HTMLElement} modal - The modal element
  * @param {string} currentEffectiveTheme - Current effective theme
  */
@@ -439,24 +455,30 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
     // Theme selector
     const themeSelect = modal.querySelector("#theme-select");
     if (themeSelect) {
-        addEventListenerWithCleanup(themeSelect, "change", (/** @type {Event} */ e) => {
-            const { target } = e;
-            const select = /** @type {HTMLSelectElement} */ (target);
-            const newTheme = select.value;
-            applyTheme(newTheme, true);
+        addEventListenerWithCleanup(
+            themeSelect,
+            "change",
+            (/** @type {Event} */ e) => {
+                const { target } = e;
+                const select = /** @type {HTMLSelectElement} */ (target);
+                const newTheme = select.value;
+                applyTheme(newTheme, true);
 
-            // Update effective theme for accent color
-            effectiveTheme = getEffectiveTheme(newTheme);
+                // Update effective theme for accent color
+                effectiveTheme = getEffectiveTheme(newTheme);
 
-            // Reapply current accent color for the new theme
-            const colorPicker = modal.querySelector("#accent-color-picker");
-            if (colorPicker) {
-                const currentColor = /** @type {HTMLInputElement} */ (colorPicker).value;
-                if (isValidHexColor(currentColor)) {
-                    setAccentColor(currentColor, effectiveTheme);
+                // Reapply current accent color for the new theme
+                const colorPicker = modal.querySelector("#accent-color-picker");
+                if (colorPicker) {
+                    const currentColor = /** @type {HTMLInputElement} */ (
+                        colorPicker
+                    ).value;
+                    if (isValidHexColor(currentColor)) {
+                        setAccentColor(currentColor, effectiveTheme);
+                    }
                 }
             }
-        });
+        );
     }
 
     // Accent color picker
@@ -466,33 +488,41 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 
     if (colorPicker && colorText) {
         // Sync color picker and text input
-        addEventListenerWithCleanup(colorPicker, "input", (/** @type {Event} */ e) => {
-            const { target } = e;
-            const input = /** @type {HTMLInputElement} */ (target);
-            const color = input.value;
-            /** @type {HTMLInputElement} */ (colorText).value = color;
+        addEventListenerWithCleanup(
+            colorPicker,
+            "input",
+            (/** @type {Event} */ e) => {
+                const { target } = e;
+                const input = /** @type {HTMLInputElement} */ (target);
+                const color = input.value;
+                /** @type {HTMLInputElement} */ (colorText).value = color;
 
-            if (isValidHexColor(color)) {
-                setAccentColor(color, effectiveTheme);
+                if (isValidHexColor(color)) {
+                    setAccentColor(color, effectiveTheme);
+                }
             }
-        });
+        );
 
-        addEventListenerWithCleanup(colorText, "input", (/** @type {Event} */ e) => {
-            const { target } = e;
-            const input = /** @type {HTMLInputElement} */ (target);
-            let color = input.value.trim();
+        addEventListenerWithCleanup(
+            colorText,
+            "input",
+            (/** @type {Event} */ e) => {
+                const { target } = e;
+                const input = /** @type {HTMLInputElement} */ (target);
+                let color = input.value.trim();
 
-            // Auto-add # if missing
-            if (color && !color.startsWith("#")) {
-                color = `#${color}`;
-                input.value = color;
+                // Auto-add # if missing
+                if (color && !color.startsWith("#")) {
+                    color = `#${color}`;
+                    input.value = color;
+                }
+
+                if (isValidHexColor(color)) {
+                    /** @type {HTMLInputElement} */ (colorPicker).value = color;
+                    setAccentColor(color, effectiveTheme);
+                }
             }
-
-            if (isValidHexColor(color)) {
-                /** @type {HTMLInputElement} */ (colorPicker).value = color;
-                setAccentColor(color, effectiveTheme);
-            }
-        });
+        );
     }
 
     // Reset accent color
@@ -502,10 +532,12 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 
             // Update UI
             if (colorPicker) {
-                /** @type {HTMLInputElement} */ (colorPicker).value = defaultColor;
+                /** @type {HTMLInputElement} */ (colorPicker).value =
+                    defaultColor;
             }
             if (colorText) {
-                /** @type {HTMLInputElement} */ (colorText).value = defaultColor;
+                /** @type {HTMLInputElement} */ (colorText).value =
+                    defaultColor;
             }
         });
     }

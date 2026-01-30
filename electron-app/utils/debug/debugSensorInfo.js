@@ -1,22 +1,27 @@
 /**
- * @fileoverview Debug utility for extracting and displaying sensor information
+ * @file Debug utility for extracting and displaying sensor information
  *
- * This utility provides console commands to inspect sensor data from FIT files
- *        console.log(`    🎨 Formatted Name: "${formattedName}"`);
-        console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
-        if (formattedProduct && formattedProduct !== productField) {
-            console.log(`    📦 Formatted Product: "${formattedProduct}"`);
-        }
-
-        if (verbose) {
-            console.log(`    🔬 Full sensor object:`, sensor);
-        }help debug manufacturer/product formatting issues.
+ *   This utility provides console commands to inspect sensor data from FIT files
+ *   console.log(` 🎨 Formatted Name: "${formattedName}"`); console.log(` 🏭
+ *   Formatted Manufacturer: "${formattedManufacturer}"`); if (formattedProduct
+ *   && formattedProduct !== productField) { console.log(` 📦 Formatted Product:
+ *   "${formattedProduct}"`); }
+ *
+ *   ```
+ *     if (verbose) {
+ *       console.log(`    🔬 Full sensor object:`, sensor);
+ *   }help debug manufacturer/product formatting issues.
+ * ```
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
-import { getManufacturerName, getProductName } from "../formatting/display/formatAntNames.js";
+import {
+    getManufacturerName,
+    getProductName,
+} from "../formatting/display/formatAntNames.js";
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
@@ -31,14 +36,21 @@ export function checkDataAvailability() {
 
     if (globalThis.globalData) {
         console.log(`Keys count: ${Object.keys(globalThis.globalData).length}`);
-        console.log(`Available keys: ${Object.keys(globalThis.globalData).join(", ")}`);
+        console.log(
+            `Available keys: ${Object.keys(globalThis.globalData).join(", ")}`
+        );
 
         // Check specifically for sensor-related data
         const sensorKeys = Object.keys(globalThis.globalData).filter(
             (key) =>
-                key.includes("device") || key.includes("session") || key.includes("file_id") || key.includes("sensor")
+                key.includes("device") ||
+                key.includes("session") ||
+                key.includes("file_id") ||
+                key.includes("sensor")
         );
-        console.log(`Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`);
+        console.log(
+            `Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`
+        );
     }
 
     return globalThis.globalData;
@@ -46,10 +58,14 @@ export function checkDataAvailability() {
 
 /**
  * Extracts and displays detailed sensor information from global data
- * @returns {Object|null} Sensor analysis summary or null if no data
+ *
+ * @returns {Object | null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    if (
+        !globalThis.globalData ||
+        Object.keys(globalThis.globalData).length === 0
+    ) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
     }
@@ -62,10 +78,12 @@ export function debugSensorInfo() {
 
     // Check deviceInfoMesgs (actual FIT file structure)
     if (data.deviceInfoMesgs) {
-        console.log(`📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`);
+        console.log(
+            `📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`
+        );
         sensors.push(
             ...data.deviceInfoMesgs.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {any} device */ (device) => ({
                     ...device,
                     source: "deviceInfoMesgs",
                 })
@@ -75,10 +93,12 @@ export function debugSensorInfo() {
 
     // Check deviceSettingsMesgs
     if (data.deviceSettingsMesgs) {
-        console.log(`⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`);
+        console.log(
+            `⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`
+        );
         sensors.push(
             ...data.deviceSettingsMesgs.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {any} device */ (device) => ({
                     ...device,
                     source: "deviceSettingsMesgs",
                 })
@@ -91,7 +111,7 @@ export function debugSensorInfo() {
         console.log(`📱 Found ${data.device_info.length} device_info entries`);
         sensors.push(
             ...data.device_info.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {any} device */ (device) => ({
                     ...device,
                     source: "device_info",
                 })
@@ -103,7 +123,11 @@ export function debugSensorInfo() {
     if (data.sessionMesgs && data.sessionMesgs.length > 0) {
         const [session] = data.sessionMesgs;
         console.log("📊 Session data available");
-        if (session.manufacturer || session.manufacturerId || session.manufacturer_id) {
+        if (
+            session.manufacturer ||
+            session.manufacturerId ||
+            session.manufacturer_id
+        ) {
             sensors.push({
                 ...session,
                 source: "sessionMesgs",
@@ -127,7 +151,11 @@ export function debugSensorInfo() {
     if (data.fileIdMesgs && data.fileIdMesgs.length > 0) {
         const [fileId] = data.fileIdMesgs;
         console.log("📄 File ID data available");
-        if (fileId.manufacturer || fileId.manufacturerId || fileId.manufacturer_id) {
+        if (
+            fileId.manufacturer ||
+            fileId.manufacturerId ||
+            fileId.manufacturer_id
+        ) {
             sensors.push({
                 ...fileId,
                 source: "fileIdMesgs",
@@ -149,11 +177,16 @@ export function debugSensorInfo() {
 
     // Check for any other sensor-related data
     const sensorKeys = Object.keys(data).filter(
-        (key) => key.includes("sensor") || key.includes("device") || key.includes("manufacturer")
+        (key) =>
+            key.includes("sensor") ||
+            key.includes("device") ||
+            key.includes("manufacturer")
     );
 
     if (sensorKeys.length > 0) {
-        console.log(`🔧 Additional sensor-related keys found: ${sensorKeys.join(", ")}`);
+        console.log(
+            `🔧 Additional sensor-related keys found: ${sensorKeys.join(", ")}`
+        );
     }
 
     if (sensors.length === 0) {
@@ -165,8 +198,8 @@ export function debugSensorInfo() {
     console.log("-".repeat(50));
 
     const analysis = {
-        manufacturerIssues: /** @type {Array<*>} */ ([]),
-        productIssues: /** @type {Array<*>} */ ([]),
+        manufacturerIssues: /** @type {any[]} */ ([]),
+        productIssues: /** @type {any[]} */ ([]),
         summary: {},
         totalSensors: sensors.length,
     };
@@ -194,28 +227,40 @@ export function debugSensorInfo() {
 
         if (manufacturerId && !resolvedManufacturer) {
             resolvedManufacturer = getManufacturerName(manufacturerId);
-            console.log(`    📋 Resolved manufacturer ID ${manufacturerId} → "${resolvedManufacturer}"`);
+            console.log(
+                `    📋 Resolved manufacturer ID ${manufacturerId} → "${resolvedManufacturer}"`
+            );
         }
 
         // Check product resolution
-        const productField = sensor.product || sensor.productName || sensor.product_name;
+        const productField =
+            sensor.product || sensor.productName || sensor.product_name;
         let resolvedProduct = productField;
 
         if (manufacturerId && productField) {
             resolvedProduct = getProductName(manufacturerId, productField);
             if (resolvedProduct !== productField) {
-                console.log(`    📦 Resolved product ID ${productField} → "${resolvedProduct}"`);
+                console.log(
+                    `    📦 Resolved product ID ${productField} → "${resolvedProduct}"`
+                );
             }
         } // Test formatting
-        const formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
+        const formattedManufacturer = formatManufacturer(
+                resolvedManufacturer || sensor.manufacturer
+            ),
             formattedName = formatSensorName(sensor),
             formattedProduct =
                 (manufacturerId || sensor.manufacturer) && productField
-                    ? formatProduct(manufacturerId || sensor.manufacturer, productField)
+                    ? formatProduct(
+                          manufacturerId || sensor.manufacturer,
+                          productField
+                      )
                     : productField;
 
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
-        console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
+        console.log(
+            `    🏭 Formatted Manufacturer: "${formattedManufacturer}"`
+        );
         if (formattedProduct && formattedProduct !== productField) {
             console.log(`    📦 Formatted Product: "${formattedProduct}"`);
         }
@@ -242,7 +287,10 @@ export function debugSensorInfo() {
  * Show all available data keys for debugging
  */
 export function showDataKeys() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    if (
+        !globalThis.globalData ||
+        Object.keys(globalThis.globalData).length === 0
+    ) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
@@ -251,7 +299,9 @@ export function showDataKeys() {
     console.log("🗂️  AVAILABLE DATA KEYS:");
     for (const key of Object.keys(data)) {
         const count = Array.isArray(data[key]) ? data[key].length : 1;
-        console.log(`    ${key}: ${count} ${Array.isArray(data[key]) ? "items" : "item"}`);
+        console.log(
+            `    ${key}: ${count} ${Array.isArray(data[key]) ? "items" : "item"}`
+        );
     }
 }
 
@@ -259,7 +309,10 @@ export function showDataKeys() {
  * Quick command to show just the sensor names
  */
 export function showSensorNames() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    if (
+        !globalThis.globalData ||
+        Object.keys(globalThis.globalData).length === 0
+    ) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
@@ -268,15 +321,31 @@ export function showSensorNames() {
         sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
-        sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
+        sensors.push(
+            ...data.deviceInfoMesgs.map(
+                /** @param {any} d */ (d) => ({
+                    ...d,
+                    source: "deviceInfoMesgs",
+                })
+            )
+        );
     }
     if (data.deviceSettingsMesgs) {
         sensors.push(
-            ...data.deviceSettingsMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceSettingsMesgs" }))
+            ...data.deviceSettingsMesgs.map(
+                /** @param {any} d */ (d) => ({
+                    ...d,
+                    source: "deviceSettingsMesgs",
+                })
+            )
         );
     }
     if (data.device_info) {
-        sensors.push(...data.device_info.map(/** @param {*} d */ (d) => ({ ...d, source: "device_info" })));
+        sensors.push(
+            ...data.device_info.map(
+                /** @param {any} d */ (d) => ({ ...d, source: "device_info" })
+            )
+        );
     }
     if (data.sessionMesgs && data.sessionMesgs[0]) {
         sensors.push({ ...data.sessionMesgs[0], source: "sessionMesgs" });
@@ -300,7 +369,8 @@ export function showSensorNames() {
 
 /**
  * Test manufacturer ID resolution
- * @param {number|string} manufacturerId - Manufacturer ID to test
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID to test
  */
 export function testManufacturerId(manufacturerId) {
     const id = Number.parseInt(String(manufacturerId), 10),
@@ -316,8 +386,9 @@ export function testManufacturerId(manufacturerId) {
 
 /**
  * Test product ID resolution
- * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID to test
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID
+ * @param {number | string} productId - Product ID to test
  */
 export function testProductId(manufacturerId, productId) {
     const mfgId = Number.parseInt(String(manufacturerId), 10),
@@ -330,9 +401,17 @@ export function testProductId(manufacturerId, productId) {
     console.log(`    Manufacturer: "${manufacturerName}"`);
     console.log(`    Product resolved to: "${resolvedProduct}"`);
     console.log(`    Product formatted as: "${formattedProduct}"`);
-    console.log(`    Full sensor name: "${formatManufacturer(manufacturerName)} ${formattedProduct}"`);
+    console.log(
+        `    Full sensor name: "${formatManufacturer(manufacturerName)} ${formattedProduct}"`
+    );
 
-    return { formattedProduct, manufacturerId: mfgId, manufacturerName, productId: prodId, resolvedProduct };
+    return {
+        formattedProduct,
+        manufacturerId: mfgId,
+        manufacturerName,
+        productId: prodId,
+        resolvedProduct,
+    };
 }
 
 // Debug functions are exported for use in renderer.js

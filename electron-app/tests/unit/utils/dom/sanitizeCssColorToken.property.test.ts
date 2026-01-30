@@ -21,7 +21,9 @@ describe("sanitizeCssColorToken (property)", () => {
                 expect(/['"<>;\n\r\0]/u.test(out)).toBe(false);
 
                 const lower = out.toLowerCase();
-                const isScriptScheme = lower.startsWith("javascript") && lower.charAt("javascript".length) === ":";
+                const isScriptScheme =
+                    lower.startsWith("javascript") &&
+                    lower.charAt("javascript".length) === ":";
                 expect(lower.includes("url(")).toBe(false);
                 expect(lower.includes("expression(")).toBe(false);
                 expect(lower.includes("@import")).toBe(false);

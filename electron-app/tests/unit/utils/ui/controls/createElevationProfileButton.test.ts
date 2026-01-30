@@ -3,7 +3,11 @@ import * as getThemeColorsModule from "../../../../../utils/charts/theming/getTh
 import { createElevationProfileButton } from "../../../../../utils/ui/controls/createElevationProfileButton.js";
 
 type ElevationProfilePoint = { x: number; y: number };
-type ElevationProfileFileModel = { altitudes: ElevationProfilePoint[]; color: string; filePath: string };
+type ElevationProfileFileModel = {
+    altitudes: ElevationProfilePoint[];
+    color: string;
+    filePath: string;
+};
 
 // Create a spy on getThemeColors that will be used in all tests
 vi.spyOn(getThemeColorsModule, "getThemeColors").mockReturnValue({
@@ -71,12 +75,18 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called with correct parameters
-        expect(openSpy).toHaveBeenCalledWith("", "Elevation Profile", "width=900,height=600");
+        expect(openSpy).toHaveBeenCalledWith(
+            "",
+            "Elevation Profile",
+            "width=900,height=600"
+        );
 
         // Verify document.write was called (with empty files array in HTML)
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.document.write.mock.calls[0][0]).toContain("window.__ffvElevationFitFiles");
+        expect(mockWin.document.write.mock.calls[0][0]).toContain(
+            "window.__ffvElevationFitFiles"
+        );
         expect(mockWin.__ffvElevationFitFiles).toEqual([]);
         expect(mockWin.document.close).toHaveBeenCalled();
     });
@@ -109,7 +119,9 @@ describe("createElevationProfileButton", () => {
         // Data is passed via a window property (prevents script-breakout injection).
         expect(Array.isArray(mockWin.__ffvElevationFitFiles)).toBe(true);
         expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("test-file.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
+            "test-file.fit"
+        );
         expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([
             { x: 0, y: 100 },
             { x: 1, y: 200 },
@@ -137,7 +149,9 @@ describe("createElevationProfileButton", () => {
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
         expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("global-test.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
+            "global-test.fit"
+        );
     });
 
     it("should handle globalData without recordMesgs", () => {
@@ -162,7 +176,9 @@ describe("createElevationProfileButton", () => {
         // If globalData doesn't have recordMesgs, it won't be included
         const writtenHtml = mockWin.document.write.mock.calls[0][0];
         // Since there are no fitFiles in this case, we should have "0 file" in the header
-        expect(writtenHtml).toContain('<span style="font-size:1.1em;opacity:0.7;">0 file');
+        expect(writtenHtml).toContain(
+            '<span style="font-size:1.1em;opacity:0.7;">0 file'
+        );
         expect(writtenHtml).toContain("window.__ffvElevationFitFiles");
         expect(mockWin.__ffvElevationFitFiles).toEqual([]);
     });
@@ -218,7 +234,9 @@ describe("createElevationProfileButton", () => {
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
         expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("no-altitude.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
+            "no-altitude.fit"
+        );
         expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([]);
     });
 
@@ -228,14 +246,20 @@ describe("createElevationProfileButton", () => {
             {
                 filePath: "test-with-colors.fit",
                 data: {
-                    recordMesgs: [{ positionLat: 1, positionLong: 2, altitude: 100 }],
+                    recordMesgs: [
+                        { positionLat: 1, positionLong: 2, altitude: 100 },
+                    ],
                 },
             },
         ];
 
         // Setup chartOverlayColorPalette in the current window.
         // (The popup receives colors via the model, not by reading window.opener.)
-        (window as any).chartOverlayColorPalette = ["#ff0000", "#00ff00", "#0000ff"];
+        (window as any).chartOverlayColorPalette = [
+            "#ff0000",
+            "#00ff00",
+            "#0000ff",
+        ];
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -246,7 +270,9 @@ describe("createElevationProfileButton", () => {
         expect(mockWin.document.write).toHaveBeenCalled();
         expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
         expect(mockWin.__ffvElevationFitFiles[0].color).toBe("#ff0000");
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("test-with-colors.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
+            "test-with-colors.fit"
+        );
 
         // Clean up the mock
         delete (window as any).chartOverlayColorPalette;
@@ -274,7 +300,11 @@ describe("createElevationProfileButton", () => {
                 filePath: "partial-data.fit",
                 data: {
                     recordMesgs: [
-                        { positionLat: null, positionLong: null, altitude: 300 }, // Missing position data
+                        {
+                            positionLat: null,
+                            positionLong: null,
+                            altitude: 300,
+                        }, // Missing position data
                         { positionLat: 5, positionLong: 6 }, // Missing altitude
                     ],
                 },
@@ -292,7 +322,11 @@ describe("createElevationProfileButton", () => {
         expect(writtenHtml).toContain("3 files");
 
         expect(mockWin.__ffvElevationFitFiles).toHaveLength(3);
-        expect((mockWin.__ffvElevationFitFiles as ElevationProfileFileModel[]).map((f) => f.filePath)).toEqual([
+        expect(
+            (mockWin.__ffvElevationFitFiles as ElevationProfileFileModel[]).map(
+                (f) => f.filePath
+            )
+        ).toEqual([
             "with-altitude.fit",
             "without-altitude.fit",
             "partial-data.fit",

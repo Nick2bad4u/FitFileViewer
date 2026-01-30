@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    clearAllNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - resolveShown error handling", () => {
     const originalWarn = console.warn;
@@ -16,7 +19,8 @@ describe("showNotification.js - resolveShown error handling", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {
@@ -64,7 +68,10 @@ describe("showNotification.js - resolveShown error handling", () => {
         }
 
         // Verify the error was caught and logged
-        expect(console.error).toHaveBeenCalledWith("Error in resolveShown:", testError);
+        expect(console.error).toHaveBeenCalledWith(
+            "Error in resolveShown:",
+            testError
+        );
 
         // Verify the finally block executed
         expect(didFinallyExecute).toBe(true);

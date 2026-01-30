@@ -36,20 +36,27 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
 
     describe("Uncovered line coverage tests", () => {
         test("should cover globalData subscription logic for switching to summary (lines 127-129)", async () => {
-            const { initializeTabVisibilityState } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+            const { initializeTabVisibilityState } =
+                await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
             // Mock console.log to capture initialization message
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             // Initialize the tab visibility state management
             initializeTabVisibilityState();
 
             // Verify initialization message was logged (line 131)
-            expect(consoleSpy).toHaveBeenCalledWith("[TabVisibility] State management initialized");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabVisibility] State management initialized"
+            );
 
             // Get the subscription callback for globalData
             expect(mockSubscribe).toHaveBeenCalled();
-            const globalDataSubscription = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "globalData");
+            const globalDataSubscription = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "globalData"
+            );
             expect(globalDataSubscription).toBeTruthy();
 
             const globalDataCallback = globalDataSubscription[1];
@@ -62,23 +69,32 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             globalDataCallback(null);
 
             // Should call setState to switch to summary tab (line 128)
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
-                source: "initializeTabVisibilityState",
-            });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                {
+                    source: "initializeTabVisibilityState",
+                }
+            );
 
             // Test with undefined data as well
             mockSetState.mockClear();
             globalDataCallback(undefined);
 
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
-                source: "initializeTabVisibilityState",
-            });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                {
+                    source: "initializeTabVisibilityState",
+                }
+            );
 
             consoleSpy.mockRestore();
         });
 
         test("should not switch to summary when current tab is already summary", async () => {
-            const { initializeTabVisibilityState } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+            const { initializeTabVisibilityState } =
+                await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
             // Mock getState to return 'summary' as current tab
             mockGetState.mockReturnValue("summary");
@@ -86,7 +102,9 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "globalData");
+            const globalDataSubscription = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "globalData"
+            );
             const globalDataCallback = globalDataSubscription[1];
 
             // Call with no data when already on summary tab
@@ -97,7 +115,8 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
         });
 
         test("should not switch when data exists", async () => {
-            const { initializeTabVisibilityState } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+            const { initializeTabVisibilityState } =
+                await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
             // Mock getState to return a non-summary tab
             mockGetState.mockReturnValue("chart");
@@ -105,7 +124,9 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "globalData");
+            const globalDataSubscription = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "globalData"
+            );
             const globalDataCallback = globalDataSubscription[1];
 
             // Call with valid data
@@ -116,7 +137,8 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
         });
 
         test("should handle edge case data values", async () => {
-            const { initializeTabVisibilityState } = await import("../../../utils/ui/tabs/updateTabVisibility.js");
+            const { initializeTabVisibilityState } =
+                await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
             // Mock getState to return a non-summary tab
             mockGetState.mockReturnValue("map");
@@ -124,7 +146,9 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find((call: any[]) => call[0] === "globalData");
+            const globalDataSubscription = mockSubscribe.mock.calls.find(
+                (call: any[]) => call[0] === "globalData"
+            );
             const globalDataCallback = globalDataSubscription[1];
 
             // Test with falsy values that are NOT null/undefined - these should NOT trigger the switch
@@ -139,16 +163,24 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
 
             // Test with values that SHOULD trigger the switch (null/undefined)
             globalDataCallback(null);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
-                source: "initializeTabVisibilityState",
-            });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                {
+                    source: "initializeTabVisibilityState",
+                }
+            );
 
             mockSetState.mockClear();
 
             globalDataCallback(undefined);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
-                source: "initializeTabVisibilityState",
-            });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                {
+                    source: "initializeTabVisibilityState",
+                }
+            );
         });
     });
 });

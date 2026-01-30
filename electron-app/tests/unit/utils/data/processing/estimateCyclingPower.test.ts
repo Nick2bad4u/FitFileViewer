@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 /**
- * These tests target the Estimated Power feature ("virtual power") implementation.
+ * These tests target the Estimated Power feature ("virtual power")
+ * implementation.
  *
  * Coverage goals:
- * - cover disable/empty/real-power/sport-skip guards
- * - cover distance sources (distance field, GPS haversine, speed integration)
- * - cover timestamp parsing (Date/string/seconds/ms)
- * - ensure estimatedPower is attached and clamped
+ *
+ * - Cover disable/empty/real-power/sport-skip guards
+ * - Cover distance sources (distance field, GPS haversine, speed integration)
+ * - Cover timestamp parsing (Date/string/seconds/ms)
+ * - Ensure estimatedPower is attached and clamped
  */
 
 describe("estimateCyclingPower.js", () => {
@@ -15,7 +17,8 @@ describe("estimateCyclingPower.js", () => {
     type FitMesg = Record<string, FitMesgValue>;
 
     it("hasPowerData should detect real power and enhanced_power", async () => {
-        const mod = await import("../../../../../utils/data/processing/estimateCyclingPower.js");
+        const mod =
+            await import("../../../../../utils/data/processing/estimateCyclingPower.js");
         const { hasPowerData } = mod;
 
         expect(hasPowerData([{ power: 0 }])).toBe(false);
@@ -30,8 +33,18 @@ describe("estimateCyclingPower.js", () => {
             await import("../../../../../utils/data/processing/estimateCyclingPower.js");
 
         const records: Array<FitMesg> = [
-            { timestamp: new Date("2024-01-01T00:00:00Z"), enhanced_speed: 5, enhanced_altitude: 10, distance: 0 },
-            { timestamp: new Date("2024-01-01T00:00:01Z"), enhanced_speed: 5, enhanced_altitude: 10, distance: 5 },
+            {
+                timestamp: new Date("2024-01-01T00:00:00Z"),
+                enhanced_speed: 5,
+                enhanced_altitude: 10,
+                distance: 0,
+            },
+            {
+                timestamp: new Date("2024-01-01T00:00:01Z"),
+                enhanced_speed: 5,
+                enhanced_altitude: 10,
+                distance: 5,
+            },
         ];
 
         const res = applyEstimatedPowerToRecords({
@@ -84,8 +97,20 @@ describe("estimateCyclingPower.js", () => {
             await import("../../../../../utils/data/processing/estimateCyclingPower.js");
 
         const records: Array<FitMesg> = [
-            { timestamp: 1_700_000_000, speed: 5, altitude: 10, distance: 0, power: 200 },
-            { timestamp: 1_700_000_001, speed: 5, altitude: 10, distance: 5, power: 210 },
+            {
+                timestamp: 1_700_000_000,
+                speed: 5,
+                altitude: 10,
+                distance: 0,
+                power: 200,
+            },
+            {
+                timestamp: 1_700_000_001,
+                speed: 5,
+                altitude: 10,
+                distance: 5,
+                power: 210,
+            },
         ];
 
         const res = applyEstimatedPowerToRecords({
@@ -114,8 +139,18 @@ describe("estimateCyclingPower.js", () => {
             await import("../../../../../utils/data/processing/estimateCyclingPower.js");
 
         const records: Array<FitMesg> = [
-            { timestamp: 1_700_000_000_000, speed: 3.0, altitude: 10, distance: 0 },
-            { timestamp: 1_700_000_001_000, speed: 3.0, altitude: 10, distance: 3 },
+            {
+                timestamp: 1_700_000_000_000,
+                speed: 3.0,
+                altitude: 10,
+                distance: 0,
+            },
+            {
+                timestamp: 1_700_000_001_000,
+                speed: 3.0,
+                altitude: 10,
+                distance: 3,
+            },
         ];
 
         const res = applyEstimatedPowerToRecords({
@@ -259,8 +294,16 @@ describe("estimateCyclingPower.js", () => {
             maxPowerW: 2000,
         };
 
-        applyEstimatedPowerToRecords({ recordMesgs: flat, sessionMesgs: [{ sport: "cycling" }], settings });
-        applyEstimatedPowerToRecords({ recordMesgs: uphill, sessionMesgs: [{ sport: "cycling" }], settings });
+        applyEstimatedPowerToRecords({
+            recordMesgs: flat,
+            sessionMesgs: [{ sport: "cycling" }],
+            settings,
+        });
+        applyEstimatedPowerToRecords({
+            recordMesgs: uphill,
+            sessionMesgs: [{ sport: "cycling" }],
+            settings,
+        });
 
         const pFlat = flat[1].estimatedPower as number;
         const pUp = uphill[1].estimatedPower as number;
@@ -349,9 +392,21 @@ describe("estimateCyclingPower.js", () => {
 
         const records: Array<FitMesg> = [
             // timestamp boolean hits toDateOrNull default return null
-            { timestamp: true, speed: 4.0, altitude: 100, position_lat: 42.0, position_long: -83.0 },
+            {
+                timestamp: true,
+                speed: 4.0,
+                altitude: 100,
+                position_lat: 42.0,
+                position_long: -83.0,
+            },
             // degrees (abs <= 180) hits toDegreesOrNull return n branch
-            { timestamp: 1_700_000_001, speed: 4.0, altitude: 100, position_lat: 42.0001, position_long: -83.0001 },
+            {
+                timestamp: 1_700_000_001,
+                speed: 4.0,
+                altitude: 100,
+                position_lat: 42.0001,
+                position_long: -83.0001,
+            },
         ];
 
         const res = applyEstimatedPowerToRecords({

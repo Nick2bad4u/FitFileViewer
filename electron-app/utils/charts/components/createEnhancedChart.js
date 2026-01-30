@@ -43,7 +43,11 @@ export function createEnhancedChart(canvas, options) {
 
     function getLocalUnitSymbol(f, type) {
         if (type === "time") {
-            return timeUnits === "hours" ? "h" : timeUnits === "minutes" ? "min" : "s";
+            return timeUnits === "hours"
+                ? "h"
+                : timeUnits === "minutes"
+                  ? "min"
+                  : "s";
         }
         if (f === "distance" || f === "altitude" || f === "enhancedAltitude") {
             return distanceUnits === "miles"
@@ -58,7 +62,9 @@ export function createEnhancedChart(canvas, options) {
             return temperatureUnits === "fahrenheit" ? "°F" : "°C";
         }
         if (f === "speed" || f === "enhancedSpeed") {
-            return distanceUnits === "miles" || distanceUnits === "feet" ? "mph" : "km/h";
+            return distanceUnits === "miles" || distanceUnits === "feet"
+                ? "mph"
+                : "km/h";
         }
         return getUnitSymbol(f);
     }
@@ -66,9 +72,14 @@ export function createEnhancedChart(canvas, options) {
     try {
         // Get theme using robust detection
         // If theme param is provided and not 'auto', use it. Otherwise detect.
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
-        const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-        const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV === "development";
+        const isDebugLoggingEnabled =
+            isDevEnvironment &&
+            Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] Theme debugging for field:", field);
             console.log("[ChartJS] - theme param:", theme);
@@ -95,7 +106,9 @@ export function createEnhancedChart(canvas, options) {
         const fieldColor = customColors[field] || getFieldColor(field),
             // Configure dataset based on chart type
             dataset = {
-                backgroundColor: showFill ? hexToRgba(fieldColor, 0.2) : "transparent",
+                backgroundColor: showFill
+                    ? hexToRgba(fieldColor, 0.2)
+                    : "transparent",
                 borderColor: fieldColor,
                 borderWidth: 2,
                 cubicInterpolationMode,
@@ -140,7 +153,9 @@ export function createEnhancedChart(canvas, options) {
                     easing:
                         animationStyle === "fast"
                             ? "easeInOut"
-                            : animationStyle === "none" || animationStyle === "normal" || !animationStyle
+                            : animationStyle === "none" ||
+                                animationStyle === "normal" ||
+                                !animationStyle
                               ? "linear"
                               : "easeOutQuart",
                 },
@@ -154,7 +169,8 @@ export function createEnhancedChart(canvas, options) {
                 spanGaps: enableSpanGaps,
                 plugins: {
                     chartBackgroundColorPlugin: {
-                        backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor:
+                            currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
                     decimation,
                     legend: {
@@ -179,7 +195,8 @@ export function createEnhancedChart(canvas, options) {
                         text: `${fieldLabels[field] || field} (${getLocalUnitSymbol(field)})`,
                     },
                     tooltip: {
-                        backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
+                        backgroundColor:
+                            currentTheme === "dark" ? "#222" : "#fff",
                         bodyColor: currentTheme === "dark" ? "#fff" : "#000",
                         borderColor: currentTheme === "dark" ? "#555" : "#ddd",
                         borderWidth: 1,
@@ -228,7 +245,10 @@ export function createEnhancedChart(canvas, options) {
                                     case "speed": {
                                         // chartData speed is in km/h or mph depending on distance units.
                                         // Convert back to m/s which is the raw canonical unit.
-                                        if (distanceUnits === "miles" || distanceUnits === "feet") {
+                                        if (
+                                            distanceUnits === "miles" ||
+                                            distanceUnits === "feet"
+                                        ) {
                                             // value is mph
                                             rawValue = value / 2.236_936;
                                         } else {
@@ -271,7 +291,10 @@ export function createEnhancedChart(canvas, options) {
                     x: {
                         display: true,
                         grid: {
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color:
+                                currentTheme === "dark"
+                                    ? "rgba(255,255,255,0.1)"
+                                    : "rgba(0,0,0,0.1)",
                             display: showGrid,
                         },
                         ticks: {
@@ -279,7 +302,10 @@ export function createEnhancedChart(canvas, options) {
                              * @param {any} value
                              */
                             callback(value) {
-                                const convertedValue = convertTimeUnits(value, timeUnits);
+                                const convertedValue = convertTimeUnits(
+                                    value,
+                                    timeUnits
+                                );
 
                                 if (timeUnits === "hours") {
                                     return `${convertedValue.toFixed(2)}h`;
@@ -289,7 +315,9 @@ export function createEnhancedChart(canvas, options) {
                                 return formatTime(value);
                             },
                             color: currentTheme === "dark" ? "#fff" : "#000",
-                            ...(tickSampleSize ? { sampleSize: tickSampleSize } : {}),
+                            ...(tickSampleSize
+                                ? { sampleSize: tickSampleSize }
+                                : {}),
                         },
                         title: {
                             color: currentTheme === "dark" ? "#fff" : "#000",
@@ -319,7 +347,10 @@ export function createEnhancedChart(canvas, options) {
                     y: {
                         display: true,
                         grid: {
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color:
+                                currentTheme === "dark"
+                                    ? "rgba(255,255,255,0.1)"
+                                    : "rgba(0,0,0,0.1)",
                             display: showGrid,
                         },
                         ticks: {
@@ -377,7 +408,9 @@ export function createEnhancedChart(canvas, options) {
 
 /**
  * Helper function to determine unit symbol based on passed options.
+ *
  * @param {string} f - The field for which to get the unit symbol.
  * @param {string} type - The type of unit, e.g., "time".
+ *
  * @returns {string} - The unit symbol.
  */

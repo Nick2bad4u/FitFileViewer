@@ -1,7 +1,8 @@
 export const chartTabIntegration: ChartTabIntegration;
 export default chartTabIntegration;
 /**
- * Chart Tab Integration - manages the interaction between chart rendering and tab system
+ * Chart Tab Integration - manages the interaction between chart rendering and
+ * tab system
  */
 declare class ChartTabIntegration {
     isInitialized: boolean;
@@ -27,16 +28,19 @@ declare class ChartTabIntegration {
     enableChartTab(): void;
     /**
      * Get the chart tab button element
-     * @returns {HTMLElement|null} Chart tab button or null if not found
+     *
+     * @returns {HTMLElement | null} Chart tab button or null if not found
      */
     getChartTabButton(): HTMLElement | null;
     /**
      * Get integration status information
+     *
      * @returns {Object} Status information
      */
     getStatus(): Object;
     /**
      * Handle new data being loaded
+     *
      * @param {Object} newData - The new global data
      */
     handleDataChange(newData: Object): void;
@@ -46,11 +50,13 @@ declare class ChartTabIntegration {
     initialize(): void;
     /**
      * Check if chart tab is currently active
+     *
      * @returns {boolean} True if chart tab is active
      */
     isChartTabActive(): boolean;
     /**
      * Force chart refresh (for external calls)
+     *
      * @param {string} reason - Reason for the refresh
      */
     refreshCharts(reason?: string): boolean;
@@ -60,6 +66,7 @@ declare class ChartTabIntegration {
     setupIntegration(): void;
     /**
      * Switch to chart tab
+     *
      * @returns {boolean} True if switch was successful
      */
     switchToChartTab(): boolean;

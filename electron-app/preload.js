@@ -1,6 +1,7 @@
 /**
- * Preload script exposes a typed, secure IPC API to the renderer via contextBridge.
- * Incremental typing is applied using JSDoc so strict TypeScript checking over allowJs passes.
+ * Preload script exposes a typed, secure IPC API to the renderer via
+ * contextBridge. Incremental typing is applied using JSDoc so strict TypeScript
+ * checking over allowJs passes.
  */
 const // Constants for better maintainability
     CONSTANTS = {
@@ -53,47 +54,58 @@ const // Constants for better maintainability
     },
     /**
      * @typedef {Object} GyazoServerStartResult
+     *
      * @property {boolean} success
      * @property {number} port
      * @property {string} [message]
      */
     /**
      * @typedef {Object} GyazoServerStopResult
+     *
      * @property {boolean} success
      * @property {string} [message]
      */
     /**
      * @typedef {Object} ChannelInfo
-     * @property {Record<string,string>} channels
-     * @property {Record<string,string>} events
+     *
+     * @property {Record<string, string>} channels
+     * @property {Record<string, string>} events
      * @property {number} totalChannels
      * @property {number} totalEvents
      */
     /**
      * @typedef {Object} PlatformInfo
+     *
      * @property {string} platform
      * @property {string} arch
      */
     /**
      * Primitive/structured payload types that can safely traverse Electron IPC.
      *
-     * Note: ArrayBuffer is intentionally excluded here because it is handled via explicit
-     * wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC helpers should prefer
-     * JSON-like payloads.
+     * Note: ArrayBuffer is intentionally excluded here because it is handled
+     * via explicit wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC
+     * helpers should prefer JSON-like payloads.
      *
-     * @typedef {null | boolean | number | string | IpcSerializable[] | { [key: string]: IpcSerializable }} IpcSerializable
+     * @typedef {
+     *     | null
+     *     | boolean
+     *     | number
+     *     | string
+     *     | IpcSerializable[]
+     *     | { [key: string]: IpcSerializable }} IpcSerializable
      */
     /**
      * @typedef {Object} ElectronAPI
+     *
      * @property {(filePath: string) => Promise<boolean>} approveRecentFile
-     * @property {() => Promise<string|null>} openFile
-     * @property {() => Promise<string|null>} openFileDialog
-     * @property {() => Promise<string|null>} openFolderDialog
+     * @property {() => Promise<string | null>} openFile
+     * @property {() => Promise<string | null>} openFileDialog
+     * @property {() => Promise<string | null>} openFolderDialog
      * @property {() => Promise<string[]>} openOverlayDialog
      * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} parseFitFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} decodeFitFile
-     * @property {() => Promise<string|null>} getFitBrowserFolder
+     * @property {() => Promise<string | null>} getFitBrowserFolder
      * @property {(relPath?: string) => Promise<IpcSerializable>} listFitBrowserFolder
      * @property {() => Promise<boolean>} isFitBrowserEnabled
      * @property {(enabled: boolean) => Promise<boolean>} setFitBrowserEnabled
@@ -116,20 +128,42 @@ const // Constants for better maintainability
      * @property {(callback: (filePath: string) => void) => () => void} onOpenRecentFile
      * @property {(callback: (theme: string) => void) => () => void} onSetTheme
      * @property {(callback: () => void) => () => void} onOpenSummaryColumnSelector
-     * @property {(eventName: string, callback: (...args: IpcSerializable[]) => void) => () => void} onUpdateEvent
+     * @property {(
+     *     eventName: string,
+     *     callback: (...args: IpcSerializable[]) => void
+     * ) => () => void} onUpdateEvent
      * @property {() => void} checkForUpdates
      * @property {() => void} installUpdate
      * @property {(flag: boolean) => void} setFullScreen
-     * @property {(channel: string, callback: (event: object, ...args: IpcSerializable[]) => void) => (() => void) | void} onIpc
+     * @property {(
+     *     channel: string,
+     *     callback: (event: object, ...args: IpcSerializable[]) => void
+     * ) => (() => void) | void} onIpc
      * @property {(channel: string, ...args: IpcSerializable[]) => void} send
-     * @property {(channel: string, ...args: IpcSerializable[]) => Promise<IpcSerializable | ArrayBuffer>} invoke
+     * @property {(
+     *     channel: string,
+     *     ...args: IpcSerializable[]
+     * ) => Promise<IpcSerializable | ArrayBuffer>} invoke
      * @property {(filePath: string | null) => void} notifyFitFileLoaded
-     * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
+     * @property {(theme?: string | null, fitFilePath?: string | null) => Promise<boolean>} injectMenu
      * @property {(path?: string) => Promise<IpcSerializable>} getMainState
-     * @property {(path: string, value: IpcSerializable, options?: IpcSerializable) => Promise<boolean>} setMainState
-     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<boolean>} listenToMainState
-     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<boolean>} unlistenFromMainState
-     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<() => Promise<boolean>>} subscribeToMainState
+     * @property {(
+     *     path: string,
+     *     value: IpcSerializable,
+     *     options?: IpcSerializable
+     * ) => Promise<boolean>} setMainState
+     * @property {(
+     *     path: string,
+     *     callback: (change: IpcSerializable) => void
+     * ) => Promise<boolean>} listenToMainState
+     * @property {(
+     *     path: string,
+     *     callback: (change: IpcSerializable) => void
+     * ) => Promise<boolean>} unlistenFromMainState
+     * @property {(
+     *     path: string,
+     *     callback: (change: IpcSerializable) => void
+     * ) => Promise<() => Promise<boolean>>} subscribeToMainState
      * @property {(operationId: string) => Promise<IpcSerializable | null>} getOperation
      * @property {() => Promise<IpcSerializable>} getOperations
      * @property {(limit?: number) => Promise<IpcSerializable>} getErrors
@@ -140,40 +174,58 @@ const // Constants for better maintainability
 
     // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
     __electronOverride =
-        (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__electronHoistedMock) || null,
+        (typeof globalThis !== "undefined" &&
+            /** @type {any} */ (globalThis).__electronHoistedMock) ||
+        null,
     contextBridge = (() => {
         let lastErr;
         try {
-            if (__electronOverride && __electronOverride.contextBridge) return __electronOverride.contextBridge;
+            if (__electronOverride && __electronOverride.contextBridge)
+                return __electronOverride.contextBridge;
             const mod = /** @type {any} */ (require("electron"));
-            const m = mod && (mod.contextBridge || mod.ipcRenderer) ? mod : mod && mod.default ? mod.default : mod;
+            const m =
+                mod && (mod.contextBridge || mod.ipcRenderer)
+                    ? mod
+                    : mod && mod.default
+                      ? mod.default
+                      : mod;
             return m && m.contextBridge ? m.contextBridge : undefined;
         } catch (error) {
             lastErr = error;
         }
         // If require failed and no override provided anything, surface error for robustness tests
-        if (!__electronOverride) throw lastErr || new Error("Module loading failed");
+        if (!__electronOverride)
+            throw lastErr || new Error("Module loading failed");
         return null;
     })(),
     ipcRenderer = (() => {
         let lastErr;
         try {
-            if (__electronOverride && __electronOverride.ipcRenderer) return __electronOverride.ipcRenderer;
+            if (__electronOverride && __electronOverride.ipcRenderer)
+                return __electronOverride.ipcRenderer;
             const mod = /** @type {any} */ (require("electron"));
-            const m = mod && (mod.contextBridge || mod.ipcRenderer) ? mod : mod && mod.default ? mod.default : mod;
+            const m =
+                mod && (mod.contextBridge || mod.ipcRenderer)
+                    ? mod
+                    : mod && mod.default
+                      ? mod.default
+                      : mod;
             return m && m.ipcRenderer ? m.ipcRenderer : undefined;
         } catch (error) {
             lastErr = error;
         }
-        if (!__electronOverride) throw lastErr || new Error("Module loading failed");
+        if (!__electronOverride)
+            throw lastErr || new Error("Module loading failed");
         return null;
     })();
 
 /**
  * Wrapper to create a safe event subscription handler.
+ *
  * @param {string} channel
  * @param {string} methodName
- * @param {( ...args: any[]) => any | null} [transform]
+ * @param {(...args: any[]) => any | null} [transform]
+ *
  * @returns {(callback: Function) => () => void}
  */
 function createSafeEventHandler(channel, methodName, transform) {
@@ -191,7 +243,10 @@ function createSafeEventHandler(channel, methodName, transform) {
                         callback(...args);
                     }
                 } catch (error) {
-                    console.error(`[preload.js] Error in ${methodName} callback:`, error);
+                    console.error(
+                        `[preload.js] Error in ${methodName} callback:`,
+                        error
+                    );
                 }
             };
 
@@ -205,15 +260,19 @@ function createSafeEventHandler(channel, methodName, transform) {
                 }
             };
         } catch (error) {
-            console.error(`[preload.js] Error setting up ${methodName} event handler:`, error);
+            console.error(
+                `[preload.js] Error setting up ${methodName} event handler:`,
+                error
+            );
             return () => {};
         }
     };
 }
 
 /**
- * Main-state subscription fanout.
- * Keep a single ipcRenderer listener and dispatch by change.path.
+ * Main-state subscription fanout. Keep a single ipcRenderer listener and
+ * dispatch by change.path.
+ *
  * @type {Map<string, Set<Function>>}
  */
 const mainStateCallbacksByPath = new Map();
@@ -223,8 +282,10 @@ let mainStateDispatcher = null;
 
 /**
  * Wrapper to create a safe invoke handler.
+ *
  * @param {string} channel
  * @param {string} methodName
+ *
  * @returns {(...args: any[]) => Promise<any>}
  */
 function createSafeInvokeHandler(channel, methodName) {
@@ -240,8 +301,10 @@ function createSafeInvokeHandler(channel, methodName) {
 
 /**
  * Wrapper to create a safe send handler.
+ *
  * @param {string} channel
  * @param {string} methodName
+ *
  * @returns {(...args: any[]) => void}
  */
 function createSafeSendHandler(channel, methodName) {
@@ -260,7 +323,8 @@ function createSafeSendHandler(channel, methodName) {
 function ensureMainStateDispatcher() {
     if (mainStateDispatcher) return;
     mainStateDispatcher = (_event, change) => {
-        const p = change && typeof change.path === "string" ? change.path : null;
+        const p =
+            change && typeof change.path === "string" ? change.path : null;
         if (!p) return;
         const callbacks = mainStateCallbacksByPath.get(p);
         if (!callbacks || callbacks.size === 0) return;
@@ -268,7 +332,10 @@ function ensureMainStateDispatcher() {
             try {
                 cb(change);
             } catch (error) {
-                console.error("[preload.js] Error in main-state callback:", error);
+                console.error(
+                    "[preload.js] Error in main-state callback:",
+                    error
+                );
             }
         }
     };
@@ -279,32 +346,40 @@ function ensureMainStateDispatcher() {
 /**
  * @param {unknown} callback
  * @param {string} methodName
+ *
  * @returns {callback is Function}
  */
 function validateCallback(callback, methodName) {
     if (typeof callback !== "function") {
-        console.error(`[preload.js] ${methodName}: callback must be a function`);
+        console.error(
+            `[preload.js] ${methodName}: callback must be a function`
+        );
         return false;
     }
     return true;
 }
 
 /**
- * Validate a channel/event name.
- * IPC channels must always be a non-empty string.
+ * Validate a channel/event name. IPC channels must always be a non-empty
+ * string.
  *
  * @param {unknown} value
  * @param {string} paramName
  * @param {string} methodName
+ *
  * @returns {value is string}
  */
 function validateChannelName(value, paramName, methodName) {
     if (typeof value !== "string") {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a string`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a string`
+        );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
+        );
         return false;
     }
     return true;
@@ -313,24 +388,29 @@ function validateChannelName(value, paramName, methodName) {
 /**
  * Validate an optional string input.
  *
- * Accepts: undefined | null | non-empty string.
- * Rejects: empty/whitespace-only strings and non-strings.
+ * Accepts: undefined | null | non-empty string. Rejects: empty/whitespace-only
+ * strings and non-strings.
  *
  * @param {unknown} value
  * @param {string} paramName
  * @param {string} methodName
- * @returns {value is (string|null|undefined)}
+ *
+ * @returns {value is string | null | undefined}
  */
 function validateOptionalNonEmptyString(value, paramName, methodName) {
     if (value === undefined || value === null) {
         return true;
     }
     if (typeof value !== "string") {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a string or null`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a string or null`
+        );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string or null`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a non-empty string or null`
+        );
         return false;
     }
     return true;
@@ -342,15 +422,20 @@ function validateOptionalNonEmptyString(value, paramName, methodName) {
  * @param {unknown} value
  * @param {string} paramName
  * @param {string} methodName
+ *
  * @returns {value is string}
  */
 function validateRequiredNonEmptyString(value, paramName, methodName) {
     if (typeof value !== "string") {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a string`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a string`
+        );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string`);
+        console.error(
+            `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
+        );
         return false;
     }
     return true;
@@ -359,9 +444,10 @@ function validateRequiredNonEmptyString(value, paramName, methodName) {
 /**
  * True when running inside a real Electron runtime.
  *
- * Important: Several unit tests execute this preload file via `new Function(...)` with a mocked
- * `process` object. In that context, we should not enforce production-grade IPC restrictions
- * because those tests are not modeling a real Electron renderer threat boundary.
+ * Important: Several unit tests execute this preload file via `new
+ * Function(...)` with a mocked `process` object. In that context, we should not
+ * enforce production-grade IPC restrictions because those tests are not
+ * modeling a real Electron renderer threat boundary.
  */
 const IS_ELECTRON_RUNTIME =
     typeof process !== "undefined" &&
@@ -369,10 +455,11 @@ const IS_ELECTRON_RUNTIME =
     typeof (/** @type {any} */ (process.versions).electron) === "string";
 
 /**
- * Enforce the generic send/invoke allowlist only when we are running in Electron.
+ * Enforce the generic send/invoke allowlist only when we are running in
+ * Electron.
  *
- * Default: ON in Electron.
- * Optional override for developers: set FFV_ALLOW_GENERIC_IPC=true to bypass.
+ * Default: ON in Electron. Optional override for developers: set
+ * FFV_ALLOW_GENERIC_IPC=true to bypass.
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     IS_ELECTRON_RUNTIME &&
@@ -383,8 +470,9 @@ const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     );
 
 /**
- * Limit generic invoke/send helpers to a conservative allowlist.
- * Prefer the explicit methods (readFile/openFile/parseFitFile/etc.) over the generic helpers.
+ * Limit generic invoke/send helpers to a conservative allowlist. Prefer the
+ * explicit methods (readFile/openFile/parseFitFile/etc.) over the generic
+ * helpers.
  */
 const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
     "main-state:errors",
@@ -401,9 +489,9 @@ const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
 /**
  * Restrict renderer->main IPC send() usage to a conservative set.
  *
- * Note: we intentionally do NOT allow arbitrary "menu-*" here.
- * Only the channels that are known to be handled by main via registerIpcListener
- * should be sendable from the renderer.
+ * Note: we intentionally do NOT allow arbitrary "menu-*" here. Only the
+ * channels that are known to be handled by main via registerIpcListener should
+ * be sendable from the renderer.
  */
 const ALLOWED_GENERIC_SEND_CHANNELS = new Set([
     CONSTANTS.EVENTS.FIT_FILE_LOADED,
@@ -432,11 +520,15 @@ const ALLOWED_GENERIC_ON_IPC_CHANNELS = new Set([
 ]);
 
 /**
- * Restrict update-event subscriptions to the concrete set emitted by main/updater/setupAutoUpdater.
+ * Restrict update-event subscriptions to the concrete set emitted by
+ * main/updater/setupAutoUpdater.
  *
  * Why:
- * - A compromised renderer should not be able to subscribe to arbitrary main-process channels.
- * - Update events are a known, finite surface; we can cheaply defend-in-depth here.
+ *
+ * - A compromised renderer should not be able to subscribe to arbitrary
+ *   main-process channels.
+ * - Update events are a known, finite surface; we can cheaply defend-in-depth
+ *   here.
  */
 const ALLOWED_UPDATE_EVENT_NAMES = new Set([
     "update-available",
@@ -463,6 +555,7 @@ function isAllowedGenericSendChannel(channel) {
 
 /**
  * @param {string} eventName
+ *
  * @returns {boolean}
  */
 function isAllowedUpdateEventName(eventName) {
@@ -476,44 +569,68 @@ const electronAPI = {
      * Approve a recent file path for subsequent readFile() calls.
      *
      * Security model:
-     * - The main process will only approve paths that already exist in its persisted
-     *   recent-files list.
-     * - This avoids granting broad file read access as a side effect of recentFiles().
+     *
+     * - The main process will only approve paths that already exist in its
+     *   persisted recent-files list.
+     * - This avoids granting broad file read access as a side effect of
+     *   recentFiles().
      *
      * @param {string} filePath
+     *
      * @returns {Promise<boolean>}
      */
-    approveRecentFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_APPROVE, "approveRecentFile"),
+    approveRecentFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
+        "approveRecentFile"
+    ),
 
     /**
      * Adds a file to the recent files list.
+     *
      * @param {string} filePath
+     *
      * @returns {Promise<string[]>}
      */
-    addRecentFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_ADD, "addRecentFile"),
+    addRecentFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.RECENT_FILES_ADD,
+        "addRecentFile"
+    ),
 
     /**
      * Trigger a check for updates (menu or manual).
      */
-    checkForUpdates: createSafeSendHandler(CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES, "checkForUpdates"),
+    checkForUpdates: createSafeSendHandler(
+        CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
+        "checkForUpdates"
+    ),
 
     /**
      * Decodes a FIT file from an ArrayBuffer and returns the parsed data.
+     *
      * @param {ArrayBuffer} arrayBuffer
+     *
      * @returns {Promise<IpcSerializable>}
      */
-    decodeFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_DECODE, "decodeFitFile"),
+    decodeFitFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_DECODE,
+        "decodeFitFile"
+    ),
 
     // Application Information
     /**
      * Gets the app version from the main process.
+     *
      * @returns {Promise<string>}
      */
-    getAppVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.APP_VERSION, "getAppVersion"),
+    getAppVersion: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.APP_VERSION,
+        "getAppVersion"
+    ),
 
     // Development and Debugging Helpers
     /**
      * Get information about available IPC channels for debugging.
+     *
      * @returns {Object} Object containing channel information
      */
     /** @returns {ChannelInfo} */
@@ -529,32 +646,52 @@ const electronAPI = {
 
     /**
      * Gets the Chrome version.
+     *
      * @returns {Promise<string>}
      */
-    getChromeVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.CHROME_VERSION, "getChromeVersion"),
+    getChromeVersion: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.CHROME_VERSION,
+        "getChromeVersion"
+    ),
 
     /**
      * Gets the Electron version.
+     *
      * @returns {Promise<string>}
      */
-    getElectronVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.ELECTRON_VERSION, "getElectronVersion"),
+    getElectronVersion: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.ELECTRON_VERSION,
+        "getElectronVersion"
+    ),
 
     /**
      * Gets the license info from the main process.
+     *
      * @returns {Promise<string>}
      */
-    getLicenseInfo: createSafeInvokeHandler(CONSTANTS.CHANNELS.LICENSE_INFO, "getLicenseInfo"),
+    getLicenseInfo: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.LICENSE_INFO,
+        "getLicenseInfo"
+    ),
 
     /**
      * Gets the Node.js version.
+     *
      * @returns {Promise<string>}
      */
-    getNodeVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.NODE_VERSION, "getNodeVersion"),
-    getPlatformInfo: createSafeInvokeHandler(CONSTANTS.CHANNELS.PLATFORM_INFO, "getPlatformInfo"),
+    getNodeVersion: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.NODE_VERSION,
+        "getNodeVersion"
+    ),
+    getPlatformInfo: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.PLATFORM_INFO,
+        "getPlatformInfo"
+    ),
 
     // Theme Management
     /**
      * Gets the current theme from the main process.
+     *
      * @returns {Promise<string>}
      */
     getTheme: createSafeInvokeHandler(CONSTANTS.CHANNELS.THEME_GET, "getTheme"),
@@ -563,15 +700,19 @@ const electronAPI = {
      * Write text to the system clipboard using Electron's clipboard module.
      * This avoids browser Clipboard API permission issues in file:// contexts.
      *
-     * Important: the renderer is sandboxed (sandbox: true). Clipboard writes are executed
-     * in the main process via IPC.
+     * Important: the renderer is sandboxed (sandbox: true). Clipboard writes
+     * are executed in the main process via IPC.
      *
      * @param {string} text
-     * @returns {Promise<boolean>} true if the write succeeded
+     *
+     * @returns {Promise<boolean>} True if the write succeeded
      */
     writeClipboardText: async (text) => {
         try {
-            const ok = await ipcRenderer.invoke(CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT, String(text));
+            const ok = await ipcRenderer.invoke(
+                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT,
+                String(text)
+            );
             return Boolean(ok);
         } catch (error) {
             console.error("[preload.js] writeClipboardText failed:", error);
@@ -582,18 +723,26 @@ const electronAPI = {
     /**
      * Write a PNG image to the system clipboard.
      *
-     * The renderer commonly produces chart images as data URLs.
-     * Using Electron's clipboard avoids Chromium permission issues for navigator.clipboard.
+     * The renderer commonly produces chart images as data URLs. Using
+     * Electron's clipboard avoids Chromium permission issues for
+     * navigator.clipboard.
      *
      * @param {string} pngDataUrl
-     * @returns {Promise<boolean>} true if the write succeeded
+     *
+     * @returns {Promise<boolean>} True if the write succeeded
      */
     writeClipboardPngDataUrl: async (pngDataUrl) => {
         try {
-            const ok = await ipcRenderer.invoke(CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL, String(pngDataUrl));
+            const ok = await ipcRenderer.invoke(
+                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL,
+                String(pngDataUrl)
+            );
             return Boolean(ok);
         } catch (error) {
-            console.error("[preload.js] writeClipboardPngDataUrl failed:", error);
+            console.error(
+                "[preload.js] writeClipboardPngDataUrl failed:",
+                error
+            );
             return false;
         }
     },
@@ -601,8 +750,10 @@ const electronAPI = {
     // Development Tools
     /**
      * Manually inject/reset the menu from the renderer (DevTools or app code).
-     * @param {string|null} theme - Current theme
-     * @param {string|null} fitFilePath - Current FIT file path
+     *
+     * @param {string | null} theme - Current theme
+     * @param {string | null} fitFilePath - Current FIT file path
+     *
      * @returns {Promise<boolean>}
      */
     injectMenu: async (
@@ -612,12 +763,22 @@ const electronAPI = {
         if (!validateOptionalNonEmptyString(theme, "theme", "injectMenu")) {
             return false;
         }
-        if (!validateOptionalNonEmptyString(fitFilePath, "fitFilePath", "injectMenu")) {
+        if (
+            !validateOptionalNonEmptyString(
+                fitFilePath,
+                "fitFilePath",
+                "injectMenu"
+            )
+        ) {
             return false;
         }
 
         try {
-            return await ipcRenderer.invoke(CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU, theme, fitFilePath);
+            return await ipcRenderer.invoke(
+                CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU,
+                theme,
+                fitFilePath
+            );
         } catch (error) {
             console.error("[preload.js] Error in injectMenu:", error);
             return false;
@@ -627,19 +788,25 @@ const electronAPI = {
     /**
      * Notify the main process that a file has been loaded (or unloaded).
      *
-     * This is the preferred alternative to calling electronAPI.send("fit-file-loaded", ...)
-     * because it is explicit and easier to lock down.
+     * This is the preferred alternative to calling
+     * electronAPI.send("fit-file-loaded", ...) because it is explicit and
+     * easier to lock down.
      *
      * @param {string | null} filePath
      */
     notifyFitFileLoaded: (filePath) => {
         // Allow explicit unload signaling via null.
         if (filePath !== null && typeof filePath !== "string") {
-            console.error("[preload.js] notifyFitFileLoaded: filePath must be a string or null");
+            console.error(
+                "[preload.js] notifyFitFileLoaded: filePath must be a string or null"
+            );
             return;
         }
 
-        const normalizedPath = typeof filePath === "string" && filePath.trim().length > 0 ? filePath : null;
+        const normalizedPath =
+            typeof filePath === "string" && filePath.trim().length > 0
+                ? filePath
+                : null;
 
         try {
             ipcRenderer.send(CONSTANTS.EVENTS.FIT_FILE_LOADED, normalizedPath);
@@ -651,12 +818,17 @@ const electronAPI = {
     /**
      * Trigger install of a downloaded update.
      */
-    installUpdate: createSafeSendHandler(CONSTANTS.EVENTS.INSTALL_UPDATE, "installUpdate"),
+    installUpdate: createSafeSendHandler(
+        CONSTANTS.EVENTS.INSTALL_UPDATE,
+        "installUpdate"
+    ),
 
     /**
      * Expose ipcRenderer.invoke for direct use with error handling.
+     *
      * @param {string} channel - The IPC channel to invoke
      * @param {...any} args - Arguments to send
+     *
      * @returns {Promise<any>}
      */
     invoke: async (channel, ...args) => {
@@ -666,7 +838,10 @@ const electronAPI = {
 
         // Do not allow arbitrary IPC access in Electron.
         // Use the explicit wrappers above instead.
-        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedGenericInvokeChannel(channel)) {
+        if (
+            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
+            !isAllowedGenericInvokeChannel(channel)
+        ) {
             throw new Error("Channel not allowed for invoke");
         }
 
@@ -680,9 +855,12 @@ const electronAPI = {
     // Generic IPC Functions with enhanced validation
     /**
      * Registers a generic handler for any IPC event (for internal use).
+     *
      * @param {string} channel - The IPC channel to listen on
      * @param {Function} callback - Callback function to handle the event
-     * @returns {(() => void) | undefined} Unsubscribe function when registration succeeds
+     *
+     * @returns {(() => void) | undefined} Unsubscribe function when
+     *   registration succeeds
      */
     onIpc: (channel, callback) => {
         if (!validateChannelName(channel, "channel", "onIpc")) {
@@ -692,8 +870,13 @@ const electronAPI = {
             return;
         }
 
-        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !ALLOWED_GENERIC_ON_IPC_CHANNELS.has(channel)) {
-            console.warn(`[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`);
+        if (
+            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
+            !ALLOWED_GENERIC_ON_IPC_CHANNELS.has(channel)
+        ) {
+            console.warn(
+                `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`
+            );
             return;
         }
 
@@ -702,7 +885,10 @@ const electronAPI = {
                 try {
                     callback(event, ...args);
                 } catch (error) {
-                    console.error(`[preload.js] Error in onIpc(${channel}) callback:`, error);
+                    console.error(
+                        `[preload.js] Error in onIpc(${channel}) callback:`,
+                        error
+                    );
                 }
             };
 
@@ -712,29 +898,44 @@ const electronAPI = {
                 try {
                     ipcRenderer.removeListener(channel, wrapped);
                 } catch (error) {
-                    console.error(`[preload.js] Error removing onIpc(${channel}) listener:`, error);
+                    console.error(
+                        `[preload.js] Error removing onIpc(${channel}) listener:`,
+                        error
+                    );
                 }
             };
         } catch (error) {
-            console.error(`[preload.js] Error setting up onIpc(${channel}):`, error);
+            console.error(
+                `[preload.js] Error setting up onIpc(${channel}):`,
+                error
+            );
         }
     },
 
     // Event Handlers with enhanced error handling
     /**
      * Registers a handler for the 'menu-open-file' event.
+     *
      * @param {Function} callback
      */
-    onMenuOpenFile: createSafeEventHandler(CONSTANTS.EVENTS.MENU_OPEN_FILE, "onMenuOpenFile"),
+    onMenuOpenFile: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_OPEN_FILE,
+        "onMenuOpenFile"
+    ),
 
     /**
      * Registers a handler for the 'menu-open-overlay' event.
+     *
      * @param {Function} callback
      */
-    onMenuOpenOverlay: createSafeEventHandler(CONSTANTS.EVENTS.MENU_OPEN_OVERLAY, "onMenuOpenOverlay"),
+    onMenuOpenOverlay: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_OPEN_OVERLAY,
+        "onMenuOpenOverlay"
+    ),
 
     /**
      * Registers a handler for the 'open-recent-file' event.
+     *
      * @param {Function} callback
      */
     onOpenRecentFile: createSafeEventHandler(
@@ -745,6 +946,7 @@ const electronAPI = {
 
     /**
      * Registers a handler for the 'open-summary-column-selector' event.
+     *
      * @param {Function} callback
      */
     onOpenSummaryColumnSelector: createSafeEventHandler(
@@ -754,6 +956,7 @@ const electronAPI = {
 
     /**
      * Registers a handler for the 'set-theme' event.
+     *
      * @param {Function} callback
      */
     onSetTheme: createSafeEventHandler(
@@ -765,6 +968,7 @@ const electronAPI = {
     // Auto-Updater Functions with enhanced error handling
     /**
      * Listen for update events from the main process (auto-updater).
+     *
      * @param {string} eventName - The update event name to listen for
      * @param {Function} callback - Callback function to handle the event
      */
@@ -776,8 +980,13 @@ const electronAPI = {
             return;
         }
 
-        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedUpdateEventName(eventName)) {
-            console.warn(`[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`);
+        if (
+            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
+            !isAllowedUpdateEventName(eventName)
+        ) {
+            console.warn(
+                `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`
+            );
             return;
         }
 
@@ -786,7 +995,10 @@ const electronAPI = {
                 try {
                     callback(...args);
                 } catch (error) {
-                    console.error(`[preload.js] Error in onUpdateEvent(${eventName}) callback:`, error);
+                    console.error(
+                        `[preload.js] Error in onUpdateEvent(${eventName}) callback:`,
+                        error
+                    );
                 }
             };
 
@@ -800,89 +1012,143 @@ const electronAPI = {
                 }
             };
         } catch (error) {
-            console.error(`[preload.js] Error setting up onUpdateEvent(${eventName}):`, error);
+            console.error(
+                `[preload.js] Error setting up onUpdateEvent(${eventName}):`,
+                error
+            );
         }
     },
 
     /**
      * Opens a URL in the user's default external browser.
+     *
      * @param {string} url - The URL to open (must be HTTP or HTTPS)
+     *
      * @returns {Promise<boolean>}
      */
-    openExternal: createSafeInvokeHandler(CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL, "openExternal"),
+    openExternal: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL,
+        "openExternal"
+    ),
 
     // File Operations
     /**
-     * Opens a file dialog and returns the selected file path.
-     * Returns null when the user cancels.
-     * @returns {Promise<string|null>}
+     * Opens a file dialog and returns the selected file path. Returns null when
+     * the user cancels.
+     *
+     * @returns {Promise<string | null>}
      */
-    openFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, "openFile"),
+    openFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
+        "openFile"
+    ),
 
     /**
-     * Alias for openFile.
-     * Returns null when the user cancels.
-     * @returns {Promise<string|null>}
+     * Alias for openFile. Returns null when the user cancels.
+     *
+     * @returns {Promise<string | null>}
      */
-    openFileDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, "openFileDialog"),
+    openFileDialog: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
+        "openFileDialog"
+    ),
 
     /**
      * Opens a folder picker dialog and returns the selected folder path.
      * Returns null when the user cancels.
-     * @returns {Promise<string|null>}
+     *
+     * @returns {Promise<string | null>}
      */
-    openFolderDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FOLDER, "openFolderDialog"),
+    openFolderDialog: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.DIALOG_OPEN_FOLDER,
+        "openFolderDialog"
+    ),
 
     /**
      * Opens the overlay file dialog with multi-selection support.
+     *
      * @returns {Promise<string[]>}
      */
-    openOverlayDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES, "openOverlayDialog"),
+    openOverlayDialog: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
+        "openOverlayDialog"
+    ),
 
     /**
      * Gets the persisted FIT browser folder (main process setting).
-     * @returns {Promise<string|null>}
+     *
+     * @returns {Promise<string | null>}
      */
-    getFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER, "getFitBrowserFolder"),
+    getFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER,
+        "getFitBrowserFolder"
+    ),
 
     /**
      * Lists the current directory under the persisted FIT browser folder.
+     *
      * @param {string} [relPath]
+     *
      * @returns {Promise<IpcSerializable>}
      */
-    listFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER, "listFitBrowserFolder"),
+    listFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
+        "listFitBrowserFolder"
+    ),
 
     /**
      * Whether the experimental Browser tab is enabled.
+     *
      * @returns {Promise<boolean>}
      */
-    isFitBrowserEnabled: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED, "isFitBrowserEnabled"),
+    isFitBrowserEnabled: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
+        "isFitBrowserEnabled"
+    ),
 
     /**
      * Enable/disable the experimental Browser tab.
+     *
      * @param {boolean} enabled
+     *
      * @returns {Promise<boolean>}
      */
-    setFitBrowserEnabled: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED, "setFitBrowserEnabled"),
+    setFitBrowserEnabled: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
+        "setFitBrowserEnabled"
+    ),
 
     /**
      * Persist the Browser root folder.
+     *
      * @param {string} folderPath
+     *
      * @returns {Promise<boolean>}
      */
-    setFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER, "setFitBrowserFolder"),
+    setFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
+        "setFitBrowserFolder"
+    ),
 
     // FIT File Operations
     /**
      * Parses a FIT file from an ArrayBuffer and returns the decoded data.
+     *
      * @param {ArrayBuffer} arrayBuffer
+     *
      * @returns {Promise<IpcSerializable>}
      */
-    parseFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_PARSE, "parseFitFile"),
+    parseFitFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_PARSE,
+        "parseFitFile"
+    ),
 
     /**
-     * Reads a file from the given file path and returns its contents as an ArrayBuffer.
+     * Reads a file from the given file path and returns its contents as an
+     * ArrayBuffer.
+     *
      * @param {string} filePath
+     *
      * @returns {Promise<ArrayBuffer>}
      */
     readFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FILE_READ, "readFile"),
@@ -890,12 +1156,17 @@ const electronAPI = {
     // Recent Files Management
     /**
      * Gets the list of recent files.
+     *
      * @returns {Promise<string[]>}
      */
-    recentFiles: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_GET, "recentFiles"),
+    recentFiles: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.RECENT_FILES_GET,
+        "recentFiles"
+    ),
 
     /**
      * Send an IPC message to the main process.
+     *
      * @param {string} channel - The IPC channel to send on
      * @param {...any} args - Arguments to send
      */
@@ -904,8 +1175,13 @@ const electronAPI = {
             return;
         }
 
-        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedGenericSendChannel(channel)) {
-            console.warn(`[preload.js] Blocked send() to non-allowlisted channel: ${channel}`);
+        if (
+            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
+            !isAllowedGenericSendChannel(channel)
+        ) {
+            console.warn(
+                `[preload.js] Blocked send() to non-allowlisted channel: ${channel}`
+            );
             return;
         }
 
@@ -918,51 +1194,83 @@ const electronAPI = {
 
     /**
      * Sends a 'theme-changed' event to the main process.
+     *
      * @param {string} theme
      */
-    sendThemeChanged: createSafeSendHandler(CONSTANTS.EVENTS.THEME_CHANGED, "sendThemeChanged"),
+    sendThemeChanged: createSafeSendHandler(
+        CONSTANTS.EVENTS.THEME_CHANGED,
+        "sendThemeChanged"
+    ),
 
     /**
      * Sets the full screen mode.
+     *
      * @param {boolean} flag - Whether to enable fullscreen
      */
-    setFullScreen: createSafeSendHandler(CONSTANTS.EVENTS.SET_FULLSCREEN, "setFullScreen"),
+    setFullScreen: createSafeSendHandler(
+        CONSTANTS.EVENTS.SET_FULLSCREEN,
+        "setFullScreen"
+    ),
 
     // Gyazo OAuth Server Functions
     /**
      * Starts a temporary local server for Gyazo OAuth callback handling.
+     *
      * @param {number} port - The port to start the server on (default: 3000)
-     * @returns {Promise<{success: boolean, port: number, message?: string}>}
+     *
+     * @returns {Promise<{
+     *     success: boolean;
+     *     port: number;
+     *     message?: string;
+     * }>}
      */
-    startGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_START, "startGyazoServer"),
+    startGyazoServer: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.GYAZO_SERVER_START,
+        "startGyazoServer"
+    ),
 
     /**
      * Stops the temporary Gyazo OAuth callback server.
-     * @returns {Promise<{success: boolean, message?: string}>}
+     *
+     * @returns {Promise<{ success: boolean; message?: string }>}
      */
-    stopGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_STOP, "stopGyazoServer"),
+    stopGyazoServer: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.GYAZO_SERVER_STOP,
+        "stopGyazoServer"
+    ),
 
     // Main Process State Management Functions
     /**
      * Gets a value from the main process state.
-     * @param {string} [path] - Optional path to a specific state property (e.g., 'loadedFitFilePath')
-     * @returns {Promise<any>} The requested state value or entire state if no path provided
+     *
+     * @param {string} [path] - Optional path to a specific state property
+     *   (e.g., 'loadedFitFilePath')
+     *
+     * @returns {Promise<any>} The requested state value or entire state if no
+     *   path provided
      */
     getMainState: async (path) => {
         try {
             return await ipcRenderer.invoke("main-state:get", path);
         } catch (error) {
-            console.error(`[preload.js] Error in getMainState(${path || "all"}):`, error);
+            console.error(
+                `[preload.js] Error in getMainState(${path || "all"}):`,
+                error
+            );
             throw error;
         }
     },
 
     /**
      * Sets a value in the main process state (restricted to allowed paths).
-     * @param {string} path - Path to the state property to set (e.g., 'loadedFitFilePath')
+     *
+     * @param {string} path - Path to the state property to set (e.g.,
+     *   'loadedFitFilePath')
      * @param {any} value - The value to set
      * @param {Object} [options] - Optional metadata for the state change
-     * @returns {Promise<boolean>} True if successful, false if path is restricted
+     *
+     * @returns {Promise<boolean>} True if successful, false if path is
+     *   restricted
      */
     setMainState: async (path, value, options = {}) => {
         if (!validateRequiredNonEmptyString(path, "path", "setMainState")) {
@@ -970,21 +1278,33 @@ const electronAPI = {
         }
 
         try {
-            return await ipcRenderer.invoke("main-state:set", path, value, options);
+            return await ipcRenderer.invoke(
+                "main-state:set",
+                path,
+                value,
+                options
+            );
         } catch (error) {
-            console.error(`[preload.js] Error in setMainState(${path}):`, error);
+            console.error(
+                `[preload.js] Error in setMainState(${path}):`,
+                error
+            );
             throw error;
         }
     },
 
     /**
      * Listens for changes to a specific path in the main process state.
+     *
      * @param {string} path - Path to listen to (e.g., 'loadedFitFilePath')
      * @param {Function} callback - Callback function to handle state changes
+     *
      * @returns {Promise<boolean>} True if listener was registered successfully
      */
     listenToMainState: async (path, callback) => {
-        if (!validateRequiredNonEmptyString(path, "path", "listenToMainState")) {
+        if (
+            !validateRequiredNonEmptyString(path, "path", "listenToMainState")
+        ) {
             return false;
         }
         if (!validateCallback(callback, "listenToMainState")) {
@@ -1005,19 +1325,30 @@ const electronAPI = {
 
             return true;
         } catch (error) {
-            console.error(`[preload.js] Error in listenToMainState(${path}):`, error);
+            console.error(
+                `[preload.js] Error in listenToMainState(${path}):`,
+                error
+            );
             throw error;
         }
     },
 
     /**
      * Removes a previously registered main state listener.
+     *
      * @param {string} path
      * @param {Function} callback
+     *
      * @returns {Promise<boolean>}
      */
     unlistenFromMainState: async (path, callback) => {
-        if (!validateRequiredNonEmptyString(path, "path", "unlistenFromMainState")) {
+        if (
+            !validateRequiredNonEmptyString(
+                path,
+                "path",
+                "unlistenFromMainState"
+            )
+        ) {
             return false;
         }
         if (!validateCallback(callback, "unlistenFromMainState")) {
@@ -1035,21 +1366,29 @@ const electronAPI = {
             }
 
             if (mainStateCallbacksByPath.size === 0 && mainStateDispatcher) {
-                ipcRenderer.removeListener("main-state-change", mainStateDispatcher);
+                ipcRenderer.removeListener(
+                    "main-state-change",
+                    mainStateDispatcher
+                );
                 mainStateDispatcher = null;
             }
 
             return true;
         } catch (error) {
-            console.error(`[preload.js] Error in unlistenFromMainState(${path}):`, error);
+            console.error(
+                `[preload.js] Error in unlistenFromMainState(${path}):`,
+                error
+            );
             throw error;
         }
     },
 
     /**
      * Subscribe to main state changes and get an unsubscribe function.
+     *
      * @param {string} path
      * @param {Function} callback
+     *
      * @returns {Promise<() => Promise<boolean>>}
      */
     subscribeToMainState: async (path, callback) => {
@@ -1062,24 +1401,39 @@ const electronAPI = {
 
     /**
      * Gets the status of a specific operation from the main process.
+     *
      * @param {string} operationId - The unique identifier for the operation
+     *
      * @returns {Promise<any>} The operation status object
      */
     getOperation: async (operationId) => {
-        if (!validateRequiredNonEmptyString(operationId, "operationId", "getOperation")) {
+        if (
+            !validateRequiredNonEmptyString(
+                operationId,
+                "operationId",
+                "getOperation"
+            )
+        ) {
             return null;
         }
 
         try {
-            return await ipcRenderer.invoke("main-state:operation", operationId);
+            return await ipcRenderer.invoke(
+                "main-state:operation",
+                operationId
+            );
         } catch (error) {
-            console.error(`[preload.js] Error in getOperation(${operationId}):`, error);
+            console.error(
+                `[preload.js] Error in getOperation(${operationId}):`,
+                error
+            );
             throw error;
         }
     },
 
     /**
      * Gets all operations from the main process.
+     *
      * @returns {Promise<Object>} Object containing all operations
      */
     getOperations: async () => {
@@ -1093,7 +1447,10 @@ const electronAPI = {
 
     /**
      * Gets recent errors from the main process.
-     * @param {number} [limit=50] - Maximum number of errors to retrieve
+     *
+     * @param {number} [limit=50] - Maximum number of errors to retrieve.
+     *   Default is `50`
+     *
      * @returns {Promise<Array>} Array of recent errors
      */
     getErrors: async (limit = 50) => {
@@ -1107,6 +1464,7 @@ const electronAPI = {
 
     /**
      * Gets performance metrics from the main process.
+     *
      * @returns {Promise<Object>} Object containing performance metrics
      */
     getMetrics: async () => {
@@ -1120,6 +1478,7 @@ const electronAPI = {
 
     /**
      * Validate the preload API is working correctly.
+     *
      * @returns {boolean} True if API is functional
      */
     validateAPI: () => {
@@ -1127,7 +1486,8 @@ const electronAPI = {
             // Test basic functionality
             const hasConstants = CONSTANTS !== undefined;
             const hasContextBridge =
-                contextBridge && typeof contextBridge.exposeInMainWorld === "function";
+                contextBridge &&
+                typeof contextBridge.exposeInMainWorld === "function";
             const hasIpcRenderer =
                 ipcRenderer &&
                 typeof ipcRenderer.invoke === "function" &&
@@ -1161,12 +1521,22 @@ try {
 
         // Log API structure in development
         if (process.env.NODE_ENV === "development") {
-            console.log("[preload.js] Successfully exposed electronAPI to main world");
+            console.log(
+                "[preload.js] Successfully exposed electronAPI to main world"
+            );
             const apiKeys = Object.keys(electronAPI),
                 /** @type {string[]} */
-                methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function"),
+                methods = apiKeys.filter(
+                    (key) =>
+                        typeof (/** @type {any} */ (electronAPI)[key]) ===
+                        "function"
+                ),
                 /** @type {string[]} */
-                properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
+                properties = apiKeys.filter(
+                    (key) =>
+                        typeof (/** @type {any} */ (electronAPI)[key]) !==
+                        "function"
+                );
             console.log("[preload.js] API Structure:", {
                 methods,
                 properties,
@@ -1174,7 +1544,9 @@ try {
             });
         }
     } else {
-        console.error("[preload.js] API validation failed - not exposing to main world");
+        console.error(
+            "[preload.js] API validation failed - not exposing to main world"
+        );
     }
 } catch (error) {
     console.error("[preload.js] Failed to expose electronAPI:", error);
@@ -1183,7 +1555,10 @@ try {
 // Development helpers - only available in development mode
 if (process.env.NODE_ENV === "development") {
     try {
-        if (contextBridge && typeof contextBridge.exposeInMainWorld === "function") {
+        if (
+            contextBridge &&
+            typeof contextBridge.exposeInMainWorld === "function"
+        ) {
             contextBridge.exposeInMainWorld("devTools", {
                 /**
                  * Get preload script information for debugging
@@ -1213,7 +1588,10 @@ if (process.env.NODE_ENV === "development") {
                 testIPC: async () => {
                     try {
                         const version = await electronAPI.getAppVersion();
-                        console.log("[preload.js] IPC test successful, app version:", version);
+                        console.log(
+                            "[preload.js] IPC test successful, app version:",
+                            version
+                        );
                         return true;
                     } catch (error) {
                         console.error("[preload.js] IPC test failed:", error);
@@ -1224,24 +1602,31 @@ if (process.env.NODE_ENV === "development") {
 
             console.log("[preload.js] Development tools exposed");
         } else {
-            console.warn("[preload.js] Development tools not exposed - contextBridge unavailable");
+            console.warn(
+                "[preload.js] Development tools not exposed - contextBridge unavailable"
+            );
         }
     } catch (error) {
-        console.error("[preload.js] Failed to expose development tools:", error);
+        console.error(
+            "[preload.js] Failed to expose development tools:",
+            error
+        );
     }
 }
 
 // Cleanup and final validation
 /**
- * Ensure the process beforeExit handler is only registered once even if this module
- * is executed multiple times during tests.
+ * Ensure the process beforeExit handler is only registered once even if this
+ * module is executed multiple times during tests.
  */
 const BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__",
     BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for("ffv.preload.beforeExitListener");
 
 /**
- * Retrieve (or initialize) the global registry that tracks beforeExit listener wrappers per process.
- * @returns {WeakMap<NodeJS.Process, Function>|null}
+ * Retrieve (or initialize) the global registry that tracks beforeExit listener
+ * wrappers per process.
+ *
+ * @returns {WeakMap<NodeJS.Process, Function> | null}
  */
 function getProcessRegistry() {
     if (typeof globalThis === "undefined") {
@@ -1252,7 +1637,10 @@ function getProcessRegistry() {
         try {
             scope[BEFORE_EXIT_REGISTRY_KEY] = new WeakMap();
         } catch (error) {
-            console.warn("[preload.js] Unable to initialize beforeExit registry:", error);
+            console.warn(
+                "[preload.js] Unable to initialize beforeExit registry:",
+                error
+            );
             scope[BEFORE_EXIT_REGISTRY_KEY] = null;
         }
     }
@@ -1271,7 +1659,10 @@ function handleBeforeExit() {
             try {
                 process.removeListener("beforeExit", existingWrapper);
             } catch (error) {
-                console.warn("[preload.js] Unable to remove beforeExit listener during cleanup:", error);
+                console.warn(
+                    "[preload.js] Unable to remove beforeExit listener during cleanup:",
+                    error
+                );
             }
         }
     }
@@ -1294,7 +1685,10 @@ function registerBeforeExitHandler() {
                 try {
                     process.removeListener("beforeExit", existingWrapper);
                 } catch (error) {
-                    console.warn("[preload.js] Unable to remove stale beforeExit listener:", error);
+                    console.warn(
+                        "[preload.js] Unable to remove stale beforeExit listener:",
+                        error
+                    );
                 }
             }
 
@@ -1318,7 +1712,10 @@ function registerBeforeExitHandler() {
                 }
             }
         } catch (error) {
-            console.warn("[preload.js] Unable to prune stale beforeExit listeners:", error);
+            console.warn(
+                "[preload.js] Unable to prune stale beforeExit listeners:",
+                error
+            );
         }
     }
 
@@ -1331,14 +1728,20 @@ function registerBeforeExitHandler() {
                 const listeners = process.listeners("beforeExit");
                 if (Array.isArray(listeners)) {
                     for (const listener of listeners) {
-                        if (listener === handleBeforeExit || listener.listener === handleBeforeExit) {
+                        if (
+                            listener === handleBeforeExit ||
+                            listener.listener === handleBeforeExit
+                        ) {
                             storedWrapper = listener;
                             break;
                         }
                     }
                 }
             } catch (error) {
-                console.warn("[preload.js] Unable to capture beforeExit listener wrapper:", error);
+                console.warn(
+                    "[preload.js] Unable to capture beforeExit listener wrapper:",
+                    error
+                );
             }
         }
 

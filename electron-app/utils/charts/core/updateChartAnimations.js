@@ -1,11 +1,12 @@
 /**
- * @fileoverview Chart animation configuration utility for FitFileViewer
+ * @file Chart animation configuration utility for FitFileViewer
  *
- * Updates chart animation configurations based on chart type with smooth easing
- * and progress tracking. Supports line, bar, and doughnut chart types with
- * type-specific animation settings.
+ *   Updates chart animation configurations based on chart type with smooth easing
+ *   and progress tracking. Supports line, bar, and doughnut chart types with
+ *   type-specific animation settings.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -43,9 +44,13 @@ const ANIMATION_CONFIG = {
  *
  * @param {Object} chart - Chart.js chart instance to configure
  * @param {string} type - Chart type identifier for logging
- * @returns {Object|null} Modified chart instance or null if invalid input
+ *
+ * @returns {Object | null} Modified chart instance or null if invalid input
  */
-export function updateChartAnimations(/** @type {any} */ chart, /** @type {string} */ type) {
+export function updateChartAnimations(
+    /** @type {any} */ chart,
+    /** @type {string} */ type
+) {
     try {
         // Validate inputs
         if (!chart || typeof chart !== "object") {
@@ -85,7 +90,9 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
             console.warn(`${LOG_PREFIX} Chart config missing type property`);
         }
 
-        console.log(`${LOG_PREFIX} Animation configuration updated for ${type} chart`);
+        console.log(
+            `${LOG_PREFIX} Animation configuration updated for ${type} chart`
+        );
         return chart;
     } catch (error) {
         console.error(`${LOG_PREFIX} Error updating chart animations:`, error);
@@ -95,6 +102,7 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
 
 /**
  * Configures type-specific animations for a chart
+ *
  * @param {Object} chart - Chart.js chart instance
  * @param {string} chartType - Type of chart (line, bar, doughnut)
  */
@@ -140,7 +148,9 @@ function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
 
 /**
  * Creates completion callback for chart animations
+ *
  * @param {string} type - Chart type for logging
+ *
  * @returns {Function} Completion callback function
  */
 function createCompletionCallback(type) {
@@ -151,14 +161,25 @@ function createCompletionCallback(type) {
 
 /**
  * Creates progress callback for chart animations
+ *
  * @param {string} type - Chart type for logging
+ *
  * @returns {Function} Progress callback function
  */
 function createProgressCallback(type) {
     return function (/** @type {any} */ context) {
-        if (context && context.currentStep !== undefined && context.numSteps !== undefined && context.numSteps > 0) {
-            const percentage = Math.round((100 * context.currentStep) / context.numSteps);
-            throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
+        if (
+            context &&
+            context.currentStep !== undefined &&
+            context.numSteps !== undefined &&
+            context.numSteps > 0
+        ) {
+            const percentage = Math.round(
+                (100 * context.currentStep) / context.numSteps
+            );
+            throttledAnimLog(
+                `[ChartJS] ${type} chart animation: ${percentage}%`
+            );
         }
     };
 }

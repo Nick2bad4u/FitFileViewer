@@ -1,5 +1,6 @@
 /**
  * @typedef {Object} WindowExtensions
+ *
  * @property {any[]} [_chartjsInstances] - ChartJS instances
  * @property {Object} [globalData] - Global data object
  * @property {any[]} [globalData.timeInZoneMesgs] - Time in zone messages
@@ -8,6 +9,7 @@
  */
 /**
  * @typedef {Object} ChartOption
+ *
  * @property {string} id - Option identifier
  * @property {string} label - Display label
  * @property {string} type - Option type (slider, toggle, select)
@@ -27,6 +29,7 @@
 export function applySettingsPanelStyles(wrapper: HTMLElement): void;
 /**
  * Creates the main controls section with dropdowns and sliders
+ *
  * @param {HTMLElement} wrapper - The wrapper element to add the controls to
  */
 export function createControlsSection(wrapper: HTMLElement): void;
@@ -34,10 +37,15 @@ export function createExportSection(wrapper: HTMLElement): void;
 export function createFieldTogglesSection(wrapper: HTMLElement): void;
 /**
  * Creates the settings header with title and global actions
+ *
  * @param {HTMLElement} wrapper - The wrapper element to add the header to
  */
 export function createSettingsHeader(wrapper: HTMLElement): void;
-export function showChartSelectionModal(actionType: any, singleCallback: any, combinedCallback: any): void;
+export function showChartSelectionModal(
+    actionType: any,
+    singleCallback: any,
+    combinedCallback: any
+): void;
 export type WindowExtensions = {
     /**
      * - ChartJS instances

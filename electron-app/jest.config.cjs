@@ -1,6 +1,7 @@
 /**
- * Minimal Jest config to enable VS Code Jest extension without interfering with Vitest.
- * It limits Jest to only run placeholder tests under tests/jest-placeholder/.
+ * Minimal Jest config to enable VS Code Jest extension without interfering with
+ * Vitest. It limits Jest to only run placeholder tests under
+ * tests/jest-placeholder/.
  */
 
 const config = {

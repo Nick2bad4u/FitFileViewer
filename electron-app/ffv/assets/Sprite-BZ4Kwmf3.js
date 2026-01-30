@@ -1,12 +1,20 @@
 import { aS as I, bm as m, aO as s } from "./index-LvWRIhnC.js";
 (function () {
     try {
-        var e = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var e =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             a = new Error().stack;
         a &&
             ((e._sentryDebugIds = e._sentryDebugIds || {}),
             (e._sentryDebugIds[a] = "1ea374f5-74c2-440a-9aab-081ce0d95ba3"),
-            (e._sentryDebugIdIdentifier = "sentry-dbid-1ea374f5-74c2-440a-9aab-081ce0d95ba3"));
+            (e._sentryDebugIdIdentifier =
+                "sentry-dbid-1ea374f5-74c2-440a-9aab-081ce0d95ba3"));
     } catch {
         /* Ignore errors */
     }
@@ -145,7 +153,13 @@ const n = {
 let t = !1,
     i;
 async function p() {
-    ((i = (await m(() => import("./waypoint_icons_sprite-Dqa_dKt2.js"), [], import.meta.url)).default),
+    ((i = (
+        await m(
+            () => import("./waypoint_icons_sprite-Dqa_dKt2.js"),
+            [],
+            import.meta.url
+        )
+    ).default),
         await fetch(i),
         (t = !0));
 }
@@ -157,7 +171,9 @@ function D(e) {
         ? null
         : s.jsx("svg", {
               className: a,
-              children: s.jsx("use", { xlinkHref: `${i}#IOP_SYM_${n[r].spriteID}` }),
+              children: s.jsx("use", {
+                  xlinkHref: `${i}#IOP_SYM_${n[r].spriteID}`,
+              }),
           });
 }
 D.propTypes = { id: I.number.isRequired, className: I.string };

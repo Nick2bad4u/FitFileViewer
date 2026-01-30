@@ -1,14 +1,16 @@
 /**
- * @fileoverview Comprehensive test suite for convertArrayBufferToBase64 utility function
+ * @file Comprehensive test suite for convertArrayBufferToBase64 utility
+ *   function
  *
- * Test Categories:
- * - Input Validation: Type checking, error handling for invalid inputs
- * - Basic Conversion: Simple ArrayBuffer to Base64 conversion
- * - Edge Cases: Empty buffers, single bytes, various sizes
- * - Large Buffer Handling: Chunked processing for large data
- * - Data Integrity: Round-trip conversion verification
- * - Performance: Efficient processing without stack overflow
- * - Real-world Scenarios: Typical FIT file usage patterns
+ *   Test Categories:
+ *
+ *   - Input Validation: Type checking, error handling for invalid inputs
+ *   - Basic Conversion: Simple ArrayBuffer to Base64 conversion
+ *   - Edge Cases: Empty buffers, single bytes, various sizes
+ *   - Large Buffer Handling: Chunked processing for large data
+ *   - Data Integrity: Round-trip conversion verification
+ *   - Performance: Efficient processing without stack overflow
+ *   - Real-world Scenarios: Typical FIT file usage patterns
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -35,42 +37,68 @@ afterEach(() => {
 describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utility", () => {
     describe("Input Validation", () => {
         it("should throw TypeError for null input", () => {
-            expect(() => convertArrayBufferToBase64(null as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(null as any)).toThrow("Expected ArrayBuffer, received object");
+            expect(() => convertArrayBufferToBase64(null as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64(null as any)).toThrow(
+                "Expected ArrayBuffer, received object"
+            );
         });
 
         it("should throw TypeError for undefined input", () => {
-            expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(TypeError);
+            expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(
+                TypeError
+            );
             expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(
                 "Expected ArrayBuffer, received undefined"
             );
         });
 
         it("should throw TypeError for string input", () => {
-            expect(() => convertArrayBufferToBase64("not a buffer" as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64("not a buffer" as any)).toThrow(
-                "Expected ArrayBuffer, received string"
-            );
+            expect(() =>
+                convertArrayBufferToBase64("not a buffer" as any)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertArrayBufferToBase64("not a buffer" as any)
+            ).toThrow("Expected ArrayBuffer, received string");
         });
 
         it("should throw TypeError for number input", () => {
-            expect(() => convertArrayBufferToBase64(123 as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(123 as any)).toThrow("Expected ArrayBuffer, received number");
+            expect(() => convertArrayBufferToBase64(123 as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64(123 as any)).toThrow(
+                "Expected ArrayBuffer, received number"
+            );
         });
 
         it("should throw TypeError for object input", () => {
-            expect(() => convertArrayBufferToBase64({} as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64({} as any)).toThrow("Expected ArrayBuffer, received object");
+            expect(() => convertArrayBufferToBase64({} as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64({} as any)).toThrow(
+                "Expected ArrayBuffer, received object"
+            );
         });
 
         it("should throw TypeError for array input", () => {
-            expect(() => convertArrayBufferToBase64([] as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64([] as any)).toThrow("Expected ArrayBuffer, received object");
+            expect(() => convertArrayBufferToBase64([] as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64([] as any)).toThrow(
+                "Expected ArrayBuffer, received object"
+            );
         });
 
         it("should throw TypeError for Uint8Array input", () => {
-            const uint8Array = new Uint8Array([1, 2, 3]);
-            expect(() => convertArrayBufferToBase64(uint8Array as any)).toThrow(TypeError);
+            const uint8Array = new Uint8Array([
+                1,
+                2,
+                3,
+            ]);
+            expect(() => convertArrayBufferToBase64(uint8Array as any)).toThrow(
+                TypeError
+            );
             expect(() => convertArrayBufferToBase64(uint8Array as any)).toThrow(
                 "Expected ArrayBuffer, received object"
             );
@@ -402,7 +430,18 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
 
         it("should have correct padding for different input lengths", () => {
             // Test different lengths that require different padding
-            const testLengths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const testLengths = [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+            ];
 
             testLengths.forEach((length) => {
                 const buffer = new ArrayBuffer(length);
@@ -426,7 +465,9 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
                 }
 
                 if (expectedPadding > 0) {
-                    expect(result.endsWith("=".repeat(expectedPadding))).toBe(true);
+                    expect(result.endsWith("=".repeat(expectedPadding))).toBe(
+                        true
+                    );
                 } else {
                     expect(result.endsWith("=")).toBe(false);
                 }

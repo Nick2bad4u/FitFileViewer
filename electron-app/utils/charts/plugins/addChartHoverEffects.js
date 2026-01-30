@@ -2,12 +2,27 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * Adds fancy hover effects to chart canvases to match the info box styling
+ *
  * @param {HTMLElement} chartContainer - Container with chart canvases
  * @param {Object} themeConfig - Theme configuration object
  */
 /**
  * @param {HTMLElement} chartContainer
- * @param {{ colors: { [k:string]: string, border?:string, surface?:string, shadowLight?:string, primaryShadowLight?:string, primary?:string, accent?:string, textPrimary?:string, shadow?:string, primaryShadowHeavy?:string, surfaceSecondary?:string } }} themeConfig
+ * @param {{
+ *     colors: {
+ *         [k: string]: string;
+ *         border?: string;
+ *         surface?: string;
+ *         shadowLight?: string;
+ *         primaryShadowLight?: string;
+ *         primary?: string;
+ *         accent?: string;
+ *         textPrimary?: string;
+ *         shadow?: string;
+ *         primaryShadowHeavy?: string;
+ *         surfaceSecondary?: string;
+ *     };
+ * }} themeConfig
  */
 export function addChartHoverEffects(chartContainer, themeConfig) {
     if (!chartContainer || !themeConfig) {
@@ -18,8 +33,12 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     // Find all chart canvases in the container
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
 
-    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+    const isDevEnvironment =
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled =
+        isDevEnvironment &&
+        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
 
     let appliedCount = 0;
     for (const canvas of chartCanvases) {
@@ -118,7 +137,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         `;
         titleOverlay.style.opacity = "0";
         titleOverlay.style.transform = "translateY(-8px)";
-        titleOverlay.textContent = chartTitle.replace("Chart for ", "").toUpperCase();
+        titleOverlay.textContent = chartTitle
+            .replace("Chart for ", "")
+            .toUpperCase();
         wrapper.append(titleOverlay);
 
         // Add hover event listeners to wrapper
@@ -191,7 +212,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         });
 
         if (isDebugLoggingEnabled) {
-            console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
+            console.log(
+                `[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`
+            );
         }
     }
 
@@ -234,7 +257,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     }
 
     if (isDebugLoggingEnabled) {
-        console.log(`[ChartHoverEffects] Added hover effects to ${appliedCount} chart(s)`);
+        console.log(
+            `[ChartHoverEffects] Added hover effects to ${appliedCount} chart(s)`
+        );
     }
 }
 
@@ -263,6 +288,7 @@ export function addHoverEffectsToExistingCharts() {
 
 /**
  * Removes hover effects from chart containers (cleanup function)
+ *
  * @param {HTMLElement} chartContainer - Container with chart canvases
  */
 export function removeChartHoverEffects(chartContainer) {
@@ -272,10 +298,15 @@ export function removeChartHoverEffects(chartContainer) {
 
     const chartWrappers = chartContainer.querySelectorAll(".chart-wrapper"),
         themeConfig = /** @type {any} */ (getThemeConfig()),
-        colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {});
+        colors = /** @type {any} */ (
+            themeConfig && themeConfig.colors ? themeConfig.colors : {}
+        );
     for (const wrapper of chartWrappers) {
         const canvas = wrapper.querySelector(".chart-canvas");
-        if (canvas instanceof HTMLElement && wrapper.parentNode instanceof HTMLElement) {
+        if (
+            canvas instanceof HTMLElement &&
+            wrapper.parentNode instanceof HTMLElement
+        ) {
             // Move canvas back to original parent and remove wrapper
             wrapper.parentNode.insertBefore(canvas, wrapper);
             wrapper.remove();
@@ -300,5 +331,7 @@ export function removeChartHoverEffects(chartContainer) {
         }
     }
 
-    console.log(`[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`);
+    console.log(
+        `[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`
+    );
 }

@@ -14,14 +14,19 @@ describe("registerFitFileHandlers", () => {
         vi.resetModules();
         decodeFitFileMock = vi.fn().mockResolvedValue({ parsed: true });
 
-        ({ registerFitFileHandlers } = await import("../../../../main/ipc/registerFitFileHandlers.js"));
+        ({ registerFitFileHandlers } =
+            await import("../../../../main/ipc/registerFitFileHandlers.js"));
         registerIpcHandle = vi.fn();
         ensureFitParserStateIntegration = vi.fn().mockResolvedValue(undefined);
         logWithContext = vi.fn();
     });
 
     it("no-ops when registerIpcHandle is invalid", () => {
-        registerFitFileHandlers({ registerIpcHandle: undefined, ensureFitParserStateIntegration, logWithContext });
+        registerFitFileHandlers({
+            registerIpcHandle: undefined,
+            ensureFitParserStateIntegration,
+            logWithContext,
+        });
         expect(registerIpcHandle).not.toHaveBeenCalled();
     });
 
@@ -38,12 +43,18 @@ describe("registerFitFileHandlers", () => {
         expect(channels).toEqual(["fit:parse", "fit:decode"]);
 
         const handler = registerIpcHandle.mock.calls[0][1];
-        const arrayBuffer = Uint8Array.from([1, 2, 3]).buffer;
+        const arrayBuffer = Uint8Array.from([
+            1,
+            2,
+            3,
+        ]).buffer;
 
         const result = await handler({}, arrayBuffer);
 
         expect(ensureFitParserStateIntegration).toHaveBeenCalled();
-        expect(decodeFitFileMock).toHaveBeenCalledWith(Buffer.from(arrayBuffer));
+        expect(decodeFitFileMock).toHaveBeenCalledWith(
+            Buffer.from(arrayBuffer)
+        );
         expect(result).toEqual({ parsed: true });
         expect(logWithContext).not.toHaveBeenCalled();
     });
@@ -59,11 +70,17 @@ describe("registerFitFileHandlers", () => {
         });
         const handler = registerIpcHandle.mock.calls[0][1];
 
-        await expect(handler({}, new ArrayBuffer(0))).rejects.toThrow("decode failed");
+        await expect(handler({}, new ArrayBuffer(0))).rejects.toThrow(
+            "decode failed"
+        );
 
-        expect(logWithContext).toHaveBeenCalledWith("error", "Error in fit:parse:", {
-            error: "decode failed",
-        });
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Error in fit:parse:",
+            {
+                error: "decode failed",
+            }
+        );
     });
 
     it("rejects non-ArrayBuffer payloads", async () => {
@@ -76,7 +93,9 @@ describe("registerFitFileHandlers", () => {
 
         const handler = registerIpcHandle.mock.calls[0][1];
 
-        await expect(handler({}, "not-a-buffer")).rejects.toThrow("Invalid FIT data: expected ArrayBuffer");
+        await expect(handler({}, "not-a-buffer")).rejects.toThrow(
+            "Invalid FIT data: expected ArrayBuffer"
+        );
         expect(decodeFitFileMock).not.toHaveBeenCalled();
     });
 });

@@ -1,5 +1,6 @@
 /**
  * Creates or restores the main BrowserWindow and wires up load-time handlers.
+ *
  * @param {object} options
  * @param {() => any} options.browserWindowRef
  * @param {(key: string, value?: any) => any} options.getAppState
@@ -10,7 +11,12 @@
  * @param {(win: any, channel: string, ...args: any[]) => void} options.sendToRenderer
  * @param {() => Promise<any>} options.resolveAutoUpdaterAsync
  * @param {(mainWindow: any, autoUpdater: any) => void} options.setupAutoUpdater
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
+ *
  * @returns {Promise<any>}
  */
 export function bootstrapMainWindow({
@@ -36,5 +42,9 @@ export function bootstrapMainWindow({
     sendToRenderer: (win: any, channel: string, ...args: any[]) => void;
     resolveAutoUpdaterAsync: () => Promise<any>;
     setupAutoUpdater: (mainWindow: any, autoUpdater: any) => void;
-    logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
+    logWithContext: (
+        level: "error" | "warn" | "info",
+        message: string,
+        context?: Record<string, any>
+    ) => void;
 }): Promise<any>;

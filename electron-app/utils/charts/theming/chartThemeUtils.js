@@ -1,9 +1,13 @@
 /**
- * @fileoverview Chart theme utilities for FitFileViewer
- * @description Provides theme detection and styling utilities specifically for chart rendering
+ * Provides theme detection and styling utilities specifically for chart
+ * rendering
+ *
+ * @version 1.0.0
+ *
+ * @file Chart theme utilities for FitFileViewer
  *
  * @author FitFileViewer Development Team
- * @version 1.0.0
+ *
  * @since 2.0.0
  */
 
@@ -11,22 +15,31 @@ import { getEffectiveTheme } from "../../theming/core/theme.js";
 
 /**
  * Detects the current theme robustly using multiple fallback methods
+ *
  * @returns {string} Current theme ('dark' or 'light')
  */
 export function detectCurrentTheme() {
-    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+    const isDevEnvironment =
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled =
+        isDevEnvironment &&
+        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
 
     // Method 1: Check body classes (primary method used by the app)
     if (document.body.classList.contains("theme-dark")) {
         if (isDebugLoggingEnabled) {
-            console.log("[ChartThemeUtils] Detected theme via body class: dark");
+            console.log(
+                "[ChartThemeUtils] Detected theme via body class: dark"
+            );
         }
         return "dark";
     }
     if (document.body.classList.contains("theme-light")) {
         if (isDebugLoggingEnabled) {
-            console.log("[ChartThemeUtils] Detected theme via body class: light");
+            console.log(
+                "[ChartThemeUtils] Detected theme via body class: light"
+            );
         }
         return "light";
     }
@@ -36,7 +49,10 @@ export function detectCurrentTheme() {
         const effectiveTheme = getEffectiveTheme();
         if (effectiveTheme) {
             if (isDebugLoggingEnabled) {
-                console.log("[ChartThemeUtils] Detected theme via getEffectiveTheme:", effectiveTheme);
+                console.log(
+                    "[ChartThemeUtils] Detected theme via getEffectiveTheme:",
+                    effectiveTheme
+                );
             }
             return effectiveTheme;
         }
@@ -49,15 +65,23 @@ export function detectCurrentTheme() {
         const savedTheme = localStorage.getItem("ffv-theme");
         if (savedTheme && (savedTheme === "dark" || savedTheme === "light")) {
             if (isDebugLoggingEnabled) {
-                console.log("[ChartThemeUtils] Detected theme via localStorage:", savedTheme);
+                console.log(
+                    "[ChartThemeUtils] Detected theme via localStorage:",
+                    savedTheme
+                );
             }
             return savedTheme;
         }
         // Handle "auto" theme by resolving to system preference
         if (savedTheme === "auto") {
-            if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
+            if (
+                globalThis.matchMedia &&
+                globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+            ) {
                 if (isDebugLoggingEnabled) {
-                    console.log("[ChartThemeUtils] Auto theme resolved to: dark");
+                    console.log(
+                        "[ChartThemeUtils] Auto theme resolved to: dark"
+                    );
                 }
                 return "dark";
             }
@@ -72,9 +96,14 @@ export function detectCurrentTheme() {
 
     // Method 4: System preference fallback
     try {
-        if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
+        if (
+            globalThis.matchMedia &&
+            globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
             if (isDebugLoggingEnabled) {
-                console.log("[ChartThemeUtils] System preference fallback: dark");
+                console.log(
+                    "[ChartThemeUtils] System preference fallback: dark"
+                );
             }
             return "dark";
         }

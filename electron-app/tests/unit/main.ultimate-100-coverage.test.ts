@@ -2,6 +2,7 @@
  * Ultimate 100% Coverage Test for main.js
  *
  * This test combines all successful strategies from previous tests:
+ *
  * - Proven hoisted mock system from minimal test
  * - Multiple environment imports from ultra test
  * - Comprehensive event simulation
@@ -10,7 +11,15 @@
  * Goal: Achieve 100% statement, branch, and function coverage
  */
 
-import { beforeAll, beforeEach, afterEach, describe, test, expect, vi } from "vitest";
+import {
+    beforeAll,
+    beforeEach,
+    afterEach,
+    describe,
+    test,
+    expect,
+    vi,
+} from "vitest";
 import { EventEmitter } from "events";
 
 // Use the proven minimal test mock structure
@@ -76,8 +85,14 @@ beforeAll(() => {
         default: globalMocks.MockMainProcessState,
     }));
 
-    vi.mock("../../windowStateUtils.js", () => globalMocks.mockWindowStateUtils);
-    vi.mock("../../utils/files/recent/recentFiles.js", () => globalMocks.mockRecentFiles);
+    vi.mock(
+        "../../windowStateUtils.js",
+        () => globalMocks.mockWindowStateUtils
+    );
+    vi.mock(
+        "../../utils/files/recent/recentFiles.js",
+        () => globalMocks.mockRecentFiles
+    );
 
     const originalRequire = require;
     global.require = vi.fn((moduleId) => {
@@ -137,7 +152,9 @@ beforeEach(() => {
         whenReady: vi.fn(() => Promise.resolve()),
         setAsDefaultProtocolClient: vi.fn(),
         isDefaultProtocolClient: vi.fn(() => false),
-        getFileIcon: vi.fn(() => Promise.resolve({ toDataURL: () => "data:image/png;base64,icon" })),
+        getFileIcon: vi.fn(() =>
+            Promise.resolve({ toDataURL: () => "data:image/png;base64,icon" })
+        ),
         hide: vi.fn(),
         show: vi.fn(),
         focus: vi.fn(),
@@ -221,8 +238,12 @@ beforeEach(() => {
     });
 
     Object.assign(globalMocks.mockDialog, {
-        showOpenDialog: vi.fn(() => Promise.resolve({ canceled: false, filePaths: ["/test/file.fit"] })),
-        showSaveDialog: vi.fn(() => Promise.resolve({ canceled: false, filePath: "/test/save.fit" })),
+        showOpenDialog: vi.fn(() =>
+            Promise.resolve({ canceled: false, filePaths: ["/test/file.fit"] })
+        ),
+        showSaveDialog: vi.fn(() =>
+            Promise.resolve({ canceled: false, filePath: "/test/save.fit" })
+        ),
         showMessageBox: vi.fn(() => Promise.resolve({ response: 0 })),
         showErrorBox: vi.fn(),
         showCertificateTrustDialog: vi.fn(() => Promise.resolve()),
@@ -230,7 +251,11 @@ beforeEach(() => {
 
     Object.assign(globalMocks.mockMenu, {
         setApplicationMenu: vi.fn(),
-        buildFromTemplate: vi.fn(() => ({ popup: vi.fn(), getMenuItemById: vi.fn(), items: [] })),
+        buildFromTemplate: vi.fn(() => ({
+            popup: vi.fn(),
+            getMenuItemById: vi.fn(),
+            items: [],
+        })),
     });
 
     Object.assign(globalMocks.mockShell, {
@@ -253,7 +278,10 @@ beforeEach(() => {
         readFileSync: vi.fn(() => "{}"),
         writeFileSync: vi.fn(),
         existsSync: vi.fn(() => true),
-        statSync: vi.fn(() => ({ isFile: () => true, isDirectory: () => false })),
+        statSync: vi.fn(() => ({
+            isFile: () => true,
+            isDirectory: () => false,
+        })),
         readdirSync: vi.fn(() => []),
         mkdirSync: vi.fn(),
         unlinkSync: vi.fn(),
@@ -330,7 +358,10 @@ beforeEach(() => {
 
     Object.assign(globalMocks.mockCrypto, {
         randomBytes: vi.fn(() => Buffer.from("random")),
-        createHash: vi.fn(() => ({ update: vi.fn().mockReturnThis(), digest: vi.fn(() => "hash") })),
+        createHash: vi.fn(() => ({
+            update: vi.fn().mockReturnThis(),
+            digest: vi.fn(() => "hash"),
+        })),
         randomUUID: vi.fn(() => "uuid"),
     });
 
@@ -353,11 +384,18 @@ beforeEach(() => {
         notifyRenderers: vi.fn(),
         notifyChange: vi.fn(),
     };
-    globalMocks.MockMainProcessState.mockImplementation(() => mockStateInstance);
+    globalMocks.MockMainProcessState.mockImplementation(
+        () => mockStateInstance
+    );
 
     Object.assign(globalMocks.mockWindowStateUtils, {
         createWindow: vi.fn(() => ({
-            webContents: { send: vi.fn(), on: vi.fn(), once: vi.fn(), removeAllListeners: vi.fn() },
+            webContents: {
+                send: vi.fn(),
+                on: vi.fn(),
+                once: vi.fn(),
+                removeAllListeners: vi.fn(),
+            },
             on: vi.fn(),
             once: vi.fn(),
             show: vi.fn(),
@@ -404,7 +442,9 @@ afterEach(() => {
 
 describe("main.js - Ultimate 100% Coverage Test", () => {
     test("should achieve maximum coverage through systematic function targeting", async () => {
-        console.log("[ULTIMATE TEST] Starting comprehensive 100% coverage approach...");
+        console.log(
+            "[ULTIMATE TEST] Starting comprehensive 100% coverage approach..."
+        );
 
         // Import 1: Test environment with Gyazo OAuth
         console.log("[ULTIMATE TEST] Import 1: Test environment with OAuth...");
@@ -433,8 +473,17 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         globalMocks.mockApp.emit("before-quit");
         globalMocks.mockApp.emit("will-quit");
         globalMocks.mockApp.emit("quit");
-        globalMocks.mockApp.emit("second-instance", {}, ["arg1", "arg2"], "/working/dir");
-        globalMocks.mockApp.emit("open-file", { preventDefault: vi.fn() }, "/test/file.fit");
+        globalMocks.mockApp.emit(
+            "second-instance",
+            {},
+            ["arg1", "arg2"],
+            "/working/dir"
+        );
+        globalMocks.mockApp.emit(
+            "open-file",
+            { preventDefault: vi.fn() },
+            "/test/file.fit"
+        );
         globalMocks.mockApp.emit(
             "web-contents-created",
             {},
@@ -447,10 +496,14 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
 
         // Auto-updater events
         globalMocks.mockAutoUpdater.emit("checking-for-update");
-        globalMocks.mockAutoUpdater.emit("update-available", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-available", {
+            version: "2.0.0",
+        });
         globalMocks.mockAutoUpdater.emit("update-not-available");
         globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
-        globalMocks.mockAutoUpdater.emit("update-downloaded", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-downloaded", {
+            version: "2.0.0",
+        });
         globalMocks.mockAutoUpdater.emit("error", new Error("Update error"));
 
         // Native theme events
@@ -476,11 +529,36 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
             // WebContents events
             mockWindow.webContents.emit("dom-ready");
             mockWindow.webContents.emit("did-finish-load");
-            mockWindow.webContents.emit("did-fail-load", {}, 404, "Not Found", "https://example.com");
-            mockWindow.webContents.emit("new-window", { preventDefault: vi.fn() }, "https://external.com");
-            mockWindow.webContents.emit("will-navigate", { preventDefault: vi.fn() }, "https://external.com");
-            mockWindow.webContents.emit("did-navigate", {}, "https://example.com");
-            mockWindow.webContents.emit("console-message", {}, "log", "Test message", 1, "test.js");
+            mockWindow.webContents.emit(
+                "did-fail-load",
+                {},
+                404,
+                "Not Found",
+                "https://example.com"
+            );
+            mockWindow.webContents.emit(
+                "new-window",
+                { preventDefault: vi.fn() },
+                "https://external.com"
+            );
+            mockWindow.webContents.emit(
+                "will-navigate",
+                { preventDefault: vi.fn() },
+                "https://external.com"
+            );
+            mockWindow.webContents.emit(
+                "did-navigate",
+                {},
+                "https://example.com"
+            );
+            mockWindow.webContents.emit(
+                "console-message",
+                {},
+                "log",
+                "Test message",
+                1,
+                "test.js"
+            );
         }
 
         console.log("[ULTIMATE TEST] Complete coverage test finished");
@@ -510,7 +588,9 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         globalMocks.mockHttp.createServer.mockImplementationOnce(() => {
             throw new Error("Port in use");
         });
-        globalMocks.mockDialog.showOpenDialog.mockImplementationOnce(() => Promise.reject(new Error("Dialog error")));
+        globalMocks.mockDialog.showOpenDialog.mockImplementationOnce(() =>
+            Promise.reject(new Error("Dialog error"))
+        );
 
         await import("../../main.js");
 
@@ -563,7 +643,11 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         // Menu functionality
         const mockMenu = {
             popup: vi.fn(),
-            getMenuItemById: vi.fn((id) => ({ click: vi.fn(), enabled: true, visible: true })),
+            getMenuItemById: vi.fn((id) => ({
+                click: vi.fn(),
+                enabled: true,
+                visible: true,
+            })),
             items: [
                 { click: vi.fn(), submenu: [{ click: vi.fn() }] },
                 { click: vi.fn(), role: "quit" },

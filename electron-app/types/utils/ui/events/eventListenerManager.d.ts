@@ -7,6 +7,7 @@
  * @param {EventListener} handlers.onDragOver - Handler for dragover events
  * @param {EventListener} handlers.onDrop - Handler for drop events
  * @param {EventTarget} target - The target element (defaults to window)
+ *
  * @returns {Function} Cleanup function to remove all drag and drop listeners
  */
 export function addDragDropListeners(
@@ -24,7 +25,9 @@ export function addDragDropListeners(
  * @param {EventTarget} element - The element to add the event listener to
  * @param {string} eventType - The type of event to listen for
  * @param {EventListener} handler - The event handler function
- * @param {boolean|AddEventListenerOptions} options - Optional parameters for addEventListener
+ * @param {boolean | AddEventListenerOptions} options - Optional parameters for
+ *   addEventListener
+ *
  * @returns {Function} A function to remove this specific event listener
  */
 export function addEventListenerWithCleanup(
@@ -36,8 +39,8 @@ export function addEventListenerWithCleanup(
 /**
  * Removes all tracked event listeners
  *
- * This function should be called during application cleanup or when transitioning
- * between different application states to prevent memory leaks.
+ * This function should be called during application cleanup or when
+ * transitioning between different application states to prevent memory leaks.
  */
 export function cleanupEventListeners(): void;
 /**

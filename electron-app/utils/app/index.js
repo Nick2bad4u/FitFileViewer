@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for app
- * @description Re-exports all subcategories in the app category
+ * Re-exports all subcategories in the app category
+ *
+ * @file Main Category Barrel Export for app
  */
 
 import * as appInitialization from "./initialization/index.js";

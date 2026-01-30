@@ -77,7 +77,9 @@ describe("detectCurrentTheme", () => {
     });
 
     it("uses system preference fallback when no storage and no classes", async () => {
-        vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => undefined }));
+        vi.doMock(themeModulePath, () => ({
+            getEffectiveTheme: () => undefined,
+        }));
         setMatchMedia(true);
         const { detectCurrentTheme } = await import(modPath);
         expect(detectCurrentTheme()).toBe("dark");
@@ -85,10 +87,14 @@ describe("detectCurrentTheme", () => {
 
     it("final fallback returns light when everything else unavailable", async () => {
         // Throw on localStorage access
-        const getItemSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-            throw new Error("ls-fail");
-        });
-        vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => undefined }));
+        const getItemSpy = vi
+            .spyOn(Storage.prototype, "getItem")
+            .mockImplementation(() => {
+                throw new Error("ls-fail");
+            });
+        vi.doMock(themeModulePath, () => ({
+            getEffectiveTheme: () => undefined,
+        }));
         setMatchMedia(null);
         const { detectCurrentTheme } = await import(modPath);
         expect(detectCurrentTheme()).toBe("light");

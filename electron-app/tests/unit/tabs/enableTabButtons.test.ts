@@ -1,12 +1,16 @@
 /**
- * Tests for enableTabButtons functionality
- * These tests verify the enable/disable behavior of tab buttons
+ * Tests for enableTabButtons functionality These tests verify the
+ * enable/disable behavior of tab buttons
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { createMockTabButtons, cleanupDOM } from "../../fixtures/tabFixtures.js";
+import {
+    createMockTabButtons,
+    cleanupDOM,
+} from "../../fixtures/tabFixtures.js";
 
 // Import the function to test
-const { setTabButtonsEnabled } = await import("../../../utils/ui/controls/enableTabButtons.js");
+const { setTabButtonsEnabled } =
+    await import("../../../utils/ui/controls/enableTabButtons.js");
 
 describe("Enable Tab Buttons", () => {
     beforeEach(() => {
@@ -25,7 +29,9 @@ describe("Enable Tab Buttons", () => {
             tabButtons.forEach((button) => {
                 const htmlButton = /** @type {HTMLButtonElement} */ button;
                 expect(htmlButton.disabled).toBe(true);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(true);
+                expect(htmlButton.classList.contains("tab-disabled")).toBe(
+                    true
+                );
                 expect(htmlButton.getAttribute("aria-disabled")).toBe("true");
             });
         });
@@ -41,7 +47,9 @@ describe("Enable Tab Buttons", () => {
             tabButtons.forEach((button) => {
                 const htmlButton = /** @type {HTMLButtonElement} */ button;
                 expect(htmlButton.disabled).toBe(false);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(false);
+                expect(htmlButton.classList.contains("tab-disabled")).toBe(
+                    false
+                );
                 expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
             });
         });
@@ -61,8 +69,13 @@ describe("Enable Tab Buttons", () => {
 
             // Manually set different states
             /** @type {HTMLButtonElement} */ tabButtons[0].disabled = true;
-            /** @type {HTMLElement} */ tabButtons[1].classList.add("tab-disabled");
-            /** @type {HTMLElement} */ tabButtons[2].setAttribute("aria-disabled", "true");
+            /** @type {HTMLElement} */ tabButtons[1].classList.add(
+                "tab-disabled"
+            );
+            /** @type {HTMLElement} */ tabButtons[2].setAttribute(
+                "aria-disabled",
+                "true"
+            );
 
             // Enable all
             setTabButtonsEnabled(true);
@@ -70,13 +83,18 @@ describe("Enable Tab Buttons", () => {
             tabButtons.forEach((button) => {
                 const htmlButton = /** @type {HTMLButtonElement} */ button;
                 expect(htmlButton.disabled).toBe(false);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(false);
+                expect(htmlButton.classList.contains("tab-disabled")).toBe(
+                    false
+                );
                 expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
             });
         });
 
         it("should preserve other classes when enabling/disabling", () => {
-            const firstButton = /** @type {HTMLElement} */ document.querySelector(".tab-button");
+            const firstButton =
+                /** @type {HTMLElement} */ document.querySelector(
+                    ".tab-button"
+                );
             firstButton.classList.add("custom-class", "another-class");
 
             setTabButtonsEnabled(false);
@@ -91,16 +109,26 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should log operations for debugging", () => {
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             setTabButtonsEnabled(false);
             setTabButtonsEnabled(true);
 
             // Should have logged the operations - check for the actual log messages
-            expect(consoleSpy).toHaveBeenCalledWith("[TabButtons] setTabButtonsEnabled(false) called");
-            expect(consoleSpy).toHaveBeenCalledWith("[TabButtons] Buttons disabled");
-            expect(consoleSpy).toHaveBeenCalledWith("[TabButtons] setTabButtonsEnabled(true) called");
-            expect(consoleSpy).toHaveBeenCalledWith("[TabButtons] Buttons enabled");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabButtons] setTabButtonsEnabled(false) called"
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabButtons] Buttons disabled"
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabButtons] setTabButtonsEnabled(true) called"
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabButtons] Buttons enabled"
+            );
 
             consoleSpy.mockRestore();
         });
@@ -118,7 +146,9 @@ describe("Enable Tab Buttons", () => {
                 // All three methods should be in sync
                 expect(htmlButton.disabled).toBe(true);
                 expect(htmlButton.hasAttribute("disabled")).toBe(true);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(true);
+                expect(htmlButton.classList.contains("tab-disabled")).toBe(
+                    true
+                );
             });
         });
 

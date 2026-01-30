@@ -1,7 +1,12 @@
 /**
  * @param {HTMLElement} container
- * @param {{ showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, zoomPluginConfig?: any }} options
- * @param {Date|number} startTime
+ * @param {{
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     showGrid?: boolean;
+ *     zoomPluginConfig?: any;
+ * }} options
+ * @param {Date | number} startTime
  */
 export function renderEventMessagesChart(
     container: HTMLElement,

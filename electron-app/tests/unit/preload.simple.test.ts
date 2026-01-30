@@ -13,7 +13,11 @@ interface TestElectronAPI {
     readFile: (filePath: string) => Promise<ArrayBuffer>;
     parseFitFile: (buffer: ArrayBuffer) => Promise<any>;
     invoke: (channel: string, ...args: any[]) => Promise<any>;
-    setMainState?: (path: string, value: any, options?: any) => Promise<boolean>;
+    setMainState?: (
+        path: string,
+        value: any,
+        options?: any
+    ) => Promise<boolean>;
     getOperation?: (operationId: string) => Promise<any>;
     validateAPI: () => boolean;
     [key: string]: any;
@@ -50,7 +54,10 @@ describe("Simple Electron Mock Test", () => {
         };
 
         // Load preload script source
-        preloadCode = readFileSync(join(__dirname, "../../preload.js"), "utf-8");
+        preloadCode = readFileSync(
+            join(__dirname, "../../preload.js"),
+            "utf-8"
+        );
     });
 
     afterEach(() => {
@@ -97,7 +104,8 @@ describe("Simple Electron Mock Test", () => {
             mockRequire,
             mockProcess,
             mockConsole,
-            exposedAPI: mockContextBridge.exposeInMainWorld.mock.calls[0]?.[1] as TestElectronAPI,
+            exposedAPI: mockContextBridge.exposeInMainWorld.mock
+                .calls[0]?.[1] as TestElectronAPI,
         };
     }
 
@@ -105,7 +113,10 @@ describe("Simple Electron Mock Test", () => {
         const { exposedAPI } = createPreloadEnvironment();
 
         // Check that electronAPI was exposed
-        expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+        expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+            "electronAPI",
+            expect.any(Object)
+        );
 
         expect(exposedAPI).toBeDefined();
     });
@@ -126,7 +137,9 @@ describe("Simple Electron Mock Test", () => {
         expect(exposedAPI).toBeDefined();
 
         // Using an invalid channel should reject (validation occurs before ipcRenderer.invoke)
-        await expect(exposedAPI.invoke(null as any)).rejects.toThrow("Invalid channel for invoke");
+        await expect(exposedAPI.invoke(null as any)).rejects.toThrow(
+            "Invalid channel for invoke"
+        );
 
         // Invoke with valid parameters should work
         mockIpcRenderer.invoke.mockResolvedValueOnce("test-response");

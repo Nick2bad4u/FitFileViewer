@@ -1,10 +1,13 @@
 /**
- * Test suite for exportUtils.js
- * Tests for chart export, sharing, and data export functionality
+ * Test suite for exportUtils.js Tests for chart export, sharing, and data
+ * export functionality
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { exportUtils, __setTestDeps } from "../../../../../utils/files/export/exportUtils.js";
+import {
+    exportUtils,
+    __setTestDeps,
+} from "../../../../../utils/files/export/exportUtils.js";
 
 // Mock dependencies
 const mockShowNotification = vi.fn();
@@ -22,7 +25,13 @@ const mockElectronAPI = {
 // Mock JSZip
 const mockJSZip = vi.fn(() => ({
     file: vi.fn(),
-    generateAsync: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+    generateAsync: vi.fn().mockResolvedValue(
+        new Uint8Array([
+            1,
+            2,
+            3,
+        ])
+    ),
 }));
 
 // Mock Chart.js instances
@@ -34,7 +43,9 @@ const createMockChart = (
     ]
 ) => ({
     canvas: {
-        toBlob: vi.fn((callback) => callback(new Blob(["test"], { type: "image/png" }))),
+        toBlob: vi.fn((callback) =>
+            callback(new Blob(["test"], { type: "image/png" }))
+        ),
         width: 800,
         height: 600,
         getContext: vi.fn(() => ({
@@ -85,7 +96,9 @@ const mockCreateElement = vi.fn((tagName) => {
                 fillRect: vi.fn(),
                 drawImage: vi.fn(),
             })),
-            toBlob: vi.fn((callback) => callback(new Blob(["test"], { type: "image/png" }))),
+            toBlob: vi.fn((callback) =>
+                callback(new Blob(["test"], { type: "image/png" }))
+            ),
         };
     }
     if (tagName === "a") {
@@ -217,7 +230,10 @@ describe("exportUtils", () => {
 
             await exportUtils.addCombinedCSVToZip(mockZip, []);
 
-            expect(mockZip.file).toHaveBeenCalledWith("combined-data.csv", "timestamp");
+            expect(mockZip.file).toHaveBeenCalledWith(
+                "combined-data.csv",
+                "timestamp"
+            );
         });
 
         it("should handle charts with no data", async () => {
@@ -225,11 +241,17 @@ describe("exportUtils", () => {
                 file: vi.fn(),
             };
 
-            const charts = [createMockChart("Speed", []), createMockChart("Heart Rate", [])];
+            const charts = [
+                createMockChart("Speed", []),
+                createMockChart("Heart Rate", []),
+            ];
 
             await exportUtils.addCombinedCSVToZip(mockZip, charts);
 
-            expect(mockZip.file).toHaveBeenCalledWith("combined-data.csv", "timestamp,Speed,Heart Rate");
+            expect(mockZip.file).toHaveBeenCalledWith(
+                "combined-data.csv",
+                "timestamp,Speed,Heart Rate"
+            );
         });
     });
 
@@ -273,7 +295,11 @@ describe("exportUtils", () => {
 
             await exportUtils.downloadChartAsPNG(chart);
 
-            expect(chart.toBase64Image).toHaveBeenCalledWith("image/png", 1, "#ffffff");
+            expect(chart.toBase64Image).toHaveBeenCalledWith(
+                "image/png",
+                1,
+                "#ffffff"
+            );
             expect(global.document.createElement).toHaveBeenCalledWith("a");
             expect(mockLink.click).toHaveBeenCalled();
         });
@@ -364,17 +390,26 @@ describe("exportUtils", () => {
         it("should return complete Gyazo configuration with stored credentials", () => {
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "gyazo_client_id") return "stored-client-id";
-                if (key === "gyazo_client_secret") return "stored-client-secret";
+                if (key === "gyazo_client_secret")
+                    return "stored-client-secret";
                 return null;
             });
 
-            expect(mockLocalStorage.getItem("gyazo_client_id")).toBe("stored-client-id");
-            expect(mockLocalStorage.getItem("gyazo_client_secret")).toBe("stored-client-secret");
+            expect(mockLocalStorage.getItem("gyazo_client_id")).toBe(
+                "stored-client-id"
+            );
+            expect(mockLocalStorage.getItem("gyazo_client_secret")).toBe(
+                "stored-client-secret"
+            );
 
             const config = exportUtils.getGyazoConfig();
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("gyazo_client_id");
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("gyazo_client_secret");
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+                "gyazo_client_id"
+            );
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+                "gyazo_client_secret"
+            );
 
             expect(config).toEqual({
                 authUrl: "https://gyazo.com/oauth/authorize",
@@ -391,12 +426,24 @@ describe("exportUtils", () => {
 
             const config = exportUtils.getGyazoConfig();
 
-            expect(config).toHaveProperty("authUrl", "https://gyazo.com/oauth/authorize");
+            expect(config).toHaveProperty(
+                "authUrl",
+                "https://gyazo.com/oauth/authorize"
+            );
             expect(config).toHaveProperty("clientId");
             expect(config).toHaveProperty("clientSecret");
-            expect(config).toHaveProperty("redirectUri", "http://localhost:3000/gyazo/callback");
-            expect(config).toHaveProperty("tokenUrl", "https://gyazo.com/oauth/token");
-            expect(config).toHaveProperty("uploadUrl", "https://upload.gyazo.com/api/upload");
+            expect(config).toHaveProperty(
+                "redirectUri",
+                "http://localhost:3000/gyazo/callback"
+            );
+            expect(config).toHaveProperty(
+                "tokenUrl",
+                "https://gyazo.com/oauth/token"
+            );
+            expect(config).toHaveProperty(
+                "uploadUrl",
+                "https://upload.gyazo.com/api/upload"
+            );
 
             // Should have default clientId and clientSecret (not null/empty)
             expect(typeof (config as any).clientId).toBe("string");
@@ -448,7 +495,9 @@ describe("exportUtils", () => {
                 text: vi.fn().mockResolvedValue("Internal Server Error"),
             });
 
-            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow(
+            await expect(
+                exportUtils.uploadToGyazo(base64Image)
+            ).rejects.toThrow(
                 "Gyazo upload failed: 500 - Internal Server Error"
             );
         });

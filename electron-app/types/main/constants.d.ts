@@ -1,6 +1,7 @@
 /**
- * Shared constants for the Electron main process. Extracted from the legacy monolithic main.js
- * to help other modules consume configuration without re-defining values.
+ * Shared constants for the Electron main process. Extracted from the legacy
+ * monolithic main.js to help other modules consume configuration without
+ * re-defining values.
  */
 export const CONSTANTS: Readonly<{
     DEFAULT_THEME: "dark";

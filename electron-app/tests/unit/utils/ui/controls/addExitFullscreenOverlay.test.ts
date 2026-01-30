@@ -8,7 +8,10 @@ describe("addExitFullscreenOverlay", () => {
     let fullscreenElementRef: Element | null;
 
     const originalExitFullscreen = (document as any).exitFullscreen;
-    const originalFullscreenDescriptor = Object.getOwnPropertyDescriptor(document, "fullscreenElement");
+    const originalFullscreenDescriptor = Object.getOwnPropertyDescriptor(
+        document,
+        "fullscreenElement"
+    );
 
     const setFullscreenElement = (element: Element | null) => {
         fullscreenElementRef = element;
@@ -36,7 +39,11 @@ describe("addExitFullscreenOverlay", () => {
         }
 
         if (originalFullscreenDescriptor) {
-            Object.defineProperty(document, "fullscreenElement", originalFullscreenDescriptor);
+            Object.defineProperty(
+                document,
+                "fullscreenElement",
+                originalFullscreenDescriptor
+            );
         } else {
             delete (document as any).fullscreenElement;
         }
@@ -46,7 +53,9 @@ describe("addExitFullscreenOverlay", () => {
     });
 
     it("throws a TypeError when container is not a valid element", () => {
-        expect(() => addExitFullscreenOverlay(null as unknown as HTMLElement)).toThrow(TypeError);
+        expect(() =>
+            addExitFullscreenOverlay(null as unknown as HTMLElement)
+        ).toThrow(TypeError);
     });
 
     it("creates an overlay button with the expected structure", () => {
@@ -63,14 +72,18 @@ describe("addExitFullscreenOverlay", () => {
 
     it("skips creating a duplicate overlay and logs a debug message", () => {
         const container = document.createElement("div");
-        const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+        const debugSpy = vi
+            .spyOn(console, "debug")
+            .mockImplementation(() => {});
 
         addExitFullscreenOverlay(container);
         addExitFullscreenOverlay(container);
 
         const overlays = container.querySelectorAll(`button.${OVERLAY_CLASS}`);
         expect(overlays).toHaveLength(1);
-        expect(debugSpy).toHaveBeenCalledWith("[addExitFullscreenOverlay] Overlay already exists, skipping creation");
+        expect(debugSpy).toHaveBeenCalledWith(
+            "[addExitFullscreenOverlay] Overlay already exists, skipping creation"
+        );
     });
 
     it("stops propagation and exits fullscreen when an overlay button is clicked", async () => {
@@ -106,12 +119,16 @@ describe("addExitFullscreenOverlay", () => {
         button?.dispatchEvent(event);
 
         expect(exitFullscreenMock).not.toHaveBeenCalled();
-        expect(warnSpy).toHaveBeenCalledWith("[addExitFullscreenOverlay] No element is currently in fullscreen mode.");
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[addExitFullscreenOverlay] No element is currently in fullscreen mode."
+        );
     });
 
     it("logs an error when exiting fullscreen fails", async () => {
         const container = document.createElement("div");
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         setFullscreenElement(container);
         exitFullscreenMock.mockRejectedValueOnce(new Error("exit failed"));

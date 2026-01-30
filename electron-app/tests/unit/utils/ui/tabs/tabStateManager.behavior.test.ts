@@ -4,11 +4,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Create hoisted fns to be used inside vi.mock factory
-const { mockGetState, mockSetState, mockSubscribe } = /** @type {any} */ vi.hoisted(() => ({
-    mockGetState: vi.fn(),
-    mockSetState: vi.fn(),
-    mockSubscribe: vi.fn(),
-}));
+const { mockGetState, mockSetState, mockSubscribe } =
+    /** @type {any} */ vi.hoisted(() => ({
+        mockGetState: vi.fn(),
+        mockSetState: vi.fn(),
+        mockSubscribe: vi.fn(),
+    }));
 
 vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     getState: mockGetState,
@@ -19,7 +20,10 @@ vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
 // We won't mock showNotification path here to avoid path resolution mismatches.
 
 // Import subject after mocks
-import { tabStateManager, TAB_CONFIG } from "../../../../../utils/ui/tabs/tabStateManager.js";
+import {
+    tabStateManager,
+    TAB_CONFIG,
+} from "../../../../../utils/ui/tabs/tabStateManager.js";
 
 describe("tabStateManager.behavior", () => {
     /** @type {HTMLDivElement} */
@@ -93,7 +97,9 @@ describe("tabStateManager.behavior", () => {
         // Cleanup global fallback
         // eslint-disable-next-line no-underscore-dangle
         // @ts-ignore
-        delete (/** @type {any} */ globalThis.__vitest_effective_stateManager__);
+        delete (
+            /** @type {any} */ globalThis.__vitest_effective_stateManager__
+        );
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {
@@ -115,7 +121,11 @@ describe("tabStateManager.behavior", () => {
 
         const prevent = vi.fn();
         const stop = vi.fn();
-        const evt = { currentTarget: btn, preventDefault: prevent, stopPropagation: stop };
+        const evt = {
+            currentTarget: btn,
+            preventDefault: prevent,
+            stopPropagation: stop,
+        };
 
         tabStateManager.handleTabButtonClick(/** @type {any} */ evt);
         expect(prevent).toHaveBeenCalled();
@@ -133,7 +143,11 @@ describe("tabStateManager.behavior", () => {
         const prevent = vi.fn();
         const stop = vi.fn();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault: prevent, stopPropagation: stop }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault: prevent,
+                stopPropagation: stop,
+            }
         );
 
         expect(prevent).toHaveBeenCalled();
@@ -150,7 +164,11 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(btn);
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault() {}, stopPropagation() {} }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault() {},
+                stopPropagation() {},
+            }
         );
 
         expect(mockSetState).not.toHaveBeenCalled();
@@ -162,10 +180,16 @@ describe("tabStateManager.behavior", () => {
         btn.className = "tab-button";
         root.appendChild(btn);
 
-        mockGetState.mockImplementation((/** @type {any} */ key) => (key === "globalData" ? null : undefined));
+        mockGetState.mockImplementation((/** @type {any} */ key) =>
+            key === "globalData" ? null : undefined
+        );
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault() {}, stopPropagation() {} }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault() {},
+                stopPropagation() {},
+            }
         );
 
         expect(mockSetState).not.toHaveBeenCalled();
@@ -178,7 +202,11 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(btn);
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault() {}, stopPropagation() {} }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault() {},
+                stopPropagation() {},
+            }
         );
 
         expect(mockSetState).not.toHaveBeenCalled();
@@ -191,13 +219,19 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(btn);
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault() {}, stopPropagation() {} }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault() {},
+                stopPropagation() {},
+            }
         );
 
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "summary",
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.buttonClick") })
+            expect.objectContaining({
+                source: expect.stringContaining("TabStateManager.buttonClick"),
+            })
         );
     });
 
@@ -227,7 +261,9 @@ describe("tabStateManager.behavior", () => {
 
         tabStateManager.updateContentVisibility("map");
         Object.entries(TAB_CONFIG).forEach(([name, cfg]) => {
-            const el = /** @type {HTMLElement} */ document.getElementById(cfg.contentId);
+            const el = /** @type {HTMLElement} */ document.getElementById(
+                cfg.contentId
+            );
             expect(el).toBeTruthy();
             expect(el.style.display).toBe(name === "map" ? "block" : "none");
         });
@@ -236,7 +272,9 @@ describe("tabStateManager.behavior", () => {
     it("handleTabChange updates previousTab and calls state update helpers", async () => {
         const spyBtns = vi.spyOn(tabStateManager, "updateTabButtonStates");
         const spyContent = vi.spyOn(tabStateManager, "updateContentVisibility");
-        const spySpecific = vi.spyOn(tabStateManager, "handleTabSpecificLogic").mockResolvedValue();
+        const spySpecific = vi
+            .spyOn(tabStateManager, "handleTabSpecificLogic")
+            .mockResolvedValue();
 
         await tabStateManager.handleTabChange("map", "summary");
         expect(tabStateManager.previousTab).toBe("summary");
@@ -277,18 +315,26 @@ describe("tabStateManager.behavior", () => {
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }] };
         await tabStateManager.handleSummaryTab(gd);
-        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
+        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(
+            gd
+        );
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.handleSummaryTab") })
+            expect.objectContaining({
+                source: expect.stringContaining(
+                    "TabStateManager.handleSummaryTab"
+                ),
+            })
         );
     });
 
     it("updateContentVisibility warns for unknown tab", () => {
         const warnSpy = vi.spyOn(console, "warn");
         tabStateManager.updateContentVisibility("unknown");
-        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Unknown tab"));
+        expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining("Unknown tab")
+        );
     });
 
     it("handleTabSpecificLogic catches errors and continues (summary throws)", async () => {
@@ -298,7 +344,9 @@ describe("tabStateManager.behavior", () => {
             /** @type {any} */ window.renderSummary = vi.fn(() => {
                 throw new Error("boom");
             });
-            await expect(tabStateManager.handleTabSpecificLogic("summary")).resolves.toBeUndefined();
+            await expect(
+                tabStateManager.handleTabSpecificLogic("summary")
+            ).resolves.toBeUndefined();
         } finally {
             /** @type {any} */ window.renderSummary = prev;
         }
@@ -313,12 +361,20 @@ describe("tabStateManager.behavior", () => {
             return null;
         });
         /** @type {any} */ window.renderSummary = vi.fn();
-        await expect(tabStateManager.handleTabSpecificLogic("summary")).resolves.toBeUndefined();
-        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
+        await expect(
+            tabStateManager.handleTabSpecificLogic("summary")
+        ).resolves.toBeUndefined();
+        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(
+            gd
+        );
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.handleSummaryTab") })
+            expect.objectContaining({
+                source: expect.stringContaining(
+                    "TabStateManager.handleSummaryTab"
+                ),
+            })
         );
     });
 
@@ -329,7 +385,11 @@ describe("tabStateManager.behavior", () => {
         delete (/** @type {any} */ window.renderSummary);
         await tabStateManager.handleSummaryTab({ recordMesgs: [{}] });
         // No throw and no setState
-        expect(mockSetState).not.toHaveBeenCalledWith("summary.lastDataHash", expect.anything(), expect.anything());
+        expect(mockSetState).not.toHaveBeenCalledWith(
+            "summary.lastDataHash",
+            expect.anything(),
+            expect.anything()
+        );
         /** @type {any} */ window.renderSummary = prev;
     });
 
@@ -338,14 +398,22 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "charts.tabActive",
             true,
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.handleChartTab") })
+            expect.objectContaining({
+                source: expect.stringContaining(
+                    "TabStateManager.handleChartTab"
+                ),
+            })
         );
 
         mockGetState.mockImplementation((/** @type {any} */ key) =>
             key === "charts" ? { isRendered: true } : { recordMesgs: [{}] }
         );
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
-        expect(mockSetState).toHaveBeenCalledWith("charts.tabActive", true, expect.any(Object));
+        expect(mockSetState).toHaveBeenCalledWith(
+            "charts.tabActive",
+            true,
+            expect.any(Object)
+        );
     });
 
     it("handleMapTab renders once and marks isRendered", async () => {
@@ -354,7 +422,9 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "map.isRendered",
             true,
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.handleMapTab") })
+            expect.objectContaining({
+                source: expect.stringContaining("TabStateManager.handleMapTab"),
+            })
         );
 
         // Now report isRendered true – should not call render again
@@ -379,7 +449,9 @@ describe("tabStateManager.behavior", () => {
 
         // No background content -> call createTables
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
-        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({ recordMesgs: [{}] });
+        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({
+            recordMesgs: [{}],
+        });
     });
 
     it("handleChartTab/map/summary/data return early without data", async () => {
@@ -388,13 +460,23 @@ describe("tabStateManager.behavior", () => {
         await tabStateManager.handleSummaryTab(null);
         await tabStateManager.handleDataTab(null);
         // no setState calls for these paths
-        expect(mockSetState).not.toHaveBeenCalledWith("charts.tabActive", true, expect.anything());
+        expect(mockSetState).not.toHaveBeenCalledWith(
+            "charts.tabActive",
+            true,
+            expect.anything()
+        );
     });
 
     it("setupTabButtonHandlers attaches DOMContentLoaded handler when document is loading", () => {
         // Force readyState to loading
-        const origDesc = Object.getOwnPropertyDescriptor(Document.prototype, "readyState");
-        Object.defineProperty(document, "readyState", { configurable: true, get: () => "loading" });
+        const origDesc = Object.getOwnPropertyDescriptor(
+            Document.prototype,
+            "readyState"
+        );
+        Object.defineProperty(document, "readyState", {
+            configurable: true,
+            get: () => "loading",
+        });
         const addSpy = vi.spyOn(document, "addEventListener");
         tabStateManager.setupTabButtonHandlers();
         expect(addSpy).toHaveBeenCalled();
@@ -431,7 +513,9 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "summary",
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.buttonClick") })
+            expect.objectContaining({
+                source: expect.stringContaining("TabStateManager.buttonClick"),
+            })
         );
 
         mockSetState.mockClear();
@@ -439,7 +523,9 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "map",
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.buttonClick") })
+            expect.objectContaining({
+                source: expect.stringContaining("TabStateManager.buttonClick"),
+            })
         );
     });
 
@@ -479,7 +565,9 @@ describe("tabStateManager.behavior", () => {
         content.id = "content-map";
         root.append(btn, content);
 
-        mockGetState.mockImplementation((/** @type {any} */ key) => (key === "ui.activeTab" ? "map" : null));
+        mockGetState.mockImplementation((/** @type {any} */ key) =>
+            key === "ui.activeTab" ? "map" : null
+        );
         const info = /** @type {any} */ tabStateManager.getActiveTabInfo();
         expect(info.name).toBe("map");
         expect(info.element).toBe(btn);
@@ -487,7 +575,9 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("getActiveTabInfo handles unknown activeTab gracefully", () => {
-        mockGetState.mockImplementationOnce((/** @type {any} */ key) => (key === "ui.activeTab" ? "unknown" : null));
+        mockGetState.mockImplementationOnce((/** @type {any} */ key) =>
+            key === "ui.activeTab" ? "unknown" : null
+        );
         const info = /** @type {any} */ tabStateManager.getActiveTabInfo();
         expect(info.name).toBe("unknown");
         expect(info.config).toBeUndefined();
@@ -500,18 +590,26 @@ describe("tabStateManager.behavior", () => {
         expect(tabStateManager.hashData(null)).toBe("");
         // missing timestamps -> 0 fallback
         // @ts-ignore accessing class method
-        expect(tabStateManager.hashData({ recordMesgs: [{}, {}] })).toBe("2-0-0");
+        expect(tabStateManager.hashData({ recordMesgs: [{}, {}] })).toBe(
+            "2-0-0"
+        );
     });
 
     it("switchToTab validates name and sets state", () => {
         expect(tabStateManager.switchToTab("nonexistent")).toBe(false);
-        expect(mockSetState).not.toHaveBeenCalledWith("ui.activeTab", "nonexistent", expect.anything());
+        expect(mockSetState).not.toHaveBeenCalledWith(
+            "ui.activeTab",
+            "nonexistent",
+            expect.anything()
+        );
 
         expect(tabStateManager.switchToTab("map")).toBe(true);
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "map",
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.switchToTab") })
+            expect.objectContaining({
+                source: expect.stringContaining("TabStateManager.switchToTab"),
+            })
         );
     });
 
@@ -519,7 +617,11 @@ describe("tabStateManager.behavior", () => {
         // Should not throw and should not set state
         expect(() =>
             tabStateManager.handleTabButtonClick(
-                /** @type {any} */ { currentTarget: null, preventDefault() {}, stopPropagation() {} }
+                /** @type {any} */ {
+                    currentTarget: null,
+                    preventDefault() {},
+                    stopPropagation() {},
+                }
             )
         ).not.toThrow();
         expect(mockSetState).not.toHaveBeenCalled();
@@ -531,7 +633,9 @@ describe("tabStateManager.behavior", () => {
         content.id = "content-summary";
         root.appendChild(content);
         // Should not throw when manipulating DOM via getDoc
-        expect(() => tabStateManager.updateContentVisibility("summary")).not.toThrow();
+        expect(() =>
+            tabStateManager.updateContentVisibility("summary")
+        ).not.toThrow();
     });
 
     it("handleTabSpecificLogic executes 'chartjs' branch and marks charts active", async () => {
@@ -544,7 +648,11 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "charts.tabActive",
             true,
-            expect.objectContaining({ source: expect.stringContaining("TabStateManager.handleChartTab") })
+            expect.objectContaining({
+                source: expect.stringContaining(
+                    "TabStateManager.handleChartTab"
+                ),
+            })
         );
     });
 
@@ -569,7 +677,9 @@ describe("tabStateManager.behavior", () => {
         );
         /** @type {any} */ window.createTables = vi.fn();
         await tabStateManager.handleTabSpecificLogic("data");
-        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({ recordMesgs: [{}] });
+        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({
+            recordMesgs: [{}],
+        });
     });
 
     it("handleTabSpecificLogic executes 'altfit' branch and calls handleAltFitTab", async () => {
@@ -586,14 +696,24 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(btn);
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ { currentTarget: btn, preventDefault() {}, stopPropagation() {} }
+            /** @type {any} */ {
+                currentTarget: btn,
+                preventDefault() {},
+                stopPropagation() {},
+            }
         );
 
-        expect(mockSetState).not.toHaveBeenCalledWith("ui.activeTab", "map", expect.anything());
+        expect(mockSetState).not.toHaveBeenCalledWith(
+            "ui.activeTab",
+            "map",
+            expect.anything()
+        );
     });
 
     it("handleTabSpecificLogic returns early for unknown tab (no config)", async () => {
-        await expect(tabStateManager.handleTabSpecificLogic(/** @type {any} */ "unknown")).resolves.toBeUndefined();
+        await expect(
+            tabStateManager.handleTabSpecificLogic(/** @type {any} */ "unknown")
+        ).resolves.toBeUndefined();
     });
 
     it("initializeSubscriptions callbacks invoke handlers when state changes", async () => {
@@ -604,17 +724,27 @@ describe("tabStateManager.behavior", () => {
         // Pick the most recent call for each key that provided a function callback
         /** @type {any} */
         const activeTabCall = [...calls]
-            .filter((/** @type {any} */ c) => c[0] === "ui.activeTab" && typeof c[1] === "function")
+            .filter(
+                (/** @type {any} */ c) =>
+                    c[0] === "ui.activeTab" && typeof c[1] === "function"
+            )
             .at(-1);
         /** @type {any} */
         const dataFn = [...calls]
-            .filter((/** @type {any} */ c) => c[0] === "globalData" && typeof c[1] === "function")
+            .filter(
+                (/** @type {any} */ c) =>
+                    c[0] === "globalData" && typeof c[1] === "function"
+            )
             .map((c) => c[1])
             .at(-1);
-        expect(Boolean(activeTabCall && typeof activeTabCall[1] === "function")).toBe(true);
+        expect(
+            Boolean(activeTabCall && typeof activeTabCall[1] === "function")
+        ).toBe(true);
         // dataFn may be missing; that's acceptable in this environment
 
-        const changeSpy = vi.spyOn(tabStateManager, "handleTabChange").mockResolvedValue();
+        const changeSpy = vi
+            .spyOn(tabStateManager, "handleTabChange")
+            .mockResolvedValue();
         // Invoke activeTab callback with different values to trigger handleTabChange path
         /** @type {any} */ (activeTabCall?.[1])("map", "summary");
         expect(changeSpy).toHaveBeenCalledWith("map", "summary");
@@ -632,7 +762,10 @@ describe("tabStateManager.behavior", () => {
             tabStateManager.updateTabAvailability({ recordMesgs: [{}] });
         }
         // Should have toggled disabled to false for requiresData button
-        expect(/** @type {any} */ document.getElementById(TAB_CONFIG.summary.id).disabled).toBe(false);
+        expect(
+            /** @type {any} */ document.getElementById(TAB_CONFIG.summary.id)
+                .disabled
+        ).toBe(false);
     });
 
     it("updateTabButtonStates tolerates per-button failures (catch path)", () => {
@@ -650,7 +783,9 @@ describe("tabStateManager.behavior", () => {
         b.className = "tab-button";
         root.append(a, b);
 
-        expect(() => tabStateManager.updateTabButtonStates("map")).not.toThrow();
+        expect(() =>
+            tabStateManager.updateTabButtonStates("map")
+        ).not.toThrow();
         // Restore to avoid affecting other tests
         // @ts-ignore
         a.classList.toggle = origToggle;
@@ -658,8 +793,12 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabSpecificLogic default path logs for unsupported configured tab (zwift)", async () => {
         const logSpy = vi.spyOn(console, "log");
-        await expect(tabStateManager.handleTabSpecificLogic("zwift")).resolves.toBeUndefined();
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("No specific handler for tab"));
+        await expect(
+            tabStateManager.handleTabSpecificLogic("zwift")
+        ).resolves.toBeUndefined();
+        expect(logSpy).toHaveBeenCalledWith(
+            expect.stringContaining("No specific handler for tab")
+        );
     });
 
     it("cleanup marks uninitialized and removes listeners without throwing", () => {

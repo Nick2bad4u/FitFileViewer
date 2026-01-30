@@ -1,5 +1,15 @@
 /**
- * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
+ * @typedef {[
+ *     number,
+ *     number,
+ *     number | null,
+ *     number | null,
+ *     number | null,
+ *     number | null,
+ *     number,
+ *     any,
+ *     number,
+ * ]} CoordTuple
  */
 export function drawOverlayForFitFile({
     endIcon,
@@ -24,6 +34,7 @@ export function drawOverlayForFitFile({
 }): any;
 /**
  * @typedef {Object} RecordMesg
+ *
  * @property {number} [positionLat] - Position latitude
  * @property {number} [positionLong] - Position longitude
  * @property {number} [timestamp] - Timestamp
@@ -33,6 +44,7 @@ export function drawOverlayForFitFile({
  */
 /**
  * @typedef {Object} LapMesg
+ *
  * @property {number} [start_index] - Start index in records
  * @property {number} [end_index] - End index in records
  * @property {number} [startPositionLat] - Start position latitude
@@ -42,13 +54,17 @@ export function drawOverlayForFitFile({
  */
 /**
  * @typedef {Object} FitFile
+ *
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
 /**
- * Draws the map for a given lap or laps
- * Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
- * @param {string|number|Array<string|number>} lapIdx - Lap index or array of indices or "all"
+ * Draws the map for a given lap or laps Dependencies must be passed as
+ * arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon,
+ * mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
+ *
+ * @param {string | number | (string | number)[]} lapIdx - Lap index or array of
+ *   indices or "all"
  * @param {MapDrawOptions} options - Map drawing options
  */
 export function mapDrawLaps(

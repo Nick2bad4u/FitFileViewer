@@ -4,7 +4,9 @@
 // Throws an error if the input is not a valid number or 'all'.
 /**
  * Get a color for a lap index.
- * @param {number|string} lapIdx - Lap index number or 'all'.
+ *
+ * @param {number | string} lapIdx - Lap index number or 'all'.
+ *
  * @returns {string}
  */
 export function getLapColor(lapIdx) {
@@ -47,5 +49,7 @@ export function getLapColor(lapIdx) {
     if (isNaN(lapIndex)) {
         throw new TypeError(`Invalid lapIdx: ${lapIdx}`);
     }
-    return /** @type {string} */ (palette[lapIndex % palette.length] || palette[0]);
+    return /** @type {string} */ (
+        palette[lapIndex % palette.length] || palette[0]
+    );
 }

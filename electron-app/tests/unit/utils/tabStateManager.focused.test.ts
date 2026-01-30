@@ -1,7 +1,8 @@
 // @ts-nocheck
 /**
- * @file tabStateManager.focused.test.js
- * @description Focused bug detection test suite for critical tabStateManager issues
+ * Focused bug detection test suite for critical tabStateManager issues
+ *
+ * @file TabStateManager.focused.test.js
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -18,10 +19,17 @@ vi.mock("../../../utils/ui/notifications/showNotification", () => ({
 }));
 
 // Import module AFTER mocks are set up
-import { tabStateManager, TAB_CONFIG } from "../../../utils/ui/tabs/tabStateManager.js";
+import {
+    tabStateManager,
+    TAB_CONFIG,
+} from "../../../utils/ui/tabs/tabStateManager.js";
 
 // Get the mocked functions
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager";
 import { showNotification } from "../../../utils/ui/notifications/showNotification";
 
 const mockGetState = vi.mocked(getState);
@@ -84,11 +92,15 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(typeof tabStateManager.cleanup).toBe("function");
 
             // Check that cleanup doesn't actually unsubscribe (critical bug)
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             tabStateManager.cleanup();
 
             // Verify cleanup was called but no actual unsubscribe happened
-            expect(consoleSpy).toHaveBeenCalledWith("[TabStateManager] cleanup invoked");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabStateManager] cleanup invoked"
+            );
 
             // The critical bug: cleanup exists but doesn't store/call unsubscribe functions
             // This is evidenced by the fact that cleanup just logs without doing real cleanup
@@ -97,14 +109,18 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
         it("BUG CRITICAL: should track subscription leaks with multiple cleanup calls", () => {
             // Test multiple cleanup calls - should be idempotent if properly implemented
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
 
             // Multiple cleanup calls should not cause issues
             tabStateManager.cleanup();
             tabStateManager.cleanup();
 
             // The bug is that cleanup doesn't actually store unsubscribe handles
-            expect(consoleSpy).toHaveBeenCalledWith("[TabStateManager] cleanup invoked");
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabStateManager] cleanup invoked"
+            );
 
             consoleSpy.mockRestore();
         });
@@ -179,7 +195,11 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 // Test data validation logic
                 const hasValidData = () => {
                     const globalData = mockGetState("globalData");
-                    return globalData && Array.isArray(globalData.recordMesgs) && globalData.recordMesgs.length > 0;
+                    return (
+                        globalData &&
+                        Array.isArray(globalData.recordMesgs) &&
+                        globalData.recordMesgs.length > 0
+                    );
                 };
 
                 const result = hasValidData();
@@ -196,7 +216,13 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
         it("BUG HIGH: should expose tab configuration validation gaps", () => {
             // Test with invalid tab name
-            const invalidTabs = ["", "nonexistent", null, undefined, 123];
+            const invalidTabs = [
+                "",
+                "nonexistent",
+                null,
+                undefined,
+                123,
+            ];
 
             invalidTabs.forEach((tabName) => {
                 if (tabName === null || tabName === undefined) return;
@@ -212,13 +238,17 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
     describe("DOM Manipulation Security Issues", () => {
         it("BUG HIGH: should expose unsafe iframe manipulation", () => {
-            document.body.innerHTML += '<iframe id="altfit-iframe" src="about:blank"></iframe>';
+            document.body.innerHTML +=
+                '<iframe id="altfit-iframe" src="about:blank"></iframe>';
 
             const iframe = document.getElementById("altfit-iframe");
 
             // Test the iframe manipulation logic
             const handleIframe = () => {
-                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("ffv/index.html")) {
+                if (
+                    iframe instanceof HTMLIFrameElement &&
+                    !iframe.src.includes("ffv/index.html")
+                ) {
                     iframe.src = "ffv/index.html"; // Direct assignment without validation
                 }
             };
@@ -237,7 +267,9 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 <div id="content-data"></div>
             `;
 
-            const bgContainer = document.getElementById("background-data-container");
+            const bgContainer = document.getElementById(
+                "background-data-container"
+            );
             const visibleContainer = document.getElementById("content-data");
 
             // Test moving DOM nodes while potentially being modified
@@ -285,7 +317,9 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
         it("BUG HIGH: should expose error handling gaps in async operations", async () => {
             // Mock failing async functions
-            global.window.renderChartJS = vi.fn().mockRejectedValue(new Error("Chart render failed"));
+            global.window.renderChartJS = vi
+                .fn()
+                .mockRejectedValue(new Error("Chart render failed"));
 
             let caughtError = null;
 
@@ -312,7 +346,12 @@ describe("tabStateManager - Critical Bug Detection", () => {
     describe("Tab Configuration Validation", () => {
         it("BUG MEDIUM: should validate tab configuration consistency", () => {
             // Check for missing or invalid configurations
-            const requiredProps = ["id", "contentId", "label", "requiresData"];
+            const requiredProps = [
+                "id",
+                "contentId",
+                "label",
+                "requiresData",
+            ];
 
             Object.entries(TAB_CONFIG).forEach(([tabName, config]) => {
                 requiredProps.forEach((prop) => {
@@ -338,7 +377,9 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 handlerCounts[handler] = (handlerCounts[handler] || 0) + 1;
             });
 
-            const duplicates = Object.entries(handlerCounts).filter(([, count]) => count > 1);
+            const duplicates = Object.entries(handlerCounts).filter(
+                ([, count]) => count > 1
+            );
 
             // This will reveal duplicate renderChartJS handlers
             if (duplicates.length > 0) {

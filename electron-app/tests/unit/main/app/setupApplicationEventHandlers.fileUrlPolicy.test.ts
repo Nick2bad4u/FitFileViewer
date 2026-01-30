@@ -14,7 +14,8 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         (globalThis as any).__electronHoistedMock = null;
 
         try {
-            const { setElectronOverride } = await import("../../../../main/runtime/electronAccess.js");
+            const { setElectronOverride } =
+                await import("../../../../main/runtime/electronAccess.js");
             setElectronOverride(null);
         } catch {
             /* ignore */
@@ -26,7 +27,9 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     it("denies file:// URLs outside the app bundle in production", async () => {
         const handlers = new Map<string, Function>();
 
-        const mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
+        const mockShell = {
+            openExternal: vi.fn().mockResolvedValue(undefined),
+        };
         const mockApp = {
             getAppPath: vi.fn(() => "C:\\mock\\app"),
             on: vi.fn((evt: string, cb: Function) => {
@@ -44,24 +47,33 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         };
 
         // Ensure electronAccess uses the per-test override even if it's already loaded.
-        const { setElectronOverride } = await import("../../../../main/runtime/electronAccess.js");
+        const { setElectronOverride } =
+            await import("../../../../main/runtime/electronAccess.js");
         setElectronOverride((globalThis as any).__electronHoistedMock);
 
-        const { setupApplicationEventHandlers } = await import("../../../../main/app/setupApplicationEventHandlers.js");
+        const { setupApplicationEventHandlers } =
+            await import("../../../../main/app/setupApplicationEventHandlers.js");
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
         expect(typeof webContentsCreatedHandler).toBe("function");
 
-        type WindowOpenHandler = (details: { url: string }) => { action: "allow" | "deny" };
+        type WindowOpenHandler = (details: { url: string }) => {
+            action: "allow" | "deny";
+        };
         let windowOpenHandler: WindowOpenHandler | null = null;
 
-        const contentsHandlers: Record<string, (event: any, url: string) => void> = {};
+        const contentsHandlers: Record<
+            string,
+            (event: any, url: string) => void
+        > = {};
 
         const contents = {
-            on: vi.fn((evt: string, handler: (event: any, url: string) => void) => {
-                contentsHandlers[evt] = handler;
-            }),
+            on: vi.fn(
+                (evt: string, handler: (event: any, url: string) => void) => {
+                    contentsHandlers[evt] = handler;
+                }
+            ),
             setWindowOpenHandler: vi.fn((fn: any) => {
                 windowOpenHandler = fn;
             }),
@@ -72,13 +84,21 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         expect(typeof windowOpenHandler).toBe("function");
         expect(typeof contentsHandlers["will-navigate"]).toBe("function");
 
-        const allowedFileUrl = pathToFileURL("C:\\mock\\app\\index.html").toString();
-        const disallowedFileUrl = pathToFileURL("C:\\other\\secret.html").toString();
+        const allowedFileUrl = pathToFileURL(
+            "C:\\mock\\app\\index.html"
+        ).toString();
+        const disallowedFileUrl = pathToFileURL(
+            "C:\\other\\secret.html"
+        ).toString();
 
         expect(windowOpenHandler).not.toBeNull();
         const windowOpen = windowOpenHandler as unknown as WindowOpenHandler;
-        expect(windowOpen({ url: allowedFileUrl })).toEqual({ action: "allow" });
-        expect(windowOpen({ url: disallowedFileUrl })).toEqual({ action: "deny" });
+        expect(windowOpen({ url: allowedFileUrl })).toEqual({
+            action: "allow",
+        });
+        expect(windowOpen({ url: disallowedFileUrl })).toEqual({
+            action: "deny",
+        });
 
         const preventDefault = vi.fn();
         const willNavigate = contentsHandlers["will-navigate"];
@@ -93,7 +113,9 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     it("allows blob: downloads but blocks http(s) downloads", async () => {
         const handlers = new Map<string, Function>();
 
-        const mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
+        const mockShell = {
+            openExternal: vi.fn().mockResolvedValue(undefined),
+        };
         const mockApp = {
             getAppPath: vi.fn(() => "C:\\mock\\app"),
             on: vi.fn((evt: string, cb: Function) => {
@@ -109,16 +131,19 @@ describe("setupApplicationEventHandlers file:// policy", () => {
             shell: mockShell,
         };
 
-        const { setElectronOverride } = await import("../../../../main/runtime/electronAccess.js");
+        const { setElectronOverride } =
+            await import("../../../../main/runtime/electronAccess.js");
         setElectronOverride((globalThis as any).__electronHoistedMock);
 
-        const { setupApplicationEventHandlers } = await import("../../../../main/app/setupApplicationEventHandlers.js");
+        const { setupApplicationEventHandlers } =
+            await import("../../../../main/app/setupApplicationEventHandlers.js");
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
         expect(typeof webContentsCreatedHandler).toBe("function");
 
-        let willDownloadHandler: ((event: any, item: any) => void) | null = null;
+        let willDownloadHandler: ((event: any, item: any) => void) | null =
+            null;
         const mockSession = {
             on: vi.fn((evt: string, cb: any) => {
                 if (evt === "will-download") {

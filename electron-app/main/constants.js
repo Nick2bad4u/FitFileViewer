@@ -1,6 +1,7 @@
 /**
- * Shared constants for the Electron main process. Extracted from the legacy monolithic main.js
- * to help other modules consume configuration without re-defining values.
+ * Shared constants for the Electron main process. Extracted from the legacy
+ * monolithic main.js to help other modules consume configuration without
+ * re-defining values.
  */
 const CONSTANTS = Object.freeze({
     DEFAULT_THEME: "dark",
@@ -14,7 +15,9 @@ const CONSTANTS = Object.freeze({
             Object.freeze({ extensions: ["gpx"], name: "GPX (Track)" }),
             Object.freeze({ extensions: ["*"], name: "All Files" }),
         ]),
-        FIT_FILES: Object.freeze([Object.freeze({ extensions: ["fit"], name: "FIT Files" })]),
+        FIT_FILES: Object.freeze([
+            Object.freeze({ extensions: ["fit"], name: "FIT Files" }),
+        ]),
     }),
     LOG_LEVELS: Object.freeze({
         ERROR: "error",

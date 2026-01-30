@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for ui/controls
- * @description Re-exports all modules in the ui/controls category
+ * Re-exports all modules in the ui/controls category
+ *
+ * @file Barrel Export for ui/controls
  */
 export * from "./addExitFullscreenOverlay.js";
 export * from "./addFullScreenButton.js";

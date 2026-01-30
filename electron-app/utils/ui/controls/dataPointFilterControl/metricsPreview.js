@@ -1,12 +1,23 @@
 import { createMetricFilter } from "../../../maps/filters/mapMetricFilter.js";
-import { formatMetricValue, formatPercent, getGlobalRecords } from "./stateHelpers.js";
+import {
+    formatMetricValue,
+    formatPercent,
+    getGlobalRecords,
+} from "./stateHelpers.js";
 
 /**
  * Build the user-facing summary text for a filter result.
  *
- * @param {import("../../../maps/filters/mapMetricFilter.js").MetricFilterResult | null | undefined} result
- * @param {import("../../../maps/filters/mapMetricFilter.js").MapDataPointFilterConfig | null | undefined} config
+ * @param {
+ *     | import("../../../maps/filters/mapMetricFilter.js").MetricFilterResult
+ *     | null
+ *     | undefined} result
+ * @param {
+ *     | import("../../../maps/filters/mapMetricFilter.js").MapDataPointFilterConfig
+ *     | null
+ *     | undefined} config
  * @param {{ decimals?: number } | null} [stats]
+ *
  * @returns {string | null}
  */
 export function buildSummaryText(result, config, stats) {
@@ -35,6 +46,7 @@ export function buildSummaryText(result, config, stats) {
  * Preview the filter result using the current global record set.
  *
  * @param {import("../../../maps/filters/mapMetricFilter.js").MapDataPointFilterConfig} config
+ *
  * @returns {import("../../../maps/filters/mapMetricFilter.js").MetricFilterResult | null}
  */
 export function previewFilterResult(config) {
@@ -42,7 +54,10 @@ export function previewFilterResult(config) {
         const records = getGlobalRecords();
         return createMetricFilter(records, config);
     } catch (error) {
-        console.error("[dataPointFilter] Failed to preview filter result", error);
+        console.error(
+            "[dataPointFilter] Failed to preview filter result",
+            error
+        );
         return null;
     }
 }

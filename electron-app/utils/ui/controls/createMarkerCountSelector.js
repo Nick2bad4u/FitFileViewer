@@ -5,21 +5,28 @@ import { showNotification } from "../notifications/showNotification.js";
  */
 /**
  * Creates a marker count selector for controlling data point density on the map
+ *
  * @param {Function} onChange - Callback function when marker count changes
+ *
  * @returns {HTMLElement} The configured marker count selector container
  */
 
 /**
- * Creates a marker count selector for controlling data point density on the map.
- * Adds wheel support and persists a global `window.mapMarkerCount` value used by map rendering.
+ * Creates a marker count selector for controlling data point density on the
+ * map. Adds wheel support and persists a global `window.mapMarkerCount` value
+ * used by map rendering.
  *
  * Contract:
- *  - onChange(number) is called with 0 to mean "all" markers, else the numeric limit.
- *  - Global window.mapMarkerCount is always kept in sync (0 => all).
- *  - Returned element is a container div with a label + select.
  *
- * @param {(count:number)=>void} [onChange] callback invoked when selection changes
- * @returns {HTMLDivElement} container element
+ * - OnChange(number) is called with 0 to mean "all" markers, else the numeric
+ *   limit.
+ * - Global window.mapMarkerCount is always kept in sync (0 => all).
+ * - Returned element is a container div with a label + select.
+ *
+ * @param {(count: number) => void} [onChange] Callback invoked when selection
+ *   changes
+ *
+ * @returns {HTMLDivElement} Container element
  */
 export function createMarkerCountSelector(onChange) {
     try {
@@ -48,7 +55,16 @@ export function createMarkerCountSelector(onChange) {
         select.id = "marker-count-select";
         select.className = "marker-count-select";
 
-        const options = [10, 25, 50, 100, 200, 500, 1000, "All"];
+        const options = [
+            10,
+            25,
+            50,
+            100,
+            200,
+            500,
+            1000,
+            "All",
+        ];
         for (const val of options) {
             /** @type {HTMLOptionElement} */
             const opt = document.createElement("option");
@@ -58,7 +74,16 @@ export function createMarkerCountSelector(onChange) {
         }
 
         // Set initial value from global or default
-        const validOptions = [10, 25, 50, 100, 200, 500, 1000, "all"];
+        const validOptions = [
+            10,
+            25,
+            50,
+            100,
+            200,
+            500,
+            1000,
+            "all",
+        ];
         /** @type {string} */
         let initial;
         /** @type {any} */
@@ -91,7 +116,10 @@ export function createMarkerCountSelector(onChange) {
                     g.updateShownFilesList();
                 }
             } catch (error) {
-                console.error("[mapActionButtons] Error in marker count change:", error);
+                console.error(
+                    "[mapActionButtons] Error in marker count change:",
+                    error
+                );
                 showNotification("Failed to update marker count", "error");
             }
         });
@@ -110,16 +138,27 @@ export function createMarkerCountSelector(onChange) {
                     if (e.deltaY > 0 && idx < optionElements.length - 1) {
                         select.selectedIndex = idx + 1;
                         select.dispatchEvent(
-                            new Event("change", { bubbles: false, cancelable: true, composed: false })
+                            new Event("change", {
+                                bubbles: false,
+                                cancelable: true,
+                                composed: false,
+                            })
                         );
                     } else if (e.deltaY < 0 && idx > 0) {
                         select.selectedIndex = idx - 1;
                         select.dispatchEvent(
-                            new Event("change", { bubbles: false, cancelable: true, composed: false })
+                            new Event("change", {
+                                bubbles: false,
+                                cancelable: true,
+                                composed: false,
+                            })
                         );
                     }
                 } catch (error) {
-                    console.error("[mapActionButtons] Error in wheel event:", error);
+                    console.error(
+                        "[mapActionButtons] Error in wheel event:",
+                        error
+                    );
                 }
             },
             { passive: false }
@@ -132,7 +171,10 @@ export function createMarkerCountSelector(onChange) {
 
         return container;
     } catch (error) {
-        console.error("[mapActionButtons] Error creating marker count selector:", error);
+        console.error(
+            "[mapActionButtons] Error creating marker count selector:",
+            error
+        );
         showNotification("Failed to create marker count selector", "error");
         return /** @type {HTMLDivElement} */ (document.createElement("div")); // Return empty div as fallback
     }

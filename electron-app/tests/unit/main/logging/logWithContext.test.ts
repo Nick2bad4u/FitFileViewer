@@ -12,7 +12,8 @@ describe("logWithContext", () => {
     });
 
     it("logs a JSON string context and redacts secrets/tokens", async () => {
-        const { logWithContext } = await import("../../../../main/logging/logWithContext.js");
+        const { logWithContext } =
+            await import("../../../../main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "info").mockImplementation(() => void 0);
 
         logWithContext("info", "hello", {
@@ -25,14 +26,17 @@ describe("logWithContext", () => {
 
         expect(spy).toHaveBeenCalledTimes(1);
         const [msg, ctx] = spy.mock.calls[0];
-        expect(String(msg)).toContain("[2020-01-01T00:00:00.000Z] [main.js] hello");
+        expect(String(msg)).toContain(
+            "[2020-01-01T00:00:00.000Z] [main.js] hello"
+        );
         expect(ctx).toBe(
             '{"ok":"yes","token":"[REDACTED]","accessToken":"[REDACTED]","tokenUrl":"https://example.com/token","clientSecret":"[REDACTED]"}'
         );
     });
 
     it("stringifies Error objects without throwing", async () => {
-        const { logWithContext } = await import("../../../../main/logging/logWithContext.js");
+        const { logWithContext } =
+            await import("../../../../main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "error").mockImplementation(() => void 0);
 
         logWithContext("error", "boom", { error: new Error("nope") });
@@ -45,7 +49,8 @@ describe("logWithContext", () => {
     });
 
     it("handles circular contexts", async () => {
-        const { logWithContext } = await import("../../../../main/logging/logWithContext.js");
+        const { logWithContext } =
+            await import("../../../../main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "warn").mockImplementation(() => void 0);
 
         const ctx: Record<string, unknown> = {};
@@ -59,7 +64,8 @@ describe("logWithContext", () => {
     });
 
     it("falls back to console.log for unknown levels", async () => {
-        const { logWithContext } = await import("../../../../main/logging/logWithContext.js");
+        const { logWithContext } =
+            await import("../../../../main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "log").mockImplementation(() => void 0);
 
         logWithContext("not-a-level", "msg", { key: "value" });

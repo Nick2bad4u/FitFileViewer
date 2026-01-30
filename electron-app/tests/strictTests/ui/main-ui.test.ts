@@ -14,12 +14,17 @@ vi.mock("../../../utils/theming/core/theme.js", () => ({
 }));
 
 const showFitData = vi.fn();
-vi.mock("../../../utils/rendering/core/showFitData.js", () => ({ showFitData }));
+vi.mock("../../../utils/rendering/core/showFitData.js", () => ({
+    showFitData,
+}));
 
 const convertArrayBufferToBase64 = vi.fn(() => "BASE64DATA");
-vi.mock("../../../utils/formatting/converters/convertArrayBufferToBase64.js", () => ({
-    convertArrayBufferToBase64,
-}));
+vi.mock(
+    "../../../utils/formatting/converters/convertArrayBufferToBase64.js",
+    () => ({
+        convertArrayBufferToBase64,
+    })
+);
 
 const setupDOMContentLoaded = vi.fn();
 const setupFullscreenListeners = vi.fn();
@@ -29,10 +34,14 @@ vi.mock("../../../utils/ui/controls/addFullScreenButton.js", () => ({
 }));
 
 const setupWindow = vi.fn();
-vi.mock("../../../utils/app/initialization/setupWindow.js", () => ({ setupWindow }));
+vi.mock("../../../utils/app/initialization/setupWindow.js", () => ({
+    setupWindow,
+}));
 
 const renderChartJS = vi.fn();
-vi.mock("../../../utils/charts/core/renderChartJS.js", () => ({ renderChartJS }));
+vi.mock("../../../utils/charts/core/renderChartJS.js", () => ({
+    renderChartJS,
+}));
 
 const DEFAULT_TITLE = "Fit File Viewer";
 const mockState: Record<string, any> = {
@@ -48,25 +57,37 @@ const setState = vi.fn((key: string, value: any) => {
     mockState[key] = value;
     if (key === "ui.dropOverlay.visible") {
         const isVisible = Boolean(value);
-        const overlay = document.getElementById("drop-overlay") as HTMLElement | null;
+        const overlay = document.getElementById(
+            "drop-overlay"
+        ) as HTMLElement | null;
         if (overlay) {
             overlay.style.display = isVisible ? "flex" : "none";
         }
-        const alt = document.getElementById("altfit-iframe") as HTMLElement | null;
+        const alt = document.getElementById(
+            "altfit-iframe"
+        ) as HTMLElement | null;
         if (alt) {
             alt.style.pointerEvents = isVisible ? "none" : "";
         }
-        const zwift = document.getElementById("zwift-iframe") as HTMLElement | null;
+        const zwift = document.getElementById(
+            "zwift-iframe"
+        ) as HTMLElement | null;
         if (zwift) {
             zwift.style.pointerEvents = isVisible ? "none" : "";
         }
     } else if (key === "ui.fileInfo") {
         const info = value || {};
         const hasFile = Boolean(info.hasFile);
-        const displayName = typeof info.displayName === "string" ? info.displayName : "";
-        const title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_TITLE;
+        const displayName =
+            typeof info.displayName === "string" ? info.displayName : "";
+        const title =
+            typeof info.title === "string" && info.title.trim().length > 0
+                ? info.title
+                : DEFAULT_TITLE;
 
-        const fileNameContainer = document.getElementById("activeFileNameContainer");
+        const fileNameContainer = document.getElementById(
+            "activeFileNameContainer"
+        );
         if (fileNameContainer) {
             fileNameContainer.classList.toggle("has-file", hasFile);
         }
@@ -90,17 +111,30 @@ const setState = vi.fn((key: string, value: any) => {
         }
     } else if (key === "ui.loadingIndicator") {
         const indicator = value || {};
-        const progressElement = document.getElementById("file-loading-progress");
+        const progressElement = document.getElementById(
+            "file-loading-progress"
+        );
         if (progressElement) {
-            const progressValue = typeof indicator.progress === "number" ? indicator.progress : 0;
+            const progressValue =
+                typeof indicator.progress === "number" ? indicator.progress : 0;
             progressElement.style.width = `${progressValue}%`;
-            progressElement.setAttribute("aria-valuenow", progressValue.toString());
-            progressElement.setAttribute("aria-hidden", (!indicator.active).toString());
+            progressElement.setAttribute(
+                "aria-valuenow",
+                progressValue.toString()
+            );
+            progressElement.setAttribute(
+                "aria-hidden",
+                (!indicator.active).toString()
+            );
         }
     }
 });
 const subscribe = vi.fn();
-vi.mock("../../../utils/state/core/stateManager.js", () => ({ getState, setState, subscribe }));
+vi.mock("../../../utils/state/core/stateManager.js", () => ({
+    getState,
+    setState,
+    subscribe,
+}));
 
 const UIActions = { showTab: vi.fn(), setTheme: vi.fn() };
 vi.mock("../../../utils/state/domain/uiStateManager.js", () => ({ UIActions }));
@@ -117,20 +151,28 @@ const fitFileStateManager = {
     handleFileLoadingError: vi.fn(),
     clearFileState: vi.fn(),
 };
-vi.mock("../../../utils/state/domain/fitFileState.js", () => ({ fitFileStateManager }));
+vi.mock("../../../utils/state/domain/fitFileState.js", () => ({
+    fitFileStateManager,
+}));
 
 const performanceMonitor = {
     isEnabled: vi.fn(() => true),
     startTimer: vi.fn(),
     endTimer: vi.fn(),
 };
-vi.mock("../../../utils/debug/stateDevTools.js", () => ({ performanceMonitor }));
+vi.mock("../../../utils/debug/stateDevTools.js", () => ({
+    performanceMonitor,
+}));
 
 const showNotification = vi.fn();
-vi.mock("../../../utils/ui/notifications/showNotification.js", () => ({ showNotification }));
+vi.mock("../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification,
+}));
 
 const chartTabIntegration = { getStatus: vi.fn(() => "ok") } as any;
-vi.mock("../../../utils/charts/core/chartTabIntegration.js", () => ({ chartTabIntegration }));
+vi.mock("../../../utils/charts/core/chartTabIntegration.js", () => ({
+    chartTabIntegration,
+}));
 
 // Helpers
 function installBaseDOM() {
@@ -194,7 +236,10 @@ describe("main-ui.js core flows", () => {
         (window as any).enableDragAndDrop = true;
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach
-        Object.defineProperty(document, "readyState", { value: "loading", configurable: true });
+        Object.defineProperty(document, "readyState", {
+            value: "loading",
+            configurable: true,
+        });
     });
 
     afterEach(() => {
@@ -209,7 +254,9 @@ describe("main-ui.js core flows", () => {
         await importMainUI();
 
         // Click unload button
-        const btn = document.getElementById("unloadFileBtn") as HTMLButtonElement;
+        const btn = document.getElementById(
+            "unloadFileBtn"
+        ) as HTMLButtonElement;
         expect(btn).toBeTruthy();
         btn.click();
         // IPC effect to main process
@@ -225,8 +272,12 @@ describe("main-ui.js core flows", () => {
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {
         await importMainUI();
-        const summaryTab = document.getElementById("tab-summary") as HTMLButtonElement;
-        const gear = document.querySelector(".summary-gear-btn") as HTMLButtonElement;
+        const summaryTab = document.getElementById(
+            "tab-summary"
+        ) as HTMLButtonElement;
+        const gear = document.querySelector(
+            ".summary-gear-btn"
+        ) as HTMLButtonElement;
         const gearSpy = vi.spyOn(gear, "click");
 
         // Emit the event
@@ -244,20 +295,30 @@ describe("main-ui.js core flows", () => {
 
     it("sends fit file to Alt FIT iframe with proper base64", async () => {
         await importMainUI();
-        const iframe = document.getElementById("altfit-iframe") as HTMLIFrameElement;
+        const iframe = document.getElementById(
+            "altfit-iframe"
+        ) as HTMLIFrameElement;
         const postMessage = vi.fn();
-        Object.defineProperty(iframe, "contentWindow", { value: { postMessage }, configurable: true });
+        Object.defineProperty(iframe, "contentWindow", {
+            value: { postMessage },
+            configurable: true,
+        });
 
         const buf = new ArrayBuffer(8);
         // Call exposed function on window (installed by module)
-        const fn = (window as any).sendFitFileToAltFitReader as (ab: ArrayBuffer) => Promise<void>;
+        const fn = (window as any).sendFitFileToAltFitReader as (
+            ab: ArrayBuffer
+        ) => Promise<void>;
         await fn(buf);
         // First call sets src and waits for onload; simulate load event
         expect(iframe.src).toContain("ffv/index.html");
         // Dispatch load event to trigger the addEventListener callback
         iframe.dispatchEvent(new Event("load"));
         // Accept actual converter output under instrumentation
-        expect(postMessage).toHaveBeenCalledWith({ type: "fit-file", base64: expect.any(String) }, "*");
+        expect(postMessage).toHaveBeenCalledWith(
+            { type: "fit-file", base64: expect.any(String) },
+            "*"
+        );
     });
 
     it("drag and drop overlay shows/hides", async () => {
@@ -276,13 +337,19 @@ describe("main-ui.js core flows", () => {
 
         // dragover ensures overlay remains
         const over = new Event("dragover");
-        Object.defineProperty(over, "dataTransfer", { value: { dropEffect: "none" }, configurable: true });
+        Object.defineProperty(over, "dataTransfer", {
+            value: { dropEffect: "none" },
+            configurable: true,
+        });
         window.dispatchEvent(over);
         expect(overlay.style.display).toBe("flex");
 
         // hide overlay
         const drop = new Event("drop");
-        Object.defineProperty(drop, "dataTransfer", { value: { files: [] }, configurable: true });
+        Object.defineProperty(drop, "dataTransfer", {
+            value: { files: [] },
+            configurable: true,
+        });
         window.dispatchEvent(drop);
         expect(overlay.style.display).toBe("none");
     });
@@ -295,27 +362,45 @@ describe("main-ui.js core flows", () => {
         await handler.processDroppedFile({ name: "notes.txt" });
 
         // Valid .fit success path
-        const readSpy = vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(new ArrayBuffer(4));
+        const readSpy = vi
+            .spyOn(handler, "readFileAsArrayBuffer")
+            .mockResolvedValue(new ArrayBuffer(4));
         const api = (window as any).electronAPI;
         api.decodeFitFile.mockResolvedValue({ ok: true });
-        const sendAltSpy = vi.spyOn(window as any, "sendFitFileToAltFitReader").mockResolvedValue(undefined);
+        const sendAltSpy = vi
+            .spyOn(window as any, "sendFitFileToAltFitReader")
+            .mockResolvedValue(undefined);
 
-        const absoluteFile = { name: "activity.fit", path: "C:/rides/activity.fit" };
+        const absoluteFile = {
+            name: "activity.fit",
+            path: "C:/rides/activity.fit",
+        };
         await handler.processDroppedFile(absoluteFile);
         expect(api.decodeFitFile).toHaveBeenCalled();
         expect(sendAltSpy).toHaveBeenCalled();
-        expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith("C:/rides/activity.fit");
-        expect(showFitData).toHaveBeenCalledWith(expect.anything(), "C:/rides/activity.fit");
+        expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
+            "C:/rides/activity.fit"
+        );
+        expect(showFitData).toHaveBeenCalledWith(
+            expect.anything(),
+            "C:/rides/activity.fit"
+        );
 
         // Error path
         api.decodeFitFile.mockResolvedValue({ error: "bad file" });
-        await handler.processDroppedFile({ name: "bad.fit", path: "C:/rides/bad.fit" });
+        await handler.processDroppedFile({
+            name: "bad.fit",
+            path: "C:/rides/bad.fit",
+        });
         // error path should be handled gracefully
 
         // Exception path
         const err = new Error("boom");
         api.decodeFitFile.mockRejectedValue(err);
-        await handler.processDroppedFile({ name: "oops.fit", path: "C:/rides/oops.fit" });
+        await handler.processDroppedFile({
+            name: "oops.fit",
+            path: "C:/rides/oops.fit",
+        });
         // exception path should be handled gracefully
 
         // No throws
@@ -331,9 +416,14 @@ describe("main-ui.js core flows", () => {
         link.click();
         expect((window as any).electronAPI.openExternal).toHaveBeenCalled();
         // Keyboard Enter
-        const evt = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+        const evt = new KeyboardEvent("keydown", {
+            key: "Enter",
+            bubbles: true,
+        });
         link.dispatchEvent(evt);
-        expect((window as any).electronAPI.openExternal).toHaveBeenCalledTimes(2);
+        expect((window as any).electronAPI.openExternal).toHaveBeenCalledTimes(
+            2
+        );
     });
 
     it("does not fall back to window.open when openExternal fails", async () => {
@@ -353,7 +443,10 @@ describe("main-ui.js core flows", () => {
 
         expect(api.openExternal).toHaveBeenCalled();
         expect(openSpy).not.toHaveBeenCalled();
-        expect(showNotification).toHaveBeenCalledWith("Failed to open link in your browser.", "error");
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to open link in your browser.",
+            "error"
+        );
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {

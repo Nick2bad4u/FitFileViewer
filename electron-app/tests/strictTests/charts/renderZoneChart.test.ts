@@ -10,18 +10,28 @@ describe("renderZoneChart", () => {
         document.body.innerHTML = '<div id="root"></div>';
         (window as any)._chartjsInstances = [];
         originalChart = (window as any).Chart;
-        (window as any).Chart = vi.fn().mockImplementation(function ChartMock(_canvas, _config) {
-            return {
-                update: vi.fn(),
-                destroy: vi.fn(),
-                getDatasetMeta: vi.fn().mockReturnValue({ data: [{}, {}, {}] }),
-            };
-        });
+        (window as any).Chart = vi
+            .fn()
+            .mockImplementation(function ChartMock(_canvas, _config) {
+                return {
+                    update: vi.fn(),
+                    destroy: vi.fn(),
+                    getDatasetMeta: vi.fn().mockReturnValue({
+                        data: [
+                            {},
+                            {},
+                            {},
+                        ],
+                    }),
+                };
+            });
         // theme
         document.body.classList.add("theme-light");
-        (window as any).matchMedia = vi
-            .fn()
-            .mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+        (window as any).matchMedia = vi.fn().mockReturnValue({
+            matches: false,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        });
         (window as any).localStorage.clear?.();
     });
     afterEach(() => {
@@ -36,7 +46,13 @@ describe("renderZoneChart", () => {
             { zone: 1, label: "Z1", time: 10, color: "#111111" },
             { zone: 2, label: "Z2", time: 20, color: "#222222" },
         ];
-        renderZoneChart(container as any, "HR Zones", zoneData as any, "hr_zone", { showLegend: true });
+        renderZoneChart(
+            container as any,
+            "HR Zones",
+            zoneData as any,
+            "hr_zone",
+            { showLegend: true }
+        );
         expect(container.querySelector("canvas")).toBeTruthy();
         expect((window as any).Chart).toHaveBeenCalled();
         expect(Array.isArray((window as any)._chartjsInstances)).toBe(true);
@@ -45,7 +61,8 @@ describe("renderZoneChart", () => {
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
         vi.mock("../../../utils/data/zones/chartZoneColorUtils.js", () => ({
-            getZoneTypeFromField: (id: string) => (id.includes("power") ? "power" : "hr"),
+            getZoneTypeFromField: (id: string) =>
+                id.includes("power") ? "power" : "hr",
             getChartZoneColors: (_type: string, n: number) =>
                 Array.from({ length: n }, (_, i) => `#00${i}${i}${i}${i}`),
         }));
@@ -56,10 +73,16 @@ describe("renderZoneChart", () => {
             { zone: 2, label: "Z2", time: 15 },
             { zone: 3, label: "Z3", time: 25 },
         ];
-        renderZoneChart(container as any, "Power Zones", zoneData as any, "power_zone", {
-            chartType: "bar",
-            showLegend: false,
-        });
+        renderZoneChart(
+            container as any,
+            "Power Zones",
+            zoneData as any,
+            "power_zone",
+            {
+                chartType: "bar",
+                showLegend: false,
+            }
+        );
         expect(container.querySelector("canvas")).toBeTruthy();
         expect((window as any).Chart).toHaveBeenCalled();
     });

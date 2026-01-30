@@ -1,18 +1,22 @@
 /**
- * @fileoverview Comprehensive test suite for convertDistanceUnits utility function
+ * @file Comprehensive test suite for convertDistanceUnits utility function
  *
- * Test Categories:
- * - Input Validation: Type checking, NaN handling, negative values
- * - Unit Conversions: All supported conversions with precision checking
- * - Edge Cases: Zero values, very large/small numbers, infinity
- * - Error Handling: Invalid units, conversion failures, console warnings
- * - Performance: Efficiency with different number sizes
- * - Real-world Scenarios: Typical FIT file distance values
- * - Constants Validation: DISTANCE_UNITS enum values
+ *   Test Categories:
+ *
+ *   - Input Validation: Type checking, NaN handling, negative values
+ *   - Unit Conversions: All supported conversions with precision checking
+ *   - Edge Cases: Zero values, very large/small numbers, infinity
+ *   - Error Handling: Invalid units, conversion failures, console warnings
+ *   - Performance: Efficiency with different number sizes
+ *   - Real-world Scenarios: Typical FIT file distance values
+ *   - Constants Validation: DISTANCE_UNITS enum values
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { convertDistanceUnits, DISTANCE_UNITS } from "../../../utils/formatting/converters/convertDistanceUnits.js";
+import {
+    convertDistanceUnits,
+    DISTANCE_UNITS,
+} from "../../../utils/formatting/converters/convertDistanceUnits.js";
 
 // Mock console to capture warnings and errors
 const mockConsole = {
@@ -35,69 +39,101 @@ afterEach(() => {
 describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
     describe("Input Validation", () => {
         it("should throw TypeError for null input", () => {
-            expect(() => convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received object"
-            );
+            expect(() =>
+                convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received object");
         });
 
         it("should throw TypeError for undefined input", () => {
-            expect(() => convertDistanceUnits(undefined as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(undefined as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received undefined"
-            );
+            expect(() =>
+                convertDistanceUnits(
+                    undefined as any,
+                    DISTANCE_UNITS.KILOMETERS
+                )
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(
+                    undefined as any,
+                    DISTANCE_UNITS.KILOMETERS
+                )
+            ).toThrow("Expected meters to be a number, received undefined");
         });
 
         it("should throw TypeError for string input", () => {
-            expect(() => convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received string"
-            );
+            expect(() =>
+                convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received string");
         });
 
         it("should throw TypeError for boolean input", () => {
-            expect(() => convertDistanceUnits(true as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(true as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received boolean"
-            );
+            expect(() =>
+                convertDistanceUnits(true as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(true as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received boolean");
         });
 
         it("should throw TypeError for object input", () => {
-            expect(() => convertDistanceUnits({} as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits({} as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received object"
-            );
+            expect(() =>
+                convertDistanceUnits({} as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits({} as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received object");
         });
 
         it("should throw TypeError for array input", () => {
-            expect(() => convertDistanceUnits([1000] as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits([1000] as any, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received object"
-            );
+            expect(() =>
+                convertDistanceUnits([1000] as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits([1000] as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received object");
         });
 
         it("should throw TypeError for NaN input", () => {
-            expect(() => convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)).toThrow(
-                "Expected meters to be a number, received number"
-            );
+            expect(() =>
+                convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow("Expected meters to be a number, received number");
         });
 
         it("should warn for negative distance values", () => {
-            const result = convertDistanceUnits(-1000, DISTANCE_UNITS.KILOMETERS);
+            const result = convertDistanceUnits(
+                -1000,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(result).toBe(-1); // Should still convert but warn
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertDistanceUnits] Negative distance value:", -1000);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -1000
+            );
         });
     });
 
     describe("Unit Conversions - Meters to Kilometers", () => {
         it("should convert 1000 meters to 1 kilometer", () => {
-            const result = convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS);
+            const result = convertDistanceUnits(
+                1000,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(result).toBe(1);
         });
 
         it("should convert 5000 meters to 5 kilometers", () => {
-            const result = convertDistanceUnits(5000, DISTANCE_UNITS.KILOMETERS);
+            const result = convertDistanceUnits(
+                5000,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(result).toBe(5);
         });
 
@@ -112,7 +148,10 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
         });
 
         it("should handle decimal input for kilometers conversion", () => {
-            const result = convertDistanceUnits(1234.5, DISTANCE_UNITS.KILOMETERS);
+            const result = convertDistanceUnits(
+                1234.5,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(result).toBe(1.2345);
         });
     });
@@ -168,7 +207,10 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
         });
 
         it("should handle decimal values for meters to meters", () => {
-            const result = convertDistanceUnits(1234.567, DISTANCE_UNITS.METERS);
+            const result = convertDistanceUnits(
+                1234.567,
+                DISTANCE_UNITS.METERS
+            );
             expect(result).toBe(1234.567);
         });
 
@@ -188,32 +230,56 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
 
         it("should handle very large numbers", () => {
             const largeNumber = 1e10; // 10 billion meters
-            const kmResult = convertDistanceUnits(largeNumber, DISTANCE_UNITS.KILOMETERS);
+            const kmResult = convertDistanceUnits(
+                largeNumber,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(kmResult).toBe(10000000); // 10 million km
 
-            const feetResult = convertDistanceUnits(largeNumber, DISTANCE_UNITS.FEET);
+            const feetResult = convertDistanceUnits(
+                largeNumber,
+                DISTANCE_UNITS.FEET
+            );
             expect(feetResult).toBeCloseTo(32808400000, 0); // Very large feet value
         });
 
         it("should handle very small numbers", () => {
             const smallNumber = 0.001; // 1 millimeter
-            const kmResult = convertDistanceUnits(smallNumber, DISTANCE_UNITS.KILOMETERS);
+            const kmResult = convertDistanceUnits(
+                smallNumber,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(kmResult).toBe(0.000001);
 
-            const feetResult = convertDistanceUnits(smallNumber, DISTANCE_UNITS.FEET);
+            const feetResult = convertDistanceUnits(
+                smallNumber,
+                DISTANCE_UNITS.FEET
+            );
             expect(feetResult).toBeCloseTo(0.00328084, 8);
         });
 
         it("should handle Infinity input", () => {
-            expect(convertDistanceUnits(Infinity, DISTANCE_UNITS.KILOMETERS)).toBe(Infinity);
-            expect(convertDistanceUnits(Infinity, DISTANCE_UNITS.FEET)).toBe(Infinity);
-            expect(convertDistanceUnits(Infinity, DISTANCE_UNITS.MILES)).toBe(Infinity);
+            expect(
+                convertDistanceUnits(Infinity, DISTANCE_UNITS.KILOMETERS)
+            ).toBe(Infinity);
+            expect(convertDistanceUnits(Infinity, DISTANCE_UNITS.FEET)).toBe(
+                Infinity
+            );
+            expect(convertDistanceUnits(Infinity, DISTANCE_UNITS.MILES)).toBe(
+                Infinity
+            );
         });
 
         it("should handle negative infinity", () => {
-            expect(convertDistanceUnits(-Infinity, DISTANCE_UNITS.KILOMETERS)).toBe(-Infinity);
-            expect(convertDistanceUnits(-Infinity, DISTANCE_UNITS.FEET)).toBe(-Infinity);
-            expect(convertDistanceUnits(-Infinity, DISTANCE_UNITS.MILES)).toBe(-Infinity);
+            expect(
+                convertDistanceUnits(-Infinity, DISTANCE_UNITS.KILOMETERS)
+            ).toBe(-Infinity);
+            expect(convertDistanceUnits(-Infinity, DISTANCE_UNITS.FEET)).toBe(
+                -Infinity
+            );
+            expect(convertDistanceUnits(-Infinity, DISTANCE_UNITS.MILES)).toBe(
+                -Infinity
+            );
         });
     });
 
@@ -265,24 +331,46 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
         });
 
         it("should handle rapid successive conversions", () => {
-            const inputs = [100, 1000, 5000, 10000, 42195]; // Various distances including marathon
-            const results = inputs.map((input) => convertDistanceUnits(input, DISTANCE_UNITS.KILOMETERS));
+            const inputs = [
+                100,
+                1000,
+                5000,
+                10000,
+                42195,
+            ]; // Various distances including marathon
+            const results = inputs.map((input) =>
+                convertDistanceUnits(input, DISTANCE_UNITS.KILOMETERS)
+            );
 
-            expect(results).toEqual([0.1, 1, 5, 10, 42.195]);
+            expect(results).toEqual([
+                0.1,
+                1,
+                5,
+                10,
+                42.195,
+            ]);
         });
 
         it("should maintain precision for common running distances", () => {
             // 5K run
-            expect(convertDistanceUnits(5000, DISTANCE_UNITS.KILOMETERS)).toBe(5);
+            expect(convertDistanceUnits(5000, DISTANCE_UNITS.KILOMETERS)).toBe(
+                5
+            );
 
             // 10K run
-            expect(convertDistanceUnits(10000, DISTANCE_UNITS.KILOMETERS)).toBe(10);
+            expect(convertDistanceUnits(10000, DISTANCE_UNITS.KILOMETERS)).toBe(
+                10
+            );
 
             // Half marathon
-            expect(convertDistanceUnits(21097.5, DISTANCE_UNITS.KILOMETERS)).toBe(21.0975);
+            expect(
+                convertDistanceUnits(21097.5, DISTANCE_UNITS.KILOMETERS)
+            ).toBe(21.0975);
 
             // Marathon
-            expect(convertDistanceUnits(42195, DISTANCE_UNITS.KILOMETERS)).toBe(42.195);
+            expect(convertDistanceUnits(42195, DISTANCE_UNITS.KILOMETERS)).toBe(
+                42.195
+            );
         });
     });
 
@@ -291,9 +379,18 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             // Typical GPS track: 15.5 km cycling route
             const trackDistance = 15500; // meters
 
-            const km = convertDistanceUnits(trackDistance, DISTANCE_UNITS.KILOMETERS);
-            const miles = convertDistanceUnits(trackDistance, DISTANCE_UNITS.MILES);
-            const feet = convertDistanceUnits(trackDistance, DISTANCE_UNITS.FEET);
+            const km = convertDistanceUnits(
+                trackDistance,
+                DISTANCE_UNITS.KILOMETERS
+            );
+            const miles = convertDistanceUnits(
+                trackDistance,
+                DISTANCE_UNITS.MILES
+            );
+            const feet = convertDistanceUnits(
+                trackDistance,
+                DISTANCE_UNITS.FEET
+            );
 
             expect(km).toBe(15.5);
             expect(miles).toBeCloseTo(9.631253, 6);
@@ -304,28 +401,39 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             // Elevation gain: 500 meters
             const elevationGain = 500;
 
-            const feet = convertDistanceUnits(elevationGain, DISTANCE_UNITS.FEET);
+            const feet = convertDistanceUnits(
+                elevationGain,
+                DISTANCE_UNITS.FEET
+            );
             expect(feet).toBeCloseTo(1640.42, 2);
         });
 
         it("should convert running pace distances", () => {
             // 400m track lap
             const trackLap = 400;
-            expect(convertDistanceUnits(trackLap, DISTANCE_UNITS.FEET)).toBeCloseTo(1312.336, 3);
+            expect(
+                convertDistanceUnits(trackLap, DISTANCE_UNITS.FEET)
+            ).toBeCloseTo(1312.336, 3);
 
             // 1 mile in meters
             const oneMileInMeters = 1609.344;
-            expect(convertDistanceUnits(oneMileInMeters, DISTANCE_UNITS.MILES)).toBeCloseTo(1, 10);
+            expect(
+                convertDistanceUnits(oneMileInMeters, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(1, 10);
         });
 
         it("should handle swimming pool distances", () => {
             // Olympic pool: 50 meters
             const olympicPool = 50;
-            expect(convertDistanceUnits(olympicPool, DISTANCE_UNITS.FEET)).toBeCloseTo(164.042, 3);
+            expect(
+                convertDistanceUnits(olympicPool, DISTANCE_UNITS.FEET)
+            ).toBeCloseTo(164.042, 3);
 
             // Yard pool: 25 yards ≈ 22.86 meters
             const yardPool = 22.86;
-            expect(convertDistanceUnits(yardPool, DISTANCE_UNITS.FEET)).toBeCloseTo(75, 0);
+            expect(
+                convertDistanceUnits(yardPool, DISTANCE_UNITS.FEET)
+            ).toBeCloseTo(75, 0);
         });
 
         it("should convert FIT file distance data types", () => {
@@ -337,10 +445,19 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
                 42195, // Marathon
             ];
 
-            const kilometersResults = fitDistances.map((d) => convertDistanceUnits(d, DISTANCE_UNITS.KILOMETERS));
-            const milesResults = fitDistances.map((d) => convertDistanceUnits(d, DISTANCE_UNITS.MILES));
+            const kilometersResults = fitDistances.map((d) =>
+                convertDistanceUnits(d, DISTANCE_UNITS.KILOMETERS)
+            );
+            const milesResults = fitDistances.map((d) =>
+                convertDistanceUnits(d, DISTANCE_UNITS.MILES)
+            );
 
-            expect(kilometersResults).toEqual([1, 5, 21.0975, 42.195]);
+            expect(kilometersResults).toEqual([
+                1,
+                5,
+                21.0975,
+                42.195,
+            ]);
             expect(milesResults[0]).toBeCloseTo(0.621371, 6);
             expect(milesResults[1]).toBeCloseTo(3.106856, 6);
             expect(milesResults[2]).toBeCloseTo(13.109, 3);
@@ -361,7 +478,12 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             expect(DISTANCE_UNITS).toBeDefined();
 
             // Verify all expected properties exist
-            const expectedUnits = ["METERS", "KILOMETERS", "FEET", "MILES"];
+            const expectedUnits = [
+                "METERS",
+                "KILOMETERS",
+                "FEET",
+                "MILES",
+            ];
             expectedUnits.forEach((unit) => {
                 expect(DISTANCE_UNITS).toHaveProperty(unit);
             });
@@ -371,13 +493,20 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             // Test that conversion factors are mathematically correct
 
             // 1000 meters = 1 kilometer
-            expect(convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)).toBe(1);
+            expect(convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)).toBe(
+                1
+            );
 
             // 1 meter = 3.28084 feet (standard conversion)
-            expect(convertDistanceUnits(1, DISTANCE_UNITS.FEET)).toBeCloseTo(3.28084, 5);
+            expect(convertDistanceUnits(1, DISTANCE_UNITS.FEET)).toBeCloseTo(
+                3.28084,
+                5
+            );
 
             // 1609.344 meters = 1 mile (exactly)
-            expect(convertDistanceUnits(1609.344, DISTANCE_UNITS.MILES)).toBeCloseTo(1, 10);
+            expect(
+                convertDistanceUnits(1609.344, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(1, 10);
         });
     });
 
@@ -386,7 +515,10 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             const originalMeters = 1000;
 
             // Convert to km and back (should be exact)
-            const km = convertDistanceUnits(originalMeters, DISTANCE_UNITS.KILOMETERS);
+            const km = convertDistanceUnits(
+                originalMeters,
+                DISTANCE_UNITS.KILOMETERS
+            );
             const backToMeters = km * 1000; // Manual conversion back
             expect(backToMeters).toBe(originalMeters);
         });
@@ -395,7 +527,10 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             // Test values that might cause floating point issues
             const testValue = 123.456789;
 
-            const km = convertDistanceUnits(testValue, DISTANCE_UNITS.KILOMETERS);
+            const km = convertDistanceUnits(
+                testValue,
+                DISTANCE_UNITS.KILOMETERS
+            );
             const feet = convertDistanceUnits(testValue, DISTANCE_UNITS.FEET);
             const miles = convertDistanceUnits(testValue, DISTANCE_UNITS.MILES);
 
@@ -408,13 +543,20 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             // Test some specific distances that are commonly referenced
 
             // 100 meters (common track distance)
-            expect(convertDistanceUnits(100, DISTANCE_UNITS.FEET)).toBeCloseTo(328.084, 3);
+            expect(convertDistanceUnits(100, DISTANCE_UNITS.FEET)).toBeCloseTo(
+                328.084,
+                3
+            );
 
             // 1500 meters (metric mile)
-            expect(convertDistanceUnits(1500, DISTANCE_UNITS.MILES)).toBeCloseTo(0.932057, 6);
+            expect(
+                convertDistanceUnits(1500, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(0.932057, 6);
 
             // 10000 meters (10K race)
-            expect(convertDistanceUnits(10000, DISTANCE_UNITS.MILES)).toBeCloseTo(6.213712, 6);
+            expect(
+                convertDistanceUnits(10000, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(6.213712, 6);
         });
     });
 });

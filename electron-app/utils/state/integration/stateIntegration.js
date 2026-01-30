@@ -1,14 +1,20 @@
 /**
- * State Integration Utilities
- * Helps migrate from existing state patterns to the new centralized system
+ * State Integration Utilities Helps migrate from existing state patterns to the
+ * new centralized system
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getState, initializeStateManager, setState, subscribe } from "../core/stateManager.js";
+import {
+    getState,
+    initializeStateManager,
+    setState,
+    subscribe,
+} from "../core/stateManager.js";
 import { uiStateManager } from "../domain/uiStateManager.js";
 
 /**
  * @typedef {Object} DebugUtilities
+ *
  * @property {Function} getState - Get state by path
  * @property {Function} setState - Set state value
  * @property {Object} AppActions - Application action functions
@@ -20,6 +26,7 @@ import { uiStateManager } from "../domain/uiStateManager.js";
 
 /**
  * @typedef {Object} AppStateMigration
+ *
  * @property {Function[]} migrations - Array of migration functions
  */
 
@@ -34,6 +41,7 @@ export class StateMigrationHelper {
 
     /**
      * Add a migration function
+     *
      * @param {Function} migrationFn - Function to run migration
      */
     addMigration(migrationFn) {
@@ -60,11 +68,13 @@ export class StateMigrationHelper {
 }
 
 /**
- * Initialize the complete state management system
- * Call this once during application startup
+ * Initialize the complete state management system Call this once during
+ * application startup
  */
 export function initializeAppState() {
-    console.log("[StateIntegration] Initializing application state management...");
+    console.log(
+        "[StateIntegration] Initializing application state management..."
+    );
 
     // Initialize core state manager
     initializeStateManager();
@@ -102,22 +112,29 @@ export function integrateWithRendererUtils() {
         console.log("[StateIntegration] Integrating with rendererUtils...");
 
         // Wrap existing functions to use new state system
-        const originalUtils = { .../** @type {any} */ (globalThis).rendererUtils };
+        const originalUtils = {
+            .../** @type {any} */ (globalThis).rendererUtils,
+        };
 
         // Example: if there's a setGlobalData function
         if (originalUtils.setGlobalData) {
             /**
              * @param {Object} data - Global data to set
              */
-            /** @type {any} */ (globalThis).rendererUtils.setGlobalData = (/** @type {Object} */ data) => {
-                setState("globalData", data, { source: "rendererUtils.setGlobalData" });
+            /** @type {any} */ (globalThis).rendererUtils.setGlobalData = (
+                /** @type {Object} */ data
+            ) => {
+                setState("globalData", data, {
+                    source: "rendererUtils.setGlobalData",
+                });
                 return originalUtils.setGlobalData(data);
             };
         }
 
         // Example: if there's a getGlobalData function
         if (originalUtils.getGlobalData) {
-            /** @type {any} */ (globalThis).rendererUtils.getGlobalData = () => getState("globalData");
+            /** @type {any} */ (globalThis).rendererUtils.getGlobalData = () =>
+                getState("globalData");
         }
 
         console.log("[StateIntegration] rendererUtils integration completed");
@@ -132,9 +149,13 @@ export function migrateChartControlsState() {
     if (/** @type {any} */ (globalThis).chartControlsState) {
         console.log("[StateMigration] Migrating chartControlsState...");
         // Copy existing state
-        setState("charts.controlsVisible", /** @type {any} */ (globalThis).chartControlsState.isVisible, {
-            source: "migration",
-        });
+        setState(
+            "charts.controlsVisible",
+            /** @type {any} */ (globalThis).chartControlsState.isVisible,
+            {
+                source: "migration",
+            }
+        );
 
         // Replace old state with getter/setter
         /** @type {any} */ (globalThis).chartControlsState = {
@@ -142,7 +163,9 @@ export function migrateChartControlsState() {
                 return getState("charts.controlsVisible");
             },
             set isVisible(value) {
-                setState("charts.controlsVisible", value, { source: "chartControlsState" });
+                setState("charts.controlsVisible", value, {
+                    source: "chartControlsState",
+                });
             },
         };
 
@@ -164,7 +187,9 @@ export function setupStatePerformanceMonitoring() {
         // Reset counter every minute and log stats
         const now = Date.now();
         if (now - lastResetTime > 60_000) {
-            console.log(`[StatePerformance] ${stateChangeCount} state changes in the last minute`);
+            console.log(
+                `[StatePerformance] ${stateChangeCount} state changes in the last minute`
+            );
             stateChangeCount = 0;
             lastResetTime = now;
         }
@@ -176,9 +201,15 @@ export function setupStatePerformanceMonitoring() {
     if (perfMemory.memory) {
         setInterval(() => {
             const memoryInfo = {
-                limit: Math.round(perfMemory.memory.jsHeapSizeLimit / 1024 / 1024),
-                total: Math.round(perfMemory.memory.totalJSHeapSize / 1024 / 1024),
-                used: Math.round(perfMemory.memory.usedJSHeapSize / 1024 / 1024),
+                limit: Math.round(
+                    perfMemory.memory.jsHeapSizeLimit / 1024 / 1024
+                ),
+                total: Math.round(
+                    perfMemory.memory.totalJSHeapSize / 1024 / 1024
+                ),
+                used: Math.round(
+                    perfMemory.memory.usedJSHeapSize / 1024 / 1024
+                ),
             };
 
             setState("performance.memoryUsage", memoryInfo, {
@@ -209,22 +240,33 @@ export function setupStatePersistence() {
         subscribe(path, () => {
             // Debounce the persistence to avoid excessive writes
             clearTimeout(/** @type {any} */ (globalThis).__persistenceTimeout);
-            /** @type {any} */ (globalThis).__persistenceTimeout = setTimeout(() => {
-                try {
-                    const stateToSave = {};
-                    for (const p of persistedPaths) {
-                        const value = getState(p);
-                        if (value !== undefined) {
-                            setNestedValue(stateToSave, p, value);
+            /** @type {any} */ (globalThis).__persistenceTimeout = setTimeout(
+                () => {
+                    try {
+                        const stateToSave = {};
+                        for (const p of persistedPaths) {
+                            const value = getState(p);
+                            if (value !== undefined) {
+                                setNestedValue(stateToSave, p, value);
+                            }
                         }
-                    }
 
-                    localStorage.setItem("fitFileViewer_uiState", JSON.stringify(stateToSave));
-                    console.log("[StateIntegration] UI state persisted to localStorage");
-                } catch (error) {
-                    console.error("[StateIntegration] Failed to persist state:", error);
-                }
-            }, 500);
+                        localStorage.setItem(
+                            "fitFileViewer_uiState",
+                            JSON.stringify(stateToSave)
+                        );
+                        console.log(
+                            "[StateIntegration] UI state persisted to localStorage"
+                        );
+                    } catch (error) {
+                        console.error(
+                            "[StateIntegration] Failed to persist state:",
+                            error
+                        );
+                    }
+                },
+                500
+            );
         });
     }
 
@@ -237,23 +279,32 @@ export function setupStatePersistence() {
             for (const path of persistedPaths) {
                 const value = getNestedValue(parsedState, path);
                 if (value !== undefined) {
-                    setState(path, value, { silent: true, source: "localStorage" });
+                    setState(path, value, {
+                        silent: true,
+                        source: "localStorage",
+                    });
                 }
             }
 
             console.log("[StateIntegration] UI state loaded from localStorage");
         }
     } catch (error) {
-        console.error("[StateIntegration] Failed to load persisted state:", error);
+        console.error(
+            "[StateIntegration] Failed to load persisted state:",
+            error
+        );
     }
 }
 
 /**
  * Helper function to get nested value from object
+ *
+ * @private
+ *
  * @param {Object} obj - Source object
  * @param {string} path - Dot notation path
- * @returns {*} Retrieved value
- * @private
+ *
+ * @returns {any} Retrieved value
  */
 function getNestedValue(obj, path) {
     const keys = path.split(".");
@@ -271,14 +322,20 @@ function getNestedValue(obj, path) {
 }
 
 /**
- * Detects if the application is running in development mode
- * Since process is not available in renderer, we use alternative methods
+ * Detects if the application is running in development mode Since process is
+ * not available in renderer, we use alternative methods
+ *
  * @returns {boolean} True if in development mode
  */
 function isDevelopmentMode() {
     // Guarded access for jsdom/mocked environments
     try {
-        const loc = /** @type {any} */ (globalThis.window === undefined ? undefined : globalThis.location) || {};
+        const loc =
+            /** @type {any} */ (
+                globalThis.window === undefined
+                    ? undefined
+                    : globalThis.location
+            ) || {};
         const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
         const search = typeof loc.search === "string" ? loc.search : "";
         const hash = typeof loc.hash === "string" ? loc.hash : "";
@@ -299,9 +356,12 @@ function isDevelopmentMode() {
             /** @type {any} */ (
                 globalThis.window !== undefined &&
                     globalThis.electronAPI &&
-                    /** @type {any} */ (globalThis).electronAPI.__devMode !== undefined
+                    /** @type {any} */ (globalThis).electronAPI.__devMode !==
+                        undefined
             ) ||
-            (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
+            (typeof console !== "undefined" &&
+                typeof href === "string" &&
+                href.includes("electron"))
         );
     } catch {
         // Default to non-dev on any unexpected error
@@ -311,10 +371,12 @@ function isDevelopmentMode() {
 
 /**
  * Helper function to set nested value in object
+ *
+ * @private
+ *
  * @param {Object} obj - Target object
  * @param {string} path - Dot notation path
- * @param {*} value - Value to set
- * @private
+ * @param {any} value - Value to set
  */
 function setNestedValue(obj, path, value) {
     const keys = path.split(".");
@@ -362,7 +424,9 @@ function setupBackwardCompatibility() {
                 return getState("charts.isRendered");
             },
             set(value) {
-                setState("charts.isRendered", value, { source: "window.isChartRendered" });
+                setState("charts.isRendered", value, {
+                    source: "window.isChartRendered",
+                });
             },
         });
     }
@@ -374,19 +438,25 @@ function setupBackwardCompatibility() {
                 return getState("eventListeners") || new Map();
             },
             set eventListeners(value) {
-                setState("eventListeners", value, { source: "AppState.eventListeners" });
+                setState("eventListeners", value, {
+                    source: "AppState.eventListeners",
+                });
             },
             get globalData() {
                 return getState("globalData");
             },
             set globalData(value) {
-                setState("globalData", value, { source: "AppState.globalData" });
+                setState("globalData", value, {
+                    source: "AppState.globalData",
+                });
             },
             get isChartRendered() {
                 return getState("charts.isRendered");
             },
             set isChartRendered(value) {
-                setState("charts.isRendered", value, { source: "AppState.isChartRendered" });
+                setState("charts.isRendered", value, {
+                    source: "AppState.isChartRendered",
+                });
             },
         };
     }
@@ -409,11 +479,15 @@ function setupStateDebugging() {
         // Utility to log current state
         /**
          * @param {string} [path] - Optional state path
-         * @returns {*} Current state
+         *
+         * @returns {any} Current state
          */
         logState(path) {
             const state = path ? getState(path) : getState("data");
-            console.log(`[StateDebug] Current state${path ? ` for ${path}` : ""}:`, state);
+            console.log(
+                `[StateDebug] Current state${path ? ` for ${path}` : ""}:`,
+                state
+            );
             return state;
         },
         setState,
@@ -421,14 +495,18 @@ function setupStateDebugging() {
         // Utility to trigger state actions
         /**
          * @param {string} actionName - Name of action to trigger
-         * @param {...*} args - Action arguments
-         * @returns {*} Action result
+         * @param {...any} args - Action arguments
+         *
+         * @returns {any} Action result
          */
         triggerAction(actionName, ...args) {
             /** @type {any} */
             const actions = AppActions;
             if (actions[actionName]) {
-                console.log(`[StateDebug] Triggering action: ${actionName}`, args);
+                console.log(
+                    `[StateDebug] Triggering action: ${actionName}`,
+                    args
+                );
                 return actions[actionName](...args);
             }
             console.warn(`[StateDebug] Unknown action: ${actionName}`);
@@ -439,14 +517,21 @@ function setupStateDebugging() {
         // Utility to watch state changes
         /**
          * @param {string} path - State path to watch
+         *
          * @returns {Function} Unsubscribe function
          */
         watchState(path) {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
             return subscribe(
                 path,
-                /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
-                    console.log(`[StateDebug] ${path} changed:`, { newValue, oldValue });
+                /** @param {any} newValue */ /** @param {any} oldValue */ (
+                    /** @type {any} */ newValue,
+                    oldValue
+                ) => {
+                    console.log(`[StateDebug] ${path} changed:`, {
+                        newValue,
+                        oldValue,
+                    });
                 }
             );
         },

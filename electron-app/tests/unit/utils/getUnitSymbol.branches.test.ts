@@ -51,7 +51,9 @@ describe("getUnitSymbol.js - additional branch coverage", () => {
     });
 
     it("triggers top-level catch when console.warn throws during validation", () => {
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         // Force console.warn to throw when getUnitSymbol validates input
         console.warn = ((..._args: any[]) => {
             throw new Error("warn-fail");

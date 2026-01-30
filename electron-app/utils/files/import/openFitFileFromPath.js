@@ -1,8 +1,8 @@
 /**
  * Open a FIT file from a known absolute path.
  *
- * Used by the Browser tab (folder-based activity browsing) to open a selected .fit file without
- * showing the native file picker.
+ * Used by the Browser tab (folder-based activity browsing) to open a selected
+ * .fit file without showing the native file picker.
  */
 
 /**
@@ -14,16 +14,25 @@
  * @param {string} params.filePath
  * @param {(message: string, type: string, timeout?: number) => void} params.showNotification
  * @param {HTMLElement} [params.openFileBtn]
+ *
  * @returns {Promise<boolean>}
  */
-export async function openFitFileFromPath({ filePath, showNotification, openFileBtn }) {
+export async function openFitFileFromPath({
+    filePath,
+    showNotification,
+    openFileBtn,
+}) {
     if (!isNonEmptyString(filePath)) {
         showNotification("Invalid file path.", "error");
         return false;
     }
 
     const api = /** @type {any} */ (globalThis).electronAPI;
-    if (!api || typeof api.readFile !== "function" || typeof api.parseFitFile !== "function") {
+    if (
+        !api ||
+        typeof api.readFile !== "function" ||
+        typeof api.parseFitFile !== "function"
+    ) {
         showNotification("Electron file API unavailable.", "error");
         return false;
     }
@@ -44,13 +53,18 @@ export async function openFitFileFromPath({ filePath, showNotification, openFile
         disableBtn();
 
         const arrayBuffer = await api.readFile(filePath);
-        if (!(arrayBuffer instanceof ArrayBuffer) || !isValidFitBuffer(arrayBuffer)) {
+        if (
+            !(arrayBuffer instanceof ArrayBuffer) ||
+            !isValidFitBuffer(arrayBuffer)
+        ) {
             throw new Error("Invalid or unsupported file buffer");
         }
 
         const result = await api.parseFitFile(arrayBuffer);
         const data =
-            result && typeof result === "object" && "data" in result ? /** @type {any} */ (result).data : result;
+            result && typeof result === "object" && "data" in result
+                ? /** @type {any} */ (result).data
+                : result;
 
         if (typeof globalThis.showFitData !== "function") {
             throw new TypeError("showFitData is not available");
@@ -95,6 +109,7 @@ export async function openFitFileFromPath({ filePath, showNotification, openFile
  */
 /**
  * @param {unknown} value
+ *
  * @returns {value is string}
  */
 function isNonEmptyString(value) {
@@ -103,6 +118,7 @@ function isNonEmptyString(value) {
 
 /**
  * @param {ArrayBuffer} buffer
+ *
  * @returns {boolean}
  */
 function isValidFitBuffer(buffer) {
@@ -117,7 +133,9 @@ function isValidFitBuffer(buffer) {
  * @returns {FitFileStateManagerLike | null}
  */
 function resolveFitFileStateManager() {
-    const candidate = /** @type {unknown} */ (globalThis.__FFV_fitFileStateManager);
+    const candidate = /** @type {unknown} */ (
+        globalThis.__FFV_fitFileStateManager
+    );
 
     if (!candidate || typeof candidate !== "object") {
         return null;

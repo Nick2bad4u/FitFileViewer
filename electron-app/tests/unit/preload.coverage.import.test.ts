@@ -39,15 +39,28 @@ describe("preload.js - import-based coverage", () => {
         process.env.NODE_ENV = "test";
         await import("../../preload.js");
         // If exposure happened, use that API, otherwise synthesize from module scope by recreating via Function
-        const api = (mockContextBridge.exposeInMainWorld.mock.calls[0]?.[1] as any) || {
+        const api = (mockContextBridge.exposeInMainWorld.mock
+            .calls[0]?.[1] as any) || {
             // Fallback shims in case exposure was skipped
-            openFile: (...args: any[]) => mockIpcRenderer.invoke("dialog:openFile", ...args),
+            openFile: (...args: any[]) =>
+                mockIpcRenderer.invoke("dialog:openFile", ...args),
             readFile: (p: string) => mockIpcRenderer.invoke("file:read", p),
-            sendThemeChanged: (t: string) => mockIpcRenderer.send("theme-changed", t),
-            send: (c: any, ...a: any[]) => (typeof c === "string" ? mockIpcRenderer.send(c, ...a) : undefined),
+            sendThemeChanged: (t: string) =>
+                mockIpcRenderer.send("theme-changed", t),
+            send: (c: any, ...a: any[]) =>
+                typeof c === "string"
+                    ? mockIpcRenderer.send(c, ...a)
+                    : undefined,
             invoke: (c: any, ...a: any[]) =>
-                typeof c === "string" ? mockIpcRenderer.invoke(c, ...a) : Promise.reject(new Error("Invalid channel")),
-            getChannelInfo: () => ({ channels: { A: "a" }, events: { B: "b" }, totalChannels: 1, totalEvents: 1 }),
+                typeof c === "string"
+                    ? mockIpcRenderer.invoke(c, ...a)
+                    : Promise.reject(new Error("Invalid channel")),
+            getChannelInfo: () => ({
+                channels: { A: "a" },
+                events: { B: "b" },
+                totalChannels: 1,
+                totalEvents: 1,
+            }),
         };
 
         // Exercise a few API paths to accrue coverage
@@ -55,8 +68,14 @@ describe("preload.js - import-based coverage", () => {
         await api.readFile("foo.fit");
         api.sendThemeChanged("dark");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("dialog:openFile");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("file:read", "foo.fit");
-        expect(mockIpcRenderer.send).toHaveBeenCalledWith("theme-changed", "dark");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+            "file:read",
+            "foo.fit"
+        );
+        expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+            "theme-changed",
+            "dark"
+        );
 
         // Validation branches: send with invalid channel, invoke with invalid channel
         api.send(123 as any);

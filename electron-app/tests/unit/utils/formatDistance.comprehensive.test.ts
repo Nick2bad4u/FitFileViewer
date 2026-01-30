@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for formatDistance.js utility
+ * @file Comprehensive test suite for formatDistance.js utility
  *
- * Tests all aspects of the distance formatting utility including:
- * - Input validation and error handling
- * - Distance conversions (meters to km/miles)
- * - Formatting and precision
- * - Edge cases and boundary conditions
- * - Performance scenarios
- * - Real-world usage patterns
+ *   Tests all aspects of the distance formatting utility including:
+ *
+ *   - Input validation and error handling
+ *   - Distance conversions (meters to km/miles)
+ *   - Formatting and precision
+ *   - Edge cases and boundary conditions
+ *   - Performance scenarios
+ *   - Real-world usage patterns
  */
 
 import { describe, it, expect } from "vitest";
@@ -199,7 +200,13 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
 
     describe("Performance Scenarios", () => {
         it("should handle rapid successive calls", () => {
-            const distances = [100, 500, 1000, 2000, 5000];
+            const distances = [
+                100,
+                500,
+                1000,
+                2000,
+                5000,
+            ];
             const results = distances.map((d) => formatDistance(d));
 
             expect(results).toHaveLength(5);
@@ -219,7 +226,10 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
         });
 
         it("should handle performance with large batch processing", () => {
-            const distances = Array.from({ length: 100 }, (_, i) => (i + 1) * 100);
+            const distances = Array.from(
+                { length: 100 },
+                (_, i) => (i + 1) * 100
+            );
             const results = distances.map((d) => formatDistance(d));
 
             expect(results).toHaveLength(100);
@@ -278,7 +288,11 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
         });
 
         it("should maintain consistent format structure", () => {
-            const results = [100, 1000, 10000].map((d) => formatDistance(d));
+            const results = [
+                100,
+                1000,
+                10000,
+            ].map((d) => formatDistance(d));
             results.forEach((result) => {
                 expect(result).toMatch(/^\d+\.\d{2} km \/ \d+\.\d{2} mi$/);
             });

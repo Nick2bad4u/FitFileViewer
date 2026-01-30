@@ -23,11 +23,24 @@ vi.mock("../../utils/theming/core/theme.js", () => ({
 vi.mock("../../utils/data/zones/chartZoneColorUtils.js", () => ({
     getZoneColor: vi.fn((type, index) => {
         const colors = {
-            hr: ["#ff0000", "#ff5500", "#ffaa00", "#ffff00", "#00ff00"],
-            power: ["#ff00ff", "#aa00ff", "#5500ff", "#0000ff", "#00ffff"],
+            hr: [
+                "#ff0000",
+                "#ff5500",
+                "#ffaa00",
+                "#ffff00",
+                "#00ff00",
+            ],
+            power: [
+                "#ff00ff",
+                "#aa00ff",
+                "#5500ff",
+                "#0000ff",
+                "#00ffff",
+            ],
         };
         // Type-safe indexing
-        const colorArray = type === "hr" ? colors.hr : type === "power" ? colors.power : [];
+        const colorArray =
+            type === "hr" ? colors.hr : type === "power" ? colors.power : [];
         return colorArray[index] || "#cccccc";
     }),
 }));
@@ -55,7 +68,8 @@ describe("renderLapZoneChart", () => {
 
     beforeEach(() => {
         // Create mock canvas
-        mockCanvas = /** @type {HTMLCanvasElement} */ document.createElement("canvas");
+        mockCanvas =
+            /** @type {HTMLCanvasElement} */ document.createElement("canvas");
         document.body.appendChild(mockCanvas);
 
         // Mock Chart.js
@@ -88,7 +102,10 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(mockCanvas, []);
 
         expect(result).toBeNull();
-        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith(
+            "Failed to render lap zone chart",
+            "error"
+        );
     });
 
     it("should return null when canvas is missing", () => {
@@ -96,7 +113,10 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(null, []);
 
         expect(result).toBeNull();
-        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith(
+            "Failed to render lap zone chart",
+            "error"
+        );
     });
 
     it("should return null when lapZoneData is not an array", () => {
@@ -104,7 +124,10 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(mockCanvas, null);
 
         expect(result).toBeNull();
-        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith(
+            "Failed to render lap zone chart",
+            "error"
+        );
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
@@ -112,15 +135,35 @@ describe("renderLapZoneChart", () => {
             {
                 lapLabel: "Lap 1",
                 zones: [
-                    { label: "HR Zone 1", value: 120, color: "#ff0000", zoneIndex: 0 },
-                    { label: "HR Zone 2", value: 180, color: "#ff5500", zoneIndex: 1 },
+                    {
+                        label: "HR Zone 1",
+                        value: 120,
+                        color: "#ff0000",
+                        zoneIndex: 0,
+                    },
+                    {
+                        label: "HR Zone 2",
+                        value: 180,
+                        color: "#ff5500",
+                        zoneIndex: 1,
+                    },
                 ],
             },
             {
                 lapLabel: "Lap 2",
                 zones: [
-                    { label: "HR Zone 1", value: 60, color: "#ff0000", zoneIndex: 0 },
-                    { label: "HR Zone 2", value: 240, color: "#ff5500", zoneIndex: 1 },
+                    {
+                        label: "HR Zone 1",
+                        value: 60,
+                        color: "#ff0000",
+                        zoneIndex: 0,
+                    },
+                    {
+                        label: "HR Zone 2",
+                        value: 240,
+                        color: "#ff5500",
+                        zoneIndex: 1,
+                    },
                 ],
             },
         ];
@@ -147,7 +190,9 @@ describe("renderLapZoneChart", () => {
 
         // Check theme configuration
         expect(getThemeConfig).toHaveBeenCalled();
-        expect(chartConfig.options.plugins.title.text).toBe("Heart Rate Zones by Lap");
+        expect(chartConfig.options.plugins.title.text).toBe(
+            "Heart Rate Zones by Lap"
+        );
     });
 
     it("should handle empty lap zone data", () => {
@@ -267,13 +312,18 @@ describe("renderLapZoneChart", () => {
             },
         ];
 
-        renderLapZoneChart(mockCanvas, lapZoneData, { title: "Heart Rate Zones by Lap" });
+        renderLapZoneChart(mockCanvas, lapZoneData, {
+            title: "Heart Rate Zones by Lap",
+        });
 
         const chartConfig = ((window as any).Chart as any).mock.calls[0][1];
         const callbacks = chartConfig.options.plugins.tooltip.callbacks;
 
         // Footer should sum parsed.y values and format with formatTime mock
-        const footer = callbacks.footer([{ parsed: { y: 120 } }, { parsed: { y: 180 } }]);
+        const footer = callbacks.footer([
+            { parsed: { y: 120 } },
+            { parsed: { y: 180 } },
+        ]);
         expect(footer).toBe("Total: 0:05:00");
 
         // Label should compute percentage of total for the given dataIndex

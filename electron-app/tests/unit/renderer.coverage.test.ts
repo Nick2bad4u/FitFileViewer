@@ -36,7 +36,11 @@ describe("renderer.js - Coverage Test", () => {
             value: {
                 onMenuAction: vi.fn(),
                 onThemeChanged: vi.fn(),
-                getSystemInfo: vi.fn().mockResolvedValue({ platform: "win32", arch: "x64", version: "10.0.19042" }),
+                getSystemInfo: vi.fn().mockResolvedValue({
+                    platform: "win32",
+                    arch: "x64",
+                    version: "10.0.19042",
+                }),
                 showMessageBox: vi.fn(),
                 getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
                 isDevelopment: vi.fn().mockResolvedValue(false),
@@ -85,11 +89,15 @@ describe("renderer.js - Coverage Test", () => {
     });
 
     it("should handle electron API menu actions (smoke)", async () => {
-        expect(typeof (window as any).electronAPI.onMenuAction).toBe("function");
+        expect(typeof (window as any).electronAPI.onMenuAction).toBe(
+            "function"
+        );
     });
 
     it("should handle theme change events (smoke)", async () => {
-        expect(typeof (window as any).electronAPI.onThemeChanged).toBe("function");
+        expect(typeof (window as any).electronAPI.onThemeChanged).toBe(
+            "function"
+        );
     });
 
     it("should initialize state management (smoke)", async () => {
@@ -100,7 +108,11 @@ describe("renderer.js - Coverage Test", () => {
     it("should handle development mode features (smoke)", async () => {
         // Dev features are environment dependent; value may be string/boolean/undefined
         const t = typeof (window as any).__DEVELOPMENT__;
-        expect(["undefined", "boolean", "string"]).toContain(t);
+        expect([
+            "undefined",
+            "boolean",
+            "string",
+        ]).toContain(t);
     });
 
     it("should handle error scenarios gracefully (smoke)", async () => {

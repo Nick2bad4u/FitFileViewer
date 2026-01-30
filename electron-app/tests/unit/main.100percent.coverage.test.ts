@@ -1,6 +1,7 @@
 /**
- * Comprehensive test suite for main.js targeting 100% code coverage
- * This test systematically exercises all code paths in main.js including:
+ * Comprehensive test suite for main.js targeting 100% code coverage This test
+ * systematically exercises all code paths in main.js including:
+ *
  * - State management functions
  * - Window management and validation
  * - IPC handlers and menu event handlers
@@ -10,7 +11,15 @@
  * - Error handling and edge cases
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
+import {
+    describe,
+    test,
+    expect,
+    vi,
+    beforeEach,
+    afterEach,
+    beforeAll,
+} from "vitest";
 import { EventEmitter } from "events";
 
 // Track all mock references for cleanup
@@ -86,8 +95,14 @@ function createComprehensiveMock() {
     });
 
     const mockDialog = {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/export.csv" }),
+        showOpenDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePaths: ["/test/file.fit"],
+        }),
+        showSaveDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePath: "/test/export.csv",
+        }),
         showMessageBox: vi.fn().mockResolvedValue({ response: 0 }),
     };
 
@@ -268,7 +283,9 @@ beforeAll(() => {
     vi.mock("path", () => globalMocks.mockPath);
     vi.mock("http", () => globalMocks.mockHttp);
     vi.mock("electron-log", () => globalMocks.mockElectronLog);
-    vi.mock("electron-updater", () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
+    vi.mock("electron-updater", () => ({
+        autoUpdater: globalMocks.mockAutoUpdater,
+    }));
     vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
     vi.mock("os", () => globalMocks.mockOs);
 
@@ -292,7 +309,10 @@ beforeAll(() => {
 
     vi.mock("../../utils/files/recent/recentFiles", () => ({
         addRecentFile: vi.fn(),
-        loadRecentFiles: vi.fn(() => ["/test/recent1.fit", "/test/recent2.fit"]),
+        loadRecentFiles: vi.fn(() => [
+            "/test/recent1.fit",
+            "/test/recent2.fit",
+        ]),
     }));
 
     // Mock Gyazo utilities if they exist
@@ -302,14 +322,17 @@ beforeAll(() => {
     }));
 
     // Override Module.prototype.require for additional CommonJS interception
-    const originalRequire = (typeof window !== "undefined" && (window as any).require) || require;
+    const originalRequire =
+        (typeof window !== "undefined" && (window as any).require) || require;
     if (typeof originalRequire === "function") {
         const Module = originalRequire("module");
         if (Module && Module.prototype) {
             const originalModuleRequire = Module.prototype.require;
             Module.prototype.require = function (id: string) {
                 if (id === "electron") {
-                    console.log("[TEST] CommonJS require intercepted for electron");
+                    console.log(
+                        "[TEST] CommonJS require intercepted for electron"
+                    );
                     return globalMocks.mockElectron;
                 }
                 return originalModuleRequire.apply(this, arguments as any);
@@ -386,7 +409,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         // Verify hoisted mock is available
         expect((globalThis as any).__electronHoistedMock).toBeTruthy();
         expect((globalThis as any).__electronHoistedMock.app).toBeTruthy();
-        expect((globalThis as any).__electronHoistedMock.BrowserWindow).toBeTruthy();
+        expect(
+            (globalThis as any).__electronHoistedMock.BrowserWindow
+        ).toBeTruthy();
 
         // Clear module cache and require main.js to trigger all initialization code
         const mainPath = require.resolve("../../main.js");
@@ -397,7 +422,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
-        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe("function");
+        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe(
+            "function"
+        );
     });
 
     test("should exercise core initialization functions through direct calls", async () => {
@@ -417,38 +444,54 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Safely report set() calls on the first instantiated state manager
-        const stateMockResults = (globalMocks as any).MockMainProcessState?.mock?.results || [];
+        const stateMockResults =
+            (globalMocks as any).MockMainProcessState?.mock?.results || [];
         const firstStateInstance = stateMockResults[0]?.value;
         const setCalls = firstStateInstance?.set?.mock?.calls?.length ?? 0;
         console.log(`MockMainProcessState.set called: ${setCalls} times`);
-        console.log(`mockApp.whenReady called: ${globalMocks.mockApp.whenReady.mock.calls.length} times`);
+        console.log(
+            `mockApp.whenReady called: ${globalMocks.mockApp.whenReady.mock.calls.length} times`
+        );
         console.log(
             `mockBrowserWindow.getAllWindows called: ${globalMocks.mockBrowserWindow.getAllWindows.mock.calls.length} times`
         );
 
         // If initialization didn't happen automatically, try to trigger it manually
         if (setCalls === 0) {
-            console.log("[TEST] Initialization did not happen automatically, trying manual trigger");
+            console.log(
+                "[TEST] Initialization did not happen automatically, trying manual trigger"
+            );
 
             // Try to access internal functions if available
             try {
                 // Check if we can access the module's internal functions
-                const mainModuleKeys = Object.keys(require.cache[mainPath]?.exports || {});
+                const mainModuleKeys = Object.keys(
+                    require.cache[mainPath]?.exports || {}
+                );
                 console.log("[TEST] Main module exports keys:", mainModuleKeys);
 
                 // Try to manually call initialization functions if they exist
-                if (typeof (global as any).initializeApplication === "function") {
-                    console.log("[TEST] Calling initializeApplication manually");
+                if (
+                    typeof (global as any).initializeApplication === "function"
+                ) {
+                    console.log(
+                        "[TEST] Calling initializeApplication manually"
+                    );
                     await (global as any).initializeApplication();
                 }
 
                 // Wait a bit more
                 await new Promise((resolve) => setTimeout(resolve, 100));
 
-                const afterResults = (globalMocks as any).MockMainProcessState?.mock?.results || [];
+                const afterResults =
+                    (globalMocks as any).MockMainProcessState?.mock?.results ||
+                    [];
                 const afterInstance = afterResults[0]?.value;
-                const afterSetCalls = afterInstance?.set?.mock?.calls?.length ?? 0;
-                console.log(`After manual trigger - MockMainProcessState.set called: ${afterSetCalls} times`);
+                const afterSetCalls =
+                    afterInstance?.set?.mock?.calls?.length ?? 0;
+                console.log(
+                    `After manual trigger - MockMainProcessState.set called: ${afterSetCalls} times`
+                );
             } catch (error) {
                 console.log("[TEST] Manual trigger failed:", error);
             }
@@ -469,7 +512,11 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
         // Test app focus without triggering activate event errors
         const mockEvent = {};
-        globalMocks.mockApp.emit("browser-window-focus", mockEvent, globalMocks.mockWindow);
+        globalMocks.mockApp.emit(
+            "browser-window-focus",
+            mockEvent,
+            globalMocks.mockWindow
+        );
 
         await new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -524,11 +571,17 @@ describe("main.js - Comprehensive Coverage Tests", () => {
             setWindowOpenHandler: vi.fn(),
         });
 
-        globalMocks.mockApp.emit("web-contents-created", {}, mockWebContentsWithMethods);
+        globalMocks.mockApp.emit(
+            "web-contents-created",
+            {},
+            mockWebContentsWithMethods
+        );
 
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        expect(mockWebContentsWithMethods.setWindowOpenHandler).toHaveBeenCalled();
+        expect(
+            mockWebContentsWithMethods.setWindowOpenHandler
+        ).toHaveBeenCalled();
     });
 
     test("should exercise development vs production mode paths", async () => {
@@ -575,7 +628,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(globalMocks.mockWindow.webContents.executeJavaScript).toHaveBeenCalled();
+        expect(
+            globalMocks.mockWindow.webContents.executeJavaScript
+        ).toHaveBeenCalled();
     });
 
     test("should exercise comprehensive coverage through integration patterns", async () => {

@@ -55,7 +55,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(customError);
 
             expect(result.message).toBe("Custom error message");
-            expect(result.stack).toBe("Custom stack trace\n    at someFunction");
+            expect(result.stack).toBe(
+                "Custom stack trace\n    at someFunction"
+            );
         });
 
         it("should handle error object with only message", () => {
@@ -229,7 +231,11 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
 
     describe("Arrays and Functions", () => {
         it("should handle array value", () => {
-            const arrayError = ["error", "in", "array"];
+            const arrayError = [
+                "error",
+                "in",
+                "array",
+            ];
             const result = getErrorInfo(arrayError);
 
             expect(result.message).toBe("error,in,array");
@@ -269,7 +275,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(dateError);
 
             // The Date's string representation includes the year
-            expect(result.message).toContain(dateError.getFullYear().toString());
+            expect(result.message).toContain(
+                dateError.getFullYear().toString()
+            );
             expect(result.stack).toBeUndefined();
         });
 
@@ -311,7 +319,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(axiosError);
 
             expect(result.message).toBe("Request failed with status code 404");
-            expect(result.stack).toBe("Error: Request failed\n    at XMLHttpRequest.handleError");
+            expect(result.stack).toBe(
+                "Error: Request failed\n    at XMLHttpRequest.handleError"
+            );
         });
 
         it("should handle Node.js system error", () => {
@@ -336,8 +346,12 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             };
             const result = getErrorInfo(domError);
 
-            expect(result.message).toBe('Failed to execute "querySelector" on "Document"');
-            expect(result.stack).toBe("DOMException: Failed to execute\n    at Document.querySelector");
+            expect(result.message).toBe(
+                'Failed to execute "querySelector" on "Document"'
+            );
+            expect(result.stack).toBe(
+                "DOMException: Failed to execute\n    at Document.querySelector"
+            );
         });
     });
 
@@ -379,7 +393,15 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
 
     describe("Return Value Structure", () => {
         it("should always return an object with message property", () => {
-            const testCases = [new Error("test"), "string error", 123, null, undefined, {}, []];
+            const testCases = [
+                new Error("test"),
+                "string error",
+                123,
+                null,
+                undefined,
+                {},
+                [],
+            ];
 
             testCases.forEach((testCase) => {
                 const result = getErrorInfo(testCase);
@@ -390,7 +412,12 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
         });
 
         it("should have stack property as string or undefined", () => {
-            const testCases = [new Error("test"), { message: "test", stack: "stack" }, "string error", null];
+            const testCases = [
+                new Error("test"),
+                { message: "test", stack: "stack" },
+                "string error",
+                null,
+            ];
 
             testCases.forEach((testCase) => {
                 const result = getErrorInfo(testCase);

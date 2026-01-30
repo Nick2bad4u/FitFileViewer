@@ -7,7 +7,8 @@ type StoredValue = boolean | number;
 
 vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
     getPowerEstimationSetting: (key: string) => mockGet(key),
-    setPowerEstimationSetting: (key: string, value: StoredValue) => mockSet(key, value),
+    setPowerEstimationSetting: (key: string, value: StoredValue) =>
+        mockSet(key, value),
 }));
 
 describe("powerEstimationSettings.js", () => {

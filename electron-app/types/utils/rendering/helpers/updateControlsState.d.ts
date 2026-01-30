@@ -7,6 +7,7 @@ export function initializeControlsState(): void;
  */
 export function toggleChartControls(): void;
 /**
- * Synchronizes the controls state with DOM - useful for fixing state inconsistencies
+ * Synchronizes the controls state with DOM - useful for fixing state
+ * inconsistencies
  */
 export function updateControlsState(): void;

@@ -3,12 +3,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Import all converter utilities
 import { convertMpsToKmh } from "../../../utils/formatting/converters/convertMpsToKmh.js";
 import { convertMpsToMph } from "../../../utils/formatting/converters/convertMpsToMph.js";
-import { convertDistanceUnits, DISTANCE_UNITS } from "../../../utils/formatting/converters/convertDistanceUnits.js";
+import {
+    convertDistanceUnits,
+    DISTANCE_UNITS,
+} from "../../../utils/formatting/converters/convertDistanceUnits.js";
 import {
     convertTemperatureUnits,
     TEMPERATURE_UNITS,
 } from "../../../utils/formatting/converters/convertTemperatureUnits.js";
-import { convertTimeUnits, TIME_UNITS } from "../../../utils/formatting/converters/convertTimeUnits.js";
+import {
+    convertTimeUnits,
+    TIME_UNITS,
+} from "../../../utils/formatting/converters/convertTimeUnits.js";
 import { convertArrayBufferToBase64 } from "../../../utils/formatting/converters/convertArrayBufferToBase64.js";
 import { convertValueToUserUnits } from "../../../utils/formatting/converters/convertValueToUserUnits.js";
 
@@ -54,7 +60,10 @@ describe("Converter Utilities", () => {
         it("should handle negative speeds with warning", () => {
             const result = convertMpsToKmh(-5);
             expect(result).toBeCloseTo(-18, 1);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToKmh] Negative speed value:", -5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToKmh] Negative speed value:",
+                -5
+            );
         });
 
         it("should throw TypeError for non-numeric input", () => {
@@ -92,7 +101,10 @@ describe("Converter Utilities", () => {
         it("should handle negative speeds with warning", () => {
             const result = convertMpsToMph(-5);
             expect(result).toBeCloseTo(-11.18, 1);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToMph] Negative speed value:", -5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToMph] Negative speed value:",
+                -5
+            );
         });
 
         it("should throw TypeError for non-numeric input", () => {
@@ -116,20 +128,32 @@ describe("Converter Utilities", () => {
 
     describe("convertDistanceUnits", () => {
         it("should convert meters to kilometers correctly", () => {
-            expect(convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)).toBeCloseTo(1, 1);
-            expect(convertDistanceUnits(500, DISTANCE_UNITS.KILOMETERS)).toBeCloseTo(0.5, 1);
+            expect(
+                convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)
+            ).toBeCloseTo(1, 1);
+            expect(
+                convertDistanceUnits(500, DISTANCE_UNITS.KILOMETERS)
+            ).toBeCloseTo(0.5, 1);
             expect(convertDistanceUnits(0, DISTANCE_UNITS.KILOMETERS)).toBe(0);
         });
 
         it("should convert meters to miles correctly", () => {
-            expect(convertDistanceUnits(1609.34, DISTANCE_UNITS.MILES)).toBeCloseTo(1, 2);
-            expect(convertDistanceUnits(804.67, DISTANCE_UNITS.MILES)).toBeCloseTo(0.5, 2);
+            expect(
+                convertDistanceUnits(1609.34, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(1, 2);
+            expect(
+                convertDistanceUnits(804.67, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(0.5, 2);
             expect(convertDistanceUnits(0, DISTANCE_UNITS.MILES)).toBe(0);
         });
 
         it("should return meters unchanged when target unit is meters", () => {
-            expect(convertDistanceUnits(1000, DISTANCE_UNITS.METERS)).toBe(1000);
-            expect(convertDistanceUnits(500.5, DISTANCE_UNITS.METERS)).toBe(500.5);
+            expect(convertDistanceUnits(1000, DISTANCE_UNITS.METERS)).toBe(
+                1000
+            );
+            expect(convertDistanceUnits(500.5, DISTANCE_UNITS.METERS)).toBe(
+                500.5
+            );
         });
 
         it("should handle unknown units with warning and return original value", () => {
@@ -141,36 +165,71 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-numeric input", () => {
-            expect(() => convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(undefined as any, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
-            expect(() => convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(
+                    undefined as any,
+                    DISTANCE_UNITS.KILOMETERS
+                )
+            ).toThrow(TypeError);
+            expect(() =>
+                convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)
+            ).toThrow(TypeError);
         });
 
         it("should handle negative distances with warning", () => {
-            const result = convertDistanceUnits(-1000, DISTANCE_UNITS.KILOMETERS);
+            const result = convertDistanceUnits(
+                -1000,
+                DISTANCE_UNITS.KILOMETERS
+            );
             expect(result).toBeCloseTo(-1, 1);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertDistanceUnits] Negative distance value:", -1000);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -1000
+            );
         });
 
         it("should handle very large distances", () => {
-            expect(convertDistanceUnits(1000000, DISTANCE_UNITS.KILOMETERS)).toBeCloseTo(1000, 1);
-            expect(convertDistanceUnits(1000000, DISTANCE_UNITS.MILES)).toBeCloseTo(621.371, 1);
+            expect(
+                convertDistanceUnits(1000000, DISTANCE_UNITS.KILOMETERS)
+            ).toBeCloseTo(1000, 1);
+            expect(
+                convertDistanceUnits(1000000, DISTANCE_UNITS.MILES)
+            ).toBeCloseTo(621.371, 1);
         });
     });
 
     describe("convertTemperatureUnits", () => {
         it("should convert Celsius to Fahrenheit correctly", () => {
-            expect(convertTemperatureUnits(0, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(32);
-            expect(convertTemperatureUnits(100, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(212);
-            expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(77);
-            expect(convertTemperatureUnits(-40, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(-40);
+            expect(
+                convertTemperatureUnits(0, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBe(32);
+            expect(
+                convertTemperatureUnits(100, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBe(212);
+            expect(
+                convertTemperatureUnits(25, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBe(77);
+            expect(
+                convertTemperatureUnits(-40, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBe(-40);
         });
 
         it("should return Celsius unchanged when target unit is Celsius", () => {
-            expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)).toBe(25);
-            expect(convertTemperatureUnits(0, TEMPERATURE_UNITS.CELSIUS)).toBe(0);
-            expect(convertTemperatureUnits(-10, TEMPERATURE_UNITS.CELSIUS)).toBe(-10);
+            expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)).toBe(
+                25
+            );
+            expect(convertTemperatureUnits(0, TEMPERATURE_UNITS.CELSIUS)).toBe(
+                0
+            );
+            expect(
+                convertTemperatureUnits(-10, TEMPERATURE_UNITS.CELSIUS)
+            ).toBe(-10);
         });
 
         it("should handle unknown units with warning and return original value", () => {
@@ -182,20 +241,45 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-numeric input", () => {
-            expect(() => convertTemperatureUnits("25" as any, TEMPERATURE_UNITS.FAHRENHEIT)).toThrow(TypeError);
-            expect(() => convertTemperatureUnits(null as any, TEMPERATURE_UNITS.FAHRENHEIT)).toThrow(TypeError);
-            expect(() => convertTemperatureUnits(undefined as any, TEMPERATURE_UNITS.FAHRENHEIT)).toThrow(TypeError);
-            expect(() => convertTemperatureUnits(NaN, TEMPERATURE_UNITS.FAHRENHEIT)).toThrow(TypeError);
+            expect(() =>
+                convertTemperatureUnits(
+                    "25" as any,
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                )
+            ).toThrow(TypeError);
+            expect(() =>
+                convertTemperatureUnits(
+                    null as any,
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                )
+            ).toThrow(TypeError);
+            expect(() =>
+                convertTemperatureUnits(
+                    undefined as any,
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                )
+            ).toThrow(TypeError);
+            expect(() =>
+                convertTemperatureUnits(NaN, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toThrow(TypeError);
         });
 
         it("should handle decimal temperatures correctly", () => {
-            expect(convertTemperatureUnits(20.5, TEMPERATURE_UNITS.FAHRENHEIT)).toBeCloseTo(68.9, 1);
-            expect(convertTemperatureUnits(36.7, TEMPERATURE_UNITS.FAHRENHEIT)).toBeCloseTo(98.06, 1);
+            expect(
+                convertTemperatureUnits(20.5, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBeCloseTo(68.9, 1);
+            expect(
+                convertTemperatureUnits(36.7, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBeCloseTo(98.06, 1);
         });
 
         it("should handle extreme temperatures", () => {
-            expect(convertTemperatureUnits(-273.15, TEMPERATURE_UNITS.FAHRENHEIT)).toBeCloseTo(-459.67, 1);
-            expect(convertTemperatureUnits(1000, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(1832);
+            expect(
+                convertTemperatureUnits(-273.15, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBeCloseTo(-459.67, 1);
+            expect(
+                convertTemperatureUnits(1000, TEMPERATURE_UNITS.FAHRENHEIT)
+            ).toBe(1832);
         });
     });
 
@@ -228,16 +312,27 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-numeric input", () => {
-            expect(() => convertTimeUnits("3600" as any, TIME_UNITS.HOURS)).toThrow(TypeError);
-            expect(() => convertTimeUnits(null as any, TIME_UNITS.HOURS)).toThrow(TypeError);
-            expect(() => convertTimeUnits(undefined as any, TIME_UNITS.HOURS)).toThrow(TypeError);
-            expect(() => convertTimeUnits(NaN, TIME_UNITS.HOURS)).toThrow(TypeError);
+            expect(() =>
+                convertTimeUnits("3600" as any, TIME_UNITS.HOURS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertTimeUnits(null as any, TIME_UNITS.HOURS)
+            ).toThrow(TypeError);
+            expect(() =>
+                convertTimeUnits(undefined as any, TIME_UNITS.HOURS)
+            ).toThrow(TypeError);
+            expect(() => convertTimeUnits(NaN, TIME_UNITS.HOURS)).toThrow(
+                TypeError
+            );
         });
 
         it("should handle negative time values with warning", () => {
             const result = convertTimeUnits(-3600, TIME_UNITS.HOURS);
             expect(result).toBe(-1);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertTimeUnits] Negative time value:", -3600);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertTimeUnits] Negative time value:",
+                -3600
+            );
         });
 
         it("should handle decimal time values correctly", () => {
@@ -296,12 +391,24 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-ArrayBuffer input", () => {
-            expect(() => convertArrayBufferToBase64("not an array buffer" as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(null as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64({} as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64([] as any)).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(new Uint8Array(4) as any)).toThrow(TypeError);
+            expect(() =>
+                convertArrayBufferToBase64("not an array buffer" as any)
+            ).toThrow(TypeError);
+            expect(() => convertArrayBufferToBase64(null as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64({} as any)).toThrow(
+                TypeError
+            );
+            expect(() => convertArrayBufferToBase64([] as any)).toThrow(
+                TypeError
+            );
+            expect(() =>
+                convertArrayBufferToBase64(new Uint8Array(4) as any)
+            ).toThrow(TypeError);
         });
 
         it("should handle ArrayBuffer with all zero bytes", () => {
@@ -328,10 +435,14 @@ describe("Converter Utilities", () => {
 
         describe("distance field conversion", () => {
             it("should convert distance to kilometers when user preference is kilometers", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
                 const result = convertValueToUserUnits(1000, "distance");
                 expect(result).toBeCloseTo(1, 1);
-                expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
+                expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+                    "chartjs_distanceUnits"
+                );
             });
 
             it("should convert distance to miles when user preference is miles", () => {
@@ -341,14 +452,21 @@ describe("Converter Utilities", () => {
             });
 
             it("should convert altitude field as distance", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
                 const result = convertValueToUserUnits(1000, "altitude");
                 expect(result).toBeCloseTo(1, 1);
             });
 
             it("should convert enhancedAltitude field as distance", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
-                const result = convertValueToUserUnits(1000, "enhancedAltitude");
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
+                const result = convertValueToUserUnits(
+                    1000,
+                    "enhancedAltitude"
+                );
                 expect(result).toBeCloseTo(1, 1);
             });
 
@@ -361,14 +479,20 @@ describe("Converter Utilities", () => {
 
         describe("temperature field conversion", () => {
             it("should convert temperature to Fahrenheit when user preference is Fahrenheit", () => {
-                mockLocalStorage.getItem.mockReturnValue(TEMPERATURE_UNITS.FAHRENHEIT);
+                mockLocalStorage.getItem.mockReturnValue(
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                );
                 const result = convertValueToUserUnits(25, "temperature");
                 expect(result).toBe(77);
-                expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_temperatureUnits");
+                expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+                    "chartjs_temperatureUnits"
+                );
             });
 
             it("should keep temperature in Celsius when user preference is Celsius", () => {
-                mockLocalStorage.getItem.mockReturnValue(TEMPERATURE_UNITS.CELSIUS);
+                mockLocalStorage.getItem.mockReturnValue(
+                    TEMPERATURE_UNITS.CELSIUS
+                );
                 const result = convertValueToUserUnits(25, "temperature");
                 expect(result).toBe(25);
             });
@@ -401,7 +525,10 @@ describe("Converter Utilities", () => {
         describe("error handling", () => {
             it("should handle non-numeric values gracefully", () => {
                 mockConsole.warn.mockClear();
-                const result = convertValueToUserUnits("not a number", "distance");
+                const result = convertValueToUserUnits(
+                    "not a number",
+                    "distance"
+                );
                 expect(result).toBe("not a number");
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     "[convertValueToUserUnits] Invalid value for field 'distance':",
@@ -423,14 +550,20 @@ describe("Converter Utilities", () => {
                 mockConsole.warn.mockClear();
                 const result = convertValueToUserUnits(100, "");
                 expect(result).toBe(100);
-                expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", "");
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    "[convertValueToUserUnits] Invalid field name:",
+                    ""
+                );
             });
 
             it("should handle null field names gracefully", () => {
                 mockConsole.warn.mockClear();
                 const result = convertValueToUserUnits(100, null as any);
                 expect(result).toBe(100);
-                expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", null);
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    "[convertValueToUserUnits] Invalid field name:",
+                    null
+                );
             });
 
             it("should handle conversion errors gracefully", () => {
@@ -447,29 +580,47 @@ describe("Converter Utilities", () => {
 
         describe("edge cases", () => {
             it("should handle zero values correctly", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
                 expect(convertValueToUserUnits(0, "distance")).toBe(0);
 
-                mockLocalStorage.getItem.mockReturnValue(TEMPERATURE_UNITS.FAHRENHEIT);
+                mockLocalStorage.getItem.mockReturnValue(
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                );
                 expect(convertValueToUserUnits(0, "temperature")).toBe(32);
             });
 
             it("should handle negative values correctly", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
-                expect(convertValueToUserUnits(-1000, "distance")).toBeCloseTo(-1, 1);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
+                expect(convertValueToUserUnits(-1000, "distance")).toBeCloseTo(
+                    -1,
+                    1
+                );
 
-                mockLocalStorage.getItem.mockReturnValue(TEMPERATURE_UNITS.FAHRENHEIT);
+                mockLocalStorage.getItem.mockReturnValue(
+                    TEMPERATURE_UNITS.FAHRENHEIT
+                );
                 expect(convertValueToUserUnits(-10, "temperature")).toBe(14);
             });
 
             it("should handle very large values correctly", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
                 expect(convertValueToUserUnits(1000000, "distance")).toBe(1000);
             });
 
             it("should handle very small decimal values correctly", () => {
-                mockLocalStorage.getItem.mockReturnValue(DISTANCE_UNITS.KILOMETERS);
-                expect(convertValueToUserUnits(0.001, "distance")).toBeCloseTo(0.000001, 6);
+                mockLocalStorage.getItem.mockReturnValue(
+                    DISTANCE_UNITS.KILOMETERS
+                );
+                expect(convertValueToUserUnits(0.001, "distance")).toBeCloseTo(
+                    0.000001,
+                    6
+                );
             });
         });
     });

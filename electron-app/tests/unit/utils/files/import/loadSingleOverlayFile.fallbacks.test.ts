@@ -12,11 +12,16 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
         // Force Response to be undefined so the code goes to FileReader branch
         (globalThis as any).Response = undefined;
         // Provide a working electronAPI by default; tests can override
-        (globalThis as any).window = Object.assign((globalThis as any).window || {}, {
-            electronAPI: {
-                decodeFitFile: vi.fn(async () => ({ recordMesgs: [{ positionLat: 1, positionLong: 2 }] })),
-            },
-        });
+        (globalThis as any).window = Object.assign(
+            (globalThis as any).window || {},
+            {
+                electronAPI: {
+                    decodeFitFile: vi.fn(async () => ({
+                        recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+                    })),
+                },
+            }
+        );
     });
 
     afterEach(() => {
@@ -51,7 +56,8 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
         expect(res.success).toBe(true);
         expect((res.data as any)?.recordMesgs?.length).toBe(1);
         // Ensure decoder was invoked with an ArrayBuffer
-        const decode = (globalThis as any).window.electronAPI.decodeFitFile as ReturnType<typeof vi.fn>;
+        const decode = (globalThis as any).window.electronAPI
+            .decodeFitFile as ReturnType<typeof vi.fn>;
         expect(decode).toHaveBeenCalled();
         const arg = decode.mock.calls[0][0];
         expect(arg).toBeInstanceOf(ArrayBuffer);

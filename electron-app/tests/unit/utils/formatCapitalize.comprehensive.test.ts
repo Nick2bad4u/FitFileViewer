@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for formatCapitalize.js utility
+ * @file Comprehensive test suite for formatCapitalize.js utility
  *
- * Tests all aspects of the string capitalization utility including:
- * - Basic string capitalization with default options
- * - Custom options configuration (lowercaseRest)
- * - Input validation and error handling
- * - Edge cases and boundary conditions
- * - Performance and consistency testing
- * - Real-world usage scenarios
+ *   Tests all aspects of the string capitalization utility including:
+ *
+ *   - Basic string capitalization with default options
+ *   - Custom options configuration (lowercaseRest)
+ *   - Input validation and error handling
+ *   - Edge cases and boundary conditions
+ *   - Performance and consistency testing
+ *   - Real-world usage scenarios
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -84,7 +85,9 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
 
     describe("Options Configuration", () => {
         it("should preserve rest of string when lowercaseRest is false", () => {
-            const result = formatCapitalize("hELLo WoRLd", { lowercaseRest: false });
+            const result = formatCapitalize("hELLo WoRLd", {
+                lowercaseRest: false,
+            });
             expect(result).toBe("HELLo WoRLd");
         });
 
@@ -99,7 +102,9 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should handle mixed case with lowercaseRest false", () => {
-            const result = formatCapitalize("mCdONALD", { lowercaseRest: false });
+            const result = formatCapitalize("mCdONALD", {
+                lowercaseRest: false,
+            });
             expect(result).toBe("MCdONALD");
         });
 
@@ -109,7 +114,9 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should handle explicit lowercaseRest true", () => {
-            const result = formatCapitalize("HELLO WORLD", { lowercaseRest: true });
+            const result = formatCapitalize("HELLO WORLD", {
+                lowercaseRest: true,
+            });
             expect(result).toBe("Hello world");
         });
 
@@ -120,7 +127,9 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
 
         it("should handle null options (throws error as expected)", () => {
             // The function doesn't handle null options gracefully, it throws an error
-            expect(() => formatCapitalize("hello world", null as any)).toThrow();
+            expect(() =>
+                formatCapitalize("hello world", null as any)
+            ).toThrow();
         });
 
         it("should ignore extra options properties", () => {
@@ -192,7 +201,9 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
 
         it("should handle very long strings with lowercaseRest false", () => {
             const longString = "A".repeat(10000);
-            const result = formatCapitalize(longString, { lowercaseRest: false });
+            const result = formatCapitalize(longString, {
+                lowercaseRest: false,
+            });
             expect(result).toBe("A".repeat(10000));
         });
 
@@ -245,8 +256,12 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should format proper names preserving case", () => {
-            expect(formatCapitalize("McDONALD", { lowercaseRest: false })).toBe("McDONALD");
-            expect(formatCapitalize("iPhone", { lowercaseRest: false })).toBe("IPhone");
+            expect(formatCapitalize("McDONALD", { lowercaseRest: false })).toBe(
+                "McDONALD"
+            );
+            expect(formatCapitalize("iPhone", { lowercaseRest: false })).toBe(
+                "IPhone"
+            );
         });
 
         it("should format technical terms", () => {
@@ -256,8 +271,12 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should format technical terms preserving case", () => {
-            expect(formatCapitalize("javaScript", { lowercaseRest: false })).toBe("JavaScript");
-            expect(formatCapitalize("iOS", { lowercaseRest: false })).toBe("IOS");
+            expect(
+                formatCapitalize("javaScript", { lowercaseRest: false })
+            ).toBe("JavaScript");
+            expect(formatCapitalize("iOS", { lowercaseRest: false })).toBe(
+                "IOS"
+            );
         });
 
         it("should format file extensions", () => {
@@ -266,8 +285,12 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should format error messages", () => {
-            expect(formatCapitalize("error: file not found")).toBe("Error: file not found");
-            expect(formatCapitalize("WARNING: LOW BATTERY")).toBe("Warning: low battery");
+            expect(formatCapitalize("error: file not found")).toBe(
+                "Error: file not found"
+            );
+            expect(formatCapitalize("WARNING: LOW BATTERY")).toBe(
+                "Warning: low battery"
+            );
         });
 
         it("should format user input", () => {
@@ -282,9 +305,13 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should format abbreviations preserving case", () => {
-            expect(formatCapitalize("usa", { lowercaseRest: false })).toBe("Usa");
+            expect(formatCapitalize("usa", { lowercaseRest: false })).toBe(
+                "Usa"
+            );
             expect(formatCapitalize("UK", { lowercaseRest: false })).toBe("UK");
-            expect(formatCapitalize("FBI", { lowercaseRest: false })).toBe("FBI");
+            expect(formatCapitalize("FBI", { lowercaseRest: false })).toBe(
+                "FBI"
+            );
         });
 
         it("should format device names from FIT files", () => {
@@ -293,16 +320,30 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         });
 
         it("should format device names preserving brand casing", () => {
-            expect(formatCapitalize("garmin EDGE 520", { lowercaseRest: false })).toBe("Garmin EDGE 520");
-            expect(formatCapitalize("iphone", { lowercaseRest: false })).toBe("Iphone");
+            expect(
+                formatCapitalize("garmin EDGE 520", { lowercaseRest: false })
+            ).toBe("Garmin EDGE 520");
+            expect(formatCapitalize("iphone", { lowercaseRest: false })).toBe(
+                "Iphone"
+            );
         });
     });
 
     describe("Performance and Consistency", () => {
         it("should handle rapid successive calls efficiently", () => {
-            const inputs = ["hello", "WORLD", "tEsT", "sample"];
+            const inputs = [
+                "hello",
+                "WORLD",
+                "tEsT",
+                "sample",
+            ];
             const results = inputs.map((str) => formatCapitalize(str));
-            expect(results).toEqual(["Hello", "World", "Test", "Sample"]);
+            expect(results).toEqual([
+                "Hello",
+                "World",
+                "Test",
+                "Sample",
+            ]);
         });
 
         it("should be consistent across multiple calls", () => {

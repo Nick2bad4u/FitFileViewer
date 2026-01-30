@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../../../utils/charts/theming/getThemeColors.js", () => ({
-    getThemeColors: () => ({ primary: "#000", primaryAlpha: "#111", surface: "#fff" }),
+    getThemeColors: () => ({
+        primary: "#000",
+        primaryAlpha: "#111",
+        surface: "#fff",
+    }),
 }));
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
     showNotification: vi.fn(),
@@ -13,14 +17,18 @@ describe("export/print buttons", () => {
     });
 
     it("createPrintButton returns a button and handles click errors gracefully", async () => {
-        const { createPrintButton } = await import("../../../../utils/files/export/createPrintButton.js");
+        const { createPrintButton } =
+            await import("../../../../utils/files/export/createPrintButton.js");
         const btn = createPrintButton();
         expect(btn.tagName).toBe("BUTTON");
 
         // Simulate print throwing to exercise error path
         const origPrint = window.print;
-        const show = await import("../../../../utils/ui/notifications/showNotification.js");
-        const showSpy = vi.spyOn(show, "showNotification").mockResolvedValue(void 0 as unknown as void);
+        const show =
+            await import("../../../../utils/ui/notifications/showNotification.js");
+        const showSpy = vi
+            .spyOn(show, "showNotification")
+            .mockResolvedValue(void 0 as unknown as void);
         // @ts-ignore
         window.print = vi.fn(() => {
             throw new Error("print failed");
@@ -32,9 +40,12 @@ describe("export/print buttons", () => {
 
     it("createExportGPXButton builds and triggers a download when recordMesgs exist", async () => {
         vi.useFakeTimers();
-        const { createExportGPXButton } = await import("../../../../utils/files/export/createExportGPXButton.js");
-        if (!(URL as any).revokeObjectURL) (URL as any).revokeObjectURL = () => {};
-        if (!(URL as any).createObjectURL) (URL as any).createObjectURL = () => "blob:url";
+        const { createExportGPXButton } =
+            await import("../../../../utils/files/export/createExportGPXButton.js");
+        if (!(URL as any).revokeObjectURL)
+            (URL as any).revokeObjectURL = () => {};
+        if (!(URL as any).createObjectURL)
+            (URL as any).createObjectURL = () => "blob:url";
         const revoke = vi.spyOn(URL, "revokeObjectURL");
         const create = vi.spyOn(URL, "createObjectURL");
         (window as any).globalData = {
@@ -44,7 +55,9 @@ describe("export/print buttons", () => {
             ],
         };
         const btn = createExportGPXButton();
-        const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => void 0);
+        const clickSpy = vi
+            .spyOn(HTMLAnchorElement.prototype, "click")
+            .mockImplementation(() => void 0);
         // Click should generate object URL and click anchor
         btn.click();
         expect(create).toHaveBeenCalled();

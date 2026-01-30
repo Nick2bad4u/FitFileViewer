@@ -19,7 +19,12 @@ function createTableLike() {
 
 function createMaliciousTableLike() {
     return {
-        rows: [{ A: "<img src=x onerror=alert(1)>", B: "<a href=javascript:alert(2)>x</a>" }],
+        rows: [
+            {
+                A: "<img src=x onerror=alert(1)>",
+                B: "<a href=javascript:alert(2)>x</a>",
+            },
+        ],
     } as any;
 }
 
@@ -57,7 +62,8 @@ describe("renderTable", () => {
         const copyBtn = header.querySelector(".copy-btn") as HTMLButtonElement;
         expect(copyBtn).toBeTruthy();
         copyBtn.click();
-        const { copyTableAsCSV } = await import("../../../../utils/files/export/copyTableAsCSV.js");
+        const { copyTableAsCSV } =
+            await import("../../../../utils/files/export/copyTableAsCSV.js");
         expect(copyTableAsCSV).toHaveBeenCalledTimes(1);
     });
 
@@ -66,12 +72,16 @@ describe("renderTable", () => {
         const root = document.getElementById("root")!;
         await renderTable(root, "No jQ", createTableLike(), 2);
 
-        const table = root.querySelector("table#datatable_2") as HTMLTableElement;
+        const table = root.querySelector(
+            "table#datatable_2"
+        ) as HTMLTableElement;
         expect(table).toBeTruthy();
 
         // Expand to render fallback body
         (root.querySelector(".table-header") as HTMLElement).click();
-        const firstCell = root.querySelector("tbody td") as HTMLTableCellElement;
+        const firstCell = root.querySelector(
+            "tbody td"
+        ) as HTMLTableCellElement;
         expect(firstCell?.textContent).toBe("1");
     });
 
@@ -84,7 +94,9 @@ describe("renderTable", () => {
         // Expand to render fallback body
         (root.querySelector(".table-header") as HTMLElement).click();
 
-        const table = root.querySelector("table#datatable_9") as HTMLTableElement;
+        const table = root.querySelector(
+            "table#datatable_9"
+        ) as HTMLTableElement;
         expect(table).toBeTruthy();
 
         // Ensure potentially executable elements are not present (we only set textContent).
@@ -93,11 +105,16 @@ describe("renderTable", () => {
     });
 
     it("initializes DataTable when jQuery+DataTables present, destroying prior instance", async () => {
-        const calls: Array<{ selector: string; opts?: any; destroyed?: boolean }> = [];
+        const calls: Array<{
+            selector: string;
+            opts?: any;
+            destroyed?: boolean;
+        }> = [];
         // Minimal jQuery/DataTable stub
         const state: Record<string, { initialized: boolean }> = {};
         function jQ(selector: any) {
-            const key = typeof selector === "string" ? selector : "#datatable_3";
+            const key =
+                typeof selector === "string" ? selector : "#datatable_3";
             return {
                 ready(cb?: any) {
                     // Immediately invoke as DOM is already ready in jsdom
@@ -151,10 +168,14 @@ describe("renderTable", () => {
         state[selector] = { initialized: true };
         await renderTable(root, "DT", createTableLike(), 3);
         // Expand the second rendered section to trigger init/destroy logic.
-        const headers = Array.from(root.querySelectorAll(".table-header")) as HTMLElement[];
+        const headers = Array.from(
+            root.querySelectorAll(".table-header")
+        ) as HTMLElement[];
         headers[headers.length - 1].click();
         vi.runOnlyPendingTimers();
-        const destroyed = calls.filter((c) => c.selector === selector && c.destroyed).length;
+        const destroyed = calls.filter(
+            (c) => c.selector === selector && c.destroyed
+        ).length;
         expect(destroyed).toBeGreaterThanOrEqual(1);
     });
 });

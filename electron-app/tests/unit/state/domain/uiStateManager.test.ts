@@ -1,7 +1,15 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from "vitest";
+import {
+    describe,
+    it,
+    expect,
+    beforeEach,
+    vi,
+    beforeAll,
+    afterEach,
+} from "vitest";
 
 // Mock AppActions
 vi.mock("../../../../utils/app/lifecycle/appActions.js", () => ({
@@ -27,10 +35,19 @@ vi.mock("../../../../utils/state/core/stateManager.js", () => ({
 }));
 
 // Import the modules after mocks are set up
-import { UIStateManager, uiStateManager, UIActions } from "../../../../utils/state/domain/uiStateManager.js";
+import {
+    UIStateManager,
+    uiStateManager,
+    UIActions,
+} from "../../../../utils/state/domain/uiStateManager.js";
 import { AppActions } from "../../../../utils/app/lifecycle/appActions.js";
 import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
-import { getState, setState, subscribe, updateState } from "../../../../utils/state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../../../utils/state/core/stateManager.js";
 
 describe("UIStateManager - comprehensive coverage", () => {
     let addEventListenerSpy: any;
@@ -75,12 +92,30 @@ describe("UIStateManager - comprehensive coverage", () => {
         }
 
         // Mock window properties
-        Object.defineProperty(window, "innerHeight", { value: 800, writable: true });
-        Object.defineProperty(window, "innerWidth", { value: 1200, writable: true });
-        Object.defineProperty(window, "outerHeight", { value: 850, writable: true });
-        Object.defineProperty(window, "outerWidth", { value: 1250, writable: true });
-        Object.defineProperty(window, "screenX", { value: 100, writable: true });
-        Object.defineProperty(window, "screenY", { value: 200, writable: true });
+        Object.defineProperty(window, "innerHeight", {
+            value: 800,
+            writable: true,
+        });
+        Object.defineProperty(window, "innerWidth", {
+            value: 1200,
+            writable: true,
+        });
+        Object.defineProperty(window, "outerHeight", {
+            value: 850,
+            writable: true,
+        });
+        Object.defineProperty(window, "outerWidth", {
+            value: 1250,
+            writable: true,
+        });
+        Object.defineProperty(window, "screenX", {
+            value: 100,
+            writable: true,
+        });
+        Object.defineProperty(window, "screenY", {
+            value: 200,
+            writable: true,
+        });
 
         Object.defineProperty(window, "screen", {
             value: {
@@ -139,8 +174,14 @@ describe("UIStateManager - comprehensive coverage", () => {
         });
 
         it("should call setupEventListeners and initializeReactiveElements during initialization", () => {
-            const setupSpy = vi.spyOn(UIStateManager.prototype, "setupEventListeners");
-            const initSpy = vi.spyOn(UIStateManager.prototype, "initializeReactiveElements");
+            const setupSpy = vi.spyOn(
+                UIStateManager.prototype,
+                "setupEventListeners"
+            );
+            const initSpy = vi.spyOn(
+                UIStateManager.prototype,
+                "initializeReactiveElements"
+            );
 
             new UIStateManager();
 
@@ -152,11 +193,26 @@ describe("UIStateManager - comprehensive coverage", () => {
             const manager = new UIStateManager();
 
             // Verify subscribe was called for each state property
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith("ui.theme", expect.any(Function));
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith("isLoading", expect.any(Function));
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith("charts.controlsVisible", expect.any(Function));
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith("map.measurementMode", expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
+                "ui.theme",
+                expect.any(Function)
+            );
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
+                "isLoading",
+                expect.any(Function)
+            );
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
+                "charts.controlsVisible",
+                expect.any(Function)
+            );
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
+                "map.measurementMode",
+                expect.any(Function)
+            );
         });
     });
 
@@ -166,7 +222,9 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.applyTheme("light");
 
-            expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+            expect(document.documentElement.getAttribute("data-theme")).toBe(
+                "light"
+            );
         });
 
         it("should apply dark theme correctly", () => {
@@ -174,7 +232,9 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.applyTheme("dark");
 
-            expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+            expect(document.documentElement.getAttribute("data-theme")).toBe(
+                "dark"
+            );
         });
 
         it("should handle system theme with matchMedia support", () => {
@@ -184,12 +244,18 @@ describe("UIStateManager - comprehensive coverage", () => {
                 addEventListener: vi.fn(),
                 removeEventListener: vi.fn(),
             }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            Object.defineProperty(globalThis, "matchMedia", {
+                value: mockMatchMedia,
+            });
 
             manager.applyTheme("system");
 
-            expect(mockMatchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
-            expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+            expect(mockMatchMedia).toHaveBeenCalledWith(
+                "(prefers-color-scheme: dark)"
+            );
+            expect(document.documentElement.getAttribute("data-theme")).toBe(
+                "dark"
+            );
         });
 
         it("should handle system theme when matchMedia is not available", () => {
@@ -198,7 +264,9 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.applyTheme("system");
 
-            expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+            expect(document.documentElement.getAttribute("data-theme")).toBe(
+                "light"
+            );
         });
 
         it("should use legacy addListener when addEventListener is not available", () => {
@@ -209,7 +277,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 addListener,
                 removeListener: vi.fn(),
             }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            Object.defineProperty(globalThis, "matchMedia", {
+                value: mockMatchMedia,
+            });
 
             manager.applyTheme("system");
 
@@ -235,7 +305,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 addEventListener: vi.fn(),
                 removeEventListener,
             }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            Object.defineProperty(globalThis, "matchMedia", {
+                value: mockMatchMedia,
+            });
 
             // First apply system theme to set up listener
             manager.applyTheme("system");
@@ -255,7 +327,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 addListener: vi.fn(),
                 removeListener,
             }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            Object.defineProperty(globalThis, "matchMedia", {
+                value: mockMatchMedia,
+            });
 
             // Apply system theme then switch to explicit theme
             manager.applyTheme("system");
@@ -271,64 +345,96 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             // Check that addEventListener was called on tab buttons
             const tabButton = document.querySelector('[data-tab="charts"]');
-            expect(addEventListenerSpy).toHaveBeenCalledWith("click", expect.any(Function));
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                "click",
+                expect.any(Function)
+            );
         });
 
         it("should handle tab button clicks", () => {
             new UIStateManager();
 
-            const tabButton = document.querySelector('[data-tab="charts"]') as HTMLElement;
+            const tabButton = document.querySelector(
+                '[data-tab="charts"]'
+            ) as HTMLElement;
             tabButton.click();
 
-            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith("charts");
+            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith(
+                "charts"
+            );
         });
 
         it("should set up theme button event listeners", () => {
             new UIStateManager();
 
             const themeButton = document.querySelector('[data-theme="dark"]');
-            expect(addEventListenerSpy).toHaveBeenCalledWith("click", expect.any(Function));
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                "click",
+                expect.any(Function)
+            );
         });
 
         it("should handle theme button clicks", () => {
             new UIStateManager();
 
-            const themeButton = document.querySelector('[data-theme="dark"]') as HTMLElement;
+            const themeButton = document.querySelector(
+                '[data-theme="dark"]'
+            ) as HTMLElement;
             themeButton.click();
 
-            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith("dark");
+            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith(
+                "dark"
+            );
         });
 
         it("should set up chart controls toggle listener", () => {
             new UIStateManager();
 
-            const toggleButton = document.querySelector("#chart-controls-toggle");
-            expect(addEventListenerSpy).toHaveBeenCalledWith("click", expect.any(Function));
+            const toggleButton = document.querySelector(
+                "#chart-controls-toggle"
+            );
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                "click",
+                expect.any(Function)
+            );
         });
 
         it("should handle chart controls toggle clicks", () => {
             new UIStateManager();
 
-            const toggleButton = document.querySelector("#chart-controls-toggle") as HTMLElement;
+            const toggleButton = document.querySelector(
+                "#chart-controls-toggle"
+            ) as HTMLElement;
             toggleButton.click();
 
-            expect(vi.mocked(AppActions.toggleChartControls)).toHaveBeenCalled();
+            expect(
+                vi.mocked(AppActions.toggleChartControls)
+            ).toHaveBeenCalled();
         });
 
         it("should set up measurement mode toggle listener", () => {
             new UIStateManager();
 
-            const toggleButton = document.querySelector("#measurement-mode-toggle");
-            expect(addEventListenerSpy).toHaveBeenCalledWith("click", expect.any(Function));
+            const toggleButton = document.querySelector(
+                "#measurement-mode-toggle"
+            );
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                "click",
+                expect.any(Function)
+            );
         });
 
         it("should handle measurement mode toggle clicks", () => {
             new UIStateManager();
 
-            const toggleButton = document.querySelector("#measurement-mode-toggle") as HTMLElement;
+            const toggleButton = document.querySelector(
+                "#measurement-mode-toggle"
+            ) as HTMLElement;
             toggleButton.click();
 
-            expect(vi.mocked(AppActions.toggleMeasurementMode)).toHaveBeenCalled();
+            expect(
+                vi.mocked(AppActions.toggleMeasurementMode)
+            ).toHaveBeenCalled();
         });
 
         it("should handle missing elements gracefully", () => {
@@ -357,9 +463,15 @@ describe("UIStateManager - comprehensive coverage", () => {
             const manager = new UIStateManager();
             const displayName = "<img src=x onerror=alert(1)>";
 
-            manager.updateFileDisplayUI({ displayName, hasFile: true, title: "Test" });
+            manager.updateFileDisplayUI({
+                displayName,
+                hasFile: true,
+                title: "Test",
+            });
 
-            const fileSpan = document.getElementById("activeFileName") as HTMLElement;
+            const fileSpan = document.getElementById(
+                "activeFileName"
+            ) as HTMLElement;
             expect(fileSpan).toBeTruthy();
 
             // Verify malicious markup did not become DOM.
@@ -377,7 +489,11 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.showNotification("Test message");
 
-            expect(vi.mocked(showNotification)).toHaveBeenCalledWith("Test message", "info", 3000);
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
+                "Test message",
+                "info",
+                3000
+            );
             expect(vi.mocked(setState)).toHaveBeenCalledWith(
                 "ui.lastNotification",
                 expect.objectContaining({
@@ -398,7 +514,11 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.showNotification(notification);
 
-            expect(vi.mocked(showNotification)).toHaveBeenCalledWith("Error occurred", "error", 5000);
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
+                "Error occurred",
+                "error",
+                5000
+            );
             expect(vi.mocked(setState)).toHaveBeenCalledWith(
                 "ui.lastNotification",
                 expect.objectContaining({
@@ -415,39 +535,57 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.showNotification(notification);
 
-            expect(vi.mocked(showNotification)).toHaveBeenCalledWith("Test", "info", 3000);
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
+                "Test",
+                "info",
+                3000
+            );
         });
 
         it("should handle invalid notification parameter", () => {
             const manager = new UIStateManager();
-            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
 
             manager.showNotification(null);
 
-            expect(consoleSpy).toHaveBeenCalledWith("[UIStateManager] Invalid notification parameter:", null);
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[UIStateManager] Invalid notification parameter:",
+                null
+            );
             expect(vi.mocked(showNotification)).not.toHaveBeenCalled();
         });
 
         it("should fallback to console logging when showNotification fails", async () => {
             const manager = new UIStateManager();
-            const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const consoleLogSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             vi.mocked(showNotification).mockImplementation(() => {
                 throw new Error("Notification failed");
             });
 
             manager.showNotification("Test message");
 
-            expect(consoleLogSpy).toHaveBeenCalledWith("[Notification INFO] Test message");
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "[Notification INFO] Test message"
+            );
         });
 
         it("should handle error notification fallback", async () => {
             const manager = new UIStateManager();
-            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const consoleWarnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
             vi.mocked(showNotification).mockImplementation(() => {
                 throw new Error("Notification failed");
             });
 
-            manager.showNotification({ message: "Error message", type: "error" });
+            manager.showNotification({
+                message: "Error message",
+                type: "error",
+            });
 
             expect(consoleWarnSpy).toHaveBeenCalledWith("ERROR: Error message");
         });
@@ -457,8 +595,12 @@ describe("UIStateManager - comprehensive coverage", () => {
         describe("updateChartControlsUI", () => {
             it("should show chart controls when visible", () => {
                 const manager = new UIStateManager();
-                const chartControls = document.getElementById("chartjs-settings-wrapper") as HTMLElement;
-                const toggleBtn = document.getElementById("chart-controls-toggle") as HTMLElement;
+                const chartControls = document.getElementById(
+                    "chartjs-settings-wrapper"
+                ) as HTMLElement;
+                const toggleBtn = document.getElementById(
+                    "chart-controls-toggle"
+                ) as HTMLElement;
 
                 manager.updateChartControlsUI(true);
 
@@ -469,8 +611,12 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             it("should hide chart controls when not visible", () => {
                 const manager = new UIStateManager();
-                const chartControls = document.getElementById("chartjs-settings-wrapper") as HTMLElement;
-                const toggleBtn = document.getElementById("chart-controls-toggle") as HTMLElement;
+                const chartControls = document.getElementById(
+                    "chartjs-settings-wrapper"
+                ) as HTMLElement;
+                const toggleBtn = document.getElementById(
+                    "chart-controls-toggle"
+                ) as HTMLElement;
 
                 manager.updateChartControlsUI(false);
 
@@ -491,8 +637,12 @@ describe("UIStateManager - comprehensive coverage", () => {
         describe("updateLoadingIndicator", () => {
             it("should show loading indicator when loading", () => {
                 const manager = new UIStateManager();
-                const loadingIndicator = document.getElementById("loading-indicator") as HTMLElement;
-                const mainContent = document.getElementById("main-content") as HTMLElement;
+                const loadingIndicator = document.getElementById(
+                    "loading-indicator"
+                ) as HTMLElement;
+                const mainContent = document.getElementById(
+                    "main-content"
+                ) as HTMLElement;
 
                 manager.updateLoadingIndicator(true);
 
@@ -504,8 +654,12 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             it("should hide loading indicator when not loading", () => {
                 const manager = new UIStateManager();
-                const loadingIndicator = document.getElementById("loading-indicator") as HTMLElement;
-                const mainContent = document.getElementById("main-content") as HTMLElement;
+                const loadingIndicator = document.getElementById(
+                    "loading-indicator"
+                ) as HTMLElement;
+                const mainContent = document.getElementById(
+                    "main-content"
+                ) as HTMLElement;
 
                 manager.updateLoadingIndicator(false);
 
@@ -520,41 +674,59 @@ describe("UIStateManager - comprehensive coverage", () => {
                 document.getElementById("loading-indicator")?.remove();
                 document.getElementById("main-content")?.remove();
 
-                expect(() => manager.updateLoadingIndicator(true)).not.toThrow();
+                expect(() =>
+                    manager.updateLoadingIndicator(true)
+                ).not.toThrow();
             });
         });
 
         describe("updateMeasurementModeUI", () => {
             it("should activate measurement mode UI", () => {
                 const manager = new UIStateManager();
-                const toggleBtn = document.getElementById("measurement-mode-toggle") as HTMLElement;
-                const mapContainer = document.getElementById("map-container") as HTMLElement;
+                const toggleBtn = document.getElementById(
+                    "measurement-mode-toggle"
+                ) as HTMLElement;
+                const mapContainer = document.getElementById(
+                    "map-container"
+                ) as HTMLElement;
 
                 manager.updateMeasurementModeUI(true);
 
                 expect(toggleBtn.classList.contains("active")).toBe(true);
                 expect(toggleBtn.textContent).toBe("Exit Measurement");
-                expect(mapContainer.classList.contains("measurement-mode")).toBe(true);
+                expect(
+                    mapContainer.classList.contains("measurement-mode")
+                ).toBe(true);
             });
 
             it("should deactivate measurement mode UI", () => {
                 const manager = new UIStateManager();
-                const toggleBtn = document.getElementById("measurement-mode-toggle") as HTMLElement;
-                const mapContainer = document.getElementById("map-container") as HTMLElement;
+                const toggleBtn = document.getElementById(
+                    "measurement-mode-toggle"
+                ) as HTMLElement;
+                const mapContainer = document.getElementById(
+                    "map-container"
+                ) as HTMLElement;
 
                 manager.updateMeasurementModeUI(false);
 
                 expect(toggleBtn.classList.contains("active")).toBe(false);
                 expect(toggleBtn.textContent).toBe("Measure Distance");
-                expect(mapContainer.classList.contains("measurement-mode")).toBe(false);
+                expect(
+                    mapContainer.classList.contains("measurement-mode")
+                ).toBe(false);
             });
         });
 
         describe("updateTabButtons", () => {
             it("should update tab button states", () => {
                 const manager = new UIStateManager();
-                const chartsButton = document.querySelector('[data-tab="charts"]') as HTMLElement;
-                const mapButton = document.querySelector('[data-tab="map"]') as HTMLElement;
+                const chartsButton = document.querySelector(
+                    '[data-tab="charts"]'
+                ) as HTMLElement;
+                const mapButton = document.querySelector(
+                    '[data-tab="map"]'
+                ) as HTMLElement;
 
                 manager.updateTabButtons("charts");
 
@@ -568,8 +740,12 @@ describe("UIStateManager - comprehensive coverage", () => {
         describe("updateTabVisibility", () => {
             it("should update tab content visibility", () => {
                 const manager = new UIStateManager();
-                const chartsContent = document.querySelector('[data-tab-content="charts"]') as HTMLElement;
-                const mapContent = document.querySelector('[data-tab-content="map"]') as HTMLElement;
+                const chartsContent = document.querySelector(
+                    '[data-tab-content="charts"]'
+                ) as HTMLElement;
+                const mapContent = document.querySelector(
+                    '[data-tab-content="map"]'
+                ) as HTMLElement;
 
                 manager.updateTabVisibility("charts");
 
@@ -588,9 +764,13 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.toggleSidebar(undefined);
 
-            expect(vi.mocked(setState)).toHaveBeenCalledWith("ui.sidebarCollapsed", true, {
-                source: "UIStateManager.toggleSidebar",
-            });
+            expect(vi.mocked(setState)).toHaveBeenCalledWith(
+                "ui.sidebarCollapsed",
+                true,
+                {
+                    source: "UIStateManager.toggleSidebar",
+                }
+            );
         });
 
         it("should set sidebar to specific state", () => {
@@ -598,20 +778,28 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.toggleSidebar(true);
 
-            expect(vi.mocked(setState)).toHaveBeenCalledWith("ui.sidebarCollapsed", true, {
-                source: "UIStateManager.toggleSidebar",
-            });
+            expect(vi.mocked(setState)).toHaveBeenCalledWith(
+                "ui.sidebarCollapsed",
+                true,
+                {
+                    source: "UIStateManager.toggleSidebar",
+                }
+            );
         });
 
         it("should update sidebar DOM elements", () => {
             const manager = new UIStateManager();
             const sidebar = document.getElementById("sidebar") as HTMLElement;
-            const mainContent = document.getElementById("main-content") as HTMLElement;
+            const mainContent = document.getElementById(
+                "main-content"
+            ) as HTMLElement;
 
             manager.toggleSidebar(true);
 
             expect(sidebar.classList.contains("collapsed")).toBe(true);
-            expect(mainContent.classList.contains("sidebar-collapsed")).toBe(true);
+            expect(mainContent.classList.contains("sidebar-collapsed")).toBe(
+                true
+            );
         });
     });
 
@@ -636,8 +824,14 @@ describe("UIStateManager - comprehensive coverage", () => {
 
         it("should detect maximized window", () => {
             const manager = new UIStateManager();
-            Object.defineProperty(window, "outerWidth", { value: 1920, writable: true });
-            Object.defineProperty(window, "outerHeight", { value: 1080, writable: true });
+            Object.defineProperty(window, "outerWidth", {
+                value: 1920,
+                writable: true,
+            });
+            Object.defineProperty(window, "outerHeight", {
+                value: 1080,
+                writable: true,
+            });
 
             manager.updateWindowStateFromDOM();
 
@@ -658,7 +852,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 addEventListener: vi.fn(),
                 removeEventListener,
             }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            Object.defineProperty(globalThis, "matchMedia", {
+                value: mockMatchMedia,
+            });
 
             // Set up system theme listener
             manager.applyTheme("system");
@@ -686,25 +882,33 @@ describe("UIStateManager - comprehensive coverage", () => {
         it("should provide UIActions.setTheme convenience function", () => {
             UIActions.setTheme("dark");
 
-            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith("dark");
+            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith(
+                "dark"
+            );
         });
 
         it("should provide UIActions.showTab convenience function", () => {
             UIActions.showTab("charts");
 
-            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith("charts");
+            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith(
+                "charts"
+            );
         });
 
         it("should provide UIActions.toggleChartControls convenience function", () => {
             UIActions.toggleChartControls();
 
-            expect(vi.mocked(AppActions.toggleChartControls)).toHaveBeenCalled();
+            expect(
+                vi.mocked(AppActions.toggleChartControls)
+            ).toHaveBeenCalled();
         });
 
         it("should provide UIActions.toggleMeasurementMode convenience function", () => {
             UIActions.toggleMeasurementMode();
 
-            expect(vi.mocked(AppActions.toggleMeasurementMode)).toHaveBeenCalled();
+            expect(
+                vi.mocked(AppActions.toggleMeasurementMode)
+            ).toHaveBeenCalled();
         });
 
         it("should provide UIActions.toggleSidebar convenience function", () => {
@@ -716,7 +920,10 @@ describe("UIStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.updateWindowState convenience function", () => {
-            const updateWindowStateSpy = vi.spyOn(uiStateManager, "updateWindowStateFromDOM");
+            const updateWindowStateSpy = vi.spyOn(
+                uiStateManager,
+                "updateWindowStateFromDOM"
+            );
 
             UIActions.updateWindowState();
 

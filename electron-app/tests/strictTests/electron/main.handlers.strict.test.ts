@@ -83,9 +83,16 @@ vi.mock("electron", () => ({
 };
 
 // electron-updater mock wired to shared emitter
-const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), transports: { file: { level: "info" } } };
+const mockLogger = {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    transports: { file: { level: "info" } },
+};
 const autoUpdater = {
-    on: vi.fn((evt: string, handler: Function) => autoUpdaterEmitter.on(evt, handler)),
+    on: vi.fn((evt: string, handler: Function) =>
+        autoUpdaterEmitter.on(evt, handler)
+    ),
     logger: mockLogger,
     checkForUpdatesAndNotify: vi.fn().mockResolvedValue(undefined),
     quitAndInstall: vi.fn(),
@@ -199,8 +206,16 @@ describe("main.js strict handlers and events", () => {
         };
 
         mockIpcMain = { on: vi.fn(), handle: vi.fn() };
-        mockDialog = { showOpenDialog: vi.fn(), showSaveDialog: vi.fn(), showMessageBox: vi.fn() };
-        mockMenu = { getApplicationMenu: vi.fn(() => ({ getMenuItemById: vi.fn(() => ({ enabled: false })) })) };
+        mockDialog = {
+            showOpenDialog: vi.fn(),
+            showSaveDialog: vi.fn(),
+            showMessageBox: vi.fn(),
+        };
+        mockMenu = {
+            getApplicationMenu: vi.fn(() => ({
+                getMenuItemById: vi.fn(() => ({ enabled: false })),
+            })),
+        };
         mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
 
         mockApp = {
@@ -216,9 +231,12 @@ describe("main.js strict handlers and events", () => {
 
         const stateData: any = { eventHandlers: new Map(), store: new Map() };
         mainProcessState.get = vi.fn((k: string) => stateData.store.get(k));
-        mainProcessState.set = vi.fn((k: string, v: any) => stateData.store.set(k, v));
-        mainProcessState.registerEventHandler = vi.fn((t: any, e: string, h: Function, id: string) =>
-            stateData.eventHandlers.set(id, { t, e, h })
+        mainProcessState.set = vi.fn((k: string, v: any) =>
+            stateData.store.set(k, v)
+        );
+        mainProcessState.registerEventHandler = vi.fn(
+            (t: any, e: string, h: Function, id: string) =>
+                stateData.eventHandlers.set(id, { t, e, h })
         );
         mainProcessState.cleanupEventHandlers = vi.fn();
         mainProcessState.data = stateData;
@@ -245,11 +263,25 @@ describe("main.js strict handlers and events", () => {
         autoUpdaterEmitter.emit("download-progress", { p: 10 });
         autoUpdaterEmitter.emit("update-downloaded", { v: "1.0.1" });
 
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("update-checking");
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("update-available", expect.any(Object));
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("update-not-available", expect.any(Object));
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("update-download-progress", expect.any(Object));
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("update-downloaded", expect.any(Object));
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "update-checking"
+        );
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "update-available",
+            expect.any(Object)
+        );
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "update-not-available",
+            expect.any(Object)
+        );
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "update-download-progress",
+            expect.any(Object)
+        );
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "update-downloaded",
+            expect.any(Object)
+        );
 
         // IPC handler registration happened
         expect(mockIpcMain.handle).toHaveBeenCalled();
@@ -260,27 +292,43 @@ describe("main.js strict handlers and events", () => {
         await import("../../../main.js");
 
         // Find the handler wired to dialog:openFile via ipcMain.handle calls
-        const call = mockIpcMain.handle.mock.calls.find((c: any[]) => c[0] === "dialog:openFile");
+        const call = mockIpcMain.handle.mock.calls.find(
+            (c: any[]) => c[0] === "dialog:openFile"
+        );
         expect(call).toBeTruthy();
         const openHandler = call[1];
 
         // Cancelled path
-        mockDialog.showOpenDialog.mockResolvedValueOnce({ canceled: true, filePaths: [] });
+        mockDialog.showOpenDialog.mockResolvedValueOnce({
+            canceled: true,
+            filePaths: [],
+        });
         await expect(openHandler({})).resolves.toBeNull();
 
         // Success path -> adds recent, sets state, rebuilds menu with theme
-        mockDialog.showOpenDialog.mockResolvedValueOnce({ canceled: false, filePaths: ["C:/file.fit"] });
-        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce("light");
+        mockDialog.showOpenDialog.mockResolvedValueOnce({
+            canceled: false,
+            filePaths: ["C:/file.fit"],
+        });
+        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
+            "light"
+        );
         await expect(openHandler({})).resolves.toBe("C:/file.fit");
         // Don't assert on addRecentFile or createAppMenu due to module resolution differences; path return suffices
 
         // recentFiles:get
-        const recentGet = mockIpcMain.handle.mock.calls.find((c: any[]) => c[0] === "recentFiles:get");
+        const recentGet = mockIpcMain.handle.mock.calls.find(
+            (c: any[]) => c[0] === "recentFiles:get"
+        );
         const recent = await recentGet[1]({});
         expect(Array.isArray(recent)).toBe(true);
         // recentFiles:add
-        const recentAdd = mockIpcMain.handle.mock.calls.find((c: any[]) => c[0] === "recentFiles:add");
-        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce("dark");
+        const recentAdd = mockIpcMain.handle.mock.calls.find(
+            (c: any[]) => c[0] === "recentFiles:add"
+        );
+        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
+            "dark"
+        );
         await expect(recentAdd[1]({}, "D:/other.fit")).resolves.toBeDefined();
         // In test mode, menu creation is a no-op; verifying no throw is sufficient
     });
@@ -288,7 +336,9 @@ describe("main.js strict handlers and events", () => {
     it("validates shell:openExternal and file:read/fit handlers", async () => {
         await import("../../../main.js");
         const handleCalls = mockIpcMain.handle.mock.calls;
-        const openExternal = handleCalls.find((c: any[]) => c[0] === "shell:openExternal");
+        const openExternal = handleCalls.find(
+            (c: any[]) => c[0] === "shell:openExternal"
+        );
         const fileRead = handleCalls.find((c: any[]) => c[0] === "file:read");
         const fitParse = handleCalls.find((c: any[]) => c[0] === "fit:parse");
         const fitDecode = handleCalls.find((c: any[]) => c[0] === "fit:decode");
@@ -296,8 +346,12 @@ describe("main.js strict handlers and events", () => {
         // Invalid URL
         await expect(openExternal[1]({}, "file://bad")).rejects.toBeTruthy();
         // Valid URL
-        await expect(openExternal[1]({}, "https://example.com")).resolves.toBe(true);
-        expect(mockShell.openExternal).toHaveBeenCalledWith("https://example.com");
+        await expect(openExternal[1]({}, "https://example.com")).resolves.toBe(
+            true
+        );
+        expect(mockShell.openExternal).toHaveBeenCalledWith(
+            "https://example.com"
+        );
 
         // file:read returns ArrayBuffer
         // file:read is protected by a main-process allowlist; approve the path as if it
@@ -310,15 +364,19 @@ describe("main.js strict handlers and events", () => {
         // Override fs.readFile for this call using spy with loose typing
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fsMod: any = require("fs");
-        (vi.spyOn(fsMod as any, "readFile") as any).mockImplementation((p: string, cb: Function) =>
-            cb(null, Buffer.from("abc"))
+        (vi.spyOn(fsMod as any, "readFile") as any).mockImplementation(
+            (p: string, cb: Function) => cb(null, Buffer.from("abc"))
         );
         const buf = await fileRead[1]({}, "C:/x.fit");
         expect(buf).toBeDefined();
 
         // fit parse/decode
-        await expect(fitParse[1]({}, new ArrayBuffer(4))).resolves.toBeDefined();
-        await expect(fitDecode[1]({}, new ArrayBuffer(4))).resolves.toBeDefined();
+        await expect(
+            fitParse[1]({}, new ArrayBuffer(4))
+        ).resolves.toBeDefined();
+        await expect(
+            fitDecode[1]({}, new ArrayBuffer(4))
+        ).resolves.toBeDefined();
     });
 
     it("menu events and fullscreen, security navigation guards", async () => {
@@ -326,7 +384,9 @@ describe("main.js strict handlers and events", () => {
 
         // menu-check-for-updates executes without throwing
         const onCalls = mockIpcMain.on.mock.calls;
-        const updaterCheck = onCalls.find((c: any[]) => c[0] === "menu-check-for-updates");
+        const updaterCheck = onCalls.find(
+            (c: any[]) => c[0] === "menu-check-for-updates"
+        );
         // Execute handler; don't assert internal call count to keep test robust across module interop
         expect(() => updaterCheck[1]({})).not.toThrow();
 
@@ -334,10 +394,14 @@ describe("main.js strict handlers and events", () => {
         const originalPlatform = process.platform;
         try {
             Object.defineProperty(process, "platform", { value: "linux" });
-            const install = onCalls.find((c: any[]) => c[0] === "install-update");
+            const install = onCalls.find(
+                (c: any[]) => c[0] === "install-update"
+            );
             expect(() => install[1]({})).not.toThrow();
         } finally {
-            Object.defineProperty(process, "platform", { value: originalPlatform });
+            Object.defineProperty(process, "platform", {
+                value: originalPlatform,
+            });
         }
 
         // fullscreen
@@ -346,7 +410,9 @@ describe("main.js strict handlers and events", () => {
         expect(mockMainWindow.setFullScreen).toHaveBeenCalledWith(true);
 
         // Security handlers wired on web-contents-created
-        const appOnCall = mockApp.on.mock.calls.find((c: any[]) => c[0] === "web-contents-created");
+        const appOnCall = mockApp.on.mock.calls.find(
+            (c: any[]) => c[0] === "web-contents-created"
+        );
         expect(appOnCall).toBeTruthy();
         const contents: any = {
             on: vi.fn((evt: string, handler: any) => {
@@ -358,8 +424,12 @@ describe("main.js strict handlers and events", () => {
                 }
             }),
             setWindowOpenHandler: vi.fn((fn: any) => {
-                expect(fn({ url: "https://bad.example.com" })).toEqual({ action: "deny" });
-                expect(fn({ url: "file://index.html" })).toEqual({ action: "allow" });
+                expect(fn({ url: "https://bad.example.com" })).toEqual({
+                    action: "deny",
+                });
+                expect(fn({ url: "file://index.html" })).toEqual({
+                    action: "allow",
+                });
             }),
         };
         appOnCall[1]({}, contents);

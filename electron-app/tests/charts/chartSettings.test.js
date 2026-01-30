@@ -60,7 +60,13 @@ vi.mock("../../utils/charts/theming/getFieldColor.js", () => ({
 describe("createEnhancedChart Settings", () => {
     /** @type {HTMLCanvasElement} */
     let mockCanvas;
-    /** @type {{ destroy: import("vitest").Mock; options: Record<string, unknown>; data: Record<string, unknown> }} */
+    /**
+     * @type {{
+     *     destroy: import("vitest").Mock;
+     *     options: Record<string, unknown>;
+     *     data: Record<string, unknown>;
+     * }}
+     */
     let mockChart;
     /** @type {import("vitest").Mock} */
     let ChartMock;
@@ -97,46 +103,70 @@ describe("createEnhancedChart Settings", () => {
         };
         createEnhancedChart(mockCanvas, options);
         const config = ChartMock.mock.calls[0][1];
-        expect(config.options.plugins.decimation).toEqual({ enabled: true, algorithm: "lttb" });
+        expect(config.options.plugins.decimation).toEqual({
+            enabled: true,
+            algorithm: "lttb",
+        });
     });
 
     it("2. Chart type (line/bar/scatter/area)", () => {
         // Line
-        createEnhancedChart(mockCanvas, { ...defaultOptions, chartType: "line" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            chartType: "line",
+        });
         expect(ChartMock.mock.calls[0][1].type).toBe("line");
         ChartMock.mockClear();
 
         // Bar
-        createEnhancedChart(mockCanvas, { ...defaultOptions, chartType: "bar" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            chartType: "bar",
+        });
         expect(ChartMock.mock.calls[0][1].type).toBe("bar");
         ChartMock.mockClear();
 
         // Scatter
-        createEnhancedChart(mockCanvas, { ...defaultOptions, chartType: "scatter" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            chartType: "scatter",
+        });
         expect(ChartMock.mock.calls[0][1].type).toBe("scatter");
         ChartMock.mockClear();
 
         // Area (should be line with fill)
-        createEnhancedChart(mockCanvas, { ...defaultOptions, chartType: "area" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            chartType: "area",
+        });
         expect(ChartMock.mock.calls[0][1].type).toBe("line");
     });
 
     it("3. Interpolation (linear/monotone/step)", () => {
         // Linear
-        createEnhancedChart(mockCanvas, { ...defaultOptions, interpolation: "linear" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            interpolation: "linear",
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.data.datasets[0].stepped).toBe(false);
         expect(config.data.datasets[0].cubicInterpolationMode).toBe("default");
         ChartMock.mockClear();
 
         // Monotone
-        createEnhancedChart(mockCanvas, { ...defaultOptions, interpolation: "monotone" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            interpolation: "monotone",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.data.datasets[0].cubicInterpolationMode).toBe("monotone");
         ChartMock.mockClear();
 
         // Step
-        createEnhancedChart(mockCanvas, { ...defaultOptions, interpolation: "step" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            interpolation: "step",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.data.datasets[0].stepped).toBe(true);
         expect(config.data.datasets[0].tension).toBe(0);
@@ -144,17 +174,28 @@ describe("createEnhancedChart Settings", () => {
 
     it("4. Animation: smooth/fast/none", () => {
         // Smooth (default/normal) -> 1000ms
-        createEnhancedChart(mockCanvas, { ...defaultOptions, animationStyle: "normal" });
-        expect(ChartMock.mock.calls[0][1].options.animation.duration).toBe(1000);
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            animationStyle: "normal",
+        });
+        expect(ChartMock.mock.calls[0][1].options.animation.duration).toBe(
+            1000
+        );
         ChartMock.mockClear();
 
         // Fast -> 500ms
-        createEnhancedChart(mockCanvas, { ...defaultOptions, animationStyle: "fast" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            animationStyle: "fast",
+        });
         expect(ChartMock.mock.calls[0][1].options.animation.duration).toBe(500);
         ChartMock.mockClear();
 
         // None -> 0ms
-        createEnhancedChart(mockCanvas, { ...defaultOptions, animationStyle: "none" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            animationStyle: "none",
+        });
         expect(ChartMock.mock.calls[0][1].options.animation.duration).toBe(0);
     });
 
@@ -163,21 +204,29 @@ describe("createEnhancedChart Settings", () => {
         createEnhancedChart(mockCanvas, { ...defaultOptions, theme: "auto" });
         let config = ChartMock.mock.calls[0][1];
         // Light theme background color for plugin
-        expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("#ffffff");
+        expect(
+            config.options.plugins.chartBackgroundColorPlugin.backgroundColor
+        ).toBe("#ffffff");
         expect(detectCurrentTheme).toHaveBeenCalled();
         ChartMock.mockClear();
 
         // Dark explicit
         createEnhancedChart(mockCanvas, { ...defaultOptions, theme: "dark" });
         config = ChartMock.mock.calls[0][1];
-        expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("#181c24");
-        expect(config.options.scales.x.grid.color).toBe("rgba(255,255,255,0.1)");
+        expect(
+            config.options.plugins.chartBackgroundColorPlugin.backgroundColor
+        ).toBe("#181c24");
+        expect(config.options.scales.x.grid.color).toBe(
+            "rgba(255,255,255,0.1)"
+        );
         ChartMock.mockClear();
 
         // Light explicit
         createEnhancedChart(mockCanvas, { ...defaultOptions, theme: "light" });
         config = ChartMock.mock.calls[0][1];
-        expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("#ffffff");
+        expect(
+            config.options.plugins.chartBackgroundColorPlugin.backgroundColor
+        ).toBe("#ffffff");
         expect(config.options.scales.x.grid.color).toBe("rgba(0,0,0,0.1)");
     });
 
@@ -198,13 +247,19 @@ describe("createEnhancedChart Settings", () => {
 
     it("7. Legend (on/off)", () => {
         // On
-        createEnhancedChart(mockCanvas, { ...defaultOptions, showLegend: true });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            showLegend: true,
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.legend.display).toBe(true);
         ChartMock.mockClear();
 
         // Off
-        createEnhancedChart(mockCanvas, { ...defaultOptions, showLegend: false });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            showLegend: false,
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.legend.display).toBe(false);
     });
@@ -217,20 +272,29 @@ describe("createEnhancedChart Settings", () => {
         ChartMock.mockClear();
 
         // Off
-        createEnhancedChart(mockCanvas, { ...defaultOptions, showTitle: false });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            showTitle: false,
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.display).toBe(false);
     });
 
     it("9. Data points (on/off)", () => {
         // On
-        createEnhancedChart(mockCanvas, { ...defaultOptions, showPoints: true });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            showPoints: true,
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.data.datasets[0].pointRadius).toBe(3);
         ChartMock.mockClear();
 
         // Off
-        createEnhancedChart(mockCanvas, { ...defaultOptions, showPoints: false });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            showPoints: false,
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.data.datasets[0].pointRadius).toBe(0);
     });
@@ -256,19 +320,28 @@ describe("createEnhancedChart Settings", () => {
 
     it("12. Time units (seconds/minutes/hours)", () => {
         // Seconds
-        createEnhancedChart(mockCanvas, { ...defaultOptions, timeUnits: "seconds" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            timeUnits: "seconds",
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.options.scales.x.title.text).toContain("(s)");
         ChartMock.mockClear();
 
         // Minutes
-        createEnhancedChart(mockCanvas, { ...defaultOptions, timeUnits: "minutes" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            timeUnits: "minutes",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.scales.x.title.text).toContain("(min)");
         ChartMock.mockClear();
 
         // Hours
-        createEnhancedChart(mockCanvas, { ...defaultOptions, timeUnits: "hours" });
+        createEnhancedChart(mockCanvas, {
+            ...defaultOptions,
+            timeUnits: "hours",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.scales.x.title.text).toContain("(h)");
     });
@@ -277,25 +350,37 @@ describe("createEnhancedChart Settings", () => {
         const distanceFieldOptions = { ...defaultOptions, field: "distance" };
 
         // Kilometers
-        createEnhancedChart(mockCanvas, { ...distanceFieldOptions, distanceUnits: "kilometers" });
+        createEnhancedChart(mockCanvas, {
+            ...distanceFieldOptions,
+            distanceUnits: "kilometers",
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(km)");
         ChartMock.mockClear();
 
         // Miles
-        createEnhancedChart(mockCanvas, { ...distanceFieldOptions, distanceUnits: "miles" });
+        createEnhancedChart(mockCanvas, {
+            ...distanceFieldOptions,
+            distanceUnits: "miles",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(mi)");
         ChartMock.mockClear();
 
         // Meters
-        createEnhancedChart(mockCanvas, { ...distanceFieldOptions, distanceUnits: "meters" });
+        createEnhancedChart(mockCanvas, {
+            ...distanceFieldOptions,
+            distanceUnits: "meters",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(m)");
         ChartMock.mockClear();
 
         // Feet
-        createEnhancedChart(mockCanvas, { ...distanceFieldOptions, distanceUnits: "feet" });
+        createEnhancedChart(mockCanvas, {
+            ...distanceFieldOptions,
+            distanceUnits: "feet",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(ft)");
     });
@@ -304,13 +389,19 @@ describe("createEnhancedChart Settings", () => {
         const tempFieldOptions = { ...defaultOptions, field: "temperature" };
 
         // Celsius
-        createEnhancedChart(mockCanvas, { ...tempFieldOptions, temperatureUnits: "celsius" });
+        createEnhancedChart(mockCanvas, {
+            ...tempFieldOptions,
+            temperatureUnits: "celsius",
+        });
         let config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(°C)");
         ChartMock.mockClear();
 
         // Fahrenheit
-        createEnhancedChart(mockCanvas, { ...tempFieldOptions, temperatureUnits: "fahrenheit" });
+        createEnhancedChart(mockCanvas, {
+            ...tempFieldOptions,
+            temperatureUnits: "fahrenheit",
+        });
         config = ChartMock.mock.calls[0][1];
         expect(config.options.plugins.title.text).toContain("(°F)");
     });

@@ -36,10 +36,14 @@ describe("renderSummaryHelpers core functions", () => {
 
     it("getStorageKey prefers window.globalData.cachedFilePath and encodes it", async () => {
         const { getStorageKey } = await import(SUT);
-        (global.window as any).globalData = { cachedFilePath: "C:/Users/Me/My Activity.fit" };
+        (global.window as any).globalData = {
+            cachedFilePath: "C:/Users/Me/My Activity.fit",
+        };
         const key = getStorageKey({}, [] as any);
         expect(key.startsWith("summaryColSel_")).toBe(true);
-        expect(key).toContain(encodeURIComponent("C:/Users/Me/My Activity.fit"));
+        expect(key).toContain(
+            encodeURIComponent("C:/Users/Me/My Activity.fit")
+        );
     });
 
     it("getStorageKey falls back to data.cachedFilePath when window.globalData missing", async () => {
@@ -48,7 +52,9 @@ describe("renderSummaryHelpers core functions", () => {
         (global.window as any).globalData = undefined;
         const data: any = { cachedFilePath: "/tmp/äctivity file.fit" };
         const key = getStorageKey(data, undefined as any);
-        expect(key).toBe("summaryColSel_" + encodeURIComponent("/tmp/äctivity file.fit"));
+        expect(key).toBe(
+            "summaryColSel_" + encodeURIComponent("/tmp/äctivity file.fit")
+        );
     });
 
     it("getStorageKey falls back to window.activeFitFileName and defaults otherwise", async () => {
@@ -60,15 +66,28 @@ describe("renderSummaryHelpers core functions", () => {
         // Now set activeFitFileName
         (global.window as any).activeFitFileName = "JustAName.fit";
         const keyActive = getStorageKey(undefined as any, undefined as any);
-        expect(keyActive).toBe("summaryColSel_" + encodeURIComponent("JustAName.fit"));
+        expect(keyActive).toBe(
+            "summaryColSel_" + encodeURIComponent("JustAName.fit")
+        );
     });
 
     it("loadColPrefs returns array of strings from localStorage and handles bad values", async () => {
         const { loadColPrefs } = await import(SUT);
         const key = "summaryColSel_test";
         // Valid array
-        localStorage.setItem(key, JSON.stringify(["a", "b", "c"]));
-        expect(loadColPrefs(key, undefined as any)).toEqual(["a", "b", "c"]);
+        localStorage.setItem(
+            key,
+            JSON.stringify([
+                "a",
+                "b",
+                "c",
+            ])
+        );
+        expect(loadColPrefs(key, undefined as any)).toEqual([
+            "a",
+            "b",
+            "c",
+        ]);
         // Not an array -> null
         localStorage.setItem(key, JSON.stringify({ a: 1 }));
         expect(loadColPrefs(key, undefined as any)).toBeNull();

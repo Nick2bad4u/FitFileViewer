@@ -1,6 +1,6 @@
 /**
- * Comprehensive test suite for updateActiveTab module
- * Testing tab state management, DOM manipulation, and user interactions
+ * Comprehensive test suite for updateActiveTab module Testing tab state
+ * management, DOM manipulation, and user interactions
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -12,9 +12,17 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
     subscribe: vi.fn(() => () => {}),
 }));
 
-import { updateActiveTab, initializeActiveTabState, getActiveTab } from "../../../utils/ui/tabs/updateActiveTab.js";
+import {
+    updateActiveTab,
+    initializeActiveTabState,
+    getActiveTab,
+} from "../../../utils/ui/tabs/updateActiveTab.js";
 
-import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../../utils/state/core/stateManager.js";
 
 const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
@@ -66,7 +74,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
             expect(mapTab?.classList.contains("active")).toBe(false);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "updateActiveTab",
+            });
         });
 
         it("should handle all supported tab ID patterns", () => {
@@ -84,7 +94,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
                 const element = document.getElementById(id);
                 expect(element?.classList.contains("active")).toBe(true);
-                expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", expected, { source: "updateActiveTab" });
+                expect(mockSetState).toHaveBeenCalledWith(
+                    "ui.activeTab",
+                    expected,
+                    { source: "updateActiveTab" }
+                );
 
                 mockSetState.mockClear();
             });
@@ -94,7 +108,12 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
             // Test null/undefined/empty inputs
-            const invalidInputs = [null, undefined, "", "   "];
+            const invalidInputs = [
+                null,
+                undefined,
+                "",
+                "   ",
+            ];
 
             invalidInputs.forEach((input) => {
                 // @ts-ignore - Testing invalid inputs intentionally
@@ -125,7 +144,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
             const element = document.getElementById("customTabId");
             expect(element?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "customTabId", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "customTabId",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should handle edge case where pattern matches but capture group is empty", () => {
@@ -137,7 +160,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             const element = document.getElementById("tab-");
             expect(element?.classList.contains("active")).toBe(true);
             // Should fall back to using the full ID when capture group is empty
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "tab-", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "tab-", {
+                source: "updateActiveTab",
+            });
         });
 
         it("should handle special characters in tab IDs", () => {
@@ -148,7 +173,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
             const element = document.getElementById(`tab-${specialId}`);
             expect(element?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", specialId, { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                specialId,
+                { source: "updateActiveTab" }
+            );
         });
     });
 
@@ -191,7 +220,10 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         it("should set up state subscription", () => {
             initializeActiveTabState();
 
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
         });
 
         it("should set up click listeners on tab buttons", () => {
@@ -204,7 +236,10 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             initializeActiveTabState();
 
             // Verify that the subscription was set up
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
         });
 
         it("should handle disabled buttons correctly", () => {
@@ -239,7 +274,10 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             testContainer.innerHTML = "<div>No buttons here</div>";
 
             expect(() => initializeActiveTabState()).not.toThrow();
-            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
         });
     });
 
@@ -289,7 +327,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
                 chartButton.dispatchEvent(clickEvent);
             }
 
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "tabButtonClick" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "tabButtonClick",
+            });
         });
     });
 
@@ -314,7 +354,8 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         });
 
         it("should handle malformed HTML gracefully", () => {
-            testContainer.innerHTML = '<button id="tab-test" class="tab-button">Malformed';
+            testContainer.innerHTML =
+                '<button id="tab-test" class="tab-button">Malformed';
             // Note: missing closing tag
 
             expect(() => updateActiveTab("tab-test")).not.toThrow();
@@ -346,7 +387,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             document.getElementById = vi.fn().mockReturnValue(mockElement);
 
             // Spy on console.error to verify graceful error handling
-            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleErrorSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
 
             // Should handle gracefully (not throw)
             expect(() => updateActiveTab("tab-test")).not.toThrow();
@@ -385,7 +428,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
             const activeElement = document.getElementById("tab-item50");
             expect(activeElement?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "item50", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "item50",
+                { source: "updateActiveTab" }
+            );
         });
 
         it("should handle memory cleanup properly", () => {

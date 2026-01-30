@@ -63,21 +63,32 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             detectCurrentTheme: vi.fn(() => "light"),
         }));
 
-        vi.doMock("../../utils/formatting/converters/convertTimeUnits.js", () => ({
-            convertTimeUnits: vi.fn((value, units) => {
-                if (units === "hours") return value / 3600;
-                if (units === "minutes") return value / 60;
-                return value;
-            }),
-        }));
+        vi.doMock(
+            "../../utils/formatting/converters/convertTimeUnits.js",
+            () => ({
+                convertTimeUnits: vi.fn((value, units) => {
+                    if (units === "hours") return value / 3600;
+                    if (units === "minutes") return value / 60;
+                    return value;
+                }),
+            })
+        );
 
         vi.doMock("../../utils/formatting/formatters/formatTime.js", () => ({
-            formatTime: vi.fn((value) => `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`),
+            formatTime: vi.fn(
+                (value) =>
+                    `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`
+            ),
         }));
 
-        vi.doMock("../../utils/formatting/display/formatTooltipWithUnits.js", () => ({
-            formatTooltipWithUnits: vi.fn((value, field) => `${value.toFixed(2)} ${field}`),
-        }));
+        vi.doMock(
+            "../../utils/formatting/display/formatTooltipWithUnits.js",
+            () => ({
+                formatTooltipWithUnits: vi.fn(
+                    (value, field) => `${value.toFixed(2)} ${field}`
+                ),
+            })
+        );
 
         vi.doMock("../../utils/data/lookups/getUnitSymbol.js", () => ({
             getUnitSymbol: vi.fn((field) => {
@@ -106,9 +117,12 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             chartZoomResetPlugin: { id: "zoomReset" },
         }));
 
-        vi.doMock("../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-            chartBackgroundColorPlugin: { id: "backgroundColor" },
-        }));
+        vi.doMock(
+            "../../utils/charts/plugins/chartBackgroundColorPlugin.js",
+            () => ({
+                chartBackgroundColorPlugin: { id: "backgroundColor" },
+            })
+        );
 
         vi.doMock("../../utils/ui/notifications/showNotification.js", () => ({
             showNotification: vi.fn(),
@@ -119,7 +133,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         }));
 
         // Import the module after mocking
-        const module = await import("../../utils/charts/components/createEnhancedChart.js");
+        const module =
+            await import("../../utils/charts/components/createEnhancedChart.js");
         createEnhancedChart = module.createEnhancedChart;
     });
 
@@ -369,7 +384,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("Theme Configuration", () => {
         it("should configure chart for light theme", async () => {
-            const { detectCurrentTheme } = await import("../../utils/charts/theming/chartThemeUtils.js");
+            const { detectCurrentTheme } =
+                await import("../../utils/charts/theming/chartThemeUtils.js");
             (detectCurrentTheme as any).mockReturnValue("light");
 
             const canvas = document.createElement("canvas");
@@ -428,12 +444,18 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
             // Test that the color configuration exists and is properly structured
-            expect(config.options.plugins.legend.labels).toHaveProperty("color");
+            expect(config.options.plugins.legend.labels).toHaveProperty(
+                "color"
+            );
             expect(config.options.plugins.title).toHaveProperty("color");
-            expect(config.options.plugins.tooltip).toHaveProperty("backgroundColor");
+            expect(config.options.plugins.tooltip).toHaveProperty(
+                "backgroundColor"
+            );
             expect(config.options.plugins.tooltip).toHaveProperty("titleColor");
             expect(config.options.plugins.tooltip).toHaveProperty("bodyColor");
-            expect(config.options.plugins.tooltip).toHaveProperty("borderColor");
+            expect(config.options.plugins.tooltip).toHaveProperty(
+                "borderColor"
+            );
         });
 
         it("should configure grid colors based on theme", () => {
@@ -495,7 +517,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.plugins).toEqual([{ id: "zoomReset" }, { id: "backgroundColor" }]);
+            expect(config.plugins).toEqual([
+                { id: "zoomReset" },
+                { id: "backgroundColor" },
+            ]);
         });
 
         it("should configure zoom plugin", () => {
@@ -553,9 +578,17 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
             // Test that background color plugin is configured with some background color
-            expect(config.options.plugins.chartBackgroundColorPlugin).toHaveProperty("backgroundColor");
-            expect(typeof config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("string");
-            expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor.length).toBeGreaterThan(0);
+            expect(
+                config.options.plugins.chartBackgroundColorPlugin
+            ).toHaveProperty("backgroundColor");
+            expect(
+                typeof config.options.plugins.chartBackgroundColorPlugin
+                    .backgroundColor
+            ).toBe("string");
+            expect(
+                config.options.plugins.chartBackgroundColorPlugin
+                    .backgroundColor.length
+            ).toBeGreaterThan(0);
         });
     });
 
@@ -583,7 +616,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            const titleCallback = config.options.plugins.tooltip.callbacks.title;
+            const titleCallback =
+                config.options.plugins.tooltip.callbacks.title;
             const mockContext = [{ label: "Test Label" }];
 
             expect(titleCallback(mockContext)).toBe("Test Label");
@@ -614,7 +648,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            const labelCallback = config.options.plugins.tooltip.callbacks.label;
+            const labelCallback =
+                config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 5 }, // 5 km
                 dataset: { label: "Distance" },
@@ -650,7 +685,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            const labelCallback = config.options.plugins.tooltip.callbacks.label;
+            const labelCallback =
+                config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 86 }, // 86°F
                 dataset: { label: "Temperature" },
@@ -683,7 +719,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            const labelCallback = config.options.plugins.tooltip.callbacks.label;
+            const labelCallback =
+                config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 250 },
                 dataset: { label: "Power" },
@@ -1013,7 +1050,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should not call updateChartAnimations when animation is disabled", async () => {
-            const { updateChartAnimations } = await import("../../utils/charts/core/updateChartAnimations.js");
+            const { updateChartAnimations } =
+                await import("../../utils/charts/core/updateChartAnimations.js");
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1145,7 +1183,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             expect(canvas.style.borderRadius).toBe("12px");
-            expect(canvas.style.boxShadow).toBe("0 2px 16px 0 rgba(0,0,0,0.18)");
+            expect(canvas.style.boxShadow).toBe(
+                "0 2px 16px 0 rgba(0,0,0,0.18)"
+            );
         });
     });
 
@@ -1180,7 +1220,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             // Test that error is handled gracefully
             expect(result).toBe(null);
             // Test that console.error was called (we can verify this because we mocked console)
-            expect(console.error).toHaveBeenCalledWith("[ChartJS] Error creating chart for speed:", expect.any(Error));
+            expect(console.error).toHaveBeenCalledWith(
+                "[ChartJS] Error creating chart for speed:",
+                expect.any(Error)
+            );
         });
 
         it("should handle errors gracefully without throwing", () => {

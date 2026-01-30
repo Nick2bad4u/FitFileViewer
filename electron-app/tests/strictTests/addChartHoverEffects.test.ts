@@ -28,7 +28,7 @@ let mockConsoleWarn;
 /** @type {ReturnType<typeof vi.spyOn>} */
 let mockConsoleLog;
 
-/** @type {string|undefined} */
+/** @type {string | undefined} */
 let originalNodeEnv;
 
 describe("addChartHoverEffects", () => {
@@ -44,7 +44,9 @@ describe("addChartHoverEffects", () => {
         (globalThis as any).__FFV_debugCharts = true;
 
         // Spy console methods *after* Vitest has patched them.
-        mockConsoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        mockConsoleWarn = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
         mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 
         // Reset DOM
@@ -95,7 +97,9 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null input
             addChartHoverEffects(null, mockThemeConfig);
 
-            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleWarn).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Missing required parameters"
+            );
             expect(mockConsoleLog).not.toHaveBeenCalled();
         });
 
@@ -103,7 +107,9 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null input
             addChartHoverEffects(mockContainer, null);
 
-            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleWarn).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Missing required parameters"
+            );
             expect(mockConsoleLog).not.toHaveBeenCalled();
         });
 
@@ -111,7 +117,9 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null inputs
             addChartHoverEffects(null, null);
 
-            expect(mockConsoleWarn).toHaveBeenCalledWith("[ChartHoverEffects] Missing required parameters");
+            expect(mockConsoleWarn).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Missing required parameters"
+            );
             expect(mockConsoleLog).not.toHaveBeenCalled();
         });
     });
@@ -123,14 +131,20 @@ describe("addChartHoverEffects", () => {
             canvas2.setAttribute("aria-label", "Chart");
             mockContainer.appendChild(canvas2);
 
-            const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const logSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
             );
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to chart: Chart");
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to 2 chart(s)");
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to chart: Chart"
+            );
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to 2 chart(s)"
+            );
 
             logSpy.mockRestore();
         });
@@ -138,10 +152,14 @@ describe("addChartHoverEffects", () => {
         it("should handle empty canvas collection", () => {
             mockContainer.querySelectorAll = vi.fn().mockReturnValue([]);
 
-            const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const logSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to 0 chart(s)");
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to 0 chart(s)"
+            );
 
             logSpy.mockRestore();
         });
@@ -151,7 +169,9 @@ describe("addChartHoverEffects", () => {
         it("should create wrapper div and move canvas into it", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             expect(wrapper).toBeTruthy();
             expect(wrapper.tagName).toBe("DIV");
             expect(wrapper.className).toBe("chart-wrapper");
@@ -161,7 +181,9 @@ describe("addChartHoverEffects", () => {
         it("should apply correct styles to wrapper", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             expect(wrapper).toBeTruthy();
             // Check that wrapper has the expected class and basic structure
             expect(wrapper.className).toBe("chart-wrapper");
@@ -184,8 +206,12 @@ describe("addChartHoverEffects", () => {
         it("should create glow overlay", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
-            const glowOverlay = wrapper.querySelector(".chart-glow-overlay") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const glowOverlay = wrapper.querySelector(
+                ".chart-glow-overlay"
+            ) as HTMLElement;
             expect(glowOverlay).toBeTruthy();
             expect(glowOverlay.style.opacity).toBe("0");
         });
@@ -193,8 +219,12 @@ describe("addChartHoverEffects", () => {
         it("should create title overlay with processed chart title", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
-            const titleOverlay = wrapper.querySelector(".chart-title-overlay") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const titleOverlay = wrapper.querySelector(
+                ".chart-title-overlay"
+            ) as HTMLElement;
             expect(titleOverlay).toBeTruthy();
             expect(titleOverlay.textContent).toBe("TEST SPEED DATA");
             expect(titleOverlay.style.opacity).toBe("0");
@@ -205,8 +235,12 @@ describe("addChartHoverEffects", () => {
 
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
-            const titleOverlay = wrapper.querySelector(".chart-title-overlay") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const titleOverlay = wrapper.querySelector(
+                ".chart-title-overlay"
+            ) as HTMLElement;
             expect(titleOverlay.textContent).toBe("CHART");
         });
     });
@@ -215,19 +249,25 @@ describe("addChartHoverEffects", () => {
         it("should attach mouseenter event listener", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             const mouseenterEvent = new Event("mouseenter");
 
             wrapper.dispatchEvent(mouseenterEvent);
 
-            expect(wrapper.style.transform).toBe("translateY(-6px) scale(1.02)");
+            expect(wrapper.style.transform).toBe(
+                "translateY(-6px) scale(1.02)"
+            );
             expect(wrapper.style.boxShadow).toContain("0 12px 40px");
         });
 
         it("should attach mouseleave event listener", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
 
             // First trigger mouseenter
             wrapper.dispatchEvent(new Event("mouseenter"));
@@ -241,7 +281,9 @@ describe("addChartHoverEffects", () => {
         it("should attach click event listener with ripple effect", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             const clickEvent = new MouseEvent("click", {
                 clientX: 100,
                 clientY: 100,
@@ -253,7 +295,9 @@ describe("addChartHoverEffects", () => {
                 "div:not(.chart-glow-overlay):not(.chart-title-overlay)"
             ) as HTMLElement;
             expect(ripple).toBeTruthy();
-            expect(ripple.style.cssText).toContain("animation: ripple-effect 0.6s ease-out");
+            expect(ripple.style.cssText).toContain(
+                "animation: ripple-effect 0.6s ease-out"
+            );
         });
 
         it("should mark canvas as having hover effects", () => {
@@ -267,11 +311,15 @@ describe("addChartHoverEffects", () => {
         it("should inject CSS styles on first call", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            const styleElement = document.getElementById("chart-hover-effects-styles");
+            const styleElement = document.getElementById(
+                "chart-hover-effects-styles"
+            );
             expect(styleElement).toBeTruthy();
             if (styleElement) {
                 expect(styleElement.tagName).toBe("STYLE");
-                expect(styleElement.textContent).toContain("@keyframes ripple-effect");
+                expect(styleElement.textContent).toContain(
+                    "@keyframes ripple-effect"
+                );
             }
         });
 
@@ -307,7 +355,9 @@ describe("addChartHoverEffects", () => {
 
             addChartHoverEffects(mockContainer, customTheme);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             expect(wrapper).toBeTruthy();
             expect(wrapper.className).toBe("chart-wrapper");
             // Theme colors are applied via cssText, just verify wrapper exists
@@ -320,7 +370,9 @@ describe("addChartHoverEffects", () => {
 
             addChartHoverEffects(mockContainer, incompleteTheme);
 
-            const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
             // Should use fallback values
             expect(wrapper).toBeTruthy();
             expect(wrapper.className).toBe("chart-wrapper");
@@ -329,13 +381,17 @@ describe("addChartHoverEffects", () => {
 
     describe("Logging", () => {
         it("should log successful addition of hover effects", () => {
-            const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+            const logSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
             );
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to 1 chart(s)");
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to 1 chart(s)"
+            );
 
             logSpy.mockRestore();
         });
@@ -424,7 +480,9 @@ describe("removeChartHoverEffects", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         removeChartHoverEffects(mockContainer);
 
-        expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Removed hover effects from 0 chart(s)");
+        expect(console.log).toHaveBeenCalledWith(
+            "[ChartHoverEffects] Removed hover effects from 0 chart(s)"
+        );
 
         logSpy.mockRestore();
     });
@@ -436,7 +494,9 @@ describe("removeChartHoverEffects", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         removeChartHoverEffects(mockContainer);
 
-        expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Removed hover effects from 1 chart(s)");
+        expect(console.log).toHaveBeenCalledWith(
+            "[ChartHoverEffects] Removed hover effects from 1 chart(s)"
+        );
 
         logSpy.mockRestore();
     });
@@ -453,7 +513,9 @@ describe("addHoverEffectsToExistingCharts", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
 
-        expect(console.warn).toHaveBeenCalledWith("[DevHelper] Chart container not found");
+        expect(console.warn).toHaveBeenCalledWith(
+            "[DevHelper] Chart container not found"
+        );
 
         warnSpy.mockRestore();
     });
@@ -471,7 +533,9 @@ describe("addHoverEffectsToExistingCharts", () => {
 
         const wrapper = container.querySelector(".chart-wrapper");
         expect(wrapper).toBeTruthy();
-        expect(console.log).toHaveBeenCalledWith("[DevHelper] Hover effects added to existing charts");
+        expect(console.log).toHaveBeenCalledWith(
+            "[DevHelper] Hover effects added to existing charts"
+        );
 
         logSpy.mockRestore();
     });
@@ -482,7 +546,9 @@ describe("addHoverEffectsToExistingCharts", () => {
         document.body.appendChild(container);
 
         // Mock global function
-        (global as any).window = { getThemeConfig: vi.fn(() => ({ colors: {} })) };
+        (global as any).window = {
+            getThemeConfig: vi.fn(() => ({ colors: {} })),
+        };
 
         // Sync getThemeConfig between window and globalThis scopes
         Object.defineProperty(globalThis, "getThemeConfig", {
@@ -490,7 +556,8 @@ describe("addHoverEffectsToExistingCharts", () => {
                 return (global as any).window?.getThemeConfig;
             },
             set(value) {
-                if ((global as any).window) (global as any).window.getThemeConfig = value;
+                if ((global as any).window)
+                    (global as any).window.getThemeConfig = value;
             },
             configurable: true,
         });
@@ -499,7 +566,9 @@ describe("addHoverEffectsToExistingCharts", () => {
         addHoverEffectsToExistingCharts();
 
         expect((global as any).window.getThemeConfig).toHaveBeenCalled();
-        expect(console.log).toHaveBeenCalledWith("[DevHelper] Hover effects added to existing charts");
+        expect(console.log).toHaveBeenCalledWith(
+            "[DevHelper] Hover effects added to existing charts"
+        );
 
         logSpy.mockRestore();
         delete (global as any).window;
@@ -541,7 +610,10 @@ describe("Edge Cases", () => {
         expect(() => {
             // This would normally fail, but the function should handle it gracefully
             if (orphanCanvas.parentNode) {
-                orphanCanvas.parentNode.insertBefore(document.createElement("div"), orphanCanvas);
+                orphanCanvas.parentNode.insertBefore(
+                    document.createElement("div"),
+                    orphanCanvas
+                );
             }
         }).not.toThrow();
     });

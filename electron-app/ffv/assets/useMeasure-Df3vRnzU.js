@@ -1,18 +1,35 @@
 import { bn as i, aP as n, br as m } from "./index-LvWRIhnC.js";
 (function () {
     try {
-        var t = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var t =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             r = new Error().stack;
         r &&
             ((t._sentryDebugIds = t._sentryDebugIds || {}),
             (t._sentryDebugIds[r] = "5de2fe6f-6c17-4bba-9a70-fb6c1cca56a3"),
-            (t._sentryDebugIdIdentifier = "sentry-dbid-5de2fe6f-6c17-4bba-9a70-fb6c1cca56a3"));
+            (t._sentryDebugIdIdentifier =
+                "sentry-dbid-5de2fe6f-6c17-4bba-9a70-fb6c1cca56a3"));
     } catch {
         /* Ignore errors */
     }
 })();
 var I = i ? n.useLayoutEffect : n.useEffect,
-    c = { x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, bottom: 0, right: 0 };
+    c = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+    };
 function x() {
     var t = n.useState(null),
         r = t[0],

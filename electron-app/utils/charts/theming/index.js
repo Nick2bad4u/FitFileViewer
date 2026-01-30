@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for charts/theming
- * @description Re-exports all modules in the charts/theming category
+ * Re-exports all modules in the charts/theming category
+ *
+ * @file Barrel Export for charts/theming
  */
 export * from "./chartColorSchemes.js";
 export * from "./chartOverlayColorPalette.js";

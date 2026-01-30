@@ -107,9 +107,11 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         });
 
         let singleCallback: any;
-        mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
-            singleCallback = single;
-        });
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, single: any, combined: any) => {
+                singleCallback = single;
+            }
+        );
 
         // Act
         await exportUtils.shareChartsAsURL();
@@ -120,7 +122,9 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         }
 
         // Assert
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+            expect.stringContaining("data:image/png;base64,")
+        );
 
         expect(mockShowNotification).toHaveBeenCalledWith(
             "Chart image copied to clipboard as data URL (Imgur not configured).",
@@ -130,7 +134,10 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
     it("should handle combined charts with Imgur fallback", async () => {
         // Arrange
-        const mockCharts = [{ canvas: { width: 400, height: 300 } }, { canvas: { width: 400, height: 300 } }];
+        const mockCharts = [
+            { canvas: { width: 400, height: 300 } },
+            { canvas: { width: 400, height: 300 } },
+        ];
 
         // Mock getImgurConfig to return unconfigured client ID to trigger fallback
         vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
@@ -139,9 +146,11 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         });
 
         let combinedCallback: any;
-        mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
-            combinedCallback = combined;
-        });
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, single: any, combined: any) => {
+                combinedCallback = combined;
+            }
+        );
 
         // Act
         await exportUtils.shareChartsAsURL();
@@ -152,7 +161,9 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         }
 
         // Assert
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+            expect.stringContaining("data:image/png;base64,")
+        );
 
         expect(mockShowNotification).toHaveBeenCalledWith(
             "Combined charts image copied to clipboard as data URL (Imgur not configured).",
@@ -163,9 +174,11 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     it("should handle empty charts array gracefully", async () => {
         // Arrange
         let combinedCallback: any;
-        mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
-            combinedCallback = combined;
-        });
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, single: any, combined: any) => {
+                combinedCallback = combined;
+            }
+        );
 
         // Act
         await exportUtils.shareChartsAsURL();
@@ -176,7 +189,10 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         }
 
         // Assert
-        expect(mockShowNotification).toHaveBeenCalledWith("No charts available to share", "warning");
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            "No charts available to share",
+            "warning"
+        );
 
         expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
     });
@@ -194,9 +210,11 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         mockWriteText.mockRejectedValue(new Error("Clipboard access denied"));
 
         let singleCallback: any;
-        mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
-            singleCallback = single;
-        });
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, single: any, combined: any) => {
+                singleCallback = single;
+            }
+        );
 
         // Act
         await exportUtils.shareChartsAsURL();

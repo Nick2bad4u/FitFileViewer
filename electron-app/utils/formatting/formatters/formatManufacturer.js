@@ -2,10 +2,12 @@ import { getManufacturerName } from "../display/formatAntNames.js";
 
 /**
  * Comprehensive manufacturer name mapping for consistent display formatting
+ *
  * @readonly
  */
 const /**
      * Configuration for manufacturer formatting
+     *
      * @readonly
      */
     MANUFACTURER_CONFIG = {
@@ -85,26 +87,30 @@ const /**
 /**
  * Formats manufacturer names for consistent display across the application
  *
- * Handles both manufacturer IDs (numbers) and name strings. First attempts to resolve
- * numeric IDs using the ANT+ manufacturer database, then applies consistent formatting
- * using the manufacturer mapping table.
+ * Handles both manufacturer IDs (numbers) and name strings. First attempts to
+ * resolve numeric IDs using the ANT+ manufacturer database, then applies
+ * consistent formatting using the manufacturer mapping table.
  *
- * @param {string|number} manufacturer - Raw manufacturer name or ID
- * @returns {string} Formatted manufacturer name
  * @example
- * // Format by name
- * const name1 = formatManufacturer("garmin"); // "Garmin"
+ *     // Format by name
+ *     const name1 = formatManufacturer("garmin"); // "Garmin"
  *
- * // Format by ID (if supported by ANT+ database)
- * const name2 = formatManufacturer(1); // "Garmin" (if ID 1 maps to Garmin)
+ *     // Format by ID (if supported by ANT+ database)
+ *     const name2 = formatManufacturer(1); // "Garmin" (if ID 1 maps to Garmin)
  *
- * // Unknown manufacturer
- * const name3 = formatManufacturer("unknown"); // "unknown"
+ *     // Unknown manufacturer
+ *     const name3 = formatManufacturer("unknown"); // "unknown"
+ *
+ * @param {string | number} manufacturer - Raw manufacturer name or ID
+ *
+ * @returns {string} Formatted manufacturer name
  */
 export function formatManufacturer(manufacturer) {
     // Input validation
     if (manufacturer === null || manufacturer === undefined) {
-        console.warn("[formatManufacturer] Null or undefined manufacturer provided");
+        console.warn(
+            "[formatManufacturer] Null or undefined manufacturer provided"
+        );
         return MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
 
@@ -112,7 +118,10 @@ export function formatManufacturer(manufacturer) {
         let manufacturerName = manufacturer;
 
         // If it's a number, try to get the name from the ID mapping first
-        if (typeof manufacturer === "number" || (!isNaN(Number(manufacturer)) && manufacturer !== "")) {
+        if (
+            typeof manufacturer === "number" ||
+            (!isNaN(Number(manufacturer)) && manufacturer !== "")
+        ) {
             try {
                 const nameFromId = getManufacturerName(manufacturer);
                 if (nameFromId && nameFromId !== manufacturer.toString()) {
@@ -120,7 +129,10 @@ export function formatManufacturer(manufacturer) {
                     manufacturerName = nameFromId;
                 }
             } catch (error) {
-                console.warn(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`, error);
+                console.warn(
+                    `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`,
+                    error
+                );
                 // Continue with original value if ID lookup fails
             }
         }
@@ -129,19 +141,27 @@ export function formatManufacturer(manufacturer) {
         const normalizedName = String(manufacturerName).toLowerCase().trim();
 
         // Return formatted name from mapping or original value
-        return /** @type {any} */ (MANUFACTURER_MAP)[normalizedName] || String(manufacturer);
+        return (
+            /** @type {any} */ (MANUFACTURER_MAP)[normalizedName] ||
+            String(manufacturer)
+        );
     } catch (error) {
-        console.error(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
+        console.error(
+            `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`,
+            error
+        );
         return String(manufacturer) || MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
 }
 
 /**
  * Gets all available manufacturer mappings
- * @returns {Object} Copy of the manufacturer mapping object
+ *
  * @example
- * // Get all available manufacturer mappings
- * const allManufacturers = getAllManufacturerMappings();
+ *     // Get all available manufacturer mappings
+ *     const allManufacturers = getAllManufacturerMappings();
+ *
+ * @returns {Object} Copy of the manufacturer mapping object
  */
 export function getAllManufacturerMappings() {
     return { ...MANUFACTURER_MAP };
@@ -149,11 +169,14 @@ export function getAllManufacturerMappings() {
 
 /**
  * Checks if a manufacturer has a defined mapping
- * @param {string} manufacturer - The manufacturer name to check
- * @returns {boolean} True if manufacturer has a defined mapping
+ *
  * @example
- * // Check if manufacturer has mapping
- * const hasMapping = hasManufacturerMapping("garmin"); // true
+ *     // Check if manufacturer has mapping
+ *     const hasMapping = hasManufacturerMapping("garmin"); // true
+ *
+ * @param {string} manufacturer - The manufacturer name to check
+ *
+ * @returns {boolean} True if manufacturer has a defined mapping
  */
 export function hasManufacturerMapping(manufacturer) {
     if (typeof manufacturer !== "string") {

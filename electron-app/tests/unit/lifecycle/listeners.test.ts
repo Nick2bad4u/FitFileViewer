@@ -29,7 +29,9 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     function mount(openRecentReturn: string[] | null = null) {
-        const openFileBtn = document.getElementById("openFileBtn") as HTMLButtonElement;
+        const openFileBtn = document.getElementById(
+            "openFileBtn"
+        ) as HTMLButtonElement;
         const isOpeningFileRef = { current: false } as any;
         const setLoading = vi.fn();
         const showNotification = vi.fn();
@@ -60,7 +62,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
     }
 
     it("clicking openFileBtn calls handleOpenFile with expected args", () => {
-        const { openFileBtn, handleOpenFile, setLoading, showNotification } = mount([]);
+        const { openFileBtn, handleOpenFile, setLoading, showNotification } =
+            mount([]);
         openFileBtn.click();
         expect(handleOpenFile).toHaveBeenCalledTimes(1);
         expect(handleOpenFile).toHaveBeenCalledWith({
@@ -75,7 +78,12 @@ describe("utils/app/lifecycle/listeners.js", () => {
         const { openFileBtn } = mount(null);
         // Remove electronAPI to simulate missing API
         delete (window as any).electronAPI;
-        const evt = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 10, clientY: 10 });
+        const evt = new MouseEvent("contextmenu", {
+            bubbles: true,
+            cancelable: true,
+            clientX: 10,
+            clientY: 10,
+        });
         openFileBtn.dispatchEvent(evt);
         // Nothing to assert – ensuring no throw. Menu shouldn't exist
         expect(document.getElementById("recent-files-menu")).toBeNull();
@@ -103,7 +111,9 @@ describe("utils/app/lifecycle/listeners.js", () => {
     it("menu-open-overlay IPC triggers openFileSelector", () => {
         const { showNotification } = mount([]);
         const onIpcMock = (window as any).electronAPI.onIpc as Mock;
-        const entry = onIpcMock.mock.calls.find((args: any[]) => args[0] === "menu-open-overlay");
+        const entry = onIpcMock.mock.calls.find(
+            (args: any[]) => args[0] === "menu-open-overlay"
+        );
         expect(entry).toBeDefined();
         const handler = entry ? (entry[1] as () => void) : undefined;
         handler?.();
@@ -117,9 +127,15 @@ describe("utils/app/lifecycle/listeners.js", () => {
         });
         const { showNotification } = mount([]);
         const onIpcMock = (window as any).electronAPI.onIpc as Mock;
-        const entry = onIpcMock.mock.calls.find((args: any[]) => args[0] === "menu-open-overlay");
+        const entry = onIpcMock.mock.calls.find(
+            (args: any[]) => args[0] === "menu-open-overlay"
+        );
         const handler = entry ? (entry[1] as () => void) : undefined;
         handler?.();
-        expect(showNotification).toHaveBeenCalledWith("Failed to open overlay selector.", "error", 3000);
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to open overlay selector.",
+            "error",
+            3000
+        );
     });
 });

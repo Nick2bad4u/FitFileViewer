@@ -31,10 +31,14 @@ vi.mock("chart.js/auto", () => ({
 Object.defineProperty(globalThis, "electronAPI", {
     value: {
         showSaveDialog: vi.fn(() => Promise.resolve({ filePath: "test.png" })),
-        showOpenDialog: vi.fn(() => Promise.resolve({ filePaths: ["test.fit"] })),
+        showOpenDialog: vi.fn(() =>
+            Promise.resolve({ filePaths: ["test.fit"] })
+        ),
         writeFileSync: vi.fn(),
         readFileSync: vi.fn(() => "mock file content"),
-        startGyazoServer: vi.fn(() => Promise.resolve({ success: true, port: 3000 })),
+        startGyazoServer: vi.fn(() =>
+            Promise.resolve({ success: true, port: 3000 })
+        ),
         stopGyazoServer: vi.fn(() => Promise.resolve()),
         openExternal: vi.fn(() => Promise.resolve()),
         // Provide an onIpc mock used by authenticateWithGyazo
@@ -57,7 +61,9 @@ Object.defineProperty(globalThis, "localStorage", {
 Object.defineProperty(globalThis, "JSZip", {
     value: vi.fn().mockImplementation(() => ({
         file: vi.fn(),
-        generateAsync: vi.fn(() => Promise.resolve(new Blob(["test"], { type: "application/zip" }))),
+        generateAsync: vi.fn(() =>
+            Promise.resolve(new Blob(["test"], { type: "application/zip" }))
+        ),
     })),
     writable: true,
 });
@@ -70,14 +76,20 @@ Object.defineProperty(globalThis, "fetch", {
             return Promise.resolve({
                 ok: true,
                 status: 200,
-                blob: () => Promise.resolve(new Blob(["image-bytes"], { type: "image/png" })),
+                blob: () =>
+                    Promise.resolve(
+                        new Blob(["image-bytes"], { type: "image/png" })
+                    ),
             } as any);
         }
         // Default JSON response for network calls
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: () => Promise.resolve({ data: { link: "https://i.imgur.com/test.png" } }),
+            json: () =>
+                Promise.resolve({
+                    data: { link: "https://i.imgur.com/test.png" },
+                }),
             text: () => Promise.resolve("ok"),
         } as any);
     }),
@@ -115,7 +127,8 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
                 getImageData: vi.fn(),
                 putImageData: vi.fn(),
             }));
-        el.toDataURL = el.toDataURL ?? vi.fn(() => "data:image/png;base64,test");
+        el.toDataURL =
+            el.toDataURL ?? vi.fn(() => "data:image/png;base64,test");
         el.width = el.width ?? 800;
         el.height = el.height ?? 600;
     }
@@ -185,10 +198,18 @@ describe("exportUtils", () => {
 
             const mockCharts = [
                 {
-                    data: { datasets: [{ data: [{ x: 1, y: 10 }], label: "Chart1" }] },
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 10 }], label: "Chart1" },
+                        ],
+                    },
                 },
                 {
-                    data: { datasets: [{ data: [{ x: 2, y: 20 }], label: "Chart2" }] },
+                    data: {
+                        datasets: [
+                            { data: [{ x: 2, y: 20 }], label: "Chart2" },
+                        ],
+                    },
                 },
             ];
 
@@ -220,13 +241,18 @@ describe("exportUtils", () => {
     describe("authenticateWithGyazo", () => {
         it("should authenticate with Gyazo successfully", async () => {
             // Mock Gyazo config
-            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
-                if (key === "gyazo_client_id") return "test-client-id";
-                if (key === "gyazo_client_secret") return "test-client-secret";
-                return null;
-            });
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    return null;
+                }
+            );
 
-            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({
+            vi.mocked(
+                (globalThis as any).electronAPI.startGyazoServer
+            ).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
@@ -234,71 +260,105 @@ describe("exportUtils", () => {
             // Mock the authentication flow
             const authPromise = exportUtils.authenticateWithGyazo();
 
-            expect((globalThis as any).electronAPI.startGyazoServer).toHaveBeenCalledWith(3000);
+            expect(
+                (globalThis as any).electronAPI.startGyazoServer
+            ).toHaveBeenCalledWith(3000);
             // Allow microtask where setItem is called
             await Promise.resolve();
-            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith("gyazo_oauth_state", expect.any(String));
+            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
+                "gyazo_oauth_state",
+                expect.any(String)
+            );
         });
 
         it("cleans up state and subscriptions when user cancels", async () => {
             const unsubscribe = vi.fn();
-            let capturedHandler: ((event: any, data: any) => void) | null = null;
-            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation((_channel: string, handler: any) => {
-                capturedHandler = handler;
-                return unsubscribe;
-            });
+            let capturedHandler: ((event: any, data: any) => void) | null =
+                null;
+            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation(
+                (_channel: string, handler: any) => {
+                    capturedHandler = handler;
+                    return unsubscribe;
+                }
+            );
 
-            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({
+            vi.mocked(
+                (globalThis as any).electronAPI.startGyazoServer
+            ).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
-            vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
+            vi.mocked(
+                (globalThis as any).electronAPI.stopGyazoServer
+            ).mockResolvedValue(undefined);
 
             // Ensure config has creds
-            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
-                if (key === "gyazo_client_id") return "test-client-id";
-                if (key === "gyazo_client_secret") return "test-client-secret";
-                return null;
-            });
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    return null;
+                }
+            );
 
             const authPromise = exportUtils.authenticateWithGyazo();
             await Promise.resolve();
 
             // Cancel from modal
-            const cancelBtn = document.querySelector<HTMLButtonElement>("#gyazo-cancel-auth");
+            const cancelBtn =
+                document.querySelector<HTMLButtonElement>("#gyazo-cancel-auth");
             expect(cancelBtn).toBeTruthy();
             cancelBtn!.click();
 
-            await expect(authPromise).rejects.toThrow("User cancelled authentication");
+            await expect(authPromise).rejects.toThrow(
+                "User cancelled authentication"
+            );
             expect(unsubscribe).toHaveBeenCalled();
-            expect((globalThis as any).electronAPI.stopGyazoServer).toHaveBeenCalled();
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_oauth_state");
-            expect(document.querySelector(".gyazo-auth-modal-overlay")).toBeNull();
+            expect(
+                (globalThis as any).electronAPI.stopGyazoServer
+            ).toHaveBeenCalled();
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_oauth_state"
+            );
+            expect(
+                document.querySelector(".gyazo-auth-modal-overlay")
+            ).toBeNull();
             // capturedHandler is unused here but ensures our onIpc wiring happened
             expect(capturedHandler).toBeTypeOf("function");
         });
 
         it("cleans up state and stops server on successful callback", async () => {
             const unsubscribe = vi.fn();
-            let capturedHandler: ((event: any, data: any) => void) | null = null;
+            let capturedHandler: ((event: any, data: any) => void) | null =
+                null;
 
-            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation((_channel: string, handler: any) => {
-                capturedHandler = handler;
-                return unsubscribe;
-            });
+            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation(
+                (_channel: string, handler: any) => {
+                    capturedHandler = handler;
+                    return unsubscribe;
+                }
+            );
 
-            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({
+            vi.mocked(
+                (globalThis as any).electronAPI.startGyazoServer
+            ).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
-            vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
+            vi.mocked(
+                (globalThis as any).electronAPI.stopGyazoServer
+            ).mockResolvedValue(undefined);
 
             // Ensure config has creds
-            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
-                if (key === "gyazo_client_id") return "test-client-id";
-                if (key === "gyazo_client_secret") return "test-client-secret";
-                return null;
-            });
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    return null;
+                }
+            );
 
             // Make token exchange succeed
             vi.mocked(globalThis.fetch as any).mockImplementationOnce(() =>
@@ -312,9 +372,12 @@ describe("exportUtils", () => {
 
             // Capture state set in localStorage
             let storedState: string | null = null;
-            vi.mocked(globalThis.localStorage.setItem).mockImplementation((key, value) => {
-                if (key === "gyazo_oauth_state") storedState = String(value);
-            });
+            vi.mocked(globalThis.localStorage.setItem).mockImplementation(
+                (key, value) => {
+                    if (key === "gyazo_oauth_state")
+                        storedState = String(value);
+                }
+            );
 
             const authPromise = exportUtils.authenticateWithGyazo();
             await Promise.resolve();
@@ -327,8 +390,12 @@ describe("exportUtils", () => {
             await expect(authPromise).resolves.toBe("test-token");
 
             expect(unsubscribe).toHaveBeenCalled();
-            expect((globalThis as any).electronAPI.stopGyazoServer).toHaveBeenCalled();
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_oauth_state");
+            expect(
+                (globalThis as any).electronAPI.stopGyazoServer
+            ).toHaveBeenCalled();
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_oauth_state"
+            );
         });
 
         it("should throw error when credentials not configured", async () => {
@@ -336,9 +403,13 @@ describe("exportUtils", () => {
             const cfgSpy = vi
                 .spyOn(exportUtils, "getGyazoConfig")
                 .mockReturnValue({ clientId: null, clientSecret: null } as any);
-            const guideSpy = vi.spyOn(exportUtils, "showGyazoSetupGuide").mockImplementation(() => undefined);
+            const guideSpy = vi
+                .spyOn(exportUtils, "showGyazoSetupGuide")
+                .mockImplementation(() => undefined);
 
-            await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow("Gyazo credentials not configured");
+            await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow(
+                "Gyazo credentials not configured"
+            );
 
             expect(guideSpy).toHaveBeenCalled();
             cfgSpy.mockRestore();
@@ -350,7 +421,9 @@ describe("exportUtils", () => {
         it("should clear stored Gyazo access token", () => {
             exportUtils.clearGyazoAccessToken();
 
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_access_token");
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_access_token"
+            );
         });
     });
 
@@ -358,9 +431,15 @@ describe("exportUtils", () => {
         it("should clear stored Gyazo configuration", () => {
             exportUtils.clearGyazoConfig();
 
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_client_id");
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_client_secret");
-            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_access_token");
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_client_id"
+            );
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_client_secret"
+            );
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_access_token"
+            );
         });
     });
 
@@ -395,14 +474,17 @@ describe("exportUtils", () => {
                     canvas: document.createElement("canvas"),
                     // Provide minimal config required by exportAllAsZip when generating JSON
                     config: { type: "line" },
-                    data: { datasets: [{ data: [{ x: 1, y: 10 }], label: "Test1" }] },
+                    data: {
+                        datasets: [{ data: [{ x: 1, y: 10 }], label: "Test1" }],
+                    },
                     toBase64Image: vi.fn(() => "data:image/png;base64,test1"),
                 },
             ];
 
             await exportUtils.exportAllAsZip(mockCharts);
             // Assert a ZIP was generated and a user notification occurred
-            const notifMod = await import("../../ui/notifications/showNotification.js");
+            const notifMod =
+                await import("../../ui/notifications/showNotification.js");
             expect(notifMod.showNotification).toHaveBeenCalled();
         });
 
@@ -420,7 +502,11 @@ describe("exportUtils", () => {
                 { x: 2, y: 20 },
             ];
 
-            await exportUtils.exportChartDataAsCSV(chartData, "test-field", "test.csv");
+            await exportUtils.exportChartDataAsCSV(
+                chartData,
+                "test-field",
+                "test.csv"
+            );
             expect(URL.createObjectURL).toHaveBeenCalled();
         });
 
@@ -439,7 +525,11 @@ describe("exportUtils", () => {
                 { x: 2, y: 20 },
             ];
 
-            await exportUtils.exportChartDataAsJSON(chartData, "test-field", "test.json");
+            await exportUtils.exportChartDataAsJSON(
+                chartData,
+                "test-field",
+                "test.json"
+            );
             expect(URL.createObjectURL).toHaveBeenCalled();
         });
 
@@ -455,21 +545,36 @@ describe("exportUtils", () => {
         it("should export combined charts data as CSV", async () => {
             const mockCharts = [
                 {
-                    data: { datasets: [{ data: [{ x: 1, y: 10 }], label: "Chart1" }] },
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 10 }], label: "Chart1" },
+                        ],
+                    },
                 },
                 {
-                    data: { datasets: [{ data: [{ x: 1, y: 15 }], label: "Chart2" }] },
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 15 }], label: "Chart2" },
+                        ],
+                    },
                 },
             ];
 
-            await exportUtils.exportCombinedChartsDataAsCSV(mockCharts, "combined.csv");
+            await exportUtils.exportCombinedChartsDataAsCSV(
+                mockCharts,
+                "combined.csv"
+            );
             expect(URL.createObjectURL).toHaveBeenCalled();
         });
 
         it("should use default filename", async () => {
             const mockCharts = [
                 {
-                    data: { datasets: [{ data: [{ x: 1, y: 10 }], label: "Chart1" }] },
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 10 }], label: "Chart1" },
+                        ],
+                    },
                 },
             ];
 
@@ -489,12 +594,16 @@ describe("exportUtils", () => {
 
     describe("getGyazoAccessToken", () => {
         it("should return stored access token", () => {
-            vi.mocked(globalThis.localStorage.getItem).mockReturnValue("test-token");
+            vi.mocked(globalThis.localStorage.getItem).mockReturnValue(
+                "test-token"
+            );
 
             const token = exportUtils.getGyazoAccessToken();
 
             expect(token).toBe("test-token");
-            expect(globalThis.localStorage.getItem).toHaveBeenCalledWith("gyazo_access_token");
+            expect(globalThis.localStorage.getItem).toHaveBeenCalledWith(
+                "gyazo_access_token"
+            );
         });
 
         it("should return null when no token stored", () => {
@@ -508,12 +617,15 @@ describe("exportUtils", () => {
 
     describe("getGyazoConfig", () => {
         it("should return complete Gyazo configuration", () => {
-            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
-                if (key === "gyazo_client_id") return "test-client-id";
-                if (key === "gyazo_client_secret") return "test-client-secret";
-                if (key === "gyazo_access_token") return "test-token";
-                return null;
-            });
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    if (key === "gyazo_access_token") return "test-token";
+                    return null;
+                }
+            );
 
             const config = exportUtils.getGyazoConfig();
             expect(config).toEqual({
@@ -544,7 +656,9 @@ describe("exportUtils", () => {
 
     describe("isGyazoAuthenticated", () => {
         it("should return true when access token exists", () => {
-            vi.mocked(globalThis.localStorage.getItem).mockReturnValue("test-token");
+            vi.mocked(globalThis.localStorage.getItem).mockReturnValue(
+                "test-token"
+            );
 
             const result = exportUtils.isGyazoAuthenticated();
 
@@ -589,7 +703,10 @@ describe("exportUtils", () => {
         it("should store access token", () => {
             exportUtils.setGyazoAccessToken("new-token");
 
-            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith("gyazo_access_token", "new-token");
+            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
+                "gyazo_access_token",
+                "new-token"
+            );
         });
     });
 
@@ -597,8 +714,14 @@ describe("exportUtils", () => {
         it("should store Gyazo configuration", () => {
             exportUtils.setGyazoConfig("client-id", "client-secret");
 
-            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith("gyazo_client_id", "client-id");
-            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith("gyazo_client_secret", "client-secret");
+            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
+                "gyazo_client_id",
+                "client-id"
+            );
+            expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
+                "gyazo_client_secret",
+                "client-secret"
+            );
         });
     });
 
@@ -607,7 +730,9 @@ describe("exportUtils", () => {
             const base64Image = "data:image/png;base64,test";
 
             // Bypass auth by stubbing token and config
-            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue(
+                "token123" as any
+            );
             vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
@@ -618,7 +743,10 @@ describe("exportUtils", () => {
                     Promise.resolve({
                         ok: true,
                         status: 200,
-                        blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                        blob: () =>
+                            Promise.resolve(
+                                new Blob(["img"], { type: "image/png" })
+                            ),
                     } as any)
                 )
                 // Second call: upload -> json with url
@@ -626,7 +754,8 @@ describe("exportUtils", () => {
                     Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: () => Promise.resolve({ url: "https://gyazo.com/test" }),
+                        json: () =>
+                            Promise.resolve({ url: "https://gyazo.com/test" }),
                         text: () => Promise.resolve("ok"),
                     } as any)
                 );
@@ -646,7 +775,9 @@ describe("exportUtils", () => {
             const base64Image = "data:image/png;base64,test";
 
             // Bypass auth by stubbing token and config
-            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue(
+                "token123" as any
+            );
             vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
@@ -657,7 +788,10 @@ describe("exportUtils", () => {
                     Promise.resolve({
                         ok: true,
                         status: 200,
-                        blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                        blob: () =>
+                            Promise.resolve(
+                                new Blob(["img"], { type: "image/png" })
+                            ),
                     } as any)
                 )
                 // Second call: upload -> error
@@ -670,13 +804,17 @@ describe("exportUtils", () => {
                     } as any)
                 );
 
-            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Gyazo upload failed: 400");
+            await expect(
+                exportUtils.uploadToGyazo(base64Image)
+            ).rejects.toThrow("Gyazo upload failed: 400");
         });
 
         it("should treat AbortError as a timeout", async () => {
             const base64Image = "data:image/png;base64,test";
 
-            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue(
+                "token123" as any
+            );
             vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
@@ -686,18 +824,27 @@ describe("exportUtils", () => {
                     Promise.resolve({
                         ok: true,
                         status: 200,
-                        blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                        blob: () =>
+                            Promise.resolve(
+                                new Blob(["img"], { type: "image/png" })
+                            ),
                     } as any)
                 )
-                .mockImplementationOnce(() => Promise.reject({ name: "AbortError" }));
+                .mockImplementationOnce(() =>
+                    Promise.reject({ name: "AbortError" })
+                );
 
-            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Gyazo upload timed out");
+            await expect(
+                exportUtils.uploadToGyazo(base64Image)
+            ).rejects.toThrow("Gyazo upload timed out");
         });
 
         it("should reject unexpected upload host before uploading", async () => {
             const base64Image = "data:image/png;base64,test";
 
-            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue(
+                "token123" as any
+            );
             vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
                 uploadUrl: "https://evil.example.com/api/upload",
             } as any);
@@ -706,11 +853,16 @@ describe("exportUtils", () => {
                 Promise.resolve({
                     ok: true,
                     status: 200,
-                    blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                    blob: () =>
+                        Promise.resolve(
+                            new Blob(["img"], { type: "image/png" })
+                        ),
                 } as any)
             );
 
-            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Unexpected Gyazo endpoint host");
+            await expect(
+                exportUtils.uploadToGyazo(base64Image)
+            ).rejects.toThrow("Unexpected Gyazo endpoint host");
             expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         });
     });
@@ -727,7 +879,10 @@ describe("exportUtils", () => {
                 ok: true,
                 status: 200,
                 statusText: "OK",
-                json: () => Promise.resolve({ data: { link: "https://i.imgur.com/test.png" } }),
+                json: () =>
+                    Promise.resolve({
+                        data: { link: "https://i.imgur.com/test.png" },
+                    }),
                 text: () => Promise.resolve("ok"),
             } as any);
 
@@ -752,8 +907,12 @@ describe("exportUtils", () => {
                 uploadUrl: "https://api.imgur.com/3/image",
             } as any);
 
-            vi.mocked(globalThis.fetch).mockRejectedValueOnce({ name: "AbortError" });
-            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow("Imgur upload timed out");
+            vi.mocked(globalThis.fetch).mockRejectedValueOnce({
+                name: "AbortError",
+            });
+            await expect(
+                exportUtils.uploadToImgur(base64Image)
+            ).rejects.toThrow("Imgur upload timed out");
         });
 
         it("should reject non-https Imgur endpoints", async () => {
@@ -763,7 +922,9 @@ describe("exportUtils", () => {
                 uploadUrl: "http://api.imgur.com/3/image",
             } as any);
 
-            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow("Imgur endpoints must use HTTPS");
+            await expect(
+                exportUtils.uploadToImgur(base64Image)
+            ).rejects.toThrow("Imgur endpoints must use HTTPS");
             expect(globalThis.fetch).not.toHaveBeenCalled();
         });
     });

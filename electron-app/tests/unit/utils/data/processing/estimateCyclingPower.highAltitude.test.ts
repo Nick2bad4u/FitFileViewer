@@ -6,7 +6,8 @@ describe("estimateCyclingPower.js - High Altitude", () => {
 
     it("should produce lower estimated power at high altitude compared to sea level for same speed/grade", async () => {
         console.log("Running High Altitude Test - Verifying Fix...");
-        const mod = await import("../../../../../utils/data/processing/estimateCyclingPower.js");
+        const mod =
+            await import("../../../../../utils/data/processing/estimateCyclingPower.js");
         const { applyEstimatedPowerToRecords } = mod;
 
         const commonSettings = {
@@ -65,7 +66,8 @@ describe("estimateCyclingPower.js - High Altitude", () => {
             settings: commonSettings,
         });
 
-        const extremeAltPower = extremeAltitudeRecords[1].estimatedPower as number;
+        const extremeAltPower = extremeAltitudeRecords[1]
+            .estimatedPower as number;
 
         // Ensure no clamping at 0.9 prevents extreme altitude differentiation
         expect(extremeAltPower).toBeLessThan(highAltPower);

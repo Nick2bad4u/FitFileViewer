@@ -31,13 +31,22 @@ interface ElectronAPI {
     // File operations
     /** Approve a persisted recent file path for subsequent readFile() calls. */
     approveRecentFile(filePath: string): Promise<boolean>;
-    /** Opens the native single-file FIT dialog; returns selected path or null when cancelled. */
+    /**
+     * Opens the native single-file FIT dialog; returns selected path or null
+     * when cancelled.
+     */
     openFile(): Promise<string | null>;
     /** Alias for openFile; returns selected path or null when cancelled. */
     openFileDialog(): Promise<string | null>;
-    /** Opens a folder picker dialog; returns selected folder path or null when cancelled. */
+    /**
+     * Opens a folder picker dialog; returns selected folder path or null when
+     * cancelled.
+     */
     openFolderDialog(): Promise<string | null>;
-    /** Opens the native multi-select overlay dialog; returns selected paths (possibly empty). */
+    /**
+     * Opens the native multi-select overlay dialog; returns selected paths
+     * (possibly empty).
+     */
     openOverlayDialog(): Promise<string[]>;
     readFile(filePath: string): Promise<ArrayBuffer>;
     parseFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
@@ -74,7 +83,10 @@ interface ElectronAPI {
     onOpenRecentFile(callback: (filePath: string) => void): () => void;
     onSetTheme(callback: (theme: string) => void): () => void;
     onOpenSummaryColumnSelector(callback: () => void): () => void;
-    onUpdateEvent(eventName: string, callback: (...args: any[]) => void): () => void;
+    onUpdateEvent(
+        eventName: string,
+        callback: (...args: any[]) => void
+    ): () => void;
     /** Fired when a file is opened and parsed in main process */
     onFileOpened?(callback: (fileData: any, filePath: string) => void): void;
 
@@ -84,16 +96,28 @@ interface ElectronAPI {
     setFullScreen(flag: boolean): void;
 
     // Generic IPC
-    onIpc(channel: string, callback: (event: object, ...args: any[]) => void): (() => void) | undefined;
+    onIpc(
+        channel: string,
+        callback: (event: object, ...args: any[]) => void
+    ): (() => void) | undefined;
     send(channel: string, ...args: any[]): void;
     invoke(channel: string, ...args: any[]): Promise<any>;
 
     // Main process state bridge
     getMainState(path?: string): Promise<any>;
     setMainState(path: string, value: any, options?: any): Promise<boolean>;
-    listenToMainState(path: string, callback: (change: any) => void): Promise<boolean>;
-    unlistenFromMainState(path: string, callback: (change: any) => void): Promise<boolean>;
-    subscribeToMainState(path: string, callback: (change: any) => void): Promise<() => Promise<boolean>>;
+    listenToMainState(
+        path: string,
+        callback: (change: any) => void
+    ): Promise<boolean>;
+    unlistenFromMainState(
+        path: string,
+        callback: (change: any) => void
+    ): Promise<boolean>;
+    subscribeToMainState(
+        path: string,
+        callback: (change: any) => void
+    ): Promise<() => Promise<boolean>>;
     getOperation(operationId: string): Promise<any>;
     getOperations(): Promise<any>;
     getErrors(limit?: number): Promise<any>;
@@ -102,7 +126,10 @@ interface ElectronAPI {
     // Dev / debug
     /** Notify main process of the currently loaded file (or null when cleared). */
     notifyFitFileLoaded(filePath: string | null): void;
-    injectMenu(theme?: string | null, fitFilePath?: string | null): Promise<boolean>;
+    injectMenu(
+        theme?: string | null,
+        fitFilePath?: string | null
+    ): Promise<boolean>;
     getChannelInfo(): ChannelInfo;
     validateAPI(): boolean;
 }
@@ -114,7 +141,10 @@ declare global {
 
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
-        electronAPI: ElectronAPI & { _summaryColListenerAdded?: boolean; __devMode?: boolean };
+        electronAPI: ElectronAPI & {
+            _summaryColListenerAdded?: boolean;
+            __devMode?: boolean;
+        };
 
         // --- Data / state objects ---
         globalData?: any;
@@ -142,7 +172,12 @@ declare global {
         createTables?: (...args: any[]) => void;
 
         // --- Notification & modals ---
-        showNotification?: (message: string, type?: string, duration?: number, options?: any) => Promise<void>;
+        showNotification?: (
+            message: string,
+            type?: string,
+            duration?: number,
+            options?: any
+        ) => Promise<void>;
         showKeyboardShortcutsModal?: () => void;
         closeKeyboardShortcutsModal?: () => void;
         aboutModalDevHelpers?: any;
@@ -165,7 +200,10 @@ declare global {
 
         // --- Drag & drop / misc ---
         dragDropHandler?: any;
-        injectMenu?: (theme?: string | null, fitFilePath?: string | null) => void;
+        injectMenu?: (
+            theme?: string | null,
+            fitFilePath?: string | null
+        ) => void;
         devCleanup?: () => void;
         enableDragAndDrop?: boolean;
 
@@ -185,10 +223,10 @@ declare global {
     }
 
     /**
-     * Minimal ambient declaration for Leaflet global until modules are migrated.
-     * Provide both a global variable (for direct `L`) and properties on Window/Node globals
-     * so assignments like `global.L = ...` in Vitest setup and `window.L` in the renderer
-     * type-check without TS2339 errors.
+     * Minimal ambient declaration for Leaflet global until modules are
+     * migrated. Provide both a global variable (for direct `L`) and properties
+     * on Window/Node globals so assignments like `global.L = ...` in Vitest
+     * setup and `window.L` in the renderer type-check without TS2339 errors.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     var L: any; // direct global variable access

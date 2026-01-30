@@ -47,14 +47,17 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         // forcing getStateMgr() to pick up the global effective state manager.
         vi.doMock("../../../utils/state/core/stateManager.js", () => ({}));
 
-        const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { updateActiveTab } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
 
         // Act
         const ok = updateActiveTab("tab-summary");
 
         // Assert
         expect(ok).toBe(true);
-        expect(effSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
+        expect(effSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
+            source: "updateActiveTab",
+        });
         expect(effSubscribe).not.toHaveBeenCalled();
     });
 
@@ -63,7 +66,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const effDom = new JSDOM(
             '<!doctype html><html><body><button id="tab-chart" class="tab-button">Chart</button></body></html>'
         );
-        (globalThis as any).__vitest_effective_document__ = effDom.window.document;
+        (globalThis as any).__vitest_effective_document__ =
+            effDom.window.document;
 
         // Invalidate the standard globals so getDoc() prefers the effective document
         // Note: typeof checks in getDoc guard these assignments.
@@ -74,16 +78,25 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("chart");
         const subscribe = vi.fn();
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
 
-        const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { updateActiveTab } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
 
         const ok = updateActiveTab("tab-chart");
 
         expect(ok).toBe(true);
-        expect(setState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+        expect(setState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+            source: "updateActiveTab",
+        });
         // Validate that the class was toggled on the effective document element
-        const el = (globalThis as any).__vitest_effective_document__.getElementById("tab-chart");
+        const el = (
+            globalThis as any
+        ).__vitest_effective_document__.getElementById("tab-chart");
         expect(el.classList.contains("active")).toBe(true);
     });
 
@@ -95,19 +108,30 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         // Invalidate document; provide window.document only
         (globalThis as any).document = undefined;
-        (globalThis as any).window = { document: dom.window.document } as unknown as Window;
+        (globalThis as any).window = {
+            document: dom.window.document,
+        } as unknown as Window;
 
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("win");
         const subscribe = vi.fn();
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
 
-        const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { updateActiveTab } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         const ok = updateActiveTab("tab-win");
 
         expect(ok).toBe(true);
-        expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", { source: "updateActiveTab" });
-        const el = (globalThis as any).window.document.getElementById("tab-win");
+        expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", {
+            source: "updateActiveTab",
+        });
+        const el = (globalThis as any).window.document.getElementById(
+            "tab-win"
+        );
         expect(el.classList.contains("active")).toBe(true);
     });
 
@@ -121,14 +145,24 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("summary");
         const subscribe = vi.fn();
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
 
-        const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
 
         // Capture subscription
         initializeActiveTabState();
-        expect(subscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
-        const call = subscribe.mock.calls.find((c: any[]) => c[0] === "ui.activeTab");
+        expect(subscribe).toHaveBeenCalledWith(
+            "ui.activeTab",
+            expect.any(Function)
+        );
+        const call = subscribe.mock.calls.find(
+            (c: any[]) => c[0] === "ui.activeTab"
+        );
         expect(call).toBeTruthy();
         const cb = (call as any[])[1] as (val: string) => void;
 
@@ -136,10 +170,20 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         cb("data");
 
         // Assert: aria-selected and classes reflect state
-        expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(false);
-        expect(document.getElementById("tab-summary")?.getAttribute("aria-selected")).toBe("false");
-        expect(document.getElementById("tab-data")?.classList.contains("active")).toBe(true);
-        expect(document.getElementById("tab-data")?.getAttribute("aria-selected")).toBe("true");
+        expect(
+            document.getElementById("tab-summary")?.classList.contains("active")
+        ).toBe(false);
+        expect(
+            document
+                .getElementById("tab-summary")
+                ?.getAttribute("aria-selected")
+        ).toBe("false");
+        expect(
+            document.getElementById("tab-data")?.classList.contains("active")
+        ).toBe(true);
+        expect(
+            document.getElementById("tab-data")?.getAttribute("aria-selected")
+        ).toBe("true");
     });
 
     it('ignores clicks on aria-disabled="true" buttons (no disabled/class)', async () => {
@@ -150,9 +194,14 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("summary");
         const subscribe = vi.fn();
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
 
-        const { initializeActiveTabState } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+        const { initializeActiveTabState } =
+            await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
         document.getElementById("tab-map")!.click();

@@ -1,13 +1,16 @@
 /**
  * Utility to help with mocking CommonJS modules in ESM test files
  *
- * This file provides functions to intercept require() calls in modules
- * being tested, allowing proper mocking in a Vitest/Jest environment.
+ * This file provides functions to intercept require() calls in modules being
+ * tested, allowing proper mocking in a Vitest/Jest environment.
  */
 
 /**
  * Creates a mock state manager for testing
- * @param {any} vitest - Vitest instance with fn() method for creating mock functions
+ *
+ * @param {any} vitest - Vitest instance with fn() method for creating mock
+ *   functions
+ *
  * @returns {object} Mock state manager with spy functions
  */
 export function createMockStateManager(vitest) {
@@ -23,9 +26,13 @@ export function createMockStateManager(vitest) {
 }
 
 /**
- * Sets up mocking for CommonJS modules in ESM tests by intercepting require calls
+ * Sets up mocking for CommonJS modules in ESM tests by intercepting require
+ * calls
+ *
  * @param {object} options - Configuration options
- * @param {Record<string, any>} options.mocks - Object mapping module paths to mock implementations
+ * @param {Record<string, any>} options.mocks - Object mapping module paths to
+ *   mock implementations
+ *
  * @returns {Function} Function to reset the mocking setup
  */
 export function setupCommonJSMocks({ mocks = {} }) {
@@ -38,7 +45,9 @@ export function setupCommonJSMocks({ mocks = {} }) {
         // Check if we have a mock for this path
         for (const [mockPath, mockImplementation] of Object.entries(mocks)) {
             if (path.includes(mockPath)) {
-                console.log(`[CJS Mock Interop] Intercepted require for: ${path}`);
+                console.log(
+                    `[CJS Mock Interop] Intercepted require for: ${path}`
+                );
                 return mockImplementation;
             }
         }
@@ -49,7 +58,9 @@ export function setupCommonJSMocks({ mocks = {} }) {
         }
 
         // If original require is not available, throw error
-        throw new Error(`Cannot require module: ${path} - Node.js require is not available in this environment`);
+        throw new Error(
+            `Cannot require module: ${path} - Node.js require is not available in this environment`
+        );
     };
 
     // Add properties to make it more compatible with the Require type
@@ -68,6 +79,7 @@ export function setupCommonJSMocks({ mocks = {} }) {
 
 /**
  * Reset module cache for a specific module to ensure fresh imports
+ *
  * @param {string} modulePath - Path to the module to reset
  */
 export function resetModuleCache(modulePath) {
@@ -79,7 +91,9 @@ export function resetModuleCache(modulePath) {
         Object.keys(global.require.cache).forEach((cacheKey) => {
             if (cacheKey.includes(normalizedPath)) {
                 delete global.require.cache[cacheKey];
-                console.log(`[CJS Mock Interop] Cleared cache for: ${cacheKey}`);
+                console.log(
+                    `[CJS Mock Interop] Cleared cache for: ${cacheKey}`
+                );
             }
         });
     }
@@ -89,9 +103,13 @@ export function resetModuleCache(modulePath) {
         // In Vitest environment, use import.meta.hot to reset modules if available
         if (import.meta && typeof globalThis !== "undefined") {
             // Signal that this module should be reloaded
-            console.log(`[CJS Mock Interop] Requested module reload for: ${modulePath}`);
+            console.log(
+                `[CJS Mock Interop] Requested module reload for: ${modulePath}`
+            );
         }
     } catch (/** @type {any} */ err) {
-        console.log(`[CJS Mock Interop] Error clearing module cache: ${err.message}`);
+        console.log(
+            `[CJS Mock Interop] Error clearing module cache: ${err.message}`
+        );
     }
 }

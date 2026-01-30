@@ -8,8 +8,8 @@ export function exampleStateUsage(): void;
  */
 export function initializeRendererWithNewStateSystem(): void;
 /**
- * Migration helper for existing renderer.js
- * Replace your existing initialization with this pattern
+ * Migration helper for existing renderer.js Replace your existing
+ * initialization with this pattern
  */
 export function migrateExistingRenderer(): void;
 export default initializeRendererWithNewStateSystem;

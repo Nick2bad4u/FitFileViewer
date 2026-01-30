@@ -1,6 +1,6 @@
 /**
- * Manufacturer and Product ID mappings for FIT files
- * Based on the Garmin FIT SDK and community-maintained lists
+ * Manufacturer and Product ID mappings for FIT files Based on the Garmin FIT
+ * SDK and community-maintained lists
  */
 
 import { dataAntManufacturerIDs } from "../../data/lookups/dataAntManufacturerIDs.js";
@@ -8,13 +8,21 @@ import { dataAntProductIds } from "../../data/lookups/dataAntProductIds.js";
 
 /**
  * Get both manufacturer and product names from IDs
- * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string|null} productId - Product ID (optional)
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID
+ * @param {number | string | null} productId - Product ID (optional)
+ *
  * @returns {Object} Object with manufacturerName and productName
  */
-export function getManufacturerAndProduct(manufacturerId, productId = /** @type {string|number|null} */ (null)) {
+export function getManufacturerAndProduct(
+    manufacturerId,
+    productId = /** @type {string | number | null} */ (null)
+) {
     const manufacturerName = getManufacturerName(manufacturerId),
-        productName = productId === null ? null : getProductName(manufacturerId, productId);
+        productName =
+            productId === null
+                ? null
+                : getProductName(manufacturerId, productId);
 
     return {
         manufacturerName,
@@ -24,8 +32,11 @@ export function getManufacturerAndProduct(manufacturerId, productId = /** @type 
 
 /**
  * Get manufacturer ID from manufacturer name (reverse lookup)
- * @param {string} manufacturerName - Manufacturer name (e.g., "faveroElectronics", "garmin")
- * @returns {number|null} Manufacturer ID or null if not found
+ *
+ * @param {string} manufacturerName - Manufacturer name (e.g.,
+ *   "faveroElectronics", "garmin")
+ *
+ * @returns {number | null} Manufacturer ID or null if not found
  */
 export function getManufacturerIdFromName(manufacturerName) {
     if (!manufacturerName || typeof manufacturerName !== "string") {
@@ -69,23 +80,36 @@ export function getManufacturerIdFromName(manufacturerName) {
 
 /**
  * Get manufacturer name from ID
- * @param {number|string} manufacturerId - Manufacturer ID
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID
+ *
  * @returns {string} Manufacturer name or original value if not found
  */
 export function getManufacturerName(manufacturerId) {
-    const id = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId;
+    const id =
+        typeof manufacturerId === "string"
+            ? Number.parseInt(manufacturerId, 10)
+            : manufacturerId;
     return /** @type {any} */ (dataAntManufacturerIDs)[id] || manufacturerId;
 }
 
 /**
  * Get product name from manufacturer ID and product ID
- * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID
+ *
+ * @param {number | string} manufacturerId - Manufacturer ID
+ * @param {number | string} productId - Product ID
+ *
  * @returns {string} Product name or original product ID if not found
  */
 export function getProductName(manufacturerId, productId) {
-    const mfgId = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId,
-        prodId = typeof productId === "string" ? Number.parseInt(productId, 10) : productId,
+    const mfgId =
+            typeof manufacturerId === "string"
+                ? Number.parseInt(manufacturerId, 10)
+                : manufacturerId,
+        prodId =
+            typeof productId === "string"
+                ? Number.parseInt(productId, 10)
+                : productId,
         manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];

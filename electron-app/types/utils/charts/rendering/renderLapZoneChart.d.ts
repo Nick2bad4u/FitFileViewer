@@ -1,5 +1,6 @@
 /**
  * @typedef {Object} LapZoneDatum
+ *
  * @property {string} label - Zone label (e.g., "HR Zone 1")
  * @property {number} value - Time in zone (seconds)
  * @property {string} [color] - Base color for the zone
@@ -7,19 +8,24 @@
  */
 /**
  * @typedef {Object} LapZoneEntry
+ *
  * @property {string} lapLabel - Label for the lap (e.g., "Lap 1")
  * @property {LapZoneDatum[]} zones - Zone distribution for the lap
  */
 /**
  * @typedef {Object} LapZoneChartOptions
+ *
  * @property {string} [title]
  */
 /**
- * Render lap-by-lap stacked zone chart (HR or Power) with robust guards & typing.
+ * Render lap-by-lap stacked zone chart (HR or Power) with robust guards &
+ * typing.
+ *
  * @param {HTMLCanvasElement} canvas
  * @param {LapZoneEntry[]} lapZoneData
  * @param {LapZoneChartOptions} [options]
- * @returns {any|null}
+ *
+ * @returns {any | null}
  */
 export function renderLapZoneChart(
     canvas: HTMLCanvasElement,

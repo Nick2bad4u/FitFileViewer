@@ -14,9 +14,12 @@ vi.mock("../../utils/rendering/core/showFitData.js", () => ({
     showFitData: vi.fn(),
 }));
 
-vi.mock("../../utils/formatting/converters/convertArrayBufferToBase64.js", () => ({
-    convertArrayBufferToBase64: vi.fn().mockReturnValue(""),
-}));
+vi.mock(
+    "../../utils/formatting/converters/convertArrayBufferToBase64.js",
+    () => ({
+        convertArrayBufferToBase64: vi.fn().mockReturnValue(""),
+    })
+);
 
 vi.mock("../../utils/ui/controls/addFullScreenButton.js", () => ({
     setupDOMContentLoaded: vi.fn(),

@@ -15,7 +15,7 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
- * @param {*} field
+ * @param {any} field
  */
 export function openZoneColorPicker(field) {
     try {
@@ -27,7 +27,11 @@ export function openZoneColorPicker(field) {
             zoneData = null,
             zoneType = "";
 
-        if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
+        if (
+            field.includes("hr_zone") ||
+            field.includes("hr_lap_zone") ||
+            field === "hr_zone"
+        ) {
             zoneType = "Heart Rate";
             zoneData = globalThis.heartRateZones;
             defaultColors = DEFAULT_HR_ZONE_COLORS;
@@ -53,7 +57,11 @@ export function openZoneColorPicker(field) {
                     chartType = "Zone Charts";
                 }
             }
-        } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
+        } else if (
+            field.includes("power_zone") ||
+            field.includes("power_lap_zone") ||
+            field === "power_zone"
+        ) {
             zoneType = "Power";
             zoneData = globalThis.powerZones;
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
@@ -87,7 +95,10 @@ export function openZoneColorPicker(field) {
 
         if (!zoneData || !Array.isArray(zoneData) || zoneData.length === 0) {
             console.warn(`[ChartJS] No zone data available for ${field}`);
-            showNotification(`No ${zoneType.toLowerCase()} zone data available`, "warning");
+            showNotification(
+                `No ${zoneType.toLowerCase()} zone data available`,
+                "warning"
+            );
             return;
         }
 
@@ -221,7 +232,8 @@ export function openZoneColorPicker(field) {
 						`;
 
             const zoneLabel = document.createElement("div");
-            zoneLabel.textContent = zone.label || `Zone ${zone.zone || index + 1}`;
+            zoneLabel.textContent =
+                zone.label || `Zone ${zone.zone || index + 1}`;
             zoneLabel.style.cssText = `
 							font-weight: 600;
 							font-size: 14px;
@@ -255,8 +267,11 @@ export function openZoneColorPicker(field) {
             colorPreview.style.background = currentColor;
 
             /**
-             * Convert stored color tokens to a valid <input type="color"> value.
+             * Convert stored color tokens to a valid <input type="color">
+             * value.
+             *
              * @param {string} value
+             *
              * @returns {string}
              */
             const toColorInputHex6 = (value) => {
@@ -264,11 +279,21 @@ export function openZoneColorPicker(field) {
                 if (/^#[\da-f]{6}$/iu.test(v)) return v;
                 if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
                 if (/^#[\da-f]{3}$/iu.test(v)) {
-                    const [, r, g, b] = v;
+                    const [
+                        ,
+                        r,
+                        g,
+                        b,
+                    ] = v;
                     return `#${r}${r}${g}${g}${b}${b}`;
                 }
                 if (/^#[\da-f]{4}$/iu.test(v)) {
-                    const [, r, g, b] = v;
+                    const [
+                        ,
+                        r,
+                        g,
+                        b,
+                    ] = v;
                     return `#${r}${r}${g}${g}${b}${b}`;
                 }
                 return "#000000";
@@ -288,7 +313,9 @@ export function openZoneColorPicker(field) {
 
             // Color picker change handler
             addEventListenerWithCleanup(colorPicker, "change", (e) => {
-                const { value: newColor } = /** @type {HTMLInputElement} */ (e.target);
+                const { value: newColor } = /** @type {HTMLInputElement} */ (
+                    e.target
+                );
                 colorPreview.style.background = newColor;
 
                 // Set color scheme to custom when manually changing a zone color
@@ -300,7 +327,10 @@ export function openZoneColorPicker(field) {
                 updateZoneColorPreview(field, zoneIndex, newColor);
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                if (
+                    typeof globalThis.updateInlineZoneColorSelectors ===
+                    "function"
+                ) {
                     globalThis.updateInlineZoneColorSelectors(document.body);
                 }
             });
@@ -340,7 +370,9 @@ export function openZoneColorPicker(field) {
 						`;
 
             addEventListenerWithCleanup(resetButton, "click", () => {
-                const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
+                const defaultColor =
+                    defaultColors[zoneIndex] ||
+                    defaultColors[zoneIndex % defaultColors.length];
                 if (defaultColor) {
                     colorPicker.value = defaultColor;
                     colorPreview.style.background = defaultColor;
@@ -353,7 +385,10 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                if (
+                    typeof globalThis.updateInlineZoneColorSelectors ===
+                    "function"
+                ) {
                     globalThis.updateInlineZoneColorSelectors(document.body);
                 }
             });
@@ -386,7 +421,8 @@ export function openZoneColorPicker(field) {
         // Reset all button
         const resetAllButton = document.createElement("button");
         resetAllButton.textContent = "Reset All";
-        resetAllButton.title = "Reset all zone colors, set scheme to custom, and enable all charts";
+        resetAllButton.title =
+            "Reset all zone colors, set scheme to custom, and enable all charts";
         resetAllButton.className = "reset-all-btn";
         resetAllButton.style.cssText = `
             background: var(--accent-color, #3b82f6);
@@ -431,7 +467,9 @@ export function openZoneColorPicker(field) {
                     globalThis.clearZoneColorData(field, zoneData.length);
                 } else {
                     // Fallback: remove per-zone color keys
-                    const fallbackZoneType = field.includes("hr") ? "hr" : "power";
+                    const fallbackZoneType = field.includes("hr")
+                        ? "hr"
+                        : "power";
                     for (let i = 0; i < zoneData.length; i++) {
                         removeChartSpecificZoneColor(field, i);
                         removeZoneColor(fallbackZoneType, i);
@@ -439,9 +477,13 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Enable all chart fields (set all toggles to visible)
-                const settingsWrapper = document.querySelector("#chartjs-settings-wrapper");
+                const settingsWrapper = document.querySelector(
+                    "#chartjs-settings-wrapper"
+                );
                 if (settingsWrapper) {
-                    const fieldToggles = settingsWrapper.querySelectorAll('.field-toggle input[type="checkbox"]');
+                    const fieldToggles = settingsWrapper.querySelectorAll(
+                        '.field-toggle input[type="checkbox"]'
+                    );
                     for (const toggle of fieldToggles) {
                         /** @type {HTMLInputElement} */ (toggle).checked = true;
                     }
@@ -453,7 +495,10 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Update UI and chart to reflect reset state
-                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                if (
+                    typeof globalThis.updateInlineZoneColorSelectors ===
+                    "function"
+                ) {
                     globalThis.updateInlineZoneColorSelectors(document.body);
                 }
 
@@ -465,7 +510,10 @@ export function openZoneColorPicker(field) {
                 }
 
                 if (typeof globalThis.showNotification === "function") {
-                    globalThis.showNotification("Zone colors and settings reset to defaults", "success");
+                    globalThis.showNotification(
+                        "Zone colors and settings reset to defaults",
+                        "success"
+                    );
                 }
             } catch (error) {
                 if (typeof globalThis.showNotification === "function") {
@@ -517,7 +565,9 @@ export function openZoneColorPicker(field) {
                 globalThis.renderChartJS();
             } else {
                 globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-colors-applied" } })
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "zone-colors-applied" },
+                    })
                 );
             }
 
@@ -555,9 +605,10 @@ export function openZoneColorPicker(field) {
 
 /**
  * Updates zone color preview in real-time (if chart is visible)
- * @param {*} field - The field name
- * @param {*} zoneIndex - Zone index (0-based)
- * @param {*} newColor - New color value
+ *
+ * @param {any} field - The field name
+ * @param {any} zoneIndex - Zone index (0-based)
+ * @param {any} newColor - New color value
  */
 export function updateZoneColorPreview(field, zoneIndex, newColor) {
     try {
@@ -566,14 +617,21 @@ export function updateZoneColorPreview(field, zoneIndex, newColor) {
             const [dataset] = chart.data.datasets;
             return (
                 dataset &&
-                ((field.includes("hr_zone") && dataset.label && dataset.label.includes("Heart Rate")) ||
-                    (field.includes("power_zone") && dataset.label && dataset.label.includes("Power")))
+                ((field.includes("hr_zone") &&
+                    dataset.label &&
+                    dataset.label.includes("Heart Rate")) ||
+                    (field.includes("power_zone") &&
+                        dataset.label &&
+                        dataset.label.includes("Power")))
             );
         });
 
         if (targetChart && targetChart.data.datasets[0]) {
             const [dataset] = targetChart.data.datasets;
-            if (Array.isArray(dataset.backgroundColor) && dataset.backgroundColor[zoneIndex]) {
+            if (
+                Array.isArray(dataset.backgroundColor) &&
+                dataset.backgroundColor[zoneIndex]
+            ) {
                 dataset.backgroundColor[zoneIndex] = newColor;
                 targetChart.update("none"); // Update without animation for real-time preview
             }

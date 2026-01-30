@@ -1,20 +1,22 @@
 /**
- * Formats tooltip data for display on maps and charts
- * Creates a comprehensive data summary for a specific data point
+ * Formats tooltip data for display on maps and charts Creates a comprehensive
+ * data summary for a specific data point
+ *
+ * @example
+ *     // Format tooltip for a data point
+ *     const tooltipHtml = formatTooltipData(
+ *         100,
+ *         { timestamp: new Date(), altitude: 123.4, heartRate: 150 },
+ *         1
+ *     );
  *
  * @param {number} idx - Index of the data point
  * @param {RecordMessage} row - Data row containing measurement values
  * @param {number} lapNum - Lap number for this data point
- * @param {RecordMessage[]} [recordMesgsOverride] - Optional override for record messages array
- * @returns {string} Formatted HTML string for tooltip display
+ * @param {RecordMessage[]} [recordMesgsOverride] - Optional override for record
+ *   messages array
  *
- * @example
- * // Format tooltip for a data point
- * const tooltipHtml = formatTooltipData(
- *   100,
- *   { timestamp: new Date(), altitude: 123.4, heartRate: 150 },
- *   1
- * );
+ * @returns {string} Formatted HTML string for tooltip display
  *
  * @public
  */

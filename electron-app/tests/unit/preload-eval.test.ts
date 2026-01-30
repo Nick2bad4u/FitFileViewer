@@ -58,12 +58,21 @@ describe("preload.js - Script Evaluation Test", () => {
             });
 
             // Execute the preload script with our mocked require
-            const scriptFunc = new Function("require", "console", "process", "globalThis", preloadCode);
+            const scriptFunc = new Function(
+                "require",
+                "console",
+                "process",
+                "globalThis",
+                preloadCode
+            );
             scriptFunc(mockRequire, console, globalThis.process, globalThis);
 
             console.log("[TEST] Preload script executed successfully");
         } catch (error) {
-            console.error("[TEST] Error loading/executing preload script:", error);
+            console.error(
+                "[TEST] Error loading/executing preload script:",
+                error
+            );
         }
 
         console.log(
@@ -77,10 +86,13 @@ describe("preload.js - Script Evaluation Test", () => {
         expect(electronMock.contextBridge.exposeInMainWorld).toHaveBeenCalled();
 
         // Should have at least 2 calls (electronAPI and devTools)
-        expect(electronMock.contextBridge.exposeInMainWorld.mock.calls.length).toBeGreaterThanOrEqual(1);
+        expect(
+            electronMock.contextBridge.exposeInMainWorld.mock.calls.length
+        ).toBeGreaterThanOrEqual(1);
 
         // Check the calls
-        const exposeCalls = electronMock.contextBridge.exposeInMainWorld.mock.calls;
+        const exposeCalls =
+            electronMock.contextBridge.exposeInMainWorld.mock.calls;
         console.log(
             "[TEST] exposeInMainWorld calls:",
             exposeCalls.map((call: any) => call[0])
@@ -89,7 +101,10 @@ describe("preload.js - Script Evaluation Test", () => {
 
     it("should register process beforeExit handler", () => {
         const mockProcess = globalThis.process as any;
-        expect(mockProcess.once).toHaveBeenCalledWith("beforeExit", expect.any(Function));
+        expect(mockProcess.once).toHaveBeenCalledWith(
+            "beforeExit",
+            expect.any(Function)
+        );
     });
 
     it("should log initialization messages", () => {
@@ -98,7 +113,9 @@ describe("preload.js - Script Evaluation Test", () => {
 
         // Look for specific log messages
         const logCalls = consoleLogSpy.mock.calls;
-        const hasPreloadLogs = logCalls.some((call: any) => call[0] && call[0].includes("[preload.js]"));
+        const hasPreloadLogs = logCalls.some(
+            (call: any) => call[0] && call[0].includes("[preload.js]")
+        );
 
         expect(hasPreloadLogs).toBe(true);
     });

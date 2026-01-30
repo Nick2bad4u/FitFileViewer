@@ -1,12 +1,15 @@
 /**
- * @fileoverview Time formatting utility for FitFileViewer
+ * @version 2.0.0 - Updated to use centralized configuration and unified error
+ *   handling
  *
- * Provides functions for formatting time values from seconds into human-readable
- * strings with various formats and user-preferred units.
+ * @file Time formatting utility for FitFileViewer
+ *
+ *   Provides functions for formatting time values from seconds into
+ *   human-readable strings with various formats and user-preferred units.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
- * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
 import { CONVERSION_FACTORS, TIME_UNITS } from "../../config/index.js";
@@ -16,6 +19,7 @@ import { convertTimeUnits } from "../converters/convertTimeUnits.js";
 
 /**
  * Time formatting constants
+ *
  * @readonly
  */
 const TIME_FORMAT_CONSTANTS = {
@@ -25,16 +29,21 @@ const TIME_FORMAT_CONSTANTS = {
 };
 
 /**
- * Formats seconds into MM:SS or HH:MM:SS format, or converts to user's preferred time units
- * @param {number} seconds - Time in seconds
- * @param {boolean} useUserUnits - Whether to use user's preferred units or always use MM:SS format
- * @returns {string} Formatted time string
- * @example
- * // Format time in MM:SS format
- * const timeStr = formatTime(3661); // "1:01:01"
+ * Formats seconds into MM:SS or HH:MM:SS format, or converts to user's
+ * preferred time units
  *
- * // Format with user units
- * const timeUnits = formatTime(3600, true); // "1.0h" (if user prefers hours)
+ * @example
+ *     // Format time in MM:SS format
+ *     const timeStr = formatTime(3661); // "1:01:01"
+ *
+ *     // Format with user units
+ *     const timeUnits = formatTime(3600, true); // "1.0h" (if user prefers hours)
+ *
+ * @param {number} seconds - Time in seconds
+ * @param {boolean} useUserUnits - Whether to use user's preferred units or
+ *   always use MM:SS format
+ *
+ * @returns {string} Formatted time string
  */
 export function formatTime(seconds, useUserUnits = false) {
     // Handle null and undefined
@@ -72,13 +81,19 @@ export function formatTime(seconds, useUserUnits = false) {
 
 /**
  * Formats time as HH:MM:SS or MM:SS string
- * @param {number} seconds - Time in seconds
- * @returns {string} Formatted time string
+ *
  * @private
+ *
+ * @param {number} seconds - Time in seconds
+ *
+ * @returns {string} Formatted time string
  */
 function formatAsTimeString(seconds) {
     const hours = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_HOUR);
-    const minutes = Math.floor((seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) / CONVERSION_FACTORS.SECONDS_PER_MINUTE);
+    const minutes = Math.floor(
+        (seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) /
+            CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
     const secs = Math.floor(seconds % CONVERSION_FACTORS.SECONDS_PER_MINUTE);
 
     if (hours > 0) {
@@ -89,10 +104,13 @@ function formatAsTimeString(seconds) {
 
 /**
  * Internal time formatting with error handling
+ *
+ * @private
+ *
  * @param {number} seconds - Validated time in seconds
  * @param {boolean} useUserUnits - Whether to use user's preferred units
+ *
  * @returns {string} Formatted time string
- * @private
  */
 function formatTimeInternal(seconds, useUserUnits) {
     try {
@@ -108,9 +126,12 @@ function formatTimeInternal(seconds, useUserUnits) {
 
 /**
  * Formats time using user's preferred units from settings state
- * @param {number} seconds - Time in seconds
- * @returns {string} Formatted time string with units
+ *
  * @private
+ *
+ * @param {number} seconds - Time in seconds
+ *
+ * @returns {string} Formatted time string with units
  */
 function formatWithUserUnits(seconds) {
     /** @type {string} */
@@ -118,7 +139,11 @@ function formatWithUserUnits(seconds) {
 
     try {
         const stored = getChartSetting("timeUnits");
-        if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+        if (
+            stored === TIME_UNITS.MINUTES ||
+            stored === TIME_UNITS.HOURS ||
+            stored === TIME_UNITS.SECONDS
+        ) {
             timeUnits = stored;
         }
     } catch (error) {

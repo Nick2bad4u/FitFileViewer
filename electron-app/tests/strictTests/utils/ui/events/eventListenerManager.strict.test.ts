@@ -16,7 +16,11 @@ describe("eventListenerManager.strict branches", () => {
             throw new Error("remove fail");
         }) as any;
 
-        const cleanup = addEventListenerWithCleanup(el as any, "click", () => {});
+        const cleanup = addEventListenerWithCleanup(
+            el as any,
+            "click",
+            () => {}
+        );
         expect(getListenerCount()).toBe(1);
         // Should not throw; should warn
         expect(() => cleanup()).not.toThrow();

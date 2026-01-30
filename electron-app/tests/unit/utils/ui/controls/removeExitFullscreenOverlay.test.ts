@@ -15,9 +15,9 @@ describe("removeExitFullscreenOverlay", () => {
     });
 
     it("throws when container is not a valid element", () => {
-        expect(() => removeExitFullscreenOverlay(null as unknown as HTMLElement)).toThrowError(
-            "Container must be a valid DOM element"
-        );
+        expect(() =>
+            removeExitFullscreenOverlay(null as unknown as HTMLElement)
+        ).toThrowError("Container must be a valid DOM element");
     });
 
     it("removes overlay element and clears cache", () => {
@@ -32,9 +32,15 @@ describe("removeExitFullscreenOverlay", () => {
         expect(removeSpy).toHaveBeenCalledTimes(1);
         expect(container.querySelector(".exit-fullscreen-overlay")).toBeNull();
 
-        const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+        const debugSpy = vi
+            .spyOn(console, "debug")
+            .mockImplementation(() => {});
         removeExitFullscreenOverlay(container);
-        expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining("No exit fullscreen overlay found in container"));
+        expect(debugSpy).toHaveBeenCalledWith(
+            expect.stringContaining(
+                "No exit fullscreen overlay found in container"
+            )
+        );
     });
 
     it("propagates removal errors with context", () => {
@@ -44,11 +50,17 @@ describe("removeExitFullscreenOverlay", () => {
             throw new Error("removal failed");
         }) as typeof overlay.remove;
         container.appendChild(overlay);
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
-        expect(() => removeExitFullscreenOverlay(container)).toThrowError("removal failed");
+        expect(() => removeExitFullscreenOverlay(container)).toThrowError(
+            "removal failed"
+        );
         expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Failed to remove exit fullscreen overlay:"),
+            expect.stringContaining(
+                "Failed to remove exit fullscreen overlay:"
+            ),
             expect.any(Error)
         );
     });
@@ -56,7 +68,9 @@ describe("removeExitFullscreenOverlay", () => {
     it("locates overlay using DOM fallback when not cached", () => {
         const overlay = document.createElement("div");
         overlay.classList.add("exit-fullscreen-overlay");
-        const querySpy = vi.spyOn(container, "querySelector").mockReturnValue(overlay);
+        const querySpy = vi
+            .spyOn(container, "querySelector")
+            .mockReturnValue(overlay);
         const removeSpy = vi.fn(() => overlay.parentNode?.removeChild(overlay));
         overlay.remove = removeSpy as typeof overlay.remove;
 

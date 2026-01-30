@@ -7,8 +7,11 @@ vi.mock("../../../utils/formatting/display/formatAntNames.js", () => ({
 }));
 
 // Import the module after mocking
-const { formatManufacturer, getAllManufacturerMappings, hasManufacturerMapping } =
-    await import("../../../utils/formatting/formatters/formatManufacturer.js");
+const {
+    formatManufacturer,
+    getAllManufacturerMappings,
+    hasManufacturerMapping,
+} = await import("../../../utils/formatting/formatters/formatManufacturer.js");
 
 describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
     beforeEach(() => {
@@ -71,7 +74,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(formatManufacturer("look")).toBe("Look");
                 expect(formatManufacturer("speedplay")).toBe("Speedplay");
                 expect(formatManufacturer("time")).toBe("Time");
-                expect(formatManufacturer("crankbrothers")).toBe("Crankbrothers");
+                expect(formatManufacturer("crankbrothers")).toBe(
+                    "Crankbrothers"
+                );
                 expect(formatManufacturer("bontrager")).toBe("Bontrager");
             });
 
@@ -89,7 +94,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
 
             it("should return original value for unknown manufacturers", () => {
                 expect(formatManufacturer("unknownBrand")).toBe("unknownBrand");
-                expect(formatManufacturer("CustomManufacturer")).toBe("CustomManufacturer");
+                expect(formatManufacturer("CustomManufacturer")).toBe(
+                    "CustomManufacturer"
+                );
                 expect(formatManufacturer("MyBike")).toBe("MyBike");
             });
         });
@@ -104,7 +111,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
 
             it("should format electronics manufacturers correctly", () => {
                 // Note: faveroElectronics doesn't work due to camelCase key vs lowercase lookup
-                expect(formatManufacturer("faveroElectronics")).toBe("faveroElectronics");
+                expect(formatManufacturer("faveroElectronics")).toBe(
+                    "faveroElectronics"
+                );
                 expect(formatManufacturer("cateye")).toBe("CatEye");
             });
 
@@ -216,14 +225,18 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
     describe("Input Validation and Error Handling", () => {
         describe("Null and Undefined Inputs", () => {
             it("should handle null input gracefully", () => {
-                expect(formatManufacturer(null as any)).toBe("Unknown Manufacturer");
+                expect(formatManufacturer(null as any)).toBe(
+                    "Unknown Manufacturer"
+                );
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Null or undefined manufacturer provided"
                 );
             });
 
             it("should handle undefined input gracefully", () => {
-                expect(formatManufacturer(undefined as any)).toBe("Unknown Manufacturer");
+                expect(formatManufacturer(undefined as any)).toBe(
+                    "Unknown Manufacturer"
+                );
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Null or undefined manufacturer provided"
                 );
@@ -238,11 +251,19 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
 
             it("should handle array inputs by converting to string", () => {
                 expect(formatManufacturer(["garmin"] as any)).toBe("Garmin");
-                expect(formatManufacturer([1, 2, 3] as any)).toBe("1,2,3");
+                expect(
+                    formatManufacturer([
+                        1,
+                        2,
+                        3,
+                    ] as any)
+                ).toBe("1,2,3");
             });
 
             it("should handle object inputs by converting to string", () => {
-                expect(formatManufacturer({ name: "garmin" } as any)).toBe("[object Object]");
+                expect(formatManufacturer({ name: "garmin" } as any)).toBe(
+                    "[object Object]"
+                );
             });
 
             it("should handle function inputs by converting to string", () => {
@@ -281,7 +302,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             });
 
             it("should handle special characters in manufacturer names", () => {
-                expect(formatManufacturer("Mañufacturer-123_test")).toBe("Mañufacturer-123_test");
+                expect(formatManufacturer("Mañufacturer-123_test")).toBe(
+                    "Mañufacturer-123_test"
+                );
                 expect(formatManufacturer("Test & Co.")).toBe("Test & Co.");
                 expect(formatManufacturer("Brand™")).toBe("Brand™");
             });
@@ -290,7 +313,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
         describe("General Error Handling", () => {
             it("should provide fallback value when all processing fails", () => {
                 // Test with input that could cause various errors
-                expect(formatManufacturer(Symbol("test") as any)).toBe("Symbol(test)");
+                expect(formatManufacturer(Symbol("test") as any)).toBe(
+                    "Symbol(test)"
+                );
             });
         });
     });
@@ -360,7 +385,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
 
             it("should return false for manufacturers without defined mappings", () => {
                 expect(hasManufacturerMapping("unknownBrand")).toBe(false);
-                expect(hasManufacturerMapping("customManufacturer")).toBe(false);
+                expect(hasManufacturerMapping("customManufacturer")).toBe(
+                    false
+                );
                 expect(hasManufacturerMapping("testBrand")).toBe(false);
             });
 
@@ -457,14 +484,22 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             });
 
             it("should handle device string identifiers", () => {
-                expect(formatManufacturer("Garmin Edge 1030")).toBe("Garmin Edge 1030");
-                expect(formatManufacturer("Wahoo ELEMNT BOLT")).toBe("Wahoo ELEMNT BOLT");
-                expect(formatManufacturer("Polar Vantage V2")).toBe("Polar Vantage V2");
+                expect(formatManufacturer("Garmin Edge 1030")).toBe(
+                    "Garmin Edge 1030"
+                );
+                expect(formatManufacturer("Wahoo ELEMNT BOLT")).toBe(
+                    "Wahoo ELEMNT BOLT"
+                );
+                expect(formatManufacturer("Polar Vantage V2")).toBe(
+                    "Polar Vantage V2"
+                );
             });
 
             it("should handle mixed case manufacturer data from different sources", () => {
                 expect(formatManufacturer("GARMIN")).toBe("Garmin");
-                expect(formatManufacturer("wahoo_fitness")).toBe("wahoo_fitness"); // Not in mapping
+                expect(formatManufacturer("wahoo_fitness")).toBe(
+                    "wahoo_fitness"
+                ); // Not in mapping
                 expect(formatManufacturer("Polar-H10")).toBe("Polar-H10"); // Not in mapping
             });
         });

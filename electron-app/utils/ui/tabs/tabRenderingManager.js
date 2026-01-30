@@ -1,9 +1,14 @@
 /**
- * @fileoverview Performance-Optimized Tab Rendering Manager
- * @description Manages tab-specific rendering with cancellation, debouncing, and lazy loading
+ * Manages tab-specific rendering with cancellation, debouncing, and lazy
+ * loading
+ *
+ * @file Performance-Optimized Tab Rendering Manager
  */
 
-import { CancellationTokenSource, isCancellationError } from "../../app/async/cancellationToken.js";
+import {
+    CancellationTokenSource,
+    isCancellationError,
+} from "../../app/async/cancellationToken.js";
 
 /**
  * Tab rendering manager with performance optimizations
@@ -16,10 +21,10 @@ class TabRenderingManager {
         /** @type {Map<string, number>} */
         this._lastRenderTime = new Map();
 
-        /** @type {string|null} */
+        /** @type {string | null} */
         this._currentTab = null;
 
-        /** @type {number|null} */
+        /** @type {number | null} */
         this._tabSwitchDebounceTimer = null;
 
         /** @type {number} */
@@ -34,7 +39,9 @@ class TabRenderingManager {
      */
     cancelAllOperations() {
         for (const [tabName, source] of this._activeOperations.entries()) {
-            console.log(`[TabRenderingManager] Cancelling operation for tab: ${tabName}`);
+            console.log(
+                `[TabRenderingManager] Cancelling operation for tab: ${tabName}`
+            );
             source.cancel();
         }
         this._activeOperations.clear();
@@ -42,12 +49,15 @@ class TabRenderingManager {
 
     /**
      * Cancel operation for a specific tab
+     *
      * @param {string} tabName - Name of tab
      */
     cancelOperation(tabName) {
         const source = this._activeOperations.get(tabName);
         if (source) {
-            console.log(`[TabRenderingManager] Cancelling operation for tab: ${tabName}`);
+            console.log(
+                `[TabRenderingManager] Cancelling operation for tab: ${tabName}`
+            );
             source.cancel();
             this._activeOperations.delete(tabName);
         }
@@ -55,11 +65,18 @@ class TabRenderingManager {
 
     /**
      * Execute a rendering operation with cancellation support
+     *
      * @param {string} tabName - Name of tab being rendered
-     * @param {(token: import('../../app/async/cancellationToken.js').CancellationToken) => Promise<any>} operation - Async operation to execute
+     * @param {(
+     *     token: import("../../app/async/cancellationToken.js").CancellationToken
+     * ) => Promise<any>} operation
+     *   - Async operation to execute
      * @param {Object} [options] - Options
-     * @param {boolean} [options.skipIfRecent=true] - Skip if rendered recently
-     * @param {boolean} [options.debounce=true] - Debounce the operation
+     * @param {boolean} [options.skipIfRecent=true] - Skip if rendered recently.
+     *   Default is `true`
+     * @param {boolean} [options.debounce=true] - Debounce the operation.
+     *   Default is `true`
+     *
      * @returns {Promise<any>}
      */
     async executeRenderOperation(tabName, operation, options = {}) {
@@ -68,8 +85,13 @@ class TabRenderingManager {
         // Check if we should skip due to recent render
         if (skipIfRecent) {
             const lastRender = this._lastRenderTime.get(tabName);
-            if (lastRender && Date.now() - lastRender < this.MIN_RENDER_INTERVAL_MS) {
-                console.log(`[TabRenderingManager] Skipping render for ${tabName} - rendered too recently`);
+            if (
+                lastRender &&
+                Date.now() - lastRender < this.MIN_RENDER_INTERVAL_MS
+            ) {
+                console.log(
+                    `[TabRenderingManager] Skipping render for ${tabName} - rendered too recently`
+                );
                 return null;
             }
         }
@@ -101,12 +123,16 @@ class TabRenderingManager {
             }
 
             this._lastRenderTime.set(tabName, Date.now());
-            console.log(`[TabRenderingManager] Render completed for ${tabName} in ${duration.toFixed(2)}ms`);
+            console.log(
+                `[TabRenderingManager] Render completed for ${tabName} in ${duration.toFixed(2)}ms`
+            );
 
             return result;
         } catch (error) {
             if (isCancellationError(error)) {
-                console.log(`[TabRenderingManager] Render cancelled for tab: ${tabName}`);
+                console.log(
+                    `[TabRenderingManager] Render cancelled for tab: ${tabName}`
+                );
                 return null;
             }
             throw error;
@@ -120,7 +146,8 @@ class TabRenderingManager {
 
     /**
      * Get current active tab
-     * @returns {string|null}
+     *
+     * @returns {string | null}
      */
     getCurrentTab() {
         return this._currentTab;
@@ -128,7 +155,9 @@ class TabRenderingManager {
 
     /**
      * Check if a tab rendering operation is active
+     *
      * @param {string} tabName - Name of tab
+     *
      * @returns {boolean}
      */
     isOperationActive(tabName) {
@@ -136,8 +165,9 @@ class TabRenderingManager {
     }
 
     /**
-     * Notify that tab has been switched away from
-     * This cancels any active operations for the previous tab
+     * Notify that tab has been switched away from This cancels any active
+     * operations for the previous tab
+     *
      * @param {string} oldTab - Previous tab name
      * @param {string} newTab - New tab name
      */
@@ -152,6 +182,7 @@ class TabRenderingManager {
 
     /**
      * Reset render timing for a tab (forces next render to execute)
+     *
      * @param {string} tabName - Name of tab
      */
     resetRenderTime(tabName) {
@@ -160,6 +191,7 @@ class TabRenderingManager {
 
     /**
      * Set current tab
+     *
      * @param {string} tabName - Name of tab
      */
     setCurrentTab(tabName) {

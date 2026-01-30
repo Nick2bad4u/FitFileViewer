@@ -6,13 +6,20 @@ vi.mock("../../../../utils/charts/theming/getThemeColors.js", () => ({
 
 describe("createAddFitFileToMapButton", () => {
     it("invokes openFileSelector on click and handles error by notifying", async () => {
-        const notif = await import("../../../../utils/ui/notifications/showNotification.js");
-        const notifSpy = vi.spyOn(notif, "showNotification").mockResolvedValue(void 0 as any);
+        const notif =
+            await import("../../../../utils/ui/notifications/showNotification.js");
+        const notifSpy = vi
+            .spyOn(notif, "showNotification")
+            .mockResolvedValue(void 0 as any);
 
-        const files = await import("../../../../utils/files/import/openFileSelector.js");
-        const openSpy = vi.spyOn(files, "openFileSelector").mockResolvedValue(undefined);
+        const files =
+            await import("../../../../utils/files/import/openFileSelector.js");
+        const openSpy = vi
+            .spyOn(files, "openFileSelector")
+            .mockResolvedValue(undefined);
 
-        const state = await import("../../../../utils/state/core/stateManager.js");
+        const state =
+            await import("../../../../utils/state/core/stateManager.js");
 
         const { createAddFitFileToMapButton } =
             await import("../../../../utils/ui/controls/createAddFitFileToMapButton.js");

@@ -1,6 +1,7 @@
 /**
- * @file mainProcessStateManager.test.ts
- * @description Comprehensive test coverage for mainProcessStateManager.js
+ * Comprehensive test coverage for mainProcessStateManager.js
+ *
+ * @file MainProcessStateManager.test.ts
  */
 
 // Mock setup BEFORE any imports
@@ -30,7 +31,15 @@ global.require = vi.fn((id: string) => {
     return originalRequire(id);
 }) as any;
 
-import { describe, test, expect, beforeEach, afterEach, vi, Mock } from "vitest";
+import {
+    describe,
+    test,
+    expect,
+    beforeEach,
+    afterEach,
+    vi,
+    Mock,
+} from "vitest";
 
 // Create a comprehensive mock for logWithLevel
 vi.mock("../../../../../utils/logging/index.js", () => ({
@@ -81,10 +90,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(stateInstance.data.loadedFitFilePath).toBeNull();
                 expect(stateInstance.data.mainWindow).toBeNull();
                 expect(stateInstance.data.operations).toBeTypeOf("object");
-                expect(stateInstance.data.pendingOAuthResolvers).toBeInstanceOf(Map);
+                expect(stateInstance.data.pendingOAuthResolvers).toBeInstanceOf(
+                    Map
+                );
                 expect(stateInstance.data.metrics).toBeDefined();
-                expect(stateInstance.data.metrics.operationTimes).toBeInstanceOf(Map);
-                expect(typeof stateInstance.data.metrics.startTime).toBe("number");
+                expect(
+                    stateInstance.data.metrics.operationTimes
+                ).toBeInstanceOf(Map);
+                expect(typeof stateInstance.data.metrics.startTime).toBe(
+                    "number"
+                );
             });
 
             test("should initialize listeners map", () => {
@@ -104,14 +119,30 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             test("should get values by path using getByPath", () => {
                 stateInstance.data.test = { nested: { value: "hello" } };
 
-                expect(stateInstance.getByPath(stateInstance.data, "test.nested.value")).toBe("hello");
-                expect(stateInstance.getByPath(stateInstance.data, "test.nested")).toEqual({ value: "hello" });
-                expect(stateInstance.getByPath(stateInstance.data, "test")).toEqual({ nested: { value: "hello" } });
+                expect(
+                    stateInstance.getByPath(
+                        stateInstance.data,
+                        "test.nested.value"
+                    )
+                ).toBe("hello");
+                expect(
+                    stateInstance.getByPath(stateInstance.data, "test.nested")
+                ).toEqual({ value: "hello" });
+                expect(
+                    stateInstance.getByPath(stateInstance.data, "test")
+                ).toEqual({ nested: { value: "hello" } });
             });
 
             test("should return null for non-existent paths", () => {
-                expect(stateInstance.getByPath(stateInstance.data, "nonexistent.path")).toBeNull();
-                expect(stateInstance.getByPath(stateInstance.data, "test.missing")).toBeNull();
+                expect(
+                    stateInstance.getByPath(
+                        stateInstance.data,
+                        "nonexistent.path"
+                    )
+                ).toBeNull();
+                expect(
+                    stateInstance.getByPath(stateInstance.data, "test.missing")
+                ).toBeNull();
             });
 
             test("should handle empty path", () => {
@@ -123,21 +154,35 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             test("should get values using public get method", () => {
                 stateInstance.data.loadedFitFilePath = "/path/to/file.fit";
-                expect(stateInstance.get("loadedFitFilePath")).toBe("/path/to/file.fit");
+                expect(stateInstance.get("loadedFitFilePath")).toBe(
+                    "/path/to/file.fit"
+                );
             });
 
             test("should set values by path using setByPath", () => {
-                stateInstance.setByPath(stateInstance.data, "test.nested.value", "new value");
+                stateInstance.setByPath(
+                    stateInstance.data,
+                    "test.nested.value",
+                    "new value"
+                );
                 expect(stateInstance.data.test.nested.value).toBe("new value");
             });
 
             test("should create nested objects when setting deep paths", () => {
-                stateInstance.setByPath(stateInstance.data, "deep.nested.path.value", 42);
+                stateInstance.setByPath(
+                    stateInstance.data,
+                    "deep.nested.path.value",
+                    42
+                );
                 expect(stateInstance.data.deep.nested.path.value).toBe(42);
             });
 
             test("should handle array indices in paths", () => {
-                stateInstance.setByPath(stateInstance.data, "arrayTest.0.name", "first");
+                stateInstance.setByPath(
+                    stateInstance.data,
+                    "arrayTest.0.name",
+                    "first"
+                );
                 expect(stateInstance.data.arrayTest[0].name).toBe("first");
             });
         });
@@ -197,7 +242,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 const unsubscribe = stateInstance.listen("testPath", listener);
 
                 expect(stateInstance.listeners.has("testPath")).toBe(true);
-                expect(stateInstance.listeners.get("testPath").has(listener)).toBe(true);
+                expect(
+                    stateInstance.listeners.get("testPath").has(listener)
+                ).toBe(true);
                 expect(typeof unsubscribe).toBe("function");
             });
 
@@ -228,8 +275,14 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 const listener1 = vi.fn();
                 const listener2 = vi.fn();
 
-                const unsubscribe1 = stateInstance.listen("testPath", listener1);
-                const unsubscribe2 = stateInstance.listen("testPath", listener2);
+                const unsubscribe1 = stateInstance.listen(
+                    "testPath",
+                    listener1
+                );
+                const unsubscribe2 = stateInstance.listen(
+                    "testPath",
+                    listener2
+                );
 
                 unsubscribe1();
                 expect(stateInstance.listeners.get("testPath").size).toBe(1);
@@ -271,7 +324,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should notify renderer processes", () => {
-                const notifyRenderersSpy = vi.spyOn(stateInstance, "notifyRenderers");
+                const notifyRenderersSpy = vi.spyOn(
+                    stateInstance,
+                    "notifyRenderers"
+                );
 
                 const change = {
                     path: "testPath",
@@ -281,7 +337,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.notifyChange(change);
 
-                expect(notifyRenderersSpy).toHaveBeenCalledWith("main-state-changed", change);
+                expect(notifyRenderersSpy).toHaveBeenCalledWith(
+                    "main-state-changed",
+                    change
+                );
             });
 
             test("should handle listener errors gracefully", () => {
@@ -305,9 +364,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("Operation Management", () => {
             test("should start operations", () => {
-                stateInstance.startOperation("test-operation", { message: "Test operation" });
+                stateInstance.startOperation("test-operation", {
+                    message: "Test operation",
+                });
 
-                const operation = stateInstance.get("operations.test-operation");
+                const operation = stateInstance.get(
+                    "operations.test-operation"
+                );
                 expect(operation).toBeDefined();
                 expect(operation.status).toBe("running");
                 expect(operation.message).toBe("Test operation");
@@ -316,12 +379,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should complete operations", () => {
-                stateInstance.startOperation("test-operation", { message: "Test operation" });
+                stateInstance.startOperation("test-operation", {
+                    message: "Test operation",
+                });
                 const result = { success: true };
 
                 stateInstance.completeOperation("test-operation", result);
 
-                const operation = stateInstance.get("operations.test-operation");
+                const operation = stateInstance.get(
+                    "operations.test-operation"
+                );
                 expect(operation.status).toBe("completed");
                 expect(operation.result).toEqual(result);
                 expect(typeof operation.duration).toBe("number");
@@ -336,12 +403,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should fail operations", () => {
-                stateInstance.startOperation("test-operation", { message: "Test operation" });
+                stateInstance.startOperation("test-operation", {
+                    message: "Test operation",
+                });
                 const error = new Error("Test error");
 
                 stateInstance.failOperation("test-operation", error);
 
-                const operation = stateInstance.get("operations.test-operation");
+                const operation = stateInstance.get(
+                    "operations.test-operation"
+                );
                 expect(operation.status).toBe("failed");
                 expect(operation.error.message).toBe("Test error");
                 expect(operation.error.name).toBe("Error");
@@ -349,17 +420,24 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should handle failing operation with string error", () => {
-                stateInstance.startOperation("test-operation", { message: "Test operation" });
+                stateInstance.startOperation("test-operation", {
+                    message: "Test operation",
+                });
 
                 stateInstance.failOperation("test-operation", "String error");
 
-                const operation = stateInstance.get("operations.test-operation");
+                const operation = stateInstance.get(
+                    "operations.test-operation"
+                );
                 expect(operation.error.message).toBe("String error");
             });
 
             test("should handle failing non-existent operation", () => {
                 expect(() => {
-                    stateInstance.failOperation("non-existent", new Error("test"));
+                    stateInstance.failOperation(
+                        "non-existent",
+                        new Error("test")
+                    );
                 }).not.toThrow();
             });
         });
@@ -397,7 +475,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             test("should limit error history to 100 items", () => {
                 // Prevent repeated notifyRenderers calls from adding overhead during coverage runs
                 // We only care about the error list length behavior here.
-                const notifyStub = vi.spyOn(stateInstance, "notifyRenderers").mockImplementation(() => {});
+                const notifyStub = vi
+                    .spyOn(stateInstance, "notifyRenderers")
+                    .mockImplementation(() => {});
                 // Add 105 errors
                 for (let i = 0; i < 105; i++) {
                     stateInstance.addError(`Error ${i}`);
@@ -417,12 +497,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 // we'll test the behavior indirectly by checking that no errors are thrown
                 // and that the function completes successfully
                 expect(() => {
-                    stateInstance.notifyRenderers("test-channel", { test: "data" });
+                    stateInstance.notifyRenderers("test-channel", {
+                        test: "data",
+                    });
                 }).not.toThrow();
 
                 // The function should complete without error even if no windows exist
                 // This tests the error handling paths and serialization logic
-                expect(stateInstance.makeSerializable({ test: "data" })).toEqual({ test: "data" });
+                expect(
+                    stateInstance.makeSerializable({ test: "data" })
+                ).toEqual({ test: "data" });
             });
 
             test("should handle window validation failures", () => {
@@ -434,7 +518,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 mockBrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
 
                 expect(() => {
-                    stateInstance.notifyRenderers("test-channel", { test: "data" });
+                    stateInstance.notifyRenderers("test-channel", {
+                        test: "data",
+                    });
                 }).not.toThrow();
             });
 
@@ -452,7 +538,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 mockBrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
 
                 expect(() => {
-                    stateInstance.notifyRenderers("test-channel", { test: "data" });
+                    stateInstance.notifyRenderers("test-channel", {
+                        test: "data",
+                    });
                 }).not.toThrow();
             });
 
@@ -462,7 +550,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 });
 
                 expect(() => {
-                    stateInstance.notifyRenderers("test-channel", { test: "data" });
+                    stateInstance.notifyRenderers("test-channel", {
+                        test: "data",
+                    });
                 }).not.toThrow();
             });
         });
@@ -535,7 +625,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             test("should handle null and undefined values", () => {
                 expect(stateInstance.makeSerializable(null)).toBeNull();
-                expect(stateInstance.makeSerializable(undefined)).toBeUndefined();
+                expect(
+                    stateInstance.makeSerializable(undefined)
+                ).toBeUndefined();
                 expect(stateInstance.makeSerializable("string")).toBe("string");
                 expect(stateInstance.makeSerializable(42)).toBe(42);
             });
@@ -616,7 +708,11 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             // This will actually throw because you can't set properties on strings
             expect(() => {
-                stateInstance.setByPath(stateInstance.data, "primitive.property", "value");
+                stateInstance.setByPath(
+                    stateInstance.data,
+                    "primitive.property",
+                    "value"
+                );
             }).toThrow();
         });
 
@@ -625,7 +721,11 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             // This will actually throw because you can't set properties on strings
             expect(() => {
-                stateInstance.setByPath(stateInstance.data, "primitive.property", "value");
+                stateInstance.setByPath(
+                    stateInstance.data,
+                    "primitive.property",
+                    "value"
+                );
             }).toThrow();
         });
 
@@ -653,18 +753,44 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             const testInstance = new MainProcessState();
 
             // Verify ipcMain.handle was called for each handler
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:get", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:set", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:listen", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:unlisten", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:operation", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:operations", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:errors", expect.any(Function));
-            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:metrics", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:get",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:set",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:listen",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:unlisten",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:operation",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:operations",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:errors",
+                expect.any(Function)
+            );
+            expect(mockIpcMain.handle).toHaveBeenCalledWith(
+                "main-state:metrics",
+                expect.any(Function)
+            );
         });
 
         test("listen is idempotent per sender+path and unlisten stops notifications", () => {
-            const listenHandler = mockIpcMain.handle.mock.calls.find((c) => c[0] === "main-state:listen")?.[1] as any;
+            const listenHandler = mockIpcMain.handle.mock.calls.find(
+                (c) => c[0] === "main-state:listen"
+            )?.[1] as any;
             const unlistenHandler = mockIpcMain.handle.mock.calls.find(
                 (c) => c[0] === "main-state:unlisten"
             )?.[1] as any;
@@ -732,7 +858,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const getHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:get")![1];
+        const getHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:get"
+        )![1];
 
         // Test getting specific path
         const result1 = getHandler({}, "loadedFitFilePath");
@@ -747,7 +875,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const setHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:set")![1];
+        const setHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:set"
+        )![1];
 
         // Test allowed path
         const result1 = setHandler({}, "loadedFitFilePath", "/test/path");
@@ -761,7 +891,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     test("main-state:set should block prototype pollution paths", () => {
         const testInstance = new MainProcessState();
 
-        const setHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:set")![1];
+        const setHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:set"
+        )![1];
 
         // Attempt to set a path that would normally pollute Object.prototype if not blocked
         const result = setHandler({}, "operations.__proto__.polluted", "yes");
@@ -769,7 +901,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         // Verify we did not pollute prototypes
         // eslint-disable-next-line no-prototype-builtins
-        expect(Object.prototype.hasOwnProperty.call(Object.prototype, "polluted")).toBe(false);
+        expect(
+            Object.prototype.hasOwnProperty.call(Object.prototype, "polluted")
+        ).toBe(false);
         expect(({} as any).polluted).toBeUndefined();
 
         // Also ensure no operation was created
@@ -781,15 +915,23 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         // Ensure the handler we call is the one registered by THIS instance.
         mockIpcMain.handle.mockClear();
         const testInstance = new MainProcessState();
-        const operationsHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:operations")![1];
+        const operationsHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:operations"
+        )![1];
 
         // Seed an operation using the main state setter (same mechanics as normal usage)
-        testInstance.set("operations.test-op", { id: "test-op", status: "running" });
+        testInstance.set("operations.test-op", {
+            id: "test-op",
+            status: "running",
+        });
 
         const result = operationsHandler();
         expect(result).toBeTypeOf("object");
         expect(result).toHaveProperty("test-op");
-        expect((result as any)["test-op"]).toMatchObject({ id: "test-op", status: "running" });
+        expect((result as any)["test-op"]).toMatchObject({
+            id: "test-op",
+            status: "running",
+        });
     });
 
     test("should handle main-state:listen IPC calls", () => {
@@ -801,7 +943,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const listenHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:listen")![1];
+        const listenHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:listen"
+        )![1];
 
         const result = listenHandler(mockEvent, "testPath");
         expect(result).toBe(true);
@@ -811,7 +955,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const operationHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:operation")![1];
+        const operationHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:operation"
+        )![1];
 
         const result = operationHandler({}, "test-op");
         expect(result).toBeUndefined(); // No operation exists
@@ -821,7 +967,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const operationsHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:operations")![1];
+        const operationsHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:operations"
+        )![1];
 
         const result = operationsHandler();
         expect(result).toEqual({});
@@ -831,7 +979,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const errorsHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:errors")![1];
+        const errorsHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:errors"
+        )![1];
 
         const result = errorsHandler({}, 10);
         expect(Array.isArray(result)).toBe(true);
@@ -841,7 +991,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
-        const metricsHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:metrics")![1];
+        const metricsHandler = mockIpcMain.handle.mock.calls.find(
+            (call) => call[0] === "main-state:metrics"
+        )![1];
 
         const result = metricsHandler();
         expect(result).toBeDefined();

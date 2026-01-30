@@ -1,15 +1,24 @@
-import { applyEstimatedPowerToRecords, hasPowerData } from "../../data/processing/estimateCyclingPower.js";
+import {
+    applyEstimatedPowerToRecords,
+    hasPowerData,
+} from "../../data/processing/estimateCyclingPower.js";
 import { openPowerEstimationSettingsModal } from "../modals/openPowerEstimationSettingsModal.js";
 
 /**
  * @param {{
- *  getData: () => {
- *      recordMesgs?: Array<Record<string, unknown>>,
- *      sessionMesgs?: Array<Record<string, unknown>>,
- *      loadedFitFiles?: Array<{ data?: { recordMesgs?: Array<Record<string, unknown>>, sessionMesgs?: Array<Record<string, unknown>> } }>
- *  } | null,
- *  onAfterApply: () => void
+ *     getData: () => {
+ *         recordMesgs?: Record<string, unknown>[];
+ *         sessionMesgs?: Record<string, unknown>[];
+ *         loadedFitFiles?: {
+ *             data?: {
+ *                 recordMesgs?: Record<string, unknown>[];
+ *                 sessionMesgs?: Record<string, unknown>[];
+ *             };
+ *         }[];
+ *     } | null;
+ *     onAfterApply: () => void;
  * }} params
+ *
  * @returns {HTMLButtonElement}
  */
 export function createPowerEstimationButton({ getData, onAfterApply }) {
@@ -21,7 +30,9 @@ export function createPowerEstimationButton({ getData, onAfterApply }) {
 
     btn.addEventListener("click", () => {
         const data = getData();
-        const recordMesgs = Array.isArray(data?.recordMesgs) ? data.recordMesgs : [];
+        const recordMesgs = Array.isArray(data?.recordMesgs)
+            ? data.recordMesgs
+            : [];
         const hasRealPower = hasPowerData(recordMesgs);
 
         openPowerEstimationSettingsModal({
@@ -32,20 +43,28 @@ export function createPowerEstimationButton({ getData, onAfterApply }) {
                 const seen = new Set();
 
                 /**
-                 * @param {Array<Record<string, unknown>>} recs
-                 * @param {Array<Record<string, unknown>> | undefined} sessionMesgs
+                 * @param {Record<string, unknown>[]} recs
+                 * @param {Record<string, unknown>[] | undefined} sessionMesgs
                  */
                 const applyTo = (recs, sessionMesgs) => {
                     if (recs.length === 0) return;
                     if (seen.has(recs)) return;
                     seen.add(recs);
-                    applyEstimatedPowerToRecords({ recordMesgs: recs, sessionMesgs, settings });
+                    applyEstimatedPowerToRecords({
+                        recordMesgs: recs,
+                        sessionMesgs,
+                        settings,
+                    });
                 };
 
                 // Apply to the active file's records (if any)
                 {
-                    const recs = Array.isArray(currentData?.recordMesgs) ? currentData.recordMesgs : [];
-                    const sessionMesgs = Array.isArray(currentData?.sessionMesgs)
+                    const recs = Array.isArray(currentData?.recordMesgs)
+                        ? currentData.recordMesgs
+                        : [];
+                    const sessionMesgs = Array.isArray(
+                        currentData?.sessionMesgs
+                    )
                         ? currentData.sessionMesgs
                         : undefined;
                     applyTo(recs, sessionMesgs);
@@ -55,8 +74,12 @@ export function createPowerEstimationButton({ getData, onAfterApply }) {
                 // This ensures tooltips update consistently when the user changes estimation parameters.
                 if (Array.isArray(currentData?.loadedFitFiles)) {
                     for (const fitFile of currentData.loadedFitFiles) {
-                        const recs = Array.isArray(fitFile?.data?.recordMesgs) ? fitFile.data.recordMesgs : [];
-                        const sessionMesgs = Array.isArray(fitFile?.data?.sessionMesgs)
+                        const recs = Array.isArray(fitFile?.data?.recordMesgs)
+                            ? fitFile.data.recordMesgs
+                            : [];
+                        const sessionMesgs = Array.isArray(
+                            fitFile?.data?.sessionMesgs
+                        )
                             ? fitFile.data.sessionMesgs
                             : undefined;
                         applyTo(recs, sessionMesgs);

@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for debug
- * @description Re-exports all modules in the debug category
+ * Re-exports all modules in the debug category
+ *
+ * @file Barrel Export for debug
  */
 import * as debugChartFormatting from "./debugChartFormatting.js";
 import * as debugSensorInfo from "./debugSensorInfo.js";

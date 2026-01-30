@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for charts/core
- * @description Re-exports all modules in the charts/core category
+ * Re-exports all modules in the charts/core category
+ *
+ * @file Barrel Export for charts/core
  */
 export * from "./chartStateManager.js";
 export * from "./chartTabIntegration.js";

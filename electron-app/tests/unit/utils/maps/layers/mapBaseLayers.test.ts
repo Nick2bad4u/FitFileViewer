@@ -14,7 +14,8 @@ describe("mapBaseLayers", () => {
 
     it("uses shim when global L is not present", async () => {
         delete (global as any).L;
-        const mod = await import("../../../../../utils/maps/layers/mapBaseLayers.js");
+        const mod =
+            await import("../../../../../utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         // A few representative keys should exist and be plain objects from the shim
         expect(baseLayers).toBeDefined();
@@ -28,7 +29,8 @@ describe("mapBaseLayers", () => {
             tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
             maplibreGL: vi.fn(() => ({ addTo: vi.fn() })),
         };
-        const mod = await import("../../../../../utils/maps/layers/mapBaseLayers.js");
+        const mod =
+            await import("../../../../../utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         // Access a few keys to ensure creation occurred
         void baseLayers.OpenStreetMap;

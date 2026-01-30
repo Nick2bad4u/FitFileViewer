@@ -1,12 +1,14 @@
 /**
- * @fileoverview Duration formatting utility for FitFileViewer
+ * @version 2.0.0 - Updated to use centralized configuration
  *
- * Provides functions for formatting durations from seconds into human-readable
- * strings with appropriate time units (seconds, minutes, hours).
+ * @file Duration formatting utility for FitFileViewer
+ *
+ *   Provides functions for formatting durations from seconds into human-readable
+ *   strings with appropriate time units (seconds, minutes, hours).
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
- * @version 2.0.0 - Updated to use centralized configuration
  */
 
 import { CONVERSION_FACTORS } from "../../config/index.js";
@@ -21,23 +23,26 @@ const THRESHOLDS = {
  * Formats a duration given in seconds into a human-readable string
  *
  * Handles various input types and formats appropriately:
+ *
  * - Null/undefined inputs return empty string
  * - Invalid inputs throw descriptive errors
  * - Less than 60 seconds: "X sec"
  * - Less than 1 hour: "Y min Z sec"
  * - 1 hour or more: "H hr(s) M min"
  *
- * @param {number|string|null|undefined} seconds - The duration in seconds
- * @returns {string} The formatted duration string
- * @throws {Error} If the input is not a finite number or is negative
- *
  * @example
- * formatDuration(30);        // "30 sec"
- * formatDuration(90);        // "1 min 30 sec"
- * formatDuration(3661);      // "1 hr 1 min"
- * formatDuration(7320);      // "2 hrs 2 min"
- * formatDuration(null);      // ""
- * formatDuration(-10);       // throws Error
+ *     formatDuration(30); // "30 sec"
+ *     formatDuration(90); // "1 min 30 sec"
+ *     formatDuration(3661); // "1 hr 1 min"
+ *     formatDuration(7320); // "2 hrs 2 min"
+ *     formatDuration(null); // ""
+ *     formatDuration(-10); // throws Error
+ *
+ * @param {number | string | null | undefined} seconds - The duration in seconds
+ *
+ * @returns {string} The formatted duration string
+ *
+ * @throws {Error} If the input is not a finite number or is negative
  */
 export function formatDuration(seconds) {
     // Validate and normalize input
@@ -65,13 +70,17 @@ export function formatDuration(seconds) {
 
 /**
  * Formats duration in hours and minutes
+ *
  * @param {number} seconds - Duration in seconds
+ *
  * @returns {string} Formatted string like "2 hrs 30 min"
  */
 function formatHoursAndMinutes(seconds) {
     const hours = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_HOUR);
     const remainingSeconds = seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR;
-    const minutes = Math.floor(remainingSeconds / CONVERSION_FACTORS.SECONDS_PER_MINUTE);
+    const minutes = Math.floor(
+        remainingSeconds / CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
 
     const hourText = hours === 1 ? "hr" : "hrs";
     return `${hours} ${hourText} ${minutes} min`;
@@ -79,7 +88,9 @@ function formatHoursAndMinutes(seconds) {
 
 /**
  * Formats duration in minutes and seconds
+ *
  * @param {number} seconds - Duration in seconds
+ *
  * @returns {string} Formatted string like "5 min 30 sec"
  */
 function formatMinutesAndSeconds(seconds) {
@@ -90,7 +101,9 @@ function formatMinutesAndSeconds(seconds) {
 
 /**
  * Formats duration in seconds only
+ *
  * @param {number} seconds - Duration in seconds
+ *
  * @returns {string} Formatted string like "30 sec"
  */
 function formatSecondsOnly(seconds) {
@@ -99,8 +112,12 @@ function formatSecondsOnly(seconds) {
 
 /**
  * Validates and normalizes duration input
- * @param {number|string|null|undefined} seconds - Duration input to validate
- * @returns {{isValid: boolean, value: number, error?: string}} Validation result
+ *
+ * @param {number | string | null | undefined} seconds - Duration input to
+ *   validate
+ *
+ * @returns {{ isValid: boolean; value: number; error?: string }} Validation
+ *   result
  */
 function validateAndNormalizeDuration(seconds) {
     // Handle null/undefined inputs
@@ -125,12 +142,20 @@ function validateAndNormalizeDuration(seconds) {
 
     // Validate that it's a finite number
     if (!Number.isFinite(seconds)) {
-        return { error: "Input must be a finite number", isValid: false, value: 0 };
+        return {
+            error: "Input must be a finite number",
+            isValid: false,
+            value: 0,
+        };
     }
 
     // Ensure non-negative
     if (seconds < 0) {
-        return { error: "Duration cannot be negative", isValid: false, value: 0 };
+        return {
+            error: "Duration cannot be negative",
+            isValid: false,
+            value: 0,
+        };
     }
 
     return { isValid: true, value: seconds };

@@ -24,7 +24,11 @@
 // We treat the renderer as untrusted: validate any path before traversing.
 
 /** @type {ReadonlySet<string>} */
-const FORBIDDEN_DOT_PATH_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+const FORBIDDEN_DOT_PATH_SEGMENTS = new Set([
+    "__proto__",
+    "constructor",
+    "prototype",
+]);
 
 // Defensive limits to avoid renderer-driven memory/perf abuse.
 // Paths are dot-separated and should be short.
@@ -70,19 +74,24 @@ class MainProcessState {
             pendingOAuthResolvers: new Map(),
         };
 
-        /** @type {Map<string,Set<Function>>} */
+        /** @type {Map<string, Set<Function>>} */
         this.listeners = new Map();
-        /** @type {Array<Function>} */
+        /** @type {Function[]} */
         this.middleware = [];
         this.devMode =
-            (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
-            (typeof process !== "undefined" && Array.isArray(process.argv) && process.argv.includes("--dev"));
+            (typeof process !== "undefined" &&
+                process.env &&
+                process.env.NODE_ENV === "development") ||
+            (typeof process !== "undefined" &&
+                Array.isArray(process.argv) &&
+                process.argv.includes("--dev"));
 
         /** @type {boolean} */
         this._ipcHandlersRegistered = false;
 
         /**
          * IPC listener bookkeeping: "<webContentsId>:<path>" -> unsubscribe
+         *
          * @type {Map<string, () => void>}
          */
         this.ipcSubscriptions = new Map();
@@ -91,7 +100,9 @@ class MainProcessState {
         this.senderCleanupRegistered = new Set();
 
         /**
-         * Fallback sender id assignment for test/mocked senders lacking numeric id.
+         * Fallback sender id assignment for test/mocked senders lacking numeric
+         * id.
+         *
          * @type {WeakMap<object, number>}
          */
         this._senderFallbackIds = new WeakMap();
@@ -103,11 +114,12 @@ class MainProcessState {
 
     /**
      * Add an error to the error log
-     * @param {Error|string} error - Error to track
+     *
+     * @param {Error | string} error - Error to track
      * @param {Object} context - Additional context
      */
     /**
-     * @param {Error|string} error
+     * @param {Error | string} error
      * @param {Object} [context]
      */
     addError(error, context = {}) {
@@ -121,7 +133,9 @@ class MainProcessState {
         };
 
         const currentErrors = this.get("errors");
-        const normalizedCurrent = Array.isArray(currentErrors) ? currentErrors : [];
+        const normalizedCurrent = Array.isArray(currentErrors)
+            ? currentErrors
+            : [];
         const nextErrors = [errorObj, ...normalizedCurrent].slice(0, 100);
 
         this.set("errors", nextErrors);
@@ -136,6 +150,7 @@ class MainProcessState {
 
         /**
          * Iterate through registered handler IDs and unregister each.
+         *
          * @param {Map<string, HandlerInfo>} eventHandlers
          */
         for (const [id, _handlerInfo] of eventHandlers.entries()) {
@@ -148,6 +163,7 @@ class MainProcessState {
 
     /**
      * Complete an operation
+     *
      * @param {string} operationId - Operation identifier
      * @param {Object} result - Operation result
      */
@@ -179,7 +195,10 @@ class MainProcessState {
         };
 
         this.set(`operations.${operationId}`, completedOp);
-        this.notifyRenderers("operation-completed", { operation: completedOp, operationId });
+        this.notifyRenderers("operation-completed", {
+            operation: completedOp,
+            operationId,
+        });
 
         // Clean up completed operation after 30 seconds
         setTimeout(() => {
@@ -189,12 +208,13 @@ class MainProcessState {
 
     /**
      * Fail an operation
+     *
      * @param {string} operationId - Operation identifier
-     * @param {Error|string} error - Error that occurred
+     * @param {Error | string} error - Error that occurred
      */
     /**
      * @param {string} operationId
-     * @param {Error|string} error
+     * @param {Error | string} error
      */
     failOperation(operationId, error) {
         const operation = this.get(`operations.${operationId}`);
@@ -227,7 +247,10 @@ class MainProcessState {
             };
 
         this.set(`operations.${operationId}`, failedOp);
-        this.notifyRenderers("operation-failed", { operation: failedOp, operationId });
+        this.notifyRenderers("operation-failed", {
+            operation: failedOp,
+            operationId,
+        });
 
         // Track error
         this.addError(error, { context: "operation", operationId });
@@ -235,12 +258,15 @@ class MainProcessState {
 
     /**
      * Get state value by path
+     *
      * @param {string} path - Dot notation path (e.g., 'operations.fileLoad')
-     * @returns {*} State value
+     *
+     * @returns {any} State value
      */
     /**
      * @param {string} path
-     * @returns {*}
+     *
+     * @returns {any}
      */
     get(path) {
         return this.getByPath(this.data, path);
@@ -250,7 +276,8 @@ class MainProcessState {
     /**
      * @param {Object} obj
      * @param {string} path
-     * @returns {*}
+     *
+     * @returns {any}
      */
     getByPath(obj, path) {
         if (!path) {
@@ -264,7 +291,11 @@ class MainProcessState {
         }
 
         return path.split(".").reduce((current, key) => {
-            if (current && typeof current === "object" && Object.hasOwn(current, key)) {
+            if (
+                current &&
+                typeof current === "object" &&
+                Object.hasOwn(current, key)
+            ) {
                 // @ts-ignore index signature loosened at runtime
                 return current[key];
             }
@@ -276,7 +307,14 @@ class MainProcessState {
      * Get development information
      */
     /**
-     * @returns {{state:MainProcessStateData,listeners:string[],eventHandlers:number,operations:string[],errors:number,uptime:number}}
+     * @returns {{
+     *     state: MainProcessStateData;
+     *     listeners: string[];
+     *     eventHandlers: number;
+     *     operations: string[];
+     *     errors: number;
+     *     uptime: number;
+     * }}
      */
     getDevInfo() {
         const metrics = this.get("metrics") || {};
@@ -296,6 +334,7 @@ class MainProcessState {
 
     /**
      * @param {any} sender
+     *
      * @returns {number}
      */
     getSenderId(sender) {
@@ -323,7 +362,10 @@ class MainProcessState {
      */
     getSerializableMetrics() {
         const metrics = this.get("metrics") || {};
-        const operationTimes = metrics && typeof metrics === "object" ? metrics.operationTimes : null;
+        const operationTimes =
+            metrics && typeof metrics === "object"
+                ? metrics.operationTimes
+                : null;
         const operationTimesObj =
             operationTimes instanceof Map
                 ? Object.fromEntries(
@@ -345,13 +387,15 @@ class MainProcessState {
 
     /**
      * Listen for state changes
+     *
      * @param {string} path - Path to listen to (or '*' for all)
      * @param {Function} callback - Change callback
      */
     /**
      * @param {string} path
-     * @param {(change:Object)=>void} callback
-     * @returns {Function} unsubscribe
+     * @param {(change: Object) => void} callback
+     *
+     * @returns {Function} Unsubscribe
      */
     listen(path, callback) {
         if (!this.listeners.has(path)) {
@@ -374,13 +418,17 @@ class MainProcessState {
     }
 
     /**
-     * Make an object serializable for IPC by removing non-serializable properties
-     * @param {*} data - Data to make serializable
-     * @returns {*} Serializable data
+     * Make an object serializable for IPC by removing non-serializable
+     * properties
+     *
+     * @param {any} data - Data to make serializable
+     *
+     * @returns {any} Serializable data
      */
     /**
-     * @param {*} data
-     * @returns {*}
+     * @param {any} data
+     *
+     * @returns {any}
      */
     makeSerializable(data) {
         if (data === null || data === undefined) {
@@ -403,20 +451,28 @@ class MainProcessState {
         const { BrowserWindow } = safeElectron();
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
-            const isBrowserWindow = typeof BrowserWindow === "function" && value instanceof BrowserWindow;
+            const isBrowserWindow =
+                typeof BrowserWindow === "function" &&
+                value instanceof BrowserWindow;
             if (
                 typeof value === "function" ||
                 isBrowserWindow ||
                 value instanceof Map ||
                 value instanceof Set ||
-                (value && typeof value === "object" && value.constructor && value.constructor.name === "Server")
+                (value &&
+                    typeof value === "object" &&
+                    value.constructor &&
+                    value.constructor.name === "Server")
             ) {
                 // Skip these non-serializable values
                 continue;
             }
 
             // Recursively process nested objects
-            serializable[key] = value && typeof value === "object" ? this.makeSerializable(value) : value;
+            serializable[key] =
+                value && typeof value === "object"
+                    ? this.makeSerializable(value)
+                    : value;
         }
 
         return serializable;
@@ -425,6 +481,7 @@ class MainProcessState {
     /**
      * @param {any} sender
      * @param {string} path
+     *
      * @returns {string}
      */
     makeSubscriptionKey(sender, path) {
@@ -433,10 +490,11 @@ class MainProcessState {
 
     /**
      * Notify listeners of state changes
+     *
      * @param {Object} change - Change object
      */
     /**
-     * @param {{path:string}} change
+     * @param {{ path: string }} change
      */
     notifyChange(change) {
         // Notify specific path listeners
@@ -447,7 +505,9 @@ class MainProcessState {
                     callback(change);
                 } catch (error) {
                     const err = /** @type {any} */ (error);
-                    logWithContext("error", "Error in state change listener", { error: err?.message });
+                    logWithContext("error", "Error in state change listener", {
+                        error: err?.message,
+                    });
                 }
             }
         }
@@ -460,7 +520,11 @@ class MainProcessState {
                     callback(change);
                 } catch (error) {
                     const err = /** @type {any} */ (error);
-                    logWithContext("error", "Error in wildcard state change listener", { error: err?.message });
+                    logWithContext(
+                        "error",
+                        "Error in wildcard state change listener",
+                        { error: err?.message }
+                    );
                 }
             }
         }
@@ -471,12 +535,13 @@ class MainProcessState {
 
     /**
      * Notify all renderer processes of an event
+     *
      * @param {string} channel - IPC channel
-     * @param {*} data - Data to send
+     * @param {any} data - Data to send
      */
     /**
      * @param {string} channel
-     * @param {*} data
+     * @param {any} data
      */
     notifyRenderers(channel, data) {
         // Filter out non-serializable data for IPC
@@ -485,7 +550,8 @@ class MainProcessState {
         try {
             const { BrowserWindow } = safeElectron();
             const allWins =
-                BrowserWindow && typeof BrowserWindow.getAllWindows === "function"
+                BrowserWindow &&
+                typeof BrowserWindow.getAllWindows === "function"
                     ? BrowserWindow.getAllWindows() || []
                     : [];
             for (const win of allWins) {
@@ -494,22 +560,31 @@ class MainProcessState {
                         win.webContents.send(channel, serializableData);
                     } catch (error) {
                         const err = /** @type {any} */ (error);
-                        logWithContext("warn", "Failed to send IPC message to renderer", {
-                            channel,
-                            error: err?.message,
-                        });
+                        logWithContext(
+                            "warn",
+                            "Failed to send IPC message to renderer",
+                            {
+                                channel,
+                                error: err?.message,
+                            }
+                        );
                     }
                 }
             }
         } catch (error) {
             // Handle cases where BrowserWindow API is unavailable or throws
             const err = /** @type {any} */ (error);
-            logWithContext("warn", "BrowserWindow not available during notifyRenderers", { error: err?.message });
+            logWithContext(
+                "warn",
+                "BrowserWindow not available during notifyRenderers",
+                { error: err?.message }
+            );
         }
     }
 
     /**
      * Record performance metric
+     *
      * @param {string} metric - Metric name
      * @param {number} value - Metric value
      * @param {Object} metadata - Additional metadata
@@ -539,20 +614,23 @@ class MainProcessState {
 
     /**
      * Register event handler and track it
+     *
      * @param {Object} emitter - Event emitter
      * @param {string} event - Event name
      * @param {Function} handler - Event handler
      * @param {string} [handlerId] - Optional handler ID
      */
     /**
-     * @param {{on:Function,removeListener:Function}} emitter
+     * @param {{ on: Function; removeListener: Function }} emitter
      * @param {string} event
      * @param {Function} handler
      * @param {string} [handlerId]
+     *
      * @returns {string}
      */
     registerEventHandler(emitter, event, handler, handlerId) {
-        const id = handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
+        const id =
+            handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
 
         emitter.on(event, handler);
 
@@ -568,8 +646,11 @@ class MainProcessState {
     }
 
     /**
-     * Ensure we clean up any subscriptions when a renderer/webContents is destroyed.
+     * Ensure we clean up any subscriptions when a renderer/webContents is
+     * destroyed.
+     *
      * @param {any} sender
+     *
      * @returns {void}
      */
     registerSenderCleanup(sender) {
@@ -580,7 +661,10 @@ class MainProcessState {
         // Electron WebContents emits 'destroyed'. In tests/mocks this may not exist.
         if (sender && typeof sender.once === "function") {
             sender.once("destroyed", () => {
-                for (const [key, unsubscribe] of this.ipcSubscriptions.entries()) {
+                for (const [
+                    key,
+                    unsubscribe,
+                ] of this.ipcSubscriptions.entries()) {
                     if (key.startsWith(`${senderId}:`)) {
                         try {
                             unsubscribe();
@@ -597,6 +681,7 @@ class MainProcessState {
 
     /**
      * Remove an operation from tracking
+     *
      * @param {string} operationId - Operation identifier
      */
     /**
@@ -604,7 +689,11 @@ class MainProcessState {
      */
     removeOperation(operationId) {
         const operations = this.get("operations") || {};
-        if (operations && typeof operations === "object" && operations[operationId]) {
+        if (
+            operations &&
+            typeof operations === "object" &&
+            operations[operationId]
+        ) {
             const next = { ...operations };
             delete next[operationId];
             this.set("operations", next);
@@ -613,13 +702,14 @@ class MainProcessState {
 
     /**
      * Set state value by path
+     *
      * @param {string} path - Dot notation path
-     * @param {*} value - Value to set
+     * @param {any} value - Value to set
      * @param {Object} options - Options for the update
      */
     /**
      * @param {string} path
-     * @param {*} value
+     * @param {any} value
      * @param {Object} [options]
      */
     set(path, value, options = {}) {
@@ -648,7 +738,7 @@ class MainProcessState {
     /**
      * @param {Object} obj
      * @param {string} path
-     * @param {*} value
+     * @param {any} value
      */
     setByPath(obj, path, value) {
         if (!path) {
@@ -696,31 +786,37 @@ class MainProcessState {
         // If not running under Electron (e.g., unit tests without mocks), no-op safely
         if (!ipcMain || typeof ipcMain.handle !== "function") {
             // Handlers will be set once Electron's app is ready (see deferral at module end)
-            logWithContext("debug", "ipcMain not yet available; deferring IPC handler setup");
+            logWithContext(
+                "debug",
+                "ipcMain not yet available; deferring IPC handler setup"
+            );
             return;
         }
 
         // Get main process state
-        ipcMain.handle("main-state:get", (/** @type {any} */ _event, /** @type {string} */ path) => {
-            const safePath = typeof path === "string" ? path.trim() : "";
+        ipcMain.handle(
+            "main-state:get",
+            (/** @type {any} */ _event, /** @type {string} */ path) => {
+                const safePath = typeof path === "string" ? path.trim() : "";
 
-            // Special-case metrics so operationTimes (Map) can be accessed safely.
-            if (safePath === "metrics" || safePath.startsWith("metrics.")) {
-                const metrics = this.getSerializableMetrics();
-                if (safePath === "metrics") {
+                // Special-case metrics so operationTimes (Map) can be accessed safely.
+                if (safePath === "metrics" || safePath.startsWith("metrics.")) {
+                    const metrics = this.getSerializableMetrics();
+                    if (safePath === "metrics") {
+                        return this.makeSerializable(metrics);
+                    }
+                    if (safePath === "metrics.operationTimes") {
+                        return this.makeSerializable(metrics.operationTimes);
+                    }
+                    // Anything else under metrics is not currently addressable by dot path without
+                    // exposing Map internals. Fall back to the full metrics object.
                     return this.makeSerializable(metrics);
                 }
-                if (safePath === "metrics.operationTimes") {
-                    return this.makeSerializable(metrics.operationTimes);
-                }
-                // Anything else under metrics is not currently addressable by dot path without
-                // exposing Map internals. Fall back to the full metrics object.
-                return this.makeSerializable(metrics);
-            }
 
-            const data = safePath ? this.get(safePath) : this.data;
-            return this.makeSerializable(data);
-        });
+                const data = safePath ? this.get(safePath) : this.data;
+                return this.makeSerializable(data);
+            }
+        );
 
         // Set main process state (restricted)
         ipcMain.handle(
@@ -738,7 +834,11 @@ class MainProcessState {
 
                 // Security: deny unsafe dot paths (prototype pollution hardening)
                 if (!isSafeDotPath(safePath)) {
-                    logWithContext("warn", "Renderer attempted to set unsafe path", { path: safePath });
+                    logWithContext(
+                        "warn",
+                        "Renderer attempted to set unsafe path",
+                        { path: safePath }
+                    );
                     return false;
                 }
 
@@ -746,88 +846,134 @@ class MainProcessState {
                 const allowedRoots = ["loadedFitFilePath", "operations"],
                     rootPath = safePath.split(".")[0] || "";
                 if (allowedRoots.includes(rootPath)) {
-                    this.set(safePath, value, { ...options, source: "renderer" });
+                    this.set(safePath, value, {
+                        ...options,
+                        source: "renderer",
+                    });
                     return true;
                 }
 
-                logWithContext("warn", "Renderer attempted to set restricted path", { path: safePath });
+                logWithContext(
+                    "warn",
+                    "Renderer attempted to set restricted path",
+                    { path: safePath }
+                );
                 return false;
             }
         );
 
         // Listen to main process state changes
-        ipcMain.handle("main-state:listen", (/** @type {any} */ event, /** @type {string} */ path) => {
-            const sender = event?.sender;
-            if (!sender) return false;
-            const safePath = typeof path === "string" ? path.trim() : "";
-            const normalizedPath = safePath.length === 0 ? "*" : safePath;
+        ipcMain.handle(
+            "main-state:listen",
+            (/** @type {any} */ event, /** @type {string} */ path) => {
+                const sender = event?.sender;
+                if (!sender) return false;
+                const safePath = typeof path === "string" ? path.trim() : "";
+                const normalizedPath = safePath.length === 0 ? "*" : safePath;
 
-            // Security: refuse subscriptions to unsafe dot paths.
-            if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
-                logWithContext("warn", "Blocked main-state:listen for unsafe path", { path: normalizedPath });
-                return false;
-            }
-
-            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
-            if (!this.ipcSubscriptions.has(subscriptionKey)) {
-                this.registerSenderCleanup(sender);
-
-                const unsubscribe = this.listen(normalizedPath, (change) => {
-                    try {
-                        if (typeof sender.isDestroyed === "function" && sender.isDestroyed()) {
-                            return;
-                        }
-                        sender.send("main-state-change", this.makeSerializable(change));
-                    } catch (error) {
-                        const err = /** @type {any} */ (error);
-                        logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
-                    }
-                });
-
-                if (typeof unsubscribe === "function") {
-                    this.ipcSubscriptions.set(subscriptionKey, unsubscribe);
+                // Security: refuse subscriptions to unsafe dot paths.
+                if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
+                    logWithContext(
+                        "warn",
+                        "Blocked main-state:listen for unsafe path",
+                        { path: normalizedPath }
+                    );
+                    return false;
                 }
+
+                const subscriptionKey = this.makeSubscriptionKey(
+                    sender,
+                    normalizedPath
+                );
+                if (!this.ipcSubscriptions.has(subscriptionKey)) {
+                    this.registerSenderCleanup(sender);
+
+                    const unsubscribe = this.listen(
+                        normalizedPath,
+                        (change) => {
+                            try {
+                                if (
+                                    typeof sender.isDestroyed === "function" &&
+                                    sender.isDestroyed()
+                                ) {
+                                    return;
+                                }
+                                sender.send(
+                                    "main-state-change",
+                                    this.makeSerializable(change)
+                                );
+                            } catch (error) {
+                                const err = /** @type {any} */ (error);
+                                logWithContext(
+                                    "warn",
+                                    "Failed to emit state change to renderer",
+                                    { error: err?.message }
+                                );
+                            }
+                        }
+                    );
+
+                    if (typeof unsubscribe === "function") {
+                        this.ipcSubscriptions.set(subscriptionKey, unsubscribe);
+                    }
+                }
+
+                return true;
             }
+        );
 
-            return true;
-        });
+        ipcMain.handle(
+            "main-state:unlisten",
+            (/** @type {any} */ event, /** @type {string} */ path) => {
+                const sender = event?.sender;
+                if (!sender) return false;
+                const safePath = typeof path === "string" ? path.trim() : "";
 
-        ipcMain.handle("main-state:unlisten", (/** @type {any} */ event, /** @type {string} */ path) => {
-            const sender = event?.sender;
-            if (!sender) return false;
-            const safePath = typeof path === "string" ? path.trim() : "";
+                const normalizedPath = safePath.length === 0 ? "*" : safePath;
 
-            const normalizedPath = safePath.length === 0 ? "*" : safePath;
+                if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
+                    return false;
+                }
+                const subscriptionKey = this.makeSubscriptionKey(
+                    sender,
+                    normalizedPath
+                );
+                const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
+                if (!unsubscribe) return false;
 
-            if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
-                return false;
+                try {
+                    unsubscribe();
+                } catch {
+                    /* ignore */
+                }
+                this.ipcSubscriptions.delete(subscriptionKey);
+                return true;
             }
-            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
-            const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
-            if (!unsubscribe) return false;
-
-            try {
-                unsubscribe();
-            } catch {
-                /* ignore */
-            }
-            this.ipcSubscriptions.delete(subscriptionKey);
-            return true;
-        });
+        );
 
         // Get operation status
-        ipcMain.handle("main-state:operation", (/** @type {any} */ _event, /** @type {string} */ operationId) => {
-            const safeOperationId = typeof operationId === "string" ? operationId.trim() : "";
-            if (!safeOperationId || safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH) {
-                return;
-            }
-            if (!DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) || FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)) {
-                return;
-            }
+        ipcMain.handle(
+            "main-state:operation",
+            (/** @type {any} */ _event, /** @type {string} */ operationId) => {
+                const safeOperationId =
+                    typeof operationId === "string" ? operationId.trim() : "";
+                if (
+                    !safeOperationId ||
+                    safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH
+                ) {
+                    return;
+                }
+                if (
+                    !DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) ||
+                    FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)
+                ) {
+                    return;
+                }
 
-            const val = this.get(`operations.${safeOperationId}`);
-            return val === null ? undefined : val;
-        });
+                const val = this.get(`operations.${safeOperationId}`);
+                return val === null ? undefined : val;
+            }
+        );
 
         // Get all operations
         ipcMain.handle("main-state:operations", () => {
@@ -841,21 +987,30 @@ class MainProcessState {
         });
 
         // Get errors
-        ipcMain.handle("main-state:errors", (/** @type {any} */ _event, /** @type {number} */ limit = 50) => {
-            const errors = this.get("errors") || [];
-            const max = 100;
-            const n = typeof limit === "number" && Number.isFinite(limit) ? Math.floor(limit) : 50;
-            const clamped = Math.max(0, Math.min(max, n));
-            return errors.slice(0, clamped);
-        });
+        ipcMain.handle(
+            "main-state:errors",
+            (/** @type {any} */ _event, /** @type {number} */ limit = 50) => {
+                const errors = this.get("errors") || [];
+                const max = 100;
+                const n =
+                    typeof limit === "number" && Number.isFinite(limit)
+                        ? Math.floor(limit)
+                        : 50;
+                const clamped = Math.max(0, Math.min(max, n));
+                return errors.slice(0, clamped);
+            }
+        );
 
         // Get metrics
-        ipcMain.handle("main-state:metrics", () => this.makeSerializable(this.getSerializableMetrics()));
+        ipcMain.handle("main-state:metrics", () =>
+            this.makeSerializable(this.getSerializableMetrics())
+        );
 
         this._ipcHandlersRegistered = true;
     }
     /**
      * Start tracking an operation
+     *
      * @param {string} operationId - Unique operation identifier
      * @param {Object} operationData - Operation metadata
      */
@@ -880,6 +1035,7 @@ class MainProcessState {
 
     /**
      * Unregister event handler
+     *
      * @param {string} handlerId - Handler ID
      */
     /**
@@ -896,22 +1052,31 @@ class MainProcessState {
             this.set("eventHandlers", eventHandlers);
 
             if (this.devMode) {
-                logWithContext("info", "Event handler unregistered", { handlerId });
+                logWithContext("info", "Event handler unregistered", {
+                    handlerId,
+                });
             }
         }
     }
 
     /**
      * Update state with partial object
+     *
      * @param {Object} updates - Object with updates
      * @param {Object} options - Update options
      */
     /**
-     * @param {Record<string,*>} updates
+     * @param {Record<string, any>} updates
      * @param {Object} [options]
      */
     update(updates, options = {}) {
-        /** @type {Array<{path:string,oldValue:any,newValue:any,timestamp:number,source:string}>} */
+        /** @type {{
+         *     path: string;
+         *     oldValue: any;
+         *     newValue: any;
+         *     timestamp: number;
+         *     source: string;
+         * }[]} */
         const changes = [];
 
         for (const [path, value] of Object.entries(updates)) {
@@ -940,6 +1105,7 @@ class MainProcessState {
 
     /**
      * Update operation progress
+     *
      * @param {string} operationId - Operation identifier
      * @param {Object} updates - Progress updates
      */
@@ -960,7 +1126,10 @@ class MainProcessState {
         };
 
         this.set(`operations.${operationId}`, updatedOp);
-        this.notifyRenderers("operation-updated", { operation: updatedOp, operationId });
+        this.notifyRenderers("operation-updated", {
+            operation: updatedOp,
+            operationId,
+        });
     }
 }
 
@@ -968,11 +1137,13 @@ class MainProcessState {
  * Validate a dot-separated path for safe traversal.
  *
  * Rules:
- * - must be a non-empty string after trimming
- * - must not contain empty segments ("a..b")
- * - must not contain prototype-pollution segments
+ *
+ * - Must be a non-empty string after trimming
+ * - Must not contain empty segments ("a..b")
+ * - Must not contain prototype-pollution segments
  *
  * @param {unknown} path
+ *
  * @returns {path is string}
  */
 function isSafeDotPath(path) {
@@ -992,90 +1163,108 @@ function isSafeDotPath(path) {
 }
 
 /**
- * @typedef {'log'|'info'|'warn'|'error'|'debug'} ConsoleLevel
+ * @typedef {"log" | "info" | "warn" | "error" | "debug"} ConsoleLevel
  */
 
 /**
  * @typedef {Object} Operation
+ *
  * @property {string} id
  * @property {number} startTime
- * @property {number} [startTimePerf] - Monotonic start timestamp for duration calculation (ms)
+ * @property {number} [startTimePerf] - Monotonic start timestamp for duration
+ *   calculation (ms)
  * @property {number} [endTime]
- * @property {number} [endTimePerf] - Monotonic end timestamp for duration calculation (ms)
+ * @property {number} [endTimePerf] - Monotonic end timestamp for duration
+ *   calculation (ms)
  * @property {number} [duration]
- * @property {'running'|'completed'|'failed'} status
+ * @property {"running" | "completed" | "failed"} status
  * @property {number} progress
  * @property {string} message
  * @property {Object} [result]
- * @property {{message:string,stack?:string,name?:string}|undefined} [error]
+ * @property {{ message: string; stack?: string; name?: string } | undefined} [error]
  * @property {number} [lastUpdate]
  */
 
 /**
  * @typedef {Object} OperationUpdate
+ *
  * @property {number} [progress]
  * @property {string} [message]
  * @property {Object} [result]
- * @property {{message:string,stack?:string,name?:string}|undefined} [error]
+ * @property {{ message: string; stack?: string; name?: string } | undefined} [error]
  */
 
 /**
  * @typedef {Object} ErrorEntry
+ *
  * @property {string} id
  * @property {number} timestamp
  * @property {string} message
- * @property {string|null} stack
+ * @property {string | null} stack
  * @property {Object} context
  * @property {string} source
  */
 
 /**
  * @typedef {Object} Metrics
+ *
  * @property {number} startTime
- * @property {number} [startTimePerf] - Monotonic start timestamp for uptime calculation (ms)
- * @property {Map<string,{value:number,timestamp:number,metadata:Object}>} operationTimes
+ * @property {number} [startTimePerf] - Monotonic start timestamp for uptime
+ *   calculation (ms)
+ * @property {Map<string, { value: number; timestamp: number; metadata: Object }>} operationTimes
  */
 
 /**
  * @typedef {Object} HandlerInfo
- * @property {{on:Function,removeListener:Function}} emitter
+ *
+ * @property {{ on: Function; removeListener: Function }} emitter
  * @property {string} event
  * @property {Function} handler
  */
 
 /**
  * @typedef {Object} MainProcessStateData
- * @property {string|null} loadedFitFilePath
- * @property {import('electron').BrowserWindow|null} mainWindow
- * @property {Object|null} gyazoServer
- * @property {number|null} gyazoServerPort
- * @property {Map<string,Function>} pendingOAuthResolvers
- * @property {Map<string,HandlerInfo>} eventHandlers
- * @property {Record<string,Operation>} operations
+ *
+ * @property {string | null} loadedFitFilePath
+ * @property {import("electron").BrowserWindow | null} mainWindow
+ * @property {Object | null} gyazoServer
+ * @property {number | null} gyazoServerPort
+ * @property {Map<string, Function>} pendingOAuthResolvers
+ * @property {Map<string, HandlerInfo>} eventHandlers
+ * @property {Record<string, Operation>} operations
  * @property {ErrorEntry[]} errors
  * @property {Metrics} metrics
  */
 
 /**
  * Log with consistent prefix & optional JSON context
+ *
  * @param {ConsoleLevel} level
  * @param {string} message
  * @param {Object} [context]
  */
 function logWithContext(level, message, context = {}) {
-    const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "",
+    const contextStr =
+            Object.keys(context).length > 0 ? JSON.stringify(context) : "",
         timestamp = new Date().toISOString();
     // Narrowed level union keeps TS happy accessing console methods
-    console[level](`[${timestamp}] [mainProcessStateManager] ${message}`, contextStr);
+    console[level](
+        `[${timestamp}] [mainProcessStateManager] ${message}`,
+        contextStr
+    );
 }
 
 /**
- * Monotonic time source for measuring durations.
- * Uses performance.now when available to avoid issues with system clock changes.
+ * Monotonic time source for measuring durations. Uses performance.now when
+ * available to avoid issues with system clock changes.
+ *
  * @returns {number}
  */
 function monotonicNowMs() {
-    if (globalThis.performance && typeof globalThis.performance.now === "function") {
+    if (
+        globalThis.performance &&
+        typeof globalThis.performance.now === "function"
+    ) {
         return globalThis.performance.now();
     }
     return Date.now();
@@ -1087,7 +1276,14 @@ function safeElectron() {
     const unwrap = (m) => {
         if (!m) return /** @type {any} */ ({});
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
-        const hasApis = (x) => x && (x.app || x.ipcMain || x.BrowserWindow || x.Menu || x.shell || x.dialog);
+        const hasApis = (x) =>
+            x &&
+            (x.app ||
+                x.ipcMain ||
+                x.BrowserWindow ||
+                x.Menu ||
+                x.shell ||
+                x.dialog);
         if (hasApis(m)) return m;
         const def = /** @type {any} */ (m).default;
         if (hasApis(def)) return def;
@@ -1096,10 +1292,17 @@ function safeElectron() {
 
     try {
         // Only clear cache in tests to pick up per-test mocks
-        if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "test") {
+        if (
+            typeof process !== "undefined" &&
+            process.env &&
+            process.env.NODE_ENV === "test"
+        ) {
             try {
                 // @ts-ignore
-                const key = typeof require.resolve === "function" ? require.resolve("electron") : undefined;
+                const key =
+                    typeof require.resolve === "function"
+                        ? require.resolve("electron")
+                        : undefined;
                 if (key && require.cache && require.cache[key]) {
                     delete require.cache[key];
                 }
@@ -1115,12 +1318,20 @@ function safeElectron() {
     let resolved = unwrap(mod);
 
     // If module-scoped require didn't yield a usable ipcMain, try global shim
-    if (!resolved || !resolved.ipcMain || typeof resolved.ipcMain.handle !== "function") {
+    if (
+        !resolved ||
+        !resolved.ipcMain ||
+        typeof resolved.ipcMain.handle !== "function"
+    ) {
         try {
             // @ts-ignore
-            const hasGlobal = typeof globalThis === "object" && globalThis !== null;
+            const hasGlobal =
+                typeof globalThis === "object" && globalThis !== null;
             // @ts-ignore
-            const gReq = hasGlobal && typeof globalThis.require === "function" ? globalThis.require : undefined;
+            const gReq =
+                hasGlobal && typeof globalThis.require === "function"
+                    ? globalThis.require
+                    : undefined;
             if (typeof gReq === "function") {
                 resolved = unwrap(gReq("electron"));
             }
@@ -1137,12 +1348,21 @@ function safeElectron() {
  */
 /**
  * Validate an Electron BrowserWindow instance before IPC use.
- * @param {import('electron').BrowserWindow|undefined|null} win
+ *
+ * @param {import("electron").BrowserWindow | undefined | null} win
+ *
  * @returns {boolean}
  */
 function validateWindow(win) {
-    if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) {
-        console.warn("[mainProcessStateManager] Window is not usable or destroyed");
+    if (
+        !win ||
+        win.isDestroyed() ||
+        !win.webContents ||
+        win.webContents.isDestroyed()
+    ) {
+        console.warn(
+            "[mainProcessStateManager] Window is not usable or destroyed"
+        );
         return false;
     }
     return true;
@@ -1154,7 +1374,7 @@ const mainProcessState = new MainProcessState();
 // Defer IPC setup until Electron is ready if needed. This avoids startup races where
 // 'ipcMain' may appear unavailable extremely early in process bootstrap.
 (function ensureIpcHandlersReadyOnce() {
-    /** @type {{done?:boolean,logged?:boolean}} */
+    /** @type {{ done?: boolean; logged?: boolean }} */
     const state = /** @type {any} */ (ensureIpcHandlersReadyOnce);
     if (state.done) return;
 
@@ -1166,7 +1386,8 @@ const mainProcessState = new MainProcessState();
         return;
     }
 
-    const isRendererProcess = typeof process !== "undefined" && process.type === "renderer";
+    const isRendererProcess =
+        typeof process !== "undefined" && process.type === "renderer";
     if (isRendererProcess) {
         state.done = true;
         return;
@@ -1200,7 +1421,8 @@ const mainProcessState = new MainProcessState();
                     // Fallback to small retry loop if whenReady rejects for any reason
                     let attempts = 0;
                     const tick = () => {
-                        if (!state.done && !trySetup() && attempts++ < 50) setTimeout(tick, 50);
+                        if (!state.done && !trySetup() && attempts++ < 50)
+                            setTimeout(tick, 50);
                     };
                     setTimeout(tick, 10);
                 });
@@ -1218,7 +1440,9 @@ const mainProcessState = new MainProcessState();
     if (!state.logged) {
         state.logged = true;
         try {
-            console.warn("[mainProcessStateManager] Deferring IPC handler setup until Electron is ready");
+            console.warn(
+                "[mainProcessStateManager] Deferring IPC handler setup until Electron is ready"
+            );
         } catch {
             /* ignore */
         }
@@ -1236,12 +1460,16 @@ if (typeof module !== "undefined" && module && module.exports) {
 // Also attach to a global shim so ESM barrels in renderer can recover without touching module
 try {
     if (typeof globalThis !== "undefined") {
-        Object.defineProperty(globalThis, "__FFV_mainProcessStateManagerExports", {
-            configurable: true,
-            enumerable: false,
-            value: __mpExports,
-            writable: true,
-        });
+        Object.defineProperty(
+            globalThis,
+            "__FFV_mainProcessStateManagerExports",
+            {
+                configurable: true,
+                enumerable: false,
+                value: __mpExports,
+                writable: true,
+            }
+        );
     }
 } catch {
     /* ignore */

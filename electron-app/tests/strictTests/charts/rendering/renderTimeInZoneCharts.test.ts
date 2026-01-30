@@ -17,18 +17,25 @@ describe("renderTimeInZoneCharts", () => {
     });
 
     it("renders both HR and power when visible and data exists", async () => {
-        const { renderZoneChart } = await import("../../../../utils/charts/rendering/renderZoneChart.js");
-        const { renderTimeInZoneCharts } = await import("../../../../utils/charts/rendering/renderTimeInZoneCharts.js");
+        const { renderZoneChart } =
+            await import("../../../../utils/charts/rendering/renderZoneChart.js");
+        const { renderTimeInZoneCharts } =
+            await import("../../../../utils/charts/rendering/renderTimeInZoneCharts.js");
         const container = document.createElement("div");
         renderTimeInZoneCharts(container, { chartType: "doughnut" });
         expect(renderZoneChart).toHaveBeenCalledTimes(2);
     });
 
     it("skips when container missing and when visibility is false", async () => {
-        const controls = await import("../../../../utils/ui/controls/createHRZoneControls.js");
-        vi.spyOn(controls, "getHRZoneVisibilitySettings").mockReturnValue({ doughnutVisible: false } as any);
-        const { renderZoneChart } = await import("../../../../utils/charts/rendering/renderZoneChart.js");
-        const { renderTimeInZoneCharts } = await import("../../../../utils/charts/rendering/renderTimeInZoneCharts.js");
+        const controls =
+            await import("../../../../utils/ui/controls/createHRZoneControls.js");
+        vi.spyOn(controls, "getHRZoneVisibilitySettings").mockReturnValue({
+            doughnutVisible: false,
+        } as any);
+        const { renderZoneChart } =
+            await import("../../../../utils/charts/rendering/renderZoneChart.js");
+        const { renderTimeInZoneCharts } =
+            await import("../../../../utils/charts/rendering/renderTimeInZoneCharts.js");
         renderTimeInZoneCharts(null as any);
         expect(renderZoneChart).not.toHaveBeenCalled();
     });

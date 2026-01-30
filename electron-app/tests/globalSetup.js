@@ -7,7 +7,9 @@ export default async function globalSetup() {
         const noop = () => {};
         // Access console only via globalThis to avoid ReferenceError if identifier is not bound yet
         const gConsole = /** @type {any} */ (
-            globalThis && /** @type {any} */ (globalThis).console ? /** @type {any} */ (globalThis).console : undefined
+            globalThis && /** @type {any} */ (globalThis).console
+                ? /** @type {any} */ (globalThis).console
+                : undefined
         );
         const baseConsole = {
             log: gConsole?.log || noop,
@@ -43,7 +45,10 @@ export default async function globalSetup() {
                 value: baseConsole,
             });
         }
-        if (typeof globalThis.window !== "undefined" && !globalThis.window.console) {
+        if (
+            typeof globalThis.window !== "undefined" &&
+            !globalThis.window.console
+        ) {
             Object.defineProperty(globalThis.window, "console", {
                 configurable: true,
                 enumerable: true,

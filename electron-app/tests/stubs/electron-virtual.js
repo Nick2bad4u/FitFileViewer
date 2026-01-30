@@ -3,7 +3,11 @@
 // explicitly vi.mock('electron') still get a working contextBridge/ipcRenderer.
 // Tests can override this by calling vi.mock('electron', factory) in their own files.
 
-/** @type {{ fn: <T extends Function>(impl?: T) => T & { mock?: { calls: any[] } } }} */
+/**
+ * @type {{
+ *     fn: <T extends Function>(impl?: T) => T & { mock?: { calls: any[] } };
+ * }}
+ */
 let vi;
 try {
     // Prefer Vitest spies when available to keep call assertions consistent
@@ -12,7 +16,8 @@ try {
     vi = {
         fn: (/** @type {any} */ impl) => {
             /** @type {any} */
-            const f = (.../** @type {any[]} */ args) => (impl ? impl(...args) : undefined);
+            const f = (.../** @type {any[]} */ args) =>
+                impl ? impl(...args) : undefined;
             f.mock = { calls: [] };
             return f;
         },

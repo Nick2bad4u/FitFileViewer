@@ -1,5 +1,5 @@
 /**
- * @fileoverview Simple State Manager Test
+ * @file Simple State Manager Test
  */
 import { describe, it, expect } from "vitest";
 

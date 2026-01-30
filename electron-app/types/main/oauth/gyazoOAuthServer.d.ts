@@ -1,9 +1,13 @@
 /**
- * Starts the local OAuth callback server used for Gyazo integrations. The implementation mirrors the
- * previous main.js logic, including informative logging and defensive error handling for tests.
+ * Starts the local OAuth callback server used for Gyazo integrations. The
+ * implementation mirrors the previous main.js logic, including informative
+ * logging and defensive error handling for tests.
  *
- * @param {number} [port=3000] - Desired port for the callback server.
- * @returns {Promise<{ success: boolean, message: string, port?: number }>} Server status payload.
+ * @param {number} [port=3000] - Desired port for the callback server. Default
+ *   is `3000`
+ *
+ * @returns {Promise<{ success: boolean; message: string; port?: number }>}
+ *   Server status payload.
  */
 export function startGyazoOAuthServer(port?: number): Promise<{
     success: boolean;
@@ -13,7 +17,8 @@ export function startGyazoOAuthServer(port?: number): Promise<{
 /**
  * Stops the Gyazo OAuth callback server if it is currently running.
  *
- * @returns {Promise<{ success: boolean, message: string }>} Server shutdown payload.
+ * @returns {Promise<{ success: boolean; message: string }>} Server shutdown
+ *   payload.
  */
 export function stopGyazoOAuthServer(): Promise<{
     success: boolean;

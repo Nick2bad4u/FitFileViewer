@@ -21,37 +21,54 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
 
     describe("Input Validation", () => {
         it("should throw TypeError for null input", () => {
-            expect(() => convertMpsToMph(null as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToMph(null as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for undefined input", () => {
-            expect(() => convertMpsToMph(undefined as any)).toThrow("Expected mps to be a number, received undefined");
+            expect(() => convertMpsToMph(undefined as any)).toThrow(
+                "Expected mps to be a number, received undefined"
+            );
         });
 
         it("should throw TypeError for string input", () => {
-            expect(() => convertMpsToMph("10" as any)).toThrow("Expected mps to be a number, received string");
+            expect(() => convertMpsToMph("10" as any)).toThrow(
+                "Expected mps to be a number, received string"
+            );
         });
 
         it("should throw TypeError for boolean input", () => {
-            expect(() => convertMpsToMph(true as any)).toThrow("Expected mps to be a number, received boolean");
+            expect(() => convertMpsToMph(true as any)).toThrow(
+                "Expected mps to be a number, received boolean"
+            );
         });
 
         it("should throw TypeError for object input", () => {
-            expect(() => convertMpsToMph({} as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToMph({} as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for array input", () => {
-            expect(() => convertMpsToMph([] as any)).toThrow("Expected mps to be a number, received object");
+            expect(() => convertMpsToMph([] as any)).toThrow(
+                "Expected mps to be a number, received object"
+            );
         });
 
         it("should throw TypeError for NaN input", () => {
-            expect(() => convertMpsToMph(NaN)).toThrow("Expected mps to be a number, received number");
+            expect(() => convertMpsToMph(NaN)).toThrow(
+                "Expected mps to be a number, received number"
+            );
         });
 
         it("should warn for negative speed values", () => {
             const result = convertMpsToMph(-5);
             expect(result).toBeCloseTo(-11.18468, 5); // Still converts but warns
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToMph] Negative speed value:", -5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToMph] Negative speed value:",
+                -5
+            );
         });
     });
 
@@ -105,7 +122,10 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
         it("should handle negative infinity", () => {
             const result = convertMpsToMph(-Infinity);
             expect(result).toBe(-Infinity);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertMpsToMph] Negative speed value:", -Infinity);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertMpsToMph] Negative speed value:",
+                -Infinity
+            );
         });
 
         it("should handle floating point precision edge cases", () => {
@@ -118,14 +138,29 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
     describe("Performance and Precision", () => {
         it("should be consistent across multiple calls", () => {
             const testSpeed = 22.352; // ~50 mph
-            const results = Array.from({ length: 100 }, () => convertMpsToMph(testSpeed));
+            const results = Array.from({ length: 100 }, () =>
+                convertMpsToMph(testSpeed)
+            );
             const firstResult = results[0];
 
-            expect(results.every((result) => result === firstResult)).toBe(true);
+            expect(results.every((result) => result === firstResult)).toBe(
+                true
+            );
         });
 
         it("should handle rapid successive conversions", () => {
-            const testSpeeds = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30];
+            const testSpeeds = [
+                1,
+                2,
+                3,
+                4,
+                5,
+                10,
+                15,
+                20,
+                25,
+                30,
+            ];
             const expectedResults = testSpeeds.map((speed) => speed * 2.236936);
 
             const results = testSpeeds.map((speed) => convertMpsToMph(speed));
@@ -167,10 +202,28 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
 
         it("should handle FIT file speed data types", () => {
             // FIT files often contain speed in m/s as integers or fixed-point
-            const fitSpeeds = [0, 1, 2, 3, 5, 8, 13, 21]; // Fibonacci-like progression
+            const fitSpeeds = [
+                0,
+                1,
+                2,
+                3,
+                5,
+                8,
+                13,
+                21,
+            ]; // Fibonacci-like progression
             const results = fitSpeeds.map((speed) => convertMpsToMph(speed));
 
-            const expected = [0, 2.236936, 4.473872, 6.710808, 11.18468, 17.89549, 29.08021, 46.97565];
+            const expected = [
+                0,
+                2.236936,
+                4.473872,
+                6.710808,
+                11.18468,
+                17.89549,
+                29.08021,
+                46.97565,
+            ];
             results.forEach((result, index) => {
                 expect(result).toBeCloseTo(expected[index], 4);
             });
@@ -209,7 +262,13 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
         it("should maintain accuracy for round-trip conversions where possible", () => {
             // Note: Perfect round-trip isn't always possible due to floating point,
             // but we can test reasonable accuracy
-            const originalSpeeds = [1, 2, 5, 10, 25.5];
+            const originalSpeeds = [
+                1,
+                2,
+                5,
+                10,
+                25.5,
+            ];
 
             originalSpeeds.forEach((speed) => {
                 const converted = convertMpsToMph(speed);

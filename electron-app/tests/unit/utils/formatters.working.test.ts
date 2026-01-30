@@ -1,10 +1,11 @@
 /**
- * @fileoverview Working formatter utilities test suite
+ * @file Working formatter utilities test suite
  *
- * This test suite provides complete coverage for the working formatting utility functions.
- * Based on actual function outputs discovered during testing.
+ *   This test suite provides complete coverage for the working formatting utility
+ *   functions. Based on actual function outputs discovered during testing.
  *
  * @author FitFileViewer Test Suite
+ *
  * @since 1.0.0
  */
 
@@ -166,7 +167,10 @@ describe("Working Formatter Utilities", () => {
 
             it("should handle negative time with warning", () => {
                 const result = formatTime(-30);
-                expect(console.warn).toHaveBeenCalledWith("[formatTime] Negative time value:", -30);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatTime] Negative time value:",
+                    -30
+                );
                 expect(result).toBe("0:00");
             });
 
@@ -230,7 +234,10 @@ describe("Working Formatter Utilities", () => {
 
             it("should handle negative weight with warning", () => {
                 const result = formatWeight(-10);
-                expect(console.warn).toHaveBeenCalledWith("[formatWeight] Negative weight value:", -10);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatWeight] Negative weight value:",
+                    -10
+                );
                 expect(result).toBe("");
             });
         });
@@ -279,7 +286,10 @@ describe("Working Formatter Utilities", () => {
 
             it("should handle negative height with warning", () => {
                 const result = formatHeight(-1.5);
-                expect(console.warn).toHaveBeenCalledWith("[formatHeight] Negative height value:", -1.5);
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatHeight] Negative height value:",
+                    -1.5
+                );
                 expect(result).toBe("");
             });
 
@@ -306,7 +316,12 @@ describe("Working Formatter Utilities", () => {
             });
 
             it("should handle typical human height range", () => {
-                const heights = [1.5, 1.65, 1.8, 1.95];
+                const heights = [
+                    1.5,
+                    1.65,
+                    1.8,
+                    1.95,
+                ];
                 heights.forEach((height) => {
                     const result = formatHeight(height);
                     expect(result).toContain("m");

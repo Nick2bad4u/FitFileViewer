@@ -1,9 +1,22 @@
-import { getCurrentSettings, getDefaultSettings } from "../../app/initialization/getCurrentSettings.js";
+import {
+    getCurrentSettings,
+    getDefaultSettings,
+} from "../../app/initialization/getCurrentSettings.js";
 import { setupChartStatusUpdates } from "../../charts/components/chartStatusIndicator.js";
 import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
-import { getState, setState, updateState } from "../../state/core/stateManager.js";
-import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
-import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
+import {
+    getState,
+    setState,
+    updateState,
+} from "../../state/core/stateManager.js";
+import {
+    createHRZoneControls,
+    moveHRZoneControlsToSection,
+} from "../controls/createHRZoneControls.js";
+import {
+    createPowerZoneControls,
+    movePowerZoneControlsToSection,
+} from "../controls/createPowerZoneControls.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
 import {
     createControlsSection,
@@ -14,13 +27,17 @@ import {
 
 /**
  * Ensures chart settings dropdowns exist and applies styling
- * @param {Element|string} targetContainer - Container element or ID
+ *
+ * @param {Element | string} targetContainer - Container element or ID
+ *
  * @returns {Object} Current settings object
  */
 export function ensureChartSettingsDropdowns(targetContainer) {
     // Initialize chart controls state if not already set
     if (getState("charts.controlsVisible") === undefined) {
-        setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
+        setState("charts.controlsVisible", true, {
+            source: "ensureChartSettingsDropdowns.init",
+        });
     }
 
     const chartContainer = targetContainer
@@ -36,7 +53,9 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     // Create toggle button if it doesn't exist
     createControlsToggleButton(
         /** @type {HTMLElement} */ (
-            chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body
+            chartContainer.parentNode instanceof HTMLElement
+                ? chartContainer.parentNode
+                : document.body
         )
     );
 
@@ -110,7 +129,9 @@ function createControlsToggleButton(container) {
 
     // Set initial text based on current state
     const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
-    toggleBtn.textContent = controlsVisible ? "▼ Hide Controls" : "▶ Show Controls";
+    toggleBtn.textContent = controlsVisible
+        ? "▼ Hide Controls"
+        : "▶ Show Controls";
     toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
     toggleBtn.setAttribute("aria-controls", "chartjs-settings-wrapper");
     toggleBtn.style.cssText = `
@@ -170,15 +191,21 @@ function toggleChartControls() {
     const currentVisibility = getState("charts.controlsVisible"),
         newVisibility = !currentVisibility;
 
-    setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
+    setState("charts.controlsVisible", newVisibility, {
+        source: "toggleChartControls",
+    });
     wrapper.style.display = newVisibility ? "block" : "none";
 
     // Update toggle button text if it exists
     const toggleBtn = document.querySelector("#chart-controls-toggle");
     if (toggleBtn) {
-        toggleBtn.textContent = newVisibility ? "▼ Hide Controls" : "▶ Show Controls";
+        toggleBtn.textContent = newVisibility
+            ? "▼ Hide Controls"
+            : "▶ Show Controls";
         toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
     }
 
-    console.log(`[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`);
+    console.log(
+        `[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`
+    );
 }

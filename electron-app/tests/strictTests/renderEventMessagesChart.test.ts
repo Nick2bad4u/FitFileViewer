@@ -1,20 +1,23 @@
 /**
- * @fileoverview Comprehensive test suite for renderEventMessagesChart.js
+ * @version 1.0.0
  *
- * This test suite validates the event messages chart rendering functionality including:
- * - Data validation and processing for event messages
- * - Timestamp conversion and relative time calculation
- * - Chart.js integration with scatter plot configuration
- * - Canvas creation and theme-based styling
- * - Chart instance management and global registration
- * - Tooltip configuration and event formatting
- * - Plugin configuration (zoom, background color)
- * - Scale configuration with time formatting
- * - Error handling and edge cases
- * - Various timestamp format support
+ * @file Comprehensive test suite for renderEventMessagesChart.js
+ *
+ *   This test suite validates the event messages chart rendering functionality
+ *   including:
+ *
+ *   - Data validation and processing for event messages
+ *   - Timestamp conversion and relative time calculation
+ *   - Chart.js integration with scatter plot configuration
+ *   - Canvas creation and theme-based styling
+ *   - Chart instance management and global registration
+ *   - Tooltip configuration and event formatting
+ *   - Plugin configuration (zoom, background color)
+ *   - Scale configuration with time formatting
+ *   - Error handling and edge cases
+ *   - Various timestamp format support
  *
  * @author AI Assistant
- * @version 1.0.0
  */
 
 import { describe, test, expect, beforeEach, vi, afterEach } from "vitest";
@@ -190,9 +193,18 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         test("should extract event names from different fields", () => {
             window.globalData = {
                 eventMesgs: [
-                    { timestamp: new Date("2023-01-01T10:00:00Z"), event: "Event Field" },
-                    { timestamp: new Date("2023-01-01T10:01:00Z"), message: "Message Field" },
-                    { timestamp: new Date("2023-01-01T10:02:00Z"), eventType: "EventType Field" },
+                    {
+                        timestamp: new Date("2023-01-01T10:00:00Z"),
+                        event: "Event Field",
+                    },
+                    {
+                        timestamp: new Date("2023-01-01T10:01:00Z"),
+                        message: "Message Field",
+                    },
+                    {
+                        timestamp: new Date("2023-01-01T10:02:00Z"),
+                        eventType: "EventType Field",
+                    },
                     { timestamp: new Date("2023-01-01T10:03:00Z") }, // Default
                 ],
             };
@@ -268,7 +280,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         test("should handle mixed timestamp formats", () => {
             window.globalData = {
                 eventMesgs: [
-                    { timestamp: new Date("2023-01-01T10:00:00Z"), event: "Event 1" },
+                    {
+                        timestamp: new Date("2023-01-01T10:00:00Z"),
+                        event: "Event 1",
+                    },
                     { timestamp: 1672570800, event: "Event 2" },
                     { timestamp: 1672570800000, event: "Event 3" },
                 ],
@@ -353,7 +368,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
         test("should use default color when no custom color setting is available", () => {
             // Override mocked getChartSetting so that no custom color is provided
-            (getChartSetting as unknown as vi.Mock).mockImplementationOnce(() => undefined);
+            (getChartSetting as unknown as vi.Mock).mockImplementationOnce(
+                () => undefined
+            );
 
             const container = document.createElement("div");
 
@@ -382,7 +399,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(chartConfig.options.plugins.legend.display).toBe(true);
             expect(chartConfig.options.plugins.title.display).toBe(true);
             expect(chartConfig.options.scales.x.grid.display).toBe(true);
-            expect(chartConfig.options.plugins.zoom).toEqual({ zoom: { enabled: true } });
+            expect(chartConfig.options.plugins.zoom).toEqual({
+                zoom: { enabled: true },
+            });
         });
 
         test("should configure chart options based on provided options - all disabled", () => {
@@ -480,12 +499,16 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
 
         test("should call updateChartAnimations with correct parameters", async () => {
-            const { updateChartAnimations } = await import("../../utils/charts/core/updateChartAnimations.js");
+            const { updateChartAnimations } =
+                await import("../../utils/charts/core/updateChartAnimations.js");
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(updateChartAnimations).toHaveBeenCalledWith(mockChart, "Event Messages");
+            expect(updateChartAnimations).toHaveBeenCalledWith(
+                mockChart,
+                "Event Messages"
+            );
         });
     });
 
@@ -511,7 +534,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             const chartConfig = (window.Chart as any).mock.calls[0][1];
-            const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
+            const tooltipCallback =
+                chartConfig.options.plugins.tooltip.callbacks.label;
 
             const mockContext = {
                 raw: { event: "Test Event" },
@@ -527,7 +551,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             const chartConfig = (window.Chart as any).mock.calls[0][1];
-            const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
+            const tooltipCallback =
+                chartConfig.options.plugins.tooltip.callbacks.label;
 
             const mockContext = {
                 raw: {},
@@ -547,7 +572,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = (window.Chart as any).mock.calls[0][1];
 
             expect(chartConfig.plugins).toContain("chartBackgroundColorPlugin");
-            expect(chartConfig.plugins[0]).toEqual({ id: "chartZoomResetPlugin" });
+            expect(chartConfig.plugins[0]).toEqual({
+                id: "chartZoomResetPlugin",
+            });
         });
 
         test("should configure chartBackgroundColorPlugin with theme colors", () => {
@@ -556,7 +583,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             const chartConfig = (window.Chart as any).mock.calls[0][1];
-            const bgPlugin = chartConfig.options.plugins.chartBackgroundColorPlugin;
+            const bgPlugin =
+                chartConfig.options.plugins.chartBackgroundColorPlugin;
 
             expect(bgPlugin.backgroundColor).toBe("#ffffff");
         });
@@ -564,7 +592,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
     describe("Scale Configuration", () => {
         test("should configure x-axis with time formatting callback", async () => {
-            const { formatTime } = await import("../../utils/formatting/formatters/formatTime.js");
+            const { formatTime } =
+                await import("../../utils/formatting/formatters/formatTime.js");
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -598,7 +627,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(() => renderEventMessagesChart(container, {}, new Date())).not.toThrow();
+            expect(() =>
+                renderEventMessagesChart(container, {}, new Date())
+            ).not.toThrow();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 expect.any(Error)
@@ -606,14 +637,17 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
 
         test("should handle errors gracefully without throwing", async () => {
-            const { getThemeConfig } = await import("../../utils/theming/core/theme.js");
+            const { getThemeConfig } =
+                await import("../../utils/theming/core/theme.js");
             (getThemeConfig as any).mockImplementation(() => {
                 throw new Error("Theme config failed");
             });
 
             const container = document.createElement("div");
 
-            expect(() => renderEventMessagesChart(container, {}, new Date())).not.toThrow();
+            expect(() =>
+                renderEventMessagesChart(container, {}, new Date())
+            ).not.toThrow();
             expect(mockConsoleError).toHaveBeenCalled();
         });
     });
@@ -649,7 +683,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         test("should handle events with all timestamp variations", () => {
             window.globalData = {
                 eventMesgs: [
-                    { time: new Date("2023-01-01T10:00:00Z"), event: "Event 1" },
+                    {
+                        time: new Date("2023-01-01T10:00:00Z"),
+                        event: "Event 1",
+                    },
                     { timestamp: 1672570800, event: "Event 2" },
                     { event: "Event 3" }, // No timestamp
                 ],
@@ -664,20 +701,34 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
 
         test("should handle missing container gracefully", () => {
-            expect(() => renderEventMessagesChart(null as any, {}, new Date())).not.toThrow();
+            expect(() =>
+                renderEventMessagesChart(null as any, {}, new Date())
+            ).not.toThrow();
         });
 
         test("should handle undefined options object", () => {
             const container = document.createElement("div");
 
-            expect(() => renderEventMessagesChart(container, undefined as any, new Date())).not.toThrow();
+            expect(() =>
+                renderEventMessagesChart(
+                    container,
+                    undefined as any,
+                    new Date()
+                )
+            ).not.toThrow();
         });
 
         test("should handle very large timestamp values", () => {
             window.globalData = {
                 eventMesgs: [
-                    { timestamp: Number.MAX_SAFE_INTEGER, event: "Large Event" },
-                    { timestamp: -Number.MAX_SAFE_INTEGER, event: "Negative Event" },
+                    {
+                        timestamp: Number.MAX_SAFE_INTEGER,
+                        event: "Large Event",
+                    },
+                    {
+                        timestamp: -Number.MAX_SAFE_INTEGER,
+                        event: "Negative Event",
+                    },
                 ],
             };
             const container = document.createElement("div");

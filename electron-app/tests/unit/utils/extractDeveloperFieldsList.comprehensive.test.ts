@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for extractDeveloperFieldsList.js utility
+ * @file Comprehensive test suite for extractDeveloperFieldsList.js utility
  *
- * Tests all aspects of developer fields extraction including:
- * - Basic developer fields parsing from JSON strings
- * - Array and scalar value handling
- * - Input validation and error handling
- * - Edge cases and boundary conditions
- * - Performance and consistency testing
- * - Real-world usage scenarios with FIT file data
+ *   Tests all aspects of developer fields extraction including:
+ *
+ *   - Basic developer fields parsing from JSON strings
+ *   - Array and scalar value handling
+ *   - Input validation and error handling
+ *   - Edge cases and boundary conditions
+ *   - Performance and consistency testing
+ *   - Real-world usage scenarios with FIT file data
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -32,26 +33,55 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
     describe("Basic Developer Fields Parsing", () => {
         it("should extract scalar numeric developer fields", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100, "2": 200}' }, { developerFields: '{"3": 300}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100, "2": 200}' },
+                { developerFields: '{"3": 300}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should extract array developer fields with indices", () => {
-            const recordMesgs = [{ developerFields: '{"1": [10, 20, 30]}' }, { developerFields: '{"2": [40, 50]}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": [10, 20, 30]}' },
+                { developerFields: '{"2": [40, 50]}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1_0", "dev_1_1", "dev_1_2", "dev_2_0", "dev_2_1"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1_0",
+                    "dev_1_1",
+                    "dev_1_2",
+                    "dev_2_0",
+                    "dev_2_1",
+                ])
+            );
             expect(result).toHaveLength(5);
         });
 
         it("should handle mixed scalar and array fields", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100, "2": [10, 20], "3": 300}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100, "2": [10, 20], "3": 300}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2_0", "dev_2_1", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2_0",
+                    "dev_2_1",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(4);
         });
 
@@ -70,7 +100,13 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
@@ -83,7 +119,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle negative values correctly", () => {
-            const recordMesgs = [{ developerFields: '{"1": -100, "2": -50.5}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": -100, "2": -50.5}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2"]));
@@ -91,7 +129,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle decimal values correctly", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100.5, "2": 3.14159}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100.5, "2": 3.14159}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2"]));
@@ -118,7 +158,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
         it("should handle large arrays", () => {
             const largeArray = Array.from({ length: 100 }, (_, i) => i);
-            const recordMesgs = [{ developerFields: JSON.stringify({ "1": largeArray }) }];
+            const recordMesgs = [
+                { developerFields: JSON.stringify({ "1": largeArray }) },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toHaveLength(100);
@@ -127,15 +169,25 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle arrays with mixed value types", () => {
-            const recordMesgs = [{ developerFields: '{"1": [10, "string", null, true, 20]}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": [10, "string", null, true, 20]}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(["dev_1_0", "dev_1_1", "dev_1_2", "dev_1_3", "dev_1_4"]);
+            expect(result).toEqual([
+                "dev_1_0",
+                "dev_1_1",
+                "dev_1_2",
+                "dev_1_3",
+                "dev_1_4",
+            ]);
             expect(result).toHaveLength(5);
         });
 
         it("should handle nested arrays (treated as regular values)", () => {
-            const recordMesgs = [{ developerFields: '{"1": [[1, 2], [3, 4]]}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": [[1, 2], [3, 4]]}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_1_0", "dev_1_1"]);
@@ -150,7 +202,13 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1_0", "dev_1_1", "dev_1_2"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1_0",
+                    "dev_1_1",
+                    "dev_1_2",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
     });
@@ -167,7 +225,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should return empty array for non-array input", () => {
-            expect(extractDeveloperFieldsList("not an array" as any)).toEqual([]);
+            expect(extractDeveloperFieldsList("not an array" as any)).toEqual(
+                []
+            );
             expect(extractDeveloperFieldsList(123 as any)).toEqual([]);
             expect(extractDeveloperFieldsList({} as any)).toEqual([]);
             expect(extractDeveloperFieldsList(true as any)).toEqual([]);
@@ -179,7 +239,11 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle records without developerFields property", () => {
-            const recordMesgs = [{ timestamp: 123456789 }, { distance: 1000 }, { developerFields: '{"1": 100}' }];
+            const recordMesgs = [
+                { timestamp: 123456789 },
+                { distance: 1000 },
+                { developerFields: '{"1": 100}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_1"]);
@@ -187,7 +251,10 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle records with null developerFields", () => {
-            const recordMesgs = [{ developerFields: null } as any, { developerFields: '{"1": 100}' }];
+            const recordMesgs = [
+                { developerFields: null } as any,
+                { developerFields: '{"1": 100}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_1"]);
@@ -195,7 +262,10 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle records with undefined developerFields", () => {
-            const recordMesgs = [{ developerFields: undefined }, { developerFields: '{"1": 100}' }];
+            const recordMesgs = [
+                { developerFields: undefined },
+                { developerFields: '{"1": 100}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_1"]);
@@ -229,7 +299,10 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle empty JSON string", () => {
-            const recordMesgs = [{ developerFields: "" }, { developerFields: '{"1": 100}' }];
+            const recordMesgs = [
+                { developerFields: "" },
+                { developerFields: '{"1": 100}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_1"]);
@@ -237,7 +310,12 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle JSON with invalid field values", () => {
-            const recordMesgs = [{ developerFields: '{"1": "string_value", "2": null, "3": true, "4": 100}' }];
+            const recordMesgs = [
+                {
+                    developerFields:
+                        '{"1": "string_value", "2": null, "3": true, "4": 100}',
+                },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_4"]); // Only numeric value should be included
@@ -253,7 +331,12 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle JSON with Infinity values", () => {
-            const recordMesgs = [{ developerFields: '{"1": "Infinity", "2": "-Infinity", "3": 100}' }];
+            const recordMesgs = [
+                {
+                    developerFields:
+                        '{"1": "Infinity", "2": "-Infinity", "3": 100}',
+                },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_3"]);
@@ -264,7 +347,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
     describe("Edge Cases and Boundary Conditions", () => {
         it("should handle very large numbers", () => {
             const recordMesgs = [
-                { developerFields: `{"1": ${Number.MAX_SAFE_INTEGER}, "2": ${Number.MIN_SAFE_INTEGER}}` },
+                {
+                    developerFields: `{"1": ${Number.MAX_SAFE_INTEGER}, "2": ${Number.MIN_SAFE_INTEGER}}`,
+                },
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
@@ -274,7 +359,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
         it("should handle very large arrays with consistent indexing", () => {
             const largeArray = Array.from({ length: 1000 }, (_, i) => i);
-            const recordMesgs = [{ developerFields: JSON.stringify({ "1": largeArray }) }];
+            const recordMesgs = [
+                { developerFields: JSON.stringify({ "1": largeArray }) },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toHaveLength(1000);
@@ -284,23 +371,47 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should handle numeric field IDs that are strings", () => {
-            const recordMesgs = [{ developerFields: '{"001": 100, "02": 200, "3": 300}' }];
+            const recordMesgs = [
+                { developerFields: '{"001": 100, "02": 200, "3": 300}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_001", "dev_02", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_001",
+                    "dev_02",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should handle field IDs with special characters", () => {
-            const recordMesgs = [{ developerFields: '{"field_1": 100, "field-2": 200, "field.3": 300}' }];
+            const recordMesgs = [
+                {
+                    developerFields:
+                        '{"field_1": 100, "field-2": 200, "field.3": 300}',
+                },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_field_1", "dev_field-2", "dev_field.3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_field_1",
+                    "dev_field-2",
+                    "dev_field.3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should handle very deep JSON structures", () => {
-            const recordMesgs = [{ developerFields: '{"1": {"nested": {"deep": 100}}, "2": 200}' }];
+            const recordMesgs = [
+                {
+                    developerFields:
+                        '{"1": {"nested": {"deep": 100}}, "2": 200}',
+                },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_2"]); // Only numeric values should be extracted
@@ -331,7 +442,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should maintain field ordering stability", () => {
-            const recordMesgs = [{ developerFields: '{"3": 300, "1": 100, "2": 200}' }];
+            const recordMesgs = [
+                { developerFields: '{"3": 300, "1": 100, "2": 200}' },
+            ];
 
             const result1 = extractDeveloperFieldsList(recordMesgs);
             const result2 = extractDeveloperFieldsList(recordMesgs);
@@ -360,7 +473,15 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_0", "dev_1", "dev_2_0", "dev_2_1", "dev_2_2"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_0",
+                    "dev_1",
+                    "dev_2_0",
+                    "dev_2_1",
+                    "dev_2_2",
+                ])
+            );
             expect(result).toHaveLength(5);
         });
 
@@ -372,7 +493,14 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(
-                expect.arrayContaining(["dev_7", "dev_8_0", "dev_8_1", "dev_8_2", "dev_8_3", "dev_9"])
+                expect.arrayContaining([
+                    "dev_7",
+                    "dev_8_0",
+                    "dev_8_1",
+                    "dev_8_2",
+                    "dev_8_3",
+                    "dev_9",
+                ])
             );
             expect(result).toHaveLength(6);
         });
@@ -386,42 +514,76 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should handle mixed precision numeric values", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100, "2": 100.0, "3": 100.00001}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100, "2": 100.0, "3": 100.00001}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should handle scientific notation values", () => {
-            const recordMesgs = [{ developerFields: '{"1": 1e5, "2": 2.5e-3, "3": 1.23E+10}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 1e5, "2": 2.5e-3, "3": 1.23E+10}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
     });
 
     describe("Performance and Consistency", () => {
         it("should handle rapid successive calls efficiently", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100, "2": [10, 20]}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100, "2": [10, 20]}' },
+            ];
 
-            const results = Array.from({ length: 100 }, () => extractDeveloperFieldsList(recordMesgs));
+            const results = Array.from({ length: 100 }, () =>
+                extractDeveloperFieldsList(recordMesgs)
+            );
 
             expect(results).toHaveLength(100);
             results.forEach((result) => {
-                expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2_0", "dev_2_1"]));
+                expect(result).toEqual(
+                    expect.arrayContaining([
+                        "dev_1",
+                        "dev_2_0",
+                        "dev_2_1",
+                    ])
+                );
                 expect(result).toHaveLength(3);
             });
         });
 
         it("should be consistent across multiple calls", () => {
-            const recordMesgs = [{ developerFields: '{"3": 300, "1": 100, "2": [20, 30]}' }];
+            const recordMesgs = [
+                { developerFields: '{"3": 300, "1": 100, "2": [20, 30]}' },
+            ];
 
             const result1 = extractDeveloperFieldsList(recordMesgs);
             const result2 = extractDeveloperFieldsList(recordMesgs);
@@ -445,7 +607,9 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should not modify input data", () => {
-            const recordMesgs = [{ developerFields: '{"1": 100}', otherField: "test" }];
+            const recordMesgs = [
+                { developerFields: '{"1": 100}', otherField: "test" },
+            ];
             const originalData = JSON.parse(JSON.stringify(recordMesgs));
 
             extractDeveloperFieldsList(recordMesgs);
@@ -459,7 +623,13 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             }));
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_2", "dev_3"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_2",
+                    "dev_3",
+                ])
+            );
             expect(result).toHaveLength(3); // Properly deduplicated
         });
     });
@@ -482,12 +652,23 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
             ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(expect.arrayContaining(["dev_1", "dev_7", "dev_8"]));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    "dev_1",
+                    "dev_7",
+                    "dev_8",
+                ])
+            );
             expect(result).toHaveLength(3);
         });
 
         it("should handle numeric strings correctly", () => {
-            const recordMesgs = [{ developerFields: '{"1": "100", "2": "not_numeric", "3": 200}' }];
+            const recordMesgs = [
+                {
+                    developerFields:
+                        '{"1": "100", "2": "not_numeric", "3": 200}',
+                },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_3"]); // Only actual numeric value
@@ -495,10 +676,18 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
         });
 
         it("should validate array contents independently", () => {
-            const recordMesgs = [{ developerFields: '{"1": [1, "string", 3, null, 5]}' }];
+            const recordMesgs = [
+                { developerFields: '{"1": [1, "string", 3, null, 5]}' },
+            ];
 
             const result = extractDeveloperFieldsList(recordMesgs);
-            expect(result).toEqual(["dev_1_0", "dev_1_1", "dev_1_2", "dev_1_3", "dev_1_4"]);
+            expect(result).toEqual([
+                "dev_1_0",
+                "dev_1_1",
+                "dev_1_2",
+                "dev_1_3",
+                "dev_1_4",
+            ]);
             expect(result).toHaveLength(5); // All array indices are included regardless of content
         });
     });

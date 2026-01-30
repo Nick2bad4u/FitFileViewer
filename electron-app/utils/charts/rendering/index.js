@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for charts/rendering
- * @description Re-exports all modules in the charts/rendering category
+ * Re-exports all modules in the charts/rendering category
+ *
+ * @file Barrel Export for charts/rendering
  */
 export * from "./renderAltitudeProfileChart.js";
 export * from "./renderEventMessagesChart.js";

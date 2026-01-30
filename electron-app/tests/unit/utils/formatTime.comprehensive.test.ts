@@ -1,13 +1,14 @@
 /**
- * @fileoverview Comprehensive test suite for formatTime.js utility
+ * @file Comprehensive test suite for formatTime.js utility
  *
- * Tests all aspects of the time formatting utility including:
- * - Input validation and error handling
- * - Time string formatting (MM:SS, HH:MM:SS)
- * - User units integration with settings state
- * - Dependency mocking (convertTimeUnits)
- * - Edge cases and boundary conditions
- * - Real-world time scenarios
+ *   Tests all aspects of the time formatting utility including:
+ *
+ *   - Input validation and error handling
+ *   - Time string formatting (MM:SS, HH:MM:SS)
+ *   - User units integration with settings state
+ *   - Dependency mocking (convertTimeUnits)
+ *   - Edge cases and boundary conditions
+ *   - Real-world time scenarios
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -57,49 +58,73 @@ describe("formatTime.js - Time Formatter Utility", () => {
         it('should return "0:00" for null input and log warning', () => {
             const result = formatTime(null as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", null);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                null
+            );
         });
 
         it('should return "0:00" for undefined input and log warning', () => {
             const result = formatTime(undefined as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", undefined);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                undefined
+            );
         });
 
         it('should return "0:00" for string input and log warning', () => {
             const result = formatTime("60" as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", "60");
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                "60"
+            );
         });
 
         it('should return "0:00" for boolean input and log warning', () => {
             const result = formatTime(true as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", true);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                true
+            );
         });
 
         it('should return "0:00" for object input and log warning', () => {
             const result = formatTime({} as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", {});
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                {}
+            );
         });
 
         it('should return "0:00" for array input and log warning', () => {
             const result = formatTime([60] as any);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", [60]);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                [60]
+            );
         });
 
         it('should return "0:00" for NaN input and log warning', () => {
             const result = formatTime(NaN);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Invalid seconds value:", NaN);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Invalid seconds value:",
+                NaN
+            );
         });
 
         it('should return "0:00" for negative number and log warning', () => {
             const result = formatTime(-60);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Negative time value:", -60);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Negative time value:",
+                -60
+            );
         });
 
         it("should handle positive infinity gracefully", () => {
@@ -111,7 +136,10 @@ describe("formatTime.js - Time Formatter Utility", () => {
         it("should handle negative infinity and log warning", () => {
             const result = formatTime(-Infinity);
             expect(result).toBe("0:00");
-            expect(consoleSpy.warn).toHaveBeenCalledWith("[formatTime] Negative time value:", -Infinity);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                "[formatTime] Negative time value:",
+                -Infinity
+            );
         });
     });
 
@@ -278,7 +306,12 @@ describe("formatTime.js - Time Formatter Utility", () => {
         });
 
         it("should maintain consistent format structure", () => {
-            const results = [30, 90, 3661, 36000].map((s) => formatTime(s));
+            const results = [
+                30,
+                90,
+                3661,
+                36000,
+            ].map((s) => formatTime(s));
             results.forEach((result) => {
                 expect(result).toMatch(/^\d+:\d{2}(:\d{2})?$/);
             });
@@ -320,7 +353,10 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
             const result = formatTime(3661);
             expect(result).toBe("0:00");
-            expect(consoleSpy.error).toHaveBeenCalledWith("[formatTime] Time formatting failed:", expect.any(Error));
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[formatTime] Time formatting failed:",
+                expect.any(Error)
+            );
 
             // Restore original function
             Math.floor = originalFloor;
@@ -350,7 +386,13 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
     describe("Performance and Consistency", () => {
         it("should handle rapid successive calls", () => {
-            const times = [30, 90, 3661, 7200, 10000];
+            const times = [
+                30,
+                90,
+                3661,
+                7200,
+                10000,
+            ];
             const results = times.map((t) => formatTime(t));
 
             expect(results).toHaveLength(5);

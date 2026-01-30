@@ -1,7 +1,9 @@
 /**
- * @fileoverview Comprehensive test suite for formatSpeedTooltip.js
- * @description Tests speed tooltip formatting with multiple unit displays
+ * Tests speed tooltip formatting with multiple unit displays
+ *
  * @version 1.0.0
+ *
+ * @file Comprehensive test suite for formatSpeedTooltip.js
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -14,7 +16,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
     beforeEach(() => {
         // Spy on console methods for testing logging
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -108,8 +112,12 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
 
         it("should handle negative Infinity input", () => {
             const result = formatSpeedTooltip(-Infinity);
-            expect(result).toBe("-Infinity m/s (-Infinity km/h, -Infinity mph)");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[formatSpeedTooltip] Negative speed value: -Infinity");
+            expect(result).toBe(
+                "-Infinity m/s (-Infinity km/h, -Infinity mph)"
+            );
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[formatSpeedTooltip] Negative speed value: -Infinity"
+            );
         });
 
         it("should handle object input", () => {
@@ -153,19 +161,25 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
         it("should format negative speed with warning", () => {
             const result = formatSpeedTooltip(-5);
             expect(result).toBe("-5.00 m/s (-18.00 km/h, -11.18 mph)");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[formatSpeedTooltip] Negative speed value: -5");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[formatSpeedTooltip] Negative speed value: -5"
+            );
         });
 
         it("should format small negative speed", () => {
             const result = formatSpeedTooltip(-0.5);
             expect(result).toBe("-0.50 m/s (-1.80 km/h, -1.12 mph)");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[formatSpeedTooltip] Negative speed value: -0.5");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[formatSpeedTooltip] Negative speed value: -0.5"
+            );
         });
 
         it("should format large negative speed", () => {
             const result = formatSpeedTooltip(-15.5);
             expect(result).toBe("-15.50 m/s (-55.80 km/h, -34.67 mph)");
-            expect(consoleWarnSpy).toHaveBeenCalledWith("[formatSpeedTooltip] Negative speed value: -15.5");
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                "[formatSpeedTooltip] Negative speed value: -15.5"
+            );
         });
     });
 
@@ -203,7 +217,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
             expect(result).toContain("km/h");
             expect(result).toContain("mph");
             expect(consoleWarnSpy).toHaveBeenCalledWith(
-                expect.stringContaining("[formatSpeedTooltip] Negative speed value:")
+                expect.stringContaining(
+                    "[formatSpeedTooltip] Negative speed value:"
+                )
             );
         });
 
@@ -295,7 +311,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
 
             testCases.forEach((testCase) => {
                 const result = formatSpeedTooltip(testCase);
-                expect(result).toMatch(/\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)/);
+                expect(result).toMatch(
+                    /\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)/
+                );
             });
         });
     });
@@ -303,7 +321,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
     describe("Format String Structure", () => {
         it("should maintain consistent format structure", () => {
             const result = formatSpeedTooltip(5.5);
-            expect(result).toMatch(/^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/);
+            expect(result).toMatch(
+                /^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/
+            );
         });
 
         it("should include all three units in correct order", () => {
@@ -323,7 +343,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
 
         it("should have proper parentheses and comma structure", () => {
             const result = formatSpeedTooltip(5);
-            expect(result).toMatch(/^[\d.]+ m\/s \([\d.]+ km\/h, [\d.]+ mph\)$/);
+            expect(result).toMatch(
+                /^[\d.]+ m\/s \([\d.]+ km\/h, [\d.]+ mph\)$/
+            );
         });
     });
 
@@ -340,7 +362,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
 
         it("should be consistent across multiple calls", () => {
             const speed = 7.5;
-            const results = Array.from({ length: 10 }, () => formatSpeedTooltip(speed));
+            const results = Array.from({ length: 10 }, () =>
+                formatSpeedTooltip(speed)
+            );
             const firstResult = results[0];
 
             results.forEach((result) => {
@@ -382,7 +406,9 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
 
             problematicNumbers.forEach((num) => {
                 const result = formatSpeedTooltip(num);
-                expect(result).toMatch(/^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/);
+                expect(result).toMatch(
+                    /^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/
+                );
             });
         });
     });

@@ -29,8 +29,14 @@ const mockElectron = {
         removeAllListeners: vi.fn(),
     },
     dialog: {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/output.gpx" }),
+        showOpenDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePaths: ["/test/file.fit"],
+        }),
+        showSaveDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePath: "/test/output.gpx",
+        }),
     },
     Menu: {
         setApplicationMenu: vi.fn(),
@@ -97,8 +103,12 @@ const mockCreateWindow = vi.fn().mockReturnValue(mockWindow);
 
 // Setup hoisted mocks
 vi.mock("electron", () => mockElectron);
-vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({ mainProcessState: mockState }));
-vi.mock("../../utils/debug/performance/performanceMonitor", () => ({ default: mockPerfMonitor }));
+vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({
+    mainProcessState: mockState,
+}));
+vi.mock("../../utils/debug/performance/performanceMonitor", () => ({
+    default: mockPerfMonitor,
+}));
 vi.mock("../../utils/files/recent/recentFiles", () => mockRecentFiles);
 vi.mock("../../windowStateUtils", () => ({ createWindow: mockCreateWindow }));
 vi.mock("../../utils/app/menu/createAppMenu", () => ({
@@ -128,7 +138,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
             // Verify electron module methods are present and import succeeded
             expect(typeof mockElectron.app.whenReady).toBe("function");
-            expect(typeof mockElectron.BrowserWindow.getAllWindows).toBe("function");
+            expect(typeof mockElectron.BrowserWindow.getAllWindows).toBe(
+                "function"
+            );
         });
     });
 

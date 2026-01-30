@@ -5,7 +5,9 @@ process.emitWarning = function (warning, ...args) {
     const message = (() => {
         if (typeof warning === "string") return warning;
         if (warning && typeof warning === "object" && "message" in warning) {
-            return String(/** @type {{ message?: unknown }} */ (warning).message);
+            return String(
+                /** @type {{ message?: unknown }} */ (warning).message
+            );
         }
         return "";
     })();
@@ -29,8 +31,14 @@ process.stderr.write = function (chunk, encoding, callback) {
     try {
         const text = (() => {
             if (typeof chunk === "string") return chunk;
-            if (chunk && typeof chunk === "object" && typeof chunk.toString === "function") {
-                return chunk.toString(typeof encoding === "string" ? encoding : "utf8");
+            if (
+                chunk &&
+                typeof chunk === "object" &&
+                typeof chunk.toString === "function"
+            ) {
+                return chunk.toString(
+                    typeof encoding === "string" ? encoding : "utf8"
+                );
             }
             return "";
         })();
@@ -47,7 +55,11 @@ process.stderr.write = function (chunk, encoding, callback) {
     }
 
     // eslint-disable-next-line prefer-spread
-    return originalStderrWrite.apply(process.stderr, [chunk, encoding, callback]);
+    return originalStderrWrite.apply(process.stderr, [
+        chunk,
+        encoding,
+        callback,
+    ]);
 };
 
 const originalConsoleError = console.error;
@@ -55,12 +67,17 @@ const originalConsoleWarn = console.warn;
 
 /**
  * Determine whether a console message matches a known, ignorable jsdom warning.
+ *
  * @param {unknown} candidate
  */
 function shouldSuppressJsdomWarning(candidate) {
     const message = (() => {
         if (typeof candidate === "string") return candidate;
-        if (candidate && typeof candidate === "object" && "message" in candidate) {
+        if (
+            candidate &&
+            typeof candidate === "object" &&
+            "message" in candidate
+        ) {
             return String(candidate.message);
         }
         return "";

@@ -1,5 +1,6 @@
 /**
  * Speed conversion constants
+ *
  * @readonly
  */
 const SPEED_CONVERSIONS = {
@@ -8,17 +9,23 @@ const SPEED_CONVERSIONS = {
 
 /**
  * Converts speed from meters per second to miles per hour
- * @param {number} mps - Speed in meters per second
- * @returns {number} Speed in miles per hour
- * @throws {TypeError} If mps is not a number
+ *
  * @example
- * // Convert 10 meters per second to miles per hour
- * const speedMph = convertMpsToMph(10); // ~22.37
+ *     // Convert 10 meters per second to miles per hour
+ *     const speedMph = convertMpsToMph(10); // ~22.37
+ *
+ * @param {number} mps - Speed in meters per second
+ *
+ * @returns {number} Speed in miles per hour
+ *
+ * @throws {TypeError} If mps is not a number
  */
 export function convertMpsToMph(mps) {
     // Input validation
     if (typeof mps !== "number" || isNaN(mps)) {
-        throw new TypeError(`Expected mps to be a number, received ${typeof mps}`);
+        throw new TypeError(
+            `Expected mps to be a number, received ${typeof mps}`
+        );
     }
 
     if (mps < 0) {

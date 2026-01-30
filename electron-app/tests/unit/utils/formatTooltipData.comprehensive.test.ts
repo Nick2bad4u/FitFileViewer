@@ -1,12 +1,15 @@
 /**
- * @file formatTooltipData.comprehensive.test.ts
- * @description Comprehensive test coverage for tooltip data formatting with FIT file data points
+ * Comprehensive test coverage for tooltip data formatting with FIT file data
+ * points
  *
- * Tests the formatTooltipData utility function that formats complete tooltip HTML strings
- * for display on maps and charts. Handles various FIT file data points including
- * altitude, heart rate, speed, power, cadence, distance, and timing information.
+ * Tests the formatTooltipData utility function that formats complete tooltip
+ * HTML strings for display on maps and charts. Handles various FIT file data
+ * points including altitude, heart rate, speed, power, cadence, distance, and
+ * timing information.
  *
  * Coverage Target: 95-100% line coverage with comprehensive edge case testing
+ *
+ * @file FormatTooltipData.comprehensive.test.ts
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -26,11 +29,14 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
         vi.clearAllMocks();
 
         // Import the function after mocks are set up
-        const module = await import("../../../utils/formatting/display/formatTooltipData.js");
+        const module =
+            await import("../../../utils/formatting/display/formatTooltipData.js");
         formatTooltipData = module.formatTooltipData;
 
         // Get mock references
-        mockGetState = (await import("../../../utils/state/core/stateManager.js")).getState;
+        mockGetState = (
+            await import("../../../utils/state/core/stateManager.js")
+        ).getState;
 
         // Set up default mock returns
         mockGetState.mockReturnValue([]);
@@ -181,7 +187,9 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 expect(result).toContain("<b>Alt:</b> 8848.0 m / 29029 ft");
                 expect(result).toContain("<b>HR:</b> 220.0 bpm");
-                expect(result).toContain("<b>Speed:</b> 180.0 km/h / 111.8 mph");
+                expect(result).toContain(
+                    "<b>Speed:</b> 180.0 km/h / 111.8 mph"
+                );
                 expect(result).toContain("<b>Power:</b> 1500.0 W");
             });
 
@@ -467,21 +475,33 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                     speed: 10,
                 };
 
-                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+                const result = formatTooltipData(
+                    1,
+                    row,
+                    1,
+                    recordMesgsOverride
+                );
 
                 expect(result).toContain("<b>Elapsed Time:</b>");
                 expect(result).toContain("1 minute, 30 seconds");
             });
 
             it("should include hours when elapsed time exceeds 1 hour", () => {
-                const recordMesgsOverride = [{ timestamp: new Date("2023-01-01T10:00:00Z") }];
+                const recordMesgsOverride = [
+                    { timestamp: new Date("2023-01-01T10:00:00Z") },
+                ];
 
                 const row = {
                     timestamp: new Date("2023-01-01T11:02:03Z"),
                     altitude: 100,
                 };
 
-                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+                const result = formatTooltipData(
+                    1,
+                    row,
+                    1,
+                    recordMesgsOverride
+                );
 
                 expect(result).toContain("<b>Elapsed Time:</b>");
                 expect(result).toContain("1 hour");
@@ -490,27 +510,42 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
             });
 
             it("should omit elapsed time when no valid first timestamp exists", () => {
-                const recordMesgsOverride = [{ timestamp: null }, { timestamp: undefined }];
+                const recordMesgsOverride = [
+                    { timestamp: null },
+                    { timestamp: undefined },
+                ];
 
                 const row = {
                     timestamp: new Date("2023-01-01T10:00:00Z"),
                     altitude: 100,
                 };
 
-                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+                const result = formatTooltipData(
+                    1,
+                    row,
+                    1,
+                    recordMesgsOverride
+                );
 
                 expect(result).not.toContain("<b>Elapsed Time:</b>");
             });
 
             it("should omit elapsed time when current timestamp is invalid", () => {
-                const recordMesgsOverride = [{ timestamp: new Date("2023-01-01T10:00:00Z") }];
+                const recordMesgsOverride = [
+                    { timestamp: new Date("2023-01-01T10:00:00Z") },
+                ];
 
                 const row = {
                     timestamp: "not-a-date",
                     altitude: 100,
                 };
 
-                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+                const result = formatTooltipData(
+                    1,
+                    row,
+                    1,
+                    recordMesgsOverride
+                );
 
                 expect(result).not.toContain("<b>Elapsed Time:</b>");
             });
@@ -530,7 +565,9 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                     altitude: 100,
                 };
 
-                expect(() => formatTooltipData(1, row, 1, recordMesgsOverride)).not.toThrow();
+                expect(() =>
+                    formatTooltipData(1, row, 1, recordMesgsOverride)
+                ).not.toThrow();
             });
         });
 
@@ -650,7 +687,9 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 expect(result).toContain("<b>Distance:</b>");
                 // Distance should not contain nested <br> tags
-                const distancePart = result.split("<br>").find((part) => part.includes("<b>Distance:</b>"));
+                const distancePart = result
+                    .split("<br>")
+                    .find((part) => part.includes("<b>Distance:</b>"));
                 expect(distancePart).toBeDefined();
                 expect(distancePart?.split("<br>").length).toBe(1);
             });
@@ -667,7 +706,9 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 formatTooltipData(10, row, 1);
 
-                expect(mockGetState).toHaveBeenCalledWith("globalData.recordMesgs");
+                expect(mockGetState).toHaveBeenCalledWith(
+                    "globalData.recordMesgs"
+                );
             });
 
             it("should fallback to window.globalData if state manager fails", () => {
@@ -676,7 +717,9 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const originalWindow = global.window;
                 global.window = {
                     globalData: {
-                        recordMesgs: [{ timestamp: new Date("2023-01-01T10:00:00Z") }],
+                        recordMesgs: [
+                            { timestamp: new Date("2023-01-01T10:00:00Z") },
+                        ],
                     },
                 } as any;
 

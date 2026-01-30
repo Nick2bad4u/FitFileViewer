@@ -1,20 +1,34 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
-import { convertDistanceUnits, DISTANCE_UNITS } from "../converters/convertDistanceUnits.js";
-import { convertTemperatureUnits, TEMPERATURE_UNITS } from "../converters/convertTemperatureUnits.js";
+import {
+    convertDistanceUnits,
+    DISTANCE_UNITS,
+} from "../converters/convertDistanceUnits.js";
+import {
+    convertTemperatureUnits,
+    TEMPERATURE_UNITS,
+} from "../converters/convertTemperatureUnits.js";
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
 
 /**
  * Formats tooltip with units based on user preferences
+ *
  * @param {number} value - Raw value
  * @param {string} field - Field name
+ *
  * @returns {string} Formatted tooltip text
  */
 export function formatTooltipWithUnits(value, field) {
     // Distance fields - show both metric and imperial
-    if (field === "distance" || field === "altitude" || field === "enhancedAltitude") {
+    if (
+        field === "distance" ||
+        field === "altitude" ||
+        field === "enhancedAltitude"
+    ) {
         const distanceUnitsSetting = getChartSetting("distanceUnits");
-        const distanceUnits = Object.values(DISTANCE_UNITS).includes(distanceUnitsSetting)
+        const distanceUnits = Object.values(DISTANCE_UNITS).includes(
+            distanceUnitsSetting
+        )
             ? distanceUnitsSetting
             : DISTANCE_UNITS.KILOMETERS;
         const km = convertDistanceUnits(value, "kilometers");
@@ -29,7 +43,9 @@ export function formatTooltipWithUnits(value, field) {
     // Temperature fields - show both scales
     if (field === "temperature") {
         const temperatureUnitsSetting = getChartSetting("temperatureUnits");
-        const temperatureUnits = Object.values(TEMPERATURE_UNITS).includes(temperatureUnitsSetting)
+        const temperatureUnits = Object.values(TEMPERATURE_UNITS).includes(
+            temperatureUnitsSetting
+        )
             ? temperatureUnitsSetting
             : TEMPERATURE_UNITS.CELSIUS;
         const celsius = value; // Assuming input is Celsius

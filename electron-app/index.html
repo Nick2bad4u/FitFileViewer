@@ -1,20 +1,39 @@
 <!doctype electron>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
-        <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <meta charset="UTF-8">
+        <meta
+            content="width=device-width, initial-scale=1"
+            name="viewport"
+        >
         <meta
             content="default-src 'self' file:; script-src 'self' file: 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
             http-equiv="Content-Security-Policy"
-        />
+        >
         <meta
             content="Desktop application for viewing and analyzing FIT files from fitness devices with data visualization, mapping, and export capabilities"
             name="description"
-        />
+        >
         <meta
             content="FIT file viewer, fitness data, GPS tracks, cycling, running, sports analytics, data visualization"
             name="keywords"
-        />
+        >
+        <meta
+            content="Fit File Viewer"
+            property="og:title"
+        >
+        <meta
+            content="website"
+            property="og:type"
+        >
+        <meta
+            content="https://fitfileviewer.typpi.online/"
+            property="og:url"
+        >
+        <meta
+            content="icons/mascot-kitty.png"
+            property="og:image"
+        >
         <title>Fit File Viewer</title>
         <!-- App/Website Icons -->
         <link
@@ -22,33 +41,75 @@
             href="icons/favicon-96x96.png"
             rel="icon"
             sizes="96x96"
-        />
+        >
         <link
             type="image/svg+xml"
             href="icons/favicon.svg"
             rel="icon"
-        />
-        <link href="icons/favicon.ico" rel="shortcut icon" />
+        >
+        <link
+            href="icons/favicon.ico"
+            rel="shortcut icon"
+        >
         <link
             href="icons/apple-touch-icon.png"
             rel="apple-touch-icon"
             sizes="180x180"
-        />
-        <meta content="FitFileViewer" name="apple-mobile-web-app-title" />
-        <link href="icons/site.webmanifest" rel="manifest" />
+        >
+        <meta
+            content="FitFileViewer"
+            name="apple-mobile-web-app-title"
+        >
+        <link
+            href="icons/site.webmanifest"
+            rel="manifest"
+        >
         <!-- Load third-party libraries directly from node_modules -->
-        <link href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css" rel="stylesheet" />
-        <link href="node_modules/leaflet/dist/leaflet.css" rel="stylesheet" />
-        <link href="node_modules/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" />
-        <link href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css" rel="stylesheet" />
-        <link href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css" rel="stylesheet" />
-        <link href="node_modules/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
-        <link href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css" rel="stylesheet" />
-        <link href="node_modules/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" />
-        <link href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet" />
-        <link href="node_modules/leaflet-measure/dist/leaflet-measure.css" rel="stylesheet" />
+        <link
+            href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet/dist/leaflet.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet-draw/dist/leaflet.draw.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/maplibre-gl/dist/maplibre-gl.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet.markercluster/dist/MarkerCluster.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css"
+            rel="stylesheet"
+        >
+        <link
+            href="node_modules/leaflet-measure/dist/leaflet-measure.css"
+            rel="stylesheet"
+        >
         <!-- DOMPurify is loaded as a classic script (global DOMPurify) to avoid bare-module specifier issues under file:// in Electron. -->
-        <script defer src="node_modules/dompurify/dist/purify.min.js"></script>
+        <script
+            defer
+            src="node_modules/dompurify/dist/purify.min.js"
+        ></script>
 
         <!--
             Browser-run modules (loaded via <script type="module"> under file://) cannot resolve
@@ -64,10 +125,22 @@
                 }
             }
         </script>
-        <script defer src="node_modules/jquery/dist/jquery.min.js"></script>
-        <script defer src="node_modules/datatables.net/js/dataTables.min.js"></script>
-        <script defer src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js"></script>
-        <script defer src="node_modules/arquero/dist/arquero.min.js"></script>
+        <script
+            defer
+            src="node_modules/jquery/dist/jquery.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/datatables.net/js/dataTables.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/arquero/dist/arquero.min.js"
+        ></script>
         <script src="node_modules/chart.js/dist/chart.umd.js"></script>
         <script src="node_modules/date-fns/cdn.min.js"></script>
         <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
@@ -76,25 +149,74 @@
         <script src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
         <!-- JSZip for ZIP file creation -->
         <script src="node_modules/jszip/dist/jszip.min.js"></script>
-        <script defer src="node_modules/leaflet/dist/leaflet.js"></script>
-        <script defer src="node_modules/leaflet-draw/dist/leaflet.draw.js"></script>
-        <script defer src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
-        <script defer src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+        <script
+            defer
+            src="node_modules/leaflet/dist/leaflet.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/leaflet-draw/dist/leaflet.draw.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"
+        ></script>
         <!-- Use the UMD build to avoid ESM imports (works under file:// without a bundler). -->
-        <script defer src="node_modules/leaflet.fullscreen/dist/Control.FullScreen.umd.js"></script>
-        <script defer src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+        <script
+            defer
+            src="node_modules/leaflet.fullscreen/dist/Control.FullScreen.umd.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js"
+        ></script>
         <!-- CSP-safe Leaflet measurement control (replaces leaflet-measure which requires unsafe-eval) -->
-        <script defer src="vendor/leaflet-measure-lite.js"></script>
-        <script defer src="node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
-        <script defer src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js"></script>
-        <link href="style.css" rel="stylesheet" />
+        <script
+            defer
+            src="vendor/leaflet-measure-lite.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/maplibre-gl/dist/maplibre-gl.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js"
+        ></script>
+        <link
+            href="style.css"
+            rel="stylesheet"
+        >
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
-        <script type="module" defer src="utils.js"></script>
+        <script
+            type="module"
+            defer
+            src="utils.js"
+        ></script>
         <!-- Load screenfull before main-ui.js -->
-        <script type="module" src="vendor/screenfull-global.js"></script>
-        <script type="module" defer src="ui/modals/accentColorPicker.js"></script>
-        <script type="module" defer src="./utils/ui/initStartup.js"></script>
-        <script type="module" defer src="main-ui.js"></script>
+        <script
+            type="module"
+            src="vendor/screenfull-global.js"
+        ></script>
+        <script
+            type="module"
+            defer
+            src="ui/modals/accentColorPicker.js"
+        ></script>
+        <script
+            type="module"
+            defer
+            src="./utils/ui/initStartup.js"
+        ></script>
+        <script
+            type="module"
+            defer
+            src="main-ui.js"
+        ></script>
     </head>
 
     <body>
@@ -111,37 +233,65 @@
                             class="hero-mascot-image"
                             alt="FitFileViewer mascot Coach Kitty"
                             decoding="async"
+                            height="1024"
                             loading="eager"
                             src="icons/mascot-kitty.png"
-                        />
+                            width="1536"
+                        >
                     </figure>
-                    <div class="hero-floating-card hero-floating-card-left" aria-hidden="true">
+                    <div
+                        class="hero-floating-card hero-floating-card-left"
+                        aria-hidden="true"
+                    >
                         <span class="hero-floating-label">Heart Rate</span>
                         <span class="hero-floating-value">148 bpm avg</span>
                     </div>
-                    <div class="hero-floating-card hero-floating-card-right" aria-hidden="true">
+                    <div
+                        class="hero-floating-card hero-floating-card-right"
+                        aria-hidden="true"
+                    >
                         <span class="hero-floating-label">Climb</span>
                         <span class="hero-floating-value">912 ft gain</span>
                     </div>
-                    <span class="hero-constellation" aria-hidden="true"></span>
+                    <span
+                        class="hero-constellation"
+                        aria-hidden="true"
+                    ></span>
                 </div>
                 <div class="app-header-copy">
-                    <h1>Fit <span class="title-highlight">File</span> Viewer</h1>
+                    <h1
+                        >Fit
+                        <span class="title-highlight">File</span> Viewer</h1
+                    >
                 </div>
             </div>
-            <ul class="app-pill-group" aria-label="Key capabilities">
-                <li class="app-pill"><span class="pill-accent">Realtime</span> analytics</li>
-                <li class="app-pill"><span class="pill-accent">Interactive</span> maps</li>
-                <li class="app-pill"><span class="pill-accent">Offline</span> ready</li>
+            <ul
+                class="app-pill-group"
+                aria-label="Key capabilities"
+            >
+                <li class="app-pill"
+                    ><span class="pill-accent">Realtime</span> analytics</li
+                >
+                <li class="app-pill"
+                    ><span class="pill-accent">Interactive</span> maps</li
+                >
+                <li class="app-pill"
+                    ><span class="pill-accent">Offline</span> ready</li
+                >
             </ul>
         </header>
         <!-- Header Bar for File Open and Filename -->
         <div class="header-bar">
             <div class="header-brand">
-                <span class="header-brand-ambient" aria-hidden="true"></span>
+                <span
+                    class="header-brand-ambient"
+                    aria-hidden="true"
+                ></span>
                 <div class="brand-text">
                     <span class="brand-name">Fit File Viewer</span>
-                    <span class="brand-subtitle">Dashboards &amp; analytics</span>
+                    <span class="brand-subtitle"
+                        >Dashboards &amp; analytics</span
+                    >
                 </div>
             </div>
             <button
@@ -152,7 +302,10 @@
                 role="button"
                 tabindex="0"
             >
-                <span class="btn-icon" aria-hidden="true">
+                <span
+                    class="btn-icon"
+                    aria-hidden="true"
+                >
                     <svg
                         fill="none"
                         stroke="currentColor"
@@ -161,8 +314,12 @@
                         stroke-width="1.8"
                         viewBox="0 0 24 24"
                     >
-                        <path d="M4 7h5l2 2h9v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
-                        <path d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" />
+                        <path
+                            d="M4 7h5l2 2h9v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"
+                        />
+                        <path
+                            d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2"
+                        />
                     </svg>
                 </span>
                 <span class="btn-label">Open FIT File</span>
@@ -183,7 +340,10 @@
                     </svg>
                 </button>
             </div>
-            <div class="header-hint" role="note">
+            <div
+                class="header-hint"
+                role="note"
+            >
                 <svg
                     aria-hidden="true"
                     fill="none"
@@ -195,7 +355,9 @@
                     viewBox="0 0 24 36"
                 >
                     <path d="M16 16v-3m0 0-2 2m2-2 2 2" />
-                    <path d="M7 20a4 4 0 0 1 0-8 6 6 0 0 1 11.31-2.49A3.5 3.5 0 1 1 19 16" />
+                    <path
+                        d="M7 20a4 4 0 0 1 0-8 6 6 0 0 1 11.31-2.49A3.5 3.5 0 1 1 19 16"
+                    />
                 </svg>
                 <span>Drop a FIT file anywhere to open.</span>
             </div>
@@ -246,7 +408,9 @@
                     stroke-width="2"
                     viewBox="0 0 24 24"
                 >
-                    <path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                    <path
+                        d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z"
+                    />
                 </svg>
                 Browser
             </button>
@@ -331,7 +495,9 @@
                     stroke-width="2"
                     viewBox="0 0 24 24"
                 >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
                     <polyline points="14,2 14,8 20,8" />
                     <line
                         x1="16"
@@ -384,14 +550,32 @@
         </div>
         <!-- Card-like Container for Tab Content -->
         <div class="tab-card">
-            <div id="content-map" class="tab-content"></div>
-            <div id="content-browser" class="tab-content"></div>
-            <div id="content-data" class="tab-content"></div>
-            <div id="content-chartjs" class="tab-content">
+            <div
+                id="content-map"
+                class="tab-content"
+            ></div>
+            <div
+                id="content-browser"
+                class="tab-content"
+            ></div>
+            <div
+                id="content-data"
+                class="tab-content"
+            ></div>
+            <div
+                id="content-chartjs"
+                class="tab-content"
+            >
                 <div id="chartjs-chart-container"></div>
             </div>
-            <div id="content-summary" class="tab-content"></div>
-            <div id="content-altfit" class="tab-content">
+            <div
+                id="content-summary"
+                class="tab-content"
+            ></div>
+            <div
+                id="content-altfit"
+                class="tab-content"
+            >
                 <!--
                     NOTE:
                     The embedded FFV (Alternative View) loads local file:// module assets (Vite build output).
@@ -405,13 +589,18 @@
                     allow
                     allowfullscreen
                     aria-label="Alternative FIT Data View"
+                    height="720"
                     loading="eager"
                     name="altfit-iframe"
                     referrerpolicy="no-referrer"
                     title="Alternative FIT Data View"
+                    width="1280"
                 ></iframe>
             </div>
-            <div id="content-zwift" class="tab-content">
+            <div
+                id="content-zwift"
+                class="tab-content"
+            >
                 <!--
                     NOTE:
                     Do NOT sandbox this remote iframe.
@@ -425,11 +614,13 @@
                     allow
                     allowfullscreen
                     aria-label="ZwiftMap"
+                    height="720"
                     loading="lazy"
                     name="zwift-iframe"
                     referrerpolicy="no-referrer"
                     src="https://zwiftmap.com/"
                     title="ZwiftMap"
+                    width="1280"
                 ></iframe>
             </div>
         </div>
@@ -456,7 +647,7 @@
                             loading="eager"
                             src="data:image/png;base64,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"
                             width="14"
-                        />
+                        >
                     </a>
                 </span>
 
@@ -477,7 +668,7 @@
                             loading="eager"
                             src="data:image/png;base64,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"
                             width="14"
-                        />
+                        >
                     </a>
                 </span>
 
@@ -509,7 +700,8 @@
                         href="https://leafletjs.com/"
                         role="link"
                         tabindex="0"
-                    >Leaflet.js</a>🗺️
+                        >Leaflet.js</a
+                    >🗺️
                 </span>
 
                 <span class="credits-item">
@@ -518,7 +710,7 @@
                         href="https://vega.github.io/vega-lite/"
                         role="link"
                         tabindex="0"
-                    >Vega-Lite</a
+                        >Vega-Lite</a
                     >📊
                 </span>
 
@@ -528,7 +720,7 @@
                         href="https://github.com/vega/vega-embed"
                         role="link"
                         tabindex="0"
-                    >Vega-Embed</a
+                        >Vega-Embed</a
                     >📈
                 </span>
 
@@ -538,13 +730,17 @@
                         href="https://zwiftmap.com"
                         role="link"
                         tabindex="0"
-                    >ZwiftMap</a>🗺️
+                        >ZwiftMap</a
+                    >🗺️
                 </span>
             </footer>
         </div>
 
         <!-- Notification UI -->
-        <div id="notification" class="notification"></div>
+        <div
+            id="notification"
+            class="notification"
+        ></div>
         <!-- Loading Overlay -->
         <div id="loadingOverlay">
             <span>Loading...</span>
@@ -558,6 +754,10 @@
         <!-- Ensure utils.js and main-ui.js are loaded before renderer.js.
             If they are not loaded first, renderer.js will fail to execute properly
             because it relies on functions and variables defined in those scripts. -->
-        <script type="module" defer src="renderer.js"></script>
+        <script
+            type="module"
+            defer
+            src="renderer.js"
+        ></script>
     </body>
 </html>

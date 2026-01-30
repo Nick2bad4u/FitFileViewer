@@ -16,10 +16,15 @@ describe("logWithLevel.strict", () => {
         const cerr = vi.spyOn(console, "error").mockImplementation(() => {});
 
         logWithLevel("log", "hello");
-        expect(clog).toHaveBeenCalledWith(expect.stringContaining("[FFV] hello"));
+        expect(clog).toHaveBeenCalledWith(
+            expect.stringContaining("[FFV] hello")
+        );
 
         logWithLevel("info", "world", { a: 1 });
-        expect(cinfo).toHaveBeenCalledWith(expect.stringContaining("[FFV] world"), { a: 1 });
+        expect(cinfo).toHaveBeenCalledWith(
+            expect.stringContaining("[FFV] world"),
+            { a: 1 }
+        );
 
         logWithLevel("warn", "w", {}); // empty object -> no payload
         expect(cwarn).toHaveBeenCalledWith(expect.stringContaining("[FFV] w"));
@@ -34,13 +39,17 @@ describe("logWithLevel.strict", () => {
         const ctx = { a: 1 } as any;
         // Make Object.keys throw only for our specific context object
         const originalKeys = Object.keys;
-        const keysSpy = vi.spyOn(Object, "keys").mockImplementation(((obj: any) => {
+        const keysSpy = vi.spyOn(Object, "keys").mockImplementation(((
+            obj: any
+        ) => {
             if (obj === ctx) throw new Error("keys fail");
             return originalKeys(obj as any) as any;
         }) as any);
 
         logWithLevel("info", "boom", ctx);
-        expect(baseLog).toHaveBeenCalledWith("[FFV][logWithLevel] Logging failure");
+        expect(baseLog).toHaveBeenCalledWith(
+            "[FFV][logWithLevel] Logging failure"
+        );
 
         keysSpy.mockRestore();
     });

@@ -19,17 +19,25 @@ const CONSTANTS = {
  * Loads version information dynamically from electronAPI or fallback sources
  * Retrieves individual version components and updates the UI accordingly
  *
- * @returns {Promise<void>}
- *
  * @example
- * // Load version info on app startup
- * await loadVersionInfo();
+ *     // Load version info on app startup
+ *     await loadVersionInfo();
+ *
+ * @returns {Promise<void>}
  */
 export async function loadVersionInfo() {
     try {
         logWithContext("info", "Starting version information loading");
 
-        /** @type {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}} */
+        /** @type {{
+         *     version: string;
+         *     electron: string;
+         *     node: string;
+         *     chrome: string;
+         *     platform: string;
+         *     author: string;
+         *     license: string;
+         * }} */
         let systemInfo;
 
         if (validateElectronAPI()) {
@@ -52,8 +60,14 @@ export async function loadVersionInfo() {
         });
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to load version information", {
-            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
-            stack: error && typeof error === "object" && "stack" in error ? error.stack : undefined,
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? error.message
+                    : String(error),
+            stack:
+                error && typeof error === "object" && "stack" in error
+                    ? error.stack
+                    : undefined,
         });
 
         // Try to show fallback information even on error
@@ -64,7 +78,9 @@ export async function loadVersionInfo() {
         } catch (/** @type {any} */ fallbackError) {
             logWithContext("error", "Failed to apply fallback system info", {
                 error:
-                    fallbackError && typeof fallbackError === "object" && "message" in fallbackError
+                    fallbackError &&
+                    typeof fallbackError === "object" &&
+                    "message" in fallbackError
                         ? fallbackError.message
                         : String(fallbackError),
             });
@@ -73,12 +89,21 @@ export async function loadVersionInfo() {
 }
 
 /**
- * Get fallback system information from process (if available)
- * Note: In modern Electron with context isolation, process is typically not available
+ * Get fallback system information from process (if available) Note: In modern
+ * Electron with context isolation, process is typically not available
+ *
  * @returns {Object} System information object with fallback values
  */
 /**
- * @returns {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}}
+ * @returns {{
+ *     version: string;
+ *     electron: string;
+ *     node: string;
+ *     chrome: string;
+ *     platform: string;
+ *     author: string;
+ *     license: string;
+ * }}
  */
 function getFallbackSystemInfo() {
     logWithContext("warn", "Using fallback system information");
@@ -95,9 +120,12 @@ function getFallbackSystemInfo() {
 
     // Try to get versions from process if available (unlikely in sandboxed renderer)
     if (typeof process !== "undefined" && process.versions) {
-        systemInfo.electron = process.versions.electron || CONSTANTS.DEFAULT_VALUES.ELECTRON;
-        systemInfo.node = process.versions.node || CONSTANTS.DEFAULT_VALUES.NODE;
-        systemInfo.chrome = process.versions.chrome || CONSTANTS.DEFAULT_VALUES.CHROME;
+        systemInfo.electron =
+            process.versions.electron || CONSTANTS.DEFAULT_VALUES.ELECTRON;
+        systemInfo.node =
+            process.versions.node || CONSTANTS.DEFAULT_VALUES.NODE;
+        systemInfo.chrome =
+            process.versions.chrome || CONSTANTS.DEFAULT_VALUES.CHROME;
 
         if (process.platform && process.arch) {
             systemInfo.platform = `${process.platform} (${process.arch})`;
@@ -115,7 +143,17 @@ function getFallbackSystemInfo() {
 
 /**
  * Get individual version information from electronAPI
- * @returns {Promise<{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}>} System information object
+ *
+ * @returns {Promise<{
+ *     version: string;
+ *     electron: string;
+ *     node: string;
+ *     chrome: string;
+ *     platform: string;
+ *     author: string;
+ *     license: string;
+ * }>}
+ *   System information object
  */
 async function getSystemInfoFromElectronAPI() {
     const systemInfo = {
@@ -132,43 +170,63 @@ async function getSystemInfoFromElectronAPI() {
         // Get app version
         if (typeof globalThis.electronAPI.getAppVersion === "function") {
             systemInfo.version = await globalThis.electronAPI.getAppVersion();
-            logWithContext("info", "App version retrieved", { version: systemInfo.version });
+            logWithContext("info", "App version retrieved", {
+                version: systemInfo.version,
+            });
         }
 
         // Get Electron version
         if (typeof globalThis.electronAPI.getElectronVersion === "function") {
-            systemInfo.electron = await globalThis.electronAPI.getElectronVersion();
-            logWithContext("info", "Electron version retrieved", { electron: systemInfo.electron });
+            systemInfo.electron =
+                await globalThis.electronAPI.getElectronVersion();
+            logWithContext("info", "Electron version retrieved", {
+                electron: systemInfo.electron,
+            });
         }
 
         // Get Node.js version
         if (typeof globalThis.electronAPI.getNodeVersion === "function") {
             systemInfo.node = await globalThis.electronAPI.getNodeVersion();
-            logWithContext("info", "Node.js version retrieved", { node: systemInfo.node });
+            logWithContext("info", "Node.js version retrieved", {
+                node: systemInfo.node,
+            });
         }
 
         // Get Chrome version
         if (typeof globalThis.electronAPI.getChromeVersion === "function") {
             systemInfo.chrome = await globalThis.electronAPI.getChromeVersion();
-            logWithContext("info", "Chrome version retrieved", { chrome: systemInfo.chrome });
+            logWithContext("info", "Chrome version retrieved", {
+                chrome: systemInfo.chrome,
+            });
         }
 
         // Get platform information
         if (typeof globalThis.electronAPI.getPlatformInfo === "function") {
             const platformInfo = await globalThis.electronAPI.getPlatformInfo();
             systemInfo.platform = `${platformInfo.platform} (${platformInfo.arch})`;
-            logWithContext("info", "Platform info retrieved", { platform: systemInfo.platform });
+            logWithContext("info", "Platform info retrieved", {
+                platform: systemInfo.platform,
+            });
         }
 
         // Get license information
         if (typeof globalThis.electronAPI.getLicenseInfo === "function") {
             systemInfo.license = await globalThis.electronAPI.getLicenseInfo();
-            logWithContext("info", "License info retrieved", { license: systemInfo.license });
+            logWithContext("info", "License info retrieved", {
+                license: systemInfo.license,
+            });
         }
     } catch (/** @type {any} */ error) {
-        logWithContext("error", "Failed to retrieve system information from electronAPI", {
-            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
-        });
+        logWithContext(
+            "error",
+            "Failed to retrieve system information from electronAPI",
+            {
+                error:
+                    error && typeof error === "object" && "message" in error
+                        ? error.message
+                        : String(error),
+            }
+        );
     }
 
     return systemInfo;
@@ -176,7 +234,8 @@ async function getSystemInfoFromElectronAPI() {
 
 /**
  * Scoped logging wrapper
- * @param {'log'|'info'|'warn'|'error'} level
+ *
+ * @param {"log" | "info" | "warn" | "error"} level
  * @param {string} message
  * @param {Record<string, any>} [context]
  */
@@ -187,12 +246,17 @@ function logWithContext(level, message, context) {
 
 /**
  * Update the version number display in the UI
+ *
  * @param {string} version - Application version
  */
 function updateVersionDisplay(version) {
     try {
         const versionNumber = document.querySelector("#version-number");
-        if (versionNumber && version && version !== CONSTANTS.DEFAULT_VALUES.VERSION) {
+        if (
+            versionNumber &&
+            version &&
+            version !== CONSTANTS.DEFAULT_VALUES.VERSION
+        ) {
             versionNumber.textContent = version;
             logWithContext("info", "Version display updated", { version });
         } else if (!versionNumber) {
@@ -200,7 +264,10 @@ function updateVersionDisplay(version) {
         }
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to update version display", {
-            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? error.message
+                    : String(error),
             version,
         });
     }
@@ -208,10 +275,12 @@ function updateVersionDisplay(version) {
 
 /**
  * Validate electronAPI availability
+ *
  * @returns {boolean} True if electronAPI is available
  */
 function validateElectronAPI() {
-    const hasAPI = globalThis.electronAPI && typeof globalThis.electronAPI === "object";
+    const hasAPI =
+        globalThis.electronAPI && typeof globalThis.electronAPI === "object";
     if (!hasAPI) {
         logWithContext("warn", "electronAPI not available");
     }

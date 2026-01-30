@@ -14,13 +14,16 @@ vi.mock("../../../utils/formatting/converters/convertDistanceUnits.js", () => ({
     convertDistanceUnits: vi.fn(),
 }));
 
-vi.mock("../../../utils/formatting/converters/convertTemperatureUnits.js", () => ({
-    TEMPERATURE_UNITS: {
-        CELSIUS: "celsius",
-        FAHRENHEIT: "fahrenheit",
-    },
-    convertTemperatureUnits: vi.fn(),
-}));
+vi.mock(
+    "../../../utils/formatting/converters/convertTemperatureUnits.js",
+    () => ({
+        TEMPERATURE_UNITS: {
+            CELSIUS: "celsius",
+            FAHRENHEIT: "fahrenheit",
+        },
+        convertTemperatureUnits: vi.fn(),
+    })
+);
 
 vi.mock("../../../utils/state/domain/settingsStateManager.js", () => ({
     getChartSetting: vi.fn(),
@@ -74,7 +77,10 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         });
 
         it("should warn for undefined value and return unchanged", () => {
-            const result = convertValueToUserUnits(undefined as any, "distance");
+            const result = convertValueToUserUnits(
+                undefined as any,
+                "distance"
+            );
             expect(result).toBeUndefined();
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[convertValueToUserUnits] Invalid value for field 'distance':",
@@ -122,25 +128,37 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         it("should warn for empty string field and return value unchanged", () => {
             const result = convertValueToUserUnits(1000, "");
             expect(result).toBe(1000);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", "");
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertValueToUserUnits] Invalid field name:",
+                ""
+            );
         });
 
         it("should warn for whitespace-only field and return value unchanged", () => {
             const result = convertValueToUserUnits(1000, "   ");
             expect(result).toBe(1000);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", "   ");
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertValueToUserUnits] Invalid field name:",
+                "   "
+            );
         });
 
         it("should warn for null field and return value unchanged", () => {
             const result = convertValueToUserUnits(1000, null as any);
             expect(result).toBe(1000);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", null);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertValueToUserUnits] Invalid field name:",
+                null
+            );
         });
 
         it("should warn for undefined field and return value unchanged", () => {
             const result = convertValueToUserUnits(1000, undefined as any);
             expect(result).toBe(1000);
-            expect(mockConsole.warn).toHaveBeenCalledWith("[convertValueToUserUnits] Invalid field name:", undefined);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertValueToUserUnits] Invalid field name:",
+                undefined
+            );
         });
     });
 
@@ -218,10 +236,12 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
     describe("Temperature Field Conversions", () => {
         beforeEach(() => {
             // Reset temperature converter mock
-            (convertTemperatureUnits as any).mockImplementation((value, unit) => {
-                if (unit === "fahrenheit") return (value * 9) / 5 + 32;
-                return value;
-            });
+            (convertTemperatureUnits as any).mockImplementation(
+                (value, unit) => {
+                    if (unit === "fahrenheit") return (value * 9) / 5 + 32;
+                    return value;
+                }
+            );
         });
 
         it("should convert temperature field with user preference from settings", () => {
@@ -229,7 +249,9 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
             const result = convertValueToUserUnits(25, "temperature");
 
-            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith(
+                "temperatureUnits"
+            );
             expect(result).toBe(77); // 25°C = 77°F
         });
 
@@ -238,7 +260,9 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
             const result = convertValueToUserUnits(25, "temperature");
 
-            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith(
+                "temperatureUnits"
+            );
             expect(result).toBe(25); // Default celsius
         });
 
@@ -403,7 +427,9 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         it("should be consistent across multiple calls", () => {
             mockGetChartSetting.mockReturnValue("kilometers");
 
-            const results = Array.from({ length: 100 }, () => convertValueToUserUnits(1000, "distance"));
+            const results = Array.from({ length: 100 }, () =>
+                convertValueToUserUnits(1000, "distance")
+            );
 
             expect(results.every((result) => result === 1)).toBe(true);
         });
@@ -411,10 +437,26 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         it("should handle rapid successive conversions", () => {
             mockGetChartSetting.mockReturnValue("fahrenheit");
 
-            const testValues = [0, 10, 20, 30, 40, 50];
-            const expectedValues = [32, 50, 68, 86, 104, 122];
+            const testValues = [
+                0,
+                10,
+                20,
+                30,
+                40,
+                50,
+            ];
+            const expectedValues = [
+                32,
+                50,
+                68,
+                86,
+                104,
+                122,
+            ];
 
-            const results = testValues.map((temp) => convertValueToUserUnits(temp, "temperature"));
+            const results = testValues.map((temp) =>
+                convertValueToUserUnits(temp, "temperature")
+            );
 
             results.forEach((result, index) => {
                 expect(result).toBe(expectedValues[index]);
@@ -519,7 +561,9 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             vi.clearAllMocks();
 
             convertValueToUserUnits(25, "temperature");
-            expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
+            expect(mockGetChartSetting).toHaveBeenCalledWith(
+                "temperatureUnits"
+            );
         });
 
         it("should handle missing settings gracefully", () => {
@@ -548,9 +592,15 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         it("should handle edge case numeric values correctly", () => {
             mockGetChartSetting.mockReturnValue("kilometers");
 
-            expect(convertValueToUserUnits(Number.MAX_VALUE, "distance")).toBeDefined();
-            expect(convertValueToUserUnits(Number.MIN_VALUE, "distance")).toBeDefined();
-            expect(convertValueToUserUnits(Number.EPSILON, "distance")).toBeDefined();
+            expect(
+                convertValueToUserUnits(Number.MAX_VALUE, "distance")
+            ).toBeDefined();
+            expect(
+                convertValueToUserUnits(Number.MIN_VALUE, "distance")
+            ).toBeDefined();
+            expect(
+                convertValueToUserUnits(Number.EPSILON, "distance")
+            ).toBeDefined();
         });
 
         it("should validate field names case-sensitively", () => {

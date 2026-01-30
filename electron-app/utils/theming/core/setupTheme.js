@@ -1,9 +1,13 @@
 /**
- * Theme setup utility for FitFileViewer
- * Provides consistent theme initialization and change handling with state management integration
+ * Theme setup utility for FitFileViewer Provides consistent theme
+ * initialization and change handling with state management integration
  */
 
-import { getState, setState, subscribe } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../state/core/stateManager.js";
 
 // Constants for better maintainability
 const THEME_CONSTANTS = {
@@ -13,39 +17,53 @@ const THEME_CONSTANTS = {
     STORAGE_KEY: "ffv-theme",
     // Legacy key used by older state-manager implementations.
     LEGACY_STORAGE_KEY: "fitFileViewer_theme",
-    SUPPORTED_THEMES: ["light", "dark", "auto"],
+    SUPPORTED_THEMES: [
+        "light",
+        "dark",
+        "auto",
+    ],
     TIMEOUT: {
         THEME_FETCH: 5000, // 5 seconds timeout for theme fetch
     },
 };
 
 /**
- * Initializes the application theme by retrieving the current theme from the main process,
- * applying it, and setting up listeners for theme changes with state management integration.
+ * Initializes the application theme by retrieving the current theme from the
+ * main process, applying it, and setting up listeners for theme changes with
+ * state management integration.
  *
- * @param {Function} applyTheme - Function to apply the selected theme (e.g., "dark" or "light")
- * @param {Function} [listenForThemeChange] - Optional function to register a callback for theme changes
- * @param {Object} [options={}] - Configuration options
- * @param {string} [options.fallbackTheme] - Theme to use if main process is unavailable
- * @param {boolean} [options.useLocalStorage=true] - Whether to use localStorage for persistence
+ * @example
+ *     // Basic theme setup
+ *     await setupTheme((theme) => {
+ *         document.documentElement.setAttribute("data-theme", theme);
+ *     });
+ *
+ * @example
+ *     // Theme setup with change listener
+ *     await setupTheme(
+ *         (theme) => applyThemeToUI(theme),
+ *         (callback) => window.electronAPI.onThemeChange(callback)
+ *     );
+ *
+ * @param {Function} applyTheme - Function to apply the selected theme (e.g.,
+ *   "dark" or "light")
+ * @param {Function} [listenForThemeChange] - Optional function to register a
+ *   callback for theme changes
+ * @param {Object} [options={}] - Configuration options. Default is `{}`
+ * @param {string} [options.fallbackTheme] - Theme to use if main process is
+ *   unavailable
+ * @param {boolean} [options.useLocalStorage=true] - Whether to use localStorage
+ *   for persistence. Default is `true`
+ *
  * @returns {Promise<string>} Resolves with the applied theme name
- *
- * @example
- * // Basic theme setup
- * await setupTheme((theme) => {
- *   document.documentElement.setAttribute('data-theme', theme);
- * });
- *
- * @example
- * // Theme setup with change listener
- * await setupTheme(
- *   (theme) => applyThemeToUI(theme),
- *   (callback) => window.electronAPI.onThemeChange(callback)
- * );
  *
  * @public
  */
-export async function setupTheme(applyTheme, listenForThemeChange, options = {}) {
+export async function setupTheme(
+    applyTheme,
+    listenForThemeChange,
+    options = {}
+) {
     const config = {
         fallbackTheme: THEME_CONSTANTS.DEFAULT_THEME,
         useLocalStorage: true,
@@ -69,24 +87,35 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         // Fallback to localStorage if main process fails
         if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
             try {
-                const storedTheme = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
+                const storedTheme = localStorage.getItem(
+                    THEME_CONSTANTS.STORAGE_KEY
+                );
                 const normalizedStored = normalizeThemeValue(storedTheme);
                 if (normalizedStored) {
                     theme = normalizedStored;
                     logWithContext(`Using stored theme: ${theme}`);
                 } else {
                     // Legacy migration: fitFileViewer_theme -> ffv-theme
-                    const legacyTheme = localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+                    const legacyTheme = localStorage.getItem(
+                        THEME_CONSTANTS.LEGACY_STORAGE_KEY
+                    );
                     const normalizedLegacy = normalizeThemeValue(legacyTheme);
                     if (normalizedLegacy) {
                         theme = normalizedLegacy;
                         try {
-                            localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, normalizedLegacy);
-                            localStorage.removeItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+                            localStorage.setItem(
+                                THEME_CONSTANTS.STORAGE_KEY,
+                                normalizedLegacy
+                            );
+                            localStorage.removeItem(
+                                THEME_CONSTANTS.LEGACY_STORAGE_KEY
+                            );
                         } catch {
                             /* ignore */
                         }
-                        logWithContext(`Migrated legacy stored theme: ${theme}`);
+                        logWithContext(
+                            `Migrated legacy stored theme: ${theme}`
+                        );
                     }
                 }
             } catch (storageError) {
@@ -111,16 +140,23 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
             setupThemeChangeListener(applyTheme, listenForThemeChange);
         }
 
-        logWithContext(`Theme setup completed successfully with theme: ${theme}`);
+        logWithContext(
+            `Theme setup completed successfully with theme: ${theme}`
+        );
         return theme;
     } catch (error) {
-        logWithContext(`Error during theme setup: ${/** @type {Error} */ (error).message}`, "error");
+        logWithContext(
+            `Error during theme setup: ${/** @type {Error} */ (error).message}`,
+            "error"
+        );
 
         // Emergency fallback
         const emergencyTheme = THEME_CONSTANTS.DEFAULT_THEME;
         try {
             applyTheme(emergencyTheme);
-            setState("ui.theme", emergencyTheme, { source: "setupTheme-emergency" });
+            setState("ui.theme", emergencyTheme, {
+                source: "setupTheme-emergency",
+            });
         } catch (emergencyError) {
             logWithContext(
                 `Emergency theme application failed: ${/** @type {Error} */ (emergencyError).message}`,
@@ -134,9 +170,11 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
 
 /**
  * Applies a theme and updates the application state
+ *
+ * @private
+ *
  * @param {string} theme - Theme name to apply
  * @param {Function} applyTheme - Function to apply the theme
- * @private
  */
 function applyAndTrackTheme(theme, applyTheme) {
     try {
@@ -165,7 +203,10 @@ function applyAndTrackTheme(theme, applyTheme) {
         try {
             localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
             // Clean up legacy key if present (best effort)
-            if (localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY) !== null) {
+            if (
+                localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY) !==
+                null
+            ) {
                 localStorage.removeItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
             }
         } catch (storageError) {
@@ -175,20 +216,28 @@ function applyAndTrackTheme(theme, applyTheme) {
             );
         }
     } catch (error) {
-        logWithContext(`Error applying theme: ${/** @type {Error} */ (error).message}`, "error");
+        logWithContext(
+            `Error applying theme: ${/** @type {Error} */ (error).message}`,
+            "error"
+        );
     }
 }
 
 /**
  * Fetches the current theme from the main process with timeout
- * @returns {Promise<string>} The current theme or default theme
+ *
  * @private
+ *
+ * @returns {Promise<string>} The current theme or default theme
  */
 async function fetchThemeFromMainProcess() {
     const { DEFAULT_THEME, TIMEOUT } = THEME_CONSTANTS;
 
     if (!globalThis.electronAPI?.getTheme) {
-        logWithContext("ElectronAPI getTheme not available, using default theme", "warn");
+        logWithContext(
+            "ElectronAPI getTheme not available, using default theme",
+            "warn"
+        );
         return DEFAULT_THEME;
     }
 
@@ -196,12 +245,18 @@ async function fetchThemeFromMainProcess() {
         // Add timeout to prevent hanging
         const themePromise = globalThis.electronAPI.getTheme(),
             timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error("Theme fetch timeout")), TIMEOUT.THEME_FETCH);
+                setTimeout(
+                    () => reject(new Error("Theme fetch timeout")),
+                    TIMEOUT.THEME_FETCH
+                );
             }),
             theme = await Promise.race([themePromise, timeoutPromise]);
 
         if (!isValidTheme(theme)) {
-            logWithContext(`Invalid theme received: ${theme}, using default`, "warn");
+            logWithContext(
+                `Invalid theme received: ${theme}, using default`,
+                "warn"
+            );
             return DEFAULT_THEME;
         }
 
@@ -218,9 +273,12 @@ async function fetchThemeFromMainProcess() {
 
 /**
  * Validates if a theme name is supported
- * @param {string} theme - Theme name to validate
- * @returns {boolean} True if theme is supported
+ *
  * @private
+ *
+ * @param {string} theme - Theme name to validate
+ *
+ * @returns {boolean} True if theme is supported
  */
 function isValidTheme(theme) {
     return normalizeThemeValue(theme) !== null;
@@ -228,9 +286,11 @@ function isValidTheme(theme) {
 
 /**
  * Logs messages with context for theme operations
+ *
+ * @private
+ *
  * @param {string} message - The message to log
  * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
  */
 function logWithContext(message, level = "info") {
     try {
@@ -255,8 +315,10 @@ function logWithContext(message, level = "info") {
 
 /**
  * Normalize theme values to the canonical set.
+ *
  * @param {unknown} theme
- * @returns {string|null} "light" | "dark" | "auto" when valid, otherwise null
+ *
+ * @returns {string | null} Light | "dark" | "auto" when valid, otherwise null
  */
 function normalizeThemeValue(theme) {
     if (typeof theme !== "string") {
@@ -270,16 +332,19 @@ function normalizeThemeValue(theme) {
 
 /**
  * Sets up theme change listener with state integration
- * @param {Function} applyTheme - Function to apply theme changes
- * @param {Function} listenForThemeChange - Function to register theme change listener
+ *
  * @private
+ *
+ * @param {Function} applyTheme - Function to apply theme changes
+ * @param {Function} listenForThemeChange - Function to register theme change
+ *   listener
  */
 function setupThemeChangeListener(applyTheme, listenForThemeChange) {
     try {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
             listenForThemeChange(
-                /** @param {*} newTheme */ (newTheme) => {
+                /** @param {any} newTheme */ (newTheme) => {
                     logWithContext(`Theme change received: ${newTheme}`);
                     applyAndTrackTheme(newTheme, applyTheme);
                 }
@@ -289,10 +354,12 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
         // Set up state-based theme change listener
         subscribe(
             "ui.theme",
-            /** @param {*} newTheme */ (newTheme) => {
+            /** @param {any} newTheme */ (newTheme) => {
                 if (newTheme && newTheme !== getState("ui.previousTheme")) {
                     logWithContext(`State-driven theme change: ${newTheme}`);
-                    setState("ui.previousTheme", newTheme, { source: "setupTheme" });
+                    setState("ui.previousTheme", newTheme, {
+                        source: "setupTheme",
+                    });
 
                     if (typeof applyTheme === "function") {
                         applyTheme(newTheme);
@@ -303,6 +370,9 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
 
         logWithContext("Theme change listeners registered");
     } catch (error) {
-        logWithContext(`Error setting up theme change listener: ${/** @type {Error} */ (error).message}`, "error");
+        logWithContext(
+            `Error setting up theme change listener: ${/** @type {Error} */ (error).message}`,
+            "error"
+        );
     }
 }

@@ -1,5 +1,6 @@
 /**
  * Fullscreen overlay removal configuration
+ *
  * @readonly
  */
 const OVERLAY_CONFIG = {
@@ -11,8 +12,9 @@ const OVERLAY_CONFIG = {
         },
     },
     /**
-     * Cache for storing overlay references to improve performance
-     * Uses WeakMap for automatic garbage collection when containers are removed
+     * Cache for storing overlay references to improve performance Uses WeakMap
+     * for automatic garbage collection when containers are removed
+     *
      * @private
      */
     overlayCache = new WeakMap();
@@ -20,14 +22,18 @@ const OVERLAY_CONFIG = {
 /**
  * Removes the exit fullscreen overlay button from the specified container
  *
- * Uses caching for improved performance and supports both modern and legacy removal methods.
- * Automatically cleans up cache entries when overlays are removed.
+ * Uses caching for improved performance and supports both modern and legacy
+ * removal methods. Automatically cleans up cache entries when overlays are
+ * removed.
  *
- * @param {HTMLElement} container - The DOM element from which to remove the overlay button
- * @throws {TypeError} If container is not a valid DOM element
  * @example
- * // Remove exit fullscreen overlay from a chart container
- * removeExitFullscreenOverlay(document.getElementById('chart-container'));
+ *     // Remove exit fullscreen overlay from a chart container
+ *     removeExitFullscreenOverlay(document.getElementById("chart-container"));
+ *
+ * @param {HTMLElement} container - The DOM element from which to remove the
+ *   overlay button
+ *
+ * @throws {TypeError} If container is not a valid DOM element
  */
 export function removeExitFullscreenOverlay(container) {
     // Input validation
@@ -42,19 +48,27 @@ export function removeExitFullscreenOverlay(container) {
             removeOverlayElement(overlay);
             overlayCache.delete(container);
         } else {
-            console.debug(`[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.OVERLAY_NOT_FOUND}`);
+            console.debug(
+                `[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.OVERLAY_NOT_FOUND}`
+            );
         }
     } catch (error) {
-        console.error(`[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.REMOVAL_FAILED}`, error);
+        console.error(
+            `[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.REMOVAL_FAILED}`,
+            error
+        );
         throw error;
     }
 }
 
 /**
  * Finds the overlay element in the container using cache optimization
- * @param {HTMLElement} container - The container to search in
- * @returns {HTMLElement|null} The overlay element or null if not found
+ *
  * @private
+ *
+ * @param {HTMLElement} container - The container to search in
+ *
+ * @returns {HTMLElement | null} The overlay element or null if not found
  */
 function findOverlay(container) {
     // Check cache first for performance
@@ -74,8 +88,10 @@ function findOverlay(container) {
 
 /**
  * Removes the overlay element using the appropriate method
- * @param {HTMLElement} overlay - The overlay element to remove
+ *
  * @private
+ *
+ * @param {HTMLElement} overlay - The overlay element to remove
  */
 function removeOverlayElement(overlay) {
     // Use modern remove() method if available
@@ -85,6 +101,8 @@ function removeOverlayElement(overlay) {
         // Fallback to legacy removeChild for older browsers
         overlay.remove();
     } else {
-        throw new Error("Unable to remove overlay: no removal method available");
+        throw new Error(
+            "Unable to remove overlay: no removal method available"
+        );
     }
 }

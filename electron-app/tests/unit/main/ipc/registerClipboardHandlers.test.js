@@ -14,7 +14,12 @@ describe("registerClipboardHandlers", () => {
     /** @type {ReturnType<typeof vi.fn>} */
     let mockLogWithContext;
 
-    /** @type {{ writeText: ReturnType<typeof vi.fn>, writeImage: ReturnType<typeof vi.fn> }} */
+    /**
+     * @type {{
+     *     writeText: ReturnType<typeof vi.fn>;
+     *     writeImage: ReturnType<typeof vi.fn>;
+     * }}
+     */
     let mockClipboard;
     /** @type {{ createFromDataURL: ReturnType<typeof vi.fn> }} */
     let mockNativeImage;
@@ -47,8 +52,14 @@ describe("registerClipboardHandlers", () => {
         });
 
         expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(2);
-        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("clipboard:writeText", expect.any(Function));
-        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("clipboard:writePngDataUrl", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
+            "clipboard:writeText",
+            expect.any(Function)
+        );
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
+            "clipboard:writePngDataUrl",
+            expect.any(Function)
+        );
     });
 
     it("does nothing when registerIpcHandle is not a function", () => {
@@ -71,7 +82,9 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find((c) => c[0] === "clipboard:writeText")[1];
+        const handler = mockRegisterIpcHandle.mock.calls.find(
+            (c) => c[0] === "clipboard:writeText"
+        )[1];
         const ok = await handler({}, "hello");
 
         expect(ok).toBe(true);
@@ -88,7 +101,9 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find((c) => c[0] === "clipboard:writeText")[1];
+        const handler = mockRegisterIpcHandle.mock.calls.find(
+            (c) => c[0] === "clipboard:writeText"
+        )[1];
         const ok = await handler({}, "hello");
 
         expect(ok).toBe(false);
@@ -103,13 +118,21 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find((c) => c[0] === "clipboard:writePngDataUrl")[1];
-        const pngDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
+        const handler = mockRegisterIpcHandle.mock.calls.find(
+            (c) => c[0] === "clipboard:writePngDataUrl"
+        )[1];
+        const pngDataUrl =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
         const ok = await handler({}, pngDataUrl);
 
         expect(ok).toBe(true);
-        expect(mockNativeImage.createFromDataURL).toHaveBeenCalledWith(pngDataUrl);
-        expect(mockClipboard.writeImage).toHaveBeenCalledWith({ __img: true, url: pngDataUrl });
+        expect(mockNativeImage.createFromDataURL).toHaveBeenCalledWith(
+            pngDataUrl
+        );
+        expect(mockClipboard.writeImage).toHaveBeenCalledWith({
+            __img: true,
+            url: pngDataUrl,
+        });
     });
 
     it("clipboard:writePngDataUrl returns false for non-png data URLs", async () => {
@@ -120,7 +143,9 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find((c) => c[0] === "clipboard:writePngDataUrl")[1];
+        const handler = mockRegisterIpcHandle.mock.calls.find(
+            (c) => c[0] === "clipboard:writePngDataUrl"
+        )[1];
         const ok = await handler({}, "data:image/jpeg;base64,abc");
 
         expect(ok).toBe(false);

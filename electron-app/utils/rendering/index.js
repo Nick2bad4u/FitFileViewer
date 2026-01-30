@@ -1,6 +1,7 @@
 /**
- * @fileoverview Main Category Barrel Export for rendering
- * @description Re-exports all subcategories in the rendering category
+ * Re-exports all subcategories in the rendering category
+ *
+ * @file Main Category Barrel Export for rendering
  */
 import * as renderingComponents from "./components/index.js";
 import * as renderingCore from "./core/index.js";

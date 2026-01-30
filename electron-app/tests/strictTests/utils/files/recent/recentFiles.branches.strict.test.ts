@@ -29,18 +29,27 @@ describe("recentFiles.js branch coverage (strict)", () => {
         try {
             const eid = require.resolve("electron");
             delete require.cache[eid];
-            require.cache[eid] = { id: eid, filename: eid, loaded: true, exports: {} } as any;
+            require.cache[eid] = {
+                id: eid,
+                filename: eid,
+                loaded: true,
+                exports: {},
+            } as any;
         } catch {}
 
         let exitHandler: any;
-        const procOn = vi.spyOn(process as any, "on" as any).mockImplementation(((event: any, handler: any) => {
-            if (event === "exit") exitHandler = handler;
-            // @ts-ignore
-            return process;
-        }) as any);
+        const procOn = vi
+            .spyOn(process as any, "on" as any)
+            .mockImplementation(((event: any, handler: any) => {
+                if (event === "exit") exitHandler = handler;
+                // @ts-ignore
+                return process;
+            }) as any);
 
         const rf = requireFresh();
-        const writeSpy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
+        const writeSpy = vi
+            .spyOn(cfs, "writeFileSync")
+            .mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
         const savedPath = String((writeSpy as any).mock.calls[0][0]);
 

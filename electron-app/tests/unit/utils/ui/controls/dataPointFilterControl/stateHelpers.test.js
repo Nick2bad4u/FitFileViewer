@@ -64,10 +64,17 @@ describe("stateHelpers", () => {
 
     it("computeRangeState returns normalized stats and slider strings for available data", () => {
         globalThis.globalData = {
-            recordMesgs: [{ speed: 10 }, { speed: 30.25 }, { speed: 25.5 }],
+            recordMesgs: [
+                { speed: 10 },
+                { speed: 30.25 },
+                { speed: 25.5 },
+            ],
         };
 
-        const { stats, rangeValues, sliderValues } = computeRangeState("speed", null);
+        const { stats, rangeValues, sliderValues } = computeRangeState(
+            "speed",
+            null
+        );
         expect(stats).toBeTruthy();
         expect(stats.metric).toBe("speed");
         expect(stats.min).toBeCloseTo(10);
@@ -82,7 +89,11 @@ describe("stateHelpers", () => {
     it("computeRangeState handles empty datasets gracefully", () => {
         const spy = vi.spyOn(console, "error").mockImplementation(() => {});
         const result = computeRangeState("speed", null);
-        expect(result).toEqual({ stats: null, rangeValues: null, sliderValues: null });
+        expect(result).toEqual({
+            stats: null,
+            rangeValues: null,
+            sliderValues: null,
+        });
         expect(spy).not.toHaveBeenCalled();
     });
 
@@ -99,7 +110,9 @@ describe("stateHelpers", () => {
             maximumFractionDigits: 2,
             minimumFractionDigits: 2,
         });
-        expect(formatMetricValue(123.456, stats)).toBe(formatter.format(123.456));
+        expect(formatMetricValue(123.456, stats)).toBe(
+            formatter.format(123.456)
+        );
     });
 
     it("formatPercent outputs a single decimal by default", () => {
@@ -111,7 +124,12 @@ describe("stateHelpers", () => {
     });
 
     it("updateGlobalFilter persists state on the window", () => {
-        const config = { enabled: true, metric: "speed", mode: "topPercent", percent: 10 };
+        const config = {
+            enabled: true,
+            metric: "speed",
+            mode: "topPercent",
+            percent: 10,
+        };
         updateGlobalFilter(config);
         expect(globalThis.mapDataPointFilter).toEqual(config);
     });

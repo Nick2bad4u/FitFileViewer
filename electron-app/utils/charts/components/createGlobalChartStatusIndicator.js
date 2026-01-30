@@ -1,13 +1,15 @@
 /**
- * Global Chart Status Indicator
- * Creates a persistent status indicator for chart visibility and availability
+ * Global Chart Status Indicator Creates a persistent status indicator for chart
+ * visibility and availability
  */
 
 import { getChartCounts } from "../core/getChartCounts.js";
 
 /**
- * @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts
+ * @typedef {import("../core/getChartCounts.js").ChartCounts} ChartCounts
+ *
  * @typedef {Object} ChartStatus
+ *
  * @property {boolean} isAllVisible
  * @property {boolean} hasHiddenCharts
  * @property {boolean} hasNoCharts
@@ -53,35 +55,44 @@ const CONSTANTS = {
 };
 
 /**
- * Creates a persistent global chart status indicator that's always visible
- * at the top of the chart tab, regardless of settings panel visibility
+ * Creates a persistent global chart status indicator that's always visible at
+ * the top of the chart tab, regardless of settings panel visibility
  *
- * Provides visual feedback about chart availability and visibility status,
- * with quick access to settings for enabling hidden charts.
- *
- * @returns {HTMLElement|null} The created indicator element or null on failure
+ * Provides visual feedback about chart availability and visibility status, with
+ * quick access to settings for enabling hidden charts.
  *
  * @example
- * // Create or update the global chart status indicator
- * const indicator = createGlobalChartStatusIndicator();
- * if (indicator) {
- *     console.log("Chart status indicator created successfully");
- * }
+ *     // Create or update the global chart status indicator
+ *     const indicator = createGlobalChartStatusIndicator();
+ *     if (indicator) {
+ *         console.log("Chart status indicator created successfully");
+ *     }
+ *
+ * @returns {HTMLElement | null} The created indicator element or null on
+ *   failure
  */
 export function createGlobalChartStatusIndicator() {
     try {
         logWithContext("info", "Creating global chart status indicator");
 
-        const chartTabContent = getElementSafely(CONSTANTS.IDS.CHART_TAB_CONTENT, "Chart tab content");
+        const chartTabContent = getElementSafely(
+            CONSTANTS.IDS.CHART_TAB_CONTENT,
+            "Chart tab content"
+        );
 
         if (!chartTabContent) {
             return null;
         }
 
         // Check if global indicator already exists
-        let globalIndicator = document.getElementById(CONSTANTS.IDS.GLOBAL_CHART_STATUS);
+        let globalIndicator = document.getElementById(
+            CONSTANTS.IDS.GLOBAL_CHART_STATUS
+        );
         if (globalIndicator) {
-            logWithContext("info", "Global chart status indicator already exists");
+            logWithContext(
+                "info",
+                "Global chart status indicator already exists"
+            );
             return globalIndicator;
         }
 
@@ -123,27 +134,38 @@ export function createGlobalChartStatusIndicator() {
         // Insert into DOM
         insertIndicatorIntoDOM(globalIndicator, chartTabContent);
 
-        logWithContext("info", "Global chart status indicator created successfully", {
-            available: status.counts.available,
-            visible: status.counts.visible,
-        });
+        logWithContext(
+            "info",
+            "Global chart status indicator created successfully",
+            {
+                available: status.counts.available,
+                visible: status.counts.visible,
+            }
+        );
 
         return globalIndicator;
     } catch (/** @type {any} */ error) {
-        logWithContext("error", "Failed to create global chart status indicator", {
-            error:
-                error && typeof error === "object" && "message" in error
-                    ? /** @type {any} */ (error).message
-                    : String(error),
-            stack:
-                error && typeof error === "object" && "stack" in error ? /** @type {any} */ (error).stack : undefined,
-        });
+        logWithContext(
+            "error",
+            "Failed to create global chart status indicator",
+            {
+                error:
+                    error && typeof error === "object" && "message" in error
+                        ? /** @type {any} */ (error).message
+                        : String(error),
+                stack:
+                    error && typeof error === "object" && "stack" in error
+                        ? /** @type {any} */ (error).stack
+                        : undefined,
+            }
+        );
         return null;
     }
 }
 
 /**
  * Apply styles to the global indicator container
+ *
  * @param {HTMLElement} globalIndicator - The indicator element
  */
 function applyIndicatorStyles(globalIndicator) {
@@ -166,7 +188,9 @@ function applyIndicatorStyles(globalIndicator) {
 
 /**
  * Calculate chart status information
+ *
  * @param {ChartCounts} counts
+ *
  * @returns {ChartStatus}
  */
 function calculateChartStatus(counts) {
@@ -184,7 +208,9 @@ function calculateChartStatus(counts) {
 
 /**
  * Create quick action button based on chart status
+ *
  * @param {ChartStatus} status
+ *
  * @returns {HTMLElement}
  */
 function createQuickActionButton(status) {
@@ -232,7 +258,9 @@ function createQuickActionButton(status) {
 
 /**
  * Create status icon based on chart status
+ *
  * @param {ChartStatus} status
+ *
  * @returns {HTMLElement}
  */
 function createStatusIcon(status) {
@@ -255,7 +283,9 @@ function createStatusIcon(status) {
 
 /**
  * Create status text based on chart status
+ *
  * @param {ChartStatus} status
+ *
  * @returns {HTMLElement}
  */
 function createStatusText(status) {
@@ -290,9 +320,11 @@ function createStatusText(status) {
 
 /**
  * Get DOM element with validation
+ *
  * @param {string} id - Element ID
  * @param {string} description - Element description for logging
- * @returns {HTMLElement|null} Element or null if not found
+ *
+ * @returns {HTMLElement | null} Element or null if not found
  */
 function getElementSafely(id, description) {
     const element = document.getElementById(id);
@@ -307,8 +339,14 @@ function getElementSafely(id, description) {
  */
 function handleSettingsToggle() {
     try {
-        const toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button"),
-            wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper");
+        const toggleBtn = getElementSafely(
+                CONSTANTS.IDS.CHART_CONTROLS_TOGGLE,
+                "Chart controls toggle button"
+            ),
+            wrapper = getElementSafely(
+                CONSTANTS.IDS.SETTINGS_WRAPPER,
+                "Settings wrapper"
+            );
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
@@ -316,7 +354,9 @@ function handleSettingsToggle() {
             toggleBtn.setAttribute("aria-expanded", "true");
 
             // Scroll to field toggles with delay for smooth animation
-            const fieldsSection = document.querySelector(`.${CONSTANTS.CLASSES.FIELDS_SECTION}`);
+            const fieldsSection = document.querySelector(
+                `.${CONSTANTS.CLASSES.FIELDS_SECTION}`
+            );
             if (fieldsSection) {
                 setTimeout(() => {
                     fieldsSection.scrollIntoView({
@@ -340,12 +380,16 @@ function handleSettingsToggle() {
 
 /**
  * Insert the indicator into the DOM at the correct position
+ *
  * @param {HTMLElement} globalIndicator - The indicator element
  * @param {HTMLElement} chartTabContent - The chart tab content container
  */
 function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
     try {
-        const chartContainer = getElementSafely(CONSTANTS.IDS.CHART_CONTAINER, "Chart container");
+        const chartContainer = getElementSafely(
+            CONSTANTS.IDS.CHART_CONTAINER,
+            "Chart container"
+        );
 
         if (chartContainer) {
             chartContainer.before(globalIndicator);
@@ -353,7 +397,10 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
             chartTabContent.append(globalIndicator);
         }
 
-        logWithContext("info", "Global chart status indicator inserted into DOM");
+        logWithContext(
+            "info",
+            "Global chart status indicator inserted into DOM"
+        );
     } catch (error) {
         logWithContext("error", "Failed to insert indicator into DOM", {
             error:
@@ -366,10 +413,12 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
 
 /**
  * Supported log levels for this module
- * @typedef {'log'|'info'|'warn'|'error'} LogLevel
+ *
+ * @typedef {"log" | "info" | "warn" | "error"} LogLevel
  */
 /**
  * Enhanced logging with context (avoids dynamic console indexing for typing)
+ *
  * @param {LogLevel} level
  * @param {string} message
  * @param {Record<string, any>} [context]
@@ -380,19 +429,27 @@ function logWithContext(level, message, context) {
         logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
     switch (level) {
         case "error": {
-            hasContext ? console.error(logMessage, context) : console.error(logMessage);
+            hasContext
+                ? console.error(logMessage, context)
+                : console.error(logMessage);
             break;
         }
         case "info": {
-            hasContext ? console.info(logMessage, context) : console.info(logMessage);
+            hasContext
+                ? console.info(logMessage, context)
+                : console.info(logMessage);
             break;
         }
         case "warn": {
-            hasContext ? console.warn(logMessage, context) : console.warn(logMessage);
+            hasContext
+                ? console.warn(logMessage, context)
+                : console.warn(logMessage);
             break;
         }
         default: {
-            hasContext ? console.log(logMessage, context) : console.log(logMessage);
+            hasContext
+                ? console.log(logMessage, context)
+                : console.log(logMessage);
         }
     }
 }

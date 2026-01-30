@@ -1,9 +1,9 @@
 /**
  * Comprehensive test suite for getUnitSymbol utility function
  *
- * Tests the function that provides appropriate unit symbols for display based on
- * field types and user preferences stored in settings state. Supports distance,
- * temperature, speed, time, and various fitness metrics.
+ * Tests the function that provides appropriate unit symbols for display based
+ * on field types and user preferences stored in settings state. Supports
+ * distance, temperature, speed, time, and various fitness metrics.
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -65,39 +65,57 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should return empty string for null field", () => {
             const result = getUnitSymbol(null as any);
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", null);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                null
+            );
         });
 
         it("should return empty string for undefined field", () => {
             const result = getUnitSymbol(undefined as any);
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", undefined);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                undefined
+            );
         });
 
         it("should return empty string for empty string field", () => {
             const result = getUnitSymbol("");
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", "");
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                ""
+            );
         });
 
         it("should return empty string for non-string field", () => {
             const result = getUnitSymbol(123 as any);
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", 123);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                123
+            );
         });
 
         it("should return empty string for array field", () => {
             const result = getUnitSymbol(["distance"] as any);
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", ["distance"]);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                ["distance"]
+            );
         });
 
         it("should return empty string for object field", () => {
             const result = getUnitSymbol({ field: "distance" } as any);
             expect(result).toBe("");
-            expect(mockConsole.warn).toHaveBeenCalledWith("[UnitSymbol] Invalid field parameter:", {
-                field: "distance",
-            });
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[UnitSymbol] Invalid field parameter:",
+                {
+                    field: "distance",
+                }
+            );
         });
     });
 
@@ -445,7 +463,13 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 getUnitSymbol("unknownField"),
             ];
 
-            expect(results).toEqual(["km", "°C", "km/h", "bpm", ""]);
+            expect(results).toEqual([
+                "km",
+                "°C",
+                "km/h",
+                "bpm",
+                "",
+            ]);
         });
     });
 });

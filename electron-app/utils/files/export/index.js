@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for files/export
- * @description Re-exports all modules in the files/export category
+ * Re-exports all modules in the files/export category
+ *
+ * @file Barrel Export for files/export
  */
 export * from "./copyTableAsCSV.js";
 export * from "./createExportGPXButton.js";

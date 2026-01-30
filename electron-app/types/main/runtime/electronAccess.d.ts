@@ -1,5 +1,6 @@
 /**
- * @returns {any} Electron app reference (may be undefined when Electron is unavailable).
+ * @returns {any} Electron app reference (may be undefined when Electron is
+ *   unavailable).
  */
 export function appRef(): any;
 /**
@@ -11,13 +12,15 @@ export function browserWindowRef(): any;
  */
 export function dialogRef(): any;
 /**
- * Lazily resolves the Electron module, handling CJS/ESM interop and honoring test overrides.
+ * Lazily resolves the Electron module, handling CJS/ESM interop and honoring
+ * test overrides.
  *
  * @returns {any} Electron module reference or an empty object when unavailable.
  */
 export function getElectron(): any;
 /**
- * Returns the currently configured Electron override (used by test priming helpers).
+ * Returns the currently configured Electron override (used by test priming
+ * helpers).
  *
  * @returns {any} Cached override or null when none is set.
  */
@@ -31,7 +34,8 @@ export function ipcMainRef(): any;
  */
 export function menuRef(): any;
 /**
- * Allows tests to inject a pre-resolved Electron module that will be returned by {@link getElectron}.
+ * Allows tests to inject a pre-resolved Electron module that will be returned
+ * by {@link getElectron}.
  *
  * @param {any} override - Electron module mock to use for subsequent lookups.
  */

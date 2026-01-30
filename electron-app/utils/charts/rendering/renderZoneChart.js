@@ -1,4 +1,7 @@
-import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
+import {
+    getChartZoneColors,
+    getZoneTypeFromField,
+} from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
@@ -8,18 +11,31 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // Helper function to render individual zone chart
 /**
  * Render a zone chart (doughnut or bar)
+ *
  * @param {HTMLElement} container
  * @param {string} title
  * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
  * @param {string} chartId
- * @param {{ chartType?: string, showLegend?: boolean }} [options]
+ * @param {{ chartType?: string; showLegend?: boolean }} [options]
+ *
  * @returns {void}
  */
-export function renderZoneChart(container, title, zoneData, chartId, options = {}) {
-    const isDevEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-    const isDebugLoggingEnabled = isDevEnvironment && Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+export function renderZoneChart(
+    container,
+    title,
+    zoneData,
+    chartId,
+    options = {}
+) {
+    const isDevEnvironment =
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development";
+    const isDebugLoggingEnabled =
+        isDevEnvironment &&
+        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
     const isVerboseDebugLoggingEnabled =
-        isDebugLoggingEnabled && Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
+        isDebugLoggingEnabled &&
+        Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
 
     if (!(container instanceof HTMLElement)) {
         console.warn("renderZoneChart: invalid container", container);
@@ -30,12 +46,17 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         return;
     }
     if (isVerboseDebugLoggingEnabled) {
-        console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+        console.log(
+            `[ChartJS] renderZoneChart called for ${title} with data:`,
+            zoneData
+        );
     }
 
     /** @type {any} */
     const // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
-        canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0)),
+        canvas = /** @type {HTMLCanvasElement} */ (
+            createChartCanvas(chartId, 0)
+        ),
         // Determine chart type from options or default to doughnut
         chartType = options.chartType || "doughnut",
         currentTheme = detectCurrentTheme(),
@@ -59,16 +80,28 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
             colors = getChartZoneColors(zoneType, zoneData.length);
         }
     } // Create chart configuration based on type
-    const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
+    const config = createChartConfig(
+        chartType,
+        zoneData,
+        colors,
+        title,
+        options,
+        currentTheme
+    );
 
     if (isVerboseDebugLoggingEnabled) {
-        console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
+        console.log(
+            `[ChartJS] Creating ${chartType} zone chart with config:`,
+            config
+        );
     }
     const ChartCtor = /** @type {any} */ (globalThis.Chart),
         chart = ChartCtor ? new ChartCtor(canvas, config) : null;
     if (chart && Array.isArray(globalThis._chartjsInstances)) {
         if (isDebugLoggingEnabled) {
-            console.log(`[ChartJS] Zone chart created successfully for ${title}`);
+            console.log(
+                `[ChartJS] Zone chart created successfully for ${title}`
+            );
         }
         globalThis._chartjsInstances.push(chart);
     } else {
@@ -95,7 +128,14 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
  * @param {string} currentTheme
  * @param {any} baseDataset
  */
-function createBarChartConfig(zoneData, colors, title, _options, currentTheme, baseDataset) {
+function createBarChartConfig(
+    zoneData,
+    colors,
+    title,
+    _options,
+    currentTheme,
+    baseDataset
+) {
     return {
         data: {
             datasets: [
@@ -103,19 +143,23 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                     ...baseDataset,
                     borderRadius: 4,
                     borderSkipped: false,
-                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
-                        // Lighten the color on hover
-                        const b = Number.parseInt(color.slice(5, 7), 16),
-                            g = Number.parseInt(color.slice(3, 5), 16),
-                            r = Number.parseInt(color.slice(1, 3), 16);
-                        return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
-                    }),
+                    hoverBackgroundColor: colors
+                        .slice(0, zoneData.length)
+                        .map((color) => {
+                            // Lighten the color on hover
+                            const b = Number.parseInt(color.slice(5, 7), 16),
+                                g = Number.parseInt(color.slice(3, 5), 16),
+                                r = Number.parseInt(color.slice(1, 3), 16);
+                            return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
+                        }),
                     hoverBorderColor: colors.slice(0, zoneData.length),
                     hoverBorderWidth: 2,
                     label: "Time in Zone",
                 },
             ],
-            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
+            labels: zoneData.map(
+                (zone) => zone.label || `Zone ${zone.zone || 1}`
+            ),
         },
         options: {
             animation: {
@@ -129,7 +173,8 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
             maintainAspectRatio: true,
             plugins: {
                 chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                    backgroundColor:
+                        currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
                 legend: {
                     display: false, // Single dataset, no need for legend
@@ -145,9 +190,13 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                     text: title,
                 },
                 tooltip: {
-                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                    backgroundColor:
+                        currentTheme === "dark"
+                            ? "rgba(30, 30, 30, 0.95)"
+                            : "rgba(255, 255, 255, 0.95)",
                     bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
+                    borderColor:
+                        currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
                         /** @param {any} context */
@@ -159,7 +208,10 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                         /** @param {any} context */
                         labelColor(context) {
                             return {
-                                backgroundColor: context.dataset.backgroundColor[context.dataIndex],
+                                backgroundColor:
+                                    context.dataset.backgroundColor[
+                                        context.dataIndex
+                                    ],
                                 borderColor: context.dataset.borderColor,
                                 borderRadius: 2,
                                 borderWidth: 2,
@@ -176,7 +228,10 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
             scales: {
                 x: {
                     grid: {
-                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                        color:
+                            currentTheme === "dark"
+                                ? "rgba(255, 255, 255, 0.1)"
+                                : "rgba(0, 0, 0, 0.1)",
                         lineWidth: 1,
                     },
                     ticks: {
@@ -199,7 +254,10 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                        color:
+                            currentTheme === "dark"
+                                ? "rgba(255, 255, 255, 0.1)"
+                                : "rgba(0, 0, 0, 0.1)",
                         lineWidth: 1,
                     },
                     ticks: {
@@ -231,12 +289,14 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
 
 /**
  * Creates chart configuration based on chart type
+ *
  * @param {string} chartType - "doughnut" or "bar"
  * @param {any[]} zoneData - Zone data array
  * @param {any[]} colors - Colors array
  * @param {string} title - Chart title
  * @param {Object} options - Chart options
  * @param {string} currentTheme - Current theme
+ *
  * @returns {Object} Chart.js configuration object
  */
 /**
@@ -247,7 +307,14 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
  * @param {{ showLegend?: boolean }} options
  * @param {string} currentTheme
  */
-function createChartConfig(chartType, zoneData, colors, title, options, currentTheme) {
+function createChartConfig(
+    chartType,
+    zoneData,
+    colors,
+    title,
+    options,
+    currentTheme
+) {
     const baseDataset = {
         backgroundColor: colors.slice(0, zoneData.length),
         borderColor: currentTheme === "dark" ? "#333" : "#fff",
@@ -256,9 +323,23 @@ function createChartConfig(chartType, zoneData, colors, title, options, currentT
     };
 
     if (chartType === "bar") {
-        return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+        return createBarChartConfig(
+            zoneData,
+            colors,
+            title,
+            options,
+            currentTheme,
+            baseDataset
+        );
     }
-    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+    return createDoughnutChartConfig(
+        zoneData,
+        colors,
+        title,
+        options,
+        currentTheme,
+        baseDataset
+    );
 }
 
 /**
@@ -272,7 +353,14 @@ function createChartConfig(chartType, zoneData, colors, title, options, currentT
  * @param {string} currentTheme
  * @param {any} baseDataset
  */
-function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
+function createDoughnutChartConfig(
+    zoneData,
+    colors,
+    title,
+    options,
+    currentTheme,
+    baseDataset
+) {
     return {
         data: {
             datasets: [
@@ -282,13 +370,15 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     borderJoinStyle: "round",
                     borderRadius: 4,
                     circumference: 360, // Full circle
-                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
-                        // Lighten the color on hover
-                        const b = Number.parseInt(color.slice(5, 7), 16),
-                            g = Number.parseInt(color.slice(3, 5), 16),
-                            r = Number.parseInt(color.slice(1, 3), 16);
-                        return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
-                    }),
+                    hoverBackgroundColor: colors
+                        .slice(0, zoneData.length)
+                        .map((color) => {
+                            // Lighten the color on hover
+                            const b = Number.parseInt(color.slice(5, 7), 16),
+                                g = Number.parseInt(color.slice(3, 5), 16),
+                                r = Number.parseInt(color.slice(1, 3), 16);
+                            return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
+                        }),
                     hoverBorderColor: "#ffffff",
                     hoverBorderWidth: 4,
                     hoverOffset: 8,
@@ -298,7 +388,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     weight: 1,
                 },
             ],
-            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
+            labels: zoneData.map(
+                (zone) => zone.label || `Zone ${zone.zone || 1}`
+            ),
         },
         options: {
             animation: {
@@ -321,7 +413,8 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
             maintainAspectRatio: true,
             plugins: {
                 chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                    backgroundColor:
+                        currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
                 legend: {
                     display: options.showLegend !== false,
@@ -335,33 +428,54 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         /** @param {any} chartInstance */
                         generateLabels(chartInstance) {
                             const { data } = chartInstance;
-                            if (data.labels.length > 0 && data.datasets.length > 0) {
+                            if (
+                                data.labels.length > 0 &&
+                                data.datasets.length > 0
+                            ) {
                                 const [dataset] = data.datasets,
                                     total = dataset.data.reduce(
-                                        (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                        (
+                                            /** @type {number} */ a,
+                                            /** @type {number} */ b
+                                        ) => a + b,
                                         0
                                     );
 
-                                return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const meta = chartInstance.getDatasetMeta(0),
-                                        hidden = meta.data[i] && meta.data[i].hidden,
-                                        value = dataset.data[i],
-                                        percentage = ((value / total) * 100).toFixed(1);
-                                    return {
-                                        fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        fontColor: hidden
-                                            ? "rgba(128, 128, 128, 0.7)"
-                                            : currentTheme === "dark"
-                                              ? "#ffffff"
-                                              : "#333333",
-                                        hidden,
-                                        index: i,
-                                        lineWidth: 1,
-                                        pointStyle: "circle",
-                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
-                                    };
-                                });
+                                return data.labels.map(
+                                    (
+                                        /** @type {string} */ label,
+                                        /** @type {number} */ i
+                                    ) => {
+                                        const meta =
+                                                chartInstance.getDatasetMeta(0),
+                                            hidden =
+                                                meta.data[i] &&
+                                                meta.data[i].hidden,
+                                            value = dataset.data[i],
+                                            percentage = (
+                                                (value / total) *
+                                                100
+                                            ).toFixed(1);
+                                        return {
+                                            fillStyle: hidden
+                                                ? "rgba(128, 128, 128, 0.5)"
+                                                : dataset.backgroundColor[i],
+                                            fontColor: hidden
+                                                ? "rgba(128, 128, 128, 0.7)"
+                                                : currentTheme === "dark"
+                                                  ? "#ffffff"
+                                                  : "#333333",
+                                            hidden,
+                                            index: i,
+                                            lineWidth: 1,
+                                            pointStyle: "circle",
+                                            strokeStyle: hidden
+                                                ? "rgba(128, 128, 128, 0.5)"
+                                                : dataset.backgroundColor[i],
+                                            text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
+                                        };
+                                    }
+                                );
                             }
                             return [];
                         },
@@ -397,26 +511,42 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     text: title,
                 },
                 tooltip: {
-                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                    backgroundColor:
+                        currentTheme === "dark"
+                            ? "rgba(30, 30, 30, 0.95)"
+                            : "rgba(255, 255, 255, 0.95)",
                     bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
+                    borderColor:
+                        currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
                         /** @param {any} context */
                         label(context) {
                             const total = context.dataset.data.reduce(
-                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                    (
+                                        /** @type {number} */ a,
+                                        /** @type {number} */ b
+                                    ) => a + b,
                                     0
                                 ),
                                 value = context.parsed,
                                 percentage = ((value / total) * 100).toFixed(1),
-                                timeFormatted = formatTime(context.parsed, true);
-                            return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];
+                                timeFormatted = formatTime(
+                                    context.parsed,
+                                    true
+                                );
+                            return [
+                                `Time: ${timeFormatted}`,
+                                `Percentage: ${percentage}%`,
+                            ];
                         },
                         /** @param {any} context */
                         labelColor(context) {
                             return {
-                                backgroundColor: context.dataset.backgroundColor[context.dataIndex],
+                                backgroundColor:
+                                    context.dataset.backgroundColor[
+                                        context.dataIndex
+                                    ],
                                 borderColor: context.dataset.borderColor,
                                 borderRadius: 2,
                                 borderWidth: 2,

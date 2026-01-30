@@ -2,6 +2,7 @@
 
 /**
  * @typedef {Object} RecordMessage
+ *
  * @property {number} positionLat - Latitude position (semicircles)
  * @property {number} positionLong - Longitude position (semicircles)
  * @property {number} [altitude] - Altitude in meters
@@ -15,6 +16,7 @@
 
 /**
  * @typedef {Object} GlobalData
+ *
  * @property {RecordMessage[]} recordMesgs - Array of record messages
  * @property {any[]} [lapMesgs] - Array of lap messages
  * @property {string} [cachedFilePath] - Cached file path
@@ -22,17 +24,24 @@
 
 /**
  * @typedef {Object} WindowExtensions
+ *
  * @property {GlobalData} globalData - Global data object
  * @property {any} _overlayPolylines - Overlay polylines object
  * @property {any} _leafletMapInstance - Leaflet map instance
- * @property {any} _mainPolylineOriginalBounds - Original bounds for main polyline
- * @property {number} _highlightedOverlayIdx - Currently highlighted overlay index
+ * @property {any} _mainPolylineOriginalBounds - Original bounds for main
+ *   polyline
+ * @property {number} _highlightedOverlayIdx - Currently highlighted overlay
+ *   index
  * @property {any[]} loadedFitFiles - Array of loaded FIT files
- * @property {Function} updateOverlayHighlights - Function to update overlay highlights
- * @property {Function} updateShownFilesList - Function to update shown files list
+ * @property {Function} updateOverlayHighlights - Function to update overlay
+ *   highlights
+ * @property {Function} updateShownFilesList - Function to update shown files
+ *   list
  * @property {Function} renderMap - Function to render map
- * @property {Function} [setupOverlayFileNameMapActions] - Function to setup overlay file name map actions
- * @property {Function} [setupActiveFileNameMapActions] - Function to setup active file name map actions
+ * @property {Function} [setupOverlayFileNameMapActions] - Function to setup
+ *   overlay file name map actions
+ * @property {Function} [setupActiveFileNameMapActions] - Function to setup
+ *   active file name map actions
  * @property {any} [_measureControl] - Leaflet measure control (plugin)
  * @property {any} [_drawControl] - Leaflet draw control (plugin)
  * @property {any} [_drawnItems] - FeatureGroup containing user-drawn items
@@ -42,12 +51,16 @@
 
 /**
  * @typedef {Object} LatLng
+ *
  * @property {number} lat - Latitude
  * @property {number} lng - Longitude
  */
 
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
-import { applyEstimatedPowerToRecords, hasPowerData } from "../../data/processing/estimateCyclingPower.js";
+import {
+    applyEstimatedPowerToRecords,
+    hasPowerData,
+} from "../../data/processing/estimateCyclingPower.js";
 import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createExportGPXButton } from "../../files/export/createExportGPXButton.js";
@@ -56,7 +69,10 @@ import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { getState, setState } from "../../state/core/stateManager.js";
-import { installUpdateMapThemeListeners, updateMapTheme } from "../../theming/specific/updateMapTheme.js";
+import {
+    installUpdateMapThemeListeners,
+    updateMapTheme,
+} from "../../theming/specific/updateMapTheme.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
@@ -66,15 +82,18 @@ import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
 /**
- * Renders a Leaflet map inside the element with id 'content-map'.
- * If `window.globalData.recordMesgs` exists and contains valid latitude and longitude data,
- * it plots the coordinates as a polyline on the map and fits the map bounds to the polyline.
- * If no valid location data is available, displays a message instead of the map.
+ * Renders a Leaflet map inside the element with id 'content-map'. If
+ * `window.globalData.recordMesgs` exists and contains valid latitude and
+ * longitude data, it plots the coordinates as a polyline on the map and fits
+ * the map bounds to the polyline. If no valid location data is available,
+ * displays a message instead of the map.
  *
- * Assumes that `window.globalData.recordMesgs` is an array of objects with `positionLat` and `positionLong` properties,
- * where the coordinates are encoded as signed 32-bit integers and need to be converted to degrees.
+ * Assumes that `window.globalData.recordMesgs` is an array of objects with
+ * `positionLat` and `positionLong` properties, where the coordinates are
+ * encoded as signed 32-bit integers and need to be converted to degrees.
  *
  * Dependencies:
+ *
  * - Leaflet.js library must be loaded and available as global `L`.
  */
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
@@ -86,17 +105,23 @@ import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
-    const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
+    const windowExt = /** @type {WindowExtensions} */ (
+        /** @type {any} */ (globalThis)
+    );
     const LeafletLib = /** @type {any} */ (windowExt).L;
     if (!LeafletLib) {
-        console.warn("[renderMap] Leaflet library unavailable; skipping map render.");
+        console.warn(
+            "[renderMap] Leaflet library unavailable; skipping map render."
+        );
         return;
     }
     const L = LeafletLib;
     windowExt._overlayPolylines = {};
 
     const scheduleMicrotask =
-        typeof queueMicrotask === "function" ? queueMicrotask : (callback) => Promise.resolve().then(callback);
+        typeof queueMicrotask === "function"
+            ? queueMicrotask
+            : (callback) => Promise.resolve().then(callback);
 
     const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
@@ -106,7 +131,9 @@ export function renderMap() {
     // Defensive cleanup: overlay filename tooltips are appended to document.body and can become orphaned
     // if the overlay list or map is re-rendered while a tooltip is visible.
     try {
-        for (const el of document.querySelectorAll(".overlay-filename-tooltip")) {
+        for (const el of document.querySelectorAll(
+            ".overlay-filename-tooltip"
+        )) {
             if (el instanceof HTMLElement) {
                 el.remove();
             }
@@ -138,7 +165,11 @@ export function renderMap() {
                                     : "unknown",
                 }))
                 .filter((item) => item.geoJSON !== null);
-            console.log("[renderMap] Saved", savedDrawnLayers.length, "drawn items");
+            console.log(
+                "[renderMap] Saved",
+                savedDrawnLayers.length,
+                "drawn items"
+            );
         } catch (error) {
             console.warn("[renderMap] Failed to save drawn items:", error);
         }
@@ -147,7 +178,10 @@ export function renderMap() {
     // Cleanup old plugin controls/references to avoid retaining old map instances via control closures.
     // Leaflet's map.remove() should handle most cleanup, but plugins occasionally attach document listeners.
     try {
-        if (windowExt._measureControl && typeof windowExt._measureControl.remove === "function") {
+        if (
+            windowExt._measureControl &&
+            typeof windowExt._measureControl.remove === "function"
+        ) {
             windowExt._measureControl.remove();
         }
     } catch {
@@ -156,7 +190,10 @@ export function renderMap() {
     windowExt._measureControl = null;
 
     try {
-        if (windowExt._drawControl && typeof windowExt._drawControl.remove === "function") {
+        if (
+            windowExt._drawControl &&
+            typeof windowExt._drawControl.remove === "function"
+        ) {
             windowExt._drawControl.remove();
         }
     } catch {
@@ -168,7 +205,10 @@ export function renderMap() {
     windowExt._drawnItems = null;
 
     try {
-        if (windowExt._miniMapControl && typeof windowExt._miniMapControl.remove === "function") {
+        if (
+            windowExt._miniMapControl &&
+            typeof windowExt._miniMapControl.remove === "function"
+        ) {
             windowExt._miniMapControl.remove();
         }
     } catch {
@@ -184,9 +224,13 @@ export function renderMap() {
 
     // If an old shown-files list exists, invoke its cleanup hook before removing DOM.
     try {
-        const oldShownFilesList = mapContainer.querySelector(".shown-files-list");
+        const oldShownFilesList =
+            mapContainer.querySelector(".shown-files-list");
         // @ts-expect-error - custom property for lifecycle management
-        if (oldShownFilesList && typeof oldShownFilesList._dispose === "function") {
+        if (
+            oldShownFilesList &&
+            typeof oldShownFilesList._dispose === "function"
+        ) {
             // @ts-expect-error - custom property for lifecycle management
             oldShownFilesList._dispose();
         }
@@ -216,9 +260,11 @@ export function renderMap() {
     /**
      * Full basemap catalogue with friendly display labels.
      *
-     * We keep persistence values as internal baseLayers keys, but display better labels.
+     * We keep persistence values as internal baseLayers keys, but display
+     * better labels.
      *
      * @param {string} key
+     *
      * @returns {string}
      */
     const formatBaseLayerLabel = (key) => {
@@ -265,7 +311,7 @@ export function renderMap() {
     };
 
     // Prefer common layers at the top, then show the rest alphabetically by label.
-    /** @type {Array<keyof typeof baseLayers>} */
+    /** @type {(keyof typeof baseLayers)[]} */
     const preferredOrder = [
         "OpenStreetMap",
         "OpenTopoMap",
@@ -281,10 +327,13 @@ export function renderMap() {
         "Esri_WorldStreetMap",
     ];
 
-    /** @type {Array<{ key: keyof typeof baseLayers, label: string }>} */
+    /** @type {{ key: keyof typeof baseLayers; label: string }[]} */
     const layerEntries = Object.keys(baseLayers)
         .filter((k) => Object.hasOwn(baseLayers, k))
-        .map((k) => ({ key: /** @type {keyof typeof baseLayers} */ (k), label: formatBaseLayerLabel(k) }));
+        .map((k) => ({
+            key: /** @type {keyof typeof baseLayers} */ (k),
+            label: formatBaseLayerLabel(k),
+        }));
 
     // Ensure labels are unique for the Leaflet layers control.
     /** @type {Set<string>} */
@@ -307,20 +356,24 @@ export function renderMap() {
         if (aPinned && bPinned) return ai - bi;
         if (aPinned) return -1;
         if (bPinned) return 1;
-        return a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" });
+        return a.label.localeCompare(b.label, undefined, {
+            numeric: true,
+            sensitivity: "base",
+        });
     });
 
     /** @type {Map<string, keyof typeof baseLayers>} */
     const labelToKey = new Map(layerEntries.map((e) => [e.label, e.key]));
 
     /**
-     * Resolve persisted values to a valid baseLayers key.
-     * Supports:
-     * - new persistence values (internal keys)
-     * - old values (lower-cased ids)
+     * Resolve persisted values to a valid baseLayers key. Supports:
+     *
+     * - New persistence values (internal keys)
+     * - Old values (lower-cased ids)
      * - UI labels (if the user upgraded from a build that stored display names)
      *
      * @param {string} value
+     *
      * @returns {keyof typeof baseLayers}
      */
     const resolveBaseLayerKey = (value) => {
@@ -335,21 +388,38 @@ export function renderMap() {
         }
 
         const lower = trimmed.toLowerCase();
-        if (lower === "openstreetmap" || lower === "osm" || lower === "mapnik") return "OpenStreetMap";
-        if (lower === "topo" || lower === "opentopo" || lower === "opentopomap") return "OpenTopoMap";
-        if (lower === "satellite" || lower === "worldimagery") return "Esri_WorldImagery";
-        if (lower === "osm_de" || lower === "osmde" || lower === "openstreetmap.de") return "OSM_DE";
+        if (lower === "openstreetmap" || lower === "osm" || lower === "mapnik")
+            return "OpenStreetMap";
+        if (lower === "topo" || lower === "opentopo" || lower === "opentopomap")
+            return "OpenTopoMap";
+        if (lower === "satellite" || lower === "worldimagery")
+            return "Esri_WorldImagery";
+        if (
+            lower === "osm_de" ||
+            lower === "osmde" ||
+            lower === "openstreetmap.de"
+        )
+            return "OSM_DE";
 
-        const found = Object.keys(baseLayers).find((k) => k.toLowerCase() === lower);
-        return /** @type {keyof typeof baseLayers} */ (found ?? "OpenStreetMap");
+        const found = Object.keys(baseLayers).find(
+            (k) => k.toLowerCase() === lower
+        );
+        return /** @type {keyof typeof baseLayers} */ (
+            found ?? "OpenStreetMap"
+        );
     };
 
     // Build the final list for the Leaflet layers control.
     // This intentionally includes the full catalogue; layoutLayersControl() will constrain it.
-    const baseLayersForControl = Object.fromEntries(layerEntries.map((entry) => [entry.label, baseLayers[entry.key]]));
+    const baseLayersForControl = Object.fromEntries(
+        layerEntries.map((entry) => [entry.label, baseLayers[entry.key]])
+    );
 
-    const persistedBaseLayerKey = resolveBaseLayerKey(getState("map.baseLayer"));
-    const initialBaseLayer = baseLayers[persistedBaseLayerKey] ?? baseLayers.OpenStreetMap;
+    const persistedBaseLayerKey = resolveBaseLayerKey(
+        getState("map.baseLayer")
+    );
+    const initialBaseLayer =
+        baseLayers[persistedBaseLayerKey] ?? baseLayers.OpenStreetMap;
 
     const map = LeafletLib.map("leaflet-map", {
         center: [0, 0],
@@ -359,19 +429,31 @@ export function renderMap() {
     });
     windowExt._leafletMapInstance = map;
 
-    LeafletLib.control.layers(baseLayersForControl, null, { collapsed: true, position: "topright" }).addTo(map);
+    LeafletLib.control
+        .layers(baseLayersForControl, null, {
+            collapsed: true,
+            position: "topright",
+        })
+        .addTo(map);
 
     // Persist basemap selection so it is restored next launch.
     map.on("baselayerchange", (event) => {
         try {
-            const name = event && typeof event === "object" && typeof event.name === "string" ? event.name.trim() : "";
+            const name =
+                event &&
+                typeof event === "object" &&
+                typeof event.name === "string"
+                    ? event.name.trim()
+                    : "";
             if (!name) return;
 
             const resolvedKey = labelToKey.get(name);
             if (!resolvedKey) {
                 return;
             }
-            setState("map.baseLayer", resolvedKey, { source: "renderMap.baselayerchange" });
+            setState("map.baseLayer", resolvedKey, {
+                source: "renderMap.baselayerchange",
+            });
         } catch {
             /* ignore */
         }
@@ -394,12 +476,15 @@ export function renderMap() {
 
     // Update global reference for the map type button used by the shared document listener.
     /** @type {any} */ (globalThis).__ffvMapTypeButton = mapTypeBtn;
-    /** @type {any} */ (globalThis).__ffvLayoutLayersControl = () => layoutLayersControl({ layersControlEl: null });
+    /** @type {any} */ (globalThis).__ffvLayoutLayersControl = () =>
+        layoutLayersControl({ layersControlEl: null });
     ensureMapDocumentListenersInstalled();
 
     /**
      * Handle map type button click
+     *
      * @param {Event} e - Click event
+     *
      * @returns {void}
      */
     /**
@@ -421,9 +506,13 @@ export function renderMap() {
         layoutLayersControl({ layersControlEl });
 
         if (options.focusFirst) {
-            const firstInput = layersControlEl.querySelector('input[type="radio"]');
+            const firstInput = layersControlEl.querySelector(
+                'input[type="radio"]'
+            );
             if (firstInput) {
-                const inputElement = /** @type {HTMLInputElement} */ (firstInput);
+                const inputElement = /** @type {HTMLInputElement} */ (
+                    firstInput
+                );
                 inputElement.focus();
             }
         }
@@ -451,7 +540,9 @@ export function renderMap() {
         e.stopPropagation();
         const layersControlEl = getLayersControlEl();
         if (!layersControlEl) return;
-        const isExpanded = layersControlEl.classList.contains("leaflet-control-layers-expanded");
+        const isExpanded = layersControlEl.classList.contains(
+            "leaflet-control-layers-expanded"
+        );
         if (isExpanded) {
             closeLayersControl();
         } else {
@@ -504,7 +595,9 @@ export function renderMap() {
 
         mapTypeBtn.addEventListener("mouseenter", scheduleOpen);
         mapTypeBtn.addEventListener("mouseleave", scheduleClose);
-        mapTypeBtn.addEventListener("focus", () => openLayersControl({ focusFirst: true }));
+        mapTypeBtn.addEventListener("focus", () =>
+            openLayersControl({ focusFirst: true })
+        );
         mapTypeBtn.addEventListener("blur", scheduleClose);
 
         // Keep open while hovering the expanded panel.
@@ -518,22 +611,29 @@ export function renderMap() {
     /**
      * Constrain the expanded basemap selector so it never overlaps critical UI.
      *
-     * We avoid relying on z-index battles (Leaflet plugins may set extreme values) by:
-     * - pushing the control down so it starts below the Map style button
-     * - limiting maxHeight so it ends above the minimap (when present)
-     * - enabling scrolling within the panel
+     * We avoid relying on z-index battles (Leaflet plugins may set extreme
+     * values) by:
+     *
+     * - Pushing the control down so it starts below the Map style button
+     * - Limiting maxHeight so it ends above the minimap (when present)
+     * - Enabling scrolling within the panel
      *
      * @param {{ layersControlEl: HTMLElement | null }} params
      */
     function layoutLayersControl({ layersControlEl }) {
         const layersEl =
-            layersControlEl || /** @type {HTMLElement | null} */ (document.querySelector(".leaflet-control-layers"));
+            layersControlEl ||
+            /** @type {HTMLElement | null} */ (
+                document.querySelector(".leaflet-control-layers")
+            );
         const mapEl = document.getElementById("leaflet-map");
         if (!layersEl || !(layersEl instanceof HTMLElement) || !mapEl) {
             return;
         }
 
-        const layersListEl = /** @type {HTMLElement | null} */ (layersEl.querySelector(".leaflet-control-layers-list"));
+        const layersListEl = /** @type {HTMLElement | null} */ (
+            layersEl.querySelector(".leaflet-control-layers-list")
+        );
 
         // Keep a global ref so the shared document listeners can re-run layout on resize.
         /** @type {any} */ (globalThis).__ffvLayoutLayersControl = () =>
@@ -547,7 +647,10 @@ export function renderMap() {
         const mapTypeRect = mapTypeBtn.getBoundingClientRect();
         const mapRect = mapEl.getBoundingClientRect();
         const minimapEl = document.querySelector(".leaflet-control-minimap");
-        const minimapRect = minimapEl instanceof HTMLElement ? minimapEl.getBoundingClientRect() : null;
+        const minimapRect =
+            minimapEl instanceof HTMLElement
+                ? minimapEl.getBoundingClientRect()
+                : null;
 
         // Reset styles before measurement.
         layersEl.style.maxHeight = "";
@@ -562,7 +665,8 @@ export function renderMap() {
         const raf =
             typeof requestAnimationFrame === "function"
                 ? requestAnimationFrame
-                : /** @param {FrameRequestCallback} cb */ (cb) => setTimeout(cb, 0);
+                : /** @param {FrameRequestCallback} cb */ (cb) =>
+                      setTimeout(cb, 0);
 
         // Use RAF so we measure after Leaflet expanded class applies.
         raf(() => {
@@ -572,14 +676,24 @@ export function renderMap() {
             // by the Leaflet container's overflow + border radius).
             const EDGE_PADDING_PX = 28;
             const mapBottomLimit = mapRect.bottom - EDGE_PADDING_PX;
-            const minimapTopLimit = minimapRect ? minimapRect.top - EDGE_PADDING_PX : mapBottomLimit;
+            const minimapTopLimit = minimapRect
+                ? minimapRect.top - EDGE_PADDING_PX
+                : mapBottomLimit;
             const bottomLimit = Math.min(mapBottomLimit, minimapTopLimit);
 
             // Push down to avoid overlapping the map-type button, but never push so far down
             // that the panel cannot fit within the available space.
-            const desiredPushDown = Math.max(0, Math.round(mapTypeRect.bottom - layersRect.top + EDGE_PADDING_PX));
+            const desiredPushDown = Math.max(
+                0,
+                Math.round(
+                    mapTypeRect.bottom - layersRect.top + EDGE_PADDING_PX
+                )
+            );
             const minUsableHeight = 160;
-            const maxAllowedPushDown = Math.max(0, Math.floor(bottomLimit - layersRect.top - minUsableHeight));
+            const maxAllowedPushDown = Math.max(
+                0,
+                Math.floor(bottomLimit - layersRect.top - minUsableHeight)
+            );
             const pushDownPx = Math.min(desiredPushDown, maxAllowedPushDown);
 
             if (pushDownPx > 0) {
@@ -594,7 +708,10 @@ export function renderMap() {
                 // Avoid nested scrollbars: constrain and scroll the inner list, not the outer control.
                 if (layersListEl) {
                     const listRect = layersListEl.getBoundingClientRect();
-                    const chromeHeight = Math.max(0, Math.floor(updatedRect.height - listRect.height));
+                    const chromeHeight = Math.max(
+                        0,
+                        Math.floor(updatedRect.height - listRect.height)
+                    );
                     const listMax = Math.max(0, maxHeight - chromeHeight);
                     layersListEl.style.maxHeight = `${listMax}px`;
                     layersListEl.style.overflowY = "auto";
@@ -616,9 +733,11 @@ export function renderMap() {
     const maxZoom = map.getMaxZoom(),
         minZoom = map.getMinZoom(),
         /** @param {number} percent */
-        percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100,
+        percentToZoom = (percent) =>
+            minZoom + ((maxZoom - minZoom) * percent) / 100,
         /** @param {number} zoom */
-        zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
+        zoomToPercent = (zoom) =>
+            ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
     const zoomLabel = document.createElement("div");
     zoomLabel.className = "custom-zoom-slider-label";
     zoomLabel.textContent = "Zoom";
@@ -662,7 +781,9 @@ export function renderMap() {
     if (zoomSlider) {
         zoomSlider.style.pointerEvents = "auto";
         zoomSlider.addEventListener("mousedown", (e) => e.stopPropagation());
-        zoomSlider.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+        zoomSlider.addEventListener("touchstart", (e) => e.stopPropagation(), {
+            passive: true,
+        });
     }
 
     // Fix jank: Only update map zoom on change, and update slider on zoomend.
@@ -673,6 +794,7 @@ export function renderMap() {
     /**
      * @param {Function} func
      * @param {number} wait
+     *
      * @returns {Function}
      */
     function debounce(func, wait) {
@@ -692,7 +814,8 @@ export function renderMap() {
                 debounce(
                     /** @param {Event} e */ (e) => {
                         zoomDraggingRef.current = true;
-                        const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
+                        const { target } =
+                                /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
                         zoomSliderCurrent.textContent = `${percent}%`;
                     },
@@ -722,7 +845,9 @@ export function renderMap() {
         leafletMapContainer.append(zoomSliderBar);
     }
 
-    L.control.scale({ imperial: true, metric: true, position: "bottomleft" }).addTo(map);
+    L.control
+        .scale({ imperial: true, metric: true, position: "bottomleft" })
+        .addTo(map);
 
     // --- Fullscreen control (if plugin loaded) ---
     if (L.control.fullscreen) {
@@ -731,17 +856,27 @@ export function renderMap() {
 
     // --- Locate user button ---
     if (L.control.locate) {
-        L.control.locate({ flyTo: true, keepCurrentZoomLevel: true, position: "topleft" }).addTo(map);
+        L.control
+            .locate({
+                flyTo: true,
+                keepCurrentZoomLevel: true,
+                position: "topleft",
+            })
+            .addTo(map);
     }
 
     // --- Print/export button ---
     const controlsDiv = document.querySelector("#map-controls");
-    const primaryControls = controlsDiv?.querySelector(".map-controls-panel__primary") ?? controlsDiv;
+    const primaryControls =
+        controlsDiv?.querySelector(".map-controls-panel__primary") ??
+        controlsDiv;
     const ensureSecondaryControls = () => {
         if (!controlsDiv) {
             return null;
         }
-        let secondary = controlsDiv.querySelector(".map-controls-panel__secondary");
+        let secondary = controlsDiv.querySelector(
+            ".map-controls-panel__secondary"
+        );
         if (!secondary) {
             secondary = document.createElement("div");
             secondary.className = "map-controls-panel__secondary";
@@ -765,8 +900,13 @@ export function renderMap() {
             if (typeof windowExt.updateShownFilesList === "function") {
                 windowExt.updateShownFilesList();
             }
-            console.log(`[renderMap] Map metric filter change handled, action=${action}`);
-            if (filterControl && typeof filterControl.refreshSummary === "function") {
+            console.log(
+                `[renderMap] Map metric filter change handled, action=${action}`
+            );
+            if (
+                filterControl &&
+                typeof filterControl.refreshSummary === "function"
+            ) {
                 scheduleMicrotask(() => {
                     try {
                         filterControl?.refreshSummary?.();
@@ -782,11 +922,20 @@ export function renderMap() {
         const estPowerBtn = createPowerEstimationButton({
             getData: () => {
                 const g = /** @type {any} */ (globalThis);
-                const data = g.globalData && typeof g.globalData === "object" ? g.globalData : null;
+                const data =
+                    g.globalData && typeof g.globalData === "object"
+                        ? g.globalData
+                        : null;
                 return {
-                    loadedFitFiles: Array.isArray(g.loadedFitFiles) ? g.loadedFitFiles : [],
-                    recordMesgs: Array.isArray(data?.recordMesgs) ? data.recordMesgs : [],
-                    sessionMesgs: Array.isArray(data?.sessionMesgs) ? data.sessionMesgs : undefined,
+                    loadedFitFiles: Array.isArray(g.loadedFitFiles)
+                        ? g.loadedFitFiles
+                        : [],
+                    recordMesgs: Array.isArray(data?.recordMesgs)
+                        ? data.recordMesgs
+                        : [],
+                    sessionMesgs: Array.isArray(data?.sessionMesgs)
+                        ? data.sessionMesgs
+                        : undefined,
                 };
             },
             onAfterApply: () => {
@@ -799,15 +948,26 @@ export function renderMap() {
                 // Estimated power changes are data-changing for charts/summary/tables.
                 // Invalidate chart caches so the new series is recalculated.
                 try {
-                    if (typeof (/** @type {any} */ (globalThis).invalidateChartRenderCache) === "function") {
-                        /** @type {any} */ (globalThis).invalidateChartRenderCache("estimated-power-updated");
+                    if (
+                        typeof (
+                            /** @type {any} */ (globalThis)
+                                .invalidateChartRenderCache
+                        ) === "function"
+                    ) {
+                        /** @type {any} */ (
+                            globalThis
+                        ).invalidateChartRenderCache("estimated-power-updated");
                     }
                 } catch {
                     /* ignore */
                 }
 
                 try {
-                    if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
+                    if (
+                        typeof (
+                            /** @type {any} */ (globalThis).renderChartJS
+                        ) === "function"
+                    ) {
                         /** @type {any} */ (globalThis).renderChartJS();
                     }
                 } catch {
@@ -816,10 +976,14 @@ export function renderMap() {
 
                 try {
                     if (
-                        typeof (/** @type {any} */ (globalThis).renderSummary) === "function" &&
+                        typeof (
+                            /** @type {any} */ (globalThis).renderSummary
+                        ) === "function" &&
                         /** @type {any} */ (globalThis).globalData
                     ) {
-                        /** @type {any} */ (globalThis).renderSummary(/** @type {any} */ (globalThis).globalData);
+                        /** @type {any} */ (globalThis).renderSummary(
+                            /** @type {any} */ (globalThis).globalData
+                        );
                     }
                 } catch {
                     /* ignore */
@@ -827,10 +991,14 @@ export function renderMap() {
 
                 try {
                     if (
-                        typeof (/** @type {any} */ (globalThis).createTables) === "function" &&
+                        typeof (
+                            /** @type {any} */ (globalThis).createTables
+                        ) === "function" &&
                         /** @type {any} */ (globalThis).globalData
                     ) {
-                        /** @type {any} */ (globalThis).createTables(/** @type {any} */ (globalThis).globalData);
+                        /** @type {any} */ (globalThis).createTables(
+                            /** @type {any} */ (globalThis).globalData
+                        );
                     }
                 } catch {
                     /* ignore */
@@ -840,11 +1008,13 @@ export function renderMap() {
 
         try {
             const recs =
-                windowExt.globalData && Array.isArray(windowExt.globalData.recordMesgs)
+                windowExt.globalData &&
+                Array.isArray(windowExt.globalData.recordMesgs)
                     ? windowExt.globalData.recordMesgs
                     : [];
             if (hasPowerData(recs)) {
-                estPowerBtn.title = "This file has real power data. Configure estimation defaults for other files.";
+                estPowerBtn.title =
+                    "This file has real power data. Configure estimation defaults for other files.";
             }
         } catch {
             /* ignore */
@@ -911,12 +1081,17 @@ export function renderMap() {
             getLapNumForIdx,
             map,
             mapContainer: /** @type {HTMLElement} */ (
-                mapContainer || document.querySelector("#leaflet-map") || document.body
+                mapContainer ||
+                    document.querySelector("#leaflet-map") ||
+                    document.body
             ),
             markerClusterGroup,
             startIcon,
         });
-        if (filterControl && typeof filterControl.refreshSummary === "function") {
+        if (
+            filterControl &&
+            typeof filterControl.refreshSummary === "function"
+        ) {
             scheduleMicrotask(() => {
                 try {
                     filterControl?.refreshSummary?.();
@@ -934,11 +1109,14 @@ export function renderMap() {
     // --- Minimap (if plugin available) ---
     if (windowExt.L && L.Control && L.Control.MiniMap) {
         // Always use a standard tile layer for the minimap
-        const miniMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "",
-            maxZoom: 18,
-            minZoom: 0,
-        });
+        const miniMapLayer = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution: "",
+                maxZoom: 18,
+                minZoom: 0,
+            }
+        );
         const miniMap = new L.Control.MiniMap(miniMapLayer, {
             aimingRectOptions: {
                 clickable: false,
@@ -1084,7 +1262,9 @@ export function renderMap() {
 
         {
             const createdEventName =
-                L.Draw && L.Draw.Event && typeof L.Draw.Event.CREATED === "string"
+                L.Draw &&
+                L.Draw.Event &&
+                typeof L.Draw.Event.CREATED === "string"
                     ? L.Draw.Event.CREATED
                     : "draw:created";
             map.on(createdEventName, onDrawCreated);
@@ -1113,40 +1293,64 @@ export function renderMap() {
 
             map.on("draw:drawstart", (evt) => {
                 try {
-                    const type = evt && typeof evt === "object" ? evt.layerType : null;
+                    const type =
+                        evt && typeof evt === "object" ? evt.layerType : null;
                     if (type !== "polyline") {
                         detach();
                         return;
                     }
 
                     // Leaflet.draw stores the active mode handler here.
-                    activeHandler = drawControl?._toolbars?.draw?._activeMode?.handler ?? null;
+                    activeHandler =
+                        drawControl?._toolbars?.draw?._activeMode?.handler ??
+                        null;
 
                     preclickListener = (e) => {
                         try {
-                            if (!activeHandler || typeof activeHandler._finishShape !== "function") {
+                            if (
+                                !activeHandler ||
+                                typeof activeHandler._finishShape !== "function"
+                            ) {
                                 return;
                             }
 
-                            const markers = Array.isArray(activeHandler._markers) ? activeHandler._markers : [];
+                            const markers = Array.isArray(
+                                activeHandler._markers
+                            )
+                                ? activeHandler._markers
+                                : [];
                             if (markers.length < 2) {
                                 return;
                             }
 
                             const lastMarker = markers.at(-1);
-                            if (!lastMarker || typeof lastMarker.getLatLng !== "function" || !e?.latlng) {
+                            if (
+                                !lastMarker ||
+                                typeof lastMarker.getLatLng !== "function" ||
+                                !e?.latlng
+                            ) {
                                 return;
                             }
 
                             // Pixel tolerance around the vertex marker.
                             const tolPx = 14;
-                            const lastPt = map.latLngToContainerPoint(lastMarker.getLatLng());
-                            const clickPt = map.latLngToContainerPoint(e.latlng);
+                            const lastPt = map.latLngToContainerPoint(
+                                lastMarker.getLatLng()
+                            );
+                            const clickPt = map.latLngToContainerPoint(
+                                e.latlng
+                            );
                             const dist =
-                                lastPt && clickPt && typeof lastPt.distanceTo === "function"
+                                lastPt &&
+                                clickPt &&
+                                typeof lastPt.distanceTo === "function"
                                     ? lastPt.distanceTo(clickPt)
                                     : null;
-                            if (typeof dist === "number" && dist >= 0 && dist <= tolPx) {
+                            if (
+                                typeof dist === "number" &&
+                                dist >= 0 &&
+                                dist <= tolPx
+                            ) {
                                 // Finish and stop the underlying click from adding another vertex.
                                 try {
                                     if (e.originalEvent) {
@@ -1178,20 +1382,33 @@ export function renderMap() {
 
         // Restore previously drawn items
         if (savedDrawnLayers && savedDrawnLayers.length > 0) {
-            console.log("[renderMap] Restoring", savedDrawnLayers.length, "drawn items");
+            console.log(
+                "[renderMap] Restoring",
+                savedDrawnLayers.length,
+                "drawn items"
+            );
             for (const item of savedDrawnLayers) {
                 try {
                     if (item.geoJSON) {
                         L.geoJSON(item.geoJSON, {
-                            onEachFeature: (/** @type {any} */ _feature, /** @type {any} */ createdLayer) => {
+                            onEachFeature: (
+                                /** @type {any} */ _feature,
+                                /** @type {any} */ createdLayer
+                            ) => {
                                 drawnItems.addLayer(createdLayer);
                             },
-                            pointToLayer: (/** @type {any} */ _feature, /** @type {any} */ latlng) => L.marker(latlng),
+                            pointToLayer: (
+                                /** @type {any} */ _feature,
+                                /** @type {any} */ latlng
+                            ) => L.marker(latlng),
                             style: item.options,
                         });
                     }
                 } catch (error) {
-                    console.warn("[renderMap] Failed to restore drawn item:", error);
+                    console.warn(
+                        "[renderMap] Failed to restore drawn item:",
+                        error
+                    );
                 }
             }
         }
@@ -1201,11 +1418,18 @@ export function renderMap() {
     // Apply estimated power before drawing any tracks/markers so tooltips have access.
     // Only applies to files without real power.
     try {
-        if (windowExt.globalData && Array.isArray(windowExt.globalData.recordMesgs)) {
+        if (
+            windowExt.globalData &&
+            Array.isArray(windowExt.globalData.recordMesgs)
+        ) {
             applyEstimatedPowerToRecords({
-                recordMesgs: /** @type {Array<Record<string, unknown>>} */ (windowExt.globalData.recordMesgs),
+                recordMesgs: /** @type {Record<string, unknown>[]} */ (
+                    windowExt.globalData.recordMesgs
+                ),
                 sessionMesgs: Array.isArray(windowExt.globalData.sessionMesgs)
-                    ? /** @type {Array<Record<string, unknown>>} */ (windowExt.globalData.sessionMesgs)
+                    ? /** @type {Record<string, unknown>[]} */ (
+                          windowExt.globalData.sessionMesgs
+                      )
                     : undefined,
                 settings: getPowerEstimationSettings(),
             });
@@ -1213,15 +1437,23 @@ export function renderMap() {
         if (Array.isArray(windowExt.loadedFitFiles)) {
             for (const fitFile of windowExt.loadedFitFiles) {
                 const recs =
-                    fitFile && fitFile.data && Array.isArray(fitFile.data.recordMesgs)
+                    fitFile &&
+                    fitFile.data &&
+                    Array.isArray(fitFile.data.recordMesgs)
                         ? fitFile.data.recordMesgs
                         : null;
                 if (recs) {
                     applyEstimatedPowerToRecords({
-                        recordMesgs: /** @type {Array<Record<string, unknown>>} */ (recs),
+                        recordMesgs: /** @type {Record<string, unknown>[]} */ (
+                            recs
+                        ),
                         sessionMesgs:
-                            fitFile && fitFile.data && Array.isArray(fitFile.data.sessionMesgs)
-                                ? /** @type {Array<Record<string, unknown>>} */ (fitFile.data.sessionMesgs)
+                            fitFile &&
+                            fitFile.data &&
+                            Array.isArray(fitFile.data.sessionMesgs)
+                                ? /** @type {Record<string, unknown>[]} */ (
+                                      fitFile.data.sessionMesgs
+                                  )
                                 : undefined,
                         settings: getPowerEstimationSettings(),
                     });
@@ -1232,8 +1464,15 @@ export function renderMap() {
         /* ignore */
     }
 
-    if (windowExt.loadedFitFiles && Array.isArray(windowExt.loadedFitFiles) && windowExt.loadedFitFiles.length > 0) {
-        console.log("[renderMap] Overlay logic: loadedFitFiles.length =", windowExt.loadedFitFiles.length);
+    if (
+        windowExt.loadedFitFiles &&
+        Array.isArray(windowExt.loadedFitFiles) &&
+        windowExt.loadedFitFiles.length > 0
+    ) {
+        console.log(
+            "[renderMap] Overlay logic: loadedFitFiles.length =",
+            windowExt.loadedFitFiles.length
+        );
         // Clear overlay polylines tracking before drawing
         windowExt._overlayPolylines = {};
         for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
@@ -1241,19 +1480,37 @@ export function renderMap() {
             if (idx === 0) {
                 continue;
             }
-            console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
-            const color = /** @type {string} */ (
-                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+            console.log(
+                `[renderMap] Drawing overlay idx=${idx}, fileName=`,
+                fitFile.filePath
             );
-            const rawOverlayName = (fitFile.filePath || "").split(/[/\\]/).pop() ?? "";
-            const fileName = sanitizeFilenameComponent(rawOverlayName, `overlay_${idx + 1}`);
+            const color = /** @type {string} */ (
+                chartOverlayColorPalette[
+                    idx % chartOverlayColorPalette.length
+                ] || "#ff0000"
+            );
+            const rawOverlayName =
+                (fitFile.filePath || "").split(/[/\\]/).pop() ?? "";
+            const fileName = sanitizeFilenameComponent(
+                rawOverlayName,
+                `overlay_${idx + 1}`
+            );
             const bounds = drawOverlayForFitFile({
                 color,
                 endIcon,
                 fileName,
                 fitData: fitFile.data,
-                formatTooltipData: (/** @type {any} */ pointIdx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
-                    formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                formatTooltipData: (
+                    /** @type {any} */ pointIdx,
+                    /** @type {any} */ row,
+                    /** @type {any} */ lapNum
+                ) =>
+                    formatTooltipData(
+                        pointIdx,
+                        row,
+                        lapNum,
+                        fitFile.data && fitFile.data.recordMesgs
+                    ),
                 getLapNumForIdx,
                 map,
                 markerClusterGroup,
@@ -1265,15 +1522,28 @@ export function renderMap() {
         // --- Bring overlay markers to front so they appear above all polylines ---
         setTimeout(() => {
             if (windowExt._overlayPolylines) {
-                for (const [idx, polyline] of Object.entries(windowExt._overlayPolylines)) {
-                    console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
-                    if (polyline && polyline._map && polyline._map && polyline._map._layers) {
-                        for (const layer of Object.values(polyline._map._layers)) {
+                for (const [idx, polyline] of Object.entries(
+                    windowExt._overlayPolylines
+                )) {
+                    console.log(
+                        `[renderMap] Bring to front: overlay idx=${idx}, polyline=`,
+                        polyline
+                    );
+                    if (
+                        polyline &&
+                        polyline._map &&
+                        polyline._map &&
+                        polyline._map._layers
+                    ) {
+                        for (const layer of Object.values(
+                            polyline._map._layers
+                        )) {
                             if (
                                 layer instanceof L.CircleMarker &&
                                 layer.options &&
                                 polyline.options &&
-                                layer.options.color === polyline.options.color &&
+                                layer.options.color ===
+                                    polyline.options.color &&
                                 layer.bringToFront
                             ) {
                                 layer.bringToFront();
@@ -1283,11 +1553,15 @@ export function renderMap() {
                 }
             }
         }, 10);
-        console.log("[renderMap] Overlay logic complete. No fitBounds/zoom called here.");
+        console.log(
+            "[renderMap] Overlay logic complete. No fitBounds/zoom called here."
+        );
         // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
     } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
-        console.log('[renderMap] No overlays, calling mapDrawLapsWrapper("all")');
+        console.log(
+            '[renderMap] No overlays, calling mapDrawLapsWrapper("all")'
+        );
         mapDrawLapsWrapper("all");
     }
 
@@ -1300,25 +1574,38 @@ export function renderMap() {
         windowExt.updateOverlayHighlights();
     }
     if (windowExt.updateShownFilesList) {
-        console.log("[FFV] [renderMap] Calling updateShownFilesList after overlays drawn");
+        console.log(
+            "[FFV] [renderMap] Calling updateShownFilesList after overlays drawn"
+        );
         windowExt.updateShownFilesList();
         if (windowExt.setupOverlayFileNameMapActions) {
-            console.log("[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList");
+            console.log(
+                "[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList"
+            );
             windowExt.setupOverlayFileNameMapActions();
             if (windowExt.setupActiveFileNameMapActions) {
-                console.log("[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn");
+                console.log(
+                    "[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn"
+                );
                 windowExt.setupActiveFileNameMapActions();
             }
         }
     }
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState() {
-        const lapSelect = /** @type {HTMLSelectElement} */ (document.querySelector("#lap-select"));
+        const lapSelect = /** @type {HTMLSelectElement} */ (
+            document.querySelector("#lap-select")
+        );
         if (!lapSelect) return;
         // Keep lap selector enabled. Optionally disable only if there are no laps available.
         try {
-            const laps = /** @type {any} */ (windowExt.globalData && windowExt.globalData.lapMesgs);
-            lapSelect.disabled = !laps || !Array.isArray(laps) || laps.length === 0 ? false : false;
+            const laps = /** @type {any} */ (
+                windowExt.globalData && windowExt.globalData.lapMesgs
+            );
+            lapSelect.disabled =
+                !laps || !Array.isArray(laps) || laps.length === 0
+                    ? false
+                    : false;
         } catch {
             lapSelect.disabled = false;
         }

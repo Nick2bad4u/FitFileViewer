@@ -1,25 +1,32 @@
 /**
- * @fileoverview Recent files context menu wiring.
- * @description Extracted from utils/app/lifecycle/listeners.js to reduce complexity and file size.
+ * Extracted from utils/app/lifecycle/listeners.js to reduce complexity and file
+ * size.
+ *
+ * @file Recent files context menu wiring.
  */
 
 /**
  * Attach the “Recent Files” context menu behavior to the Open File button.
  *
- * This function intentionally preserves the original behavior (including debug logging)
- * because the menu behavior is heavily covered by strict tests.
+ * This function intentionally preserves the original behavior (including debug
+ * logging) because the menu behavior is heavily covered by strict tests.
  *
  * @param {Object} params
  * @param {HTMLButtonElement} params.openFileBtn
  * @param {(isLoading: boolean) => void} params.setLoading
  * @param {(message: string, type?: string, durationMs?: number) => void} params.showNotification
  */
-export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNotification }) {
+export function attachRecentFilesContextMenu({
+    openFileBtn,
+    setLoading,
+    showNotification,
+}) {
     const debugEnabled =
         typeof process !== "undefined" &&
         Boolean(process.env) &&
         // Keep default quiet even in tests; enable only when explicitly requested.
-        (process.env.FFV_DEBUG_RECENT_MENU === "1" || process.env.NODE_ENV === "development");
+        (process.env.FFV_DEBUG_RECENT_MENU === "1" ||
+            process.env.NODE_ENV === "development");
 
     /**
      * @param {...any[]} args
@@ -39,7 +46,12 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             return;
         }
         const recentFiles = await globalThis.electronAPI.recentFiles();
-        debugLog("DEBUG: recentFiles call completed. Result:", recentFiles, "Length:", recentFiles?.length);
+        debugLog(
+            "DEBUG: recentFiles call completed. Result:",
+            recentFiles,
+            "Length:",
+            recentFiles?.length
+        );
         if (!recentFiles || recentFiles.length === 0) {
             showNotification("No recent files found.", "info", 2000);
             return;
@@ -103,16 +115,26 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             try {
                 const margin = 8;
                 const rect = menu.getBoundingClientRect();
-                const vw = globalThis.window === undefined ? 0 : window.innerWidth;
-                const vh = globalThis.window === undefined ? 0 : window.innerHeight;
+                const vw =
+                    globalThis.window === undefined ? 0 : window.innerWidth;
+                const vh =
+                    globalThis.window === undefined ? 0 : window.innerHeight;
 
                 let left = x;
                 let top = y;
 
-                if (vw > 0 && rect.width > 0 && left + rect.width + margin > vw) {
+                if (
+                    vw > 0 &&
+                    rect.width > 0 &&
+                    left + rect.width + margin > vw
+                ) {
                     left = Math.max(margin, vw - rect.width - margin);
                 }
-                if (vh > 0 && rect.height > 0 && top + rect.height + margin > vh) {
+                if (
+                    vh > 0 &&
+                    rect.height > 0 &&
+                    top + rect.height + margin > vh
+                ) {
                     top = Math.max(margin, vh - rect.height - margin);
                 }
 
@@ -144,7 +166,10 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 item.style.color = "var(--color-fg-alt)";
             });
             item.addEventListener("mouseleave", () => {
-                item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
+                item.style.background =
+                    focusedIndex === idx
+                        ? "var(--color-glass-border)"
+                        : "transparent";
                 item.style.color = "var(--color-fg)";
             });
         }
@@ -160,19 +185,36 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 try {
                     // Security: explicitly approve the selected recent file before reading.
                     // This keeps recentFiles() side-effect free in main.
-                    if (typeof globalThis.electronAPI?.approveRecentFile === "function") {
-                        const ok = await globalThis.electronAPI.approveRecentFile(file);
+                    if (
+                        typeof globalThis.electronAPI?.approveRecentFile ===
+                        "function"
+                    ) {
+                        const ok =
+                            await globalThis.electronAPI.approveRecentFile(
+                                file
+                            );
                         if (!ok) {
-                            showNotification("File access denied.", "error", 4000);
+                            showNotification(
+                                "File access denied.",
+                                "error",
+                                4000
+                            );
                             return;
                         }
                     }
 
-                    const arrayBuffer = await globalThis.electronAPI.readFile(file),
-                        result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+                    const arrayBuffer =
+                            await globalThis.electronAPI.readFile(file),
+                        result =
+                            await globalThis.electronAPI.parseFitFile(
+                                arrayBuffer
+                            );
 
                     if (result && result.error) {
-                        showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
+                        showNotification(
+                            `Error: ${result.error}\n${result.details || ""}`,
+                            "error"
+                        );
                         return;
                     }
 
@@ -183,15 +225,26 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                         // Optional chaining avoids undefined invocation
                         globalThis.showFitData?.(dataToShow, file);
                         // Optional integration - guarded
-                        if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
-                            /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
+                        if (
+                            /** @type {any} */ (globalThis)
+                                .sendFitFileToAltFitReader
+                        ) {
+                            /** @type {any} */ (
+                                globalThis
+                            ).sendFitFileToAltFitReader(arrayBuffer);
                         }
                         await globalThis.electronAPI.addRecentFile(file);
                     } else {
-                        showNotification("Error: No valid FIT data found in file", "error");
+                        showNotification(
+                            "Error: No valid FIT data found in file",
+                            "error"
+                        );
                     }
                 } catch (error) {
-                    showNotification(`Error opening recent file: ${error}`, "error");
+                    showNotification(
+                        `Error opening recent file: ${error}`,
+                        "error"
+                    );
                 } finally {
                     openFileBtn.disabled = false;
                     setLoading(false);
@@ -203,7 +256,10 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             const /** @type {HTMLDivElement} */
                 item = document.createElement("div"),
                 parts = file.split(/\\|\//g),
-                shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
+                shortName =
+                    parts.length >= 2
+                        ? `${parts.at(-2)}\\${parts.at(-1)}`
+                        : parts.at(-1);
             // TextContent expects string | null; ensure fallback string
             item.textContent = shortName || "";
             item.title = file;
@@ -213,7 +269,8 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             item.style.textOverflow = "ellipsis";
             item.setAttribute("role", "menuitem");
             item.setAttribute("tabindex", "-1");
-            item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
+            item.style.background =
+                idx === 0 ? "var(--color-glass-border)" : "transparent";
             attachHoverHandlers(item, idx);
             item.addEventListener("click", createClickHandler(file));
             items.push(item);
@@ -221,12 +278,15 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         }
         /**
          * Move visual focus + highlight to a specific index.
+         *
          * @param {number} idx
          */
         function focusItem(idx) {
             for (const [i, el] of items.entries()) {
-                el.style.background = i === idx ? "var(--color-glass-border)" : "transparent";
-                el.style.color = i === idx ? "var(--color-fg-alt)" : "var(--color-fg)";
+                el.style.background =
+                    i === idx ? "var(--color-glass-border)" : "transparent";
+                el.style.color =
+                    i === idx ? "var(--color-fg-alt)" : "var(--color-fg)";
                 if (i === idx) {
                     el.focus();
                 }
@@ -290,7 +350,10 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         );
         // Log a safe property instead of comparing an object to itself
         debugLog("DEBUG: Document.body present:", Boolean(document.body));
-        debugLog("DEBUG: Document.body can append?", typeof document.body.append === "function");
+        debugLog(
+            "DEBUG: Document.body can append?",
+            typeof document.body.append === "function"
+        );
 
         // Robust menu attachment with verification and retry
         let attachmentAttempts = 0;
@@ -298,17 +361,28 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
         while (attachmentAttempts < maxAttempts) {
             attachmentAttempts++;
-            debugLog(`DEBUG: Attachment attempt ${attachmentAttempts}/${maxAttempts}`);
+            debugLog(
+                `DEBUG: Attachment attempt ${attachmentAttempts}/${maxAttempts}`
+            );
 
             try {
                 document.body.append(menu);
                 debugLog("DEBUG: append call succeeded");
 
                 // Immediately verify the menu is properly attached
-                const isAttached = document.body.contains(menu) && menu.parentNode === document.body;
-                const canBeFound = Boolean(document.querySelector("#recent-files-menu"));
+                const isAttached =
+                    document.body.contains(menu) &&
+                    menu.parentNode === document.body;
+                const canBeFound = Boolean(
+                    document.querySelector("#recent-files-menu")
+                );
 
-                debugLog("DEBUG: Verification - isAttached:", isAttached, "canBeFound:", canBeFound);
+                debugLog(
+                    "DEBUG: Verification - isAttached:",
+                    isAttached,
+                    "canBeFound:",
+                    canBeFound
+                );
                 debugLog(
                     "DEBUG: Menu parentNode:",
                     menu.parentNode,
@@ -323,7 +397,9 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                     clampMenuToViewport(event.clientX, event.clientY);
                     break;
                 } else {
-                    debugLog("DEBUG: Menu attachment failed verification, retrying...");
+                    debugLog(
+                        "DEBUG: Menu attachment failed verification, retrying..."
+                    );
                     // Try to remove any existing menu before retry
                     if (menu.parentNode) {
                         menu.remove();
@@ -331,15 +407,23 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
                     // Try alternative attachment method
                     if (attachmentAttempts === 2) {
-                        debugLog("DEBUG: Trying append with different approach");
+                        debugLog(
+                            "DEBUG: Trying append with different approach"
+                        );
                         document.body.append(menu);
                     } else if (attachmentAttempts === 3) {
                         debugLog("DEBUG: Trying insertBefore as last resort");
-                        document.body.insertBefore(menu, document.body.firstChild);
+                        document.body.insertBefore(
+                            menu,
+                            document.body.firstChild
+                        );
                     }
                 }
             } catch (error) {
-                debugLog("DEBUG: append failed with error:", /** @type {any} */ (error)?.message);
+                debugLog(
+                    "DEBUG: append failed with error:",
+                    /** @type {any} */ (error)?.message
+                );
                 if (attachmentAttempts === maxAttempts) {
                     throw error;
                 }
@@ -347,9 +431,13 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         }
 
         // Final verification
-        const finalCheck = document.body.contains(menu) && Boolean(document.querySelector("#recent-files-menu"));
+        const finalCheck =
+            document.body.contains(menu) &&
+            Boolean(document.querySelector("#recent-files-menu"));
         if (!finalCheck) {
-            debugLog("DEBUG: CRITICAL - Menu attachment failed after all attempts");
+            debugLog(
+                "DEBUG: CRITICAL - Menu attachment failed after all attempts"
+            );
             throw new Error("Failed to attach context menu to DOM");
         }
 
@@ -392,11 +480,19 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 e.target?.constructor?.name
             );
             const { target, isTrusted, which, button } = e;
-            if (target instanceof Node && !menu.contains(target) && target !== menu) {
+            if (
+                target instanceof Node &&
+                !menu.contains(target) &&
+                target !== menu
+            ) {
                 // Check for test pollution: synthetic events that are both untrusted AND
                 // occur more than 2 seconds after menu creation (likely from earlier tests)
                 const timeSinceMenuCreated = Date.now() - menuCreatedAt;
-                const isLikelyTestPollution = !isTrusted && which === 0 && button === 0 && timeSinceMenuCreated > 2000;
+                const isLikelyTestPollution =
+                    !isTrusted &&
+                    which === 0 &&
+                    button === 0 &&
+                    timeSinceMenuCreated > 2000;
                 debugLog(
                     "DEBUG: timeSinceMenuCreated:",
                     timeSinceMenuCreated,
@@ -412,7 +508,9 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
             } else {
-                debugLog("DEBUG: Not removing menu - target inside menu or is menu itself");
+                debugLog(
+                    "DEBUG: Not removing menu - target inside menu or is menu itself"
+                );
             }
         };
         document.addEventListener("mousedown", removeMenu);

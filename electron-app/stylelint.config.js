@@ -1,4 +1,4 @@
-/** @type {import('stylelint').Config} */
+/** @type {import("stylelint").Config} */
 module.exports = {
     extends: "stylelint-config-standard",
     ignoreFiles: [
@@ -12,6 +12,10 @@ module.exports = {
         "temp-win7/**",
         // Coverage reports (generated).
         "coverage/**/*.css",
+        "**/node_modules/**",
+        "**/vendor/**",
+        "**/*.min.css",
+        "**/electron-app/node_modules/**",
     ],
     overrides: [
         {

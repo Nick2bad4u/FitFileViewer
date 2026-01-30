@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for data/zones
- * @description Re-exports all modules in the data/zones category
+ * Re-exports all modules in the data/zones category
+ *
+ * @file Barrel Export for data/zones
  */
 export * from "./chartZoneColorUtils.js";
 export * from "./renderSingleHRZoneBar.js";

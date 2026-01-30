@@ -1,6 +1,8 @@
 /**
  * Record message from FIT file (highly simplified subset)
+ *
  * @typedef {Object} RecordMessage
+ *
  * @property {number} [position_lat]
  * @property {number} [position_long]
  * @property {number} [heart_rate]
@@ -10,7 +12,9 @@
  */
 /**
  * Session message subset
+ *
  * @typedef {Object} SessionMessage
+ *
  * @property {number} [start_time]
  * @property {number} [total_elapsed_time]
  * @property {number} [total_distance]
@@ -20,16 +24,20 @@
  */
 /**
  * Device info message subset
+ *
  * @typedef {Object} DeviceInfoMessage
- * @property {string|number} [manufacturer]
- * @property {string|number} [product]
- * @property {string|number} [serial_number]
+ *
+ * @property {string | number} [manufacturer]
+ * @property {string | number} [product]
+ * @property {string | number} [serial_number]
  * @property {number} [software_version]
  * @property {number} [hardware_version]
  */
 /**
  * Activity message subset
+ *
  * @typedef {Object} ActivityMessage
+ *
  * @property {number} [timestamp]
  * @property {number} [total_timer_time]
  * @property {number} [local_timestamp]
@@ -37,7 +45,9 @@
  */
 /**
  * Raw FIT data structure (minimal, optional arrays)
+ *
  * @typedef {Object} RawFitData
+ *
  * @property {RecordMessage[]} [recordMesgs]
  * @property {SessionMessage[]} [sessionMesgs]
  * @property {DeviceInfoMessage[]} [device_infos]
@@ -46,34 +56,42 @@
  */
 /**
  * Extracted session info
+ *
  * @typedef {Object} SessionInfo
- * @property {number|undefined} startTime
- * @property {number|undefined} totalElapsedTime
- * @property {number|undefined} totalDistance
- * @property {number|undefined} totalCalories
- * @property {string|undefined} sport
- * @property {string|undefined} subSport
+ *
+ * @property {number | undefined} startTime
+ * @property {number | undefined} totalElapsedTime
+ * @property {number | undefined} totalDistance
+ * @property {number | undefined} totalCalories
+ * @property {string | undefined} sport
+ * @property {string | undefined} subSport
  */
 /**
  * Extracted device info
+ *
  * @typedef {Object} DeviceInfo
- * @property {string|number|undefined} manufacturer
- * @property {string|number|undefined} product
- * @property {string|number|undefined} serialNumber
- * @property {number|undefined} softwareVersion
- * @property {number|undefined} hardwareVersion
+ *
+ * @property {string | number | undefined} manufacturer
+ * @property {string | number | undefined} product
+ * @property {string | number | undefined} serialNumber
+ * @property {number | undefined} softwareVersion
+ * @property {number | undefined} hardwareVersion
  */
 /**
  * Extracted activity info
+ *
  * @typedef {Object} ActivityInfo
- * @property {number|undefined} timestamp
- * @property {number|undefined} totalTimerTime
- * @property {number|undefined} localTimestamp
- * @property {number|undefined} numSessions
+ *
+ * @property {number | undefined} timestamp
+ * @property {number | undefined} totalTimerTime
+ * @property {number | undefined} localTimestamp
+ * @property {number | undefined} numSessions
  */
 /**
  * Data quality coverage breakdown
+ *
  * @typedef {Object} DataCoverage
+ *
  * @property {number} gps
  * @property {number} heartRate
  * @property {number} power
@@ -82,7 +100,9 @@
  */
 /**
  * Data quality assessment
+ *
  * @typedef {Object} DataQuality
+ *
  * @property {boolean} hasGPS
  * @property {boolean} hasHeartRate
  * @property {boolean} hasPower
@@ -94,23 +114,29 @@
  */
 /**
  * Processed FIT file data
+ *
  * @typedef {Object} ProcessedData
+ *
  * @property {number} recordCount
- * @property {SessionInfo|null} sessionInfo
- * @property {DeviceInfo|null} deviceInfo
- * @property {ActivityInfo|null} activityInfo
+ * @property {SessionInfo | null} sessionInfo
+ * @property {DeviceInfo | null} deviceInfo
+ * @property {ActivityInfo | null} activityInfo
  * @property {DataQuality} dataQuality
  */
 /**
  * Validation result structure
+ *
  * @typedef {Object} ValidationResult
+ *
  * @property {boolean} isValid
  * @property {string[]} errors
  * @property {string[]} warnings
  */
 /**
  * File metrics structure
+ *
  * @typedef {Object} FileMetrics
+ *
  * @property {number} lastUpdated
  * @property {number} recordCount
  * @property {boolean} hasSession
@@ -123,7 +149,9 @@
 export class FitFileStateManager {
     /**
      * Assess data quality
+     *
      * @param {RawFitData} data
+     *
      * @returns {DataQuality}
      */
     assessDataQuality(data: RawFitData): DataQuality;
@@ -133,14 +161,18 @@ export class FitFileStateManager {
     clearFileState(): void;
     /**
      * Extract activity information
+     *
      * @param {RawFitData} data
-     * @returns {ActivityInfo|null}
+     *
+     * @returns {ActivityInfo | null}
      */
     extractActivityInfo(data: RawFitData): ActivityInfo | null;
     /**
      * Extract device information
+     *
      * @param {RawFitData} data
-     * @returns {DeviceInfo|null}
+     *
+     * @returns {DeviceInfo | null}
      */
     extractDeviceInfo(data: RawFitData): DeviceInfo | null;
     extractSessionInfo(data: any): {
@@ -152,19 +184,26 @@ export class FitFileStateManager {
         totalElapsedTime: any;
     } | null;
     /**
-    /**
+     * ```
+     * /**
+     * ```
+     *
      * Get record count from file data
+     *
      * @param {RawFitData} data - File data
+     *
      * @returns {number}
      */
     getRecordCount(data: RawFitData): number;
     /**
      * Handle successful file loading
+     *
      * @param {Object} fileData - Loaded file data
      */
     handleFileLoaded(fileData: RawFitData, options?: {}): void;
     /**
      * Handle file loading errors
+     *
      * @param {Error} error - Loading error
      */
     handleFileLoadingError(error: unknown): void;
@@ -173,13 +212,16 @@ export class FitFileStateManager {
      */
     initialize(): void; /**
      * Process file data and extract useful information
+     *
      * @param {Object} data - Raw file data
      */
     processFileData(data: RawFitData): void;
     /**
      * Extract session information
+     *
      * @param {RawFitData} data
-     * @returns {SessionInfo|null}
+     *
+     * @returns {SessionInfo | null}
      */ /**
      * Set up listeners for data processing events
      */
@@ -194,21 +236,25 @@ export class FitFileStateManager {
     setupValidationListeners(): void;
     /**
      * Start file loading process
+     *
      * @param {string} filePath - Path to the FIT file
      */
     startFileLoading(filePath: string): void;
     /**
      * Update file metrics display
+     *
      * @param {Object} processedData - Processed file data
      */
     updateFileMetrics(processedData: ProcessedData | null): void;
     /**
      * Update file loading progress
+     *
      * @param {number} progress - Progress percentage (0-100)
      */
     updateLoadingProgress(progress: number): void;
     /**
      * Validate file data
+     *
      * @param {RawFitData} data
      */
     validateFileData(data: RawFitData): void;
@@ -216,66 +262,79 @@ export class FitFileStateManager {
 export namespace FitFileSelectors {
     /**
      * Get current file path
-     * @returns {string|null} Current file path
+     *
+     * @returns {string | null} Current file path
      */
     function getCurrentFile(): string | null;
     /**
      * Get data quality assessment
-     * @returns {Object|null} Data quality object
+     *
+     * @returns {Object | null} Data quality object
      */
     function getDataQuality(): Object | null;
     /**
      * Get loading error if any
-     * @returns {string|null} Error message
+     *
+     * @returns {string | null} Error message
      */
     function getLoadingError(): string | null;
     /**
      * Get loading progress
+     *
      * @returns {number} Loading progress (0-100)
      */
     function getLoadingProgress(): number;
     /**
      * Get file metrics
-     * @returns {Object|null} File metrics
+     *
+     * @returns {Object | null} File metrics
      */
     function getMetrics(): Object | null;
     /**
      * Get processed file data
-     * @returns {Object|null} Processed data
+     *
+     * @returns {Object | null} Processed data
      */
     function getProcessedData(): Object | null;
     /**
      * Get processing error if any
-     * @returns {string|null} Error message
+     *
+     * @returns {string | null} Error message
      */
     function getProcessingError(): string | null;
     /**
      * Get file validation status
-     * @returns {Object|null} Validation object
+     *
+     * @returns {Object | null} Validation object
      */
     function getValidation(): Object | null;
     /**
      * Check if file has GPS data
+     *
      * @returns {boolean} True if has GPS
      */
     function hasGPS(): boolean;
     /**
      * Check if file has heart rate data
+     *
      * @returns {boolean} True if has heart rate
      */
     function hasHeartRate(): boolean;
     /**
      * Check if file has power data
+     *
      * @returns {boolean} True if has power
      */
     function hasPower(): boolean;
     /**
      * Check if file data is valid
+     *
      * @returns {boolean} True if valid
      */
     function isFileValid(): boolean;
     /**
      * Check if a file is currently loading
+     *
      * @returns {boolean} True if loading
      */
     function isLoading(): boolean;

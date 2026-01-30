@@ -54,7 +54,12 @@ function ensureKeyboardShortcutsModal() {
     console.log("Modal element created and appended to body");
 
     // Add global event listeners
-    addEventListenerWithCleanup(document, "keydown", handleShortcutsEscapeKey, true); // Inject enhanced styles
+    addEventListenerWithCleanup(
+        document,
+        "keydown",
+        handleShortcutsEscapeKey,
+        true
+    ); // Inject enhanced styles
     injectKeyboardShortcutsModalStyles();
     console.log("Modal styles injected");
 
@@ -65,6 +70,7 @@ function ensureKeyboardShortcutsModal() {
 
 /**
  * Creates the enhanced keyboard shortcuts modal content with modern styling
+ *
  * @returns {string} HTML content for the modal
  */
 function getKeyboardShortcutsModalContent() {
@@ -72,24 +78,56 @@ function getKeyboardShortcutsModalContent() {
         {
             category: "File Operations",
             items: [
-                { action: "Open File", description: "Open a FIT file for analysis", keys: "Ctrl+O" },
-                { action: "Save As", description: "Save current data to file", keys: "Ctrl+S" },
-                { action: "Print", description: "Print current view", keys: "Ctrl+P" },
-                { action: "Close Window", description: "Close the application window", keys: "Ctrl+W" },
+                {
+                    action: "Open File",
+                    description: "Open a FIT file for analysis",
+                    keys: "Ctrl+O",
+                },
+                {
+                    action: "Save As",
+                    description: "Save current data to file",
+                    keys: "Ctrl+S",
+                },
+                {
+                    action: "Print",
+                    description: "Print current view",
+                    keys: "Ctrl+P",
+                },
+                {
+                    action: "Close Window",
+                    description: "Close the application window",
+                    keys: "Ctrl+W",
+                },
             ],
         },
         {
             category: "View Controls",
             items: [
-                { action: "Reload", description: "Refresh the current view", keys: "Ctrl+R" },
-                { action: "Toggle Fullscreen", description: "Enter or exit fullscreen mode", keys: "F11" },
-                { action: "Toggle DevTools", description: "Open developer tools for debugging", keys: "Ctrl+Shift+I" },
+                {
+                    action: "Reload",
+                    description: "Refresh the current view",
+                    keys: "Ctrl+R",
+                },
+                {
+                    action: "Toggle Fullscreen",
+                    description: "Enter or exit fullscreen mode",
+                    keys: "F11",
+                },
+                {
+                    action: "Toggle DevTools",
+                    description: "Open developer tools for debugging",
+                    keys: "Ctrl+Shift+I",
+                },
             ],
         },
         {
             category: "Application",
             items: [
-                { action: "Export", description: "Export data (assign in menu)", keys: "No default" },
+                {
+                    action: "Export",
+                    description: "Export data (assign in menu)",
+                    keys: "No default",
+                },
                 {
                     action: "Theme: Dark/Light",
                     description: "Switch between dark and light themes",
@@ -154,6 +192,7 @@ function getKeyboardShortcutsModalContent() {
 
 /**
  * Handles Escape key for closing the keyboard shortcuts modal
+ *
  * @param {any} event
  */
 function handleShortcutsEscapeKey(event) {
@@ -510,7 +549,11 @@ function setupKeyboardShortcutsModalHandlers(modal) {
     // Close button handler
     const closeBtn = modal.querySelector("#shortcuts-modal-close");
     if (closeBtn) {
-        addEventListenerWithCleanup(closeBtn, "click", closeKeyboardShortcutsModal);
+        addEventListenerWithCleanup(
+            closeBtn,
+            "click",
+            closeKeyboardShortcutsModal
+        );
     }
 
     // Click outside to close
@@ -534,7 +577,9 @@ function showKeyboardShortcutsModal() {
     const modal = document.querySelector("#keyboard-shortcuts-modal");
     console.log("Modal element found:", modal);
     if (!modal) {
-        console.error("Modal element not found after ensureKeyboardShortcutsModal");
+        console.error(
+            "Modal element not found after ensureKeyboardShortcutsModal"
+        );
         return;
     }
 
@@ -557,7 +602,9 @@ function showKeyboardShortcutsModal() {
             console.log("Ensured show class via animation frame");
         });
     } else {
-        console.warn("requestAnimationFrame not available; applying show class synchronously");
+        console.warn(
+            "requestAnimationFrame not available; applying show class synchronously"
+        );
     }
 
     applyShowClass();
@@ -581,11 +628,14 @@ function showKeyboardShortcutsModal() {
 
 /**
  * Traps focus within the modal for accessibility
+ *
  * @param {any} modal
  */
 function trapFocusInModal(modal) {
     const focusableElements = Array.from(
-        modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+        modal.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
     ).filter((element) => {
         const htmlElement = /** @type {HTMLElement} */ (element);
         if (htmlElement.hasAttribute("tabindex")) {
@@ -607,25 +657,36 @@ function trapFocusInModal(modal) {
         }
 
         const focusCycle = focusableElements;
-        const currentActive = /** @type {HTMLElement | null} */ (document.activeElement);
-        const currentIndex = currentActive ? focusCycle.indexOf(currentActive) : -1;
+        const currentActive = /** @type {HTMLElement | null} */ (
+            document.activeElement
+        );
+        const currentIndex = currentActive
+            ? focusCycle.indexOf(currentActive)
+            : -1;
 
         e.preventDefault();
         if (!e.defaultPrevented) {
             try {
-                Object.defineProperty(e, "defaultPrevented", { configurable: true, value: true });
+                Object.defineProperty(e, "defaultPrevented", {
+                    configurable: true,
+                    value: true,
+                });
             } catch {
                 // Ignore environments where defaultPrevented is read-only
             }
         }
 
         if (e.shiftKey) {
-            const targetIndex = currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
+            const targetIndex =
+                currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
             focusCycle[targetIndex].focus();
             return;
         }
 
-        const targetIndex = currentIndex === -1 || currentIndex === focusCycle.length - 1 ? 0 : currentIndex + 1;
+        const targetIndex =
+            currentIndex === -1 || currentIndex === focusCycle.length - 1
+                ? 0
+                : currentIndex + 1;
         focusCycle[targetIndex].focus();
     }
 

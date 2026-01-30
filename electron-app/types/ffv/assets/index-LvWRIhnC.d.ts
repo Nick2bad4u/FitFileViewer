@@ -96,10 +96,10 @@ declare function Ba(): {
     spanId: string;
 };
 /**
- * @license lucide-react v0.396.0 - ISC
+ * @license Lucide-react v0.396.0 - ISC
  *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
+ *   This source code is licensed under the ISC license. See the LICENSE file in
+ *   the root directory of this source tree.
  */ declare function wi(e: any, t: any): any;
 declare function Si(): any;
 declare function m0(...e: any[]): string;
@@ -131,7 +131,11 @@ declare function P1(e: any): any;
 declare function v1(e: any, t?: any[], n?: boolean): boolean;
 declare function T1(e: any): any[] | undefined;
 declare function H1(e: any): string;
-declare function Qg(e: string | undefined, t: string | undefined, n: any): string;
+declare function Qg(
+    e: string | undefined,
+    t: string | undefined,
+    n: any
+): string;
 declare function M1(e: any): string | undefined;
 declare const j1: "baggage";
 declare function V1(e: any, t: any): void;

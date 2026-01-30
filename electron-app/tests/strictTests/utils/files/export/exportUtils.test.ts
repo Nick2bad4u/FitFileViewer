@@ -13,19 +13,27 @@ function installCanvasMocks() {
         putImageData: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
 
-    vi.spyOn(HTMLCanvasElement.prototype as any, "getContext").mockImplementation((...args: any[]) => {
+    vi.spyOn(
+        HTMLCanvasElement.prototype as any,
+        "getContext"
+    ).mockImplementation((...args: any[]) => {
         const type = args[0];
         if (type === "2d") return ctx as any;
         return null;
     });
 
-    vi.spyOn(HTMLCanvasElement.prototype as any, "toDataURL").mockImplementation(() => "data:image/png;base64,AAA");
+    vi.spyOn(
+        HTMLCanvasElement.prototype as any,
+        "toDataURL"
+    ).mockImplementation(() => "data:image/png;base64,AAA");
     // toBlob callback pattern
-    vi.spyOn(HTMLCanvasElement.prototype as any, "toBlob").mockImplementation((...args: any[]) => {
-        const cb = args[0];
-        const blob = new Blob(["x"], { type: "image/png" });
-        cb(blob);
-    });
+    vi.spyOn(HTMLCanvasElement.prototype as any, "toBlob").mockImplementation(
+        (...args: any[]) => {
+            const cb = args[0];
+            const blob = new Blob(["x"], { type: "image/png" });
+            cb(blob);
+        }
+    );
 
     return ctx;
 }
@@ -59,13 +67,17 @@ function installURLMocks() {
 }
 
 function installClipboardMock() {
-    const nav = ((globalThis as any).navigator = (globalThis as any).navigator || {});
+    const nav = ((globalThis as any).navigator =
+        (globalThis as any).navigator || {});
     const clip = {
         write: vi.fn().mockResolvedValue(undefined),
         writeText: vi.fn().mockResolvedValue(undefined),
     };
     try {
-        Object.defineProperty(nav, "clipboard", { value: clip, configurable: true });
+        Object.defineProperty(nav, "clipboard", {
+            value: clip,
+            configurable: true,
+        });
     } catch {
         // fallback assignment if defineProperty fails
         (nav as any).clipboard = clip as any;
@@ -86,7 +98,8 @@ function installJSZipMock() {
             return new Blob(["zip"], { type: "application/zip" });
         }
     }
-    (globalThis as any).window = (globalThis as any).window || (globalThis as any);
+    (globalThis as any).window =
+        (globalThis as any).window || (globalThis as any);
     (globalThis as any).window.JSZip = FakeZip as any;
     return FakeZip;
 }
@@ -100,8 +113,12 @@ describe("exportUtils core flows", () => {
         // Provide manual mock registry for exportUtils suffix resolver
         const reg = new Map<string, any>();
         (globalThis as any).__vitest_manual_mocks__ = reg;
-        reg.set("/utils/ui/notifications/showNotification.js", { showNotification: vi.fn() });
-        reg.set("/utils/charts/theming/chartThemeUtils.js", { detectCurrentTheme: vi.fn(() => "light") });
+        reg.set("/utils/ui/notifications/showNotification.js", {
+            showNotification: vi.fn(),
+        });
+        reg.set("/utils/charts/theming/chartThemeUtils.js", {
+            detectCurrentTheme: vi.fn(() => "light"),
+        });
         installCanvasMocks();
         installURLMocks();
         installClipboardMock();
@@ -165,9 +182,14 @@ describe("exportUtils core flows", () => {
 
         expect(chart.toBase64Image).toHaveBeenCalled();
         // Assert a link was created and removed
-        const link = document.querySelector("a[download='out.png']") as HTMLAnchorElement | null;
+        const link = document.querySelector(
+            "a[download='out.png']"
+        ) as HTMLAnchorElement | null;
         expect(link).toBeNull(); // should be removed after click
-        expect(note).toHaveBeenCalledWith("Chart exported as out.png", "success");
+        expect(note).toHaveBeenCalledWith(
+            "Chart exported as out.png",
+            "success"
+        );
     });
 
     it("copyChartToClipboard writes PNG blob and notifies", async () => {
@@ -196,13 +218,24 @@ describe("exportUtils core flows", () => {
             { x: 2, y: 20 },
         ];
 
-        await exportUtils.exportChartDataAsCSV(data as any, "value", "file.csv");
+        await exportUtils.exportChartDataAsCSV(
+            data as any,
+            "value",
+            "file.csv"
+        );
         // Link removed after click
         const link = document.querySelector("a[download='file.csv']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
-        expect(notify).toHaveBeenCalledWith("Data exported as file.csv", "success");
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
+        expect(notify).toHaveBeenCalledWith(
+            "Data exported as file.csv",
+            "success"
+        );
     });
 
     it("exportChartDataAsJSON creates a blob link and notifies", async () => {
@@ -213,12 +246,23 @@ describe("exportUtils core flows", () => {
             { x: 2, y: 20 },
         ];
 
-        await exportUtils.exportChartDataAsJSON(data as any, "value", "file.json");
+        await exportUtils.exportChartDataAsJSON(
+            data as any,
+            "value",
+            "file.json"
+        );
         const link = document.querySelector("a[download='file.json']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
-        expect(notify).toHaveBeenCalledWith("Data exported as file.json", "success");
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
+        expect(notify).toHaveBeenCalledWith(
+            "Data exported as file.json",
+            "success"
+        );
     });
 
     it("exportCombinedChartsDataAsCSV merges timestamps across charts", async () => {
@@ -253,21 +297,31 @@ describe("exportUtils core flows", () => {
             canvas: { width: 100, height: 50 },
         };
 
-        await exportUtils.exportCombinedChartsDataAsCSV([chartA, chartB] as any, "combined.csv");
+        await exportUtils.exportCombinedChartsDataAsCSV(
+            [chartA, chartB] as any,
+            "combined.csv"
+        );
         const link = document.querySelector("a[download='combined.csv']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
-        expect(notify).toHaveBeenCalledWith("Combined data exported as combined.csv", "success");
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
+        expect(notify).toHaveBeenCalledWith(
+            "Combined data exported as combined.csv",
+            "success"
+        );
     });
 
     it("uploadToImgur throws when client id is not configured", async () => {
         // Set to the unconfigured value that should trigger the error
         localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
         const { exportUtils } = await import(modPath);
-        await expect(exportUtils.uploadToImgur("data:image/png;base64,AAA")).rejects.toThrow(
-            /Imgur client ID not configured/i
-        );
+        await expect(
+            exportUtils.uploadToImgur("data:image/png;base64,AAA")
+        ).rejects.toThrow(/Imgur client ID not configured/i);
     });
 
     it("createCombinedChartsImage stitches canvases and notifies", async () => {
@@ -278,11 +332,19 @@ describe("exportUtils core flows", () => {
         const chartA: any = { canvas: { width: 400, height: 200 } };
         const chartB: any = { canvas: { width: 400, height: 200 } };
 
-        await exportUtils.createCombinedChartsImage([chartA, chartB], "combined-charts.png");
+        await exportUtils.createCombinedChartsImage(
+            [chartA, chartB],
+            "combined-charts.png"
+        );
         // link should be removed after click
-        const link = document.querySelector("a[download='combined-charts.png']");
+        const link = document.querySelector(
+            "a[download='combined-charts.png']"
+        );
         expect(link).toBeNull();
-        expect(note).toHaveBeenCalledWith("Combined charts exported", "success");
+        expect(note).toHaveBeenCalledWith(
+            "Combined charts exported",
+            "success"
+        );
     });
 
     it("copyCombinedChartsToClipboard writes blob and notifies", async () => {
@@ -297,7 +359,10 @@ describe("exportUtils core flows", () => {
         await vi.waitFor(() => {
             expect((navigator.clipboard as any).write).toHaveBeenCalledTimes(1);
         });
-        expect(note).toHaveBeenCalledWith("Combined charts copied to clipboard", "success");
+        expect(note).toHaveBeenCalledWith(
+            "Combined charts copied to clipboard",
+            "success"
+        );
     });
 
     it("addCombinedCSVToZip creates combined-data.csv with union timestamps", async () => {
@@ -344,8 +409,12 @@ describe("exportUtils core flows", () => {
 
     it("exportAllAsZip writes images and data then notifies", async () => {
         const { exportUtils } = await import(modPath);
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
 
         const chartA: any = {
             canvas: { width: 400, height: 200 },
@@ -365,8 +434,12 @@ describe("exportUtils core flows", () => {
 
     it("printChart opens window and notifies", async () => {
         const { exportUtils } = await import(modPath);
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
 
         const fakeWin = {
             document: { write: vi.fn(), close: vi.fn() },
@@ -384,8 +457,12 @@ describe("exportUtils core flows", () => {
 
     it("printCombinedCharts opens window and notifies", async () => {
         const { exportUtils } = await import(modPath);
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<string, any>;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js").showNotification as any;
+        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
+            string,
+            any
+        >;
+        const notify = reg.get("/utils/ui/notifications/showNotification.js")
+            .showNotification as any;
 
         const fakeWin = {
             document: { write: vi.fn(), close: vi.fn() },
@@ -395,10 +472,19 @@ describe("exportUtils core flows", () => {
         } as any;
         vi.spyOn(window, "open").mockReturnValue(fakeWin);
 
-        const chartA: any = { canvas: { width: 300, height: 150 }, data: { datasets: [{ label: "A" }] } };
-        const chartB: any = { canvas: { width: 300, height: 150 }, data: { datasets: [{ label: "B" }] } };
+        const chartA: any = {
+            canvas: { width: 300, height: 150 },
+            data: { datasets: [{ label: "A" }] },
+        };
+        const chartB: any = {
+            canvas: { width: 300, height: 150 },
+            data: { datasets: [{ label: "B" }] },
+        };
         await exportUtils.printCombinedCharts([chartA, chartB]);
-        expect(notify).toHaveBeenCalledWith("Charts sent to printer", "success");
+        expect(notify).toHaveBeenCalledWith(
+            "Charts sent to printer",
+            "success"
+        );
     });
 
     // Additional tests for improved coverage
@@ -428,7 +514,9 @@ describe("exportUtils core flows", () => {
             const { exportUtils } = await import(modPath);
 
             exportUtils.setImgurConfig("new-client-456");
-            expect(localStorage.getItem("imgur_client_id")).toBe("new-client-456");
+            expect(localStorage.getItem("imgur_client_id")).toBe(
+                "new-client-456"
+            );
         });
 
         it("clearImgurConfig removes stored configuration", async () => {
@@ -459,7 +547,9 @@ describe("exportUtils core flows", () => {
             // Set to the only unconfigured value
             localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
 
-            await expect(exportUtils.uploadToImgur("fake-base64")).rejects.toThrow("Imgur client ID not configured");
+            await expect(
+                exportUtils.uploadToImgur("fake-base64")
+            ).rejects.toThrow("Imgur client ID not configured");
         });
 
         it("uploadToImgur makes API call when configured", async () => {
@@ -482,7 +572,9 @@ describe("exportUtils core flows", () => {
 
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
 
-            const result = await exportUtils.uploadToImgur("data:image/png;base64,ABC123");
+            const result = await exportUtils.uploadToImgur(
+                "data:image/png;base64,ABC123"
+            );
 
             expect(fetch).toHaveBeenCalledWith(
                 "https://api.imgur.com/3/image",
@@ -519,7 +611,9 @@ describe("exportUtils core flows", () => {
             };
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
 
-            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123")).rejects.toThrow(
+            await expect(
+                exportUtils.uploadToImgur("data:image/png;base64,ABC123")
+            ).rejects.toThrow(
                 "Imgur upload failed: 400 Bad Request - Bad request details"
             );
         });
@@ -529,9 +623,14 @@ describe("exportUtils core flows", () => {
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
-            vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
+            vi.stubGlobal(
+                "fetch",
+                vi.fn().mockRejectedValue(new Error("Network error"))
+            );
 
-            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123")).rejects.toThrow("Network error");
+            await expect(
+                exportUtils.uploadToImgur("data:image/png;base64,ABC123")
+            ).rejects.toThrow("Network error");
         });
     });
 
@@ -572,7 +671,9 @@ describe("exportUtils core flows", () => {
 
             exportUtils.setGyazoConfig("client-123", "secret-456");
             expect(localStorage.getItem("gyazo_client_id")).toBe("client-123");
-            expect(localStorage.getItem("gyazo_client_secret")).toBe("secret-456");
+            expect(localStorage.getItem("gyazo_client_secret")).toBe(
+                "secret-456"
+            );
         });
 
         it("clearGyazoConfig removes all stored data", async () => {
@@ -602,7 +703,9 @@ describe("exportUtils core flows", () => {
             const { exportUtils } = await import(modPath);
 
             exportUtils.setGyazoAccessToken("new-token");
-            expect(localStorage.getItem("gyazo_access_token")).toBe("new-token");
+            expect(localStorage.getItem("gyazo_access_token")).toBe(
+                "new-token"
+            );
         });
 
         it("clearGyazoAccessToken removes token", async () => {
@@ -639,7 +742,9 @@ describe("exportUtils core flows", () => {
 
             vi.stubGlobal("fetch", mockFetch);
 
-            const result = await exportUtils.uploadToGyazo("data:image/png;base64,ABC123");
+            const result = await exportUtils.uploadToGyazo(
+                "data:image/png;base64,ABC123"
+            );
 
             expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenNthCalledWith(
@@ -662,7 +767,9 @@ describe("exportUtils core flows", () => {
             localStorage.setItem("gyazo_client_id", "test-client");
             localStorage.setItem("gyazo_client_secret", "test-secret");
 
-            await expect(exportUtils.uploadToGyazo("fake-base64")).rejects.toThrow(
+            await expect(
+                exportUtils.uploadToGyazo("fake-base64")
+            ).rejects.toThrow(
                 /Gyazo authentication required: Gyazo OAuth is only available in the Electron desktop build/i
             );
         });
@@ -690,7 +797,9 @@ describe("exportUtils core flows", () => {
                 "https://gyazo.com/oauth/token",
                 expect.objectContaining({
                     method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
                     body: "client_id=test-client&client_secret=test-secret&code=auth-code&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fgyazo%2Fcallback",
                 })
             );

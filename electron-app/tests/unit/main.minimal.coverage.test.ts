@@ -29,8 +29,14 @@ const mockElectron = {
         removeAllListeners: vi.fn(),
     },
     dialog: {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/output.gpx" }),
+        showOpenDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePaths: ["/test/file.fit"],
+        }),
+        showSaveDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePath: "/test/output.gpx",
+        }),
     },
     Menu: {
         setApplicationMenu: vi.fn(),

@@ -15,7 +15,10 @@ export type LifecycleDependencies = {
           }
         | undefined;
     getAppState: (key: string) => unknown;
-    initializeApplication: () => Promise<WindowLike | undefined> | WindowLike | undefined;
+    initializeApplication: () =>
+        | Promise<WindowLike | undefined>
+        | WindowLike
+        | undefined;
     setupApplicationEventHandlers: () => void;
     setupIPCHandlers: (win: WindowLike | undefined) => void;
     setupMenuAndEventHandlers: () => void;
@@ -27,10 +30,11 @@ export type LifecycleDependencies = {
     ) => void;
 };
 /**
- * Registers the full main-process lifecycle, including test fallbacks that eagerly initialize the
- * window and IPC wiring.
+ * Registers the full main-process lifecycle, including test fallbacks that
+ * eagerly initialize the window and IPC wiring.
  *
  * @param {LifecycleDependencies} deps
+ *
  * @returns {void}
  */
 export function setupMainLifecycle(deps: LifecycleDependencies): void;

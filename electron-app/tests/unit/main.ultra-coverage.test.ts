@@ -1,10 +1,18 @@
 /**
  * Ultra-focused test for maximizing main.js coverage without assertion failures
- * This test imports main.js multiple times under different conditions to trigger
- * all possible code paths and maximize line coverage.
+ * This test imports main.js multiple times under different conditions to
+ * trigger all possible code paths and maximize line coverage.
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
+import {
+    describe,
+    test,
+    expect,
+    vi,
+    beforeEach,
+    afterEach,
+    beforeAll,
+} from "vitest";
 import { EventEmitter } from "events";
 
 // Track all mock references for cleanup
@@ -81,8 +89,14 @@ function createUltraComprehensiveMock() {
     });
 
     const mockDialog = {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/export.csv" }),
+        showOpenDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePaths: ["/test/file.fit"],
+        }),
+        showSaveDialog: vi.fn().mockResolvedValue({
+            canceled: false,
+            filePath: "/test/export.csv",
+        }),
         showMessageBox: vi.fn().mockResolvedValue({ response: 0 }),
     };
 
@@ -175,7 +189,8 @@ function createUltraComprehensiveMock() {
             if (path === "autoUpdaterInitialized") return false;
             if (path === "appIsQuitting") return false;
             if (path === "gyazoServer") return mockState.gyazoServer || null;
-            if (path === "gyazoServerPort") return mockState.gyazoServerPort || null;
+            if (path === "gyazoServerPort")
+                return mockState.gyazoServerPort || null;
             return mockState[path];
         }),
         set: vi.fn((path: string, value: any, options?: any) => {
@@ -243,7 +258,9 @@ beforeAll(() => {
     vi.mock("path", () => globalMocks.mockPath);
     vi.mock("http", () => globalMocks.mockHttp);
     vi.mock("electron-log", () => globalMocks.mockElectronLog);
-    vi.mock("electron-updater", () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
+    vi.mock("electron-updater", () => ({
+        autoUpdater: globalMocks.mockAutoUpdater,
+    }));
     vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
 
     // Mock utility modules
@@ -263,7 +280,10 @@ beforeAll(() => {
 
     vi.mock("../../utils/files/recent/recentFiles", () => ({
         addRecentFile: vi.fn(),
-        loadRecentFiles: vi.fn(() => ["/test/recent1.fit", "/test/recent2.fit"]),
+        loadRecentFiles: vi.fn(() => [
+            "/test/recent1.fit",
+            "/test/recent2.fit",
+        ]),
     }));
 
     vi.mock("../../utils/gyazo/oauth", () => ({
@@ -329,15 +349,21 @@ describe("main.js - Ultra Coverage Maximization", () => {
             // Auto-updater events
             globalMocks.mockAutoUpdater.on("error", () => {}); // Prevent unhandled errors
             globalMocks.mockAutoUpdater.emit("checking-for-update");
-            globalMocks.mockAutoUpdater.emit("update-available", { test: true });
+            globalMocks.mockAutoUpdater.emit("update-available", {
+                test: true,
+            });
             globalMocks.mockAutoUpdater.emit("update-not-available");
-            globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
+            globalMocks.mockAutoUpdater.emit("download-progress", {
+                percent: 50,
+            });
             globalMocks.mockAutoUpdater.emit("update-downloaded");
             globalMocks.mockAutoUpdater.emit("error", new Error("Test error"));
 
             // App events (wrap in try-catch to prevent test failures)
             try {
-                globalMocks.mockApp.emit("before-quit", { preventDefault: vi.fn() });
+                globalMocks.mockApp.emit("before-quit", {
+                    preventDefault: vi.fn(),
+                });
             } catch {}
             try {
                 globalMocks.mockApp.emit("window-all-closed");
@@ -346,7 +372,11 @@ describe("main.js - Ultra Coverage Maximization", () => {
                 globalMocks.mockApp.emit("activate");
             } catch {}
             try {
-                globalMocks.mockApp.emit("browser-window-focus", {}, globalMocks.mockWindow);
+                globalMocks.mockApp.emit(
+                    "browser-window-focus",
+                    {},
+                    globalMocks.mockWindow
+                );
             } catch {}
 
             // Web contents events
@@ -356,7 +386,11 @@ describe("main.js - Ultra Coverage Maximization", () => {
                 setWindowOpenHandler: vi.fn(),
             });
             try {
-                globalMocks.mockApp.emit("web-contents-created", {}, mockWebContents);
+                globalMocks.mockApp.emit(
+                    "web-contents-created",
+                    {},
+                    mockWebContents
+                );
             } catch {}
 
             // WebContents specific events
@@ -376,12 +410,17 @@ describe("main.js - Ultra Coverage Maximization", () => {
             globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
                 throw new Error("File error");
             });
-            globalMocks.mockFs.readFile.mockImplementationOnce((path: string, callback: any) => {
-                callback(new Error("Async file error"), null);
-            });
+            globalMocks.mockFs.readFile.mockImplementationOnce(
+                (path: string, callback: any) => {
+                    callback(new Error("Async file error"), null);
+                }
+            );
 
             // Auto-updater errors
-            globalMocks.mockAutoUpdater.emit("error", new Error("Critical error"));
+            globalMocks.mockAutoUpdater.emit(
+                "error",
+                new Error("Critical error")
+            );
 
             await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
@@ -401,22 +440,34 @@ describe("main.js - Ultra Coverage Maximization", () => {
 
         try {
             // Linux
-            Object.defineProperty(process, "platform", { value: "linux", writable: true });
+            Object.defineProperty(process, "platform", {
+                value: "linux",
+                writable: true,
+            });
             await import("../../main.js");
             await new Promise((resolve) => setTimeout(resolve, 50));
 
             // macOS
-            Object.defineProperty(process, "platform", { value: "darwin", writable: true });
+            Object.defineProperty(process, "platform", {
+                value: "darwin",
+                writable: true,
+            });
             await import("../../main.js");
             await new Promise((resolve) => setTimeout(resolve, 50));
 
             // Windows
-            Object.defineProperty(process, "platform", { value: "win32", writable: true });
+            Object.defineProperty(process, "platform", {
+                value: "win32",
+                writable: true,
+            });
             await import("../../main.js");
             await new Promise((resolve) => setTimeout(resolve, 50));
         } finally {
             // Restore platform
-            Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
+            Object.defineProperty(process, "platform", {
+                value: originalPlatform,
+                writable: true,
+            });
         }
 
         // Test with broken/missing components
@@ -427,13 +478,20 @@ describe("main.js - Ultra Coverage Maximization", () => {
                     isDestroyed: vi.fn(() => true),
                 },
             };
-            globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([brokenWindow]);
-            globalMocks.mockBrowserWindow.getFocusedWindow.mockReturnValueOnce(brokenWindow);
+            globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([
+                brokenWindow,
+            ]);
+            globalMocks.mockBrowserWindow.getFocusedWindow.mockReturnValueOnce(
+                brokenWindow
+            );
 
             await import("../../main.js");
             await new Promise((resolve) => setTimeout(resolve, 50));
         } catch (error) {
-            console.log("[TEST] Broken window error ignored for coverage:", error);
+            console.log(
+                "[TEST] Broken window error ignored for coverage:",
+                error
+            );
         }
 
         expect(true).toBe(true);

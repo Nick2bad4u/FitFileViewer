@@ -68,7 +68,12 @@ describe("showUpdateNotification strict", () => {
         // @ts-expect-error test setup
         window.electronAPI = { installUpdate: vi.fn() };
 
-        showUpdateNotification("Update downloaded", "success", 0, "update-downloaded");
+        showUpdateNotification(
+            "Update downloaded",
+            "success",
+            0,
+            "update-downloaded"
+        );
 
         const buttons = Array.from(el.querySelectorAll("button"));
         expect(buttons.length).toBe(2);

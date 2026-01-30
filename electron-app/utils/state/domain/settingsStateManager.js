@@ -1,22 +1,25 @@
 /**
- * Settings State Manager
- * Manages application settings with validation, persistence, and change tracking
+ * Settings State Manager Manages application settings with validation,
+ * persistence, and change tracking
  */
 
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe } from "../core/stateManager.js";
 
 /**
- * @typedef {"theme"|"mapTheme"|"chart"|"ui"|"export"|"units"|"powerEstimation"} SettingCategory
+ * @typedef {"theme" | "mapTheme" | "chart" | "ui" | "export" | "units" | "powerEstimation"} SettingCategory
+ *
  * @typedef {Object} SettingSchema
+ *
  * @property {string} key
  * @property {any} default
- * @property {(value:any)=>boolean} validate
- * @property {"string"|"boolean"|"object"|"number"} type
+ * @property {(value: any) => boolean} validate
+ * @property {"string" | "boolean" | "object" | "number"} type
  */
 
 /**
  * @typedef {Object} ExportedSettings
+ *
  * @property {string} version
  * @property {number} timestamp
  * @property {Record<string, any>} settings
@@ -57,7 +60,12 @@ const SETTINGS_SCHEMA = {
         default: "dark",
         key: "ffv-theme",
         type: "string",
-        validate: (value) => ["auto", "dark", "light"].includes(value),
+        validate: (value) =>
+            [
+                "auto",
+                "dark",
+                "light",
+            ].includes(value),
     },
     ui: {
         default: {
@@ -102,7 +110,9 @@ const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
 
 /**
  * @typedef {Object} ChartSettings
- * @property {ChartFieldVisibilityMap} [fieldVisibility] - Per-field visibility overrides.
+ *
+ * @property {ChartFieldVisibilityMap} [fieldVisibility] - Per-field visibility
+ *   overrides.
  */
 
 /**
@@ -110,7 +120,7 @@ const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
  */
 class SettingsStateManager {
     initialized = false;
-    /** @type {Promise<void>|null} */
+    /** @type {Promise<void> | null} */
     initializePromise = null;
 
     constructor() {
@@ -132,11 +142,13 @@ class SettingsStateManager {
 
     /**
      * Export settings to JSON
+     *
      * @returns {Object} Settings export object
      */
     /**
      * Export all settings and metadata
-     * @returns {ExportedSettings|null}
+     *
+     * @returns {ExportedSettings | null}
      */
     exportSettings() {
         try {
@@ -161,10 +173,12 @@ class SettingsStateManager {
 
     /**
      * Get all chart settings
+     *
      * @returns {Object} Chart settings object
      */
     /**
      * Return all chart (chartjs_) settings as object
+     *
      * @returns {Record<string, any>}
      */
     getChartSettings() {
@@ -179,7 +193,8 @@ class SettingsStateManager {
                     value = localStorage.getItem(key);
 
                 try {
-                    settings[settingKey] = value == null ? null : JSON.parse(value);
+                    settings[settingKey] =
+                        value == null ? null : JSON.parse(value);
                 } catch {
                     settings[settingKey] = value;
                 }
@@ -191,20 +206,26 @@ class SettingsStateManager {
 
     /**
      * Get a setting value with validation
+     *
      * @param {string} category - Setting category
      * @param {string} key - Setting key (optional for non-object settings)
-     * @returns {*} Setting value
+     *
+     * @returns {any} Setting value
      */
     /**
      * Get a setting (entire category or specific key for object categories)
+     *
      * @param {SettingCategory} category
-     * @param {string|null} [key=null]
+     * @param {string | null} [key=null] Default is `null`
+     *
      * @returns {any}
      */
     getSetting(category, key = null) {
         const schema = SETTINGS_SCHEMA[category];
         if (!schema) {
-            console.warn(`[SettingsState] Unknown setting category: ${category}`);
+            console.warn(
+                `[SettingsState] Unknown setting category: ${category}`
+            );
             return;
         }
 
@@ -223,7 +244,10 @@ class SettingsStateManager {
                 if (key) {
                     const rawValue = storage.getItem(`${prefix}${key}`);
                     if (rawValue == null) {
-                        return schema.default && typeof schema.default === "object" ? schema.default[key] : undefined;
+                        return schema.default &&
+                            typeof schema.default === "object"
+                            ? schema.default[key]
+                            : undefined;
                     }
                     try {
                         return JSON.parse(rawValue);
@@ -233,7 +257,9 @@ class SettingsStateManager {
                 }
 
                 // Whole-category read
-                const canIterate = typeof storage.length === "number" && typeof storage.key === "function";
+                const canIterate =
+                    typeof storage.length === "number" &&
+                    typeof storage.key === "function";
                 if (!canIterate) {
                     return schema.default;
                 }
@@ -257,7 +283,9 @@ class SettingsStateManager {
                     }
                 }
 
-                return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
+                return Object.keys(settings).length > 0
+                    ? { ...schema.default, ...settings }
+                    : schema.default;
             }
 
             // Simple scalar settings
@@ -278,7 +306,10 @@ class SettingsStateManager {
             // string
             return rawValue;
         } catch (error) {
-            console.error(`[SettingsState] Error getting setting ${category}:`, error);
+            console.error(
+                `[SettingsState] Error getting setting ${category}:`,
+                error
+            );
             return schema.default;
         }
     }
@@ -289,6 +320,7 @@ class SettingsStateManager {
      * The export format is produced by {@link exportSettings}.
      *
      * @param {unknown} settingsData
+     *
      * @returns {boolean}
      */
     importSettings(settingsData) {
@@ -297,7 +329,9 @@ class SettingsStateManager {
                 return false;
             }
 
-            const payload = /** @type {{ settings?: Record<string, any> }} */ (settingsData);
+            const payload = /** @type {{ settings?: Record<string, any> }} */ (
+                settingsData
+            );
             const nextSettings = payload.settings;
 
             if (!nextSettings || typeof nextSettings !== "object") {
@@ -342,7 +376,9 @@ class SettingsStateManager {
         }
 
         this.initializePromise = (async () => {
-            console.log("[SettingsState] Initializing settings state manager...");
+            console.log(
+                "[SettingsState] Initializing settings state manager..."
+            );
 
             try {
                 // Initialize settings state in the main state manager
@@ -369,9 +405,14 @@ class SettingsStateManager {
                 this.setupLocalStorageSync();
 
                 this.initialized = true;
-                console.log("[SettingsState] Settings state manager initialized successfully");
+                console.log(
+                    "[SettingsState] Settings state manager initialized successfully"
+                );
             } catch (error) {
-                console.error("[SettingsState] Failed to initialize settings state manager:", error);
+                console.error(
+                    "[SettingsState] Failed to initialize settings state manager:",
+                    error
+                );
                 throw error;
             } finally {
                 this.initializePromise = null;
@@ -409,14 +450,21 @@ class SettingsStateManager {
      */
     async migrateSettings() {
         try {
-            const currentVersion = localStorage.getItem("settings_migration_version");
+            const currentVersion = localStorage.getItem(
+                "settings_migration_version"
+            );
 
             if (currentVersion === this.migrationVersion) {
-                console.log("[SettingsState] Settings already at current version");
+                console.log(
+                    "[SettingsState] Settings already at current version"
+                );
                 return;
             }
 
-            console.log("[SettingsState] Migrating settings to version", this.migrationVersion);
+            console.log(
+                "[SettingsState] Migrating settings to version",
+                this.migrationVersion
+            );
 
             // Perform migrations based on current version
             if (!currentVersion) {
@@ -425,21 +473,31 @@ class SettingsStateManager {
             }
 
             // Set migration version
-            localStorage.setItem("settings_migration_version", this.migrationVersion);
+            localStorage.setItem(
+                "settings_migration_version",
+                this.migrationVersion
+            );
             console.log("[SettingsState] Settings migration completed");
         } catch (error) {
-            console.error("[SettingsState] Error during settings migration:", error);
+            console.error(
+                "[SettingsState] Error during settings migration:",
+                error
+            );
         }
     }
 
     /**
      * Reset settings to defaults
-     * @param {string} category - Category to reset (optional, resets all if not provided)
+     *
+     * @param {string} category - Category to reset (optional, resets all if not
+     *   provided)
      */
     /**
      * Reset settings (single category or all)
-     * @param {SettingCategory|null} [category=null]
+     *
+     * @param {SettingCategory | null} [category=null] Default is `null`
      * @param {{ silent?: boolean }} [options]
+     *
      * @returns {boolean}
      */
     resetSettings(category = null, options = {}) {
@@ -449,7 +507,9 @@ class SettingsStateManager {
                 // Reset specific category
                 const schema = SETTINGS_SCHEMA[category];
                 if (!schema) {
-                    console.warn(`[SettingsState] Unknown setting category: ${category}`);
+                    console.warn(
+                        `[SettingsState] Unknown setting category: ${category}`
+                    );
                     return false;
                 }
 
@@ -462,7 +522,8 @@ class SettingsStateManager {
                             keysToRemove.push(key);
                         }
                     }
-                    for (const key of keysToRemove) localStorage.removeItem(key);
+                    for (const key of keysToRemove)
+                        localStorage.removeItem(key);
                 } else {
                     localStorage.removeItem(schema.key);
                 }
@@ -484,7 +545,9 @@ class SettingsStateManager {
 
             if (!silent) {
                 showNotification(
-                    category ? `${category} settings reset to defaults` : "All settings reset to defaults",
+                    category
+                        ? `${category} settings reset to defaults`
+                        : "All settings reset to defaults",
                     "success"
                 );
             }
@@ -501,28 +564,37 @@ class SettingsStateManager {
 
     /**
      * Set a setting value with validation
+     *
      * @param {string} category - Setting category
-     * @param {*} value - Setting value
+     * @param {any} value - Setting value
      * @param {string} key - Setting key (for object-type settings)
      */
     /**
-     * Set a setting value (entire category or specific key for object categories)
+     * Set a setting value (entire category or specific key for object
+     * categories)
+     *
      * @param {SettingCategory} category
      * @param {any} value
-     * @param {string|null} [key=null]
+     * @param {string | null} [key=null] Default is `null`
+     *
      * @returns {boolean}
      */
     setSetting(category, value, key = null) {
         const schema = SETTINGS_SCHEMA[category];
         if (!schema) {
-            console.warn(`[SettingsState] Unknown setting category: ${category}`);
+            console.warn(
+                `[SettingsState] Unknown setting category: ${category}`
+            );
             return false;
         }
 
         try {
             // Validate the value
             if (!schema.validate(value)) {
-                console.error(`[SettingsState] Invalid value for setting ${category}:`, value);
+                console.error(
+                    `[SettingsState] Invalid value for setting ${category}:`,
+                    value
+                );
                 return false;
             }
 
@@ -532,18 +604,30 @@ class SettingsStateManager {
                 // Preserve legacy behavior for string settings:
                 // historically these were stored as raw strings (e.g. "hidden"/"visible").
                 // Writing JSON strings would add quotes and break direct localStorage comparisons.
-                localStorage.setItem(storageKey, typeof value === "string" ? value : JSON.stringify(value));
+                localStorage.setItem(
+                    storageKey,
+                    typeof value === "string" ? value : JSON.stringify(value)
+                );
 
                 // Update state
                 const rootState = /** @type {any} */ (getState("settings")),
                     currentSettings = (rootState && rootState[category]) || {};
                 currentSettings[key] = value;
-                setState(`settings.${category}` /** @type {string} */, currentSettings, {
-                    source: "SettingsStateManager.setSetting",
-                });
+                setState(
+                    `settings.${category}` /** @type {string} */,
+                    currentSettings,
+                    {
+                        source: "SettingsStateManager.setSetting",
+                    }
+                );
             } else {
                 // Set entire setting
-                localStorage.setItem(schema.key, schema.type === "boolean" ? value.toString() : JSON.stringify(value));
+                localStorage.setItem(
+                    schema.key,
+                    schema.type === "boolean"
+                        ? value.toString()
+                        : JSON.stringify(value)
+                );
 
                 // Update state
                 setState(`settings.${category}`, value, {
@@ -573,14 +657,24 @@ class SettingsStateManager {
         // Subscribe to settings changes and update localStorage
         subscribe("settings", () => {
             // This will be called whenever settings state changes
-            console.log("[SettingsState] Settings state changed, localStorage already updated");
+            console.log(
+                "[SettingsState] Settings state changed, localStorage already updated"
+            );
         });
 
         // Listen for localStorage changes from other tabs/windows
         globalThis.addEventListener("storage", (event) => {
             const k = event.key || ""; // Normalize for TS nullability
-            if (k && Object.values(SETTINGS_SCHEMA).some((schema) => k.startsWith(schema.key))) {
-                console.log("[SettingsState] External localStorage change detected:", event.key);
+            if (
+                k &&
+                Object.values(SETTINGS_SCHEMA).some((schema) =>
+                    k.startsWith(schema.key)
+                )
+            ) {
+                console.log(
+                    "[SettingsState] External localStorage change detected:",
+                    event.key
+                );
 
                 // Update state to reflect external changes
                 this.syncFromLocalStorage();
@@ -607,7 +701,10 @@ class SettingsStateManager {
                 source: "SettingsStateManager.syncFromLocalStorage",
             });
         } catch (error) {
-            console.error("[SettingsState] Error syncing from localStorage:", error);
+            console.error(
+                "[SettingsState] Error syncing from localStorage:",
+                error
+            );
         }
     }
 }
@@ -616,10 +713,12 @@ class SettingsStateManager {
  * Normalize chart settings payloads to ensure consistent shapes.
  *
  * @param {ChartSettings | null | undefined} settings
+ *
  * @returns {ChartSettings}
  */
 function normalizeChartSettings(settings) {
-    const safeSettings = settings && typeof settings === "object" ? settings : {};
+    const safeSettings =
+        settings && typeof settings === "object" ? settings : {};
     const fieldVisibility = safeSettings?.[CHART_FIELD_VISIBILITY_KEY] || {};
 
     return {
@@ -634,6 +733,7 @@ function normalizeChartSettings(settings) {
  * Read legacy per-field visibility preferences stored as individual keys.
  *
  * @param {string} fieldKey
+ *
  * @returns {ChartFieldVisibility | undefined}
  */
 function readLegacyChartFieldVisibility(fieldKey) {
@@ -642,7 +742,9 @@ function readLegacyChartFieldVisibility(fieldKey) {
         return;
     }
 
-    const storedValue = storage.getItem(`${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`);
+    const storedValue = storage.getItem(
+        `${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`
+    );
     if (storedValue === "visible" || storedValue === "hidden") {
         return storedValue;
     }
@@ -671,21 +773,28 @@ export const settingsStateManager = new SettingsStateManager();
 
 /**
  * Export all settings
+ *
  * @returns {Object} Settings export data
  */
-/** @returns {ExportedSettings|null} */
+/** @returns {ExportedSettings | null} */
 export function exportAllSettings() {
     return settingsStateManager.exportSettings();
 }
 
 /**
- * Read field visibility from settings, migrating legacy localStorage keys if present.
+ * Read field visibility from settings, migrating legacy localStorage keys if
+ * present.
  *
  * @param {string} fieldKey
- * @param {ChartFieldVisibility} [defaultVisibility="visible"]
+ * @param {ChartFieldVisibility} [defaultVisibility="visible"] Default is
+ *   `"visible"`
+ *
  * @returns {ChartFieldVisibility}
  */
-export function getChartFieldVisibility(fieldKey, defaultVisibility = "visible") {
+export function getChartFieldVisibility(
+    fieldKey,
+    defaultVisibility = "visible"
+) {
     const settings = getChartSettings();
     const fieldVisibility = settings[CHART_FIELD_VISIBILITY_KEY] || {};
     const currentValue = fieldVisibility[fieldKey];
@@ -712,8 +821,10 @@ export function getChartFieldVisibility(fieldKey, defaultVisibility = "visible")
 
 /**
  * Get chart setting
+ *
  * @param {string} key - Chart setting key
- * @returns {*} Chart setting value
+ *
+ * @returns {any} Chart setting value
  */
 /** @param {string} key */
 export function getChartSetting(key) {
@@ -731,6 +842,7 @@ export function getChartSettings() {
 
 /**
  * Get map theme setting
+ *
  * @returns {boolean} Map theme inverted state
  */
 export function getMapThemeSetting() {
@@ -748,6 +860,7 @@ export function getPowerEstimationSetting(key) {
 
 /**
  * Get theme setting
+ *
  * @returns {string} Current theme
  */
 export function getThemeSetting() {
@@ -765,7 +878,9 @@ export function getUserChartSettings() {
 
 /**
  * Import settings from data
+ *
  * @param {Object} settingsData - Settings data to import
+ *
  * @returns {boolean} Success status
  */
 /** @param {any} settingsData */
@@ -777,11 +892,15 @@ export function importAllSettings(settingsData) {
  * Remove a chart setting (chartjs_* key) and update state.
  *
  * @param {string} key
+ *
  * @returns {boolean}
  */
 export function removeChartSetting(key) {
     if (typeof key !== "string" || !key.trim()) {
-        console.warn("[SettingsState] removeChartSetting called with invalid key", key);
+        console.warn(
+            "[SettingsState] removeChartSetting called with invalid key",
+            key
+        );
         return false;
     }
 
@@ -823,6 +942,7 @@ export function resetChartSettings(options = {}) {
  *
  * @param {string} fieldKey
  * @param {ChartFieldVisibility} visibility
+ *
  * @returns {ChartFieldVisibilityMap}
  */
 export function setChartFieldVisibility(fieldKey, visibility) {
@@ -841,8 +961,9 @@ export function setChartFieldVisibility(fieldKey, visibility) {
 
 /**
  * Set chart setting
+ *
  * @param {string} key - Chart setting key
- * @param {*} value - Chart setting value
+ * @param {any} value - Chart setting value
  */
 /** @param {string} key @param {any} value */
 export function setChartSetting(key, value) {
@@ -851,6 +972,7 @@ export function setChartSetting(key, value) {
 
 /**
  * Set map theme setting
+ *
  * @param {boolean} inverted - Map theme inverted state
  */
 /** @param {boolean} inverted */
@@ -870,6 +992,7 @@ export function setPowerEstimationSetting(key, value) {
 
 /**
  * Set theme setting
+ *
  * @param {string} theme - Theme to set
  */
 /** @param {string} theme */
@@ -881,11 +1004,15 @@ export function setThemeSetting(theme) {
  * Subscribe to chart settings updates.
  *
  * @param {(nextSettings: ChartSettings, previousSettings: ChartSettings) => void} callback
+ *
  * @returns {() => void}
  */
 export function subscribeToChartSettings(callback) {
     return subscribe("settings.chart", (nextValue, previousValue) => {
-        callback(normalizeChartSettings(nextValue), normalizeChartSettings(previousValue));
+        callback(
+            normalizeChartSettings(nextValue),
+            normalizeChartSettings(previousValue)
+        );
     });
 }
 
@@ -893,6 +1020,7 @@ export function subscribeToChartSettings(callback) {
  * Update chart settings by merging new values into existing settings.
  *
  * @param {ChartSettings} updates
+ *
  * @returns {ChartSettings}
  */
 export function updateChartSettings(updates) {

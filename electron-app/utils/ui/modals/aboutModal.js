@@ -1,6 +1,6 @@
 /**
- * Enhanced About Modal Dialog Utility
- * Provides modern design and animations with dynamic version loading.
+ * Enhanced About Modal Dialog Utility Provides modern design and animations
+ * with dynamic version loading.
  */
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
@@ -25,14 +25,15 @@ const CONSTANTS = {
 };
 
 // Module state
-/** @type {HTMLElement|null} */
+/** @type {HTMLElement | null} */
 let lastFocusedElement = null;
 export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 let showingFeatures = false; // Track whether features or system info is currently displayed
 
 /**
- * Creates the enhanced modal content with modern styling and branding
- * Uses dynamic loading values that will be replaced by loadVersionInfo()
+ * Creates the enhanced modal content with modern styling and branding Uses
+ * dynamic loading values that will be replaced by loadVersionInfo()
+ *
  * @returns {string} HTML content for the modal
  */
 export function getAboutModalContent() {
@@ -148,7 +149,8 @@ export function getAboutModalContent() {
 
 /**
  * Enhanced escape key handler with better UX
- * @param {*} e
+ *
+ * @param {any} e
  */
 export function handleEscapeKey(e) {
     if (e.key === "Escape") {
@@ -160,6 +162,7 @@ export function handleEscapeKey(e) {
 
 /**
  * Enhanced modal display function with animations and improved accessibility
+ *
  * @param {string} html - HTML content to display in the modal body
  */
 export function showAboutModal(html = "") {
@@ -178,7 +181,9 @@ export function showAboutModal(html = "") {
             }
 
             // Save current focus
-            lastFocusedElement = /** @type {HTMLElement} */ (document.activeElement);
+            lastFocusedElement = /** @type {HTMLElement} */ (
+                document.activeElement
+            );
 
             // Show modal with animation
             modal.style.display = "flex";
@@ -218,7 +223,8 @@ export function showAboutModal(html = "") {
             // Handle external links to open in user's default browser.
             // NOTE: The modal content container stops propagation to prevent backdrop-closing.
             // Attach handlers to .modal-content so delegated link clicks are still observed.
-            const modalContentForLinks = modal.querySelector(".modal-content") ?? modal;
+            const modalContentForLinks =
+                modal.querySelector(".modal-content") ?? modal;
             attachExternalLinkHandlers({ root: modalContentForLinks });
 
             // Close on backdrop click
@@ -231,9 +237,13 @@ export function showAboutModal(html = "") {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(/** @type {HTMLElement} */ (modalContent), "click", (e) => {
-                    e.stopPropagation();
-                });
+                addEventListenerWithCleanup(
+                    /** @type {HTMLElement} */ (modalContent),
+                    "click",
+                    (e) => {
+                        e.stopPropagation();
+                    }
+                );
             }
 
             // Focus management - focus close button after animation
@@ -245,7 +255,10 @@ export function showAboutModal(html = "") {
             try {
                 loadVersionInfo();
             } catch (error) {
-                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
+                console.warn(
+                    `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,
+                    error
+                );
             }
             // Sound functionality removed as requested
         }
@@ -311,6 +324,7 @@ function createFeaturesContent() {
 
 /**
  * Creates and returns the system info content HTML with dynamic loading values
+ *
  * @returns {string} HTML content for system information grid
  */
 function createSystemInfoContent() {
@@ -375,12 +389,18 @@ function hideAboutModal() {
                 if (buttonText) {
                     buttonText.textContent = "Features";
                 }
-                toggleButton.setAttribute("aria-label", "View detailed features");
+                toggleButton.setAttribute(
+                    "aria-label",
+                    "View detailed features"
+                );
                 // Reload system info
                 try {
                     loadVersionInfo();
                 } catch (error) {
-                    console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
+                    console.warn(
+                        `${CONSTANTS.LOG_PREFIX} Failed to reload version info:`,
+                        error
+                    );
                 }
             }
 
@@ -400,14 +420,17 @@ function hideAboutModal() {
  * Sanitize HTML inserted into the About modal body.
  *
  * Rationale:
- * - The About modal accepts an HTML string (used by tests and internal helpers).
- * - Avoid letting unexpected values (e.g., file paths or externally sourced strings) inject script
- *   tags, inline event handlers, or javascript: URLs.
  *
- * This sanitizer is intentionally minimal and UI-friendly (keeps common formatting tags and
- * inline styles), while blocking the common high-risk vectors.
+ * - The About modal accepts an HTML string (used by tests and internal helpers).
+ * - Avoid letting unexpected values (e.g., file paths or externally sourced
+ *   strings) inject script tags, inline event handlers, or javascript: URLs.
+ *
+ * This sanitizer is intentionally minimal and UI-friendly (keeps common
+ * formatting tags and inline styles), while blocking the common high-risk
+ * vectors.
  *
  * @param {string} html
+ *
  * @returns {DocumentFragment}
  */
 function sanitizeAboutBodyHtml(html) {
@@ -415,9 +438,19 @@ function sanitizeAboutBodyHtml(html) {
     template.innerHTML = html;
 
     /** @type {Set<string>} */
-    const blockedTags = new Set(["EMBED", "IFRAME", "LINK", "META", "OBJECT", "SCRIPT"]);
+    const blockedTags = new Set([
+        "EMBED",
+        "IFRAME",
+        "LINK",
+        "META",
+        "OBJECT",
+        "SCRIPT",
+    ]);
 
-    const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
+    const walker = document.createTreeWalker(
+        template.content,
+        NodeFilter.SHOW_ELEMENT
+    );
     /** @type {Element[]} */
     const nodesToRemove = [];
 
@@ -441,7 +474,8 @@ function sanitizeAboutBodyHtml(html) {
             if (name === "href" || name === "src") {
                 const trimmed = value.trim();
                 const lower = trimmed.toLowerCase();
-                const isHttp = lower.startsWith("http://") || lower.startsWith("https://");
+                const isHttp =
+                    lower.startsWith("http://") || lower.startsWith("https://");
                 const isMailto = lower.startsWith("mailto:");
 
                 if (!isHttp && !isMailto) {
@@ -463,7 +497,12 @@ function sanitizeAboutBodyHtml(html) {
         // Force http(s) links to be treated as external links handled by the modal.
         if (el.tagName === "A") {
             const href = el.getAttribute("href");
-            if (href && (href.startsWith("http://") || href.startsWith("https://") || href.startsWith("mailto:"))) {
+            if (
+                href &&
+                (href.startsWith("http://") ||
+                    href.startsWith("https://") ||
+                    href.startsWith("mailto:"))
+            ) {
                 el.dataset.externalLink = "";
                 el.setAttribute("rel", "noopener noreferrer");
             }
@@ -523,7 +562,10 @@ function toggleInfoSection() {
             try {
                 loadVersionInfo();
             } catch (error) {
-                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
+                console.warn(
+                    `${CONSTANTS.LOG_PREFIX} Failed to reload version info:`,
+                    error
+                );
             }
         }
 
@@ -588,7 +630,11 @@ const devHelpers = {
 };
 
 // Export development helpers in development mode
-if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") {
+if (
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.NODE_ENV === "development"
+) {
     globalThis.aboutModalDevHelpers = devHelpers;
 }
 

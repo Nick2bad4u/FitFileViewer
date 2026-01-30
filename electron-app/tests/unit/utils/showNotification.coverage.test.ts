@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - coverage uplift", () => {
     const originalWarn = console.warn;
@@ -10,7 +14,8 @@ describe("showNotification.js - coverage uplift", () => {
         vi.restoreAllMocks();
         console.warn = vi.fn();
         console.error = vi.fn();
-        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+        document.body.innerHTML =
+            '<div id="notification" class="notification" style="display:none"></div>';
     });
 
     afterEach(() => {
@@ -42,7 +47,9 @@ describe("showNotification.js - coverage uplift", () => {
         await p;
         const el = document.getElementById("notification")!;
         expect(el.style.display).toBe("flex");
-        const close = el.querySelector(".notification-close") as HTMLButtonElement;
+        const close = el.querySelector(
+            ".notification-close"
+        ) as HTMLButtonElement;
         expect(close).toBeTruthy();
         close.click();
         // transition 300ms
@@ -52,10 +59,14 @@ describe("showNotification.js - coverage uplift", () => {
 
     it("renders action buttons and fires callbacks, hiding after click", async () => {
         const onAct = vi.fn();
-        const p = notify.withActions("Actions", "success", [{ text: "Do", onClick: onAct }]);
+        const p = notify.withActions("Actions", "success", [
+            { text: "Do", onClick: onAct },
+        ]);
         await p;
         const el = document.getElementById("notification")!;
-        const btn = el.querySelector(".notification-actions button") as HTMLButtonElement;
+        const btn = el.querySelector(
+            ".notification-actions button"
+        ) as HTMLButtonElement;
         expect(btn).toBeTruthy();
         btn.click();
         expect(onAct).toHaveBeenCalled();
@@ -65,7 +76,10 @@ describe("showNotification.js - coverage uplift", () => {
 
     it("invokes onClick for main notification click when not clicking an action button", async () => {
         const onClick = vi.fn();
-        const p = showNotification("Clickable", "info", undefined, { onClick, persistent: true });
+        const p = showNotification("Clickable", "info", undefined, {
+            onClick,
+            persistent: true,
+        });
         await p;
         const el = document.getElementById("notification")!;
         el.click();
@@ -131,7 +145,9 @@ describe("showNotification.js - coverage uplift", () => {
         };
 
         // Spy on console.error to verify it gets called
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         // Test the pattern that's used in showNotification.js
         let didFinallyExecute = false;

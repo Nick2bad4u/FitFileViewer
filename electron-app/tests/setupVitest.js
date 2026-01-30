@@ -2,7 +2,12 @@
 // Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
 import "./shims/nodeWebStorage";
-import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach, afterAll as vitestAfterAll } from "vitest";
+import {
+    vi,
+    afterEach as vitestAfterEach,
+    beforeEach as vitestBeforeEach,
+    afterAll as vitestAfterAll,
+} from "vitest";
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */
 let __resetStateMgr;
@@ -117,7 +122,11 @@ function ensureConsoleAlive() {
             "profile",
             "profileEnd",
         ].forEach(ensure);
-        if (typeof window !== "undefined" && window.console && window.console !== current) {
+        if (
+            typeof window !== "undefined" &&
+            window.console &&
+            window.console !== current
+        ) {
             try {
                 window.console = current;
             } catch {
@@ -225,12 +234,14 @@ const __nativeDocument = typeof document !== "undefined" ? document : undefined;
 /** @type {any} */
 const __nativeDocProto = (() => {
     try {
-        return __nativeDocument ? Object.getPrototypeOf(__nativeDocument) : undefined;
+        return __nativeDocument
+            ? Object.getPrototypeOf(__nativeDocument)
+            : undefined;
     } catch {
         return undefined;
     }
 })();
-/** @type {Window & typeof globalThis | undefined} */
+/** @type {(Window & typeof globalThis) | undefined} */
 const __nativeWindow = typeof window !== "undefined" ? window : undefined;
 
 // Intentionally avoid capturing canonical Document methods across realms.
@@ -238,7 +249,9 @@ const __nativeWindow = typeof window !== "undefined" ? window : undefined;
 
 /**
  * Best-effort cleanup of globals that can leak memory or state across tests.
- * Clears Chart.js instance arrays, dev helpers, and storage contents on a given window.
+ * Clears Chart.js instance arrays, dev helpers, and storage contents on a given
+ * window.
+ *
  * @param {any} win
  */
 function cleanupWindowGlobals(win) {
@@ -263,12 +276,16 @@ function cleanupWindowGlobals(win) {
     }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
-        win.localStorage && typeof win.localStorage.clear === "function" && win.localStorage.clear();
+        win.localStorage &&
+            typeof win.localStorage.clear === "function" &&
+            win.localStorage.clear();
     } catch {
         /* Ignore errors */
     }
     try {
-        win.sessionStorage && typeof win.sessionStorage.clear === "function" && win.sessionStorage.clear();
+        win.sessionStorage &&
+            typeof win.sessionStorage.clear === "function" &&
+            win.sessionStorage.clear();
     } catch {
         /* Ignore errors */
     }
@@ -285,7 +302,10 @@ function cleanupWindowGlobals(win) {
     // Disconnect any MutationObserver we might have installed on window
     try {
         const w = /** @type {any} */ (win);
-        if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === "function") {
+        if (
+            w.tabButtonObserver &&
+            typeof w.tabButtonObserver.disconnect === "function"
+        ) {
             w.tabButtonObserver.disconnect();
             delete w.tabButtonObserver;
         }
@@ -295,8 +315,9 @@ function cleanupWindowGlobals(win) {
 }
 
 /**
- * Restore the global window/document to the original jsdom instances captured at setup time.
- * Also performs cleanup on both the current and native windows to avoid leaks between tests.
+ * Restore the global window/document to the original jsdom instances captured
+ * at setup time. Also performs cleanup on both the current and native windows
+ * to avoid leaks between tests.
  */
 function restoreNativeDom() {
     /** @type {any} */
@@ -314,9 +335,11 @@ function restoreNativeDom() {
                 typeof d.querySelectorAll === "function" &&
                 typeof d.getElementById === "function";
             const implOk =
-                typeof d.implementation === "object" && typeof d.implementation.createHTMLDocument === "function";
+                typeof d.implementation === "object" &&
+                typeof d.implementation.createHTMLDocument === "function";
             const nodeOk = /** @type {any} */ (d).nodeType === 9;
-            const viewOk = typeof (/** @type {any} */ (d).defaultView) === "object";
+            const viewOk =
+                typeof (/** @type {any} */ (d).defaultView) === "object";
             return !!(apiOk && implOk && nodeOk && viewOk);
         } catch {
             return false;
@@ -373,7 +396,9 @@ function restoreNativeDom() {
     // Reinstall guards on the effective document and ensure body exists
     try {
         /** @type {any} */
-        const effDoc = /** @type {any} */ (typeof document !== "undefined" ? document : __nativeDocument);
+        const effDoc = /** @type {any} */ (
+            typeof document !== "undefined" ? document : __nativeDocument
+        );
         if (effDoc) {
             // Always realign global and window document references to the same instance
             try {
@@ -399,7 +424,9 @@ function restoreNativeDom() {
             installDocumentGuards(effDoc);
             if (!effDoc.body) {
                 try {
-                    const b = effDoc.createElement ? effDoc.createElement("body") : undefined;
+                    const b = effDoc.createElement
+                        ? effDoc.createElement("body")
+                        : undefined;
                     if (b) effDoc.appendChild(b);
                 } catch {
                     /* Ignore errors */
@@ -476,7 +503,9 @@ function restoreNativeDom() {
     };
     /** @type {any} */
     let currentConsole =
-        globalThis.console && typeof globalThis.console.log === "function" ? globalThis.console : baseConsole;
+        globalThis.console && typeof globalThis.console.log === "function"
+            ? globalThis.console
+            : baseConsole;
     try {
         Object.defineProperty(globalThis, "console", {
             configurable: true,
@@ -504,7 +533,11 @@ function restoreNativeDom() {
                     return currentConsole;
                 },
                 set(v) {
-                    if (v && typeof v === "object" && typeof v.log === "function") {
+                    if (
+                        v &&
+                        typeof v === "object" &&
+                        typeof v.log === "function"
+                    ) {
                         currentConsole = /** @type {any} */ (v);
                     }
                 },
@@ -534,15 +567,21 @@ try {
     if (typeof window !== "undefined" && window.console) {
         if (typeof window.console.group !== "function") {
             // @ts-ignore
-            window.console.group = /** @type {any} */ (globalThis.console.group || vi.fn());
+            window.console.group = /** @type {any} */ (
+                globalThis.console.group || vi.fn()
+            );
         }
         if (typeof window.console.groupEnd !== "function") {
             // @ts-ignore
-            window.console.groupEnd = /** @type {any} */ (globalThis.console.groupEnd || vi.fn());
+            window.console.groupEnd = /** @type {any} */ (
+                globalThis.console.groupEnd || vi.fn()
+            );
         }
         if (typeof window.console.groupCollapsed !== "function") {
             // @ts-ignore
-            window.console.groupCollapsed = /** @type {any} */ (globalThis.console.groupCollapsed || vi.fn());
+            window.console.groupCollapsed = /** @type {any} */ (
+                globalThis.console.groupCollapsed || vi.fn()
+            );
         }
     }
 } catch {
@@ -551,11 +590,18 @@ try {
 
 /** @typedef {Record<string, string>} StorageRecord */
 
-const STORAGE_METHODS = ["getItem", "setItem", "removeItem", "clear", "key"];
+const STORAGE_METHODS = [
+    "getItem",
+    "setItem",
+    "removeItem",
+    "clear",
+    "key",
+];
 
 /**
- * In-memory implementation of the Web Storage API used to polyfill environments where the
- * experimental Node localStorage either throws or exposes incomplete prototypes.
+ * In-memory implementation of the Web Storage API used to polyfill environments
+ * where the experimental Node localStorage either throws or exposes incomplete
+ * prototypes.
  */
 class StorageMock {
     constructor() {
@@ -569,15 +615,19 @@ class StorageMock {
 
     /**
      * @param {string} key
+     *
      * @returns {string | null}
      */
     getItem(key) {
-        return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
+        return Object.prototype.hasOwnProperty.call(this.store, key)
+            ? this.store[key]
+            : null;
     }
 
     /**
      * @param {string} key
      * @param {unknown} value
+     *
      * @returns {void}
      */
     setItem(key, value) {
@@ -586,6 +636,7 @@ class StorageMock {
 
     /**
      * @param {string} key
+     *
      * @returns {void}
      */
     removeItem(key) {
@@ -601,6 +652,7 @@ class StorageMock {
 
     /**
      * @param {number} index
+     *
      * @returns {string | null}
      */
     key(index) {
@@ -608,10 +660,15 @@ class StorageMock {
     }
 }
 
-const spyFactory = typeof vi !== "undefined" && typeof vi.fn === "function" ? (fn) => vi.fn(fn) : (fn) => fn;
+const spyFactory =
+    typeof vi !== "undefined" && typeof vi.fn === "function"
+        ? (fn) => vi.fn(fn)
+        : (fn) => fn;
 
 STORAGE_METHODS.forEach((method) => {
-    const original = /** @type {(...args: any[]) => unknown} */ (StorageMock.prototype[method]);
+    const original = /** @type {(...args: any[]) => unknown} */ (
+        StorageMock.prototype[method]
+    );
     if (typeof original === "function") {
         Object.defineProperty(StorageMock.prototype, method, {
             value: spyFactory(function (/** @type {unknown[]} */ ...args) {
@@ -623,7 +680,10 @@ STORAGE_METHODS.forEach((method) => {
     }
 });
 
-const storageLengthDescriptor = Object.getOwnPropertyDescriptor(StorageMock.prototype, "length");
+const storageLengthDescriptor = Object.getOwnPropertyDescriptor(
+    StorageMock.prototype,
+    "length"
+);
 if (storageLengthDescriptor?.get) {
     Object.defineProperty(StorageMock.prototype, "length", {
         get: function () {
@@ -643,7 +703,9 @@ function ensureSafeLocalStorage() {
         try {
             globalThis.Storage = StorageMock;
         } catch {
-            /** @type {any} */ (globalThis).Storage = /** @type {any} */ (StorageMock);
+            /** @type {any} */ (globalThis).Storage = /** @type {any} */ (
+                StorageMock
+            );
         }
         try {
             w.Storage = /** @type {any} */ (StorageMock);
@@ -663,12 +725,22 @@ function ensureSafeLocalStorage() {
     if (!needsOverride) {
         const storageCandidate = /** @type {any} */ (w.localStorage);
         const hasStorageShape =
-            storageCandidate && typeof storageCandidate === "object" && !Array.isArray(storageCandidate);
-        const requiredFns = ["getItem", "setItem", "removeItem", "clear", "key"];
+            storageCandidate &&
+            typeof storageCandidate === "object" &&
+            !Array.isArray(storageCandidate);
+        const requiredFns = [
+            "getItem",
+            "setItem",
+            "removeItem",
+            "clear",
+            "key",
+        ];
         if (!hasStorageShape) {
             needsOverride = true;
         } else {
-            const missingFn = requiredFns.some((method) => typeof storageCandidate[method] !== "function");
+            const missingFn = requiredFns.some(
+                (method) => typeof storageCandidate[method] !== "function"
+            );
             const lengthIsNumber = typeof storageCandidate.length === "number";
             if (missingFn || !lengthIsNumber) {
                 needsOverride = true;
@@ -695,7 +767,9 @@ function ensureSafeLocalStorage() {
                 writable: true,
             });
         } catch {
-            /** @type {any} */ (globalThis).localStorage = /** @type {any} */ (mock);
+            /** @type {any} */ (globalThis).localStorage = /** @type {any} */ (
+                mock
+            );
         }
     }
 }
@@ -736,7 +810,8 @@ function ensureSafeSessionStorage() {
                 writable: true,
             });
         } catch {
-            /** @type {any} */ (globalThis).sessionStorage = /** @type {any} */ (mock);
+            /** @type {any} */ (globalThis).sessionStorage =
+                /** @type {any} */ (mock);
         }
     }
 }
@@ -744,31 +819,47 @@ function ensureSafeSessionStorage() {
 ensureSafeSessionStorage();
 
 /**
- * Resolve a URL-like input against a fallback href, mirroring the browser's navigation resolution rules.
- * Throws when the candidate cannot be parsed so that tests still exercise invalid-navigation paths.
+ * Resolve a URL-like input against a fallback href, mirroring the browser's
+ * navigation resolution rules. Throws when the candidate cannot be parsed so
+ * that tests still exercise invalid-navigation paths.
+ *
  * @param {unknown} value
  * @param {string} fallbackHref
+ *
  * @returns {URL}
  */
 function resolveUrlValue(value, fallbackHref) {
-    const base = typeof fallbackHref === "string" && fallbackHref.length > 0 ? fallbackHref : "http://localhost/";
+    const base =
+        typeof fallbackHref === "string" && fallbackHref.length > 0
+            ? fallbackHref
+            : "http://localhost/";
     if (value instanceof URL) {
         return new URL(value.href);
     }
-    if (value && typeof value === "object" && typeof (/** @type {any} */ (value).href) === "string") {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof (/** @type {any} */ (value).href) === "string"
+    ) {
         return new URL(/** @type {any} */ (value).href, base);
     }
     const raw = value == null ? base : String(value);
     // Allow relative URLs by providing the fallback as the base parameter
-    return raw.includes("://") || raw.startsWith("about:") ? new URL(raw) : new URL(raw, base);
+    return raw.includes("://") || raw.startsWith("about:")
+        ? new URL(raw)
+        : new URL(raw, base);
 }
 
 /**
  * Build a lightweight Location-like object for secondary windows or fallbacks.
+ *
  * @param {string | undefined} initialHref
  */
 function createLocationSnapshot(initialHref) {
-    const fallback = typeof initialHref === "string" && initialHref.length > 0 ? initialHref : "http://localhost/";
+    const fallback =
+        typeof initialHref === "string" && initialHref.length > 0
+            ? initialHref
+            : "http://localhost/";
     /** @type {URL} */
     let current;
     try {
@@ -796,7 +887,16 @@ function createLocationSnapshot(initialHref) {
         valueOf: () => current.href,
     };
 
-    ["protocol", "host", "hostname", "port", "pathname", "search", "hash", "origin"].forEach((prop) => {
+    [
+        "protocol",
+        "host",
+        "hostname",
+        "port",
+        "pathname",
+        "search",
+        "hash",
+        "origin",
+    ].forEach((prop) => {
         Object.defineProperty(snapshot, prop, {
             configurable: true,
             enumerable: true,
@@ -818,7 +918,9 @@ function createLocationSnapshot(initialHref) {
 }
 
 /**
- * Install navigation shims directly onto the native Location object to prevent jsdom from attempting real navigations.
+ * Install navigation shims directly onto the native Location object to prevent
+ * jsdom from attempting real navigations.
+ *
  * @param {Window & typeof globalThis} win
  */
 function installWindowNavigationShim(win) {
@@ -851,15 +953,26 @@ function installWindowNavigationShim(win) {
 
     const update = (value, reason = "direct") => {
         try {
-            currentUrl = resolveUrlValue(value ?? currentUrl.href, currentUrl.href);
+            currentUrl = resolveUrlValue(
+                value ?? currentUrl.href,
+                currentUrl.href
+            );
         } catch (error) {
             throw error;
         }
         try {
             /** @type {any} */ (nativeLocation).__ffvNavigationHistory ??= [];
-            /** @type {Array<{href: string; reason: string; timestamp: number}>} */ (
-                nativeLocation.__ffvNavigationHistory
-            ).push({ href: currentUrl.href, reason, timestamp: Date.now() });
+            /**
+             * @type {{
+             *     href: string;
+             *     reason: string;
+             *     timestamp: number;
+             * }[]}
+             */ (nativeLocation.__ffvNavigationHistory).push({
+                href: currentUrl.href,
+                reason,
+                timestamp: Date.now(),
+            });
         } catch {
             /* ignore */
         }
@@ -887,7 +1000,16 @@ function installWindowNavigationShim(win) {
         },
     });
 
-    ["protocol", "host", "hostname", "port", "pathname", "search", "hash", "origin"].forEach((prop) => {
+    [
+        "protocol",
+        "host",
+        "hostname",
+        "port",
+        "pathname",
+        "search",
+        "hash",
+        "origin",
+    ].forEach((prop) => {
         defineLocationProp(prop, {
             get() {
                 return /** @type {any} */ (currentUrl)[prop];
@@ -952,7 +1074,9 @@ function installWindowNavigationShim(win) {
 }
 
 /**
- * Provide jsdom-friendly implementations for browser APIs that commonly emit "Not implemented" warnings.
+ * Provide jsdom-friendly implementations for browser APIs that commonly emit
+ * "Not implemented" warnings.
+ *
  * @param {Window & typeof globalThis} win
  */
 function ensureWindowWarningFreeAPIs(win) {
@@ -1007,7 +1131,10 @@ function ensureWindowWarningFreeAPIs(win) {
     const openImpl = spyFactory((url, target = "_blank", features = "") => {
         let href = baseHref;
         try {
-            const rel = navigationShim && typeof navigationShim.href === "string" ? navigationShim.href : href;
+            const rel =
+                navigationShim && typeof navigationShim.href === "string"
+                    ? navigationShim.href
+                    : href;
             href = resolveUrlValue(url ?? rel, rel).href;
         } catch {
             href = typeof url === "string" && url.length > 0 ? url : href;
@@ -1154,12 +1281,17 @@ const leafletMock = {
         Draw: { Event: { CREATED: "created" } },
     },
     markerClusterGroup: vi.fn(() => ({ addLayer: vi.fn() })),
-    marker: vi.fn(() => ({ addTo: vi.fn(() => ({ getElement: vi.fn(() => null) })) })),
+    marker: vi.fn(() => ({
+        addTo: vi.fn(() => ({ getElement: vi.fn(() => null) })),
+    })),
     polyline: vi.fn(() => ({ addTo: vi.fn() })),
     latLng: vi.fn((lat, lng) => ({ lat, lng })),
     divIcon: vi.fn(() => ({})),
     FeatureGroup: vi.fn(() => ({ addLayer: vi.fn() })),
-    Control: { MiniMap: vi.fn(() => ({ addTo: vi.fn() })), Draw: vi.fn(() => ({ addTo: vi.fn() })) },
+    Control: {
+        MiniMap: vi.fn(() => ({ addTo: vi.fn() })),
+        Draw: vi.fn(() => ({ addTo: vi.fn() })),
+    },
     maplibreGL: vi.fn(() => ({
         addTo: vi.fn(),
         setZIndex: vi.fn(),
@@ -1171,7 +1303,10 @@ const leafletMock = {
 global.L = leafletMock;
 
 // Ensure HTMLElement is available globally for instanceof checks
-if (typeof window !== "undefined" && typeof window.HTMLElement !== "undefined") {
+if (
+    typeof window !== "undefined" &&
+    typeof window.HTMLElement !== "undefined"
+) {
     global.HTMLElement = window.HTMLElement;
 }
 
@@ -1187,10 +1322,14 @@ if (typeof window !== "undefined") {
         try {
             // Bind to EventTarget prototype if available
             // @ts-ignore
-            const et = typeof EventTarget !== "undefined" ? EventTarget.prototype.dispatchEvent : undefined;
+            const et =
+                typeof EventTarget !== "undefined"
+                    ? EventTarget.prototype.dispatchEvent
+                    : undefined;
             if (typeof et === "function") {
                 // @ts-ignore
-                window.dispatchEvent = /** @type {(event: Event) => boolean} */ (et.bind(window));
+                window.dispatchEvent =
+                    /** @type {(event: Event) => boolean} */ (et.bind(window));
             } else {
                 // Fallback no-op to avoid hard failures in tests that call dispatchEvent
                 /** @type {(event: Event) => boolean} */
@@ -1211,29 +1350,39 @@ if (typeof window !== "undefined") {
 
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
- * Restore critical Document methods if tests replaced them and ensure body exists.
- * Always rebind to the current document's prototype implementations to avoid leaked mocks.
+ * Restore critical Document methods if tests replaced them and ensure body
+ * exists. Always rebind to the current document's prototype implementations to
+ * avoid leaked mocks.
+ *
  * @param {Document} doc
  */
 function installDocumentGuards(doc) {
     if (!doc) return;
     // Derive natives from the document's own realm to prevent cross-realm brand check failures
-    /** @type {{
-     *  createElement?: (this: Document, tag: string, options?: any) => any,
-     *  createTextNode?: (this: Document, data: string) => any,
-     *  createDocumentFragment?: (this: Document) => any,
-     *  querySelector?: (this: Document, sel: string) => any,
-     *  querySelectorAll?: (this: Document, sel: string) => any,
-     *  getElementById?: (this: Document, id: string) => any,
-     *  getElementsByClassName?: (this: Document, cls: string) => any,
-     *  getElementsByTagName?: (this: Document, tag: string) => any,
-     *  appendChild?: (this: Document, node: any) => any
-     * } | undefined}
+    /**
+     * @type {
+     *     | {
+     *           createElement?: (this: Document, tag: string, options?: any) => any;
+     *           createTextNode?: (this: Document, data: string) => any;
+     *           createDocumentFragment?: (this: Document) => any;
+     *           querySelector?: (this: Document, sel: string) => any;
+     *           querySelectorAll?: (this: Document, sel: string) => any;
+     *           getElementById?: (this: Document, id: string) => any;
+     *           getElementsByClassName?: (this: Document, cls: string) => any;
+     *           getElementsByTagName?: (this: Document, tag: string) => any;
+     *           appendChild?: (this: Document, node: any) => any;
+     *       }
+     *     | undefined}
      */
     let canon;
     try {
-        const realmDocProto = /** @type {any} */ (doc?.defaultView?.Document?.prototype);
-        if (realmDocProto && typeof realmDocProto.createElement === "function") {
+        const realmDocProto = /** @type {any} */ (
+            doc?.defaultView?.Document?.prototype
+        );
+        if (
+            realmDocProto &&
+            typeof realmDocProto.createElement === "function"
+        ) {
             canon = {
                 createElement: realmDocProto.createElement,
                 createTextNode: realmDocProto.createTextNode,
@@ -1251,7 +1400,9 @@ function installDocumentGuards(doc) {
     }
     // Cache of native methods per Document instance to survive prototype tampering (legacy fallback)
     /** @type {WeakMap<Document, any>} */
-    const nativeMap = /** @type {any} */ (globalThis).__vitest_doc_native_methods || new WeakMap();
+    const nativeMap =
+        /** @type {any} */ (globalThis).__vitest_doc_native_methods ||
+        new WeakMap();
     /** @type {any} */ (globalThis).__vitest_doc_native_methods = nativeMap;
     try {
         let natives = nativeMap.get(doc);
@@ -1262,42 +1413,69 @@ function installDocumentGuards(doc) {
             } else {
                 const Proto = /** @type {any} */ (Object.getPrototypeOf(doc));
                 natives = {
-                    createElement: typeof Proto?.createElement === "function" ? Proto.createElement : undefined,
-                    createTextNode: typeof Proto?.createTextNode === "function" ? Proto.createTextNode : undefined,
+                    createElement:
+                        typeof Proto?.createElement === "function"
+                            ? Proto.createElement
+                            : undefined,
+                    createTextNode:
+                        typeof Proto?.createTextNode === "function"
+                            ? Proto.createTextNode
+                            : undefined,
                     createDocumentFragment:
-                        typeof Proto?.createDocumentFragment === "function" ? Proto.createDocumentFragment : undefined,
-                    querySelector: typeof Proto?.querySelector === "function" ? Proto.querySelector : undefined,
+                        typeof Proto?.createDocumentFragment === "function"
+                            ? Proto.createDocumentFragment
+                            : undefined,
+                    querySelector:
+                        typeof Proto?.querySelector === "function"
+                            ? Proto.querySelector
+                            : undefined,
                     querySelectorAll:
-                        typeof Proto?.querySelectorAll === "function" ? Proto.querySelectorAll : undefined,
-                    getElementById: typeof Proto?.getElementById === "function" ? Proto.getElementById : undefined,
+                        typeof Proto?.querySelectorAll === "function"
+                            ? Proto.querySelectorAll
+                            : undefined,
+                    getElementById:
+                        typeof Proto?.getElementById === "function"
+                            ? Proto.getElementById
+                            : undefined,
                     getElementsByClassName:
-                        typeof Proto?.getElementsByClassName === "function" ? Proto.getElementsByClassName : undefined,
+                        typeof Proto?.getElementsByClassName === "function"
+                            ? Proto.getElementsByClassName
+                            : undefined,
                     getElementsByTagName:
-                        typeof Proto?.getElementsByTagName === "function" ? Proto.getElementsByTagName : undefined,
-                    appendChild: typeof Proto?.appendChild === "function" ? Proto.appendChild : undefined,
+                        typeof Proto?.getElementsByTagName === "function"
+                            ? Proto.getElementsByTagName
+                            : undefined,
+                    appendChild:
+                        typeof Proto?.appendChild === "function"
+                            ? Proto.appendChild
+                            : undefined,
                 };
             }
             nativeMap.set(doc, natives);
         }
         // Rebind document methods from cached natives
         try {
-            if (typeof natives.createElement === "function") doc.createElement = natives.createElement.bind(doc);
+            if (typeof natives.createElement === "function")
+                doc.createElement = natives.createElement.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
-            if (typeof natives.createTextNode === "function") doc.createTextNode = natives.createTextNode.bind(doc);
+            if (typeof natives.createTextNode === "function")
+                doc.createTextNode = natives.createTextNode.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
             if (typeof natives.createDocumentFragment === "function")
-                doc.createDocumentFragment = natives.createDocumentFragment.bind(doc);
+                doc.createDocumentFragment =
+                    natives.createDocumentFragment.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
-            if (typeof natives.querySelector === "function") doc.querySelector = natives.querySelector.bind(doc);
+            if (typeof natives.querySelector === "function")
+                doc.querySelector = natives.querySelector.bind(doc);
         } catch {
             /* Ignore errors */
         }
@@ -1308,24 +1486,28 @@ function installDocumentGuards(doc) {
             /* Ignore errors */
         }
         try {
-            if (typeof natives.getElementById === "function") doc.getElementById = natives.getElementById.bind(doc);
+            if (typeof natives.getElementById === "function")
+                doc.getElementById = natives.getElementById.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
             if (typeof natives.getElementsByClassName === "function")
-                doc.getElementsByClassName = natives.getElementsByClassName.bind(doc);
+                doc.getElementsByClassName =
+                    natives.getElementsByClassName.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
             if (typeof natives.getElementsByTagName === "function")
-                doc.getElementsByTagName = natives.getElementsByTagName.bind(doc);
+                doc.getElementsByTagName =
+                    natives.getElementsByTagName.bind(doc);
         } catch {
             /* Ignore errors */
         }
         try {
-            if (typeof natives.appendChild === "function") doc.appendChild = natives.appendChild.bind(doc);
+            if (typeof natives.appendChild === "function")
+                doc.appendChild = natives.appendChild.bind(doc);
         } catch {
             /* Ignore errors */
         }
@@ -1356,7 +1538,8 @@ function installDocumentGuards(doc) {
                 // Attempt to reconstruct doc methods via current prototype again
                 const Proto = /** @type {any} */ (Object.getPrototypeOf(doc));
                 try {
-                    if (typeof Proto?.createElement === "function") doc.createElement = Proto.createElement.bind(doc);
+                    if (typeof Proto?.createElement === "function")
+                        doc.createElement = Proto.createElement.bind(doc);
                 } catch {
                     /* Ignore errors */
                 }
@@ -1404,8 +1587,9 @@ if (!applyBrowserGuardsIfReady()) {
 // Prevent replacing core constructors with non-functions which breaks instanceof checks in Vitest
 (() => {
     /**
-     * Install a safe accessor for a global constructor-like symbol.
-     * If someone assigns a non-function, keep the native reference instead.
+     * Install a safe accessor for a global constructor-like symbol. If someone
+     * assigns a non-function, keep the native reference instead.
+     *
      * @param {keyof typeof globalThis} name
      */
     function installSafeConstructor(name) {
@@ -1439,11 +1623,21 @@ if (!applyBrowserGuardsIfReady()) {
     installSafeConstructor("WeakSet");
     // Guard Buffer to avoid instanceof crashes in Vitest error serializer
     // @ts-ignore
-    if (typeof globalThis.Buffer !== "undefined") installSafeConstructor("Buffer");
+    if (typeof globalThis.Buffer !== "undefined")
+        installSafeConstructor("Buffer");
 
     // Also guard on window if present (some suites use window.Error etc.)
     if (typeof window !== "undefined") {
-        const names = ["Error", "RegExp", "Date", "Promise", "Map", "Set", "WeakMap", "WeakSet"];
+        const names = [
+            "Error",
+            "RegExp",
+            "Date",
+            "Promise",
+            "Map",
+            "Set",
+            "WeakMap",
+            "WeakSet",
+        ];
         for (const n of names) {
             try {
                 // @ts-ignore
@@ -1491,8 +1685,10 @@ if (!applyBrowserGuardsIfReady()) {
 // replacing `process` keeps required methods available.
 (function installSafeProcessGuards() {
     /**
-     * Merge a provided partial process-like object with the original Node `process`,
-     * ensuring EventEmitter-style methods exist to keep Vitest stable.
+     * Merge a provided partial process-like object with the original Node
+     * `process`, ensuring EventEmitter-style methods exist to keep Vitest
+     * stable.
+     *
      * @param {any} base
      * @param {any} override
      */
@@ -1566,7 +1762,8 @@ try {
     vi.resetAllMocks = (...args) => {
         const result = originalResetAllMocks(...args);
         try {
-            if (typeof document !== "undefined") installDocumentGuards(document);
+            if (typeof document !== "undefined")
+                installDocumentGuards(document);
         } catch {
             /* Ignore errors */
         }
@@ -1576,7 +1773,8 @@ try {
     vi.restoreAllMocks = (...args) => {
         const result = originalRestoreAllMocks(...args);
         try {
-            if (typeof document !== "undefined") installDocumentGuards(document);
+            if (typeof document !== "undefined")
+                installDocumentGuards(document);
         } catch {
             /* Ignore errors */
         }
@@ -1598,7 +1796,8 @@ try {
         // Ensure canonical effective document reflects the current global document
         try {
             // @ts-ignore
-            globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
+            globalThis.__vitest_effective_document__ =
+                typeof document !== "undefined" ? document : undefined;
         } catch {
             /* Ignore errors */
         }
@@ -1614,7 +1813,10 @@ try {
         try {
             if (typeof window !== "undefined") {
                 const w = /** @type {any} */ (window);
-                if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === "function") {
+                if (
+                    w.tabButtonObserver &&
+                    typeof w.tabButtonObserver.disconnect === "function"
+                ) {
                     w.tabButtonObserver.disconnect();
                     delete w.tabButtonObserver;
                 }
@@ -1625,9 +1827,11 @@ try {
         // Clear tracked timers
         try {
             /** @type {Set<number>} */
-            const timeouts = /** @type {any} */ (globalThis).__vitest_tracked_timeouts;
+            const timeouts = /** @type {any} */ (globalThis)
+                .__vitest_tracked_timeouts;
             /** @type {Set<number>} */
-            const intervals = /** @type {any} */ (globalThis).__vitest_tracked_intervals;
+            const intervals = /** @type {any} */ (globalThis)
+                .__vitest_tracked_intervals;
             if (timeouts && typeof clearTimeout === "function") {
                 for (const id of Array.from(timeouts)) {
                     try {
@@ -1653,12 +1857,24 @@ try {
         }
         // Remove tracked DOM event listeners
         try {
-            /** @type {Array<{target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: any}>} */
-            const listeners = /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners;
+            /**
+             * @type {{
+             *     target: EventTarget;
+             *     type: string;
+             *     listener: EventListenerOrEventListenerObject;
+             *     options?: any;
+             * }[]}
+             */
+            const listeners = /** @type {any} */ (globalThis)
+                .__vitest_tracked_dom_listeners;
             if (Array.isArray(listeners)) {
                 for (const rec of listeners.splice(0, listeners.length)) {
                     try {
-                        rec.target.removeEventListener(rec.type, rec.listener, rec.options);
+                        rec.target.removeEventListener(
+                            rec.type,
+                            rec.listener,
+                            rec.options
+                        );
                     } catch {
                         /* Ignore errors */
                     }
@@ -1694,7 +1910,8 @@ try {
         // Ensure canonical effective document reflects the current global document
         try {
             // @ts-ignore
-            globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
+            globalThis.__vitest_effective_document__ =
+                typeof document !== "undefined" ? document : undefined;
         } catch {
             /* Ignore errors */
         }
@@ -1737,8 +1954,9 @@ try {
             globalThis.__vitest_object_keys_allow_throw = false;
         }
         /**
-         * Create a stable wrapper function that delegates to the current implementation
-         * and falls back to native when errors occur, unless tests opt-in to throw-through.
+         * Create a stable wrapper function that delegates to the current
+         * implementation and falls back to native when errors occur, unless
+         * tests opt-in to throw-through.
          */
         const wrapped = (/** @type {any} */ o) => {
             try {
@@ -1757,7 +1975,10 @@ try {
             }
         };
         // Mark the wrapper so restoring Object.keys to this function resets to native
-        Object.defineProperty(wrapped, "__isObjectKeysWrapper", { value: true, enumerable: false });
+        Object.defineProperty(wrapped, "__isObjectKeysWrapper", {
+            value: true,
+            enumerable: false,
+        });
 
         Object.defineProperty(Object, "keys", {
             configurable: true,
@@ -1789,13 +2010,17 @@ try {
             // Timer tracking
             const timeouts = new Set();
             const intervals = new Set();
-            /** @type {any} */ (globalThis).__vitest_tracked_timeouts = timeouts;
-            /** @type {any} */ (globalThis).__vitest_tracked_intervals = intervals;
+            /** @type {any} */ (globalThis).__vitest_tracked_timeouts =
+                timeouts;
+            /** @type {any} */ (globalThis).__vitest_tracked_intervals =
+                intervals;
 
             const nativeSetTimeout = globalThis.setTimeout?.bind(globalThis);
             const nativeSetInterval = globalThis.setInterval?.bind(globalThis);
-            const nativeClearTimeout = globalThis.clearTimeout?.bind(globalThis);
-            const nativeClearInterval = globalThis.clearInterval?.bind(globalThis);
+            const nativeClearTimeout =
+                globalThis.clearTimeout?.bind(globalThis);
+            const nativeClearInterval =
+                globalThis.clearInterval?.bind(globalThis);
 
             if (typeof nativeSetTimeout === "function") {
                 globalThis.setTimeout = /** @type {any} */ (
@@ -1851,7 +2076,8 @@ try {
             // DOM event listener tracking for window and document
             /** @type {any[]} */
             const domListeners = [];
-            /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners = domListeners;
+            /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners =
+                domListeners;
 
             function wrapAddRemove(target) {
                 try {
@@ -1860,20 +2086,37 @@ try {
                     if (typeof add === "function" && !add.__vitest_wrapped) {
                         const wrappedAdd = function (type, listener, options) {
                             try {
-                                domListeners.push({ target, type, listener, options });
+                                domListeners.push({
+                                    target,
+                                    type,
+                                    listener,
+                                    options,
+                                });
                             } catch {
                                 /* Ignore errors */
                             }
                             return add(type, listener, options);
                         };
                         wrappedAdd.__vitest_wrapped = true;
-                        target.addEventListener = /** @type {any} */ (wrappedAdd);
+                        target.addEventListener = /** @type {any} */ (
+                            wrappedAdd
+                        );
                     }
-                    if (typeof remove === "function" && !remove.__vitest_wrapped) {
-                        const wrappedRemove = function (type, listener, options) {
+                    if (
+                        typeof remove === "function" &&
+                        !remove.__vitest_wrapped
+                    ) {
+                        const wrappedRemove = function (
+                            type,
+                            listener,
+                            options
+                        ) {
                             try {
                                 const idx = domListeners.findIndex(
-                                    (r) => r.target === target && r.type === type && r.listener === listener
+                                    (r) =>
+                                        r.target === target &&
+                                        r.type === type &&
+                                        r.listener === listener
                                 );
                                 if (idx !== -1) domListeners.splice(idx, 1);
                             } catch {
@@ -1882,7 +2125,9 @@ try {
                             return remove(type, listener, options);
                         };
                         wrappedRemove.__vitest_wrapped = true;
-                        target.removeEventListener = /** @type {any} */ (wrappedRemove);
+                        target.removeEventListener = /** @type {any} */ (
+                            wrappedRemove
+                        );
                     }
                 } catch {
                     /* Ignore errors */

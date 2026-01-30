@@ -1,12 +1,14 @@
 /**
- * Performance monitoring utility for tracking operation timing
- * Used to monitor performance of various application operations
+ * Performance monitoring utility for tracking operation timing Used to monitor
+ * performance of various application operations
  */
 
 class PerformanceMonitor {
     constructor() {
         this.timers = new Map();
-        this.enabled = process.env.NODE_ENV === "development" || process.env.PERFORMANCE_MONITORING === "true";
+        this.enabled =
+            process.env.NODE_ENV === "development" ||
+            process.env.PERFORMANCE_MONITORING === "true";
     }
 
     /**
@@ -18,8 +20,10 @@ class PerformanceMonitor {
 
     /**
      * End a performance timer and calculate duration
+     *
      * @param {string} operationId - The operation identifier
-     * @returns {number|null} Duration in milliseconds, or null if not enabled
+     *
+     * @returns {number | null} Duration in milliseconds, or null if not enabled
      */
     endTimer(operationId) {
         if (!this.enabled) return null;
@@ -33,13 +37,16 @@ class PerformanceMonitor {
         timer.end = performance.now();
         timer.duration = timer.end - timer.start;
 
-        console.log(`[Performance] ${operationId}: ${timer.duration.toFixed(2)}ms`);
+        console.log(
+            `[Performance] ${operationId}: ${timer.duration.toFixed(2)}ms`
+        );
 
         return timer.duration;
     }
 
     /**
      * Get all timer data
+     *
      * @returns {Map} All timer data
      */
     getAllTimers() {
@@ -48,8 +55,10 @@ class PerformanceMonitor {
 
     /**
      * Get timer information for an operation
+     *
      * @param {string} operationId - The operation identifier
-     * @returns {object|null} Timer data or null if not found
+     *
+     * @returns {object | null} Timer data or null if not found
      */
     getTimer(operationId) {
         return this.timers.get(operationId) || null;
@@ -57,6 +66,7 @@ class PerformanceMonitor {
 
     /**
      * Check if performance monitoring is enabled
+     *
      * @returns {boolean} Whether monitoring is enabled
      */
     isEnabled() {
@@ -65,6 +75,7 @@ class PerformanceMonitor {
 
     /**
      * Enable or disable monitoring
+     *
      * @param {boolean} enabled - Whether to enable monitoring
      */
     setEnabled(enabled) {
@@ -73,6 +84,7 @@ class PerformanceMonitor {
 
     /**
      * Start a performance timer for an operation
+     *
      * @param {string} operationId - Unique identifier for the operation
      */
     startTimer(operationId) {

@@ -1,11 +1,12 @@
 /**
  * Get master state manager instance
+ *
  * @returns {MasterStateManager} Master state manager
  */
 export function getMasterStateManager(): MasterStateManager;
 /**
- * Initialize the complete FitFileViewer state system
- * Call this once during application startup
+ * Initialize the complete FitFileViewer state system Call this once during
+ * application startup
  */
 export function initializeFitFileViewerState(): Promise<void>;
 /**
@@ -21,24 +22,29 @@ export class MasterStateManager {
     cleanup(): void;
     /**
      * Get state history (forwards to core state manager)
-     * @returns {Array<Object>} State history
+     *
+     * @returns {Object[]} State history
      */
     getHistory(): Array<Object>;
     /**
      * Get initialization status
+     *
      * @returns {Object} Status object
      */
     getInitializationStatus(): Object;
     /**
      * Get current state (forwards to core state manager)
+     *
      * @param {string} [path] - Optional state path
-     * @returns {*} State value
+     *
+     * @returns {any} State value
      */
     getState(path?: string): any;
     /**
      * Initialize core state management
      */ /**
      * Get active subscriptions for debugging
+     *
      * @returns {Object} Subscription information
      */
     getSubscriptions(): Object;
@@ -48,6 +54,7 @@ export class MasterStateManager {
     initialize(): Promise<void>;
     /**
      * Initialize a specific component
+     *
      * @param {string} componentName - Name of component to initialize
      */
     initializeComponent(componentName: string): Promise<void>;
@@ -90,11 +97,13 @@ export class MasterStateManager {
     initializeUIComponents(): Promise<void>;
     /**
      * Detects if the application is running in development mode
+     *
      * @returns {boolean} True if in development mode
      */
     isDevelopmentMode(): boolean;
     /**
      * Reinitialize a specific component
+     *
      * @param {string} componentName - Component to reinitialize
      */
     reinitializeComponent(componentName: string): Promise<void>;

@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel Export for formatting/converters
- * @description Re-exports all modules in the formatting/converters category
+ * Re-exports all modules in the formatting/converters category
+ *
+ * @file Barrel Export for formatting/converters
  */
 export * from "./convertArrayBufferToBase64.js";
 export * from "./convertDistanceUnits.js";

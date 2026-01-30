@@ -8,7 +8,8 @@ export type StateUpdateOptions = {
      */
     source?: string;
     /**
-     * If true and both old & new values are plain objects, perform a shallow merge
+     * If true and both old & new values are plain objects, perform a shallow
+     * merge
      */
     merge?: boolean;
 };
@@ -103,8 +104,8 @@ export type AppStateShape = {
     system: SystemState;
 };
 /**
- * TEST-ONLY: Clear all registered state listeners.
- * This helps ensure unit tests don't leak subscriptions across suites.
+ * TEST-ONLY: Clear all registered state listeners. This helps ensure unit tests
+ * don't leak subscriptions across suites.
  */
 export function __clearAllListenersForTests(): void;
 export namespace __debugState {
@@ -125,6 +126,7 @@ export namespace __debugState {
 }
 /**
  * TEST-ONLY: Fully reset the state manager.
+ *
  * - Clears all listeners
  * - Clears history
  * - Resets AppState to initial values
@@ -132,9 +134,13 @@ export namespace __debugState {
 export function __resetStateManagerForTests(): void;
 /**
  * @typedef {Object} StateUpdateOptions
- * @property {boolean} [silent=false] If true, don't notify listeners of this update
- * @property {string} [source="unknown"] Source tag for debugging / history
- * @property {boolean} [merge=false] If true and both old & new values are plain objects, perform a shallow merge
+ *
+ * @property {boolean} [silent=false] If true, don't notify listeners of this
+ *   update. Default is `false`
+ * @property {string} [source="unknown"] Source tag for debugging / history.
+ *   Default is `"unknown"`
+ * @property {boolean} [merge=false] If true and both old & new values are plain
+ *   objects, perform a shallow merge. Default is `false`
  */
 /**
  * Clear state change history
@@ -142,23 +148,31 @@ export function __resetStateManagerForTests(): void;
 export function clearStateHistory(): void;
 /**
  * Create reactive property on window object for backward compatibility
+ *
  * @param {string} propertyName - Name of the property to create
  * @param {string} statePath - Path in state to bind to
  */
-export function createReactiveProperty(propertyName: string, statePath: string): void;
+export function createReactiveProperty(
+    propertyName: string,
+    statePath: string
+): void;
 /**
  * Get state value by path
+ *
  * @param {string} path - Dot notation path to state property
- * @returns {*} State value
+ *
+ * @returns {any} State value
  */
 export function getState(path: string): any;
 /**
  * Get state change history for debugging
- * @returns {Array<Object>} Array of state changes
+ *
+ * @returns {Object[]} Array of state changes
  */
 export function getStateHistory(): Array<Object>;
 /**
  * Get subscription information for debugging
+ *
  * @returns {Object} Subscription information
  */
 export function getSubscriptions(): Object;
@@ -168,49 +182,73 @@ export function getSubscriptions(): Object;
 export function initializeStateManager(): void;
 /**
  * Load persisted state from localStorage
- * @param {Array<string>} paths - Array of state paths to load
+ *
+ * @param {string[]} paths - Array of state paths to load
  */
 export function loadPersistedState(paths?: Array<string>): void;
 /**
  * Persist state to localStorage
- * @param {Array<string>} paths - Array of state paths to persist
+ *
+ * @param {string[]} paths - Array of state paths to persist
  */
 export function persistState(paths?: Array<string>): void;
 /**
  * Reset state to initial values
+ *
  * @param {string} [path] - Optional path to reset only part of state
  */
 export function resetState(path?: string): void;
 /**
  * Set state value by path and notify listeners
+ *
  * @param {string} path - Dot notation path to state property
- * @param {*} value - New value to set
+ * @param {any} value - New value to set
  * @param {StateUpdateOptions} [options] - Optional update options
  */
-export function setState(path: string, value: any, options?: StateUpdateOptions): void;
+export function setState(
+    path: string,
+    value: any,
+    options?: StateUpdateOptions
+): void;
 /**
  * Subscribe to state changes for a specific path
- * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
+ *
+ * @param {string} path - Dot notation path to state property (e.g.,
+ *   'ui.activeTab')
  * @param {Function} callback - Function to call when state changes
+ *
  * @returns {Function} Unsubscribe function
  */
 export function subscribe(path: string, callback: Function): Function;
 /**
- * Subscribe to state changes ensuring there is only one active subscription for a given id.
+ * Subscribe to state changes ensuring there is only one active subscription for
+ * a given id.
  *
- * This is intended for UI initializers that may run multiple times due to re-renders.
- * It prevents leaking subscriptions across map/tab rebuilds.
+ * This is intended for UI initializers that may run multiple times due to
+ * re-renders. It prevents leaking subscriptions across map/tab rebuilds.
  *
- * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
- * @param {string} id - Unique identifier for this subscription (e.g., 'tabs:activeTab')
+ * @param {string} path - Dot notation path to state property (e.g.,
+ *   'ui.activeTab')
+ * @param {string} id - Unique identifier for this subscription (e.g.,
+ *   'tabs:activeTab')
  * @param {Function} callback - Function to call when state changes
+ *
  * @returns {Function} Unsubscribe function
  */
-export function subscribeSingleton(path: string, id: string, callback: Function): Function;
+export function subscribeSingleton(
+    path: string,
+    id: string,
+    callback: Function
+): Function;
 /**
  * Update state by merging with existing object
+ *
  * @param {string} path - Dot notation path to state property
  * @param {Object} updates - Object to merge with existing state
  * @param {StateUpdateOptions} [options] - Optional update options
  */
-export function updateState(path: string, updates: Object, options?: StateUpdateOptions): void;
+export function updateState(
+    path: string,
+    updates: Object,
+    options?: StateUpdateOptions
+): void;

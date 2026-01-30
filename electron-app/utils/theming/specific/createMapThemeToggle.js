@@ -1,21 +1,28 @@
 /**
- * @fileoverview Map theme toggle button utility for FitFileViewer
- *  * This module provides a toggle button that allows users to control map theme
- * independently from the overall application theme. Users can use dark maps
- * in light mode or light maps in dark mode for better contrast and visibility.
+ * @file Map theme toggle button utility for FitFileViewer
  *
- * Features:
- * - Independent map theme control (dark/light maps in any UI theme)
- * - Persistent preference storage in localStorage
- * - Theme-aware button styling with proper icons
- * - Automatic state synchronization across sessions
+ *   - This module provides a toggle button that allows users to control map theme
+ *       independently from the overall application theme. Users can use dark
+ *       maps in light mode or light maps in dark mode for better contrast and
+ *       visibility.
+ *
+ *   Features:
+ *
+ *   - Independent map theme control (dark/light maps in any UI theme)
+ *   - Persistent preference storage in localStorage
+ *   - Theme-aware button styling with proper icons
+ *   - Automatic state synchronization across sessions
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-import { getMapThemeSetting, setMapThemeSetting } from "../../state/domain/settingsStateManager.js";
+import {
+    getMapThemeSetting,
+    setMapThemeSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Constants for map theme management
@@ -28,6 +35,7 @@ const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted";
 
 /**
  * Creates a map theme toggle button for controlling map inversion
+ *
  * @returns {HTMLElement} The configured map theme toggle button
  */
 export function createMapThemeToggle() {
@@ -65,17 +73,22 @@ export function createMapThemeToggle() {
         // Update button appearance based on current state
         const updateButtonState = () => {
             try {
-                const isDarkMode = document.body.classList.contains("theme-dark"),
+                const isDarkMode =
+                        document.body.classList.contains("theme-dark"),
                     isInverted = getMapThemeInverted(),
                     // Apply theme colors for button styling
                     themeColors = getThemeColors();
                 /**
-                 * @param {"sun"|"moon"} variant
+                 * @param {"sun" | "moon"} variant
+                 *
                  * @returns {SVGElement}
                  */
                 const createIcon = (variant) => {
                     const svg = /** @type {SVGElement} */ (
-                        document.createElementNS("http://www.w3.org/2000/svg", "svg")
+                        document.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "svg"
+                        )
                     );
                     svg.setAttribute("viewBox", "0 0 20 20");
                     svg.setAttribute("width", "18");
@@ -88,8 +101,14 @@ export function createMapThemeToggle() {
                     const fill = themeColors.surface;
 
                     if (variant === "moon") {
-                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                        path.setAttribute("d", "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z");
+                        const path = document.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "path"
+                        );
+                        path.setAttribute(
+                            "d",
+                            "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
+                        );
                         path.setAttribute("fill", fill);
                         path.setAttribute("stroke", stroke);
                         path.setAttribute("stroke-width", "2");
@@ -98,7 +117,10 @@ export function createMapThemeToggle() {
                     }
 
                     // Sun icon
-                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    const circle = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "circle"
+                    );
                     circle.setAttribute("cx", "10");
                     circle.setAttribute("cy", "10");
                     circle.setAttribute("r", "5");
@@ -107,19 +129,67 @@ export function createMapThemeToggle() {
                     circle.setAttribute("stroke-width", "2");
                     svg.append(circle);
 
-                    /** @type {Array<[string,string,string,string]>} */
+                    /** @type {[string, string, string, string][]} */
                     const rays = [
-                        ["10", "2", "10", "4"],
-                        ["10", "16", "10", "18"],
-                        ["4.22", "4.22", "5.64", "5.64"],
-                        ["14.36", "14.36", "15.78", "15.78"],
-                        ["2", "10", "4", "10"],
-                        ["16", "10", "18", "10"],
-                        ["4.22", "15.78", "5.64", "14.36"],
-                        ["14.36", "5.64", "15.78", "4.22"],
+                        [
+                            "10",
+                            "2",
+                            "10",
+                            "4",
+                        ],
+                        [
+                            "10",
+                            "16",
+                            "10",
+                            "18",
+                        ],
+                        [
+                            "4.22",
+                            "4.22",
+                            "5.64",
+                            "5.64",
+                        ],
+                        [
+                            "14.36",
+                            "14.36",
+                            "15.78",
+                            "15.78",
+                        ],
+                        [
+                            "2",
+                            "10",
+                            "4",
+                            "10",
+                        ],
+                        [
+                            "16",
+                            "10",
+                            "18",
+                            "10",
+                        ],
+                        [
+                            "4.22",
+                            "15.78",
+                            "5.64",
+                            "14.36",
+                        ],
+                        [
+                            "14.36",
+                            "5.64",
+                            "15.78",
+                            "4.22",
+                        ],
                     ];
-                    for (const [x1, y1, x2, y2] of rays) {
-                        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    for (const [
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                    ] of rays) {
+                        const line = document.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "line"
+                        );
                         line.setAttribute("x1", x1);
                         line.setAttribute("y1", y1);
                         line.setAttribute("x2", x2);
@@ -151,7 +221,10 @@ export function createMapThemeToggle() {
                     );
                 }
             } catch (error) {
-                console.error("[createMapThemeToggle] Error updating button state:", error);
+                console.error(
+                    "[createMapThemeToggle] Error updating button state:",
+                    error
+                );
             }
         }; // Handle button click
         button.addEventListener("click", () => {
@@ -170,9 +243,14 @@ export function createMapThemeToggle() {
                 const action = newInverted ? "dark" : "light";
                 showNotification(`Map theme set to ${action}`, "success");
 
-                console.log(`[createMapThemeToggle] Map theme toggled to: ${action}`);
+                console.log(
+                    `[createMapThemeToggle] Map theme toggled to: ${action}`
+                );
             } catch (error) {
-                console.error("[createMapThemeToggle] Error in button click:", error);
+                console.error(
+                    "[createMapThemeToggle] Error in button click:",
+                    error
+                );
                 showNotification("Failed to toggle map theme", "error");
             }
         });
@@ -190,7 +268,10 @@ export function createMapThemeToggle() {
 
         return button;
     } catch (error) {
-        console.error("[createMapThemeToggle] Error creating map theme toggle:", error);
+        console.error(
+            "[createMapThemeToggle] Error creating map theme toggle:",
+            error
+        );
         showNotification("Failed to create map theme toggle", "error");
         return document.createElement("div"); // Return empty div as fallback
     }
@@ -198,6 +279,7 @@ export function createMapThemeToggle() {
 
 /**
  * Gets the current map theme preference
+ *
  * @returns {boolean} True if map should use dark theme, false for light theme
  */
 export function getMapThemeInverted() {
@@ -205,14 +287,19 @@ export function getMapThemeInverted() {
         // Prefer the canonical settings manager (still backed by localStorage).
         return getMapThemeSetting();
     } catch (error) {
-        console.error("[createMapThemeToggle] Error reading map theme preference:", error);
+        console.error(
+            "[createMapThemeToggle] Error reading map theme preference:",
+            error
+        );
         return true; // Default to dark map
     }
 }
 
 /**
  * Sets the map theme preference
- * @param {boolean} inverted - Whether map should use dark theme (true) or light theme (false)
+ *
+ * @param {boolean} inverted - Whether map should use dark theme (true) or light
+ *   theme (false)
  */
 export function setMapThemeInverted(inverted) {
     try {
@@ -226,16 +313,22 @@ export function setMapThemeInverted(inverted) {
         });
         document.dispatchEvent(event);
 
-        console.log(`[createMapThemeToggle] Map theme inversion set to: ${inverted}`);
+        console.log(
+            `[createMapThemeToggle] Map theme inversion set to: ${inverted}`
+        );
     } catch (error) {
-        console.error("[createMapThemeToggle] Error saving map theme preference:", error);
+        console.error(
+            "[createMapThemeToggle] Error saving map theme preference:",
+            error
+        );
         showNotification("Failed to save map theme preference", "error");
     }
 }
 
 /**
  * Install global listeners once to avoid leaks when the map UI is re-rendered.
- * The listeners call a global callback reference that is replaced on each toggle creation.
+ * The listeners call a global callback reference that is replaced on each
+ * toggle creation.
  */
 function ensureMapThemeToggleGlobalListenersInstalled() {
     /** @type {any} */

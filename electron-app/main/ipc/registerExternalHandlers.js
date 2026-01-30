@@ -12,13 +12,19 @@ const gyazoPortSchema = z.coerce
     .refine((p) => p === 0 || p >= 1024, { message: "Invalid port provided" });
 
 /**
- * Registers IPC handlers for external integrations (shell and Gyazo server control).
+ * Registers IPC handlers for external integrations (shell and Gyazo server
+ * control).
+ *
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {() => any} options.shellRef
  * @param {(port?: number) => Promise<any>} options.startGyazoOAuthServer
  * @param {() => Promise<any>} options.stopGyazoOAuthServer
- * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, any>
+ * ) => void} options.logWithContext
  */
 function registerExternalHandlers({
     registerIpcHandle,

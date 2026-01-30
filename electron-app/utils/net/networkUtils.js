@@ -1,8 +1,8 @@
 /**
- * @fileoverview Shared network utilities for renderer/main code.
+ * @file Shared network utilities for renderer/main code.
  *
- * Centralizes timeout handling and safe error shaping so network flows behave
- * consistently across export providers (Gyazo, Imgur, etc.).
+ *   Centralizes timeout handling and safe error shaping so network flows behave
+ *   consistently across export providers (Gyazo, Imgur, etc.).
  */
 
 /**
@@ -14,12 +14,16 @@
  * @param {string} url
  * @param {number} timeoutMs
  * @param {RequestInit} [init]
+ *
  * @returns {Promise<Response>}
  */
 export async function fetchWithTimeout(url, timeoutMs, init) {
     const resolvedInit = init ?? {};
-    const controller = typeof AbortController === "undefined" ? null : new AbortController();
-    const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+    const controller =
+        typeof AbortController === "undefined" ? null : new AbortController();
+    const timeoutId = controller
+        ? setTimeout(() => controller.abort(), timeoutMs)
+        : null;
 
     try {
         return await fetch(url, {
@@ -35,6 +39,7 @@ export async function fetchWithTimeout(url, timeoutMs, init) {
 
 /**
  * @param {object | string | number | boolean | null | undefined} error
+ *
  * @returns {boolean}
  */
 export function isAbortError(error) {
@@ -51,6 +56,7 @@ export function isAbortError(error) {
  *
  * @param {string | null | undefined} value
  * @param {number} [maxLength]
+ *
  * @returns {string}
  */
 export function truncateErrorText(value, maxLength = 500) {

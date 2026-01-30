@@ -42,8 +42,18 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         // Mock state manager with proper subscription handling
         let stateData = {
             globalData: {},
-            app: { initialized: false, isOpeningFile: false, startTime: Date.now() },
-            ui: { activeTab: "summary", loading: false, notifications: [], controlsEnabled: false, tabsVisible: false },
+            app: {
+                initialized: false,
+                isOpeningFile: false,
+                startTime: Date.now(),
+            },
+            ui: {
+                activeTab: "summary",
+                loading: false,
+                notifications: [],
+                controlsEnabled: false,
+                tabsVisible: false,
+            },
             settings: { theme: "dark", mapTheme: true },
             system: { lastActivity: Date.now() },
         };
@@ -96,10 +106,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             },
         };
 
-        vi.doMock("../../../../utils/state/core/stateManager.js", () => mockStateManager);
+        vi.doMock(
+            "../../../../utils/state/core/stateManager.js",
+            () => mockStateManager
+        );
 
         // Import after mocking
-        const module = await import("../../../../utils/state/core/computedStateManager.js");
+        const module =
+            await import("../../../../utils/state/core/computedStateManager.js");
         computedStateManager = module.computedStateManager;
         addComputed = module.addComputed;
         getComputed = module.getComputed;
@@ -128,11 +142,21 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("addComputed", () => {
             it("should register a new computed value with dependencies", () => {
-                const computeFn = vi.fn((state) => (state.globalData ? "loaded" : "empty"));
-                const cleanup = computedStateManager.addComputed("testComputed", computeFn, ["globalData"]);
+                const computeFn = vi.fn((state) =>
+                    state.globalData ? "loaded" : "empty"
+                );
+                const cleanup = computedStateManager.addComputed(
+                    "testComputed",
+                    computeFn,
+                    ["globalData"]
+                );
 
-                expect(computedStateManager.computedValues.has("testComputed")).toBe(true);
-                expect(computedStateManager.dependencies.get("testComputed")).toEqual(["globalData"]);
+                expect(
+                    computedStateManager.computedValues.has("testComputed")
+                ).toBe(true);
+                expect(
+                    computedStateManager.dependencies.get("testComputed")
+                ).toEqual(["globalData"]);
                 // Note: We can't easily test the subscribe call because of how the mock is set up
                 expect(typeof cleanup).toBe("function");
             });
@@ -145,9 +169,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("duplicate", secondFn, []);
 
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining('Computed value "duplicate" already exists, replacing...')
+                    expect.stringContaining(
+                        'Computed value "duplicate" already exists, replacing...'
+                    )
                 );
-                expect(computedStateManager.computedValues.get("duplicate").computeFn).toBe(secondFn);
+                expect(
+                    computedStateManager.computedValues.get("duplicate")
+                        .computeFn
+                ).toBe(secondFn);
             });
 
             it("should compute initial value on registration", () => {
@@ -155,24 +184,35 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("initialTest", computeFn, []);
 
                 expect(computeFn).toHaveBeenCalled();
-                expect(computedStateManager.computedValues.get("initialTest").value).toBe("computed-value");
+                expect(
+                    computedStateManager.computedValues.get("initialTest").value
+                ).toBe("computed-value");
             });
 
             it("should handle empty dependencies array", () => {
                 const computeFn = vi.fn(() => "no-deps");
                 computedStateManager.addComputed("noDeps", computeFn);
 
-                expect(computedStateManager.dependencies.get("noDeps")).toEqual([]);
-                expect(computedStateManager.computedValues.get("noDeps").value).toBe("no-deps");
+                expect(computedStateManager.dependencies.get("noDeps")).toEqual(
+                    []
+                );
+                expect(
+                    computedStateManager.computedValues.get("noDeps").value
+                ).toBe("no-deps");
             });
         });
 
         describe("computeValue", () => {
             it("should compute and store value successfully", () => {
-                const computeFn = vi.fn((state) => (state.app?.initialized ? "ready" : "not-ready"));
-                computedStateManager.addComputed("status", computeFn, ["app.initialized"]);
+                const computeFn = vi.fn((state) =>
+                    state.app?.initialized ? "ready" : "not-ready"
+                );
+                computedStateManager.addComputed("status", computeFn, [
+                    "app.initialized",
+                ]);
 
-                const computed = computedStateManager.computedValues.get("status");
+                const computed =
+                    computedStateManager.computedValues.get("status");
                 expect(computed.value).toBe("not-ready");
                 expect(computed.isValid).toBe(true);
                 expect(computed.error).toBe(null);
@@ -184,11 +224,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 });
                 computedStateManager.addComputed("errorTest", errorFn, []);
 
-                const computed = computedStateManager.computedValues.get("errorTest");
+                const computed =
+                    computedStateManager.computedValues.get("errorTest");
                 expect(computed.error).toBeInstanceOf(Error);
                 expect(computed.isValid).toBe(false);
                 expect(console.error).toHaveBeenCalledWith(
-                    expect.stringContaining('Error computing value for "errorTest"'),
+                    expect.stringContaining(
+                        'Error computing value for "errorTest"'
+                    ),
                     expect.any(Error)
                 );
             });
@@ -208,7 +251,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.computeValue("circular");
 
                 expect(console.error).toHaveBeenCalledWith(
-                    expect.stringContaining('Circular dependency detected for computed value "circular"')
+                    expect.stringContaining(
+                        'Circular dependency detected for computed value "circular"'
+                    )
                 );
                 expect(circularFn).not.toHaveBeenCalled();
             });
@@ -222,7 +267,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("slowTest", slowFn, []);
 
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining('Slow computation for "slowTest": 15.00ms')
+                    expect.stringContaining(
+                        'Slow computation for "slowTest": 15.00ms'
+                    )
                 );
             });
 
@@ -247,7 +294,8 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("invalidTest", computeFn, []);
 
                 // Manually invalidate
-                const computed = computedStateManager.computedValues.get("invalidTest");
+                const computed =
+                    computedStateManager.computedValues.get("invalidTest");
                 computed.isValid = false;
                 computeFn.mockClear();
 
@@ -261,7 +309,8 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("errorTest", computeFn, []);
 
                 // Manually set error
-                const computed = computedStateManager.computedValues.get("errorTest");
+                const computed =
+                    computedStateManager.computedValues.get("errorTest");
                 computed.error = new Error("Previous error");
                 computeFn.mockClear();
 
@@ -274,17 +323,24 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const result = computedStateManager.getComputed("nonExistent");
                 expect(result).toBeUndefined();
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining('Computed value "nonExistent" does not exist')
+                    expect.stringContaining(
+                        'Computed value "nonExistent" does not exist'
+                    )
                 );
             });
         });
 
         describe("invalidateComputed", () => {
             it("should mark computed value as invalid", () => {
-                computedStateManager.addComputed("invalidateTest", () => "value", []);
+                computedStateManager.addComputed(
+                    "invalidateTest",
+                    () => "value",
+                    []
+                );
                 computedStateManager.invalidateComputed("invalidateTest");
 
-                const computed = computedStateManager.computedValues.get("invalidateTest");
+                const computed =
+                    computedStateManager.computedValues.get("invalidateTest");
                 expect(computed.isValid).toBe(false);
                 expect(computed.error).toBe(null);
             });
@@ -299,31 +355,53 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         describe("removeComputed", () => {
             it("should remove computed value and clean up subscriptions", () => {
                 const unsubscribe = vi.fn();
-                computedStateManager.addComputed("removeTest", () => "value", ["globalData"]);
+                computedStateManager.addComputed("removeTest", () => "value", [
+                    "globalData",
+                ]);
                 // Manually set up the subscription for testing cleanup
-                computedStateManager.subscriptions.set("removeTest", [unsubscribe]);
+                computedStateManager.subscriptions.set("removeTest", [
+                    unsubscribe,
+                ]);
 
                 computedStateManager.removeComputed("removeTest");
 
-                expect(computedStateManager.computedValues.has("removeTest")).toBe(false);
-                expect(computedStateManager.dependencies.has("removeTest")).toBe(false);
-                expect(computedStateManager.subscriptions.has("removeTest")).toBe(false);
+                expect(
+                    computedStateManager.computedValues.has("removeTest")
+                ).toBe(false);
+                expect(
+                    computedStateManager.dependencies.has("removeTest")
+                ).toBe(false);
+                expect(
+                    computedStateManager.subscriptions.has("removeTest")
+                ).toBe(false);
                 expect(unsubscribe).toHaveBeenCalled();
             });
 
             it("should warn when removing non-existent computed value", () => {
                 computedStateManager.removeComputed("nonExistent");
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining('Computed value "nonExistent" does not exist')
+                    expect.stringContaining(
+                        'Computed value "nonExistent" does not exist'
+                    )
                 );
             });
 
             it("should handle subscriptions cleanup safely", () => {
-                computedStateManager.subscriptions.set("cleanupTest", [null, undefined, vi.fn()]);
-                computedStateManager.addComputed("cleanupTest", () => "value", []);
+                computedStateManager.subscriptions.set("cleanupTest", [
+                    null,
+                    undefined,
+                    vi.fn(),
+                ]);
+                computedStateManager.addComputed(
+                    "cleanupTest",
+                    () => "value",
+                    []
+                );
 
                 // Should not throw error even with invalid unsubscribe functions
-                expect(() => computedStateManager.removeComputed("cleanupTest")).not.toThrow();
+                expect(() =>
+                    computedStateManager.removeComputed("cleanupTest")
+                ).not.toThrow();
             });
         });
 
@@ -347,8 +425,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getAllComputed", () => {
             it("should return all computed values with metadata", () => {
-                computedStateManager.addComputed("meta1", () => "value1", ["dep1"]);
-                computedStateManager.addComputed("meta2", () => "value2", ["dep2"]);
+                computedStateManager.addComputed("meta1", () => "value1", [
+                    "dep1",
+                ]);
+                computedStateManager.addComputed("meta2", () => "value2", [
+                    "dep2",
+                ]);
 
                 const result = computedStateManager.getAllComputed();
 
@@ -365,8 +447,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getDependencyGraph", () => {
             it("should return dependency relationships", () => {
-                computedStateManager.addComputed("graph1", () => "value1", ["dep1", "dep2"]);
-                computedStateManager.addComputed("graph2", () => "value2", ["dep3"]);
+                computedStateManager.addComputed("graph1", () => "value1", [
+                    "dep1",
+                    "dep2",
+                ]);
+                computedStateManager.addComputed("graph2", () => "value2", [
+                    "dep3",
+                ]);
 
                 const graph = computedStateManager.getDependencyGraph();
 
@@ -379,8 +466,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("cleanup", () => {
             it("should clean up all state and subscriptions", () => {
-                computedStateManager.addComputed("cleanup1", () => "value1", ["globalData"]);
-                computedStateManager.addComputed("cleanup2", () => "value2", ["ui"]);
+                computedStateManager.addComputed("cleanup1", () => "value1", [
+                    "globalData",
+                ]);
+                computedStateManager.addComputed("cleanup2", () => "value2", [
+                    "ui",
+                ]);
 
                 computedStateManager.cleanup();
 
@@ -399,14 +490,20 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const computeFn = () => "convenience-test";
                 const cleanup = addComputed("convenience", computeFn, ["dep"]);
 
-                expect(computedStateManager.computedValues.has("convenience")).toBe(true);
+                expect(
+                    computedStateManager.computedValues.has("convenience")
+                ).toBe(true);
                 expect(typeof cleanup).toBe("function");
             });
         });
 
         describe("getComputed", () => {
             it("should delegate to computedStateManager.getComputed", () => {
-                computedStateManager.addComputed("getTest", () => "get-value", []);
+                computedStateManager.addComputed(
+                    "getTest",
+                    () => "get-value",
+                    []
+                );
                 const result = getComputed("getTest");
                 expect(result).toBe("get-value");
             });
@@ -414,16 +511,26 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("removeComputed", () => {
             it("should delegate to computedStateManager.removeComputed", () => {
-                computedStateManager.addComputed("removeTest", () => "remove-value", []);
+                computedStateManager.addComputed(
+                    "removeTest",
+                    () => "remove-value",
+                    []
+                );
                 removeComputed("removeTest");
-                expect(computedStateManager.computedValues.has("removeTest")).toBe(false);
+                expect(
+                    computedStateManager.computedValues.has("removeTest")
+                ).toBe(false);
             });
         });
     });
 
     describe("createReactiveComputed", () => {
         it("should create property descriptor with getter", () => {
-            const descriptor = createReactiveComputed("reactive", () => "reactive-value", ["dep"]);
+            const descriptor = createReactiveComputed(
+                "reactive",
+                () => "reactive-value",
+                ["dep"]
+            );
 
             expect(descriptor).toMatchObject({
                 configurable: true,
@@ -452,7 +559,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 ];
 
                 for (const key of expectedKeys) {
-                    expect(computedStateManager.computedValues.has(key)).toBe(true);
+                    expect(computedStateManager.computedValues.has(key)).toBe(
+                        true
+                    );
                 }
             });
 
@@ -473,7 +582,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should compute isAppReady correctly", () => {
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("app", { initialized: true, isOpeningFile: false });
+                mockStateManager.setState("app", {
+                    initialized: true,
+                    isOpeningFile: false,
+                });
                 computedStateManager.invalidateComputed("isAppReady");
                 const result = getComputed("isAppReady");
                 expect(result).toBe(true);
@@ -482,7 +594,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should compute hasChartData correctly", () => {
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("globalData", { recordMesgs: [{ data: "test" }] });
+                mockStateManager.setState("globalData", {
+                    recordMesgs: [{ data: "test" }],
+                });
                 computedStateManager.invalidateComputed("hasChartData");
                 const result = getComputed("hasChartData");
                 expect(result).toBe(true);
@@ -508,7 +622,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     maxSpeed: 45,
                     totalDistance: 10000,
                 };
-                mockStateManager.setState("globalData", { sessionMesgs: [sessionData] });
+                mockStateManager.setState("globalData", {
+                    sessionMesgs: [sessionData],
+                });
                 computedStateManager.invalidateComputed("summaryData");
                 const result = getComputed("summaryData");
 
@@ -523,7 +639,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should compute themeInfo correctly", () => {
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("settings", { theme: "dark", mapTheme: true });
+                mockStateManager.setState("settings", {
+                    theme: "dark",
+                    mapTheme: true,
+                });
                 computedStateManager.invalidateComputed("themeInfo");
                 const result = getComputed("themeInfo");
 
@@ -538,7 +657,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should handle auto theme with matchMedia", () => {
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("settings", { theme: "auto", mapTheme: true });
+                mockStateManager.setState("settings", {
+                    theme: "auto",
+                    mapTheme: true,
+                });
                 computedStateManager.invalidateComputed("themeInfo");
                 const result = getComputed("themeInfo");
 
@@ -564,21 +686,39 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
     describe("State reactivity", () => {
         it("should trigger recomputation when dependencies change", () => {
-            const computeFn = vi.fn((state) => state.globalData?.test || "default");
-            computedStateManager.addComputed("reactive", computeFn, ["globalData.test"]);
+            const computeFn = vi.fn(
+                (state) => state.globalData?.test || "default"
+            );
+            computedStateManager.addComputed("reactive", computeFn, [
+                "globalData.test",
+            ]);
 
             expect(computeFn).toHaveBeenCalledTimes(1); // Initial computation
 
             // Test that the subscription was set up
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith("globalData.test", expect.any(Function));
+            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
+                "globalData.test",
+                expect.any(Function)
+            );
         });
 
         it("should handle multiple dependencies correctly", () => {
-            const computeFn = vi.fn((state) => `${state.app?.status}-${state.ui?.mode}`);
-            computedStateManager.addComputed("multiDep", computeFn, ["app.status", "ui.mode"]);
+            const computeFn = vi.fn(
+                (state) => `${state.app?.status}-${state.ui?.mode}`
+            );
+            computedStateManager.addComputed("multiDep", computeFn, [
+                "app.status",
+                "ui.mode",
+            ]);
 
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith("app.status", expect.any(Function));
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith("ui.mode", expect.any(Function));
+            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
+                "app.status",
+                expect.any(Function)
+            );
+            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
+                "ui.mode",
+                expect.any(Function)
+            );
         });
     });
 
@@ -591,7 +731,8 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             const computeFn = vi.fn((state) => state.test);
             computedStateManager.addComputed("errorState", computeFn, []);
 
-            const computed = computedStateManager.computedValues.get("errorState");
+            const computed =
+                computedStateManager.computedValues.get("errorState");
             expect(computed.error).toBeInstanceOf(Error);
             expect(computed.isValid).toBe(false);
         });
@@ -602,7 +743,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             expect(() => {
-                computedStateManager.addComputed("subError", () => "value", ["test"]);
+                computedStateManager.addComputed("subError", () => "value", [
+                    "test",
+                ]);
             }).toThrow("Subscription error");
         });
     });

@@ -4,6 +4,7 @@ import { initializeAccentColor } from "./accentColor.js";
 
 /**
  * @typedef {Object} ThemeConfig
+ *
  * @property {string} theme - The effective theme name
  * @property {boolean} isDark - Whether the theme is dark
  * @property {boolean} isLight - Whether the theme is light
@@ -20,14 +21,14 @@ export const THEME_MODES = {
 };
 
 /**
- * Canonical localStorage key for persisted theme.
- * Many modules (main process IPC, charts, etc.) assume this key.
+ * Canonical localStorage key for persisted theme. Many modules (main process
+ * IPC, charts, etc.) assume this key.
  */
 const THEME_STORAGE_KEY = "ffv-theme";
 
 /**
- * Legacy theme storage keys found in older state-manager implementations.
- * We migrate these to {@link THEME_STORAGE_KEY} when discovered.
+ * Legacy theme storage keys found in older state-manager implementations. We
+ * migrate these to {@link THEME_STORAGE_KEY} when discovered.
  */
 const LEGACY_THEME_STORAGE_KEYS = ["fitFileViewer_theme"];
 
@@ -37,14 +38,19 @@ const LEGACY_THEME_STORAGE_KEYS = ["fitFileViewer_theme"];
  * The codebase historically used both "auto" and "system" for the system theme.
  * For persistence and theme core logic we canonicalize to "auto".
  *
- * @param {string|null|undefined} theme
+ * @param {string | null | undefined} theme
+ *
  * @returns {string} One of: "dark" | "light" | "auto"
  */
 function normalizeThemePreference(theme) {
     if (theme === "system") {
         return THEME_MODES.AUTO;
     }
-    if (theme === THEME_MODES.AUTO || theme === THEME_MODES.DARK || theme === THEME_MODES.LIGHT) {
+    if (
+        theme === THEME_MODES.AUTO ||
+        theme === THEME_MODES.DARK ||
+        theme === THEME_MODES.LIGHT
+    ) {
         return theme;
     }
     return THEME_MODES.DARK;
@@ -57,6 +63,7 @@ const THEME_TRANSITION_CLASS = "theme-transitioning";
 
 /**
  * Apply the given theme to the document body and persist it.
+ *
  * @param {string} theme - 'dark', 'light', or 'auto'
  * @param {boolean} withTransition - Whether to animate the theme change
  */
@@ -132,7 +139,9 @@ export function applyTheme(theme, withTransition = true) {
 
 /**
  * Get the effective theme (resolves 'auto' to actual theme)
- * @param {string|null} [theme] - The theme preference
+ *
+ * @param {string | null} [theme] - The theme preference
+ *
  * @returns {string} 'dark' or 'light'
  */
 export function getEffectiveTheme(theme = null) {
@@ -142,17 +151,21 @@ export function getEffectiveTheme(theme = null) {
 
 /**
  * Get the system's preferred color scheme
+ *
  * @returns {string} 'dark' or 'light'
  */
 export function getSystemTheme() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
-        return globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
     }
     return "dark"; // Fallback
 }
 
 /**
  * Get theme preference for external libraries
+ *
  * @returns {Object} Theme configuration object
  */
 export function getThemeConfig() {
@@ -218,7 +231,11 @@ export function getThemeConfig() {
         getVar = (name) => {
             try {
                 // Guard for environments where document/body or getComputedStyle may be unavailable or mocked
-                if (typeof document === "undefined" || !document || !document.body) {
+                if (
+                    typeof document === "undefined" ||
+                    !document ||
+                    !document.body
+                ) {
                     return "";
                 }
                 if (typeof getComputedStyle !== "function") {
@@ -226,10 +243,18 @@ export function getThemeConfig() {
                 }
                 // Some tests may replace body with non-Element. Accessing computed style would throw.
                 const { body } = /** @type {any} */ (document);
-                if (!body || typeof body.nodeType !== "number" || body.nodeType !== 1) {
+                if (
+                    !body ||
+                    typeof body.nodeType !== "number" ||
+                    body.nodeType !== 1
+                ) {
                     return "";
                 }
-                return getComputedStyle(body).getPropertyValue(`--${name}`)?.trim() || "";
+                return (
+                    getComputedStyle(body)
+                        .getPropertyValue(`--${name}`)
+                        ?.trim() || ""
+                );
             } catch {
                 return "";
             }
@@ -242,16 +267,31 @@ export function getThemeConfig() {
         colors: {
             // Core palette (from CSS variables)
             ...cssColors,
-            accent: cssColors.accent || (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
-            accentHover: cssColors.accentHover || (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
-            background: cssColors.bg || (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
-            backgroundAlt: cssColors.bgAlt || (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
-            border: cssColors.border || (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
-            borderLight: cssColors.borderLight || (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
+            accent:
+                cssColors.accent ||
+                (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
+            accentHover:
+                cssColors.accentHover ||
+                (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
+            background:
+                cssColors.bg ||
+                (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
+            backgroundAlt:
+                cssColors.bgAlt ||
+                (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
+            border:
+                cssColors.border ||
+                (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
+            borderLight:
+                cssColors.borderLight ||
+                (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
             // Chart-specific colors
             chartBackground: effectiveTheme === "dark" ? "#181c24" : "#ffffff",
             chartBorder: effectiveTheme === "dark" ? "#555" : "#ddd",
-            chartGrid: effectiveTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            chartGrid:
+                effectiveTheme === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
             chartSurface: effectiveTheme === "dark" ? "#222" : "#fff",
             error: cssColors.error || "#ef4444",
             // Heart rate zone colors
@@ -292,18 +332,36 @@ export function getThemeConfig() {
             // Legacy/explicit keys for compatibility
             primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
-            primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
-            primaryShadowHeavy: effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
-            primaryShadowLight: effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
-            shadow: cssColors.shadow || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
-            shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
+            primaryShadow:
+                effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
+            primaryShadowHeavy:
+                effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
+            primaryShadowLight:
+                effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
+            shadow:
+                cssColors.shadow ||
+                (effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.3)"
+                    : "rgba(0, 0, 0, 0.15)"),
+            shadowHeavy:
+                effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.5)"
+                    : "rgba(0, 0, 0, 0.15)",
             shadowLight:
-                cssColors.boxShadowLight || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
-            shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
+                cssColors.boxShadowLight ||
+                (effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.2)"
+                    : "rgba(0, 0, 0, 0.05)"),
+            shadowMedium:
+                effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.4)"
+                    : "rgba(0, 0, 0, 0.1)",
             success: cssColors.success || "#10b981",
             surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
             surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
-            text: cssColors.fg || (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
+            text:
+                cssColors.fg ||
+                (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
             textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
             textSecondary: effectiveTheme === "dark" ? "#a0a0a0" : "#6b7280",
             warning: cssColors.warning || "#f59e0b",
@@ -350,7 +408,8 @@ export function initializeTheme() {
 
 /**
  * Listen for system theme changes and update if using auto theme
- * @returns {Function|undefined} Cleanup function if available
+ *
+ * @returns {Function | undefined} Cleanup function if available
  */
 export function listenForSystemThemeChange() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
@@ -372,7 +431,10 @@ export function listenForSystemThemeChange() {
         // Return cleanup function
         return () => {
             if (mediaQuery.removeEventListener) {
-                mediaQuery.removeEventListener("change", handleSystemThemeChange);
+                mediaQuery.removeEventListener(
+                    "change",
+                    handleSystemThemeChange
+                );
             } else {
                 mediaQuery.removeListener(handleSystemThemeChange);
             }
@@ -383,31 +445,50 @@ export function listenForSystemThemeChange() {
 }
 
 /**
- * Listen for theme change events from the Electron main process and apply the theme.
+ * Listen for theme change events from the Electron main process and apply the
+ * theme.
+ *
  * @param {(theme: string) => void} onThemeChange
  */
 export function listenForThemeChange(onThemeChange) {
     if (
         /** @type {any} */ (globalThis).electronAPI &&
-        typeof (/** @type {any} */ (globalThis).electronAPI.onSetTheme) === "function" &&
-        typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function"
+        typeof (/** @type {any} */ (globalThis).electronAPI.onSetTheme) ===
+            "function" &&
+        typeof (
+            /** @type {any} */ (globalThis).electronAPI.sendThemeChanged
+        ) === "function"
     ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
-        /** @type {any} */ (globalThis).electronAPI.onSetTheme((/** @type {string} */ theme) => {
-            onThemeChange(theme);
-            if (typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function") {
-                /** @type {any} */ (globalThis).electronAPI.sendThemeChanged(theme);
-            } else {
-                console.warn("sendThemeChanged method is not available on electronAPI.");
+        /** @type {any} */ (globalThis).electronAPI.onSetTheme(
+            (/** @type {string} */ theme) => {
+                onThemeChange(theme);
+                if (
+                    typeof (
+                        /** @type {any} */ (globalThis).electronAPI
+                            .sendThemeChanged
+                    ) === "function"
+                ) {
+                    /** @type {any} */ (
+                        globalThis
+                    ).electronAPI.sendThemeChanged(theme);
+                } else {
+                    console.warn(
+                        "sendThemeChanged method is not available on electronAPI."
+                    );
+                }
             }
-        });
+        );
     } else {
-        console.warn("Electron API is not available. Theme change listener is not active.");
+        console.warn(
+            "Electron API is not available. Theme change listener is not active."
+        );
     }
 }
 
 /**
  * Load the persisted theme from localStorage, defaulting to 'dark'.
+ *
  * @returns {string}
  */
 export function loadTheme() {
@@ -441,6 +522,7 @@ export function loadTheme() {
 
 /**
  * Toggle between light and dark themes
+ *
  * @param {boolean} withTransition - Whether to animate the theme change
  */
 export function toggleTheme(withTransition = true) {
@@ -452,6 +534,7 @@ export function toggleTheme(withTransition = true) {
 
 /**
  * Dispatch a custom theme change event
+ *
  * @param {string} theme - The new theme
  */
 function dispatchThemeChangeEvent(theme) {
@@ -516,6 +599,7 @@ function injectThemeTransitionCSS() {
 
 /**
  * Update the meta theme-color tag for mobile browsers
+ *
  * @param {string} theme - The theme to update for
  */
 function updateMetaThemeColor(theme) {
@@ -532,8 +616,9 @@ function updateMetaThemeColor(theme) {
 }
 
 /**
- * Legacy aggregated theme API for compatibility with modules expecting a namespace export.
- * Provides direct access to the primary theme helpers via an object reference.
+ * Legacy aggregated theme API for compatibility with modules expecting a
+ * namespace export. Provides direct access to the primary theme helpers via an
+ * object reference.
  */
 export const theme = {
     THEME_MODES,

@@ -1,10 +1,11 @@
 /**
- * @fileoverview Lap number lookup utility for FitFileViewer
+ * @file Lap number lookup utility for FitFileViewer
  *
- * Provides functions for determining which lap a specific data point index
- * belongs to within FIT file lap message data.
+ *   Provides functions for determining which lap a specific data point index
+ *   belongs to within FIT file lap message data.
  *
  * @author FitFileViewer Team
+ *
  * @since 1.0.0
  */
 
@@ -12,6 +13,7 @@ const LOG_PREFIX = "[LapLookup]";
 
 /**
  * @typedef {Object} LapMessage
+ *
  * @property {number} start_index
  * @property {number} end_index
  * @property {number} [total_elapsed_time]
@@ -22,30 +24,31 @@ const LOG_PREFIX = "[LapLookup]";
 /**
  * Determines the lap number for a given point index
  *
- * Searches through lap message objects to find which lap contains the
- * specified data point index. Lap numbers are 1-based for user display.
- *
- * @param {number} idx - The index of the point to check (must be non-negative)
- * @param {Array<Object>} lapMesgs - Array of lap message objects with structure:
- *   {
- *     start_index: number, // Starting index of the lap (inclusive)
- *     end_index: number    // Ending index of the lap (inclusive)
- *   }
- * @returns {number|null} The lap number (1-based) if found, or null if not found/invalid input
+ * Searches through lap message objects to find which lap contains the specified
+ * data point index. Lap numbers are 1-based for user display.
  *
  * @example
- * const lapMesgs = [
- *   { start_index: 0, end_index: 99 },
- *   { start_index: 100, end_index: 199 }
- * ];
- * getLapNumForIdx(50, lapMesgs);  // Returns 1
- * getLapNumForIdx(150, lapMesgs); // Returns 2
- * getLapNumForIdx(250, lapMesgs); // Returns null
+ *     const lapMesgs = [
+ *         { start_index: 0, end_index: 99 },
+ *         { start_index: 100, end_index: 199 },
+ *     ];
+ *     getLapNumForIdx(50, lapMesgs); // Returns 1
+ *     getLapNumForIdx(150, lapMesgs); // Returns 2
+ *     getLapNumForIdx(250, lapMesgs); // Returns null
+ *
+ * @param {number} idx - The index of the point to check (must be non-negative)
+ * @param {Object[]} lapMesgs - Array of lap message objects with structure: {
+ *   start_index: number, // Starting index of the lap (inclusive) end_index:
+ *   number // Ending index of the lap (inclusive) }
+ *
+ * @returns {number | null} The lap number (1-based) if found, or null if not
+ *   found/invalid input
  */
 /**
  * @param {number} idx
  * @param {LapMessage[]} lapMesgs
- * @returns {number|null}
+ *
+ * @returns {number | null}
  */
 export function getLapNumForIdx(idx, lapMesgs) {
     try {
@@ -76,35 +79,55 @@ export function getLapNumForIdx(idx, lapMesgs) {
         // Index not found in any lap
         return null;
     } catch (error) {
-        console.error(`${LOG_PREFIX} Error determining lap number for index ${idx}:`, error);
+        console.error(
+            `${LOG_PREFIX} Error determining lap number for index ${idx}:`,
+            error
+        );
         return null;
     }
 }
 
 /**
  * Validates lap message structure
+ *
  * @param {LapMessage} lap - Lap message object to validate
  * @param {number} lapIndex - Index of the lap for logging
+ *
  * @returns {boolean} True if lap has valid structure
  */
 function isValidLap(lap, lapIndex) {
     if (!lap || typeof lap !== "object") {
-        console.warn(`${LOG_PREFIX} Invalid lap object at index ${lapIndex}:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Invalid lap object at index ${lapIndex}:`,
+            lap
+        );
         return false;
     }
 
-    if (typeof lap.start_index !== "number" || typeof lap.end_index !== "number") {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`, lap);
+    if (
+        typeof lap.start_index !== "number" ||
+        typeof lap.end_index !== "number"
+    ) {
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`,
+            lap
+        );
         return false;
     }
 
     if (lap.start_index < 0 || lap.end_index < 0) {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} has negative indices:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} has negative indices:`,
+            lap
+        );
         return false;
     }
 
     if (lap.start_index > lap.end_index) {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} has start_index > end_index:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} has start_index > end_index:`,
+            lap
+        );
         return false;
     }
 
@@ -113,9 +136,11 @@ function isValidLap(lap, lapIndex) {
 
 /**
  * Validates input parameters
+ *
  * @param {number} idx - Point index to validate
  * @param {LapMessage[]} lapMesgs - Lap messages array to validate
- * @returns {{isValid: boolean, error?: string}} Validation result
+ *
+ * @returns {{ isValid: boolean; error?: string }} Validation result
  */
 function validateInputs(idx, lapMesgs) {
     if (typeof idx !== "number" || !Number.isFinite(idx) || idx < 0) {

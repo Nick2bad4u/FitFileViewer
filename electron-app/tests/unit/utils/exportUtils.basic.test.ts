@@ -35,7 +35,9 @@ Object.defineProperty(global, "localStorage", {
 
 // Mock ClipboardItem for clipboard tests
 global.ClipboardItem = class MockClipboardItem {
-    constructor(data: Record<string, string | Blob | PromiseLike<string | Blob>>) {
+    constructor(
+        data: Record<string, string | Blob | PromiseLike<string | Blob>>
+    ) {
         this.data = data;
     }
 
@@ -47,11 +49,14 @@ global.ClipboardItem = class MockClipboardItem {
 } as any;
 
 // Set up DOM environment
-const dom = new JSDOM("<!DOCTYPE html><html><head></head><body></body></html>", {
-    url: "http://localhost",
-    pretendToBeVisual: true,
-    resources: "usable",
-});
+const dom = new JSDOM(
+    "<!DOCTYPE html><html><head></head><body></body></html>",
+    {
+        url: "http://localhost",
+        pretendToBeVisual: true,
+        resources: "usable",
+    }
+);
 
 global.document = dom.window.document;
 global.window = dom.window as any;
@@ -72,7 +77,8 @@ describe("exportUtils.js - Basic Test Coverage", () => {
         localStorageMock.getItem.mockClear();
 
         // Import the module after mocks are set up
-        const module = await import("../../../utils/files/export/exportUtils.js");
+        const module =
+            await import("../../../utils/files/export/exportUtils.js");
         exportUtils = module.exportUtils;
         // Fresh spies each test; defaults: detectTheme -> 'light'
         notifySpy = vi.fn(async () => undefined);
@@ -281,7 +287,10 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.downloadChartAsPNG(mockChart);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to export chart as PNG", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to export chart as PNG",
+                "error"
+            );
         });
     });
 
@@ -289,13 +298,19 @@ describe("exportUtils.js - Basic Test Coverage", () => {
         it("should throw error for empty charts array", async () => {
             await exportUtils.createCombinedChartsImage([]);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to create combined image", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to create combined image",
+                "error"
+            );
         });
 
         it("should throw error for null charts parameter", async () => {
             await exportUtils.createCombinedChartsImage(null);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to create combined image", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to create combined image",
+                "error"
+            );
         });
 
         it("should create combined image for single chart", async () => {
@@ -369,7 +384,9 @@ describe("exportUtils.js - Basic Test Coverage", () => {
                             width: 800,
                             height: 400,
                             getContext: vi.fn(() => mockContext),
-                            toDataURL: vi.fn(() => "data:image/png;base64,temp"),
+                            toDataURL: vi.fn(
+                                () => "data:image/png;base64,temp"
+                            ),
                         };
                     }
                 } else if (tagName === "a") {
@@ -378,7 +395,12 @@ describe("exportUtils.js - Basic Test Coverage", () => {
                 return {};
             }) as any;
 
-            const charts = [mockChart, mockChart, mockChart, mockChart]; // 4 charts = 2x2 grid
+            const charts = [
+                mockChart,
+                mockChart,
+                mockChart,
+                mockChart,
+            ]; // 4 charts = 2x2 grid
 
             await exportUtils.createCombinedChartsImage(charts);
 
@@ -400,7 +422,10 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.createCombinedChartsImage([mockChart]);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to create combined image", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to create combined image",
+                "error"
+            );
         });
     });
 
@@ -420,7 +445,10 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.copyChartToClipboard(mockChart);
 
-            expect(notifySpy).toHaveBeenCalledWith("Chart copied to clipboard", "success");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Chart copied to clipboard",
+                "success"
+            );
         });
 
         it("should handle invalid chart gracefully", async () => {
@@ -439,7 +467,9 @@ describe("exportUtils.js - Basic Test Coverage", () => {
             };
 
             // Mock browser Clipboard API failure as the fallback path.
-            const mockWriteBuffer = vi.fn().mockRejectedValue(new Error("Permission denied"));
+            const mockWriteBuffer = vi
+                .fn()
+                .mockRejectedValue(new Error("Permission denied"));
             Object.defineProperty(global, "navigator", {
                 value: {
                     clipboard: {
@@ -453,12 +483,15 @@ describe("exportUtils.js - Basic Test Coverage", () => {
             await exportUtils.copyChartToClipboard(mockChart);
 
             // Electron bridge attempted first
-            expect((globalThis as any).electronAPI.writeClipboardPngDataUrl).toHaveBeenCalledWith(
-                "data:image/png;base64,mockdata"
-            );
+            expect(
+                (globalThis as any).electronAPI.writeClipboardPngDataUrl
+            ).toHaveBeenCalledWith("data:image/png;base64,mockdata");
 
             // Both Electron + browser clipboard failed => error notification
-            expect(notifySpy).toHaveBeenCalledWith("Failed to copy chart to clipboard", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to copy chart to clipboard",
+                "error"
+            );
         });
     });
 
@@ -479,13 +512,19 @@ describe("exportUtils.js - Basic Test Coverage", () => {
         it("should handle empty charts array", async () => {
             await exportUtils.copyCombinedChartsToClipboard([]);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to copy combined charts to clipboard", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to copy combined charts to clipboard",
+                "error"
+            );
         });
 
         it("should handle null charts parameter", async () => {
             await exportUtils.copyCombinedChartsToClipboard(null);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to copy combined charts to clipboard", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to copy combined charts to clipboard",
+                "error"
+            );
         });
 
         it("should copy combined charts successfully", async () => {
@@ -508,10 +547,13 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.copyCombinedChartsToClipboard([mockChart]);
 
-            expect((globalThis as any).electronAPI.writeClipboardPngDataUrl).toHaveBeenCalledWith(
-                "data:image/png;base64,combined"
+            expect(
+                (globalThis as any).electronAPI.writeClipboardPngDataUrl
+            ).toHaveBeenCalledWith("data:image/png;base64,combined");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Combined charts copied to clipboard",
+                "success"
             );
-            expect(notifySpy).toHaveBeenCalledWith("Combined charts copied to clipboard", "success");
         });
     });
 
@@ -527,7 +569,10 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.createCombinedChartsImage([mockChart]);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to create combined image", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to create combined image",
+                "error"
+            );
         });
 
         it("should handle transparent background in combined charts", async () => {
@@ -572,7 +617,10 @@ describe("exportUtils.js - Basic Test Coverage", () => {
 
             await exportUtils.downloadChartAsPNG(invalidChart);
 
-            expect(notifySpy).toHaveBeenCalledWith("Failed to export chart as PNG", "error");
+            expect(notifySpy).toHaveBeenCalledWith(
+                "Failed to export chart as PNG",
+                "error"
+            );
         });
     });
 });

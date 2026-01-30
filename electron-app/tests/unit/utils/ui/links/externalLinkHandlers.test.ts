@@ -23,7 +23,8 @@ describe("externalLinkHandlers", () => {
         const user = userEvent.setup();
 
         const root = document.createElement("div");
-        root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
+        root.innerHTML =
+            '<a data-external-link href="https://example.com">Example</a>';
         document.body.append(root);
 
         const cleanup = attachExternalLinkHandlers({ root });
@@ -33,7 +34,9 @@ describe("externalLinkHandlers", () => {
         await user.click(a);
 
         // jsdom may canonicalize bare origins to include a trailing slash.
-        expect(openExternal).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/example\.com\/?$/));
+        expect(openExternal).toHaveBeenCalledWith(
+            expect.stringMatching(/^https:\/\/example\.com\/?$/)
+        );
 
         cleanup();
     });
@@ -46,7 +49,8 @@ describe("externalLinkHandlers", () => {
         const user = userEvent.setup();
 
         const root = document.createElement("div");
-        root.innerHTML = '<a data-external-link href="javascript:alert(1)">Bad</a>';
+        root.innerHTML =
+            '<a data-external-link href="javascript:alert(1)">Bad</a>';
         document.body.append(root);
 
         attachExternalLinkHandlers({ root });
@@ -64,7 +68,8 @@ describe("externalLinkHandlers", () => {
         const user = userEvent.setup();
 
         const root = document.createElement("div");
-        root.innerHTML = '<a data-external-link href="https://example.com/docs">Docs</a>';
+        root.innerHTML =
+            '<a data-external-link href="https://example.com/docs">Docs</a>';
         document.body.append(root);
 
         attachExternalLinkHandlers({ root });
@@ -84,7 +89,8 @@ describe("externalLinkHandlers", () => {
         const user = userEvent.setup();
 
         const root = document.createElement("div");
-        root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
+        root.innerHTML =
+            '<a data-external-link href="https://example.com">Example</a>';
         document.body.append(root);
 
         const cleanup = attachExternalLinkHandlers({ root });
@@ -97,7 +103,9 @@ describe("externalLinkHandlers", () => {
     });
 
     it("invokes onOpenExternalError when electronAPI.openExternal rejects", async () => {
-        const openExternal = vi.fn().mockRejectedValueOnce(new Error("blocked"));
+        const openExternal = vi
+            .fn()
+            .mockRejectedValueOnce(new Error("blocked"));
         const onOpenExternalError = vi.fn();
 
         const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
@@ -108,7 +116,8 @@ describe("externalLinkHandlers", () => {
         const user = userEvent.setup();
 
         const root = document.createElement("div");
-        root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
+        root.innerHTML =
+            '<a data-external-link href="https://example.com">Example</a>';
         document.body.append(root);
 
         attachExternalLinkHandlers({ onOpenExternalError, root });

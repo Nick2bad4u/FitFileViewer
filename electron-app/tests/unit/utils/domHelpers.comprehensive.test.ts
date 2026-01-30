@@ -66,7 +66,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         it("should handle edge cases", () => {
             expect(isHTMLElement(document)).toBe(false);
             expect(isHTMLElement(window)).toBe(false);
-            expect(isHTMLElement(document.createDocumentFragment())).toBe(false);
+            expect(isHTMLElement(document.createDocumentFragment())).toBe(
+                false
+            );
         });
     });
 
@@ -80,9 +82,15 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should find elements by various selectors", () => {
-            expect(query("#test-id")).toBe(testContainer.querySelector("#test-id"));
-            expect(query(".test-class")).toBe(testContainer.querySelector(".test-class"));
-            expect(query('input[name="test-input"]')).toBe(testContainer.querySelector('input[name="test-input"]'));
+            expect(query("#test-id")).toBe(
+                testContainer.querySelector("#test-id")
+            );
+            expect(query(".test-class")).toBe(
+                testContainer.querySelector(".test-class")
+            );
+            expect(query('input[name="test-input"]')).toBe(
+                testContainer.querySelector('input[name="test-input"]')
+            );
         });
 
         it("should return null for non-existing elements", () => {
@@ -101,8 +109,12 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             customParent.innerHTML = '<p class="custom">Custom Content</p>';
             testContainer.appendChild(customParent);
 
-            expect(query(".custom", customParent)).toBe(customParent.querySelector(".custom"));
-            expect(query(".custom", testContainer)).toBe(testContainer.querySelector(".custom"));
+            expect(query(".custom", customParent)).toBe(
+                customParent.querySelector(".custom")
+            );
+            expect(query(".custom", testContainer)).toBe(
+                testContainer.querySelector(".custom")
+            );
         });
     });
 
@@ -136,7 +148,8 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should work with custom parent element", () => {
             const customParent = document.createElement("div");
-            customParent.innerHTML = '<span class="custom">Custom 1</span><span class="custom">Custom 2</span>';
+            customParent.innerHTML =
+                '<span class="custom">Custom 1</span><span class="custom">Custom 2</span>';
             testContainer.appendChild(customParent);
 
             const elements = queryAll(".custom", customParent);
@@ -155,24 +168,34 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should return element when it exists", () => {
             const element = requireElement("#test-existing-element");
-            expect(element).toBe(testContainer.querySelector("#test-existing-element"));
+            expect(element).toBe(
+                testContainer.querySelector("#test-existing-element")
+            );
         });
 
         it("should throw error when element does not exist", () => {
-            expect(() => requireElement("#non-existing")).toThrow("Required element not found: #non-existing");
+            expect(() => requireElement("#non-existing")).toThrow(
+                "Required element not found: #non-existing"
+            );
         });
 
         it("should throw error for invalid selectors", () => {
             expect(() => requireElement("")).toThrow();
-            expect(() => requireElement("#non-existing")).toThrow("Required element not found: #non-existing");
+            expect(() => requireElement("#non-existing")).toThrow(
+                "Required element not found: #non-existing"
+            );
         });
 
         it("should work with custom parent and provide proper error message", () => {
             const customParent = document.createElement("div");
             customParent.innerHTML = '<p class="custom">Custom</p>';
 
-            expect(requireElement(".custom", customParent)).toBe(customParent.querySelector(".custom"));
-            expect(() => requireElement(".missing", customParent)).toThrow("Required element not found: .missing");
+            expect(requireElement(".custom", customParent)).toBe(
+                customParent.querySelector(".custom")
+            );
+            expect(() => requireElement(".missing", customParent)).toThrow(
+                "Required element not found: .missing"
+            );
         });
     });
 
@@ -638,7 +661,8 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         beforeEach(() => {
             testElement = document.createElement("div");
-            testElement.innerHTML = "<p>Child 1</p><span>Child 2</span><div>Child 3</div>";
+            testElement.innerHTML =
+                "<p>Child 1</p><span>Child 2</span><div>Child 3</div>";
             testContainer.appendChild(testElement);
         });
 
@@ -666,7 +690,8 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should clear both elements and text nodes", () => {
-            testElement.innerHTML = "<p>Element</p>Text Node<span>Another Element</span>";
+            testElement.innerHTML =
+                "<p>Element</p>Text Node<span>Another Element</span>";
             clearElement(testElement);
             expect(testElement.innerHTML).toBe("");
         });
@@ -713,7 +738,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         it("should handle custom events", () => {
             on(testElement, "customEvent", mockHandler);
 
-            const customEvent = new CustomEvent("customEvent", { detail: { data: "test" } });
+            const customEvent = new CustomEvent("customEvent", {
+                detail: { data: "test" },
+            });
             testElement.dispatchEvent(customEvent);
 
             expect(mockHandler).toHaveBeenCalledTimes(1);

@@ -2,12 +2,20 @@ import { p as d } from "./isUnknown-BvXlyTdW.js";
 import "./index-LvWRIhnC.js";
 (function () {
     try {
-        var e = typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {},
+        var e =
+                typeof window < "u"
+                    ? window
+                    : typeof global < "u"
+                      ? global
+                      : typeof self < "u"
+                        ? self
+                        : {},
             r = new Error().stack;
         r &&
             ((e._sentryDebugIds = e._sentryDebugIds || {}),
             (e._sentryDebugIds[r] = "07184dbf-0ce7-4990-9337-a9b3d1f9a08e"),
-            (e._sentryDebugIdIdentifier = "sentry-dbid-07184dbf-0ce7-4990-9337-a9b3d1f9a08e"));
+            (e._sentryDebugIdIdentifier =
+                "sentry-dbid-07184dbf-0ce7-4990-9337-a9b3d1f9a08e"));
     } catch {
         /* Ignore errors */
     }

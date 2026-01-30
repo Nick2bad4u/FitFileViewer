@@ -85,7 +85,9 @@ vi.mock("electron-log", () => mockLogger);
 
 // electron-updater hoisted mock using the shared emitter
 const autoUpdater = {
-    on: vi.fn((evt: string, handler: Function) => autoUpdaterEmitter.on(evt, handler)),
+    on: vi.fn((evt: string, handler: Function) =>
+        autoUpdaterEmitter.on(evt, handler)
+    ),
     logger: mockLogger,
     checkForUpdatesAndNotify: vi.fn().mockResolvedValue(undefined),
 };
@@ -144,7 +146,8 @@ describe("main.js - import-based coverage", () => {
             getAppPath: vi.fn().mockReturnValue("/mock/app/path"),
             getPath: vi.fn().mockImplementation((name: string) => {
                 // electron-conf requests userData/appData paths; return a stable mock path
-                if (name === "userData" || name === "appData") return "/mock/user/data";
+                if (name === "userData" || name === "appData")
+                    return "/mock/user/data";
                 return "/mock/path";
             }),
             quit: vi.fn(),
@@ -163,7 +166,8 @@ describe("main.js - import-based coverage", () => {
                 isDestroyed: vi.fn().mockReturnValue(false),
                 send: vi.fn(),
                 on: vi.fn().mockImplementation((evt: string, handler: any) => {
-                    if (evt === "did-finish-load") didFinishLoadHandler = handler;
+                    if (evt === "did-finish-load")
+                        didFinishLoadHandler = handler;
                 }),
                 executeJavaScript: vi.fn().mockResolvedValue("dark"),
             },
@@ -177,7 +181,11 @@ describe("main.js - import-based coverage", () => {
         };
 
         mockIpcMain = { handle: vi.fn(), on: vi.fn() };
-        mockDialog = { showOpenDialog: vi.fn(), showSaveDialog: vi.fn(), showMessageBox: vi.fn() };
+        mockDialog = {
+            showOpenDialog: vi.fn(),
+            showSaveDialog: vi.fn(),
+            showMessageBox: vi.fn(),
+        };
         mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
 
         // Set per-test dynamic mocked implementations used by hoisted mocks
@@ -188,10 +196,14 @@ describe("main.js - import-based coverage", () => {
         const stateData: any = { eventHandlers: new Map(), store: new Map() };
         mainProcessState = {
             get: vi.fn((key: string) => stateData.store.get(key)),
-            set: vi.fn((key: string, val: any) => stateData.store.set(key, val)),
-            registerEventHandler: vi.fn((target: any, evt: string, handler: Function, id: string) => {
-                stateData.eventHandlers.set(id, { target, evt, handler });
-            }),
+            set: vi.fn((key: string, val: any) =>
+                stateData.store.set(key, val)
+            ),
+            registerEventHandler: vi.fn(
+                (target: any, evt: string, handler: Function, id: string) => {
+                    stateData.eventHandlers.set(id, { target, evt, handler });
+                }
+            ),
             cleanupEventHandlers: vi.fn(),
             data: stateData,
         };
@@ -239,6 +251,9 @@ describe("main.js - import-based coverage", () => {
         expect(appMenu.getMenuItemById).toHaveBeenCalledWith("restart-update");
 
         // The renderer should get set-theme during did-finish-load
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith("set-theme", expect.any(String));
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "set-theme",
+            expect.any(String)
+        );
     });
 });

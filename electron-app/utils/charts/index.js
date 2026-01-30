@@ -1,8 +1,11 @@
 /**
- * @fileoverview Charts Utilities Barrel Export
- * @description Organized exports for all chart-related utilities
- * @author FitFileViewer Development Team
+ * Organized exports for all chart-related utilities
+ *
  * @version 1.0.0
+ *
+ * @file Charts Utilities Barrel Export
+ *
+ * @author FitFileViewer Development Team
  */
 
 // Chart components
@@ -49,13 +52,14 @@ export * from "./theming/chartThemeUtils.js";
 export * from "./theming/getThemeColors.js";
 
 /**
- * Default export object for namespace imports
- * Usage: import charts from './utils/charts';
+ * Default export object for namespace imports Usage: import charts from
+ * './utils/charts';
  */
 export default {
     addChartHoverEffects: () => import("./plugins/addChartHoverEffects.js"),
     // Plugins
-    chartBackgroundColorPlugin: () => import("./plugins/chartBackgroundColorPlugin.js"),
+    chartBackgroundColorPlugin: () =>
+        import("./plugins/chartBackgroundColorPlugin.js"),
     chartColorSchemes: () => import("./theming/chartColorSchemes.js"),
     // Core
     chartStateManager: () => import("./core/chartStateManager.js"),
@@ -69,10 +73,12 @@ export default {
 
     createEnhancedChart: () => import("./components/createEnhancedChart.js"),
     // Rendering
-    renderAltitudeProfileChart: () => import("./rendering/renderAltitudeProfileChart.js"),
+    renderAltitudeProfileChart: () =>
+        import("./rendering/renderAltitudeProfileChart.js"),
 
     renderChartJS: () => import("./core/renderChartJS.js"),
-    renderEventMessagesChart: () => import("./rendering/renderEventMessagesChart.js"),
+    renderEventMessagesChart: () =>
+        import("./rendering/renderEventMessagesChart.js"),
 
     renderGPSTimeChart: () => import("./rendering/renderGPSTimeChart.js"),
     renderGPSTrackChart: () => import("./rendering/renderGPSTrackChart.js"),

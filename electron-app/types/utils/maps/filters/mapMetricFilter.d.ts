@@ -1,39 +1,55 @@
 /**
  * @typedef {Object} MetricFilterResult
+ *
  * @property {boolean} isActive
- * @property {string|null} metric
- * @property {string|null} metricLabel
+ * @property {string | null} metric
+ * @property {string | null} metricLabel
  * @property {MapFilterMode} mode
  * @property {number} percent
- * @property {number|null} threshold
+ * @property {number | null} threshold
  * @property {number} totalCandidates
  * @property {number} selectedCount
  * @property {Set<number>} allowedIndices
  * @property {number[]} orderedIndices
- * @property {string|null} reason
- * @property {number|null} minCandidate
- * @property {number|null} maxCandidate
- * @property {number|null} appliedMin
- * @property {number|null} appliedMax
+ * @property {string | null} reason
+ * @property {number | null} minCandidate
+ * @property {number | null} maxCandidate
+ * @property {number | null} appliedMin
+ * @property {number | null} appliedMax
  */
 /**
  * @typedef {Object} MetricFilterOptions
- * @property {(row:any)=>number|null} [valueExtractor]
+ *
+ * @property {(row: any) => number | null} [valueExtractor]
  */
 /**
- * Convenience helper returning a predicate for whether a record index should
- * be displayed, based on the provided metric filter result.
+ * Convenience helper returning a predicate for whether a record index should be
+ * displayed, based on the provided metric filter result.
  *
  * @param {MetricFilterResult} result
- * @returns {(recordIndex:number)=>boolean}
+ *
+ * @returns {(recordIndex: number) => boolean}
  */
-export function buildMetricFilterPredicate(result: MetricFilterResult): (recordIndex: number) => boolean;
+export function buildMetricFilterPredicate(
+    result: MetricFilterResult
+): (recordIndex: number) => boolean;
 /**
  * Compute descriptive statistics for a metric across record messages.
- * @param {Array<any>} recordMesgs
+ *
+ * @param {any[]} recordMesgs
  * @param {string} metricKey
  * @param {MetricFilterOptions} [options]
- * @returns {{metric:string,metricLabel:string,min:number,max:number,average:number,count:number,decimals:number,step:number}|null}
+ *
+ * @returns {{
+ *     metric: string;
+ *     metricLabel: string;
+ *     min: number;
+ *     max: number;
+ *     average: number;
+ *     count: number;
+ *     decimals: number;
+ *     step: number;
+ * } | null}
  */
 export function computeMetricStatistics(
     recordMesgs: Array<any>,
@@ -52,9 +68,10 @@ export function computeMetricStatistics(
 /**
  * Compute the indices belonging to the requested top percentile for a metric.
  *
- * @param {Array<any>} recordMesgs
+ * @param {any[]} recordMesgs
  * @param {MapDataPointFilterConfig | undefined | null} config
  * @param {MetricFilterOptions} [options]
+ *
  * @returns {MetricFilterResult}
  */
 export function createMetricFilter(
@@ -64,8 +81,10 @@ export function createMetricFilter(
 ): MetricFilterResult;
 /**
  * Resolve metric definition by key.
+ *
  * @param {string} metricKey
- * @returns {MetricDefinition|null}
+ *
+ * @returns {MetricDefinition | null}
  */
 export function getMetricDefinition(metricKey: string): MetricDefinition | null;
 /**
@@ -74,6 +93,7 @@ export function getMetricDefinition(metricKey: string): MetricDefinition | null;
  */
 /**
  * @typedef {Object} MetricRecord
+ *
  * @property {number} [speed]
  * @property {number} [power]
  * @property {number} [cadence]
@@ -81,10 +101,11 @@ export function getMetricDefinition(metricKey: string): MetricDefinition | null;
  * @property {number} [altitude]
  */
 /**
- * @typedef {"topPercent"|"valueRange"} MapFilterMode
+ * @typedef {"topPercent" | "valueRange"} MapFilterMode
  */
 /**
  * @typedef {Object} MapDataPointFilterConfig
+ *
  * @property {boolean} enabled
  * @property {string} metric
  * @property {MapFilterMode} [mode]
@@ -94,12 +115,14 @@ export function getMetricDefinition(metricKey: string): MetricDefinition | null;
  */
 /**
  * @typedef {Object} MetricDefinition
+ *
  * @property {string} key
  * @property {string} label
- * @property {(row:MetricRecord)=>number|null} resolver
+ * @property {(row: MetricRecord) => number | null} resolver
  */
 /**
  * Available metrics that can be filtered on. Keep in sync with UI control.
+ *
  * @type {MetricDefinition[]}
  */
 export const MAP_FILTER_METRICS: MetricDefinition[];

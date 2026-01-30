@@ -23,7 +23,8 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
 
         (globalThis as any).window = dom.window as any;
         (globalThis as any).document = dom.window.document as any;
-        (globalThis as any).HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
+        (globalThis as any).HTMLCanvasElement = dom.window
+            .HTMLCanvasElement as any;
         (globalThis as any).HTMLElement = dom.window.HTMLElement as any;
 
         (globalThis as any).console = {
@@ -44,11 +45,19 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         detectCurrentThemeMock = vi.fn(() => "light");
         getThemeConfigMock = vi.fn(() => ({
             colors: {
-                zoneColors: ["#111111", "#222222", "#333333"],
+                zoneColors: [
+                    "#111111",
+                    "#222222",
+                    "#333333",
+                ],
                 shadowLight: "rgba(0, 0, 0, 0.15)",
             },
         }));
-        getChartZoneColorsMock = vi.fn(() => ["#aaaaaa", "#bbbbbb", "#cccccc"]);
+        getChartZoneColorsMock = vi.fn(() => [
+            "#aaaaaa",
+            "#bbbbbb",
+            "#cccccc",
+        ]);
         getZoneTypeFromFieldMock = vi.fn(() => "heartRate");
         formatTimeMock = vi.fn((value: number) => `formatted-${value}`);
         createChartCanvasMock = vi.fn(() => document.createElement("canvas"));
@@ -69,11 +78,15 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         vi.doMock("../../utils/charts/components/createChartCanvas.js", () => ({
             createChartCanvas: createChartCanvasMock,
         }));
-        vi.doMock("../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-            chartBackgroundColorPlugin: { id: "background-color" },
-        }));
+        vi.doMock(
+            "../../utils/charts/plugins/chartBackgroundColorPlugin.js",
+            () => ({
+                chartBackgroundColorPlugin: { id: "background-color" },
+            })
+        );
 
-        const module = await import("../../utils/charts/rendering/renderZoneChart.js");
+        const module =
+            await import("../../utils/charts/rendering/renderZoneChart.js");
         renderZoneChart = module.renderZoneChart;
     });
 
@@ -93,7 +106,10 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     it("should warn and exit when container is invalid", () => {
         renderZoneChart(null as any, "Invalid", [], "heart-rate-zones");
 
-        expect((console as any).warn).toHaveBeenCalledWith("renderZoneChart: invalid container", null);
+        expect((console as any).warn).toHaveBeenCalledWith(
+            "renderZoneChart: invalid container",
+            null
+        );
         expect(Chart).not.toHaveBeenCalled();
     });
 
@@ -101,7 +117,10 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         const container = document.createElement("div");
         renderZoneChart(container, "Invalid", null as any, "heart-rate-zones");
 
-        expect((console as any).warn).toHaveBeenCalledWith("renderZoneChart: zoneData not array", null);
+        expect((console as any).warn).toHaveBeenCalledWith(
+            "renderZoneChart: zoneData not array",
+            null
+        );
         expect(Chart).not.toHaveBeenCalled();
     });
 
@@ -112,21 +131,35 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             { zone: 2, label: "Z2", time: 240, color: "#00ff00" },
         ];
 
-        renderZoneChart(container, "HR Zones", zoneData, "heart-rate-zones", { chartType: "doughnut" });
+        renderZoneChart(container, "HR Zones", zoneData, "heart-rate-zones", {
+            chartType: "doughnut",
+        });
 
         expect(getChartZoneColorsMock).not.toHaveBeenCalled();
-        expect(createChartCanvasMock).toHaveBeenCalledWith("heart-rate-zones", 0);
+        expect(createChartCanvasMock).toHaveBeenCalledWith(
+            "heart-rate-zones",
+            0
+        );
         const config = Chart.mock.calls[0][1];
         expect(config.type).toBe("doughnut");
-        expect(config.data.datasets[0].backgroundColor).toEqual(["#ff0000", "#00ff00"]);
+        expect(config.data.datasets[0].backgroundColor).toEqual([
+            "#ff0000",
+            "#00ff00",
+        ]);
 
         const tooltipLabel = config.options.plugins.tooltip.callbacks.label({
-            dataset: { data: [120, 240], backgroundColor: ["#ff0000", "#00ff00"] },
+            dataset: {
+                data: [120, 240],
+                backgroundColor: ["#ff0000", "#00ff00"],
+            },
             parsed: 120,
             dataIndex: 0,
         });
         expect(formatTimeMock).toHaveBeenCalledWith(120, true);
-        expect(tooltipLabel).toEqual(["Time: formatted-120", "Percentage: 33.3%"]);
+        expect(tooltipLabel).toEqual([
+            "Time: formatted-120",
+            "Percentage: 33.3%",
+        ]);
         expect(container.querySelector("canvas")).not.toBeNull();
     });
 
@@ -138,17 +171,29 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         ];
         getZoneTypeFromFieldMock.mockReturnValueOnce("power");
 
-        renderZoneChart(container, "Power Zones", zoneData, "power-zones", { chartType: "bar" });
+        renderZoneChart(container, "Power Zones", zoneData, "power-zones", {
+            chartType: "bar",
+        });
 
         expect(getZoneTypeFromFieldMock).toHaveBeenCalledWith("power-zones");
-        expect(getChartZoneColorsMock).toHaveBeenCalledWith("power", zoneData.length);
+        expect(getChartZoneColorsMock).toHaveBeenCalledWith(
+            "power",
+            zoneData.length
+        );
 
         const config = Chart.mock.calls[0][1];
         expect(config.type).toBe("bar");
-        expect(config.data.datasets[0].backgroundColor).toEqual(["#aaaaaa", "#bbbbbb"]);
-        expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("#ffffff");
+        expect(config.data.datasets[0].backgroundColor).toEqual([
+            "#aaaaaa",
+            "#bbbbbb",
+        ]);
+        expect(
+            config.options.plugins.chartBackgroundColorPlugin.backgroundColor
+        ).toBe("#ffffff");
 
-        const label = config.options.plugins.tooltip.callbacks.label({ parsed: { y: 150 } });
+        const label = config.options.plugins.tooltip.callbacks.label({
+            parsed: { y: 150 },
+        });
         expect(formatTimeMock).toHaveBeenCalledWith(150, true);
         expect(label).toBe("Time: formatted-150");
     });

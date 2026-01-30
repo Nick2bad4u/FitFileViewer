@@ -1,13 +1,21 @@
 /**
- * UI State Management Utilities
- * Specific utilities for managing UI state and interactions
+ * UI State Management Utilities Specific utilities for managing UI state and
+ * interactions
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../core/stateManager.js";
 
-const DEFAULT_DOCUMENT_TITLE = typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer";
+const DEFAULT_DOCUMENT_TITLE =
+    typeof document !== "undefined" && document?.title
+        ? document.title
+        : "Fit File Viewer";
 
 /**
  * UI State Manager - handles common UI state operations
@@ -20,29 +28,40 @@ export class UIStateManager {
 
     /**
      * Apply theme to the UI
+     *
      * @param {string} theme - Theme to apply ('light', 'dark', 'system')
      */
     applyTheme(theme) {
-        const root = /** @type {HTMLElement} */ (document.documentElement || document.body || /** @type {any} */ ({}));
+        const root = /** @type {HTMLElement} */ (
+            document.documentElement || document.body || /** @type {any} */ ({})
+        );
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
             delete root.dataset.theme;
 
             // Listen for system theme changes if supported
-            if (globalThis.window !== undefined && typeof globalThis.matchMedia === "function") {
-                const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)"),
+            if (
+                globalThis.window !== undefined &&
+                typeof globalThis.matchMedia === "function"
+            ) {
+                const mediaQuery = globalThis.matchMedia(
+                        "(prefers-color-scheme: dark)"
+                    ),
                     systemTheme = mediaQuery.matches ? "dark" : "light";
                 root.dataset.theme = systemTheme;
 
                 // Update on system theme change
                 if (!this.systemThemeListener) {
-                    this.systemThemeListener = (/** @type {*} */ e) => {
+                    this.systemThemeListener = (/** @type {any} */ e) => {
                         const newSystemTheme = e.matches ? "dark" : "light";
                         root.dataset.theme = newSystemTheme;
                     };
                     if (typeof mediaQuery.addEventListener === "function") {
-                        mediaQuery.addEventListener("change", this.systemThemeListener);
+                        mediaQuery.addEventListener(
+                            "change",
+                            this.systemThemeListener
+                        );
                     } else if (typeof mediaQuery.addListener === "function") {
                         // Older API fallback
                         mediaQuery.addListener(this.systemThemeListener);
@@ -58,11 +77,21 @@ export class UIStateManager {
 
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
-                if (globalThis.window !== undefined && typeof globalThis.matchMedia === "function") {
-                    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+                if (
+                    globalThis.window !== undefined &&
+                    typeof globalThis.matchMedia === "function"
+                ) {
+                    const mediaQuery = globalThis.matchMedia(
+                        "(prefers-color-scheme: dark)"
+                    );
                     if (typeof mediaQuery.removeEventListener === "function") {
-                        mediaQuery.removeEventListener("change", this.systemThemeListener);
-                    } else if (typeof mediaQuery.removeListener === "function") {
+                        mediaQuery.removeEventListener(
+                            "change",
+                            this.systemThemeListener
+                        );
+                    } else if (
+                        typeof mediaQuery.removeListener === "function"
+                    ) {
                         mediaQuery.removeListener(this.systemThemeListener);
                     }
                 }
@@ -73,7 +102,9 @@ export class UIStateManager {
         // Update theme toggle buttons
         const themeButtons = (() => {
             try {
-                return /** @type {Element[]} */ ([...(document.querySelectorAll("[data-theme]") || [])]);
+                return /** @type {Element[]} */ ([
+                    ...(document.querySelectorAll("[data-theme]") || []),
+                ]);
             } catch {
                 return [];
             }
@@ -92,7 +123,9 @@ export class UIStateManager {
     cleanup() {
         // Remove system theme listener if it exists
         if (this.systemThemeListener) {
-            const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+            const mediaQuery = globalThis.matchMedia(
+                "(prefers-color-scheme: dark)"
+            );
             mediaQuery.removeEventListener("change", this.systemThemeListener);
         }
 
@@ -120,57 +153,61 @@ export class UIStateManager {
      */
     initializeReactiveElements() {
         // Subscribe to active tab changes
-        subscribe("ui.activeTab", (/** @type {*} */ activeTab) => {
+        subscribe("ui.activeTab", (/** @type {any} */ activeTab) => {
             this.updateTabVisibility(activeTab);
             this.updateTabButtons(activeTab);
         });
 
         // Subscribe to theme changes
-        subscribe("ui.theme", (/** @type {*} */ theme) => {
+        subscribe("ui.theme", (/** @type {any} */ theme) => {
             this.applyTheme(theme);
         });
 
         // Subscribe to unload button visibility
-        subscribe("ui.unloadButtonVisible", (/** @type {*} */ isVisible) => {
+        subscribe("ui.unloadButtonVisible", (/** @type {any} */ isVisible) => {
             this.updateUnloadButtonVisibility(Boolean(isVisible));
         });
 
         // Subscribe to file display updates
-        subscribe("ui.fileInfo", (/** @type {*} */ fileInfo) => {
+        subscribe("ui.fileInfo", (/** @type {any} */ fileInfo) => {
             this.updateFileDisplayUI(fileInfo);
         });
 
         // Subscribe to loading indicator progress
-        subscribe("ui.loadingIndicator", (/** @type {*} */ indicator) => {
+        subscribe("ui.loadingIndicator", (/** @type {any} */ indicator) => {
             this.updateLoadingProgressUI(indicator);
         });
 
         // Subscribe to loading state changes
-        subscribe("isLoading", (/** @type {*} */ isLoading) => {
+        subscribe("isLoading", (/** @type {any} */ isLoading) => {
             this.updateLoadingIndicator(isLoading);
         });
 
         // Subscribe to chart controls visibility
-        subscribe("charts.controlsVisible", (/** @type {*} */ isVisible) => {
+        subscribe("charts.controlsVisible", (/** @type {any} */ isVisible) => {
             this.updateChartControlsUI(isVisible);
         });
 
         // Subscribe to measurement mode changes
-        subscribe("map.measurementMode", (/** @type {*} */ isActive) => {
+        subscribe("map.measurementMode", (/** @type {any} */ isActive) => {
             this.updateMeasurementModeUI(isActive);
         });
 
         // Subscribe to drop overlay visibility changes
-        subscribe("ui.dropOverlay.visible", (/** @type {*} */ isVisible) => {
+        subscribe("ui.dropOverlay.visible", (/** @type {any} */ isVisible) => {
             this.updateDropOverlayVisibility(Boolean(isVisible));
         });
 
         // Apply persisted states on startup
-        this.updateUnloadButtonVisibility(Boolean(getState("ui.unloadButtonVisible")));
+        this.updateUnloadButtonVisibility(
+            Boolean(getState("ui.unloadButtonVisible"))
+        );
         this.updateFileDisplayUI(getState("ui.fileInfo"));
         this.updateLoadingProgressUI(getState("ui.loadingIndicator"));
         this.updateLoadingIndicator(Boolean(getState("isLoading")));
-        this.updateDropOverlayVisibility(Boolean(getState("ui.dropOverlay.visible")));
+        this.updateDropOverlayVisibility(
+            Boolean(getState("ui.dropOverlay.visible"))
+        );
     }
 
     /**
@@ -180,6 +217,7 @@ export class UIStateManager {
         // Safe helpers to guard against jsdom brand-check errors or replaced globals
         /**
          * @param {string} selector
+         *
          * @returns {Element[]}
          */
         const safeQuerySelectorAll = (selector) => {
@@ -187,7 +225,9 @@ export class UIStateManager {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
                     // Array.from guards non-iterables
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ ([
+                        ...(doc.querySelectorAll(selector) || []),
+                    ]);
                 }
             } catch {
                 // Swallow to keep tests stable if document was swapped or methods are from another realm
@@ -196,11 +236,14 @@ export class UIStateManager {
         };
         /**
          * @param {string} id
-         * @returns {HTMLElement|null}
+         *
+         * @returns {HTMLElement | null}
          */
         const safeGetById = (id) => {
             try {
-                return /** @type {HTMLElement|null} */ (document.getElementById(id));
+                return /** @type {HTMLElement | null} */ (
+                    document.getElementById(id)
+                );
             } catch {
                 return null;
             }
@@ -247,7 +290,8 @@ export class UIStateManager {
 
     /**
      * Show a notification to the user
-     * @param {*} notification - Notification options or message string
+     *
+     * @param {any} notification - Notification options or message string
      */
     showNotification(notification) {
         try {
@@ -258,12 +302,18 @@ export class UIStateManager {
                 message = notification;
                 type = "info";
                 duration = 3000;
-            } else if (typeof notification === "object" && notification !== null) {
+            } else if (
+                typeof notification === "object" &&
+                notification !== null
+            ) {
                 message = notification.message || "No message provided";
                 type = notification.type || "info";
                 duration = notification.duration || 3000;
             } else {
-                console.warn("[UIStateManager] Invalid notification parameter:", notification);
+                console.warn(
+                    "[UIStateManager] Invalid notification parameter:",
+                    notification
+                );
                 return;
             } // Use the imported showNotification utility
             try {
@@ -288,20 +338,28 @@ export class UIStateManager {
                 { source: "UIStateManager.showNotification" }
             );
         } catch (error) {
-            console.error("[UIStateManager] Failed to show notification:", error);
-            console.log(`[Notification] ${notification.message || notification}`);
+            console.error(
+                "[UIStateManager] Failed to show notification:",
+                error
+            );
+            console.log(
+                `[Notification] ${notification.message || notification}`
+            );
         }
     }
 
     /**
      * Show/hide sidebar
-     * @param {*} collapsed - Whether sidebar should be collapsed
+     *
+     * @param {any} collapsed - Whether sidebar should be collapsed
      */
     toggleSidebar(collapsed) {
         const currentState = getState("ui.sidebarCollapsed"),
             newState = collapsed === undefined ? !currentState : collapsed;
 
-        setState("ui.sidebarCollapsed", newState, { source: "UIStateManager.toggleSidebar" });
+        setState("ui.sidebarCollapsed", newState, {
+            source: "UIStateManager.toggleSidebar",
+        });
 
         const mainContent = document.querySelector("#main-content"),
             sidebar = document.querySelector("#sidebar");
@@ -317,6 +375,7 @@ export class UIStateManager {
 
     /**
      * Update chart controls UI
+     *
      * @param {boolean} isVisible - Whether controls are visible
      */
     updateChartControlsUI(isVisible) {
@@ -340,18 +399,23 @@ export class UIStateManager {
         }
 
         if (toggleBtn) {
-            toggleBtn.textContent = isVisible ? "▼ Hide Controls" : "▶ Show Controls";
+            toggleBtn.textContent = isVisible
+                ? "▼ Hide Controls"
+                : "▶ Show Controls";
             toggleBtn.setAttribute("aria-expanded", isVisible.toString());
         }
     }
     /**
      * Update drop overlay visibility and related iframe pointer state
+     *
      * @param {boolean} isVisible - Whether the drop overlay should be shown
      */
     updateDropOverlayVisibility(isVisible) {
         const dropOverlay = (() => {
             try {
-                return /** @type {HTMLElement|null} */ (document.getElementById("drop-overlay"));
+                return /** @type {HTMLElement | null} */ (
+                    document.getElementById("drop-overlay")
+                );
             } catch {
                 return null;
             }
@@ -363,7 +427,9 @@ export class UIStateManager {
 
         const altFitIframe = (() => {
             try {
-                return /** @type {HTMLElement|null} */ (document.getElementById("altfit-iframe"));
+                return /** @type {HTMLElement | null} */ (
+                    document.getElementById("altfit-iframe")
+                );
             } catch {
                 return null;
             }
@@ -375,7 +441,9 @@ export class UIStateManager {
 
         const zwiftIframe = (() => {
             try {
-                return /** @type {HTMLElement|null} */ (document.getElementById("zwift-iframe"));
+                return /** @type {HTMLElement | null} */ (
+                    document.getElementById("zwift-iframe")
+                );
             } catch {
                 return null;
             }
@@ -387,16 +455,27 @@ export class UIStateManager {
     }
     /**
      * Update active file display elements based on state
-     * @param {{displayName?: string, hasFile?: boolean, title?: string}|null} fileInfo - File info state
+     *
+     * @param {{
+     *     displayName?: string;
+     *     hasFile?: boolean;
+     *     title?: string;
+     * } | null} fileInfo
+     *   - File info state
      */
     updateFileDisplayUI(fileInfo) {
         const info = fileInfo || {},
             requestedHasFile = Boolean(info.hasFile),
-            displayName = typeof info.displayName === "string" ? info.displayName : "",
+            displayName =
+                typeof info.displayName === "string" ? info.displayName : "",
             title =
-                typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE,
+                typeof info.title === "string" && info.title.trim().length > 0
+                    ? info.title
+                    : DEFAULT_DOCUMENT_TITLE,
             globalData = getState("globalData"),
-            hasRenderableFile = Boolean(requestedHasFile && displayName && globalData);
+            hasRenderableFile = Boolean(
+                requestedHasFile && displayName && globalData
+            );
 
         const fileNameContainer = (() => {
             try {
@@ -412,14 +491,21 @@ export class UIStateManager {
         if (typeof document !== "undefined" && document.body) {
             const { body } = document,
                 { classList, dataset } = body,
-                hasToggle = Boolean(classList && typeof classList.toggle === "function");
+                hasToggle = Boolean(
+                    classList && typeof classList.toggle === "function"
+                );
 
             if (hasToggle) {
                 classList.toggle("app-has-file", hasRenderableFile);
             } else {
                 const { className = "" } = body,
-                    classes = typeof className === "string" ? className.split(/\s+/) : [],
-                    filtered = classes.filter((cls) => cls && cls !== "app-has-file");
+                    classes =
+                        typeof className === "string"
+                            ? className.split(/\s+/)
+                            : [],
+                    filtered = classes.filter(
+                        (cls) => cls && cls !== "app-has-file"
+                    );
                 if (hasRenderableFile) {
                     filtered.push("app-has-file");
                 }
@@ -478,6 +564,7 @@ export class UIStateManager {
     }
     /**
      * Update loading indicator visibility
+     *
      * @param {boolean} isLoading - Whether the app is loading
      */
     updateLoadingIndicator(isLoading) {
@@ -514,10 +601,15 @@ export class UIStateManager {
     }
     /**
      * Update loading progress UI based on indicator state
-     * @param {{progress?: number, active?: boolean}|null} indicator - Loading indicator state
+     *
+     * @param {{ progress?: number; active?: boolean } | null} indicator -
+     *   Loading indicator state
      */
     updateLoadingProgressUI(indicator) {
-        const progressValue = typeof indicator?.progress === "number" ? indicator.progress : 0,
+        const progressValue =
+                typeof indicator?.progress === "number"
+                    ? indicator.progress
+                    : 0,
             isActive = Boolean(indicator?.active);
 
         const progressElement = (() => {
@@ -530,13 +622,17 @@ export class UIStateManager {
 
         if (progressElement) {
             progressElement.style.width = `${progressValue}%`;
-            progressElement.setAttribute("aria-valuenow", progressValue.toString());
+            progressElement.setAttribute(
+                "aria-valuenow",
+                progressValue.toString()
+            );
             progressElement.setAttribute("aria-hidden", (!isActive).toString());
         }
     }
     /**
      * Update measurement mode UI
-     * @param {*} isActive - Whether measurement mode is active
+     *
+     * @param {any} isActive - Whether measurement mode is active
      */
     updateMeasurementModeUI(isActive) {
         const toggleBtn = (() => {
@@ -556,7 +652,9 @@ export class UIStateManager {
 
         if (toggleBtn) {
             toggleBtn.classList.toggle("active", isActive);
-            toggleBtn.textContent = isActive ? "Exit Measurement" : "Measure Distance";
+            toggleBtn.textContent = isActive
+                ? "Exit Measurement"
+                : "Measure Distance";
         }
 
         if (mapContainer) {
@@ -566,18 +664,22 @@ export class UIStateManager {
 
     /**
      * Update tab button states
+     *
      * @param {string} activeTab - The currently active tab
      */
     updateTabButtons(activeTab) {
         /**
          * @param {string} selector
+         *
          * @returns {Element[]}
          */
         const safeQuerySelectorAll = (selector) => {
             try {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ ([
+                        ...(doc.querySelectorAll(selector) || []),
+                    ]);
                 }
             } catch {
                 /* Ignore errors */
@@ -597,18 +699,22 @@ export class UIStateManager {
 
     /**
      * Update tab visibility based on active tab
+     *
      * @param {string} activeTab - The currently active tab
      */
     updateTabVisibility(activeTab) {
         /**
          * @param {string} selector
+         *
          * @returns {Element[]}
          */
         const safeQuerySelectorAll = (selector) => {
             try {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ ([
+                        ...(doc.querySelectorAll(selector) || []),
+                    ]);
                 }
             } catch {
                 /* Ignore errors */
@@ -621,7 +727,9 @@ export class UIStateManager {
             const tabName = content.dataset.tabContent,
                 isActive = tabName === activeTab;
 
-            /** @type {HTMLElement} */ (content).style.display = isActive ? "block" : "none";
+            /** @type {HTMLElement} */ (content).style.display = isActive
+                ? "block"
+                : "none";
             content.setAttribute("aria-hidden", (!isActive).toString());
         }
 
@@ -630,6 +738,7 @@ export class UIStateManager {
 
     /**
      * Update unload button visibility
+     *
      * @param {boolean} isVisible - Whether unload button should be visible
      */
     updateUnloadButtonVisibility(isVisible) {
@@ -652,13 +761,17 @@ export class UIStateManager {
     updateWindowStateFromDOM() {
         const windowState = {
             height: window.innerHeight,
-            maximized: window.outerWidth === screen.availWidth && window.outerHeight === screen.availHeight,
+            maximized:
+                window.outerWidth === screen.availWidth &&
+                window.outerHeight === screen.availHeight,
             width: window.innerWidth,
             x: window.screenX,
             y: window.screenY,
         };
 
-        updateState("ui.windowState", windowState, { source: "UIStateManager.updateWindowStateFromDOM" });
+        updateState("ui.windowState", windowState, {
+            source: "UIStateManager.updateWindowStateFromDOM",
+        });
     }
 }
 
@@ -673,6 +786,7 @@ export const uiStateManager = new UIStateManager();
 export const UIActions = {
     /**
      * Set theme
+     *
      * @param {string} theme - Theme to set
      */
     setTheme(theme) {
@@ -681,6 +795,7 @@ export const UIActions = {
 
     /**
      * Show a tab
+     *
      * @param {string} tabName - Tab to show
      */
     showTab(tabName) {
@@ -703,6 +818,7 @@ export const UIActions = {
 
     /**
      * Toggle sidebar
+     *
      * @param {boolean} collapsed - Whether to collapse
      */
     toggleSidebar(collapsed) {

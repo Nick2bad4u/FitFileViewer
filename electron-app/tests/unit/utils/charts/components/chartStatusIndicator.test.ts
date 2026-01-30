@@ -3,37 +3,51 @@ import { subscribeToChartSettings } from "../../../../../utils/state/domain/sett
 import { JSDOM } from "jsdom";
 
 // Mock dependencies
-vi.mock("../../../../../utils/charts/components/createChartStatusIndicator.js", () => ({
-    createChartStatusIndicator: vi.fn().mockImplementation(() => {
-        const element = document.createElement("div");
-        element.id = "mock-chart-status-indicator";
-        return element;
-    }),
-}));
+vi.mock(
+    "../../../../../utils/charts/components/createChartStatusIndicator.js",
+    () => ({
+        createChartStatusIndicator: vi.fn().mockImplementation(() => {
+            const element = document.createElement("div");
+            element.id = "mock-chart-status-indicator";
+            return element;
+        }),
+    })
+);
 
-vi.mock("../../../../../utils/charts/components/createChartStatusIndicatorFromCounts.js", () => ({
-    createChartStatusIndicatorFromCounts: vi.fn().mockImplementation(() => {
-        const element = document.createElement("div");
-        element.id = "mock-chart-status-indicator-from-counts";
-        return element;
-    }),
-}));
+vi.mock(
+    "../../../../../utils/charts/components/createChartStatusIndicatorFromCounts.js",
+    () => ({
+        createChartStatusIndicatorFromCounts: vi.fn().mockImplementation(() => {
+            const element = document.createElement("div");
+            element.id = "mock-chart-status-indicator-from-counts";
+            return element;
+        }),
+    })
+);
 
-vi.mock("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js", () => ({
-    createGlobalChartStatusIndicator: vi.fn().mockImplementation(() => {
-        const element = document.createElement("div");
-        element.id = "mock-global-chart-status-indicator";
-        return element;
-    }),
-}));
+vi.mock(
+    "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js",
+    () => ({
+        createGlobalChartStatusIndicator: vi.fn().mockImplementation(() => {
+            const element = document.createElement("div");
+            element.id = "mock-global-chart-status-indicator";
+            return element;
+        }),
+    })
+);
 
-vi.mock("../../../../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js", () => ({
-    createGlobalChartStatusIndicatorFromCounts: vi.fn().mockImplementation(() => {
-        const element = document.createElement("div");
-        element.id = "mock-global-chart-status-indicator-from-counts";
-        return element;
-    }),
-}));
+vi.mock(
+    "../../../../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js",
+    () => ({
+        createGlobalChartStatusIndicatorFromCounts: vi
+            .fn()
+            .mockImplementation(() => {
+                const element = document.createElement("div");
+                element.id = "mock-global-chart-status-indicator-from-counts";
+                return element;
+            }),
+    })
+);
 
 vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
     getChartCounts: vi.fn().mockReturnValue({
@@ -106,7 +120,12 @@ describe("chartStatusIndicator.js", () => {
         // Synchronize Object.defineProperty behavior for globalData property
         originalDefineProperty = Object.defineProperty;
         Object.defineProperty = vi.fn((obj, prop, descriptor) => {
-            const result = originalDefineProperty.call(Object, obj, prop, descriptor);
+            const result = originalDefineProperty.call(
+                Object,
+                obj,
+                prop,
+                descriptor
+            );
             // When defineProperty is called on globalThis for globalData, also apply it to window
             if (obj === globalThis && prop === "globalData") {
                 originalDefineProperty.call(Object, window, prop, descriptor);
@@ -117,10 +136,12 @@ describe("chartStatusIndicator.js", () => {
 
     afterEach(() => {
         // Restore original functions
-        if (originalAddEventListener) window.addEventListener = originalAddEventListener;
+        if (originalAddEventListener)
+            window.addEventListener = originalAddEventListener;
         if (originalConsoleError) console.error = originalConsoleError;
         if (originalTimeout) global.setTimeout = originalTimeout;
-        if (originalDefineProperty) Object.defineProperty = originalDefineProperty;
+        if (originalDefineProperty)
+            Object.defineProperty = originalDefineProperty;
 
         // Clear mock calls
         vi.clearAllMocks();
@@ -149,8 +170,12 @@ describe("chartStatusIndicator.js", () => {
             updateAllChartStatusIndicators();
 
             // Assert that indicators were updated
-            const updatedSettingsIndicator = document.getElementById("mock-chart-status-indicator-from-counts");
-            const updatedGlobalIndicator = document.getElementById("mock-global-chart-status-indicator-from-counts");
+            const updatedSettingsIndicator = document.getElementById(
+                "mock-chart-status-indicator-from-counts"
+            );
+            const updatedGlobalIndicator = document.getElementById(
+                "mock-global-chart-status-indicator-from-counts"
+            );
 
             expect(updatedSettingsIndicator).not.toBeNull();
             expect(updatedGlobalIndicator).not.toBeNull();
@@ -183,7 +208,8 @@ describe("chartStatusIndicator.js", () => {
                 await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Mock getChartCounts to throw an error
-            const { getChartCounts } = await import("../../../../../utils/charts/core/getChartCounts.js");
+            const { getChartCounts } =
+                await import("../../../../../utils/charts/core/getChartCounts.js");
             vi.mocked(getChartCounts).mockImplementationOnce(() => {
                 throw new Error("Test error");
             });
@@ -295,8 +321,14 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             // Assert that event listeners were added
-            expect(window.addEventListener).toHaveBeenCalledWith("fieldToggleChanged", expect.any(Function));
-            expect(document.addEventListener).toHaveBeenCalledWith("chartsRendered", expect.any(Function));
+            expect(window.addEventListener).toHaveBeenCalledWith(
+                "fieldToggleChanged",
+                expect.any(Function)
+            );
+            expect(document.addEventListener).toHaveBeenCalledWith(
+                "chartsRendered",
+                expect.any(Function)
+            );
 
             // Assert that global indicator was created
             const { createGlobalChartStatusIndicator } =
@@ -304,7 +336,9 @@ describe("chartStatusIndicator.js", () => {
             expect(createGlobalChartStatusIndicator).toHaveBeenCalled();
 
             // Verify globalData property was modified
-            expect(Object.getOwnPropertyDescriptor(window, "globalData")).not.toBeUndefined();
+            expect(
+                Object.getOwnPropertyDescriptor(window, "globalData")
+            ).not.toBeUndefined();
         });
 
         it("should handle event listener callbacks correctly", async () => {
@@ -395,7 +429,10 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             // Assert that the property was not reconfigured
-            const descriptor = Object.getOwnPropertyDescriptor(window, "globalData");
+            const descriptor = Object.getOwnPropertyDescriptor(
+                window,
+                "globalData"
+            );
             expect(descriptor?.configurable).toBe(false);
             expect(window.globalData).toBe("existing");
         });

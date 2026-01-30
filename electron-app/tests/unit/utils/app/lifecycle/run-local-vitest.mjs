@@ -26,13 +26,26 @@ async function run() {
     );
 
     // Ensure coverage reports write to temp where analyzer reads
-    process.env.VITEST_COVERAGE_DIR = path.join(os.tmpdir(), "ffv-vitest-coverage");
+    process.env.VITEST_COVERAGE_DIR = path.join(
+        os.tmpdir(),
+        "ffv-vitest-coverage"
+    );
 
-    const ctx = await startVitest("test", ["--config", configPath, "--run", "--coverage", testFile], {
-        watch: false,
-        hideSkippedTests: false,
-        silent: false,
-    });
+    const ctx = await startVitest(
+        "test",
+        [
+            "--config",
+            configPath,
+            "--run",
+            "--coverage",
+            testFile,
+        ],
+        {
+            watch: false,
+            hideSkippedTests: false,
+            silent: false,
+        }
+    );
 
     // Await completion
     await ctx?.close?.();

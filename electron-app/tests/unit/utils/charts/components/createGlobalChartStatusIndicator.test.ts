@@ -4,7 +4,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Hoisted mock for getChartCounts
-const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({ mockGetChartCounts: vi.fn() }));
+const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({
+    mockGetChartCounts: vi.fn(),
+}));
 
 vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
     getChartCounts: () => mockGetChartCounts(),
@@ -76,11 +78,15 @@ describe("createGlobalChartStatusIndicator", () => {
         expect(indicator).toBeTruthy();
 
         // Icon should be the ALL_VISIBLE emoji
-        const icon = /** @type {HTMLElement|null} */ indicator && indicator.querySelector("span");
+        const icon =
+            /** @type {HTMLElement | null} */ indicator &&
+            indicator.querySelector("span");
         expect(icon?.textContent).toBe("✅");
 
         // Quick action should indicate all set
-        const quickAction = /** @type {HTMLElement|null} */ indicator && indicator.querySelector("button");
+        const quickAction =
+            /** @type {HTMLElement | null} */ indicator &&
+            indicator.querySelector("button");
         expect(quickAction?.textContent).toContain("All Set");
     });
 

@@ -15,9 +15,13 @@ describe("createPowerZoneControls", () => {
         const root = document.getElementById("root")!;
         const section = createPowerZoneControls(root);
         expect(section.id).toBe("power-zone-controls");
-        const btn = section.querySelector(".power-zone-collapse-btn") as HTMLButtonElement;
+        const btn = section.querySelector(
+            ".power-zone-collapse-btn"
+        ) as HTMLButtonElement;
         expect(btn).toBeTruthy();
-        const content = section.querySelector("#power-zone-content") as HTMLElement;
+        const content = section.querySelector(
+            "#power-zone-content"
+        ) as HTMLElement;
         btn.click();
         expect(content.style.maxHeight).toBe("0");
         btn.click();
@@ -25,11 +29,14 @@ describe("createPowerZoneControls", () => {
     });
 
     it("updatePowerZoneControlsVisibility toggles display", async () => {
-        const { createPowerZoneControls, updatePowerZoneControlsVisibility } = await loadModule();
+        const { createPowerZoneControls, updatePowerZoneControlsVisibility } =
+            await loadModule();
         const root = document.getElementById("root")!;
         createPowerZoneControls(root);
         updatePowerZoneControlsVisibility(false);
-        const controls = document.getElementById("power-zone-controls") as HTMLElement;
+        const controls = document.getElementById(
+            "power-zone-controls"
+        ) as HTMLElement;
         expect(controls.style.display).toBe("none");
         updatePowerZoneControlsVisibility(true);
         expect(controls.style.display).toBe("block");

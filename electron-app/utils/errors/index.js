@@ -1,6 +1,7 @@
 /**
- * @fileoverview Barrel export for error handling utilities
- * @description Surfaces error classes and helpers with a namespace default export
+ * Surfaces error classes and helpers with a namespace default export
+ *
+ * @file Barrel export for error handling utilities
  */
 
 import * as errorHandling from "./errorHandling.js";

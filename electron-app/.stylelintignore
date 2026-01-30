@@ -4,3 +4,6 @@ html/assets/**
 coverage/**
 dist/**
 temp-win7/**
+node_modules/datatables.net-dt/css/dataTables.dataTables.min.css
+node_modules/**
+electron-app/node_modules/**

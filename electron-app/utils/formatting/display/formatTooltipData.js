@@ -1,13 +1,14 @@
 /**
- * Tooltip data formatting utility for FitFileViewer
- * Provides consistent formatting for data displayed in map tooltips and chart overlays
+ * Tooltip data formatting utility for FitFileViewer Provides consistent
+ * formatting for data displayed in map tooltips and chart overlays
  */
 
 import { getState } from "../../state/core/stateManager.js";
 
 /**
  * @typedef {Object} RecordMessage
- * @property {string|Date} [timestamp] - Message timestamp
+ *
+ * @property {string | Date} [timestamp] - Message timestamp
  * @property {number} [altitude] - Altitude in meters
  * @property {number} [heartRate] - Heart rate in bpm
  * @property {number} [speed] - Speed in m/s
@@ -45,22 +46,24 @@ const FORMATTING_CONSTANTS = {
 };
 
 /**
- * Formats tooltip data for display on maps and charts
- * Creates a comprehensive data summary for a specific data point
+ * Formats tooltip data for display on maps and charts Creates a comprehensive
+ * data summary for a specific data point
+ *
+ * @example
+ *     // Format tooltip for a data point
+ *     const tooltipHtml = formatTooltipData(
+ *         100,
+ *         { timestamp: new Date(), altitude: 123.4, heartRate: 150 },
+ *         1
+ *     );
  *
  * @param {number} idx - Index of the data point
  * @param {RecordMessage} row - Data row containing measurement values
  * @param {number} lapNum - Lap number for this data point
- * @param {RecordMessage[]} [recordMesgsOverride] - Optional override for record messages array
- * @returns {string} Formatted HTML string for tooltip display
+ * @param {RecordMessage[]} [recordMesgsOverride] - Optional override for record
+ *   messages array
  *
- * @example
- * // Format tooltip for a data point
- * const tooltipHtml = formatTooltipData(
- *   100,
- *   { timestamp: new Date(), altitude: 123.4, heartRate: 150 },
- *   1
- * );
+ * @returns {string} Formatted HTML string for tooltip display
  *
  * @public
  */
@@ -76,14 +79,19 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             altitude = formatAltitude(row.altitude ?? null),
             cadence = formatCadence(row.cadence ?? null),
             // Format timestamp
-            dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "",
+            dateStr = row.timestamp
+                ? new Date(row.timestamp).toLocaleString()
+                : "",
             distance = formatDistance(row.distance ?? null),
             heartRate = formatHeartRate(row.heartRate ?? null),
             power = formatPower(row.power ?? null),
             recordMesgs =
                 recordMesgsOverride ||
                 getState("globalData.recordMesgs") ||
-                /** @type {any} */ (globalThis.globalData && /** @type {any} */ (globalThis).globalData.recordMesgs),
+                /** @type {any} */ (
+                    globalThis.globalData &&
+                        /** @type {any} */ (globalThis).globalData.recordMesgs
+                ),
             rideTime = formatRideTime(row.timestamp || "", recordMesgs),
             speed = formatSpeed(row.speed ?? null),
             // Build the tooltip HTML
@@ -96,7 +104,9 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             tooltipParts.push(`<b>Elapsed Time:</b> ${rideTime}`);
         }
         if (distance) {
-            tooltipParts.push(`<b>Distance:</b> ${distance.replace("<br>", "")}`);
+            tooltipParts.push(
+                `<b>Distance:</b> ${distance.replace("<br>", "")}`
+            );
         }
         if (altitude) {
             tooltipParts.push(`<b>Alt:</b> ${altitude}`);
@@ -110,7 +120,9 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         if (isFiniteNumber(row.power)) {
             tooltipParts.push(`<b>Power:</b> ${power}`);
         } else if (isFiniteNumber(row.estimatedPower)) {
-            tooltipParts.push(`<b>Est. Power:</b> ${row.estimatedPower.toFixed(0)} W`);
+            tooltipParts.push(
+                `<b>Est. Power:</b> ${row.estimatedPower.toFixed(0)} W`
+            );
         }
         if (cadence) {
             tooltipParts.push(`<b>Cadence:</b> ${cadence}`);
@@ -126,9 +138,12 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
 
 /**
  * Formats altitude value with metric and imperial units
- * @param {number|null} altitude - Altitude in meters
- * @returns {string} Formatted altitude string or empty string
+ *
  * @private
+ *
+ * @param {number | null} altitude - Altitude in meters
+ *
+ * @returns {string} Formatted altitude string or empty string
  */
 function formatAltitude(altitude) {
     const altMeters = safeToNumber(altitude, "altitude");
@@ -136,7 +151,8 @@ function formatAltitude(altitude) {
         return "";
     }
 
-    const { ALTITUDE_FEET, ALTITUDE_METERS } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
+    const { ALTITUDE_FEET, ALTITUDE_METERS } =
+            FORMATTING_CONSTANTS.DECIMAL_PLACES,
         { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
         altFeet = altMeters * METERS_TO_FEET;
     return `${altMeters.toFixed(ALTITUDE_METERS)} m / ${altFeet.toFixed(ALTITUDE_FEET)} ft`;
@@ -144,9 +160,12 @@ function formatAltitude(altitude) {
 
 /**
  * Formats cadence value
- * @param {number|null} cadence - Cadence in rpm
- * @returns {string} Formatted cadence string or empty string
+ *
  * @private
+ *
+ * @param {number | null} cadence - Cadence in rpm
+ *
+ * @returns {string} Formatted cadence string or empty string
  */
 function formatCadence(cadence) {
     const rpm = safeToNumber(cadence, "cadence");
@@ -159,9 +178,13 @@ function formatCadence(cadence) {
 
 /**
  * Formats distance value with metric and imperial units
- * @param {number|null} distance - Distance in meters
- * @returns {string} Formatted distance string with HTML line break or empty string
+ *
  * @private
+ *
+ * @param {number | null} distance - Distance in meters
+ *
+ * @returns {string} Formatted distance string with HTML line break or empty
+ *   string
  */
 function formatDistance(distance) {
     const meters = safeToNumber(distance, "distance");
@@ -179,9 +202,12 @@ function formatDistance(distance) {
 
 /**
  * Formats heart rate value
- * @param {number|null} heartRate - Heart rate in bpm
- * @returns {string} Formatted heart rate string or empty string
+ *
  * @private
+ *
+ * @param {number | null} heartRate - Heart rate in bpm
+ *
+ * @returns {string} Formatted heart rate string or empty string
  */
 function formatHeartRate(heartRate) {
     const hr = safeToNumber(heartRate, "heart rate");
@@ -194,9 +220,12 @@ function formatHeartRate(heartRate) {
 
 /**
  * Formats power value
- * @param {number|null} power - Power in watts
- * @returns {string} Formatted power string or empty string
+ *
  * @private
+ *
+ * @param {number | null} power - Power in watts
+ *
+ * @returns {string} Formatted power string or empty string
  */
 function formatPower(power) {
     const watts = safeToNumber(power, "power");
@@ -209,10 +238,13 @@ function formatPower(power) {
 
 /**
  * Calculates and formats ride time from start to current point
- * @param {string|Date} timestamp - Current point timestamp
- * @param {RecordMessage[]} recordMesgs - Array of record messages for reference
- * @returns {string} Formatted ride time string or empty string
+ *
  * @private
+ *
+ * @param {string | Date} timestamp - Current point timestamp
+ * @param {RecordMessage[]} recordMesgs - Array of record messages for reference
+ *
+ * @returns {string} Formatted ride time string or empty string
  */
 function formatRideTime(timestamp, recordMesgs) {
     if (!timestamp || !recordMesgs || recordMesgs.length === 0) {
@@ -229,14 +261,20 @@ function formatRideTime(timestamp, recordMesgs) {
             firstTime = new Date(first.timestamp).getTime();
 
         if (isNaN(firstTime) || isNaN(currTime)) {
-            logWithContext("Invalid timestamp in ride time calculation", "warn");
+            logWithContext(
+                "Invalid timestamp in ride time calculation",
+                "warn"
+            );
             return "";
         }
 
-        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS,
+        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } =
+                FORMATTING_CONSTANTS.TIME_UNITS,
             diff = Math.max(0, Math.floor((currTime - firstTime) / 1000)),
             hours = Math.floor(diff / SECONDS_PER_HOUR),
-            minutes = Math.floor((diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE),
+            minutes = Math.floor(
+                (diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+            ),
             parts = [],
             seconds = Math.floor(diff % SECONDS_PER_MINUTE);
         if (hours > 0) {
@@ -259,9 +297,12 @@ function formatRideTime(timestamp, recordMesgs) {
 
 /**
  * Formats speed value with metric and imperial units
- * @param {number|null} speed - Speed in m/s
- * @returns {string} Formatted speed string or empty string
+ *
  * @private
+ *
+ * @param {number | null} speed - Speed in m/s
+ *
+ * @returns {string} Formatted speed string or empty string
  */
 function formatSpeed(speed) {
     const speedMps = safeToNumber(speed, "speed");
@@ -279,6 +320,7 @@ function formatSpeed(speed) {
 
 /**
  * @param {unknown} v
+ *
  * @returns {v is number}
  */
 function isFiniteNumber(v) {
@@ -287,9 +329,11 @@ function isFiniteNumber(v) {
 
 /**
  * Logs messages with context for tooltip operations
+ *
+ * @private
+ *
  * @param {string} message - The message to log
  * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
  */
 function logWithContext(message, level = "info") {
     try {
@@ -314,10 +358,13 @@ function logWithContext(message, level = "info") {
 
 /**
  * Safely converts a value to a number with validation
+ *
+ * @private
+ *
  * @param {any} value - Value to convert
  * @param {string} fieldName - Name of the field for error reporting
- * @returns {number|null} Converted number or null if invalid
- * @private
+ *
+ * @returns {number | null} Converted number or null if invalid
  */
 function safeToNumber(value, fieldName = "value") {
     if (value == null) {
