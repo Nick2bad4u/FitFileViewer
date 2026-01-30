@@ -13,11 +13,6 @@ module.exports = {
         // Coverage reports (generated).
         "coverage/**/*.css",
     ],
-    rules: {
-        "block-no-empty": true,
-        "media-feature-range-notation": null,
-        "selector-id-pattern": null, // Ignore kebab-case enforcement for IDs
-    },
     overrides: [
         {
             files: ["style.css"],
@@ -32,17 +27,22 @@ module.exports = {
                 "comment-empty-line-before": null,
                 "custom-property-empty-line-before": null,
                 "declaration-block-no-redundant-longhand-properties": null,
+                "declaration-no-important": null,
+                "declaration-property-unit-disallowed-list": null,
                 "declaration-property-value-keyword-no-deprecated": null,
+                "length-zero-no-unit": null,
                 "no-duplicate-selectors": null,
                 "property-no-vendor-prefix": null,
                 "rule-empty-line-before": null,
                 "selector-max-id": null,
-                "declaration-no-important": null,
-                "length-zero-no-unit": null,
-                "declaration-property-unit-disallowed-list": null,
                 "shorthand-property-no-redundant-values": null,
                 "value-keyword-case": null,
             },
         },
     ],
+    rules: {
+        "block-no-empty": true,
+        "media-feature-range-notation": null,
+        "selector-id-pattern": null, // Ignore kebab-case enforcement for IDs
+    },
 };

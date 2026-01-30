@@ -1125,9 +1125,15 @@ const electronAPI = {
     validateAPI: () => {
         try {
             // Test basic functionality
-            const hasConstants = CONSTANTS !== undefined,
-                hasContextBridge = contextBridge !== undefined,
-                hasIpcRenderer = ipcRenderer !== undefined;
+            const hasConstants = CONSTANTS !== undefined;
+            const hasContextBridge =
+                contextBridge && typeof contextBridge.exposeInMainWorld === "function";
+            const hasIpcRenderer =
+                ipcRenderer &&
+                typeof ipcRenderer.invoke === "function" &&
+                typeof ipcRenderer.send === "function" &&
+                typeof ipcRenderer.on === "function" &&
+                typeof ipcRenderer.removeListener === "function";
 
             if (process.env.NODE_ENV === "development") {
                 console.log("[preload.js] API Validation:", {
@@ -1139,7 +1145,7 @@ const electronAPI = {
                 });
             }
 
-            return hasIpcRenderer && hasContextBridge && hasConstants;
+            return Boolean(hasIpcRenderer && hasContextBridge && hasConstants);
         } catch (error) {
             console.error("[preload.js] API validation failed:", error);
             return false;
@@ -1177,46 +1183,48 @@ try {
 // Development helpers - only available in development mode
 if (process.env.NODE_ENV === "development") {
     try {
-        contextBridge.exposeInMainWorld("devTools", {
-            /**
-             * Get preload script information for debugging
-             */
-            getPreloadInfo: () => ({
-                apiMethods: Object.keys(electronAPI),
-                constants: CONSTANTS,
-                timestamp: new Date().toISOString(),
-                version: "1.0.0",
-            }),
-
-            /**
-             * Log current API state
-             */
-            logAPIState: () => {
-                console.log("[preload.js] Current API State:", {
+        if (contextBridge && typeof contextBridge.exposeInMainWorld === "function") {
+            contextBridge.exposeInMainWorld("devTools", {
+                /**
+                 * Get preload script information for debugging
+                 */
+                getPreloadInfo: () => ({
+                    apiMethods: Object.keys(electronAPI),
                     constants: CONSTANTS,
-                    electronAPI: typeof electronAPI,
-                    methodCount: Object.keys(electronAPI).length,
                     timestamp: new Date().toISOString(),
-                });
-            },
+                    version: "1.0.0",
+                }),
 
-            /**
-             * Test IPC communication
-             */
-            testIPC: async () => {
-                try {
-                    const version = await electronAPI.getAppVersion();
-                    console.log("[preload.js] IPC test successful, app version:", version);
-                    return true;
-                } catch (error) {
-                    console.error("[preload.js] IPC test failed:", error);
-                    return false;
-                }
-            },
-        });
+                /**
+                 * Log current API state
+                 */
+                logAPIState: () => {
+                    console.log("[preload.js] Current API State:", {
+                        constants: CONSTANTS,
+                        electronAPI: typeof electronAPI,
+                        methodCount: Object.keys(electronAPI).length,
+                        timestamp: new Date().toISOString(),
+                    });
+                },
 
-        if (process.env.NODE_ENV === "development") {
+                /**
+                 * Test IPC communication
+                 */
+                testIPC: async () => {
+                    try {
+                        const version = await electronAPI.getAppVersion();
+                        console.log("[preload.js] IPC test successful, app version:", version);
+                        return true;
+                    } catch (error) {
+                        console.error("[preload.js] IPC test failed:", error);
+                        return false;
+                    }
+                },
+            });
+
             console.log("[preload.js] Development tools exposed");
+        } else {
+            console.warn("[preload.js] Development tools not exposed - contextBridge unavailable");
         }
     } catch (error) {
         console.error("[preload.js] Failed to expose development tools:", error);

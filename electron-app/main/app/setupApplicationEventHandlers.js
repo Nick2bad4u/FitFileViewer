@@ -232,7 +232,7 @@ function configureSessionPermissionHandlers(session) {
                 // Only enable permissions we explicitly support.
                 if (permission !== "geolocation") {
                     try {
-                        // eslint-disable-next-line n/no-callback-literal
+                         
                         callback(false);
                     } catch {
                         /* ignore */
@@ -248,7 +248,7 @@ function configureSessionPermissionHandlers(session) {
                         /* ignore */
                     }
                     try {
-                        // eslint-disable-next-line n/no-callback-literal
+                         
                         callback(true);
                     } catch {
                         /* ignore */
@@ -258,7 +258,7 @@ function configureSessionPermissionHandlers(session) {
 
                 if (!isTrustedRequest(details)) {
                     try {
-                        // eslint-disable-next-line n/no-callback-literal
+                         
                         callback(false);
                     } catch {
                         /* ignore */
@@ -277,7 +277,7 @@ function configureSessionPermissionHandlers(session) {
                     })
                     .catch(() => {
                         try {
-                            // eslint-disable-next-line n/no-callback-literal
+                             
                             callback(false);
                         } catch {
                             /* ignore */

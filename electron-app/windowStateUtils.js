@@ -1,4 +1,6 @@
-const // Constants for better maintainability
+const /**
+       * Constants for better maintainability.
+       */
     CONSTANTS = {
         DEFAULTS: {
             WINDOW: {
@@ -29,24 +31,25 @@ const // Constants for better maintainability
     { app, BrowserWindow } = require("electron");
 const fs = require("node:fs");
 /**
- * Window state shape
- * @typedef {Object} WindowState
+ * Window state shape.
+ * @typedef {object} WindowState
  * @property {number} width
  * @property {number} height
  * @property {number} [x]
  * @property {number} [y]
  */
 /**
- * @typedef {Object} DevHelpers
+ * @typedef {object} DevHelpers
  * @property {() => {constants: typeof CONSTANTS, settingsPath: string, currentState: WindowState}} getConfig
  * @property {() => boolean} resetState
- * @property {() => { isValid: boolean, state?: WindowState, path: string, exists: boolean, error?: string }} validateSettings
+ * @property {() => {isValid: boolean, state?: WindowState, path: string, exists: boolean, error?: string}} validateSettings
  */
 const path = require("node:path");
 
 const { logWithContext } = require("./main/logging/logWithContext");
 
 // Enhanced path resolution with error handling
+
 /**
  * Resolve the path to the window state settings file.
  * @returns {string}
@@ -83,9 +86,10 @@ function resolveWebSecuritySetting() {
 const settingsPath = getSettingsPath();
 
 /**
- * Creates a new BrowserWindow with enhanced configuration and error handling
- * @returns {BrowserWindow} The created BrowserWindow instance
+ * Creates a new BrowserWindow with enhanced configuration and error handling.
+ * @returns {BrowserWindow} The created BrowserWindow instance.
  */
+
 /**
  * @returns {BrowserWindow}
  */
@@ -93,7 +97,7 @@ function createWindow() {
     try {
         const state = getWindowState(),
             // Enhanced window configuration
-            /** @type {import('electron').BrowserWindowConstructorOptions} */
+            /** @type {import("electron").BrowserWindowConstructorOptions} */
             windowConfig = {
                 height: state.height,
                 minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
@@ -159,9 +163,10 @@ function createWindow() {
 }
 
 /**
- * Retrieves the saved window state from disk with enhanced error handling
- * @returns {Object} Window state object with width, height, and optional x, y coordinates
+ * Retrieves the saved window state from disk with enhanced error handling.
+ * @returns {object} Window state object with width, height, and optional x, y coordinates.
  */
+
 /**
  * @returns {WindowState}
  */
@@ -193,6 +198,7 @@ function getWindowState() {
 }
 
 // Enhanced error handling and logging
+
 /**
  * Safe error message extraction.
  * @param {unknown} error
@@ -228,9 +234,10 @@ function sanitizeWindowState(state) {
 }
 
 /**
- * Saves the current window state to disk with enhanced validation and error handling
- * @param {BrowserWindow} win - The Electron BrowserWindow instance
+ * Saves the current window state to disk with enhanced validation and error handling.
+ * @param {BrowserWindow} win - The Electron BrowserWindow instance.
  */
+
 /**
  * @param {BrowserWindow} win
  * @returns {void}
@@ -249,7 +256,10 @@ function saveWindowState(win) {
         }
 
         const bounds = win.getBounds(),
-            // Ensure directory exists
+
+            /**
+             * Ensure directory exists.
+             */
             dir = path.dirname(settingsPath),
             state = sanitizeWindowState(bounds);
         if (!fs.existsSync(dir)) {
@@ -280,6 +290,7 @@ function validateWindow(win) {
 }
 
 // Enhanced validation functions
+
 /**
  * Type guard validating a window state object.
  * @param {unknown} state
@@ -310,11 +321,11 @@ function validateWindowState(state) {
 }
 
 /**
- * Development and debugging helpers
+ * Development and debugging helpers.
  */
 const devHelpers = {
     /**
-     * Get current window state configuration
+     * Get current window state configuration.
      */
     getConfig: () => ({
         constants: CONSTANTS,
@@ -323,7 +334,7 @@ const devHelpers = {
     }),
 
     /**
-     * Reset window state to defaults
+     * Reset window state to defaults.
      */
     resetState: () => {
         try {
@@ -340,7 +351,7 @@ const devHelpers = {
     },
 
     /**
-     * Validate current settings file
+     * Validate current settings file.
      */
     validateSettings: () => {
         try {

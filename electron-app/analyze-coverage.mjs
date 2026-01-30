@@ -60,7 +60,7 @@ function findCoveragePath() {
 const coveragePath = findCoveragePath();
 
 const coverageData = JSON.parse(
-    // eslint-disable-next-line unicorn/prefer-json-parse-buffer
+     
     fs.readFileSync(coveragePath, "utf8")
 );
 
@@ -228,11 +228,11 @@ if (debugFile) {
             console.log("\n=== DEBUG RAW COVERAGE ===");
             console.log(JSON.stringify(coverageData[rawKey], null, 2));
         }
-        // eslint-disable-next-line n/no-process-exit, unicorn/no-process-exit
+        // eslint-disable-next-line n/no-process-exit
         process.exit(0);
     } else {
         console.log(`\nNo coverage entry found for debug file: ${debugFile}`);
-        // eslint-disable-next-line n/no-process-exit, unicorn/no-process-exit
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1);
     }
 }
@@ -365,7 +365,7 @@ const lowFunctionCoverage = sortedByFunctionCoverage.filter((file) => file.funct
 if (outputFormat === "json") {
     // Emit the full analysis as JSON
     console.log(JSON.stringify(fileAnalysis, null, 2));
-    // eslint-disable-next-line n/no-process-exit, unicorn/no-process-exit
+    // eslint-disable-next-line n/no-process-exit
     process.exit(0);
 }
 
@@ -413,7 +413,7 @@ if (outputFormat === "csv") {
         ].join(",");
         console.log(row);
     }
-    // eslint-disable-next-line n/no-process-exit, unicorn/no-process-exit
+    // eslint-disable-next-line n/no-process-exit
     process.exit(0);
 }
 

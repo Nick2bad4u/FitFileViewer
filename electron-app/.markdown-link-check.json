@@ -1,11 +1,21 @@
 {
+    "aliveStatusCodes": [
+        200,
+        206,
+        301,
+        302,
+        307,
+        308
+    ],
     "ignorePatterns": [
         { "pattern": "^.*CHANGELOG.*$" },
         { "pattern": "^.*changelog.*$" },
         { "pattern": "^.*Changelog.*$" },
         { "pattern": "^mailto:bot@stepsecurity\\.io$" },
         { "pattern": "^mailto:support@github\\.com$" },
-        { "pattern": "^mailto:20943337\\+Nick2bad4u@users\\.noreply\\.github\\.com$" },
+        {
+            "pattern": "^mailto:20943337\\+Nick2bad4u@users\\.noreply\\.github\\.com$"
+        },
         { "pattern": "^https://nick2bad4u\\.github\\.io/fitfileviewer/$" },
         { "pattern": "^#-overview$" },
         { "pattern": "^#-screenshots$" },
@@ -17,10 +27,8 @@
         { "pattern": "^#-linux-builds$" },
         { "pattern": "^#-development$" },
         { "pattern": "^#-credits$" },
-        { "pattern": "^#-license$" }
-    ],
-    "timeout": "10s",
-    "retryOn429": true,
+        { "pattern": "^#-license$" }],
     "retryCount": 2,
-    "aliveStatusCodes": [200, 206, 301, 302, 307, 308]
+    "retryOn429": true,
+    "timeout": "10s"
 }

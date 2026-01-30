@@ -20,9 +20,9 @@ rules:
     hyphens:
         level: warning
     indentation:
-        level: warning
         indent-sequences: consistent
-    line-length:
         level: warning
+    line-length:
         allow-non-breakable-inline-mappings: true
+        level: warning
     truthy: disable

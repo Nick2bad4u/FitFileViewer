@@ -1,7 +1,4 @@
 app-id: com.nick2bad4u.fitfileviewer
-runtime: org.freedesktop.Platform
-runtime-version: "23.08"
-sdk: org.freedesktop.Sdk
 command: electron
 finish-args:
     - --share=network
@@ -11,9 +8,7 @@ finish-args:
     - --filesystem=host
     - --env=ELECTRON_IS_DEV=0
 modules:
-    - name: app
-      buildsystem: simple
-      build-commands:
+    - build-commands:
           - cp -r ./node_modules /app/
           - install -Dm755 ./node_modules/electron/dist/electron /app/bin/electron
           - install -Dm755 ./main.js /app/main.js
@@ -29,6 +24,11 @@ modules:
           - cp -r ./fitParser.js /app/
           - cp -r ./main-ui.js /app/
           - cp -r ./windowStateUtils.js /app/
+      buildsystem: simple
+      name: app
       sources:
-          - type: dir
-            path: .
+          - path: .
+            type: dir
+runtime: org.freedesktop.Platform
+runtime-version: "23.08"
+sdk: org.freedesktop.Sdk

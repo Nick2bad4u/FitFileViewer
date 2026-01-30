@@ -298,9 +298,10 @@ function resolveWithinRoot(root, rel, path) {
 
     const abs = path.resolve(root, ...parts);
     const rootAbs = path.resolve(root);
+    const rootPrefix = rootAbs.endsWith(path.sep) ? rootAbs : `${rootAbs}${path.sep}`;
 
-    // Must be inside root.
-    if (abs !== rootAbs && !abs.startsWith(`${rootAbs}${path.sep}`)) {
+    // Must be inside root (handle root paths like '/' or 'C:\' without double separators).
+    if (abs !== rootAbs && !abs.startsWith(rootPrefix)) {
         return null;
     }
 

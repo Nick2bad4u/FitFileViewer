@@ -1,7 +1,10 @@
-import fs from "node:fs";
+import * as fs from "node:fs";
 import os from "node:os";
-import path from "node:path";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
+
+const configDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
     cacheDir: "node_modules/.vite",
@@ -12,14 +15,9 @@ export default defineConfig({
     },
 
     test: {
-        clearMocks: true,
+        allowOnly: false, // Fail if .only is left in the code
         cache: true, // Enable caching for faster subsequent runs
-        sequence: {
-            // Ensure deterministic order of setup files and hooks to avoid
-            // "failed to find the runner" flakiness in isolated runs
-            hooks: "list",
-            setupFiles: "list",
-        },
+        clearMocks: true,
         coverage: {
             // Focus coverage collection on a curated, consistently testable set
             // To enforce a strict 100% coverage gate without counting
@@ -30,6 +28,7 @@ export default defineConfig({
             allowExternal: false,
             clean: true, // Clean coverage directory before each run
             cleanOnRerun: true, // Clean on rerun in watch mode
+            enabled: true,
             exclude: [
                 "node_modules/**",
                 // Exclude built artifacts and generated output
@@ -78,7 +77,6 @@ export default defineConfig({
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
             experimentalAstAwareRemapping: false, // Temporarily disabled due to ast-v8-to-istanbul column parsing error
             ignoreEmptyLines: true, // Ignore empty lines, comments, and TypeScript interfaces
-            enabled: true,
             // Curated include set: target modules with stable, complete unit tests
             // so that a strict ≥95% gate is meaningful and consistently achievable.
             // Paths are relative to the electron-app directory.
@@ -102,7 +100,7 @@ export default defineConfig({
                 // Tooltip display (shows estimated power when real power missing)
                 "utils/formatting/display/formatTooltipData.js",
             ],
-            reporter: ["text", "html", "json", ["lcov", { projectRoot: path.resolve(__dirname, "..") }]],
+            reporter: ["text", "html", "json", ["lcov", { projectRoot: path.resolve(configDir, "..") }]],
             reportOnFailure: true,
             // Work around Windows/Dropbox file locking on coverage temp folder by writing
             // Reports to the OS temp directory when running inside a Dropbox path.
@@ -142,13 +140,13 @@ export default defineConfig({
                 },
             },
         },
+        dangerouslyIgnoreUnhandledErrors: false,
         environment: "jsdom",
         environmentOptions: {
             jsdom: {
                 url: "http://localhost/",
             },
         },
-        dangerouslyIgnoreUnhandledErrors: false,
         exclude: [
             "**/node_modules/**",
             // Exclude any compiled artifacts accidentally picked up
@@ -168,28 +166,25 @@ export default defineConfig({
             shouldClearNativeTimers: true,
         },
         fileParallelism: true,
+        // Force rerun triggers - these files will trigger full test suite
+        forceRerunTriggers: ["**/package.json", "**/vitest.config.js", "**/vitest.config.ts"],
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
         hookTimeout: 30_000,
-        vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
-        teardownTimeout: 30_000,
-        testTimeout: 30_000,
-        passWithNoTests: false,
-        maxConcurrency: 4, // Limit max concurrency to reduce resource contention in multi-project setup
-        maxWorkers: process.platform === "win32" ? 1 : 6,
-        retry: 1, // Retry failed tests once to reduce transient failures
-        allowOnly: false, // Fail if .only is left in the code
-        includeTaskLocation: true,
         // Only collect tests from the source tests directory
         include: ["tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-
+        includeTaskLocation: true,
         isolate: true,
         logHeapUsage: true,
+        maxConcurrency: 4, // Limit max concurrency to reduce resource contention in multi-project setup
+        maxWorkers: process.platform === "win32" ? 1 : 6,
         mockReset: true,
         name: {
             color: "cyan",
             label: "FFV", // Simplified label to match vitest.config.ts
         }, // Custom project name and color for Vitest
+        passWithNoTests: false,
+
         // Use forks pool to avoid tinypool worker stdout requiring console before globalSetup
         pool: "forks",
         // Vitest v4 pool rework: poolOptions was removed.
@@ -206,6 +201,13 @@ export default defineConfig({
             "html",
         ],
         restoreMocks: true,
+        retry: 1, // Retry failed tests once to reduce transient failures
+        sequence: {
+            // Ensure deterministic order of setup files and hooks to avoid
+            // "failed to find the runner" flakiness in isolated runs
+            hooks: "list",
+            setupFiles: "list",
+        },
         server: {
             deps: {
                 inline: [
@@ -217,6 +219,8 @@ export default defineConfig({
             },
         },
         setupFiles: ["./tests/setupVitest.js"],
+        teardownTimeout: 30_000,
+        testTimeout: 30_000,
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
             ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js", "**/preload.js"],
@@ -237,8 +241,7 @@ export default defineConfig({
             spawnTimeout: 10_000,
             tsconfig: "./tsconfig.vitest.json",
         },
+        vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
         watch: false,
-        // Force rerun triggers - these files will trigger full test suite
-        forceRerunTriggers: ["**/package.json", "**/vitest.config.js", "**/vitest.config.ts"],
     },
 });

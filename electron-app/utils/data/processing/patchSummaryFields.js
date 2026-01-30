@@ -1,4 +1,4 @@
-/* eslint-disable perfectionist/sort-modules */
+ 
 /**
  * Summary fields patching utility for FitFileViewer
  * Provides consistent formatting and validation for summary data fields

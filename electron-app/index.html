@@ -1,41 +1,54 @@
-<!DOCTYPE electron>
+<!doctype electron>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
         <meta
-            http-equiv="Content-Security-Policy"
             content="default-src 'self' file:; script-src 'self' file: 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
+            http-equiv="Content-Security-Policy"
         />
         <meta
-            name="description"
             content="Desktop application for viewing and analyzing FIT files from fitness devices with data visualization, mapping, and export capabilities"
+            name="description"
         />
         <meta
-            name="keywords"
             content="FIT file viewer, fitness data, GPS tracks, cycling, running, sports analytics, data visualization"
+            name="keywords"
         />
         <title>Fit File Viewer</title>
         <!-- App/Website Icons -->
-        <link rel="icon" type="image/png" href="icons/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-        <link rel="shortcut icon" href="icons/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-title" content="FitFileViewer" />
-        <link rel="manifest" href="icons/site.webmanifest" />
+        <link
+            type="image/png"
+            href="icons/favicon-96x96.png"
+            rel="icon"
+            sizes="96x96"
+        />
+        <link
+            type="image/svg+xml"
+            href="icons/favicon.svg"
+            rel="icon"
+        />
+        <link href="icons/favicon.ico" rel="shortcut icon" />
+        <link
+            href="icons/apple-touch-icon.png"
+            rel="apple-touch-icon"
+            sizes="180x180"
+        />
+        <meta content="FitFileViewer" name="apple-mobile-web-app-title" />
+        <link href="icons/site.webmanifest" rel="manifest" />
         <!-- Load third-party libraries directly from node_modules -->
-        <link rel="stylesheet" href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css" />
-        <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" />
-        <link rel="stylesheet" href="node_modules/leaflet-draw/dist/leaflet.draw.css" />
-        <link rel="stylesheet" href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-        <link rel="stylesheet" href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css" />
-        <link rel="stylesheet" href="node_modules/maplibre-gl/dist/maplibre-gl.css" />
-        <link rel="stylesheet" href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css" />
-        <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.css" />
-        <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-        <link rel="stylesheet" href="node_modules/leaflet-measure/dist/leaflet-measure.css" />
+        <link href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css" rel="stylesheet" />
+        <link href="node_modules/leaflet/dist/leaflet.css" rel="stylesheet" />
+        <link href="node_modules/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" />
+        <link href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css" rel="stylesheet" />
+        <link href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css" rel="stylesheet" />
+        <link href="node_modules/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
+        <link href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css" rel="stylesheet" />
+        <link href="node_modules/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" />
+        <link href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet" />
+        <link href="node_modules/leaflet-measure/dist/leaflet-measure.css" rel="stylesheet" />
         <!-- DOMPurify is loaded as a classic script (global DOMPurify) to avoid bare-module specifier issues under file:// in Electron. -->
-        <script src="node_modules/dompurify/dist/purify.min.js" defer></script>
+        <script defer src="node_modules/dompurify/dist/purify.min.js"></script>
 
         <!--
             Browser-run modules (loaded via <script type="module"> under file://) cannot resolve
@@ -51,10 +64,10 @@
                 }
             }
         </script>
-        <script src="node_modules/jquery/dist/jquery.min.js" defer></script>
-        <script src="node_modules/datatables.net/js/dataTables.min.js" defer></script>
-        <script src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js" defer></script>
-        <script src="node_modules/arquero/dist/arquero.min.js" defer></script>
+        <script defer src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script defer src="node_modules/datatables.net/js/dataTables.min.js"></script>
+        <script defer src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js"></script>
+        <script defer src="node_modules/arquero/dist/arquero.min.js"></script>
         <script src="node_modules/chart.js/dist/chart.umd.js"></script>
         <script src="node_modules/date-fns/cdn.min.js"></script>
         <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
@@ -63,39 +76,43 @@
         <script src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
         <!-- JSZip for ZIP file creation -->
         <script src="node_modules/jszip/dist/jszip.min.js"></script>
-        <script src="node_modules/leaflet/dist/leaflet.js" defer></script>
-        <script src="node_modules/leaflet-draw/dist/leaflet.draw.js" defer></script>
-        <script src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js" defer></script>
-        <script src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js" defer></script>
+        <script defer src="node_modules/leaflet/dist/leaflet.js"></script>
+        <script defer src="node_modules/leaflet-draw/dist/leaflet.draw.js"></script>
+        <script defer src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+        <script defer src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
         <!-- Use the UMD build to avoid ESM imports (works under file:// without a bundler). -->
-        <script src="node_modules/leaflet.fullscreen/dist/Control.FullScreen.umd.js" defer></script>
-        <script src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js" defer></script>
+        <script defer src="node_modules/leaflet.fullscreen/dist/Control.FullScreen.umd.js"></script>
+        <script defer src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
         <!-- CSP-safe Leaflet measurement control (replaces leaflet-measure which requires unsafe-eval) -->
-        <script src="vendor/leaflet-measure-lite.js" defer></script>
-        <script src="node_modules/maplibre-gl/dist/maplibre-gl.js" defer></script>
-        <script src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js" defer></script>
-        <link rel="stylesheet" href="style.css" />
+        <script defer src="vendor/leaflet-measure-lite.js"></script>
+        <script defer src="node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+        <script defer src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js"></script>
+        <link href="style.css" rel="stylesheet" />
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
-        <script src="utils.js" type="module" defer></script>
+        <script type="module" defer src="utils.js"></script>
         <!-- Load screenfull before main-ui.js -->
         <script type="module" src="vendor/screenfull-global.js"></script>
-        <script src="ui/modals/accentColorPicker.js" type="module" defer></script>
-        <script type="module" src="./utils/ui/initStartup.js" defer></script>
-        <script src="main-ui.js" type="module" defer></script>
+        <script type="module" defer src="ui/modals/accentColorPicker.js"></script>
+        <script type="module" defer src="./utils/ui/initStartup.js"></script>
+        <script type="module" defer src="main-ui.js"></script>
     </head>
 
     <body>
         <!-- App Header -->
         <header class="app-header">
             <div class="app-header-brand">
-                <div class="app-header-logo" role="img" aria-label="Coach Kitty keeps your rides on track">
+                <div
+                    class="app-header-logo"
+                    aria-label="Coach Kitty keeps your rides on track"
+                    role="img"
+                >
                     <figure class="hero-mascot-frame">
                         <img
-                            src="icons/mascot-kitty.png"
                             class="hero-mascot-image"
                             alt="FitFileViewer mascot Coach Kitty"
-                            loading="eager"
                             decoding="async"
+                            loading="eager"
+                            src="icons/mascot-kitty.png"
                         />
                     </figure>
                     <div class="hero-floating-card hero-floating-card-left" aria-hidden="true">
@@ -127,15 +144,22 @@
                     <span class="brand-subtitle">Dashboards &amp; analytics</span>
                 </div>
             </div>
-            <button id="openFileBtn" class="themed-btn" aria-label="Open FIT File" role="button" tabindex="0">
+            <button
+                id="openFileBtn"
+                type="submit"
+                class="themed-btn"
+                aria-label="Open FIT File"
+                role="button"
+                tabindex="0"
+            >
                 <span class="btn-icon" aria-hidden="true">
                     <svg
-                        viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        stroke-width="1.8"
                         stroke-linecap="round"
                         stroke-linejoin="round"
+                        stroke-width="1.8"
+                        viewBox="0 0 24 24"
                     >
                         <path d="M4 7h5l2 2h9v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
                         <path d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" />
@@ -145,7 +169,13 @@
             </button>
             <div id="activeFileNameContainer">
                 <span id="activeFileName"></span>
-                <button id="unloadFileBtn" title="Unload file" aria-label="Unload file" tabindex="0">
+                <button
+                    id="unloadFileBtn"
+                    type="submit"
+                    aria-label="Unload file"
+                    tabindex="0"
+                    title="Unload file"
+                >
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z"
@@ -155,14 +185,14 @@
             </div>
             <div class="header-hint" role="note">
                 <svg
-                    viewBox="0 0 24 36"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
-                    stroke-width="1.6"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    aria-hidden="true"
-                    focusable="false"
+                    stroke-width="1.6"
+                    viewBox="0 0 24 36"
                 >
                     <path d="M16 16v-3m0 0-2 2m2-2 2 2" />
                     <path d="M7 20a4 4 0 0 1 0-8 6 6 0 0 1 11.31-2.49A3.5 3.5 0 1 1 19 16" />
@@ -171,56 +201,179 @@
             </div>
         </div>
         <!-- Centered Tab Bar -->
-        <div id="tabs" class="tab-bar" role="tablist" aria-label="Main Tabs">
-            <button class="tab-button active" id="tab-map" role="tab" aria-selected="true" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div
+            id="tabs"
+            class="tab-bar"
+            aria-label="Main Tabs"
+            role="tablist"
+        >
+            <button
+                id="tab-map"
+                type="submit"
+                class="tab-button active"
+                aria-selected="true"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
+                    <circle
+                        cx="12"
+                        cy="10"
+                        r="3"
+                    />
                 </svg>
                 Map
             </button>
-            <button class="tab-button" id="tab-browser" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button
+                id="tab-browser"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
                     <path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
                 </svg>
                 Browser
             </button>
-            <button class="tab-button" id="tab-altfit" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <button
+                id="tab-altfit"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
+                    <ellipse
+                        cx="12"
+                        cy="5"
+                        rx="9"
+                        ry="3"
+                    />
                     <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
                     <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
                 </svg>
                 Data
             </button>
-            <button class="tab-button" id="tab-data" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button
+                id="tab-data"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
                     <polyline points="16,18 22,12 16,6" />
                     <polyline points="8,6 2,12 8,18" />
                 </svg>
                 Raw Data
             </button>
-            <button class="tab-button" id="tab-chartjs" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button
+                id="tab-chartjs"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
                     <polyline points="3,12 7,8 13,14 21,6" />
                     <polyline points="17,6 21,6 21,10" />
                 </svg>
                 Charts
             </button>
-            <button class="tab-button" id="tab-summary" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button
+                id="tab-summary"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <line
+                        x1="16"
+                        x2="8"
+                        y1="13"
+                        y2="13"
+                    />
+                    <line
+                        x1="16"
+                        x2="8"
+                        y1="17"
+                        y2="17"
+                    />
                     <polyline points="10,9 9,9 8,9" />
                 </svg>
                 Summary
             </button>
-            <button class="tab-button" id="tab-zwift" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="5.5" cy="17.5" r="3.5" />
-                    <circle cx="18.5" cy="17.5" r="3.5" />
+            <button
+                id="tab-zwift"
+                type="submit"
+                class="tab-button"
+                aria-selected="false"
+                role="tab"
+                tabindex="0"
+            >
+                <svg
+                    class="tab-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        cx="5.5"
+                        cy="17.5"
+                        r="3.5"
+                    />
+                    <circle
+                        cx="18.5"
+                        cy="17.5"
+                        r="3.5"
+                    />
                     <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
                     <path d="M8.5 10 15 15.5V21" />
                     <path d="M2.5 10.5 5 13l7.5-7.5" />
@@ -249,14 +402,13 @@
                 <iframe
                     id="altfit-iframe"
                     class="fullsize-container no-border"
-                    title="Alternative FIT Data View"
-                    allowfullscreen
                     allow
-                    referrerpolicy="no-referrer"
+                    allowfullscreen
+                    aria-label="Alternative FIT Data View"
                     loading="eager"
                     name="altfit-iframe"
-                    frameborder="0"
-                    aria-label="Alternative FIT Data View"
+                    referrerpolicy="no-referrer"
+                    title="Alternative FIT Data View"
                 ></iframe>
             </div>
             <div id="content-zwift" class="tab-content">
@@ -269,16 +421,15 @@
                 -->
                 <iframe
                     id="zwift-iframe"
-                    title="ZwiftMap"
-                    allowfullscreen
-                    allow
-                    referrerpolicy="no-referrer"
-                    loading="lazy"
-                    src="https://zwiftmap.com/"
-                    name="zwift-iframe"
                     class="fullsize-container no-border"
-                    frameborder="0"
+                    allow
+                    allowfullscreen
                     aria-label="ZwiftMap"
+                    loading="lazy"
+                    name="zwift-iframe"
+                    referrerpolicy="no-referrer"
+                    src="https://zwiftmap.com/"
+                    title="ZwiftMap"
                 ></iframe>
             </div>
         </div>
@@ -290,50 +441,50 @@
             <footer>
                 <span class="credits-item">
                     <a
-                        href="https://www.fitfileviewer.com/"
                         class="italic"
+                        aria-label="FitFileViewer.com"
                         data-external-link="true"
+                        href="https://www.fitfileviewer.com/"
                         role="link"
                         tabindex="0"
-                        aria-label="FitFileViewer.com"
                     >
                         FitFileViewer.com
                         <img
-                            alt="FitFileViewer logo"
-                            src="data:image/png;base64,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"
                             class="inline-block"
-                            width="14"
+                            alt="FitFileViewer logo"
                             height="12"
                             loading="eager"
+                            src="data:image/png;base64,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"
+                            width="14"
                         />
                     </a>
                 </span>
 
                 <span class="credits-item">
                     <a
-                        href="https://www.harryonline.net/"
                         class="italic"
+                        aria-label="HarryOnline"
                         data-external-link="true"
+                        href="https://www.harryonline.net/"
                         role="link"
                         tabindex="0"
-                        aria-label="HarryOnline"
                     >
                         HarryOnline
                         <img
-                            alt="HarryOnline logo"
-                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAYCAYAAADpnJ2CAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gMKECIvrwBSlAAABghJREFUSMeNVm2MVNUZft5zzr1zZ4fZD1jZWnapXcWICoupEklTrE0twfEbjVkhQNCKJVTTX7VNA7ShoYZNm2JLSsVWYKkSS9IaFloMfi8RN7pEpKJCYQV1tgu7s7O7c+fee855+2N2Zu9MatKT3B/343mf53k/zrmE2Jp4YOnXEIbroHUbiAyYHXjJ1yDEH1MvHrTLe1Zhb2ZX6eOtwCPzf9CSRf6exSdG77rxbHFBJNEkNfuNAc4OzPQOb7//iueOfOP3H5fjr315HQgACo8/jLptz2J86eJvw0Q90LoORAAzUFe3CVJtXvtoqymTrTr0cFNBF9aEJtw4oWx6zeujuKN/HI7hkvCEwPbvNuHoNSldj8Qv6910187v7RgHAAEAdduendTA08FcIgMAIpBy36V0gy2TLe9Z1Z4P88/42u8ybNJGEFpHNAiAEQQjCJEiXJiuAGOUr/2NI8XclrWH16UrhABQ3LrZgZTtMGYqx0IArvPh4J79DAArDq6+3Nf+tshGywCACfAiixljBsJOwQJF+LxJQTLAzIhstP5Scfj+n/ZuEBVCc6w3RUbPqbgDACEv8mhutJ0Iu092i4IubAxtmCm/tkSYncOFdNEW470QuSo34clh4snYbKBZP3565PRXK4Qc+ClmnhMHQtBJOK4GgINn/3FnZKO18des5CuZU/ZPTQUe4ymdtiFSR9h1usoPCARjzQICzRfBcztKT7VOoZaQ6KQEhQBQNMWtzBzTIs6PTE9tyryX+49g9mIomw74rWxzcp8kebEiDgxjzWKRWD0pWsoUmFurHcqT3oFXC509K+/TVs+JK5YkXzq2aNebAdlrGEjFCUUyeUIT54noeDycYXOdAAD/6S4BqaobhgiQ8gQBKHLwmCWgcgk6H3rqAABYa64As4hn2r1q7vtX5ZWVJC/FHSZU4moBAPaNIw7paG6NOy2Ums2rOxe2fVFY3D6kUb6u/0LntrxCpFcsuw2g2VU4pfL01K+HWsYhiKhSA2aGK9yrFQCwX3Rh7LVVQKOVzY10T+RG8KvnAXC8tphnCQerWrO8pPwAAIq6oIzVqerG0Z+pUtatC+B6fMmyBIDw/y0h+gHAgl0GNU9ViDChC2fUZMu50Hbu/8RbgKrsleaPv0yAco4DgLEmCdiqJiTQBeV3bYY91tvCRV/VKD2umC58NMtZOOZiZiWeRdCaMx9Mn+BBC9sBa2dVwdL175U8UIO23FaVbSE/VLbvbYEw7EBsxiAEqL7hx97+fx5ecrjzryYK7sOkURJ0cWJWy4+Odmx/c3zpt/YiDB6K4Wxy9/5TK554UobZ89dZDuLuICDeFfALBK07qgdeZNkv5AEg6euCF1r2QgsvsvBCS42Do4pvvOVyGD2rJp2fEJEJPh9IGmvurXJH8iKDTws2WjDbGkKcI8cZAQBHqM9qqpQg0GWQugWMr9TsTP0A4KnklZGN7ojPoBDi7570hgTn84DlakLQACWSk4TOO1VDwWg0NupAiBmgakKSsh8ACrrwlGVLMXeGQH/bc/ufc0LMW9AIHc2oUXpOdK4cBoDb25ceEiTCmFpprbml7+Zpy6SxDXFYXZDsfeDA8t8GJlhSk84XmhKNR0vn4dDgvNqGAfi8d++DGgBWzO0sutLtniIEEoFedLpef9+Jpg5BRzPWPJJ62o8m1leVVah/e8p7ZueSHcMlwiBYUFOjPITIAkDU3wcAaJvW9hNBYmyyvkgFVjSNa1VOmmBgqF5hWIY3xA91IhqVQm55PrPn9YofjqL5NenMQsosADg33ITHXl6P39y69VLaST9IoJABTCtaNI/ZyvALy/i02QHHtiMCDXrC3bD/zn07AWBD7yZM/mLYhTUOh5DwsuWbP9z2OzzUsxJ7M7sOpdzUMhLyTL3PYXNel+pjGY5hDDQrgAAiGhFCvF2n6la+eNe+bSWyn+MX3ywRKjBOAThXLgWA10RDYzau4C+Z3QCAFzLdBzJ9P+xr+3jgCUnyO2dava+PJ8XMVGALn85MnnOk8y8pVc+uW7t3J1PS3rR3Ee6+8m787OYnK7H+C5ajtj+Tl9PtAAAAAElFTkSuQmCC"
                             class="inline-block"
-                            width="14"
+                            alt="HarryOnline logo"
                             height="12"
                             loading="eager"
+                            src="data:image/png;base64,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"
+                            width="14"
                         />
                     </a>
                 </span>
 
                 <span class="credits-item">
                     <a
-                        href="https://github.com/thomascamminady/fit-viewer"
                         data-external-link="true"
+                        href="https://github.com/thomascamminady/fit-viewer"
                         role="link"
                         tabindex="0"
                     >
@@ -343,8 +494,8 @@
 
                 <span class="credits-item">
                     <a
-                        href="https://github.com/garmin/fit-javascript-sdk"
                         data-external-link="true"
+                        href="https://github.com/garmin/fit-javascript-sdk"
                         role="link"
                         tabindex="0"
                     >
@@ -353,23 +504,41 @@
                 </span>
 
                 <span class="credits-item">
-                    <a href="https://leafletjs.com/" data-external-link="true" role="link" tabindex="0">Leaflet.js</a>🗺️
+                    <a
+                        data-external-link="true"
+                        href="https://leafletjs.com/"
+                        role="link"
+                        tabindex="0"
+                    >Leaflet.js</a>🗺️
                 </span>
 
                 <span class="credits-item">
-                    <a href="https://vega.github.io/vega-lite/" data-external-link="true" role="link" tabindex="0"
-                        >Vega-Lite</a
+                    <a
+                        data-external-link="true"
+                        href="https://vega.github.io/vega-lite/"
+                        role="link"
+                        tabindex="0"
+                    >Vega-Lite</a
                     >📊
                 </span>
 
                 <span class="credits-item">
-                    <a href="https://github.com/vega/vega-embed" data-external-link="true" role="link" tabindex="0"
-                        >Vega-Embed</a
+                    <a
+                        data-external-link="true"
+                        href="https://github.com/vega/vega-embed"
+                        role="link"
+                        tabindex="0"
+                    >Vega-Embed</a
                     >📈
                 </span>
 
                 <span class="credits-item">
-                    <a href="https://zwiftmap.com" data-external-link="true" role="link" tabindex="0">ZwiftMap</a>🗺️
+                    <a
+                        data-external-link="true"
+                        href="https://zwiftmap.com"
+                        role="link"
+                        tabindex="0"
+                    >ZwiftMap</a>🗺️
                 </span>
             </footer>
         </div>
@@ -387,8 +556,8 @@
             </div>
         </div>
         <!-- Ensure utils.js and main-ui.js are loaded before renderer.js.
-			 If they are not loaded first, renderer.js will fail to execute properly
-			 because it relies on functions and variables defined in those scripts. -->
-        <script src="renderer.js" type="module" defer></script>
+            If they are not loaded first, renderer.js will fail to execute properly
+            because it relies on functions and variables defined in those scripts. -->
+        <script type="module" defer src="renderer.js"></script>
     </body>
 </html>
