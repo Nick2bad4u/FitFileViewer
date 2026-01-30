@@ -382,8 +382,12 @@ export function updateActiveTab(tabId) {
 function extractTabName(tabId) {
     // Common patterns for tab button IDs
     const patterns = [
+        /^tab_(.+)$/, // Tab_summary -> summary
+        /^(.+)_tab$/, // Summary_tab -> summary
         /^tab-(.+)$/, // Tab-summary -> summary
         /^(.+)-tab$/, // Summary-tab -> summary
+        /^btn_(.+)$/, // Btn_chart -> chart
+        /^(.+)_btn$/, // Chart_btn -> chart
         /^btn-(.+)$/, // Btn-chart -> chart
         /^(.+)-btn$/, // Chart-btn -> chart
     ];

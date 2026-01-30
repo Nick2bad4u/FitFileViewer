@@ -832,9 +832,9 @@ const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
 const debouncedDirectRerender = debounce((reason = "State change") => {
     const container =
-        document.querySelector("#chartjs-chart-container") ||
-        document.querySelector("#content-chartjs") ||
-        document.querySelector("#content-chart");
+        document.querySelector("#chartjs_chart_container") ||
+        document.querySelector("#content_chartjs") ||
+        document.querySelector("#content_chart");
 
     const { getState: getStateSafe } = getStateManagerSafe();
     const data = getStateSafe("globalData");
@@ -1797,9 +1797,9 @@ if (!windowAny._fitFileViewerChartListener) {
 
                     // Fallback: directly call renderChartJS with a sensible container
                     const container =
-                        document.querySelector("#chartjs-chart-container") ||
-                        document.querySelector("#content-chartjs") ||
-                        document.querySelector("#content-chart") ||
+                        document.querySelector("#chartjs_chart_container") ||
+                        document.querySelector("#content_chartjs") ||
+                        document.querySelector("#content_chart") ||
                         document.body;
                     try {
                         // Call without awaiting to keep handler non-blocking
@@ -2336,7 +2336,7 @@ export function refreshChartsIfNeeded() {
  * comprehensive error handling
  *
  * @param {Element | string} [targetContainer] - Optional container element or
- *   ID for chart rendering. If omitted, defaults to '#content-chart'.
+ *   ID for chart rendering. If omitted, defaults to '#content_chart'.
  * @param {{
  *     allowInactiveTab?: boolean;
  *     skipTabAbort?: boolean;
@@ -2529,7 +2529,7 @@ export async function renderChartJS(targetContainer, options = {}) {
                 }
             }
             if (!container) {
-                container = document.querySelector("#content-chart");
+                container = document.querySelector("#content_chart");
             }
             if (container) {
                 let themeConfig = await getThemeConfigSafe();
@@ -2748,7 +2748,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         safeCompleteRendering(false);
 
         // Try to show error information to user
-        let container = document.querySelector("#content-chart");
+        let container = document.querySelector("#content_chart");
         if (!container && targetContainer) {
             // Handle case where targetContainer is a string ID or DOM element
             if (typeof targetContainer === "string") {
@@ -2942,11 +2942,11 @@ async function renderChartsWithData(
         ? typeof targetContainer === "string"
             ? document.getElementById(targetContainer)
             : targetContainer
-        : document.querySelector("#chartjs-chart-container");
+        : document.querySelector("#chartjs_chart_container");
 
     if (!chartContainer) {
         chartContainer = document.createElement("div");
-        chartContainer.id = "chartjs-chart-container";
+        chartContainer.id = "chartjs_chart_container";
         chartContainer.style.cssText = `
 			margin-top: 20px;
 			padding: 20px;

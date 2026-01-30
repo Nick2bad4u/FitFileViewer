@@ -74,7 +74,7 @@ export function setLoading(loading) {
     // Update state first
     setState("isLoading", loading, { source: "setLoading" });
 
-    const overlay = document.querySelector("#loadingOverlay");
+    const overlay = document.querySelector("#loading_overlay");
     if (!overlay) {
         console.warn("[RendererUtils] Loading overlay element not found");
         return;
@@ -177,15 +177,15 @@ export function showWarning(message, timeout = 4000) {
  * Update loading UI based on state
  *
  * Shows/hides loading overlay and disables/enables interactive elements. The
- * Open File button (openFileBtn) is intentionally excluded from being disabled
- * to allow users to open new files at any time.
+ * Open File button (open_file_btn) is intentionally excluded from being
+ * disabled to allow users to open new files at any time.
  *
  * @private
  *
  * @param {boolean} isLoading - Loading state
  */
 function updateLoadingUI(loading) {
-    const overlay = document.querySelector("#loadingOverlay");
+    const overlay = document.querySelector("#loading_overlay");
     if (overlay) {
         overlay.style.display = loading ? "flex" : "none";
         overlay.setAttribute("aria-hidden", (!loading).toString());
@@ -200,7 +200,7 @@ function updateLoadingUI(loading) {
     );
     for (const element of interactiveElements) {
         // Never disable the Open File button - users should always be able to open new files
-        if (element.id === "openFileBtn") {
+        if (element.id === "open_file_btn") {
             continue;
         }
 

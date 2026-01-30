@@ -11,7 +11,7 @@ const { mockGetState, mockSetState, mockSubscribe } =
         mockSubscribe: vi.fn(),
     }));
 
-vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
+vi.mock("../../../../../utils/state/core/stateManager", () => ({
     getState: mockGetState,
     setState: mockSetState,
     subscribe: mockSubscribe,
@@ -36,7 +36,6 @@ describe("tabStateManager.behavior", () => {
     let originalConsoleError;
 
     beforeEach(() => {
-        // DOM root for each test
         root = document.createElement("div");
         root.id = "root";
         document.body.appendChild(root);
@@ -46,7 +45,6 @@ describe("tabStateManager.behavior", () => {
         mockSetState.mockReset();
         mockSubscribe.mockReset();
 
-        mockSubscribe.mockImplementation(() => () => {});
         mockGetState.mockImplementation((/** @type {any} */ key) => {
             switch (key) {
                 case "ui.activeTab":
@@ -103,19 +101,19 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {
-        expect(tabStateManager.extractTabName("tab-data")).toBe("data");
-        expect(tabStateManager.extractTabName("map-tab")).toBe("map");
-        expect(tabStateManager.extractTabName("btn-summary")).toBe("summary");
+        expect(tabStateManager.extractTabName("tab_data")).toBe("data");
+        expect(tabStateManager.extractTabName("map_tab")).toBe("map");
+        expect(tabStateManager.extractTabName("btn_summary")).toBe("summary");
         // also supports "-btn" suffix pattern
-        expect(tabStateManager.extractTabName("summary-btn")).toBe("summary");
+        expect(tabStateManager.extractTabName("summary_btn")).toBe("summary");
         // unknown
-        expect(tabStateManager.extractTabName("tab-nonexistent")).toBeNull();
+        expect(tabStateManager.extractTabName("tab_nonexistent")).toBeNull();
         expect(tabStateManager.extractTabName("invalid")).toBeNull();
     });
 
     it("handleTabButtonClick ignores disabled buttons and prevents event", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-map";
+        btn.id = "tab_map";
         btn.className = "tab-button tab-disabled";
         root.appendChild(btn);
 
@@ -135,7 +133,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick ignores when disabled attribute present", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-map";
+        btn.id = "tab_map";
         btn.className = "tab-button";
         btn.setAttribute("disabled", "");
         root.appendChild(btn);
@@ -157,7 +155,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick ignores when disabled property is true", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-map";
+        btn.id = "tab_map";
         btn.className = "tab-button";
         // @ts-ignore
         btn.disabled = true;
@@ -176,7 +174,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick honors data requirement and avoids state update when missing", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-data"; // requiresData: true
+        btn.id = "tab_data"; // requiresData: true
         btn.className = "tab-button";
         root.appendChild(btn);
 
@@ -197,7 +195,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick with unknown tab id returns early without state change", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-nonexistent";
+        btn.id = "tab_nonexistent";
         btn.className = "tab-button";
         root.appendChild(btn);
 
@@ -214,7 +212,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick sets activeTab for valid click", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-summary";
+        btn.id = "tab_summary";
         btn.className = "tab-button";
         root.appendChild(btn);
 
@@ -237,10 +235,10 @@ describe("tabStateManager.behavior", () => {
 
     it("updateTabButtonStates toggles active and aria-selected", () => {
         const a = document.createElement("button");
-        a.id = "tab-summary";
+        a.id = "tab_summary";
         a.className = "tab-button";
         const b = document.createElement("button");
-        b.id = "tab-map";
+        b.id = "tab_map";
         b.className = "tab-button";
         root.append(a, b);
 
@@ -285,7 +283,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleAltFitTab sets iframe src safely", () => {
         const iframe = document.createElement("iframe");
-        iframe.id = "altfit-iframe";
+        iframe.id = "altfit_iframe";
         iframe.src = "about:blank";
         root.appendChild(iframe);
 
@@ -295,7 +293,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleAltFitTab is idempotent when src already set", () => {
         const iframe = document.createElement("iframe");
-        iframe.id = "altfit-iframe";
+        iframe.id = "altfit_iframe";
         // Pre-set to expected value
         iframe.src = "ffv/index.html";
         root.appendChild(iframe);
@@ -307,7 +305,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleAltFitTab does nothing for non-iframe element", () => {
         const div = document.createElement("div");
-        div.id = "altfit-iframe";
+        div.id = "altfit_iframe";
         root.appendChild(div);
         expect(() => tabStateManager.handleAltFitTab()).not.toThrow();
     });
@@ -438,10 +436,10 @@ describe("tabStateManager.behavior", () => {
 
     it("handleDataTab moves background content when present, otherwise renders fresh tables", async () => {
         const bg = document.createElement("div");
-        bg.id = "background-data-container";
+        bg.id = "background_data_container";
         bg.appendChild(document.createElement("div"));
         const vis = document.createElement("div");
-        vis.id = "content-data";
+        vis.id = "content_data";
         root.append(bg, vis);
 
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
@@ -497,10 +495,10 @@ describe("tabStateManager.behavior", () => {
     it("setupTabButtonHandlers attaches click listeners when document is ready", () => {
         // Create some tab buttons
         const a = document.createElement("button");
-        a.id = "tab-summary";
+        a.id = "tab_summary";
         a.className = "tab-button";
         const b = document.createElement("button");
-        b.id = "tab-map";
+        b.id = "tab_map";
         b.className = "tab-button";
         root.append(a, b);
 
@@ -559,10 +557,10 @@ describe("tabStateManager.behavior", () => {
 
     it("getActiveTabInfo returns elements and previous tab tracking", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-map";
+        btn.id = "tab_map";
         btn.className = "tab-button";
         const content = document.createElement("div");
-        content.id = "content-map";
+        content.id = "content_map";
         root.append(btn, content);
 
         mockGetState.mockImplementation((/** @type {any} */ key) =>
@@ -630,7 +628,7 @@ describe("tabStateManager.behavior", () => {
     it("getDoc returns a usable document for DOM operations", () => {
         // Ensure a content element exists
         const content = document.createElement("div");
-        content.id = "content-summary";
+        content.id = "content_summary";
         root.appendChild(content);
         // Should not throw when manipulating DOM via getDoc
         expect(() =>
@@ -668,9 +666,9 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'data' branch and calls createTables when no background content", async () => {
-        // No background-data-container present, so it should render fresh tables
+        // No background_data_container present, so it should render fresh tables
         const vis = document.createElement("div");
-        vis.id = "content-data";
+        vis.id = "content_data";
         root.appendChild(vis);
         mockGetState.mockImplementation((/** @type {any} */ key) =>
             key === "globalData" ? { recordMesgs: [{}] } : null
@@ -691,7 +689,7 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabButtonClick returns early when button already active", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-map";
+        btn.id = "tab_map";
         btn.className = "tab-button active";
         root.appendChild(btn);
 
@@ -770,7 +768,7 @@ describe("tabStateManager.behavior", () => {
 
     it("updateTabButtonStates tolerates per-button failures (catch path)", () => {
         const a = document.createElement("button");
-        a.id = "tab-summary";
+        a.id = "tab_summary";
         a.className = "tab-button";
         // Force classList.toggle to throw to exercise catch
         const origToggle = a.classList.toggle.bind(a.classList);
@@ -779,7 +777,7 @@ describe("tabStateManager.behavior", () => {
             throw new Error("boom");
         };
         const b = document.createElement("button");
-        b.id = "tab-map";
+        b.id = "tab_map";
         b.className = "tab-button";
         root.append(a, b);
 

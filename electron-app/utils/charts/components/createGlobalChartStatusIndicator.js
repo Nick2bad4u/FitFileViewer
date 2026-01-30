@@ -31,9 +31,9 @@ const CONSTANTS = {
         SOME_HIDDEN: "⚠️",
     },
     IDS: {
-        CHART_CONTAINER: "chartjs-chart-container",
+        CHART_CONTAINER: "chartjs_chart_container",
         CHART_CONTROLS_TOGGLE: "chart-controls-toggle",
-        CHART_TAB_CONTENT: "content-chartjs",
+        CHART_TAB_CONTENT: "content_chartjs",
         GLOBAL_CHART_STATUS: "global-chart-status",
         SETTINGS_WRAPPER: "chartjs-settings-wrapper",
     },

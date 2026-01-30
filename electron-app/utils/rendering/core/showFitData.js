@@ -38,9 +38,9 @@ const DISPLAY_CONSTANTS = {
     },
     LOG_PREFIX: "ShowFitData",
     SELECTORS: {
-        ACTIVE_FILE_NAME: "activeFileName",
-        FILE_NAME_CONTAINER: "activeFileNameContainer",
-        UNLOAD_BUTTON: "unloadFileBtn",
+        ACTIVE_FILE_NAME: "active_file_name",
+        FILE_NAME_CONTAINER: "active_file_name_container",
+        UNLOAD_BUTTON: "unload_file_btn",
     },
     TITLE_PREFIX: "Fit File Viewer",
 };
@@ -234,8 +234,8 @@ export function showFitData(data, filePath, options = {}) {
          */ (globalThis);
 
         if (windowExt.updateTabVisibility && windowExt.updateActiveTab) {
-            windowExt.updateTabVisibility("content-map");
-            windowExt.updateActiveTab("tab-map");
+            windowExt.updateTabVisibility("content_map");
+            windowExt.updateActiveTab("tab_map");
 
             // Manually trigger map rendering since we're programmatically switching tabs
             if (windowExt.renderMap && !windowExt.isMapRendered) {
@@ -398,10 +398,14 @@ function resolveFitFileStateManager() {
                 .handleFileLoaded
         ) === "function"
     ) {
-        return /** @type {{
+        const manager = /**
+         * @type {{
          *     handleFileLoaded: Function;
          *     startFileLoading?: (filePath: string) => void;
-         * }} */ (candidate);
+         * }}
+         */ (candidate);
+
+        return manager;
     }
 
     return null;

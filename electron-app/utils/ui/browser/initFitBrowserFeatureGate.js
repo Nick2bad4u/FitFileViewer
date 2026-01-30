@@ -11,8 +11,8 @@
 
 import { getState, setState } from "../../state/core/stateManager.js";
 
-const BROWSER_TAB_BUTTON_ID = "tab-browser";
-const BROWSER_TAB_CONTENT_ID = "content-browser";
+const BROWSER_TAB_BUTTON_ID = "tab_browser";
+const BROWSER_TAB_CONTENT_ID = "content_browser";
 
 /**
  * Initialize Browser tab feature gating.

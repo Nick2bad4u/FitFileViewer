@@ -55,7 +55,7 @@ const resolveFitFileStateManager = () => {
  *     // Basic usage
  *     const success = await handleOpenFile({
  *         isOpeningFileRef: { value: false },
- *         openFileBtn: document.getElementById("openFileBtn"),
+ *         openFileBtn: document.getElementById("open_file_btn"),
  *         setLoading: (loading) => showLoadingSpinner(loading),
  *         showNotification: (msg, type) => displayMessage(msg, type),
  *     });

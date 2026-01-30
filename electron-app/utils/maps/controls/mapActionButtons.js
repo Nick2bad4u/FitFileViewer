@@ -249,9 +249,11 @@ function _centerMapOnMainFile() {
  */
 function setupActiveFileNameMapActions() {
     try {
-        const activeFileName = document.querySelector("#activeFileName");
+        const activeFileName = document.querySelector("#active_file_name");
         if (!activeFileName) {
-            console.log("[mapActionButtons] #activeFileName not found in DOM");
+            console.log(
+                "[mapActionButtons] #active_file_name not found in DOM"
+            );
             return;
         }
 
@@ -270,7 +272,7 @@ function setupActiveFileNameMapActions() {
                 console.log("[mapActionButtons] Active file name clicked");
 
                 // Always switch to map tab (even if already active, to ensure map is visible)
-                const mapTabBtn = document.querySelector("#tab-map");
+                const mapTabBtn = document.querySelector("#tab_map");
                 if (mapTabBtn instanceof HTMLElement) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();
@@ -335,7 +337,7 @@ function setupActiveFileNameMapActions() {
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName() {
     try {
-        const targetElement = document.querySelector("#activeFileName"),
+        const targetElement = document.querySelector("#active_file_name"),
             parent = targetElement?.parentNode;
 
         if (!parent) {

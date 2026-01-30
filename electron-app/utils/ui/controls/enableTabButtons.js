@@ -9,6 +9,14 @@ import {
     subscribe,
 } from "../../state/core/stateManager.js";
 import * as StateManager from "../../state/core/stateManager.js";
+import {
+    debugTabButtons,
+    debugTabState,
+    testTabButtonClicks,
+} from "./enableTabButtonsDebug.js";
+import { safeQueryTabButtons } from "./enableTabButtonsHelpers.js";
+
+export { debugTabButtons, debugTabState, testTabButtonClicks };
 
 // Ensure console.trace exists for tests/environments where it's missing
 if (typeof console !== "undefined" && typeof console.trace !== "function") {
@@ -31,115 +39,10 @@ export function areTabButtonsEnabled() {
 }
 
 /**
- * Debug function to manually test and fix tab button states
- */
-export function debugTabButtons() {
-    console.log("[TabButtons] === DEBUG TAB BUTTONS ===");
-    const tabButtons = safeQueryTabButtons();
-
-    for (const el of tabButtons) {
-        if (!isHTMLElement(el)) {
-            continue;
-        }
-        const btn = /** @type {HTMLElement} */ (el),
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "";
-        if (
-            btnId === "openFileBtn" ||
-            btnId === "open-file-btn" ||
-            btn.classList.contains("open-file-btn")
-        ) {
-            console.log(`[TabButtons] SKIPPING open file button: ${btnId}`);
-            continue;
-        }
-
-        // Explicitly test getComputedStyle availability and propagate failure for tests
-        if (
-            !(
-                globalThis.window !== undefined &&
-                typeof globalThis.getComputedStyle === "function"
-            )
-        ) {
-            throw new TypeError("getComputedStyle not available");
-        }
-        // Intentionally invoke getComputedStyle to surface any mocked errors
-        // The result isn't used directly here; safeComputedStyle is used below for values
-        // But we want to ensure environments that throw are detected and rethrown
-        globalThis.getComputedStyle(btn);
-
-        const buttonEl = /** @type {HTMLButtonElement} */ (btn);
-        console.log(`[TabButtons] Button ${btnId}:`, {
-            computedCursor: safeComputedStyle(btn, "cursor"),
-            computedOpacity: safeComputedStyle(btn, "opacity"),
-            computedPointerEvents: safeComputedStyle(btn, "pointerEvents"),
-            cursor: btn.style.cursor,
-            disabled: buttonEl.disabled,
-            hasDisabledAttr: btn.hasAttribute("disabled"),
-            hasDisabledClass: btn.classList.contains("tab-disabled"),
-            opacity: btn.style.opacity,
-            pointerEvents: btn.style.pointerEvents,
-        });
-    }
-
-    const globalData = getState("globalData"),
-        isLoading = getState("isLoading"),
-        tabButtonsEnabled = getState("ui.tabButtonsEnabled");
-
-    console.log("[TabButtons] Current state:", {
-        globalDataKeys: globalData ? Object.keys(globalData) : null,
-        hasGlobalData: Boolean(globalData),
-        isLoading,
-        tabButtonsEnabled,
-    });
-}
-
-/**
- * Debug function to check current tab states
- */
-export function debugTabState() {
-    console.log("[TabButtons] === CURRENT TAB STATE ===");
-    const tabButtons = /** @type {Element[]} */ (safeQueryTabButtons());
-
-    for (const el of tabButtons) {
-        if (!isHTMLElement(el)) {
-            continue;
-        }
-        const btn = /** @type {HTMLElement} */ (el),
-            ariaSelected = btn.getAttribute("aria-selected"),
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "",
-            buttonEl = /** @type {HTMLButtonElement} */ (btn),
-            isActive = btn.classList.contains("active");
-        console.log(
-            `[TabButtons] ${btnId}: active=${isActive}, aria-selected=${ariaSelected}, disabled=${buttonEl.disabled}`
-        );
-    }
-
-    const activeTab = getState("ui.activeTab"),
-        globalData = getState("globalData");
-
-    console.log("[TabButtons] State:", {
-        activeTab,
-        hasGlobalData: Boolean(globalData),
-        tabButtonsEnabled: getState("ui.tabButtonsEnabled"),
-    });
-}
-
-/**
- * Force enable all tab buttons (for debugging)
+ * Force enable all tab buttons.
  */
 export function forceEnableTabButtons() {
-    console.log("[TabButtons] === FORCE ENABLING ALL TAB BUTTONS ===");
+    console.log("[TabButtons] === FORCE ENABLING TAB BUTTONS ===");
     const tabButtons = safeQueryTabButtons();
 
     for (const el of tabButtons) {
@@ -156,7 +59,7 @@ export function forceEnableTabButtons() {
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
             isOpenFile =
-                btnId === "openFileBtn" ||
+                btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
@@ -207,7 +110,7 @@ export function forceFixTabButtons() {
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
             isOpenFile =
-                btnId === "openFileBtn" ||
+                btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
@@ -274,9 +177,11 @@ export function initializeTabButtonState() {
 
     // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    /** @type {
+    /**
+     * @type {
      *     | undefined
-     *     | ((path: string, id: string, callback: (data: any) => void) => void)} */
+     *     | ((path: string, id: string, callback: (data: any) => void) => void)}
+     */
     let subscribeSingletonFn;
     try {
         // In Vitest, accessing a missing export on a mocked ESM module can throw.
@@ -329,7 +234,7 @@ export function initializeTabButtonState() {
 
 /**
  * Enable or disable all tab buttons (with class 'tab-button'), except the "Open
- * FIT File" button. The "Open FIT File" button (ID: openFileBtn) is excluded
+ * FIT File" button. The "Open FIT File" button (ID: open_file_btn) is excluded
  * from being disabled regardless of the value of the `enabled` parameter,
  * allowing users to always open new files.
  *
@@ -376,7 +281,7 @@ export function setTabButtonsEnabled(enabled) {
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
             isOpenFile =
-                btnId === "openFileBtn" ||
+                btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
@@ -468,7 +373,7 @@ export function setTabButtonsEnabled(enabled) {
                     "",
                 btnText = (btn.textContent || "").trim().toLowerCase(),
                 isOpenFile =
-                    btnId === "openFileBtn" ||
+                    btnId === "open_file_btn" ||
                     btnId === "open-file-btn" ||
                     btn.classList.contains("open-file-btn") ||
                     btnText.includes("open file");
@@ -483,60 +388,6 @@ export function setTabButtonsEnabled(enabled) {
     }, 50);
 
     console.log(`[TabButtons] Buttons ${enabled ? "enabled" : "disabled"}`);
-}
-
-/**
- * Test function to manually check if tab buttons can receive click events
- */
-export function testTabButtonClicks() {
-    console.log("[TabButtons] === TESTING TAB BUTTON CLICKS ===");
-    const tabButtons = safeQueryTabButtons();
-
-    for (const el of tabButtons) {
-        if (!isHTMLElement(el)) {
-            continue;
-        }
-        const btn = /** @type {HTMLElement} */ (el),
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "",
-            btnText = (btn.textContent || "").trim().toLowerCase(),
-            isOpenFile =
-                btnId === "openFileBtn" ||
-                btnId === "open-file-btn" ||
-                btn.classList.contains("open-file-btn") ||
-                btnText.includes("open file");
-        if (isOpenFile) {
-            continue;
-        }
-
-        // Add a temporary test click handler
-        /** @param {MouseEvent} event */
-        const testHandler = (event) => {
-            console.log(`[TabButtons] TEST CLICK DETECTED on ${btnId}!`, event);
-            try {
-                console.log(`Clicked on ${btnId}!`);
-            } catch {
-                /* Ignore errors */
-            }
-        };
-
-        btn.addEventListener("click", testHandler);
-
-        console.log(`[TabButtons] Added test handler to: ${btnId}`);
-
-        // Remove the test handler after 30 seconds
-        setTimeout(() => {
-            btn.removeEventListener("click", testHandler);
-            console.log(`[TabButtons] Removed test handler from: ${btnId}`);
-        }, 30_000);
-    }
-
-    console.log("[TabButtons] Test handlers added. Try clicking buttons now!");
 }
 
 /**
@@ -605,7 +456,7 @@ function ensureObserverInstalled() {
         const observer = new ObserverCtor(callback);
         if (globalCtor && windowCtor && globalCtor !== windowCtor) {
             try {
-                // eslint-disable-next-line no-new, new-cap
+                // eslint-disable-next-line new-cap
                 new windowCtor(callback);
             } catch {
                 /* Ignore errors */
@@ -631,61 +482,6 @@ function ensureObserverInstalled() {
             }
         }
     }
-}
-
-/**
- * Safely get computed style values when available.
- *
- * @param {Element} el
- * @param {string} prop
- *
- * @returns {string | undefined}
- */
-function safeComputedStyle(el, prop) {
-    try {
-        if (
-            globalThis.window !== undefined &&
-            typeof globalThis.getComputedStyle === "function"
-        ) {
-            const cs = globalThis.getComputedStyle(el);
-            if (typeof cs.getPropertyValue === "function") {
-                const v = cs.getPropertyValue(prop);
-                return v || undefined;
-            }
-            // Fallback indexing for environments that allow it
-            return /** @type {any} */ (cs)[prop];
-        }
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-// Safe helpers to work across jsdom and heavily mocked DOMs in tests
-/**
- * Safely get an array of elements matching the tab button selector. Returns an
- * empty array if document APIs are missing or throw.
- *
- * @returns {HTMLElement[]}
- */
-function safeQueryTabButtons() {
-    try {
-        if (typeof document !== "undefined") {
-            if (typeof document.querySelectorAll === "function") {
-                // NodeList may not be iterable in some mocked environments, Array.from handles it
-                return /** @type {HTMLElement[]} */ ([
-                    ...document.querySelectorAll(".tab-button"),
-                ]);
-            }
-            if (typeof document.getElementsByClassName === "function") {
-                return /** @type {HTMLElement[]} */ ([
-                    ...document.querySelectorAll(".tab-button"),
-                ]);
-            }
-        }
-    } catch {
-        // Fall-through to return []
-    }
-    return [];
 }
 
 // Expose function globally for debugging and compatibility (only when window exists)

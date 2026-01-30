@@ -295,7 +295,7 @@
                 </div>
             </div>
             <button
-                id="openFileBtn"
+                id="open_file_btn"
                 type="submit"
                 class="themed-btn"
                 aria-label="Open FIT File"
@@ -324,10 +324,10 @@
                 </span>
                 <span class="btn-label">Open FIT File</span>
             </button>
-            <div id="activeFileNameContainer">
-                <span id="activeFileName"></span>
+            <div id="active_file_name_container">
+                <span id="active_file_name"></span>
                 <button
-                    id="unloadFileBtn"
+                    id="unload_file_btn"
                     type="submit"
                     aria-label="Unload file"
                     tabindex="0"
@@ -370,7 +370,7 @@
             role="tablist"
         >
             <button
-                id="tab-map"
+                id="tab_map"
                 type="submit"
                 class="tab-button active"
                 aria-selected="true"
@@ -394,7 +394,7 @@
                 Map
             </button>
             <button
-                id="tab-browser"
+                id="tab_browser"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -415,7 +415,7 @@
                 Browser
             </button>
             <button
-                id="tab-altfit"
+                id="tab_altfit"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -441,7 +441,7 @@
                 Data
             </button>
             <button
-                id="tab-data"
+                id="tab_data"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -461,7 +461,7 @@
                 Raw Data
             </button>
             <button
-                id="tab-chartjs"
+                id="tab_chartjs"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -481,7 +481,7 @@
                 Charts
             </button>
             <button
-                id="tab-summary"
+                id="tab_summary"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -516,7 +516,7 @@
                 Summary
             </button>
             <button
-                id="tab-zwift"
+                id="tab_zwift"
                 type="submit"
                 class="tab-button"
                 aria-selected="false"
@@ -551,29 +551,29 @@
         <!-- Card-like Container for Tab Content -->
         <div class="tab-card">
             <div
-                id="content-map"
+                id="content_map"
                 class="tab-content"
             ></div>
             <div
-                id="content-browser"
+                id="content_browser"
                 class="tab-content"
             ></div>
             <div
-                id="content-data"
+                id="content_data"
                 class="tab-content"
             ></div>
             <div
-                id="content-chartjs"
+                id="content_chartjs"
                 class="tab-content"
             >
-                <div id="chartjs-chart-container"></div>
+                <div id="chartjs_chart_container"></div>
             </div>
             <div
-                id="content-summary"
+                id="content_summary"
                 class="tab-content"
             ></div>
             <div
-                id="content-altfit"
+                id="content_altfit"
                 class="tab-content"
             >
                 <!--
@@ -584,21 +584,21 @@
                     sandbox this local iframe.
                 -->
                 <iframe
-                    id="altfit-iframe"
+                    id="altfit_iframe"
                     class="fullsize-container no-border"
                     allow
                     allowfullscreen
                     aria-label="Alternative FIT Data View"
                     height="720"
                     loading="eager"
-                    name="altfit-iframe"
+                    name="altfit_iframe"
                     referrerpolicy="no-referrer"
                     title="Alternative FIT Data View"
                     width="1280"
                 ></iframe>
             </div>
             <div
-                id="content-zwift"
+                id="content_zwift"
                 class="tab-content"
             >
                 <!--
@@ -609,14 +609,14 @@
                     Removing sandbox keeps the iframe on its real https://zwiftmap.com origin so it can load.
                 -->
                 <iframe
-                    id="zwift-iframe"
+                    id="zwift_iframe"
                     class="fullsize-container no-border"
                     allow
                     allowfullscreen
                     aria-label="ZwiftMap"
                     height="720"
                     loading="lazy"
-                    name="zwift-iframe"
+                    name="zwift_iframe"
                     referrerpolicy="no-referrer"
                     src="https://zwiftmap.com/"
                     title="ZwiftMap"
@@ -625,8 +625,8 @@
             </div>
         </div>
         <!-- Hidden background containers for pre-rendering -->
-        <div id="background-chart-container"></div>
-        <div id="background-data-container"></div>
+        <div id="background_chart_container"></div>
+        <div id="background_data_container"></div>
         <!-- Credits Section -->
         <div class="credits-section">
             <footer>
@@ -742,11 +742,11 @@
             class="notification"
         ></div>
         <!-- Loading Overlay -->
-        <div id="loadingOverlay">
+        <div id="loading_overlay">
             <span>Loading...</span>
         </div>
         <!-- Drag-and-Drop Overlay -->
-        <div id="drop-overlay">
+        <div id="drop_overlay">
             <div class="drop-overlay-content">
                 <span>Drop FIT file to open</span>
             </div>

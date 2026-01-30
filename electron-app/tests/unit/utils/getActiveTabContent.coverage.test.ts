@@ -63,7 +63,7 @@ describe("getActiveTabContent.js - coverage uplift", () => {
         inactive.className = "tab-content";
 
         const active = document.createElement("div");
-        active.id = "content-map";
+        active.id = "content_map";
         active.className = "tab-content active";
 
         document.body.append(inactive, active);
@@ -75,12 +75,12 @@ describe("getActiveTabContent.js - coverage uplift", () => {
 
     it("derives active content from .tab-button.active id when needed", () => {
         const btn = document.createElement("button");
-        btn.id = "tab-summary";
+        btn.id = "tab_summary";
         btn.className = "tab-button active";
         document.body.appendChild(btn);
 
         const content = document.createElement("div");
-        content.id = "content-summary";
+        content.id = "content_summary";
         content.className = "tab-content";
         document.body.appendChild(content);
 

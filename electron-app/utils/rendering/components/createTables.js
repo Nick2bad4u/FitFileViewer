@@ -11,17 +11,17 @@ import { renderTable } from "../core/renderTable.js";
  * @param {Object} dataFrames - An object where each key is a table name and the
  *   value is an array of row objects.
  * @param {HTMLElement} [containerOverride] - Optional container element to
- *   render tables into. Defaults to element with id 'content-data'.
+ *   render tables into. Defaults to element with id 'content_data'.
  *
  *   Note: The `renderTable` function receives an additional `index` parameter,
  *   which represents the order of the table being rendered.
  */
 export function createTables(dataFrames, containerOverride) {
     const container =
-        containerOverride || document.querySelector("#content-data");
+        containerOverride || document.querySelector("#content_data");
     if (!container) {
         console.error(
-            '[ERROR] Container element with id "content-data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
+            '[ERROR] Container element with id "content_data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
         );
         return;
     }

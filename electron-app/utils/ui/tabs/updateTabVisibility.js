@@ -230,13 +230,13 @@ export function updateTabVisibility(visibleTabId) {
     const // Cache DOM elements in a map for better performance
         elementMap = {},
         tabContentIds = [
-            "content-data",
-            "content-chartjs",
-            "content-browser",
-            "content-map",
-            "content-summary",
-            "content-altfit",
-            "content-zwift",
+            "content_data",
+            "content_chartjs",
+            "content_browser",
+            "content_map",
+            "content_summary",
+            "content_altfit",
+            "content_zwift",
         ];
     for (const id of tabContentIds) {
         const el = getDoc().getElementById(/** @type {string} */ (id));
@@ -254,7 +254,7 @@ export function updateTabVisibility(visibleTabId) {
         DISPLAY_NONE = "none";
 
     // Normalize the requested visible tab id to a canonical content id when possible.
-    // This allows inputs like "summary-content" (pattern) to correctly map to "content-summary".
+    // This allows inputs like "summary_content" (pattern) to correctly map to "content_summary".
     /** @type {string | null | undefined} */
     let targetId = visibleTabId;
     /** @type {string | null} */ let derivedTabName = null;
@@ -305,8 +305,8 @@ function extractTabNameFromContentId(contentId) {
     }
 
     const patterns = [
-        /^content-(.+)$/, // Content-summary -> summary
-        /^(.+)-content$/, // Summary-content -> summary
+        /^content_(.+)$/, // Content_summary -> summary
+        /^(.+)_content$/, // Summary_content -> summary
     ];
 
     for (const pattern of patterns) {
@@ -331,15 +331,15 @@ function extractTabNameFromContentId(contentId) {
 function getContentIdFromTabName(tabName) {
     // Map tab names to content IDs
     const tabToContentMap = {
-        altfit: "content-altfit",
-        chart: "content-chartjs",
-        data: "content-data",
-        map: "content-map",
-        summary: "content-summary",
-        zwift: "content-zwift",
+        altfit: "content_altfit",
+        chart: "content_chartjs",
+        data: "content_data",
+        map: "content_map",
+        summary: "content_summary",
+        zwift: "content_zwift",
     };
 
     return (
-        /** @type {any} */ (tabToContentMap)[tabName] || `content-${tabName}`
+        /** @type {any} */ (tabToContentMap)[tabName] || `content_${tabName}`
     );
 }

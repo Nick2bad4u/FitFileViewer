@@ -84,7 +84,7 @@ describe("main-ui.js import smoke", () => {
     beforeEach(() => {
         // Minimal DOM required by main-ui constants/selectors
         document.body.innerHTML = `
-      <div id="${"drop-overlay"}"></div>
+    <div id="${"drop_overlay"}"></div>
       <div id="${"activeFileName"}"></div>
       <div id="${"activeFileNameContainer"}"></div>
       <button id="${"unloadFileBtn"}"></button>

@@ -23,10 +23,10 @@ import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
 const FULLSCREEN_BUTTON_ID = "global-fullscreen-btn";
 const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
 const REQUIRED_CONTENT_IDS = [
-    "content-data",
-    "content-map",
-    "content-summary",
-    "content-altfit",
+    "content_data",
+    "content_map",
+    "content_summary",
+    "content_altfit",
 ];
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";

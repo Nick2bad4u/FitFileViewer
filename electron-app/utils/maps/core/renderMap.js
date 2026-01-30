@@ -82,7 +82,7 @@ import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
 /**
- * Renders a Leaflet map inside the element with id 'content-map'. If
+ * Renders a Leaflet map inside the element with id 'content_map'. If
  * `window.globalData.recordMesgs` exists and contains valid latitude and
  * longitude data, it plots the coordinates as a polyline on the map and fits
  * the map bounds to the polyline. If no valid location data is available,
@@ -123,7 +123,7 @@ export function renderMap() {
             ? queueMicrotask
             : (callback) => Promise.resolve().then(callback);
 
-    const mapContainer = document.querySelector("#content-map");
+    const mapContainer = document.querySelector("#content_map");
     if (!mapContainer) {
         return;
     }

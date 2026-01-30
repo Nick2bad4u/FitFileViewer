@@ -143,19 +143,19 @@ export const UI_CONSTANTS = {
 
     // Common DOM element IDs
     DOM_IDS: {
-        ACTIVE_FILE_NAME: "activeFileName",
-        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-        ALT_FIT_IFRAME: "altfit-iframe",
-        CONTENT_CHART: "content-chart",
-        CONTENT_DATA: "content-data",
-        CONTENT_MAP: "content-map",
-        CONTENT_SUMMARY: "content-summary",
-        DROP_OVERLAY: "drop-overlay",
+        ACTIVE_FILE_NAME: "active_file_name",
+        ACTIVE_FILE_NAME_CONTAINER: "active_file_name_container",
+        ALT_FIT_IFRAME: "altfit_iframe",
+        CONTENT_CHART: "content_chart",
+        CONTENT_DATA: "content_data",
+        CONTENT_MAP: "content_map",
+        CONTENT_SUMMARY: "content_summary",
+        DROP_OVERLAY: "drop_overlay",
         NOTIFICATION: "notification",
-        TAB_CHART: "tab-chart",
-        TAB_SUMMARY: "tab-summary",
-        UNLOAD_FILE_BTN: "unloadFileBtn",
-        ZWIFT_IFRAME: "zwift-iframe",
+        TAB_CHART: "tab_chart",
+        TAB_SUMMARY: "tab_summary",
+        UNLOAD_FILE_BTN: "unload_file_btn",
+        ZWIFT_IFRAME: "zwift_iframe",
     },
 
     // Common CSS classes

@@ -31,6 +31,7 @@ import {
 } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { parseStoredValue } from "./getCurrentSettingsParsing.js";
 
 /**
  * @typedef {HTMLElement & { _updateFromReset?: Function }} ResettableElement
@@ -261,9 +262,9 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         // Force a complete re-render - try multiple container approaches
-        let container = document.querySelector("#content-chart");
+        let container = document.querySelector("#content_chart");
         if (!container) {
-            container = document.querySelector("#chartjs-chart-container");
+            container = document.querySelector("#chartjs_chart_container");
         }
         if (!container) {
             container = document.querySelector("#chart-container");
@@ -281,7 +282,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             // Fallback: direct rendering for compatibility if globally exposed
             const target =
                 container ||
-                document.querySelector("#content-chart") ||
+                document.querySelector("#content_chart") ||
                 document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
         } else {
@@ -382,67 +383,6 @@ function clearAllStorageItems() {
             `${LOG_PREFIX} Error clearing storage items:`,
             err?.message || err
         );
-    }
-}
-
-/**
- * Parses stored value based on option type
- *
- * @param {string | number | boolean | null | undefined} stored - Stored setting
- *   value
- * @param {Object} option - Chart option configuration
- *
- * @returns {any} Parsed value with correct type
- */
-/**
- * @param {string | null} stored
- * @param {ChartOptionConfig | any} option
- */
-function parseStoredValue(stored, option) {
-    /** @type {ChartOptionConfig} */
-    // @ts-ignore - runtime trusted from config import
-    const opt = option;
-    if (stored === null || stored === undefined) {
-        return opt.default;
-    }
-
-    switch (opt.type) {
-        case "range": {
-            if (typeof stored === "number" && Number.isFinite(stored)) {
-                return stored;
-            }
-            const parsed = Number.parseFloat(String(stored));
-            return Number.isFinite(parsed) ? parsed : opt.default;
-        }
-
-        case "select": {
-            if (opt.id === "maxpoints") {
-                if (stored === "all") {
-                    return "all";
-                }
-                if (typeof stored === "number" && Number.isFinite(stored)) {
-                    return stored;
-                }
-                const parsed = Number.parseInt(String(stored), 10);
-                return Number.isFinite(parsed) ? parsed : opt.default;
-            }
-            return String(stored);
-        }
-
-        case "toggle": {
-            // Handle both boolean and string representations
-            if (typeof stored === "boolean") {
-                return stored;
-            }
-            if (typeof stored === "string") {
-                return stored === "true" || stored === "on";
-            }
-            return Boolean(stored);
-        }
-
-        default: {
-            return stored;
-        }
     }
 }
 
@@ -575,7 +515,7 @@ function reRenderChartsAfterReset() {
         ) {
             const target =
                 chartsContainer ||
-                document.querySelector("#content-chart") ||
+                document.querySelector("#content_chart") ||
                 document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
         } else {

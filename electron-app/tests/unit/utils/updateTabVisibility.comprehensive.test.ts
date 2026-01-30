@@ -50,13 +50,13 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         // Create test container with all expected tab content elements
         testContainer = document.createElement("div");
         testContainer.innerHTML = `
-            <div id="content-data" style="display: none;">Data Content</div>
-            <div id="content-chartjs" style="display: none;">Chart Content</div>
-            <div id="content-browser" style="display: none;">Browser Content</div>
-            <div id="content-map" style="display: none;">Map Content</div>
-            <div id="content-summary" style="display: none;">Summary Content</div>
-            <div id="content-altfit" style="display: none;">AltFit Content</div>
-            <div id="content-zwift" style="display: none;">Zwift Content</div>
+            <div id="content_data" style="display: none;">Data Content</div>
+            <div id="content_chartjs" style="display: none;">Chart Content</div>
+            <div id="content_browser" style="display: none;">Browser Content</div>
+            <div id="content_map" style="display: none;">Map Content</div>
+            <div id="content_summary" style="display: none;">Summary Content</div>
+            <div id="content_altfit" style="display: none;">AltFit Content</div>
+            <div id="content_zwift" style="display: none;">Zwift Content</div>
         `;
         document.body.appendChild(testContainer);
 
@@ -82,7 +82,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("should hide all tabs when visibleTabId is null", () => {
             updateTabVisibility(null);
 
-            const allElements = document.querySelectorAll('[id^="content-"]');
+            const allElements = document.querySelectorAll('[id^="content_"]');
             allElements.forEach((el) => {
                 expect(el.style.display).toBe("none");
                 expect(el.getAttribute("aria-hidden")).toBe("true");
@@ -92,7 +92,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("should hide all tabs when visibleTabId is undefined", () => {
             updateTabVisibility(undefined);
 
-            const allElements = document.querySelectorAll('[id^="content-"]');
+            const allElements = document.querySelectorAll('[id^="content_"]');
             allElements.forEach((el) => {
                 expect(el.style.display).toBe("none");
                 expect(el.getAttribute("aria-hidden")).toBe("true");
@@ -100,10 +100,10 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         });
 
         it("should show only the specified tab and hide others", () => {
-            updateTabVisibility("content-summary");
+            updateTabVisibility("content_summary");
 
-            const summaryElement = document.getElementById("content-summary");
-            const mapElement = document.getElementById("content-map");
+            const summaryElement = document.getElementById("content_summary");
+            const mapElement = document.getElementById("content_map");
 
             expect(summaryElement.style.display).toBe("block");
             expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
@@ -113,15 +113,15 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
         it("BUG TEST: should handle missing DOM elements gracefully", () => {
             // Remove an element to test missing element handling
-            const element = document.getElementById("content-summary");
+            const element = document.getElementById("content_summary");
             element?.remove();
 
             // Should warn about missing element
-            updateTabVisibility("content-summary");
+            updateTabVisibility("content_summary");
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 expect.stringContaining(
-                    "updateTabVisibility: Missing element in the DOM: content-summary"
+                    "updateTabVisibility: Missing element in the DOM: content_summary"
                 )
             );
         });
@@ -150,8 +150,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
                 // Multiple calls should use cached elements efficiently
                 for (let i = 0; i < 50; i++) {
-                    updateTabVisibility("content-summary");
-                    updateTabVisibility("content-map");
+                    updateTabVisibility("content_summary");
+                    updateTabVisibility("content_map");
                 }
 
                 return performance.now() - start;
@@ -165,11 +165,11 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         });
 
         it("BUG TEST: should handle concurrent DOM modifications", () => {
-            updateTabVisibility("content-summary");
+            updateTabVisibility("content_summary");
 
             // Simulate concurrent modification
             setTimeout(() => {
-                const element = document.getElementById("content-summary");
+                const element = document.getElementById("content_summary");
                 if (element) {
                     element.style.display = "none"; // Conflicting change
                 }
@@ -177,7 +177,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // Function should complete without error
             expect(() => {
-                updateTabVisibility("content-map");
+                updateTabVisibility("content_map");
             }).not.toThrow();
         });
 
@@ -189,7 +189,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // Should not crash when state update fails
             expect(() => {
-                updateTabVisibility("content-summary");
+                updateTabVisibility("content_summary");
             }).toThrow("State update failed");
         });
     });
@@ -197,9 +197,9 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
     describe("Tab Name Extraction - Edge Case Testing", () => {
         it("should extract tab names from valid content IDs", () => {
             // Test the extraction logic by triggering state updates
-            updateTabVisibility("content-summary");
-            updateTabVisibility("content-chartjs");
-            updateTabVisibility("content-map");
+            updateTabVisibility("content_summary");
+            updateTabVisibility("content_chartjs");
+            updateTabVisibility("content_map");
 
             // Should call setState with correct tab names
             expect(mockSetState).toHaveBeenCalledWith(
@@ -237,7 +237,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         });
 
         it("BUG TEST: should handle special chartjs mapping correctly", () => {
-            updateTabVisibility("content-chartjs");
+            updateTabVisibility("content_chartjs");
 
             // Should map chartjs to chart (special case)
             expect(mockSetState).toHaveBeenCalledWith(
@@ -337,7 +337,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("should show specific tab content correctly", () => {
             showTabContent("summary");
 
-            const summaryElement = document.getElementById("content-summary");
+            const summaryElement = document.getElementById("content_summary");
             expect(summaryElement.style.display).toBe("block");
             expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
         });
@@ -363,7 +363,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("should hide all tab content correctly", () => {
             hideAllTabContent();
 
-            const allElements = document.querySelectorAll('[id^="content-"]');
+            const allElements = document.querySelectorAll('[id^="content_"]');
             allElements.forEach((el) => {
                 expect(el.style.display).toBe("none");
                 expect(el.getAttribute("aria-hidden")).toBe("true");
@@ -387,12 +387,12 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
         it("BUG TEST: should test tab name to content ID mapping edge cases", () => {
             const specialMappings = [
-                { tab: "chart", expected: "content-chartjs" },
-                { tab: "summary", expected: "content-summary" },
-                { tab: "map", expected: "content-map" },
-                { tab: "data", expected: "content-data" },
-                { tab: "altfit", expected: "content-altfit" },
-                { tab: "zwift", expected: "content-zwift" },
+                { tab: "chart", expected: "content_chartjs" },
+                { tab: "summary", expected: "content_summary" },
+                { tab: "map", expected: "content_map" },
+                { tab: "data", expected: "content_data" },
+                { tab: "altfit", expected: "content_altfit" },
+                { tab: "zwift", expected: "content_zwift" },
             ];
 
             specialMappings.forEach(({ tab, expected }) => {
@@ -406,7 +406,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             // Test unknown tab name
             showTabContent("unknown-tab");
 
-            // Should use fallback pattern content-{tabName}
+            // Should use fallback pattern content_{tabName}
             // Current implementation doesn't warn about unknown tabs, only missing predefined ones
             // So no console warning should occur
             expect(consoleSpy).not.toHaveBeenCalled();
@@ -454,8 +454,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("BUG TEST: should validate aria-hidden accessibility attributes", () => {
             showTabContent("summary");
 
-            const summaryElement = document.getElementById("content-summary");
-            const mapElement = document.getElementById("content-map");
+            const summaryElement = document.getElementById("content_summary");
+            const mapElement = document.getElementById("content_map");
 
             // Accessibility attributes should be set correctly
             expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
@@ -473,7 +473,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             showTabContent("summary");
 
             // Simulate DOM being modified by another script
-            const summaryElement = document.getElementById("content-summary");
+            const summaryElement = document.getElementById("content_summary");
             summaryElement.style.display = "none";
             summaryElement.setAttribute("aria-hidden", "true");
 

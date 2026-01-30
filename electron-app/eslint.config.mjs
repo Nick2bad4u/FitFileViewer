@@ -52,6 +52,14 @@ import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 
+/**
+ * @see {@link https://www.schemastore.org/eslintrc.json} for JSON schema validation
+ */
+
+/** @typedef {import("eslint").Linter.Config} EslintConfig */
+/** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
+/** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
+
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
@@ -169,7 +177,6 @@ export default defineConfig([
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
         // while keeping correctness-focused rules.
-        extends: ["js/all"],
         files: ["**/*.{js,mjs,cjs,ts}"],
         plugins: {
             "@typescript-eslint": tseslint,

@@ -48,11 +48,11 @@ describe("updateActiveTab.js - Basic Tests", () => {
     it("should call setState when updateActiveTab is called", () => {
         // Create a tab element in the DOM
         const button = document.createElement("button");
-        button.id = "tab-summary";
+        button.id = "tab_summary";
         button.className = "tab-button";
         document.body.appendChild(button);
 
-        updateActiveTab("tab-summary");
+        updateActiveTab("tab_summary");
         expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
             source: "updateActiveTab",
         });

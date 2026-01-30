@@ -99,8 +99,8 @@ class ChartTabIntegration {
      */
     getChartTabButton() {
         return (
-            document.querySelector("#tab-chartjs") ||
-            document.querySelector("#tab-chart") ||
+            document.querySelector("#tab_chartjs") ||
+            document.querySelector("#tab_chart") ||
             document.querySelector('[data-tab="chart"]')
         );
     }

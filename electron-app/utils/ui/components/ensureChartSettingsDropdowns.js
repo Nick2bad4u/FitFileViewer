@@ -44,7 +44,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         ? typeof targetContainer === "string"
             ? document.getElementById(targetContainer)
             : targetContainer
-        : document.querySelector("#chartjs-chart-container");
+        : document.querySelector("#chartjs_chart_container");
 
     if (!chartContainer) {
         return getDefaultSettings();
@@ -164,7 +164,7 @@ function createControlsToggleButton(container) {
     toggleBtn.addEventListener("click", toggleChartControls);
 
     // Insert before the chart container
-    const chartContainer = document.querySelector("#chartjs-chart-container");
+    const chartContainer = document.querySelector("#chartjs_chart_container");
     if (chartContainer && chartContainer.parentNode) {
         chartContainer.parentNode.insertBefore(toggleBtn, chartContainer);
     } else {
@@ -180,7 +180,7 @@ function toggleChartControls() {
     const wrapper = document.querySelector("#chartjs-settings-wrapper");
     if (!wrapper) {
         console.warn("[ChartJS] Controls panel not found, creating it...");
-        ensureChartSettingsDropdowns("chartjs-chart-container");
+        ensureChartSettingsDropdowns("chartjs_chart_container");
         return;
     }
 

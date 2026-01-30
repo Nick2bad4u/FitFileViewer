@@ -15,10 +15,9 @@ import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
-import { convertArrayBufferToBase64 } from "./utils/formatting/converters/convertArrayBufferToBase64.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
 // State Management Integration
-import { getState, setState } from "./utils/state/core/stateManager.js";
+import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
 import { UIActions } from "./utils/state/domain/uiStateManager.js";
 // This file is part of the Electron app that interacts with the main process and the UI.
@@ -31,23 +30,17 @@ import {
     setupDOMContentLoaded,
     setupFullscreenListeners,
 } from "./utils/ui/controls/addFullScreenButton.js";
-import { attachExternalLinkHandlers } from "./utils/ui/links/externalLinkHandlers.js";
+import { DragDropHandler } from "./utils/ui/dragDropHandler.js";
+import {
+    cleanupEventListeners,
+    validateElement,
+} from "./utils/ui/mainUiDomUtils.js";
+import {
+    defineGlobalDataProperty,
+    registerLegacyGlobals,
+} from "./utils/ui/mainUiGlobals.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
-import "./utils/ui/settingsModal.js";
-
-/**
- * @typedef {Object} FitFileData Placeholder for decoded FIT file structure
- *
- * @property {Object<string, any>} [recordMesgs]
- */
-
-/**
- * @typedef {Object} DragDropHandlerLike
- *
- * @property {Function} showDropOverlay
- * @property {Function} hideDropOverlay
- * @property {(file: File) => Promise<void>} processDroppedFile
- */
+import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
 
 /**
  * @typedef {Object} StateChangeOptions
@@ -59,18 +52,18 @@ import "./utils/ui/settingsModal.js";
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
     DOM_IDS: {
-        ACTIVE_FILE_NAME: "activeFileName",
-        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-        ALT_FIT_IFRAME: "altfit-iframe",
-        CONTENT_CHART: "content-chart",
-        CONTENT_DATA: "content-data",
-        CONTENT_MAP: "content-map",
-        CONTENT_SUMMARY: "content-summary",
-        DROP_OVERLAY: "drop-overlay",
-        TAB_CHART: "tab-chart",
-        TAB_SUMMARY: "tab-summary",
-        UNLOAD_FILE_BTN: "unloadFileBtn",
-        ZWIFT_IFRAME: "zwift-iframe",
+        ACTIVE_FILE_NAME: "active_file_name",
+        ACTIVE_FILE_NAME_CONTAINER: "active_file_name_container",
+        ALT_FIT_IFRAME: "altfit_iframe",
+        CONTENT_CHART: "content_chart",
+        CONTENT_DATA: "content_data",
+        CONTENT_MAP: "content_map",
+        CONTENT_SUMMARY: "content_summary",
+        DROP_OVERLAY: "drop_overlay",
+        TAB_CHART: "tab_chart",
+        TAB_SUMMARY: "tab_summary",
+        UNLOAD_FILE_BTN: "unload_file_btn",
+        ZWIFT_IFRAME: "zwift_iframe",
     },
     IFRAME_PATHS: {
         ALT_FIT: "ffv/index.html",
@@ -89,7 +82,6 @@ const CONSTANTS = {
  *     options?: any;
  * }[]}
  */
-const eventListeners = [];
 
 /**
  * Register an event listener and track it for cleanup.
@@ -104,53 +96,9 @@ const eventListeners = [];
  *
  * @returns {void}
  */
-function addEventListenerWithCleanup(element, type, handler, options) {
-    if (!element || typeof element.addEventListener !== "function") return;
-    element.addEventListener(type, handler, options);
-    eventListeners.push({ element, type, handler, options });
-}
-
-/**
- * Remove all managed event listeners.
- *
- * @returns {void}
- */
-function cleanupEventListeners() {
-    for (const entry of eventListeners) {
-        try {
-            entry.element.removeEventListener(
-                entry.type,
-                entry.handler,
-                entry.options
-            );
-        } catch {
-            /* ignore */
-        }
-    }
-    eventListeners.length = 0;
-}
 
 // Make globalData available on window for backwards compatibility
-try {
-    const existing = Object.getOwnPropertyDescriptor(globalThis, "globalData");
-    if (!existing || existing.configurable) {
-        Object.defineProperty(globalThis, "globalData", {
-            configurable: true,
-            enumerable: true,
-            get() {
-                return getState("globalData");
-            },
-            set(value) {
-                setState("globalData", value, {
-                    silent: false,
-                    source: "main-ui.js",
-                });
-            },
-        });
-    }
-} catch {
-    /* Ignore redefinition issues */
-}
+defineGlobalDataProperty();
 
 function clearContentAreas() {
     const contentIds = [
@@ -233,7 +181,7 @@ function unloadFitFile() {
         clearContentAreas();
 
         // Switch to map tab using UI actions
-        UIActions.showTab("tab-map");
+        UIActions.showTab("tab_map");
 
         // Notify main process to update menu
         if (globalThis.electronAPI?.notifyFitFileLoaded) {
@@ -268,71 +216,14 @@ function unloadFitFile() {
     }
 }
 
-// Validation functions
-function validateElectronAPI() {
-    return (
-        globalThis.electronAPI &&
-        typeof globalThis.electronAPI.decodeFitFile === "function"
-    );
-}
-
-/**
- * @param {string} id
- *
- * @returns {HTMLElement | null}
- */
-function validateElement(id) {
-    const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`Element with ID "${id}" not found`);
-    }
-    return element;
-}
-
-// Expose essential functions to window for backward compatibility
-// @ts-ignore augmenting window for legacy globals
-globalThis.showFitData = showFitData;
-// @ts-ignore legacy compatibility
-globalThis.renderChartJS = renderChartJS;
-// @ts-ignore
-globalThis.cleanupEventListeners = cleanupEventListeners;
-
-// Enhanced iframe communication with better error handling
-// @ts-ignore legacy global
-globalThis.sendFitFileToAltFitReader = async function (
-    arrayBuffer
-) /** @type {ArrayBuffer} */
-{
-    const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
-    if (!iframe) {
-        console.warn("Alt FIT iframe not found");
-        return;
-    }
-
-    // If iframe is not loaded yet, wait for it to load before posting message
-    const frame = /** @type {HTMLIFrameElement} */ (iframe),
-        postToIframe = () => {
-            try {
-                if (frame.contentWindow) {
-                    const base64 = convertArrayBufferToBase64(arrayBuffer);
-                    frame.contentWindow.postMessage(
-                        { base64, type: "fit-file" },
-                        "*"
-                    );
-                }
-            } catch (error) {
-                console.error("Error posting message to iframe:", error);
-            }
-        };
-    if (!frame.src || !frame.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
-        frame.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
-        frame.addEventListener("load", postToIframe);
-    } else if (frame.contentWindow && frame.src) {
-        postToIframe();
-    } else {
-        frame.addEventListener("load", postToIframe);
-    }
-};
+// Register legacy globals for backwards compatibility
+registerLegacyGlobals({
+    showFitData,
+    renderChartJS,
+    cleanupEventListeners,
+    validateElement,
+    constants: CONSTANTS,
+});
 
 // Enhanced theme change handling with state management integration
 if (
@@ -423,356 +314,6 @@ if (unloadBtn) {
 // Tab button state is now managed automatically by the state management system
 // In utils/ui/controls/enableTabButtons.js
 
-// Enhanced Drag and Drop UI and Global Handling with State Management
-class DragDropHandler {
-    /** @type {number} */
-    dragCounter = 0;
-    /** @type {number} */
-    dragCounterStateValue = 0;
-    /** @type {boolean} */
-    dragOverScheduled = false;
-    /** @type {boolean} */
-    overlayVisible = false;
-
-    constructor() {
-        try {
-            const initialCounter = Number(getState("ui.dragCounter")) || 0;
-            if (Number.isFinite(initialCounter)) {
-                this.dragCounter = initialCounter;
-                this.dragCounterStateValue = initialCounter;
-            }
-            this.overlayVisible = Boolean(getState("ui.dropOverlay.visible"));
-        } catch {
-            /* Ignore state access issues during bootstrap */
-        }
-        this.setupEventListeners();
-        // Initialize drag counter in state without redundant writes
-        this.dragCounter = 0;
-        this.syncDragCounter(0, "DragDropHandler.initialize");
-        this.hideDropOverlay();
-    }
-
-    hideDropOverlay() {
-        if (!this.overlayVisible) {
-            try {
-                if (!getState("ui.dropOverlay.visible")) {
-                    return;
-                }
-            } catch {
-                /* Ignore state sync errors */
-            }
-        }
-        setState("ui.dropOverlay.visible", false, {
-            silent: false,
-            source: "DragDropHandler.hideDropOverlay",
-        });
-        this.overlayVisible = false;
-    }
-
-    /** @param {File} file */
-    async processDroppedFile(file) {
-        const operationId = `process_dropped_file_${Date.now()}`,
-            // Start performance monitoring
-            /**
-             * @type {{
-             *     isEnabled?: () => boolean;
-             *     startTimer?: (id: string) => void;
-             *     endTimer?: (id: string) => void;
-             * }}
-             */
-            pm = /** @type {any} */ (performanceMonitor) || {};
-        if (
-            (typeof pm.isEnabled === "function"
-                ? pm.isEnabled()
-                : Boolean(pm.isEnabled)) &&
-            typeof pm.startTimer === "function"
-        ) {
-            pm.startTimer(operationId);
-        }
-
-        if (!file || !file.name.toLowerCase().endsWith(".fit")) {
-            const message =
-                "Only .fit files are supported. Please drop a valid .fit file.";
-            showNotification(message, "warning");
-            return;
-        }
-
-        const filePath =
-            typeof (/** @type {File & { path?: string }} */ (file).path) ===
-                "string" &&
-            /** @type {File & { path?: string }} */ (file).path.trim().length >
-                0
-                ? /** @type {File & { path?: string }} */ (file).path
-                : file.name;
-
-        try {
-            // Update loading state
-            AppActions.setFileOpening(true);
-
-            // Start file loading in state manager
-            if (fitFileStateManager) {
-                fitFileStateManager.startFileLoading(filePath);
-            }
-
-            const arrayBuffer = await this.readFileAsArrayBuffer(file);
-            if (!arrayBuffer) {
-                return;
-            }
-
-            if (!validateElectronAPI()) {
-                const message =
-                    "FIT file decoding is not supported in this environment.";
-                showNotification(message, "error");
-                return;
-            }
-
-            const fitData =
-                await globalThis.electronAPI.decodeFitFile(arrayBuffer);
-            if (fitData && !fitData.error) {
-                showFitData(fitData, filePath);
-                // @ts-ignore ensured above
-                globalThis.sendFitFileToAltFitReader(arrayBuffer);
-                showNotification(
-                    `File "${file.name}" loaded successfully`,
-                    "success"
-                );
-            } else {
-                showNotification("Failed to load FIT file", "error");
-
-                // Handle error in state manager
-                if (fitFileStateManager) {
-                    fitFileStateManager.handleFileLoadingError(
-                        new Error(fitData.error || "Unknown error")
-                    );
-                }
-            }
-        } catch (error) {
-            console.error("[main-ui] Error processing dropped file:", error);
-            const message =
-                "An unexpected error occurred while processing the FIT file.";
-            showNotification(message, "error");
-
-            // Handle error in state manager
-            if (fitFileStateManager) {
-                fitFileStateManager.handleFileLoadingError(
-                    /** @type {Error} */ (
-                        error instanceof Error
-                            ? error
-                            : new Error(String(error))
-                    )
-                );
-            }
-        } finally {
-            // Clear loading state
-            AppActions.setFileOpening(false);
-
-            // End performance monitoring
-            const pm2 = /** @type {any} */ (performanceMonitor) || {};
-            if (
-                (typeof pm2.isEnabled === "function"
-                    ? pm2.isEnabled()
-                    : Boolean(pm2.isEnabled)) &&
-                typeof pm2.endTimer === "function"
-            ) {
-                pm2.endTimer(operationId);
-            }
-        }
-    }
-
-    /** @param {File} file */
-    readFileAsArrayBuffer(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.addEventListener("load", (event) => {
-                resolve(/** @type {any} */ (event).target?.result || null);
-            });
-            reader.onerror = (error) => reject(error);
-            reader.readAsArrayBuffer(file);
-        });
-    }
-
-    setupEventListeners() {
-        // Show overlay on dragenter, hide on dragleave/drop
-        addEventListenerWithCleanup(
-            globalThis,
-            "dragenter",
-            (/** @type {Event} */ e) => {
-                if (e.target === document || e.target === document.body) {
-                    const nextCounter = this.dragCounter + 1;
-                    if (nextCounter !== this.dragCounter) {
-                        this.dragCounter = nextCounter;
-                        this.syncDragCounter(
-                            nextCounter,
-                            "DragDropHandler.dragenter"
-                        );
-                    }
-                    this.showDropOverlay();
-                }
-            }
-        );
-
-        addEventListenerWithCleanup(
-            globalThis,
-            "dragleave",
-            (/** @type {Event} */ e) => {
-                if (e.target === document || e.target === document.body) {
-                    const nextCounter = Math.max(this.dragCounter - 1, 0);
-                    if (nextCounter !== this.dragCounter) {
-                        this.dragCounter = nextCounter;
-                        this.syncDragCounter(
-                            nextCounter,
-                            "DragDropHandler.dragleave"
-                        );
-                    }
-                    if (nextCounter <= 0) {
-                        this.hideDropOverlay();
-                        this.dragCounter = 0;
-                        this.syncDragCounter(
-                            0,
-                            "DragDropHandler.dragleave.reset"
-                        );
-                    }
-                }
-            }
-        );
-
-        addEventListenerWithCleanup(
-            globalThis,
-            "dragover",
-            (/** @type {Event} */ e) => {
-                e.preventDefault();
-                const de = /** @type {any} */ (e);
-                if (de.dataTransfer) {
-                    de.dataTransfer.dropEffect = "copy";
-                }
-                if (this.dragOverScheduled) {
-                    return;
-                }
-                this.dragOverScheduled = true;
-                requestAnimationFrame(() => {
-                    this.dragOverScheduled = false;
-                    this.showDropOverlay();
-                });
-            }
-        );
-
-        addEventListenerWithCleanup(
-            globalThis,
-            "drop",
-            async (/** @type {Event} */ e) => {
-                this.dragCounter = 0;
-                this.syncDragCounter(0, "DragDropHandler.drop");
-                this.dragOverScheduled = false;
-                this.hideDropOverlay();
-                e.preventDefault();
-                const de = /** @type {any} */ (e);
-                if (
-                    !de.dataTransfer ||
-                    !de.dataTransfer.files ||
-                    de.dataTransfer.files.length === 0
-                ) {
-                    const message =
-                        "No valid files detected. Please drop a .fit file.";
-                    showNotification(message, "warning");
-                    return;
-                }
-
-                const [first] = de.dataTransfer.files;
-                if (first) {
-                    await this.processDroppedFile(first);
-                }
-            }
-        );
-
-        // Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
-        if (/** @type {any} */ (globalThis).enableDragAndDrop) {
-            this.setupIframeEventListeners();
-        }
-    }
-    setupIframeEventListeners() {
-        const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
-        if (iframe) {
-            addEventListenerWithCleanup(iframe, "dragover", (e) => {
-                e.preventDefault();
-                if (this.dragOverScheduled) {
-                    return;
-                }
-                this.dragOverScheduled = true;
-                requestAnimationFrame(() => {
-                    this.dragOverScheduled = false;
-                    this.showDropOverlay();
-                });
-            });
-            addEventListenerWithCleanup(iframe, "drop", (e) => {
-                e.preventDefault();
-                this.dragCounter = 0;
-                this.syncDragCounter(0, "DragDropHandler.iframe.drop");
-                this.dragOverScheduled = false;
-                this.hideDropOverlay();
-                showNotification(
-                    "Please drop files outside the iframe to process them.",
-                    "info"
-                );
-            });
-        }
-
-        const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
-        if (zwiftIframe) {
-            addEventListenerWithCleanup(zwiftIframe, "dragover", (e) => {
-                e.preventDefault();
-                if (this.dragOverScheduled) {
-                    return;
-                }
-                this.dragOverScheduled = true;
-                requestAnimationFrame(() => {
-                    this.dragOverScheduled = false;
-                    this.showDropOverlay();
-                });
-            });
-            addEventListenerWithCleanup(zwiftIframe, "drop", (e) => {
-                e.preventDefault();
-                this.dragCounter = 0;
-                this.syncDragCounter(0, "DragDropHandler.zwift.drop");
-                this.dragOverScheduled = false;
-                this.hideDropOverlay();
-                showNotification(
-                    "Please drop files outside the ZwiftMap iframe to process them.",
-                    "info"
-                );
-            });
-        }
-    }
-
-    showDropOverlay() {
-        if (this.overlayVisible) {
-            try {
-                if (getState("ui.dropOverlay.visible")) {
-                    return;
-                }
-            } catch {
-                /* Ignore state sync errors */
-            }
-        }
-        setState("ui.dropOverlay.visible", true, {
-            silent: false,
-            source: "DragDropHandler.showDropOverlay",
-        });
-        this.overlayVisible = true;
-    }
-
-    syncDragCounter(value, source) {
-        if (value === this.dragCounterStateValue) {
-            return;
-        }
-        try {
-            setState("ui.dragCounter", value, { silent: false, source });
-            this.dragCounterStateValue = value;
-        } catch {
-            /* Ignore drag counter sync errors */
-        }
-    }
-}
-
 // Initialize drag and drop handler
 const dragDropHandler = new DragDropHandler();
 
@@ -812,31 +353,23 @@ resourceManager.addShutdownHook(() => {
 });
 
 // External link handler for opening links in default browser
-function setupExternalLinkHandlers() {
-    // Idempotent: remove prior handlers if re-initialized.
-    try {
-        if (typeof cleanupExternalLinkHandlers === "function") {
-            cleanupExternalLinkHandlers();
-        }
-    } catch {
-        /* ignore */
-    }
-
-    // Attach to the document to cover content inserted dynamically (modals, map attributions, etc.).
-    cleanupExternalLinkHandlers = attachExternalLinkHandlers({
-        onOpenExternalError: () => {
-            // Match legacy behavior + strict test expectation.
-            showNotification("Failed to open link in your browser.", "error");
+const initializeExternalLinkHandlers = () => {
+    setupExternalLinkHandlers({
+        cleanupExternalLinkHandlers,
+        setCleanup: (cleanup) => {
+            cleanupExternalLinkHandlers = cleanup;
         },
-        root: document,
     });
-}
+};
 
 // Initialize external link handlers after DOM is loaded
 if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupExternalLinkHandlers);
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeExternalLinkHandlers
+    );
 } else {
-    setupExternalLinkHandlers();
+    initializeExternalLinkHandlers();
 }
 
 // Enhanced development helper function with better error handling

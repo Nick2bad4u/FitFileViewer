@@ -12,7 +12,7 @@
  * Adds auto-scroll animation to active filename
  */
 export function initFilenameAutoScroll() {
-    const filenameElement = document.getElementById("activeFileName");
+    const filenameElement = document.getElementById("active_file_name");
     if (!filenameElement) {
         return;
     }

@@ -21,7 +21,7 @@ async function run() {
                 directories: {
                     output: outputDir,
                 },
-                // eslint-disable-next-line no-template-curly-in-string -- electron-builder template
+
                 artifactName: "Fit-File-Viewer-win7-${arch}-${version}.${ext}",
                 extraMetadata: {
                     productName: "Fit File Viewer (Win7)",

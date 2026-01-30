@@ -13,7 +13,7 @@ import { showColModal } from "../helpers/summaryColModal.js";
 
 /**
  * Renders a summary of activity data, including main summary and lap summary
- * tables, into the DOM element with id 'content-summary'. Provides "Copy as
+ * tables, into the DOM element with id 'content_summary'. Provides "Copy as
  * CSV" buttons for both tables.
  *
  * The summary is generated from either `sessionMesgs` or `recordMesgs` in the
@@ -35,7 +35,7 @@ import { showColModal } from "../helpers/summaryColModal.js";
  * @param {Object[]} [data.lapMesgs] - Array of lap message objects (optional).
  */
 export function renderSummary(data) {
-    const container = document.querySelector("#content-summary");
+    const container = document.querySelector("#content_summary");
     if (!container) {
         return;
     } // Guard: container missing

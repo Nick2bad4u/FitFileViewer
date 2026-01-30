@@ -414,7 +414,7 @@ export class UIStateManager {
         const dropOverlay = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("drop-overlay")
+                    document.getElementById("drop_overlay")
                 );
             } catch {
                 return null;
@@ -428,7 +428,7 @@ export class UIStateManager {
         const altFitIframe = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("altfit-iframe")
+                    document.getElementById("altfit_iframe")
                 );
             } catch {
                 return null;
@@ -442,7 +442,7 @@ export class UIStateManager {
         const zwiftIframe = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("zwift-iframe")
+                    document.getElementById("zwift_iframe")
                 );
             } catch {
                 return null;
@@ -479,7 +479,7 @@ export class UIStateManager {
 
         const fileNameContainer = (() => {
             try {
-                return document.getElementById("activeFileNameContainer");
+                return document.getElementById("active_file_name_container");
             } catch {
                 return null;
             }
@@ -519,7 +519,7 @@ export class UIStateManager {
 
         const fileSpan = (() => {
             try {
-                return document.getElementById("activeFileName");
+                return document.getElementById("active_file_name");
             } catch {
                 return null;
             }
@@ -744,7 +744,7 @@ export class UIStateManager {
     updateUnloadButtonVisibility(isVisible) {
         const unloadBtn = (() => {
             try {
-                return document.getElementById("unloadFileBtn");
+                return document.getElementById("unload_file_btn");
             } catch {
                 return null;
             }

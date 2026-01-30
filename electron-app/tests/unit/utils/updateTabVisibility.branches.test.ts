@@ -5,13 +5,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 describe("updateTabVisibility - additional branches", () => {
     const createContentDom = () => {
         document.body.innerHTML = `
-            <div id="content-data"></div>
-            <div id="content-chartjs"></div>
-            <div id="content-browser"></div>
-            <div id="content-map"></div>
-            <div id="content-summary"></div>
-            <div id="content-altfit"></div>
-            <div id="content-zwift"></div>
+            <div id="content_data"></div>
+            <div id="content_chartjs"></div>
+            <div id="content_browser"></div>
+            <div id="content_map"></div>
+            <div id="content_summary"></div>
+            <div id="content_altfit"></div>
+            <div id="content_zwift"></div>
         `;
     };
 
@@ -27,7 +27,7 @@ describe("updateTabVisibility - additional branches", () => {
         vi.restoreAllMocks();
     });
 
-    it("maps 'summary-content' pattern via extractTabNameFromContentId and sets activeTabContent", async () => {
+    it("maps 'summary_content' pattern via extractTabNameFromContentId and sets activeTabContent", async () => {
         // Provide working module exports so primary branch exercised
         const setState = vi.fn();
         const getState = vi.fn();
@@ -41,7 +41,7 @@ describe("updateTabVisibility - additional branches", () => {
         const { updateTabVisibility } =
             await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
-        updateTabVisibility("summary-content" as any);
+        updateTabVisibility("summary_content" as any);
 
         // Should derive 'summary' and set ui.activeTabContent accordingly
         expect(setState).toHaveBeenCalledWith(
@@ -51,8 +51,8 @@ describe("updateTabVisibility - additional branches", () => {
         );
 
         // Also verify display toggling behavior: summary visible, others hidden
-        const summary = document.getElementById("content-summary")!;
-        const data = document.getElementById("content-data")!;
+        const summary = document.getElementById("content_summary")!;
+        const data = document.getElementById("content_data")!;
         expect(summary.style.display).toBe("block");
         expect(data.style.display).toBe("none");
     });
@@ -74,15 +74,15 @@ describe("updateTabVisibility - additional branches", () => {
         const { updateTabVisibility } =
             await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
-        updateTabVisibility("content-map");
+        updateTabVisibility("content_map");
 
         expect(effSet).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "map",
             expect.objectContaining({ source: "updateTabVisibility" })
         );
-        const map = document.getElementById("content-map")!;
-        const summary = document.getElementById("content-summary")!;
+        const map = document.getElementById("content_map")!;
+        const summary = document.getElementById("content_summary")!;
         expect(map.style.display).toBe("block");
         expect(summary.style.display).toBe("none");
     });

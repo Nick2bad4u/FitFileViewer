@@ -257,7 +257,7 @@ class ChartStateManager {
                     ? instances.length
                     : 0;
                 const container = document.querySelector(
-                    "#chartjs-chart-container"
+                    "#chartjs_chart_container"
                 );
                 const canvasCount = container
                     ? container.querySelectorAll("canvas").length
@@ -405,9 +405,9 @@ class ChartStateManager {
 
             // Get chart container
             const container =
-                document.querySelector("#chartjs-chart-container") ||
-                document.querySelector("#content-chartjs") ||
-                document.querySelector("#content-chart");
+                document.querySelector("#chartjs_chart_container") ||
+                document.querySelector("#content_chartjs") ||
+                document.querySelector("#content_chart");
 
             if (!container) {
                 console.warn("[ChartStateManager] Chart container not found");

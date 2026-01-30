@@ -15,17 +15,21 @@ import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
-/** @typedef {{
+/**
+ * @typedef {{
  *     name: string;
  *     kind: "dir" | "file";
  *     relPath: string;
  *     fullPath: string;
- * }} FitBrowserEntry */
-/** @typedef {{
+ * }} FitBrowserEntry
+ */
+/**
+ * @typedef {{
  *     root: string | null;
  *     relPath: string;
  *     entries: FitBrowserEntry[];
- * }} FitBrowserListResponse */
+ * }} FitBrowserListResponse
+ */
 
 const TAB_STATE_PATH_REL = "browser.relPath";
 const TAB_STATE_VIEW = "browser.view";
@@ -60,7 +64,7 @@ const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
  * Render (or refresh) the Browser tab UI.
  */
 export async function renderFileBrowserTab() {
-    const container = document.getElementById("content-browser");
+    const container = document.getElementById("content_browser");
     if (!container) {
         return;
     }
@@ -395,12 +399,14 @@ function isFitBrowserListResponse(value) {
     if (!Array.isArray(v.entries)) return false;
     return v.entries.every((e) => {
         if (!e || typeof e !== "object") return false;
-        const entry = /** @type {{
+        const entry = /**
+         * @type {{
          *     name?: unknown;
          *     kind?: unknown;
          *     relPath?: unknown;
          *     fullPath?: unknown;
-         * }} */ (e);
+         * }}
+         */ (e);
         return (
             typeof entry.name === "string" &&
             (entry.kind === "dir" || entry.kind === "file") &&
@@ -782,7 +788,7 @@ async function refreshListing() {
             });
         } else {
             btn.addEventListener("click", async () => {
-                const openFileBtn = document.getElementById("openFileBtn");
+                const openFileBtn = document.getElementById("open_file_btn");
 
                 await openFitFileFromPath({
                     filePath: fullPath,
@@ -1071,7 +1077,7 @@ function renderCalendarResults(root, payload) {
             );
             const encoded = encodedRaw || "";
             const fullPath = decodeURIComponent(encoded);
-            const openFileBtn = document.getElementById("openFileBtn");
+            const openFileBtn = document.getElementById("open_file_btn");
             await openFitFileFromPath({
                 filePath: fullPath,
                 openFileBtn:
@@ -1245,7 +1251,7 @@ function renderLibraryResults(root, payload) {
             btn.addEventListener("click", async () => {
                 const encoded = btn.dataset.fullpath || "";
                 const fullPath = decodeURIComponent(encoded);
-                const openFileBtn = document.getElementById("openFileBtn");
+                const openFileBtn = document.getElementById("open_file_btn");
                 await openFitFileFromPath({
                     filePath: fullPath,
                     openFileBtn:

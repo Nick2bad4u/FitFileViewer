@@ -324,7 +324,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 dragCounter++;
                 if (dragCounter === 1) {
                     // Show drop overlay
-                    const overlay = document.getElementById("drop-overlay");
+                    const overlay = document.getElementById("drop_overlay");
                     if (overlay) {
                         overlay.style.display = "block";
                     }
@@ -336,7 +336,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 dragCounter--;
                 if (dragCounter === 0) {
                     // Hide drop overlay
-                    const overlay = document.getElementById("drop-overlay");
+                    const overlay = document.getElementById("drop_overlay");
                     if (overlay) {
                         overlay.style.display = "none";
                     }

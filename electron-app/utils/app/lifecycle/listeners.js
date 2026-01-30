@@ -7,6 +7,7 @@ import {
     buildDownloadFilename,
     sanitizeFileExtension,
 } from "../../files/sanitizeFilename.js";
+import { registerChartResizeListener } from "./listenersResize.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
 
 // Utility to set up all event listeners for the app
@@ -104,51 +105,7 @@ export function setupListeners({
     );
 
     // Window resize for chart rendering - use modern state management
-    /** @type {ReturnType<typeof setTimeout> | null} */
-    let chartRenderTimeout = null;
-    const handleWindowResize = () => {
-        if (
-            document
-                .querySelector("#tab-chart")
-                ?.classList.contains("active") ||
-            document.querySelector("#tab-chartjs")?.classList.contains("active")
-        ) {
-            if (chartRenderTimeout) {
-                clearTimeout(chartRenderTimeout);
-            }
-            chartRenderTimeout = setTimeout(() => {
-                // Use modern chart state management for resize handling
-                if (
-                    globalThis.ChartUpdater &&
-                    globalThis.ChartUpdater.updateCharts
-                ) {
-                    globalThis.ChartUpdater.updateCharts("window-resize");
-                } else if (globalThis.renderChartJS) {
-                    globalThis.renderChartJS();
-                } else if (/** @type {any} */ (globalThis).renderChart) {
-                    // Legacy fallback (cast window to any for legacy property)
-                    /** @type {any} */ (globalThis).renderChart();
-                }
-            }, 200);
-        }
-    };
-
-    window.addEventListener("resize", handleWindowResize);
-    cleanupCallbacks.push(() => {
-        try {
-            window.removeEventListener("resize", handleWindowResize);
-        } catch {
-            /* ignore */
-        }
-        if (chartRenderTimeout) {
-            try {
-                clearTimeout(chartRenderTimeout);
-            } catch {
-                /* ignore */
-            }
-            chartRenderTimeout = null;
-        }
-    });
+    registerChartResizeListener({ cleanupCallbacks });
 
     // Electron IPC and menu listeners
     if (
@@ -353,7 +310,7 @@ export function setupListeners({
                     );
                     if (ext === "csv") {
                         const container =
-                            document.querySelector("#content-summary");
+                            document.querySelector("#content_summary");
                         if (
                             /** @type {any} */ (globalThis).copyTableAsCSV &&
                             container

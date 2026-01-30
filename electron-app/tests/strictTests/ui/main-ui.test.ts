@@ -58,7 +58,7 @@ const setState = vi.fn((key: string, value: any) => {
     if (key === "ui.dropOverlay.visible") {
         const isVisible = Boolean(value);
         const overlay = document.getElementById(
-            "drop-overlay"
+            "drop_overlay"
         ) as HTMLElement | null;
         if (overlay) {
             overlay.style.display = isVisible ? "flex" : "none";
@@ -190,7 +190,7 @@ function installBaseDOM() {
     <div id="${"content-data"}"></div>
     <div id="${"content-chart"}"></div>
     <div id="${"content-summary"}"></div>
-    <div id="${"drop-overlay"}" style="display:none"></div>
+    <div id="${"drop_overlay"}" style="display:none"></div>
     <iframe id="${"altfit-iframe"}"></iframe>
     <iframe id="${"zwift-iframe"}"></iframe>
     <button class="summary-gear-btn"></button>
@@ -324,7 +324,7 @@ describe("main-ui.js core flows", () => {
     it("drag and drop overlay shows/hides", async () => {
         await importMainUI();
 
-        const overlay = document.getElementById("drop-overlay") as HTMLElement;
+        const overlay = document.getElementById("drop_overlay") as HTMLElement;
         const alt = document.getElementById("altfit-iframe") as HTMLElement;
         const zwift = document.getElementById("zwift-iframe") as HTMLElement;
 
