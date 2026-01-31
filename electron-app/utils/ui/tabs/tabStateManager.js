@@ -8,194 +8,21 @@
  * @author FitFileViewer Development Team
  */
 
-// Prefer dynamic state manager accessor to avoid stale imports across suites
-import * as __StateMgr from "../../state/core/stateManager.js";
-import { ensureChartSettingsDropdowns } from "../components/ensureChartSettingsDropdowns.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
-import { tabRenderingManager } from "./tabRenderingManager.js";
-
-// Resolve document by preferring the canonical test-provided document
-// (`__vitest_effective_document__`) first, then falling back to the active
-// global/window document. This avoids cross-realm mismatches across the full
-// test suite.
-/**
- * @returns {Document}
- */
-const getDoc = () => {
-    /** @type {any[]} */
-    const candidates = [];
-
-    // Canonical Vitest document (preferred)
-    try {
-        // @ts-ignore
-        if (
-            typeof __vitest_effective_document__ !== "undefined" &&
-            __vitest_effective_document__
-        ) {
-            // @ts-ignore
-            candidates.push(__vitest_effective_document__);
-        }
-    } catch {
-        /* ignore */
-    }
-
-    // Local realm document (JSDOM/Electron)
-    try {
-        // @ts-ignore
-        if (typeof document !== "undefined" && document) {
-            // @ts-ignore
-            candidates.push(document);
-        }
-    } catch {
-        /* ignore */
-    }
-
-    // Global document (other realms)
-    try {
-        if (
-            typeof globalThis !== "undefined" &&
-            /** @type {any} */ (globalThis).document
-        ) {
-            candidates.push(/** @type {any} */ (globalThis).document);
-        }
-    } catch {
-        /* ignore */
-    }
-
-    for (const candidate of candidates) {
-        if (
-            candidate &&
-            typeof candidate.getElementById === "function" &&
-            typeof candidate.querySelectorAll === "function"
-        ) {
-            return /** @type {Document} */ (candidate);
-        }
-    }
-
-    // Final fallback (should exist in JSDOM/Electron)
-    // @ts-ignore
-    return /** @type {Document} */ (document);
-};
 import { showNotification } from "../notifications/showNotification.js";
+import { tabRenderingManager } from "./tabRenderingManager.js";
+import { TAB_CONFIG } from "./tabStateManagerConfig.js";
+import {
+    handleAltFitTab,
+    handleBrowserTab,
+    handleChartTab,
+    handleDataTab,
+    handleMapTab,
+    handleSummaryTab,
+} from "./tabStateManagerHandlers.js";
+import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 
-// Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
-// And only fall back to a canonical global mock if module functions are unavailable.
-/** @returns {{ getState: any; setState: any; subscribe: any }} */
-const getStateMgr = () => {
-    try {
-        const sm = /** @type {any} */ (__StateMgr);
-        const getState =
-            sm && typeof sm.getState === "function" ? sm.getState : undefined;
-        const setState =
-            sm && typeof sm.setState === "function" ? sm.setState : undefined;
-        const subscribe =
-            sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
-        if (getState && setState && subscribe) {
-            return { getState, setState, subscribe };
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    try {
-        // @ts-ignore
-        const eff =
-            typeof __vitest_effective_stateManager__ !== "undefined" &&
-            /** @type {any} */ (__vitest_effective_stateManager__);
-        if (eff && typeof eff === "object") {
-            const getState =
-                typeof eff.getState === "function"
-                    ? eff.getState
-                    : __StateMgr.getState;
-            const setState =
-                typeof eff.setState === "function"
-                    ? eff.setState
-                    : __StateMgr.setState;
-            const subscribe =
-                typeof eff.subscribe === "function"
-                    ? eff.subscribe
-                    : __StateMgr.subscribe;
-            return { getState, setState, subscribe };
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    return {
-        getState: /** @type {any} */ (__StateMgr.getState),
-        setState: /** @type {any} */ (__StateMgr.setState),
-        subscribe: /** @type {any} */ (__StateMgr.subscribe),
-    };
-};
-
-/**
- * Tab configuration defining available tabs and their handlers
- */
-/**
- * @typedef {{
- *     id: string;
- *     contentId: string;
- *     label: string;
- *     requiresData: boolean;
- *     handler: string | null;
- * }} TabDef
- */
-const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
-    altfit: {
-        contentId: "content-altfit",
-        handler: null,
-        id: "tab-altfit",
-        label: "Alternative View",
-        requiresData: false,
-    },
-    browser: {
-        contentId: "content-browser",
-        handler: null,
-        id: "tab-browser",
-        label: "Browser",
-        requiresData: false,
-    },
-    chart: {
-        contentId: "content-chart",
-        handler: "renderChartJS",
-        id: "tab-chart",
-        label: "Charts",
-        requiresData: true,
-    },
-    chartjs: {
-        contentId: "content-chartjs",
-        handler: "renderChartJS",
-        id: "tab-chartjs",
-        label: "Charts",
-        requiresData: true,
-    },
-    data: {
-        contentId: "content-data",
-        handler: "createTables",
-        id: "tab-data",
-        label: "Data Tables",
-        requiresData: true,
-    },
-    map: {
-        contentId: "content-map",
-        handler: "renderMap",
-        id: "tab-map",
-        label: "Map",
-        requiresData: true,
-    },
-    summary: {
-        contentId: "content-summary",
-        handler: "renderSummary",
-        id: "tab-summary",
-        label: "Summary",
-        requiresData: true,
-    },
-    zwift: {
-        contentId: "content-zwift",
-        handler: null,
-        id: "tab-zwift",
-        label: "Zwift",
-        requiresData: false,
-    },
-});
+/** @typedef {import("./tabStateManagerConfig.js").TabDef} TabDef */
 
 /**
  * Tab State Manager - handles tab switching and content management
@@ -230,80 +57,6 @@ class TabStateManager {
         this.setupTabButtonHandlers();
 
         console.log("[TabStateManager] Initialized");
-    }
-
-    /**
-     * Move pre-rendered charts from the background container into the visible
-     * chart tab. This avoids a full re-render when charts were preloaded in the
-     * background.
-     *
-     * @returns {boolean} True if charts were moved into view.
-     */
-    attachPreRenderedCharts() {
-        const doc = getDoc();
-        const bgContainer = doc.getElementById("background-chart-container");
-        const visibleContainer =
-            doc.getElementById("content-chartjs") ||
-            doc.getElementById("content-chart");
-
-        if (!bgContainer || !visibleContainer) {
-            return false;
-        }
-
-        const preRenderedContainer = bgContainer.querySelector(
-            "#chartjs-chart-container"
-        );
-        if (!preRenderedContainer) {
-            return false;
-        }
-
-        if (visibleContainer.querySelector("#chartjs-chart-container")) {
-            return false;
-        }
-
-        visibleContainer.append(preRenderedContainer);
-
-        try {
-            ensureChartSettingsDropdowns(visibleContainer);
-        } catch {
-            /* ignore */
-        }
-
-        const instances = (() => {
-            try {
-                const g = /** @type {any} */ (globalThis);
-                const w = /** @type {any} */ (g.window);
-                const arr =
-                    (g && g._chartjsInstances) ||
-                    (w && w._chartjsInstances) ||
-                    [];
-                return Array.isArray(arr) ? arr : [];
-            } catch {
-                return [];
-            }
-        })();
-        if (instances.length > 0) {
-            const schedule =
-                typeof requestAnimationFrame === "function"
-                    ? requestAnimationFrame
-                    : setTimeout;
-            schedule(() => {
-                for (const chart of instances) {
-                    try {
-                        if (chart && typeof chart.resize === "function") {
-                            chart.resize();
-                        }
-                        if (chart && typeof chart.update === "function") {
-                            chart.update("none");
-                        }
-                    } catch {
-                        /* ignore */
-                    }
-                }
-            }, 0);
-        }
-
-        return true;
     }
 
     /**
@@ -414,247 +167,6 @@ class TabStateManager {
     }
 
     /**
-     * Handle alternative FIT viewer tab activation
-     */
-    handleAltFitTab() {
-        const el = getDoc().querySelector("#altfit-iframe");
-        // Avoid cross-realm instanceof checks; rely on tagName and presence of src
-        if (
-            el &&
-            typeof (/** @type {any} */ (el).tagName) === "string" &&
-            /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
-        ) {
-            const iframe = /** @type {any} */ (el);
-            if (
-                typeof iframe.src === "string" &&
-                !iframe.src.includes("ffv/index.html")
-            ) {
-                iframe.src = "ffv/index.html";
-            }
-        }
-    }
-
-    /**
-     * Handle Browser tab activation (folder-based activity browser).
-     */
-    async handleBrowserTab() {
-        try {
-            const mod = await import("../browser/fileBrowserTab.js");
-            if (mod && typeof mod.renderFileBrowserTab === "function") {
-                await mod.renderFileBrowserTab();
-            }
-        } catch (error) {
-            console.error(
-                "[TabStateManager] Failed to render Browser tab",
-                error
-            );
-        }
-    }
-
-    /**
-     * Handle chart tab activation
-     *
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
-    async handleChartTab(globalData) {
-        if (!globalData || !globalData.recordMesgs) {
-            console.warn("[TabStateManager] No chart data available");
-            return;
-        }
-
-        // Use tab rendering manager to handle chart rendering with cancellation support
-        await tabRenderingManager.executeRenderOperation(
-            "chart",
-            async (token) => {
-                // Check if cancelled before starting
-                if (token.isCancelled) {
-                    return null;
-                }
-
-                const movedPreRendered = this.attachPreRenderedCharts();
-
-                // Let the chart state manager handle the rendering with proper state integration
-                const chartState = getStateMgr().getState("charts");
-
-                if (chartState?.isRendered) {
-                    console.log(
-                        "[TabStateManager] Chart tab activated - charts already rendered"
-                    );
-                    getStateMgr().setState("charts.tabActive", true, {
-                        source: "TabStateManager.handleChartTab",
-                    });
-                } else {
-                    console.log(
-                        "[TabStateManager] Chart tab activated - triggering initial render through state system"
-                    );
-                    // The chartStateManager will handle rendering through its subscriptions
-                    // We just need to ensure the tab is marked as active in state
-                    getStateMgr().setState("charts.tabActive", true, {
-                        source: "TabStateManager.handleChartTab",
-                    });
-                }
-
-                // Check if cancelled after state updates
-                if (token.isCancelled) {
-                    console.log(
-                        "[TabStateManager] Chart tab rendering cancelled"
-                    );
-                    return null;
-                }
-
-                return movedPreRendered ? "preRendered" : true;
-            },
-            { debounce: true, skipIfRecent: true }
-        );
-    }
-
-    /**
-     * Handle data tables tab activation
-     *
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
-    async handleDataTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (globalThis).createTables)) {
-            return;
-        }
-
-        // Check for background-rendered data first
-        const bgContainer = getDoc().querySelector(
-                "#background-data-container"
-            ),
-            visibleContainer = getDoc().querySelector("#content-data");
-
-        if (
-            bgContainer &&
-            bgContainer.childNodes &&
-            bgContainer.childNodes.length > 0 &&
-            visibleContainer
-        ) {
-            // Move pre-rendered content
-            visibleContainer.innerHTML = "";
-            while (bgContainer.firstChild) {
-                visibleContainer.append(bgContainer.firstChild);
-            }
-        } else {
-            // Render fresh tables
-            console.log("[TabStateManager] Creating data tables");
-            /** @type {any} */ (globalThis).createTables(globalData);
-        }
-    }
-
-    /**
-     * Handle map tab activation
-     *
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
-    async handleMapTab(globalData) {
-        if (!globalData || !globalData.recordMesgs) {
-            return;
-        }
-
-        // Check if map is already rendered
-        const mapState = getStateMgr().getState("map");
-        if (
-            !mapState?.isRendered &&
-            /** @type {any} */ (globalThis).renderMap
-        ) {
-            console.log("[TabStateManager] Rendering map for first time");
-            /** @type {any} */ (globalThis).renderMap();
-            getStateMgr().setState("map.isRendered", true, {
-                source: "TabStateManager.handleMapTab",
-            });
-        } else {
-            // Map already rendered, just invalidate size to fix grey tiles after tab switch
-            const mapInstance = /** @type {any} */ (globalThis)
-                    ._leafletMapInstance,
-                renderMapFn = /** @type {any} */ (globalThis).renderMap;
-
-            if (
-                mapInstance &&
-                typeof mapInstance.invalidateSize === "function"
-            ) {
-                /**
-                 * Attempt to reflow the map safely. If the underlying container
-                 * has been detached, we fall back to a full re-render to avoid
-                 * Leaflet accessing undefined properties.
-                 */
-                const executeInvalidation = () => {
-                    const container =
-                        typeof mapInstance.getContainer === "function"
-                            ? mapInstance.getContainer()
-                            : null;
-
-                    if (!container || !container.isConnected) {
-                        console.warn(
-                            "[TabStateManager] Map container missing; re-rendering map instance"
-                        );
-                        if (typeof renderMapFn === "function") {
-                            renderMapFn();
-                            getStateMgr().setState("map.isRendered", true, {
-                                source: "TabStateManager.handleMapTab.reRender",
-                            });
-                        }
-                        return;
-                    }
-
-                    try {
-                        mapInstance.invalidateSize({ pan: false });
-                        console.log(
-                            "[TabStateManager] Map size invalidated to fix grey tiles"
-                        );
-                    } catch (error) {
-                        console.warn(
-                            "[TabStateManager] Map invalidation failed; re-rendering map",
-                            error
-                        );
-                        if (typeof renderMapFn === "function") {
-                            renderMapFn();
-                            getStateMgr().setState("map.isRendered", true, {
-                                source: "TabStateManager.handleMapTab.recover",
-                            });
-                        }
-                    }
-                };
-
-                if (typeof requestAnimationFrame === "function") {
-                    requestAnimationFrame(() =>
-                        requestAnimationFrame(executeInvalidation)
-                    );
-                } else {
-                    setTimeout(executeInvalidation, 75);
-                }
-            }
-        }
-    }
-
-    /**
-     * Handle summary tab activation
-     *
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{ recordMesgs?: any[] } | null | undefined} globalData */
-    async handleSummaryTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (globalThis).renderSummary)) {
-            return;
-        }
-
-        // Check if we need to re-render summary
-        const currentDataHash = this.hashData(globalData),
-            previousData = getStateMgr().getState("summary.lastDataHash");
-
-        if (previousData !== currentDataHash) {
-            console.log("[TabStateManager] Rendering summary with new data");
-            /** @type {any} */ (globalThis).renderSummary(globalData);
-            getStateMgr().setState("summary.lastDataHash", currentDataHash, {
-                source: "TabStateManager.handleSummaryTab",
-            });
-        }
-    }
-
-    /**
      * Handle tab button click events
      *
      * @param {Event} event - Click event
@@ -755,32 +267,32 @@ class TabStateManager {
         try {
             switch (tabName) {
                 case "altfit": {
-                    this.handleAltFitTab();
+                    handleAltFitTab();
                     break;
                 }
                 case "browser": {
-                    await this.handleBrowserTab();
+                    await handleBrowserTab();
                     break;
                 }
                 case "chart":
                 // falls through to chartjs case
                 case "chartjs": {
-                    await this.handleChartTab(globalData);
+                    await handleChartTab(globalData);
                     break;
                 }
 
                 case "data": {
-                    await this.handleDataTab(globalData);
+                    await handleDataTab(globalData);
                     break;
                 }
 
                 case "map": {
-                    await this.handleMapTab(globalData);
+                    await handleMapTab(globalData);
                     break;
                 }
 
                 case "summary": {
-                    await this.handleSummaryTab(globalData);
+                    await handleSummaryTab(globalData);
                     break;
                 }
 
@@ -797,28 +309,6 @@ class TabStateManager {
             );
             showNotification(`Error loading ${tabConfig.label} tab`, "error");
         }
-    }
-
-    /**
-     * Generate simple hash for data comparison
-     *
-     * @param {Object} data - Data to hash
-     *
-     * @returns {string} Simple hash string
-     */
-    /** @param {{ recordMesgs?: any[] } | null | undefined} data */
-    hashData(data) {
-        if (!data) {
-            return "";
-        }
-
-        // Simple hash based on data size and some key fields
-        const recordMesgs = data.recordMesgs || [],
-            size = recordMesgs.length || 0,
-            firstRecord = recordMesgs[0] || {},
-            lastRecord = recordMesgs[size - 1] || {};
-
-        return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
     }
 
     /**

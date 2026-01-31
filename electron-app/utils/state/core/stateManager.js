@@ -1,230 +1,27 @@
+import { AppState } from "./stateManagerDefaults.js";
+import {
+    clearStateHistory,
+    getStateHistory,
+    stateHistory,
+} from "./stateManagerHistory.js";
+import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
+import { resetState } from "./stateManagerReset.js";
 /**
  * Centralized State Management System for FitFileViewer Provides reactive state
  * management with event listeners and persistence
  */
-
 /**
- * @typedef {Object} WindowState
- *
- * @property {number} width
- * @property {number} height
- * @property {number | null} x
- * @property {number | null} y
- * @property {boolean} maximized
+ * Maximum number of state changes to keep in history
  */
+const MAX_HISTORY_SIZE = 50;
 /**
- * @typedef {Object} DropOverlayState
+ * Event listeners for state changes
  *
- * @property {boolean} visible
+ * @type {Map<string, Set<Function>>}
  */
+const stateListeners = new Map();
 /**
- * @typedef {Object} UIFileInfo
- *
- * @property {boolean} hasFile
- * @property {string} displayName
- * @property {string} title
- */
-/**
- * @typedef {Object} LoadingIndicatorState
- *
- * @property {number} progress
- * @property {boolean} active
- */
-/**
- * @typedef {Object} UIState
- *
- * @property {string} activeTab
- * @property {number} dragCounter
- * @property {DropOverlayState} dropOverlay
- * @property {UIFileInfo} fileInfo
- * @property {LoadingIndicatorState} loadingIndicator
- * @property {boolean} sidebarCollapsed
- * @property {string} theme
- * @property {boolean} isFullscreen
- * @property {boolean} unloadButtonVisible
- * @property {WindowState} windowState
- */
-/**
- * @typedef {Object} ChartsState
- *
- * @property {boolean} isRendered
- * @property {boolean} controlsVisible
- * @property {string} selectedChart
- * @property {number} zoomLevel
- * @property {any} chartData
- * @property {Object<string, any>} chartOptions
- */
-/**
- * @typedef {Object} MapState
- *
- * @property {boolean} isRendered
- * @property {any} center
- * @property {number} zoom
- * @property {number} selectedLap
- * @property {boolean} showElevationProfile
- * @property {boolean} trackVisible
- * @property {string} baseLayer
- * @property {boolean} measurementMode
- */
-/**
- * @typedef {Object} TablesState
- *
- * @property {boolean} isRendered
- * @property {string | null} sortColumn
- * @property {string} sortDirection
- * @property {number} pageSize
- * @property {number} currentPage
- * @property {Object<string, any>} filters
- */
-/**
- * @typedef {Object} PerformanceState
- *
- * @property {number | null} lastLoadTime
- * @property {Object<string, number>} renderTimes
- * @property {number | null} memoryUsage
- */
-/**
- * @typedef {Object} SystemState
- *
- * @property {string | null} version
- * @property {number | null} startupTime
- * @property {string} mode
- * @property {boolean} initialized
- */
-/**
- * @typedef {Object} AppStateShape
- *
- * @property {{
- *     initialized: boolean;
- *     isOpeningFile: boolean;
- *     startTime: number;
- * }} app
- * @property {any} globalData
- * @property {any} currentFile
- * @property {boolean} isLoading
- * @property {UIState} ui
- * @property {ChartsState} charts
- * @property {MapState} map
- * @property {TablesState} tables
- * @property {PerformanceState} performance
- * @property {SystemState} system
- */
-/**
- * Central application state container
- *
- * @type {AppStateShape}
- */
-const AppState = {
-        // Application lifecycle state
-        app: {
-            initialized: false,
-            isOpeningFile: false,
-            startTime: performance.now(),
-        },
-
-        // Chart state
-        charts: {
-            chartData: null,
-            chartOptions: {},
-            controlsVisible: true,
-            isRendered: false,
-            selectedChart: "elevation",
-            zoomLevel: 1,
-        },
-        currentFile: null,
-        // Core application data
-        globalData: null,
-
-        isLoading: false,
-
-        // Map state
-        map: {
-            baseLayer: "openstreetmap",
-            center: null,
-            isRendered: false,
-            measurementMode: false,
-            selectedLap: 0,
-            showElevationProfile: true,
-            trackVisible: true,
-            zoom: 13,
-        },
-
-        // Performance metrics
-        performance: {
-            lastLoadTime: null,
-            memoryUsage: null,
-            renderTimes: {},
-        },
-
-        // System information
-        system: {
-            initialized: false,
-            mode: "production",
-            startupTime: null,
-            version: null,
-        },
-        // Table state
-        tables: {
-            currentPage: 1,
-            filters: {},
-            isRendered: false,
-            pageSize: 50,
-            sortColumn: null,
-            sortDirection: "asc",
-        },
-
-        // UI state
-        ui: {
-            activeTab: "summary",
-            dragCounter: 0,
-            dropOverlay: {
-                visible: false,
-            },
-            fileInfo: {
-                displayName: "",
-                hasFile: false,
-                title:
-                    typeof document !== "undefined" && document?.title
-                        ? document.title
-                        : "Fit File Viewer",
-            },
-            isFullscreen: false,
-            loadingIndicator: {
-                active: false,
-                progress: 0,
-            },
-            sidebarCollapsed: false,
-            theme: "system",
-            unloadButtonVisible: false,
-            windowState: {
-                height: 800,
-                maximized: false,
-                width: 1200,
-                x: null,
-                y: null,
-            },
-        },
-    },
-    /**
-     * Maximum number of state changes to keep in history
-     */
-    MAX_HISTORY_SIZE = 50,
-    /**
-     * State change history for debugging
-     *
-     * @type {Object[]}
-     */
-    stateHistory = [],
-    /**
-     * Event listeners for state changes
-     *
-     * @type {Map<string, Set<Function>>}
-     */
-    stateListeners = new Map();
-
-/**
- * Tracks whether initializeStateManager has completed to prevent duplicate
- * subscriptions
+ * Event listeners for state changes subscriptions
  *
  * @type {{ initialized: boolean }}
  */
@@ -270,38 +67,17 @@ function __resetStateManagerForTests() {
 }
 
 /**
- * @typedef {Object} StateUpdateOptions
+ * Create a reactive property on the global object that maps to a state path.
  *
- * @property {boolean} [silent=false] If true, don't notify listeners of this
- *   update. Default is `false`
- * @property {string} [source="unknown"] Source tag for debugging / history.
- *   Default is `"unknown"`
- * @property {boolean} [merge=false] If true and both old & new values are plain
- *   objects, perform a shallow merge. Default is `false`
- */
-
-/**
- * Clear state change history
- */
-function clearStateHistory() {
-    stateHistory.length = 0;
-    console.log("[StateManager] State history cleared");
-}
-
-/**
- * Create reactive property on window object for backward compatibility
- *
- * @param {string} propertyName - Name of the property to create
- * @param {string} statePath - Path in state to bind to
+ * @param {string} propertyName
+ * @param {string} statePath
  */
 function createReactiveProperty(propertyName, statePath) {
     try {
-        // Check if property already exists
         const descriptor = Object.getOwnPropertyDescriptor(
             globalThis,
             propertyName
         );
-
         if (descriptor) {
             // If property exists, check if it's already reactive
             if (descriptor.get && descriptor.set) {
@@ -350,34 +126,6 @@ function createReactiveProperty(propertyName, statePath) {
 }
 
 /**
- * Helper function to get nested value from object
- *
- * @private
- *
- * @param {Object} obj - Source object
- * @param {string} path - Dot notation path
- *
- * @returns {any} Value at path
- */
-function getNestedValue(obj, path) {
-    const keys = path.split(".");
-    /** @type {any} */
-    let value = obj;
-    for (const key of keys) {
-        if (value == null) {
-            return;
-        }
-        const container = /** @type {Record<string, any>} */ (value);
-        if (Object.hasOwn(container, key)) {
-            value = container[key];
-        } else {
-            return;
-        }
-    }
-    return value;
-}
-
-/**
  * Get state value by path
  *
  * @param {string} path - Dot notation path to state property
@@ -404,15 +152,6 @@ function getState(path) {
         }
     }
     return value;
-}
-
-/**
- * Get state change history for debugging
- *
- * @returns {Object[]} Array of state changes
- */
-function getStateHistory() {
-    return [...stateHistory];
 }
 
 /**
@@ -584,149 +323,6 @@ function persistState(
 }
 
 /**
- * Reset state to initial values
- *
- * @param {string} [path] - Optional path to reset only part of state
- */
-function resetState(path) {
-    if (path) {
-        const keys = path.split(".");
-        /** @type {any} */
-        let target = AppState;
-        for (let i = 0; i < keys.length - 1; i++) {
-            const k = /** @type {string} */ (keys[i]);
-            if (target == null) {
-                return;
-            }
-            if (Object.hasOwn(target, k)) {
-                target = target[k];
-            } else {
-                return;
-            }
-        }
-        const finalKey = keys.at(-1);
-        if (finalKey && target) {
-            const rec = /** @type {Record<string, any>} */ (target);
-            if (Object.hasOwn(rec, finalKey)) {
-                delete rec[finalKey];
-            }
-        }
-    } else {
-        // Reset entire state
-        for (const key of Object.keys(AppState)) {
-            delete (/** @type {any} */ (AppState)[key]);
-        }
-
-        // Restore initial structure
-        Object.assign(AppState, {
-            charts: {
-                chartData: null,
-                chartOptions: {},
-                controlsVisible: true,
-                isRendered: false,
-                selectedChart: "elevation",
-                zoomLevel: 1,
-            },
-            currentFile: null,
-            globalData: null,
-            isLoading: false,
-            map: {
-                baseLayer: "openstreetmap",
-                center: null,
-                isRendered: false,
-                measurementMode: false,
-                selectedLap: 0,
-                showElevationProfile: true,
-                trackVisible: true,
-                zoom: 13,
-            },
-            performance: {
-                lastLoadTime: null,
-                memoryUsage: null,
-                renderTimes: {},
-            },
-            tables: {
-                currentPage: 1,
-                filters: {},
-                isRendered: false,
-                pageSize: 50,
-                sortColumn: null,
-                sortDirection: "asc",
-            },
-            ui: {
-                activeTab: "summary",
-                dragCounter: 0,
-                dropOverlay: {
-                    visible: false,
-                },
-                fileInfo: {
-                    displayName: "",
-                    hasFile: false,
-                    title:
-                        typeof document !== "undefined" && document?.title
-                            ? document.title
-                            : "Fit File Viewer",
-                },
-                isFullscreen: false,
-                loadingIndicator: {
-                    active: false,
-                    progress: 0,
-                },
-                sidebarCollapsed: false,
-                theme: "system",
-                unloadButtonVisible: false,
-                windowState: {
-                    height: 800,
-                    maximized: false,
-                    width: 1200,
-                    x: null,
-                    y: null,
-                },
-            },
-        });
-    }
-
-    console.log(`[StateManager] State reset: ${path || "all"}`);
-}
-
-/**
- * Helper function to set nested value in object
- *
- * @private
- *
- * @param {Object} obj - Target object
- * @param {string} path - Dot notation path
- * @param {any} value - Value to set
- */
-function setNestedValue(obj, path, value) {
-    const keys = path.split(".");
-    /** @type {any} */
-    let target = obj;
-    for (let i = 0; i < keys.length - 1; i++) {
-        const key = /** @type {string} */ (keys[i]);
-        if (!key) {
-            continue;
-        }
-        if (target == null || typeof target !== "object") {
-            return;
-        }
-        const container = /** @type {Record<string, any>} */ (target);
-        if (
-            !Object.hasOwn(container, key) ||
-            typeof container[key] !== "object" ||
-            container[key] === null
-        ) {
-            container[key] = {};
-        }
-        target = container[key];
-    }
-    const finalKey = keys.at(-1);
-    if (finalKey && target != null && typeof target === "object") {
-        /** @type {Record<string, any>} */ (target)[finalKey] = value;
-    }
-}
-
-/**
  * Set state value by path and notify listeners
  *
  * @param {string} path - Dot notation path to state property
@@ -734,18 +330,16 @@ function setNestedValue(obj, path, value) {
  * @param {StateUpdateOptions} [options] - Optional update options
  */
 function setState(path, value, options = {}) {
-    const // Set / merge the new value
-        keys = path.split("."),
-        // Get the old value for comparison
-        oldValue = getState(path),
-        { merge = false, silent = false, source = "unknown" } = options;
+    const keys = path.split(".");
+    const oldValue = getState(path);
+    const { merge = false, silent = false, source = "unknown" } = options;
     let target = AppState;
 
     for (let i = 0; i < keys.length - 1; i++) {
         const key = /** @type {string} */ (keys[i]);
         if (!key) {
             continue;
-        } // Defensive
+        }
         if (typeof target !== "object" || target == null) {
             break;
         }
@@ -765,6 +359,7 @@ function setState(path, value, options = {}) {
         console.warn("[StateManager] Invalid final key for path", path);
         return;
     }
+
     if (
         merge &&
         typeof oldValue === "object" &&
@@ -774,7 +369,6 @@ function setState(path, value, options = {}) {
         !Array.isArray(oldValue) &&
         !Array.isArray(value)
     ) {
-        // Shallow merge
         /** @type {Record<string, any>} */
         (target)[finalKey] = { ...oldValue, ...value };
     } else {
@@ -782,10 +376,8 @@ function setState(path, value, options = {}) {
         (target)[finalKey] = value;
     }
 
-    // Check if value actually changed to prevent redundant updates
     const hasChanged = !Object.is(oldValue, value);
 
-    // Add to history only if value changed
     if (hasChanged) {
         if (stateHistory.length >= MAX_HISTORY_SIZE) {
             stateHistory.shift();
@@ -800,12 +392,10 @@ function setState(path, value, options = {}) {
         });
     }
 
-    // Notify listeners only if not silent AND value actually changed
     if (!silent && hasChanged) {
         notifyListeners(path, value, oldValue);
     }
 
-    // Log only if value changed, or always if source indicates debug/dev
     if (hasChanged || source.includes("dev") || source.includes("debug")) {
         console.log(`[StateManager] ${path} updated by ${source}:`, {
             newValue: value,
