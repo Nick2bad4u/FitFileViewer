@@ -4,7 +4,7 @@ description: Beast Mode 3.1 (Custom)
 argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
 agents: ["*"]
 tools:
- ['vscode/runCommand', 'vscode/askQuestions', 'execute/testFailure', 'execute/getTerminalOutput', 'execute/awaitTerminal', 'execute/killTerminal', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'execute/runTests', 'read/problems', 'read/readFile', 'read/terminalSelection', 'read/terminalLastCommand', 'read/getTaskOutput', 'agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/codebase', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'search/searchSubagent', 'web/githubRepo', 'tavily-remote-mcp-system/*', 'vscode-mcp/execute_command', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'updateUserPreferences', 'todo']
+ ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'tavily-remote-mcp-system/*', 'vscode-mcp/*', 'github/*', 'github/*', 'memory', 'todo']
 handoffs:
  - label: Consistency
    agent: BeastMode
@@ -35,7 +35,9 @@ handoffs:
    prompt: "As an autonomous agent, review my entire codebase for improvements, bugs, or issues. Use your best judgment to construct and execute a dynamic, iterative plan: categorize findings into high-priority bugs (e.g., security or crashes), medium-priority enhancements (e.g., performance or readability), low-priority tweaks (e.g., style or minor optimizations), and consistency checks looking for duplicate logic or codepaths, etc. Always use modern best practices. Each iteration of this prompt, focus on a different aspect or section of the code (e.g., rotate through modules, functions, tests, or architectural patterns). Even if this prompt repeats identically, prioritize novel discoveries, adapt based on prior reviews or new insights, and avoid rehashing the same points. For each issue, implement fixes directly by editing code, applying changes, etc. Summarize your current work including what you fixed this iteration."
    send: true
 target: vscode
-infer: true
+
+disable-model-invocation: false
+user-invokable: true
 ---
 
 <instructions>
