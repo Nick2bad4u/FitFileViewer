@@ -175,8 +175,8 @@ if (!process.env["RECHECK_JAR"]) {
     }
 }
 
-// NOTE: We are not enabling TypeScript-specific ESLint rules in this flat config.
-// If future TS linting is needed, bring in typescript-eslint and extend its configs.
+// NOTE: We keep TypeScript-specific rules scoped and lightweight in this flat config.
+// If broader TS linting is needed, bring in typescript-eslint presets where appropriate.
 
 export default defineConfig([
     globalIgnores(["**/CHANGELOG.md"]),
@@ -242,6 +242,9 @@ export default defineConfig([
             "docs/docusaurus/build/**",
             "docs/docusaurus/docs/**",
             "docs/docusaurus/static/eslint-inspector/**",
+            "../docusaurus/.cache/**",
+            "../docusaurus/.docusaurus/**",
+            "../docusaurus/build/**",
             "report/**",
             "reports/**",
             "scripts/devtools-snippets/**",
@@ -326,10 +329,35 @@ export default defineConfig([
         },
     },
     {
+        // Docusaurus uses TypeScript + React; configure the TS parser for that subtree.
+        // Keep this lightweight (no type-aware rules) to avoid slowing lint runs.
+        files: ["../docusaurus/**/*.{ts,tsx}"],
+        languageOptions: {
+            parser: tseslintParser,
+            parserOptions: {
+                ecmaFeatures: { jsx: true },
+                ecmaVersion: "latest",
+                sourceType: "module",
+            },
+        },
+        name: "Docusaurus - TS/TSX Parser",
+        plugins: coerceEslintPluginMap({
+            "@typescript-eslint": tseslint,
+        }),
+        rules: {
+            // Use the TS-aware rule to avoid false positives on type-only imports.
+            "no-unused-vars": "off",
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+            ],
+        },
+    },
+    {
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
         // while keeping correctness-focused rules.
-        files: ["**/*.{js,mjs,cjs,ts}"],
+        files: ["**/*.{js,mjs,cjs,ts,tsx}"],
         plugins: coerceEslintPluginMap({
             "@typescript-eslint": tseslint,
             compat: pluginCompat,
@@ -576,7 +604,7 @@ export default defineConfig([
     },
     // Merging browser and node globals to support environments where both are used, such as Electron.
     {
-        files: ["**/*.{js,mjs,cjs,ts}"],
+        files: ["**/*.{js,mjs,cjs,ts,tsx}"],
         languageOptions: {
             globals: {
                 ...globals.browser,

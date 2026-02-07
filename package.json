@@ -1,0 +1,13 @@
+{
+  "name": "fitfileviewer-root",
+  "private": true,
+  "scripts": {
+    "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
+    "lint:electron-app": "cd electron-app && npm run lint",
+    "lint:docusaurus": "cd docusaurus && npm run lint",
+    "lint:docusaurus:content": "cd docusaurus && npm run lint:content",
+    "lint:fix": "npm run lint",
+    "lint:root": "cd electron-app && npx eslint --cache --cache-strategy content --cache-location .cache/.eslintcache-root --fix .. --ignore-pattern \"../electron-app/**\" --ignore-pattern \"../docusaurus/**\"",
+    "lint:root:check": "cd electron-app && npx eslint --cache --cache-strategy content --cache-location .cache/.eslintcache-root .. --ignore-pattern \"../electron-app/**\" --ignore-pattern \"../docusaurus/**\""
+  }
+}
