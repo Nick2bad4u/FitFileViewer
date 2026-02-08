@@ -590,7 +590,7 @@ export default defineConfig([
             "docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
         ],
         plugins: {
-            "@docusaurus": pluginDocusaurus
+            "@docusaurus": pluginDocusaurus,
         },
         rules: {
             // Docusaurus Rules (@docusaurus/*)
