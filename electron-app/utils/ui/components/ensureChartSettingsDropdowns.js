@@ -3,6 +3,12 @@ import {
     getDefaultSettings,
 } from "../../app/initialization/getCurrentSettings.js";
 import { setupChartStatusUpdates } from "../../charts/components/chartStatusIndicator.js";
+import {
+    getChartControlsToggle,
+    getChartRenderContainer,
+    getChartSettingsWrapper,
+    resolveChartContainer,
+} from "../../charts/dom/chartDomUtils.js";
 import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
 import {
     getState,
@@ -40,11 +46,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         });
     }
 
-    const chartContainer = targetContainer
-        ? typeof targetContainer === "string"
-            ? document.getElementById(targetContainer)
-            : targetContainer
-        : document.querySelector("#chartjs_chart_container");
+    const chartContainer = resolveChartContainer(document, targetContainer);
 
     if (!chartContainer) {
         return getDefaultSettings();
@@ -60,7 +62,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     );
 
     // Create main settings wrapper only if it doesn't exist
-    let wrapper = document.querySelector("#chartjs-settings-wrapper");
+    let wrapper = getChartSettingsWrapper(document);
     if (!wrapper) {
         wrapper = document.createElement("div");
         wrapper.id = "chartjs-settings-wrapper";
@@ -68,7 +70,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         wrapper.style.display = "none"; // Hidden by default
         applySettingsPanelStyles(wrapper);
 
-        const toggleBtn = document.querySelector("#chart-controls-toggle");
+        const toggleBtn = getChartControlsToggle(document);
         if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
         } else if (chartContainer.parentNode instanceof HTMLElement) {
@@ -118,7 +120,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
  * @param {HTMLElement} container
  */
 function createControlsToggleButton(container) {
-    let toggleBtn = document.querySelector("#chart-controls-toggle");
+    let toggleBtn = getChartControlsToggle(document);
     if (toggleBtn) {
         return toggleBtn; // Already exists
     }
@@ -164,7 +166,7 @@ function createControlsToggleButton(container) {
     toggleBtn.addEventListener("click", toggleChartControls);
 
     // Insert before the chart container
-    const chartContainer = document.querySelector("#chartjs_chart_container");
+    const chartContainer = getChartRenderContainer(document);
     if (chartContainer && chartContainer.parentNode) {
         chartContainer.parentNode.insertBefore(toggleBtn, chartContainer);
     } else {
@@ -177,7 +179,7 @@ function createControlsToggleButton(container) {
  * Toggles the visibility of the chart controls panel
  */
 function toggleChartControls() {
-    const wrapper = document.querySelector("#chartjs-settings-wrapper");
+    const wrapper = getChartSettingsWrapper(document);
     if (!wrapper) {
         console.warn("[ChartJS] Controls panel not found, creating it...");
         ensureChartSettingsDropdowns("chartjs_chart_container");
@@ -197,7 +199,7 @@ function toggleChartControls() {
     wrapper.style.display = newVisibility ? "block" : "none";
 
     // Update toggle button text if it exists
-    const toggleBtn = document.querySelector("#chart-controls-toggle");
+    const toggleBtn = getChartControlsToggle(document);
     if (toggleBtn) {
         toggleBtn.textContent = newVisibility
             ? "▼ Hide Controls"

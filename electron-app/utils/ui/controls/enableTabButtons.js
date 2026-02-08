@@ -14,7 +14,11 @@ import {
     debugTabState,
     testTabButtonClicks,
 } from "./enableTabButtonsDebug.js";
-import { safeQueryTabButtons } from "./enableTabButtonsHelpers.js";
+import {
+    getTabButtonIdentity,
+    isOpenFileButton,
+    safeQueryTabButtons,
+} from "./enableTabButtonsHelpers.js";
 
 export { debugTabButtons, debugTabState, testTabButtonClicks };
 
@@ -49,24 +53,8 @@ export function forceEnableTabButtons() {
         if (!isHTMLElement(el)) {
             continue;
         }
-        const btn = /** @type {HTMLElement} */ (el),
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "",
-            btnText = (btn.textContent || "").trim().toLowerCase(),
-            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
-            isOpenFile =
-                btnId === "open_file_btn" ||
-                btnId === "open-file-btn" ||
-                btnId === "openFileBtn" ||
-                normalizedId === "openfilebtn" ||
-                normalizedId === "openfilebutton" ||
-                btn.classList.contains("open-file-btn") ||
-                btnText.includes("open file");
+        const btn = /** @type {HTMLElement} */ (el);
+        const { id: btnId, isOpenFile } = getTabButtonIdentity(btn);
         if (isOpenFile) {
             continue;
         }
@@ -104,24 +92,8 @@ export function forceFixTabButtons() {
         if (!isHTMLElement(el)) {
             continue;
         }
-        const btn = /** @type {HTMLElement} */ (el),
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "",
-            btnText = (btn.textContent || "").trim().toLowerCase(),
-            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
-            isOpenFile =
-                btnId === "open_file_btn" ||
-                btnId === "open-file-btn" ||
-                btnId === "openFileBtn" ||
-                normalizedId === "openfilebtn" ||
-                normalizedId === "openfilebutton" ||
-                btn.classList.contains("open-file-btn") ||
-                btnText.includes("open file");
+        const btn = /** @type {HTMLElement} */ (el);
+        const { id: btnId, isOpenFile } = getTabButtonIdentity(btn);
         if (isOpenFile) {
             continue;
         }
@@ -278,21 +250,8 @@ export function setTabButtonsEnabled(enabled) {
         if (!isHTMLElement(el)) {
             continue;
         }
-        const btn = /** @type {HTMLElement} */ (el),
-            // Derive a robust identifier for logging and matching regardless of environment quirks
-            btnId =
-                btn.id ||
-                (typeof btn.getAttribute === "function"
-                    ? btn.getAttribute("id")
-                    : "") ||
-                btn.textContent?.trim() ||
-                "",
-            btnText = (btn.textContent || "").trim().toLowerCase(),
-            isOpenFile =
-                btnId === "open_file_btn" ||
-                btnId === "open-file-btn" ||
-                btn.classList.contains("open-file-btn") ||
-                btnText.includes("open file");
+        const btn = /** @type {HTMLElement} */ (el);
+        const { id: btnId, isOpenFile } = getTabButtonIdentity(btn);
         // Skip the open file button - it should always remain enabled
         if (isOpenFile) {
             continue;
@@ -371,24 +330,8 @@ export function setTabButtonsEnabled(enabled) {
             if (!isHTMLElement(el)) {
                 continue;
             }
-            const btn = /** @type {HTMLElement} */ (el),
-                btnId =
-                    btn.id ||
-                    (typeof btn.getAttribute === "function"
-                        ? btn.getAttribute("id")
-                        : "") ||
-                    btn.textContent?.trim() ||
-                    "",
-                btnText = (btn.textContent || "").trim().toLowerCase(),
-                normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
-                isOpenFile =
-                    btnId === "open_file_btn" ||
-                    btnId === "open-file-btn" ||
-                    btnId === "openFileBtn" ||
-                    normalizedId === "openfilebtn" ||
-                    normalizedId === "openfilebutton" ||
-                    btn.classList.contains("open-file-btn") ||
-                    btnText.includes("open file");
+            const btn = /** @type {HTMLElement} */ (el);
+            const { id: btnId, isOpenFile } = getTabButtonIdentity(btn);
             if (isOpenFile) {
                 continue;
             }

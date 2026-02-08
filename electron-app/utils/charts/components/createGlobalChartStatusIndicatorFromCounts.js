@@ -1,3 +1,9 @@
+import {
+    getChartContentContainer,
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../dom/chartDomUtils.js";
+
 /**
  * Creates global chart status indicator from pre-calculated counts
  *
@@ -6,9 +12,7 @@
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
-        const chartTabContent =
-            document.querySelector("#content_chartjs") ||
-            document.querySelector("#content-chartjs");
+        const chartTabContent = getChartContentContainer(document);
         if (!chartTabContent) {
             console.warn("[ChartStatus] Chart tab content not found");
             return null;
@@ -108,12 +112,8 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.textContent = "⚙️ Show Settings";
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
-                const toggleBtn = document.querySelector(
-                        "#chart-controls-toggle"
-                    ),
-                    wrapper = document.querySelector(
-                        "#chartjs-settings-wrapper"
-                    );
+                const toggleBtn = getChartControlsToggle(document);
+                const wrapper = getChartSettingsWrapper(document);
                 if (
                     wrapper instanceof HTMLElement &&
                     toggleBtn instanceof HTMLElement

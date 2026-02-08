@@ -5,6 +5,7 @@
  */
 
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
+import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
 import { getState, setState, subscribe } from "../core/stateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -275,7 +276,7 @@ function setupReactiveUI() {
 
     // Update chart controls visibility
     subscribe("charts.controlsVisible", (/** @type {boolean} */ isVisible) => {
-        const wrapper = document.querySelector("#chartjs-settings-wrapper");
+        const wrapper = getChartSettingsWrapper(document);
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";
         }

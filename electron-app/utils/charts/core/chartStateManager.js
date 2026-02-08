@@ -17,8 +17,8 @@ import {
     updateState,
 } from "../../state/core/stateManager.js";
 import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
-import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 
 /**
@@ -60,13 +60,10 @@ class ChartStateManager {
 
     renderDebounceTime = 250;
 
+    /** @type {ReturnType<typeof setTimeout> | null} */
     renderTimeout = null;
 
     constructor() {
-        // Ms
-        /** @type {number | ReturnType<typeof setTimeout> | null} */
-        /** @type {boolean} */
-
         // Initialize state subscriptions
         this.initializeSubscriptions();
 
@@ -257,10 +254,7 @@ class ChartStateManager {
                 const instanceCount = Array.isArray(instances)
                     ? instances.length
                     : 0;
-                const container = querySelectorByIdFlexible(
-                    document,
-                    "#chartjs_chart_container"
-                );
+                const container = getChartRenderContainer(document);
                 const canvasCount = container
                     ? container.querySelectorAll("canvas").length
                     : 0;
@@ -406,13 +400,7 @@ class ChartStateManager {
             });
 
             // Get chart container
-            const container =
-                querySelectorByIdFlexible(
-                    document,
-                    "#chartjs_chart_container"
-                ) ||
-                querySelectorByIdFlexible(document, "#content_chartjs") ||
-                querySelectorByIdFlexible(document, "#content_chart");
+            const container = getChartRenderContainer(document);
 
             if (!container) {
                 console.warn("[ChartStateManager] Chart container not found");

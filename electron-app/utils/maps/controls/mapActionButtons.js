@@ -276,7 +276,10 @@ function setupActiveFileNameMapActions() {
                 console.log("[mapActionButtons] Active file name clicked");
 
                 // Always switch to map tab (even if already active, to ensure map is visible)
-                const mapTabBtn = document.querySelector("#tab_map");
+                const mapTabBtn = querySelectorByIdFlexible(
+                    document,
+                    "#tab_map"
+                );
                 if (mapTabBtn instanceof HTMLElement) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();

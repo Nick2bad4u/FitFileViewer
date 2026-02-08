@@ -589,9 +589,12 @@ export default defineConfig([
             "../docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
             "docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
         ],
-        plugins: {
+        // @docusaurus/eslint-plugin still ships ESLint 8-era plugin typings.
+        // ESLint accepts it at runtime, but TS rejects it against ESLint 9's
+        // stricter `ESLint.Plugin` interface (notably around `configs.*.rules`).
+        plugins: coerceEslintPluginMap({
             "@docusaurus": pluginDocusaurus,
-        },
+        }),
         rules: {
             // Docusaurus Rules (@docusaurus/*)
             "@docusaurus/no-html-links": "warn",
@@ -1188,7 +1191,7 @@ export default defineConfig([
             "html/class-spacing": "warn",
             "html/css-no-empty-blocks": "warn",
             "html/id-naming-convention": "warn",
-            "html/indent": "error",
+            "html/indent": ["error", 4],
             "html/lowercase": "warn",
             "html/max-element-depth": "warn",
             "html/no-abstract-roles": "warn",

@@ -52,3 +52,66 @@ export function safeQueryTabButtons() {
     }
     return [];
 }
+
+/**
+ * Normalize a button identifier for comparisons.
+ *
+ * @param {string} value
+ *
+ * @returns {string}
+ */
+export function normalizeButtonId(value) {
+    return String(value)
+        .replaceAll(/[-_\s]/gu, "")
+        .toLowerCase();
+}
+
+/**
+ * Get common identity data for a tab button.
+ *
+ * @param {HTMLElement} button
+ *
+ * @returns {{
+ *     id: string;
+ *     normalizedId: string;
+ *     text: string;
+ *     isOpenFile: boolean;
+ * }}
+ */
+export function getTabButtonIdentity(button) {
+    const id =
+        button.id ||
+        (typeof button.getAttribute === "function"
+            ? button.getAttribute("id")
+            : "") ||
+        button.textContent?.trim() ||
+        "";
+    const text = (button.textContent || "").trim().toLowerCase();
+    const normalizedId = normalizeButtonId(id);
+    const isOpenFile =
+        id === "open_file_btn" ||
+        id === "open-file-btn" ||
+        id === "openFileBtn" ||
+        normalizedId === "openfilebtn" ||
+        normalizedId === "openfilebutton" ||
+        button.classList.contains("open-file-btn") ||
+        text.includes("open file");
+
+    return {
+        id,
+        isOpenFile,
+        normalizedId,
+        text,
+    };
+}
+
+/**
+ * Determine if a tab button corresponds to the open file control.
+ *
+ * @param {HTMLElement} button
+ *
+ * @returns {boolean}
+ */
+export function isOpenFileButton(button) {
+    return getTabButtonIdentity(button).isOpenFile;
+}

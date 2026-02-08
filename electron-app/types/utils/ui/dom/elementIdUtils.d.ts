@@ -9,3 +9,8 @@ export function querySelectorByIdFlexible(
     doc: Document | null | undefined,
     selector: string
 ): HTMLElement | null;
+
+export function getElementByIdFlexibleList(
+    doc: Document | ParentNode | null | undefined,
+    ids: string[] | string
+): HTMLElement | null;

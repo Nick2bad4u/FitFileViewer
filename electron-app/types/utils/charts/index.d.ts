@@ -2,6 +2,7 @@ export * from "./components/createChartCanvas.js";
 export * from "./components/createChartStatusIndicator.js";
 export * from "./components/createChartStatusIndicatorFromCounts.js";
 export * from "./components/createEnhancedChart.js";
+export * from "./dom/chartDomUtils.js";
 export * from "./components/createGlobalChartStatusIndicator.js";
 export * from "./components/createGlobalChartStatusIndicatorFromCounts.js";
 export * from "./core/chartStateManager.js";

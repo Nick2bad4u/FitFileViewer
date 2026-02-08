@@ -57,6 +57,11 @@ import {
 } from "../../ui/dom/elementIdUtils.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
+import {
+    getChartRenderContainer,
+    getChartSettingsWrapper,
+    resolveChartContainer,
+} from "../dom/chartDomUtils.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 
 const FALLBACK_ZONE_COLORS = [
@@ -2958,31 +2963,16 @@ async function renderChartsWithData(
     }
 
     // Setup theme listener for real-time theme updates
-    const settingsWrapperElem = document.querySelector(
-        "#chartjs-settings-wrapper"
-    );
+    const settingsWrapperElem = getChartSettingsWrapper(document);
     if (!skipControls && targetContainer && settingsWrapperElem) {
         setupChartThemeListener(targetContainer, settingsWrapperElem);
     }
 
     // Get chart container
-    let chartContainer = null;
-    if (typeof targetContainer === "string") {
-        const normalizedId = targetContainer.startsWith("#")
-            ? targetContainer.slice(1)
-            : targetContainer;
-        chartContainer =
-            getElementByIdFlexible(document, normalizedId) ||
-            querySelectorByIdFlexible(document, targetContainer);
-    } else if (isElement(targetContainer)) {
-        chartContainer = targetContainer;
-    }
+    let chartContainer = resolveChartContainer(document, targetContainer);
 
     if (!chartContainer) {
-        chartContainer = querySelectorByIdFlexible(
-            document,
-            "#chartjs_chart_container"
-        );
+        chartContainer = getChartRenderContainer(document);
     }
 
     if (!chartContainer) {
@@ -2995,9 +2985,7 @@ async function renderChartsWithData(
 			border-radius: 12px;
 		`;
 
-        const settingsWrapperElem2 = document.querySelector(
-            "#chartjs-settings-wrapper"
-        );
+        const settingsWrapperElem2 = getChartSettingsWrapper(document);
         if (settingsWrapperElem2 && settingsWrapperElem2.parentNode) {
             settingsWrapperElem2.parentNode.insertBefore(
                 chartContainer,

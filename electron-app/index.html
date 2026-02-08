@@ -1,4 +1,4 @@
-<!doctype electron>
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -141,14 +141,32 @@
             defer
             src="node_modules/arquero/dist/arquero.min.js"
         ></script>
-        <script src="node_modules/chart.js/dist/chart.umd.js"></script>
-        <script src="node_modules/date-fns/cdn.min.js"></script>
+        <script
+            defer
+            src="node_modules/chart.js/dist/chart.umd.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/date-fns/cdn.min.js"
+        ></script>
         <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
-        <script src="node_modules/hammerjs/hammer.min.js"></script>
-        <script src="node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
-        <script src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+        <script
+            defer
+            src="node_modules/hammerjs/hammer.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"
+        ></script>
+        <script
+            defer
+            src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"
+        ></script>
         <!-- JSZip for ZIP file creation -->
-        <script src="node_modules/jszip/dist/jszip.min.js"></script>
+        <script
+            defer
+            src="node_modules/jszip/dist/jszip.min.js"
+        ></script>
         <script
             defer
             src="node_modules/leaflet/dist/leaflet.js"
@@ -200,6 +218,7 @@
         <!-- Load screenfull before main-ui.js -->
         <script
             type="module"
+            defer
             src="vendor/screenfull-global.js"
         ></script>
         <script
@@ -260,7 +279,7 @@
                 </div>
                 <div class="app-header-copy">
                     <h1
-                        >Fit
+                    >Fit
                         <span class="title-highlight">File</span> Viewer</h1
                     >
                 </div>
@@ -270,13 +289,13 @@
                 aria-label="Key capabilities"
             >
                 <li class="app-pill"
-                    ><span class="pill-accent">Realtime</span> analytics</li
+                ><span class="pill-accent">Realtime</span> analytics</li
                 >
                 <li class="app-pill"
-                    ><span class="pill-accent">Interactive</span> maps</li
+                ><span class="pill-accent">Interactive</span> maps</li
                 >
                 <li class="app-pill"
-                    ><span class="pill-accent">Offline</span> ready</li
+                ><span class="pill-accent">Offline</span> ready</li
                 >
             </ul>
         </header>
@@ -290,7 +309,7 @@
                 <div class="brand-text">
                     <span class="brand-name">Fit File Viewer</span>
                     <span class="brand-subtitle"
-                        >Dashboards &amp; analytics</span
+                    >Dashboards &amp; analytics</span
                     >
                 </div>
             </div>
@@ -700,7 +719,7 @@
                         href="https://leafletjs.com/"
                         role="link"
                         tabindex="0"
-                        >Leaflet.js</a
+                    >Leaflet.js</a
                     >🗺️
                 </span>
 
@@ -710,7 +729,7 @@
                         href="https://vega.github.io/vega-lite/"
                         role="link"
                         tabindex="0"
-                        >Vega-Lite</a
+                    >Vega-Lite</a
                     >📊
                 </span>
 
@@ -720,7 +739,7 @@
                         href="https://github.com/vega/vega-embed"
                         role="link"
                         tabindex="0"
-                        >Vega-Embed</a
+                    >Vega-Embed</a
                     >📈
                 </span>
 
@@ -730,7 +749,7 @@
                         href="https://zwiftmap.com"
                         role="link"
                         tabindex="0"
-                        >ZwiftMap</a
+                    >ZwiftMap</a
                     >🗺️
                 </span>
             </footer>

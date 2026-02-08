@@ -12,6 +12,10 @@
 
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import {
+    getChartRenderContainer,
+    getChartSettingsWrapper,
+} from "../../charts/dom/chartDomUtils.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import {
     isHTMLElement,
@@ -262,13 +266,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         // Force a complete re-render - try multiple container approaches
-        let container = document.querySelector("#content_chart");
-        if (!container) {
-            container = document.querySelector("#chartjs_chart_container");
-        }
-        if (!container) {
-            container = document.querySelector("#chart-container");
-        }
+        const container = getChartRenderContainer(document);
 
         console.log(
             `${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`
@@ -281,9 +279,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         ) {
             // Fallback: direct rendering for compatibility if globally exposed
             const target =
-                container ||
-                document.querySelector("#content_chart") ||
-                document.body;
+                container || getChartRenderContainer(document) || document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
         } else {
             // Final fallback: dispatch a render request event handled elsewhere
@@ -331,7 +327,7 @@ export function resetAllSettings() {
         // Clear all stored settings
         clearAllStorageItems(); // Reset UI controls with a small delay to ensure DOM is ready
         setTimeout(() => {
-            const wrapper = document.querySelector("#chartjs-settings-wrapper");
+            const wrapper = getChartSettingsWrapper(document);
             if (wrapper) {
                 resetUIControlsToDefaults(wrapper);
             }
@@ -491,7 +487,7 @@ function reRenderChartsAfterReset() {
         }
 
         // Get the charts container
-        const chartsContainer = document.querySelector("#chart-container");
+        const chartsContainer = getChartRenderContainer(document);
 
         // Clear existing chart instances
         if (
@@ -515,7 +511,7 @@ function reRenderChartsAfterReset() {
         ) {
             const target =
                 chartsContainer ||
-                document.querySelector("#content_chart") ||
+                getChartRenderContainer(document) ||
                 document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
         } else {

@@ -13,6 +13,8 @@ export * from "./components/createChartCanvas.js";
 export * from "./components/createChartStatusIndicator.js";
 export * from "./components/createChartStatusIndicatorFromCounts.js";
 export * from "./components/createEnhancedChart.js";
+// Chart DOM helpers
+export * from "./dom/chartDomUtils.js";
 
 export * from "./components/createGlobalChartStatusIndicator.js";
 export * from "./components/createGlobalChartStatusIndicatorFromCounts.js";

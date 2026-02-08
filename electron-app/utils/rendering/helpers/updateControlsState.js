@@ -1,4 +1,8 @@
 import {
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../../charts/dom/chartDomUtils.js";
+import {
     getState,
     setState,
     subscribe,
@@ -10,8 +14,8 @@ import {
 export function initializeControlsState() {
     // Subscribe to state changes to keep DOM in sync
     subscribe("charts.controlsVisible", (/** @type {boolean} */ isVisible) => {
-        const toggleBtn = document.querySelector("#chart-controls-toggle"),
-            wrapper = document.querySelector("#chartjs-settings-wrapper");
+        const toggleBtn = getChartControlsToggle(document),
+            wrapper = getChartSettingsWrapper(document);
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = isVisible ? "block" : "none";
@@ -41,8 +45,8 @@ export function toggleChartControls() {
  * inconsistencies
  */
 export function updateControlsState() {
-    const toggleBtn = document.querySelector("#chart-controls-toggle"),
-        wrapper = document.querySelector("#chartjs-settings-wrapper");
+    const toggleBtn = getChartControlsToggle(document),
+        wrapper = getChartSettingsWrapper(document);
 
     if (!wrapper || !toggleBtn) {
         return;

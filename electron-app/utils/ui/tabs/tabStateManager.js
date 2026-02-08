@@ -8,12 +8,10 @@
  * @author FitFileViewer Development Team
  */
 
-import {
-    buildIdVariants,
-    getElementByIdFlexible,
-} from "../dom/elementIdUtils.js";
+import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { TAB_CONFIG } from "./tabStateManagerConfig.js";
 import {
@@ -125,37 +123,7 @@ class TabStateManager {
      * @returns {string | null} Tab name or null
      */
     extractTabName(buttonId) {
-        const variants = buildIdVariants(buttonId);
-
-        // Try direct lookup in config first (including ID variants)
-        for (const [tabName, config] of Object.entries(TAB_CONFIG)) {
-            if (variants.includes(config.id)) {
-                return tabName;
-            }
-        }
-
-        // Fallback to pattern matching
-        const patterns = [
-            /^tab[-_]?(.+)$/i,
-            /^(.+?)[-_]?tab$/i,
-            /^btn[-_]?(.+)$/i,
-            /^(.+?)[-_]?btn$/i,
-        ];
-
-        for (const pattern of patterns) {
-            const match = buttonId.match(pattern);
-            if (match && match[1]) {
-                const rawName = String(match[1]);
-                const normalized = rawName
-                    .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
-                    .toLowerCase();
-                if (TAB_CONFIG[normalized]) {
-                    return normalized;
-                }
-            }
-        }
-
-        return null;
+        return resolveTabNameFromButtonId(buttonId, TAB_CONFIG);
     }
 
     /**

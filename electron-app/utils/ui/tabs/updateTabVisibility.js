@@ -9,6 +9,10 @@ import {
     buildIdVariants,
     getElementByIdFlexible,
 } from "../dom/elementIdUtils.js";
+import {
+    extractTabNameFromContentId,
+    getContentIdFromTabName,
+} from "./tabIdUtils.js";
 
 // Resolve document by preferring the canonical test-provided document
 // (`__vitest_effective_document__`) first, then falling back to the
@@ -308,38 +312,6 @@ export function updateTabVisibility(visibleTabId) {
  *
  * @returns {string | null} Tab name or null if not found
  */
-function extractTabNameFromContentId(contentId) {
-    // CRITICAL BUG FIX: Type validation for contentId
-    if (!contentId || typeof contentId !== "string") {
-        console.warn(
-            "extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:",
-            contentId
-        );
-        return null;
-    }
-
-    const patterns = [
-        /^content_(.+)$/, // content_summary -> summary
-        /^content-(.+)$/, // content-summary -> summary
-        /^content([A-Z].+)$/, // contentSummary -> summary
-        /^(.+)_content$/, // summary_content -> summary
-        /^(.+)-content$/, // summary-content -> summary
-    ];
-
-    for (const pattern of patterns) {
-        const match = contentId.match(pattern);
-        if (match) {
-            const [, rawName] = match;
-            const normalized = String(rawName)
-                .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
-                .toLowerCase();
-            return normalized === "chartjs" ? "chart" : normalized;
-        }
-    }
-
-    return null;
-}
-
 /**
  * Get content ID from tab name
  *
@@ -347,18 +319,3 @@ function extractTabNameFromContentId(contentId) {
  *
  * @returns {string} Content element ID
  */
-function getContentIdFromTabName(tabName) {
-    // Map tab names to content IDs
-    const tabToContentMap = {
-        altfit: "content_altfit",
-        chart: "content_chartjs",
-        data: "content_data",
-        map: "content_map",
-        summary: "content_summary",
-        zwift: "content_zwift",
-    };
-
-    return (
-        /** @type {any} */ (tabToContentMap)[tabName] || `content_${tabName}`
-    );
-}

@@ -1,3 +1,8 @@
+import {
+    getChartBackgroundContainer,
+    getChartContentContainer,
+    getChartRenderContainer,
+} from "../../charts/dom/chartDomUtils.js";
 import { ensureChartSettingsDropdowns } from "../components/ensureChartSettingsDropdowns.js";
 import { getDoc } from "./tabStateManagerDoc.js";
 
@@ -15,25 +20,21 @@ export function attachPreRenderedCharts() {
 
     // We need to move the chart container from the background to the visible tab
     try {
-        const bgContainer = doc.getElementById("background_chart_container");
-        const visibleContainer =
-            doc.getElementById("content_chartjs") ||
-            doc.getElementById("content_chart");
+        const bgContainer = getChartBackgroundContainer(doc);
+        const visibleContainer = getChartContentContainer(doc);
 
         if (!bgContainer || !visibleContainer) {
             return false;
         }
 
         // Get the pre-rendered chart container
-        const preRenderedContainer = bgContainer.querySelector(
-            "#chartjs_chart_container"
-        );
+        const preRenderedContainer = getChartRenderContainer(bgContainer);
         if (!preRenderedContainer) {
             return false;
         }
 
         // Ensure we don't already have a chart in the visible container
-        if (visibleContainer.querySelector("#chartjs_chart_container")) {
+        if (getChartRenderContainer(visibleContainer)) {
             return false;
         }
 

@@ -4,6 +4,10 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
+import {
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../../charts/dom/chartDomUtils.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
@@ -250,11 +254,29 @@ export class UIStateManager {
             }
         };
 
+        /**
+         * Safely attach a click handler.
+         *
+         * Some unit tests stub DOM nodes with plain objects; in production
+         * these are real HTMLElements. Guard to avoid runtime crashes.
+         *
+         * @param {unknown} el
+         * @param {() => void} handler
+         */
+        const safeAddClickListener = (el, handler) => {
+            if (
+                el &&
+                typeof (/** @type {any} */ (el).addEventListener) === "function"
+            ) {
+                /** @type {any} */ (el).addEventListener("click", handler);
+            }
+        };
+
         // Tab switching
         const tabButtons = safeQuerySelectorAll("[data-tab]");
         for (const button of tabButtons) {
-            const tabName = button.dataset.tab;
-            button.addEventListener("click", () => {
+            const tabName = /** @type {any} */ (button)?.dataset?.tab;
+            safeAddClickListener(button, () => {
                 if (tabName) {
                     AppActions.switchTab(tabName);
                 }
@@ -264,8 +286,8 @@ export class UIStateManager {
         // Theme toggle buttons
         const themeButtons = safeQuerySelectorAll("[data-theme]");
         for (const button of themeButtons) {
-            const { theme } = button.dataset;
-            button.addEventListener("click", () => {
+            const theme = /** @type {any} */ (button)?.dataset?.theme;
+            safeAddClickListener(button, () => {
                 if (theme) {
                     AppActions.switchTheme(theme);
                 }
@@ -273,20 +295,18 @@ export class UIStateManager {
         }
 
         // Chart controls toggle
-        const chartToggle = safeGetById("chart-controls-toggle");
-        if (chartToggle) {
-            chartToggle.addEventListener("click", () => {
-                AppActions.toggleChartControls();
-            });
-        }
+        const chartToggle =
+            getChartControlsToggle(document) ||
+            safeGetById("chart-controls-toggle");
+        safeAddClickListener(chartToggle, () => {
+            AppActions.toggleChartControls();
+        });
 
         // Measurement mode toggle
         const measureToggle = safeGetById("measurement-mode-toggle");
-        if (measureToggle) {
-            measureToggle.addEventListener("click", () => {
-                AppActions.toggleMeasurementMode();
-            });
-        }
+        safeAddClickListener(measureToggle, () => {
+            AppActions.toggleMeasurementMode();
+        });
     }
 
     /**
@@ -380,20 +400,8 @@ export class UIStateManager {
      * @param {boolean} isVisible - Whether controls are visible
      */
     updateChartControlsUI(isVisible) {
-        const wrapper = (() => {
-            try {
-                return document.querySelector("#chartjs-settings-wrapper");
-            } catch {
-                return null;
-            }
-        })();
-        const toggleBtn = (() => {
-            try {
-                return document.querySelector("#chart-controls-toggle");
-            } catch {
-                return null;
-            }
-        })();
+        const wrapper = getChartSettingsWrapper(document);
+        const toggleBtn = getChartControlsToggle(document);
 
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";

@@ -2,6 +2,7 @@
 import * as __StateMgr from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import { extractTabNameFromButtonId } from "./tabIdUtils.js";
 
 // Resolve the current document by preferring the canonical test-provided
 // `__vitest_effective_document__` first, then falling back to the
@@ -281,7 +282,7 @@ export function initializeActiveTabState() {
                     const btnId =
                         typeof button.id === "string" ? button.id.trim() : "";
                     if (!btnId) return; // Do not update state if element has no valid id
-                    const tabName = extractTabName(btnId);
+                    const tabName = extractTabNameFromButtonId(btnId);
                     if (!tabName) return;
                     // Handle potential state errors gracefully within event handler
                     try {
@@ -327,7 +328,7 @@ export function updateActiveTab(tabId) {
     try {
         const currentActive = getDoc().querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
-            const tabNameFast = extractTabName(tabId);
+            const tabNameFast = extractTabNameFromButtonId(tabId);
             getStateMgr().setState("ui.activeTab", tabNameFast, {
                 source: "updateActiveTab",
             });
@@ -353,7 +354,7 @@ export function updateActiveTab(tabId) {
     const anyTarget = /** @type {any} */ (target);
     if (anyTarget && anyTarget.classList) {
         anyTarget.classList.add("active");
-        const tabName = extractTabName(tabId);
+        const tabName = extractTabNameFromButtonId(tabId);
         // Let errors from setState propagate to satisfy tests expecting throws
         getStateMgr().setState("ui.activeTab", tabName, {
             source: "updateActiveTab",
@@ -364,61 +365,6 @@ export function updateActiveTab(tabId) {
         `Element with ID "${tabId}" not found in the DOM or missing classList.`
     );
     return false;
-}
-
-/**
- * Extract tab name from button ID
- *
- * @param {string} tabId - The button ID
- *
- * @returns {string | null} Tab name or null if not found
- */
-/**
- * Extract tab name from button ID
- *
- * @param {string} tabId
- *
- * @returns {string}
- */
-function extractTabName(tabId) {
-    const knownTabNames = new Set([
-        "altfit",
-        "browser",
-        "chart",
-        "chartjs",
-        "data",
-        "map",
-        "summary",
-        "zwift",
-    ]);
-
-    // Common patterns for tab button IDs
-    const patterns = [
-        /^tab_(.+)$/, // Tab_summary -> summary
-        /^(.+)_tab$/, // Summary_tab -> summary
-        /^tab-(.+)$/, // Tab-summary -> summary
-        /^(.+)-tab$/, // Summary-tab -> summary
-        /^btn_(.+)$/, // Btn_chart -> chart
-        /^(.+)_btn$/, // Chart_btn -> chart
-        /^btn-(.+)$/, // Btn-chart -> chart
-        /^(.+)-btn$/, // Chart-btn -> chart
-    ];
-
-    for (const pattern of patterns) {
-        const match = tabId.match(pattern);
-        if (match) {
-            const rawName = /** @type {string} */ (match[1] || "");
-            const normalized = rawName.toLowerCase();
-            const isTabUnderscorePattern = pattern === patterns[0];
-            if (isTabUnderscorePattern) {
-                return knownTabNames.has(normalized) ? rawName : tabId;
-            }
-            return rawName;
-        }
-    }
-
-    // Fallback: use the ID as-is if no pattern matches
-    return tabId;
 }
 
 /**
@@ -445,7 +391,7 @@ function updateTabButtonsFromState(activeTab) {
             continue;
         }
 
-        const tabName = extractTabName(btn.id),
+        const tabName = extractTabNameFromButtonId(btn.id),
             isActive = tabName === activeTab;
 
         btn.classList.toggle("active", isActive);

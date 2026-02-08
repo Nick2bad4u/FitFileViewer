@@ -13,6 +13,7 @@ import pLimitCompat from "../../async/pLimitCompat.js";
 import { escapeHtml } from "../../dom/index.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
+import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -64,7 +65,7 @@ const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
  * Render (or refresh) the Browser tab UI.
  */
 export async function renderFileBrowserTab() {
-    const container = document.getElementById("content_browser");
+    const container = getElementByIdFlexible(document, "content_browser");
     if (!container) {
         return;
     }

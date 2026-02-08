@@ -1,4 +1,5 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
@@ -477,9 +478,7 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Enable all chart fields (set all toggles to visible)
-                const settingsWrapper = document.querySelector(
-                    "#chartjs-settings-wrapper"
-                );
+                const settingsWrapper = getChartSettingsWrapper(document);
                 if (settingsWrapper) {
                     const fieldToggles = settingsWrapper.querySelectorAll(
                         '.field-toggle input[type="checkbox"]'

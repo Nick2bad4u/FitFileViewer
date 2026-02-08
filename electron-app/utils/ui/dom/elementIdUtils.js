@@ -89,8 +89,63 @@ export function querySelectorByIdFlexible(doc, selector) {
 
     if (selector?.startsWith("#") && !selector.includes(" ")) {
         const id = selector.slice(1);
-        return getElementByIdFlexible(doc, id);
+        const element = getElementByIdFlexible(doc, id);
+        if (element) {
+            return element;
+        }
+        return /** @type {HTMLElement | null} */ (doc.querySelector(selector));
     }
 
     return /** @type {HTMLElement | null} */ (doc.querySelector(selector));
+}
+
+/**
+ * Resolve the first matching element from a list of IDs or simple ID selectors.
+ *
+ * @param {Document | null | undefined} doc
+ * @param {string[] | string} ids
+ *
+ * @returns {HTMLElement | null}
+ */
+export function getElementByIdFlexibleList(doc, ids) {
+    if (!doc) {
+        return null;
+    }
+
+    const canGetById = typeof doc.getElementById === "function";
+    const canQuery = typeof doc.querySelector === "function";
+    const values = Array.isArray(ids) ? ids : [ids];
+    for (const value of values) {
+        if (!value) {
+            continue;
+        }
+
+        const candidate = String(value).trim();
+        if (!candidate) {
+            continue;
+        }
+
+        if (candidate.startsWith("#")) {
+            const element = canQuery
+                ? querySelectorByIdFlexible(doc, candidate)
+                : canGetById
+                  ? getElementByIdFlexible(doc, candidate.slice(1))
+                  : null;
+            if (element) {
+                return element;
+            }
+            continue;
+        }
+
+        const element = canGetById
+            ? getElementByIdFlexible(doc, candidate)
+            : canQuery
+              ? querySelectorByIdFlexible(doc, `#${candidate}`)
+              : null;
+        if (element) {
+            return element;
+        }
+    }
+
+    return null;
 }
