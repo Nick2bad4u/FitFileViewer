@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+
 import styles from "./styles.module.css";
 
 /**
@@ -9,26 +10,26 @@ export default function GitHubStatsComponent(): JSX.Element {
     return (
         <div className={styles.githubStats}>
             <a
-                href="https://github.com/Nick2bad4u/FitFileViewer/stargazers"
                 className={styles.statBadge}
-                target="_blank"
+                href="https://github.com/Nick2bad4u/FitFileViewer/stargazers"
                 rel="noopener noreferrer"
+                target="_blank"
             >
                 ⭐ Stars
             </a>
             <a
-                href="https://github.com/Nick2bad4u/FitFileViewer/network/members"
                 className={styles.statBadge}
-                target="_blank"
+                href="https://github.com/Nick2bad4u/FitFileViewer/network/members"
                 rel="noopener noreferrer"
+                target="_blank"
             >
                 🍴 Forks
             </a>
             <a
-                href="https://github.com/Nick2bad4u/FitFileViewer/issues"
                 className={styles.statBadge}
-                target="_blank"
+                href="https://github.com/Nick2bad4u/FitFileViewer/issues"
                 rel="noopener noreferrer"
+                target="_blank"
             >
                 🐛 Issues
             </a>

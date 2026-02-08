@@ -29,7 +29,8 @@ export async function loadVersionInfo() {
     try {
         logWithContext("info", "Starting version information loading");
 
-        /** @type {{
+        /**
+         * @type {{
          *     version: string;
          *     electron: string;
          *     node: string;
@@ -37,7 +38,8 @@ export async function loadVersionInfo() {
          *     platform: string;
          *     author: string;
          *     license: string;
-         * }} */
+         * }}
+         */
         let systemInfo;
 
         if (validateElectronAPI()) {

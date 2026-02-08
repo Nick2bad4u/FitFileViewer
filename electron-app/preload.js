@@ -254,7 +254,7 @@ function createSafeEventHandler(channel, methodName, transform) {
 
             return () => {
                 try {
-                    ipcRenderer.removeListener(channel, handler);
+                    removeIpcListener(channel, handler);
                 } catch {
                     /* ignore */
                 }
@@ -267,6 +267,33 @@ function createSafeEventHandler(channel, methodName, transform) {
             return () => {};
         }
     };
+}
+
+/**
+ * Safely remove an ipcRenderer listener, supporting alternative APIs when
+ * removeListener is unavailable (e.g., Vitest mocks).
+ *
+ * @param {string} channel
+ * @param {Function} handler
+ */
+function removeIpcListener(channel, handler) {
+    if (!ipcRenderer) {
+        return;
+    }
+
+    if (typeof ipcRenderer.removeListener === "function") {
+        ipcRenderer.removeListener(channel, handler);
+        return;
+    }
+
+    if (typeof ipcRenderer.off === "function") {
+        ipcRenderer.off(channel, handler);
+        return;
+    }
+
+    if (typeof ipcRenderer.removeAllListeners === "function") {
+        ipcRenderer.removeAllListeners(channel);
+    }
 }
 
 /**
@@ -896,7 +923,7 @@ const electronAPI = {
 
             return () => {
                 try {
-                    ipcRenderer.removeListener(channel, wrapped);
+                    removeIpcListener(channel, wrapped);
                 } catch (error) {
                     console.error(
                         `[preload.js] Error removing onIpc(${channel}) listener:`,
@@ -1006,7 +1033,7 @@ const electronAPI = {
 
             return () => {
                 try {
-                    ipcRenderer.removeListener(eventName, handler);
+                    removeIpcListener(eventName, handler);
                 } catch {
                     /* ignore */
                 }
@@ -1366,10 +1393,7 @@ const electronAPI = {
             }
 
             if (mainStateCallbacksByPath.size === 0 && mainStateDispatcher) {
-                ipcRenderer.removeListener(
-                    "main-state-change",
-                    mainStateDispatcher
-                );
+                removeIpcListener("main-state-change", mainStateDispatcher);
                 mainStateDispatcher = null;
             }
 
@@ -1492,8 +1516,7 @@ const electronAPI = {
                 ipcRenderer &&
                 typeof ipcRenderer.invoke === "function" &&
                 typeof ipcRenderer.send === "function" &&
-                typeof ipcRenderer.on === "function" &&
-                typeof ipcRenderer.removeListener === "function";
+                typeof ipcRenderer.on === "function";
 
             if (process.env.NODE_ENV === "development") {
                 console.log("[preload.js] API Validation:", {
@@ -1602,9 +1625,7 @@ if (process.env.NODE_ENV === "development") {
 
             console.log("[preload.js] Development tools exposed");
         } else {
-            console.warn(
-                "[preload.js] Development tools not exposed - contextBridge unavailable"
-            );
+            throw new Error("contextBridge unavailable");
         }
     } catch (error) {
         console.error(

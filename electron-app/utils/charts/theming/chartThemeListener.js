@@ -93,9 +93,11 @@ export function setupChartThemeListener(chartsContainer, settingsContainer) {
  * @returns {(e: Event) => void}
  */
 function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
-    /** @type {((e: Event) => void) & {
+    /**
+     * @type {((e: Event) => void) & {
      *     timeout?: ReturnType<typeof setTimeout>;
-     * }} */
+     * }}
+     */
     const handler = function (event) {
         const custom = /** @type {ThemeChangeEvent | null} */ (
                 event instanceof CustomEvent ? event : null

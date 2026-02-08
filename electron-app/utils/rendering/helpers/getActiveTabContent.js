@@ -9,6 +9,8 @@
  * @since 1.0.0
  */
 
+import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+
 // DOM selectors
 const // CSS display states
     DISPLAY_STATES = {
@@ -81,8 +83,8 @@ export function getActiveTabContent() {
             /* ignore */
         }
 
-        // Final strategy: derive active content from the active tab button id (tab-*)
-        // and map to content-*.
+        // Final strategy: derive active content from the active tab button id
+        // and map to content-* using flexible ID lookup.
         try {
             const activeBtn = document.querySelector(".tab-button.active");
             const activeId =
@@ -90,10 +92,16 @@ export function getActiveTabContent() {
                 typeof (/** @type {any} */ (activeBtn).id) === "string"
                     ? activeBtn.id
                     : "";
-            if (activeId && activeId.startsWith("tab-")) {
-                const tabName = activeId.slice("tab-".length);
-                const contentId = `content-${tabName}`;
-                const contentEl = document.getElementById(contentId);
+            const match = activeId.match(/^tab[-_]?(.+)$/iu);
+            if (match && match[1]) {
+                const rawName = String(match[1]);
+                const normalized = rawName
+                    .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
+                    .toLowerCase();
+                const contentEl = getElementByIdFlexible(
+                    document,
+                    `content_${normalized}`
+                );
                 if (contentEl) {
                     return contentEl;
                 }

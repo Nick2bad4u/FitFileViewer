@@ -780,27 +780,32 @@ export class MasterStateManager {
             stateAPI.setState(
                 "system.performance",
                 {
-                    memoryUsage: /** @type {Performance & {
+                    memoryUsage: /**
+                     * @type {Performance & {
                      *     memory?: {
                      *         usedJSHeapSize: number;
                      *         totalJSHeapSize: number;
                      *     };
-                     * }} */ (performance).memory
+                     * }}
+                     */ (performance).memory
                         ? {
                               total: Math.round(
-                                  /** @type {Performance & {
+                                  /**
+                                   * @type {Performance & {
                                    *     memory: {
                                    *         totalJSHeapSize: number;
                                    *     };
-                                   * }} */ (performance).memory
-                                      .totalJSHeapSize /
+                                   * }}
+                                   */ (performance).memory.totalJSHeapSize /
                                       1024 /
                                       1024
                               ),
                               used: Math.round(
-                                  /** @type {Performance & {
+                                  /**
+                                   * @type {Performance & {
                                    *     memory: { usedJSHeapSize: number };
-                                   * }} */ (performance).memory.usedJSHeapSize /
+                                   * }}
+                                   */ (performance).memory.usedJSHeapSize /
                                       1024 /
                                       1024
                               ),

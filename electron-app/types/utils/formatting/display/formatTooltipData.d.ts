@@ -40,6 +40,10 @@ export type RecordMessage = {
      */
     heartRate?: number;
     /**
+     * - Auxiliary heart rate in bpm
+     */
+    auxHeartRate?: number;
+    /**
      * - Speed in m/s
      */
     speed?: number;

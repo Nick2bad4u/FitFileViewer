@@ -464,11 +464,13 @@ export function renderLapZoneCharts(container, options = {}) {
 
                 const singlePwrChart = renderSinglePowerZoneBar(
                     canvas4,
-                    /** @type {{
+                    /**
+                     * @type {{
                      *     label: string;
                      *     value: number;
                      *     color: string;
-                     * }[]} */ (sessionPowerZones),
+                     * }[]}
+                     */ (sessionPowerZones),
                     {
                         title: "Power Zone by Lap (Individual)",
                     }

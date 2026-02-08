@@ -1,3 +1,4 @@
+import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import {
     getGlobalStorageKey,
     getStorageKey,
@@ -35,7 +36,7 @@ import { showColModal } from "../helpers/summaryColModal.js";
  * @param {Object[]} [data.lapMesgs] - Array of lap message objects (optional).
  */
 export function renderSummary(data) {
-    const container = document.querySelector("#content_summary");
+    const container = getElementByIdFlexible(document, "content_summary");
     if (!container) {
         return;
     } // Guard: container missing

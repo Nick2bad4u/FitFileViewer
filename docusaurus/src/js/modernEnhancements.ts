@@ -113,7 +113,7 @@ function addScrollRevealAnimations(): void {
         return;
     }
 
-    const observerOptions: IntersectionObserverInit = {
+    const observerOptions = {
         root: null,
         rootMargin: "0px",
         threshold: 0.1,

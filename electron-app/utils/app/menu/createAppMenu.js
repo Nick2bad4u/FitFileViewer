@@ -60,11 +60,13 @@ function getConf() {
         return __confInstance;
     } catch {
         // Fallback simple in-memory store for non-Electron/test environments
-        /** @type {{
+        /**
+         * @type {{
          *     _store: Record<string, any>;
          *     get: (k: string, d?: any) => any;
          *     set: (k: string, v: any) => void;
-         * }} */
+         * }}
+         */
         const fallback = {
             _store: {},
             get(key, def) {
@@ -205,10 +207,12 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         /* Ignore errors */
     }
     // Lazy import recent files utils to ensure vi.mock hooks correctly
-    /** @type {{
+    /**
+     * @type {{
      *     loadRecentFiles: () => string[];
      *     getShortRecentName: (p: string) => string;
-     * }} */
+     * }}
+     */
     let recentUtils;
     try {
         recentUtils = require("../../../utils/files/recent/recentFiles");
@@ -232,9 +236,11 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     // Best-effort file access policy integration.
     // This module is used in the main process; approving here ensures renderer readFile calls
     // can be authorized after a user clicks a recent file menu item.
-    /** @type {null | {
+    /**
+     * @type {null | {
      *     approveFilePath: (p: unknown, options?: { source?: string }) => string;
-     * }} */
+     * }}
+     */
     let fileAccessPolicy = null;
     try {
         fileAccessPolicy = require("../../../main/security/fileAccessPolicy");

@@ -4,6 +4,7 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
+import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
     getState,
@@ -242,7 +243,7 @@ export class UIStateManager {
         const safeGetById = (id) => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById(id)
+                    getElementByIdFlexible(document, id)
                 );
             } catch {
                 return null;
@@ -414,7 +415,7 @@ export class UIStateManager {
         const dropOverlay = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("drop_overlay")
+                    getElementByIdFlexible(document, "drop_overlay")
                 );
             } catch {
                 return null;
@@ -428,7 +429,7 @@ export class UIStateManager {
         const altFitIframe = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("altfit_iframe")
+                    getElementByIdFlexible(document, "altfit_iframe")
                 );
             } catch {
                 return null;
@@ -442,7 +443,7 @@ export class UIStateManager {
         const zwiftIframe = (() => {
             try {
                 return /** @type {HTMLElement | null} */ (
-                    document.getElementById("zwift_iframe")
+                    getElementByIdFlexible(document, "zwift_iframe")
                 );
             } catch {
                 return null;
@@ -479,7 +480,10 @@ export class UIStateManager {
 
         const fileNameContainer = (() => {
             try {
-                return document.getElementById("active_file_name_container");
+                return getElementByIdFlexible(
+                    document,
+                    "active_file_name_container"
+                );
             } catch {
                 return null;
             }
@@ -519,7 +523,7 @@ export class UIStateManager {
 
         const fileSpan = (() => {
             try {
-                return document.getElementById("active_file_name");
+                return getElementByIdFlexible(document, "active_file_name");
             } catch {
                 return null;
             }
@@ -744,7 +748,7 @@ export class UIStateManager {
     updateUnloadButtonVisibility(isVisible) {
         const unloadBtn = (() => {
             try {
-                return document.getElementById("unload_file_btn");
+                return getElementByIdFlexible(document, "unload_file_btn");
             } catch {
                 return null;
             }

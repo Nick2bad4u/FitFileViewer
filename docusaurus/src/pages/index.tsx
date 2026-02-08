@@ -1,16 +1,15 @@
-/* eslint-disable @eslint-community/eslint-comments/disable-enable-pair -- This page contains multiple unrelated eslint rules that cannot be properly paired */
-/* eslint-disable tailwind/no-custom-classname -- Using Docusaurus CSS classes, not Tailwind */
-
-import Heading from "@theme/Heading";
-import HomepageFeatures from "@site/src/components/HomepageFeatures";
-import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
 import type { JSX } from "react";
-import clsx from "clsx";
-import styles from "./index.module.css";
+
+import Link from "@docusaurus/Link";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import GitHubStatsComponent from "@site/src/components/GitHubStats";
-import useBaseUrl from "@docusaurus/useBaseUrl";
+import HomepageFeatures from "@site/src/components/HomepageFeatures";
+import Heading from "@theme/Heading";
+import Layout from "@theme/Layout";
+import clsx from "clsx";
+
+import styles from "./index.module.css";
 
 /**
  * Copies code to clipboard with fallback support.
@@ -43,7 +42,7 @@ const handleCopyCode = (() => {
         if (
             typeof window !== "undefined" &&
             "navigator" in window &&
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Browser API access requires runtime checks
+
             window.navigator.clipboard
         ) {
             try {
@@ -88,7 +87,7 @@ const handleCopyCode = (() => {
  * Wrapper for handleCopyCode to handle the async function in onClick.
  */
 const handleCopyCodeClick = (): void => {
-    // eslint-disable-next-line promise/prefer-await-to-then -- Using Promise.then for error handling pattern in this context
+
     void handleCopyCode().catch((error: unknown) => {
         console.error("Failed to copy code:", error);
     });
@@ -144,10 +143,10 @@ const UIDemo = (): JSX.Element => {
             <div className={styles["app-body"]}>
                 <div className={styles["app-toolbar"]}>
                     <button
-                        type="button"
                         className={styles["add-button"]}
                         onClick={handleDemoButtonClick}
                         title="Demo button - not functional"
+                        type="button"
                     >
                         📂 Open FIT File (Demo)
                     </button>
@@ -157,7 +156,7 @@ const UIDemo = (): JSX.Element => {
                 </div>
                 <div className={styles["site-list"]}>
                     {activities.map((activity) => (
-                        <div key={activity.type + activity.date} className={styles["site-item"]}>
+                        <div className={styles["site-item"]} key={activity.type + activity.date}>
                             <div className={styles["site-status"]}>
                                 <span className={styles["status-dot"]} data-status="up" />
                                 <span className={styles["site-url"]}>{activity.type}</span>
@@ -336,17 +335,17 @@ const TechStack = (): JSX.Element => (
                             <span>package.json</span>
                             <div className={styles["code-actions"]}>
                                 <button
-                                    type="button"
                                     className={styles["copy-button"]}
                                     onClick={handleCopyCodeClick}
+                                    type="button"
                                 >
                                     📋 Copy
                                 </button>
                                 <a
-                                    href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/electron-app/package.json"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                     className={styles["view-button"]}
+                                    href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/electron-app/package.json"
+                                    rel="noopener noreferrer"
+                                    target="_blank"
                                 >
                                     🔗 View Full
                                 </a>
@@ -422,12 +421,12 @@ const ScreenshotGallery = (): JSX.Element => {
                     {screenshots.map((shot) => {
                         const imgSrc = useBaseUrl(shot.imagePath);
                         return (
-                            <article key={shot.imagePath} className={styles["screenshot-card"]}>
+                            <article className={styles["screenshot-card"]} key={shot.imagePath}>
                                 <Link
                                     className={styles["screenshot-image-link"]}
                                     href={imgSrc}
-                                    target="_blank"
                                     rel="noopener noreferrer"
+                                    target="_blank"
                                     title="Open full-size image"
                                 >
                                     <img
@@ -460,8 +459,8 @@ const ScreenshotGallery = (): JSX.Element => {
                                                 styles["screenshot-action"]
                                             )}
                                             href={imgSrc}
-                                            target="_blank"
                                             rel="noopener noreferrer"
+                                            target="_blank"
                                         >
                                             View full size
                                         </Link>
@@ -483,8 +482,8 @@ export default function Home(): JSX.Element {
     const { siteConfig } = useDocusaurusContext();
     return (
         <Layout
-            title={`${siteConfig.title} - View and Analyze .fit Files`}
             description="Open-source desktop application for viewing and analyzing .fit files from Garmin and other fitness devices. Interactive maps, charts, and data tables."
+            title={`${siteConfig.title} - View and Analyze .fit Files`}
             wrapperClassName="home-page"
         >
             <HomepageHeader />

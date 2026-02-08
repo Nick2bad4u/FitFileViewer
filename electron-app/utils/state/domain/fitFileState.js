@@ -4,6 +4,10 @@
  */
 
 import { showNotification } from "../../app/initialization/rendererUtils.js";
+import {
+    getAuxHeartRateValue,
+    resolveFieldDescriptionMessages,
+} from "../../data/processing/auxHeartRateUtils.js";
 import * as stateCore from "../core/stateManager.js";
 
 const subscribe = (
@@ -21,6 +25,7 @@ const subscribe = (
  * @property {number} [position_lat]
  * @property {number} [position_long]
  * @property {number} [heart_rate]
+ * @property {number} [aux_heart_rate]
  * @property {number} [power]
  * @property {number} [cadence]
  * @property {number} [altitude]
@@ -117,6 +122,7 @@ const subscribe = (
  *
  * @property {number} gps
  * @property {number} heartRate
+ * @property {number} auxHeartRate
  * @property {number} power
  * @property {number} cadence
  * @property {number} altitude
@@ -129,6 +135,7 @@ const subscribe = (
  *
  * @property {boolean} hasGPS
  * @property {boolean} hasHeartRate
+ * @property {boolean} hasAuxHeartRate
  * @property {boolean} hasPower
  * @property {boolean} hasCadence
  * @property {boolean} hasAltitude
@@ -191,6 +198,7 @@ export class FitFileStateManager {
         const quality = {
             completeness: 0,
             hasAltitude: false,
+            hasAuxHeartRate: false,
             hasCadence: false,
             hasGPS: false,
             hasHeartRate: false,
@@ -210,10 +218,13 @@ export class FitFileStateManager {
             return quality;
         }
         let altitudeCount = 0,
+            auxHrCount = 0,
             cadenceCount = 0,
             gpsCount = 0,
             hrCount = 0,
             powerCount = 0;
+
+        const fieldDescriptionMesgs = resolveFieldDescriptionMessages(data);
 
         for (const record of records) {
             if (record.position_lat && record.position_long) {
@@ -223,6 +234,14 @@ export class FitFileStateManager {
             if (record.heart_rate) {
                 hrCount++;
                 quality.hasHeartRate = true;
+            }
+            const auxHrValue = getAuxHeartRateValue(record, {
+                fieldDescriptionMesgs,
+                recordMesgs: records,
+            });
+            if (typeof auxHrValue === "number" && Number.isFinite(auxHrValue)) {
+                auxHrCount++;
+                quality.hasAuxHeartRate = true;
             }
             if (record.power) {
                 powerCount++;
@@ -239,7 +258,7 @@ export class FitFileStateManager {
         }
 
         // Calculate completeness as percentage of records with basic data
-        const basicDataCount = Math.max(gpsCount, hrCount, 1);
+        const basicDataCount = Math.max(gpsCount, hrCount, auxHrCount, 1);
         quality.completeness = Math.round(
             (basicDataCount / totalRecords) * 100
         );
@@ -247,6 +266,7 @@ export class FitFileStateManager {
         // Calculate coverage percentages for detailed metrics
         quality.coverage = {
             altitude: Math.round((altitudeCount / totalRecords) * 100),
+            auxHeartRate: Math.round((auxHrCount / totalRecords) * 100),
             cadence: Math.round((cadenceCount / totalRecords) * 100),
             gps: Math.round((gpsCount / totalRecords) * 100),
             heartRate: Math.round((hrCount / totalRecords) * 100),
@@ -804,6 +824,17 @@ export const FitFileSelectors = {
         /** @type {DataQuality | null} */
         const quality = /** @type {any} */ (this.getDataQuality());
         return quality ? Boolean(quality.hasHeartRate) : false;
+    },
+
+    /**
+     * Check if file has auxiliary heart rate data
+     *
+     * @returns {boolean} True if has auxiliary heart rate
+     */
+    hasAuxHeartRate() {
+        /** @type {DataQuality | null} */
+        const quality = /** @type {any} */ (this.getDataQuality());
+        return quality ? Boolean(quality.hasAuxHeartRate) : false;
     },
 
     /**

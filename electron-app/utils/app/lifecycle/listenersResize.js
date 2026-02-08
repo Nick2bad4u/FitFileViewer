@@ -1,3 +1,5 @@
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+
 /**
  * Registers the window resize listener for chart redraws.
  *
@@ -8,11 +10,12 @@ export function registerChartResizeListener({ cleanupCallbacks }) {
     let chartRenderTimeout = null;
 
     const handleWindowResize = () => {
+        const chartTab = querySelectorByIdFlexible(document, "#tab_chart");
+        const chartJsTab = querySelectorByIdFlexible(document, "#tab_chartjs");
+
         if (
-            document
-                .querySelector("#tab_chart")
-                ?.classList.contains("active") ||
-            document.querySelector("#tab_chartjs")?.classList.contains("active")
+            chartTab?.classList.contains("active") ||
+            chartJsTab?.classList.contains("active")
         ) {
             if (chartRenderTimeout) {
                 clearTimeout(chartRenderTimeout);

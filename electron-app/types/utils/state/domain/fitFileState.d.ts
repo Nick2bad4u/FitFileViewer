@@ -6,6 +6,7 @@
  * @property {number} [position_lat]
  * @property {number} [position_long]
  * @property {number} [heart_rate]
+ * @property {number} [aux_heart_rate]
  * @property {number} [power]
  * @property {number} [cadence]
  * @property {number} [altitude]
@@ -94,6 +95,7 @@
  *
  * @property {number} gps
  * @property {number} heartRate
+ * @property {number} auxHeartRate
  * @property {number} power
  * @property {number} cadence
  * @property {number} altitude
@@ -105,6 +107,7 @@
  *
  * @property {boolean} hasGPS
  * @property {boolean} hasHeartRate
+ * @property {boolean} hasAuxHeartRate
  * @property {boolean} hasPower
  * @property {boolean} hasCadence
  * @property {boolean} hasAltitude
@@ -321,6 +324,12 @@ export namespace FitFileSelectors {
      */
     function hasHeartRate(): boolean;
     /**
+     * Check if file has auxiliary heart rate data
+     *
+     * @returns {boolean} True if has auxiliary heart rate
+     */
+    function hasAuxHeartRate(): boolean;
+    /**
      * Check if file has power data
      *
      * @returns {boolean} True if has power
@@ -347,6 +356,7 @@ export type RecordMessage = {
     position_lat?: number;
     position_long?: number;
     heart_rate?: number;
+    aux_heart_rate?: number;
     power?: number;
     cadence?: number;
     altitude?: number;
@@ -427,6 +437,7 @@ export type ActivityInfo = {
 export type DataCoverage = {
     gps: number;
     heartRate: number;
+    auxHeartRate: number;
     power: number;
     cadence: number;
     altitude: number;
@@ -437,6 +448,7 @@ export type DataCoverage = {
 export type DataQuality = {
     hasGPS: boolean;
     hasHeartRate: boolean;
+    hasAuxHeartRate: boolean;
     hasPower: boolean;
     hasCadence: boolean;
     hasAltitude: boolean;

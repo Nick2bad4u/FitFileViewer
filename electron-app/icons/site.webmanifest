@@ -1,6 +1,6 @@
 {
-    "name": "FitFileViewer",
-    "short_name": "FFV",
+    "background_color": "#ffffff",
+    "display": "standalone",
     "icons": [
         {
             "src": "/electron-app/icons/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
             "purpose": "maskable"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
-    "display": "standalone"
+    "name": "FitFileViewer",
+    "short_name": "FFV",
+    "theme_color": "#ffffff"
 }

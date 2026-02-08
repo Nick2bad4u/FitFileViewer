@@ -1,5 +1,6 @@
 // Prefer dynamic access to state manager to avoid cross-suite stale imports
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 // Resolve the current document by preferring the canonical test-provided
@@ -348,7 +349,7 @@ export function updateActiveTab(tabId) {
     }
 
     // Prefer cached lookup, fall back to DOM if not found
-    const target = getDoc().getElementById(tabId);
+    const target = getElementByIdFlexible(getDoc(), tabId);
     const anyTarget = /** @type {any} */ (target);
     if (anyTarget && anyTarget.classList) {
         anyTarget.classList.add("active");
@@ -380,6 +381,17 @@ export function updateActiveTab(tabId) {
  * @returns {string}
  */
 function extractTabName(tabId) {
+    const knownTabNames = new Set([
+        "altfit",
+        "browser",
+        "chart",
+        "chartjs",
+        "data",
+        "map",
+        "summary",
+        "zwift",
+    ]);
+
     // Common patterns for tab button IDs
     const patterns = [
         /^tab_(.+)$/, // Tab_summary -> summary
@@ -395,7 +407,13 @@ function extractTabName(tabId) {
     for (const pattern of patterns) {
         const match = tabId.match(pattern);
         if (match) {
-            return /** @type {string} */ (match[1] || null);
+            const rawName = /** @type {string} */ (match[1] || "");
+            const normalized = rawName.toLowerCase();
+            const isTabUnderscorePattern = pattern === patterns[0];
+            if (isTabUnderscorePattern) {
+                return knownTabNames.has(normalized) ? rawName : tabId;
+            }
+            return rawName;
         }
     }
 

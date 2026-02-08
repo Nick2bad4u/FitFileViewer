@@ -264,7 +264,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 }
 
 export function addHoverEffectsToExistingCharts() {
-    const chartContainer = document.querySelector("#chartjs_chart_container");
+    const chartContainer =
+        document.querySelector("#chartjs_chart_container") ||
+        document.querySelector("#chartjs-chart-container");
     if (!chartContainer) {
         console.warn("[DevHelper] Chart container not found");
         return;

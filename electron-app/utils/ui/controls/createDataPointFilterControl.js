@@ -196,8 +196,8 @@ export function createDataPointFilterControl(onFilterChange) {
     }
 
     const refreshSummary = createSummaryRefresher({
-        formatMetricValue,
-        formatPercent,
+        formatMetricValue: (value, stats) => formatMetricValue(value, stats),
+        formatPercent: (value) => formatPercent(value),
         summary,
     });
 

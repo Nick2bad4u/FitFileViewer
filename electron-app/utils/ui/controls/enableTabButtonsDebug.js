@@ -23,10 +23,14 @@ export function debugTabButtons() {
                     ? btn.getAttribute("id")
                     : "") ||
                 btn.textContent?.trim() ||
-                "";
+                "",
+            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase();
         if (
             btnId === "open_file_btn" ||
             btnId === "open-file-btn" ||
+            btnId === "openFileBtn" ||
+            normalizedId === "openfilebtn" ||
+            normalizedId === "openfilebutton" ||
             btn.classList.contains("open-file-btn")
         ) {
             console.log(`[TabButtons] SKIPPING open file button: ${btnId}`);
@@ -78,6 +82,18 @@ export function debugTabButtons() {
  */
 export function debugTabState() {
     console.log("[TabButtons] === CURRENT TAB STATE ===");
+    try {
+        const activeTab = getState("ui.activeTab");
+        const globalData = getState("globalData");
+        const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+        console.log("[TabButtons] UI State Snapshot", {
+            activeTab,
+            hasGlobalData: Boolean(globalData),
+            tabButtonsEnabled,
+        });
+    } catch {
+        /* ignore */
+    }
     const tabButtons = /** @type {Element[]} */ (safeQueryTabButtons());
 
     for (const el of tabButtons) {
@@ -128,9 +144,13 @@ export function testTabButtonClicks() {
                 btn.textContent?.trim() ||
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
+            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
             isOpenFile =
                 btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
+                btnId === "openFileBtn" ||
+                normalizedId === "openfilebtn" ||
+                normalizedId === "openfilebutton" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
         if (isOpenFile) {

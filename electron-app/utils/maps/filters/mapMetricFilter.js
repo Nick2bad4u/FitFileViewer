@@ -3,6 +3,8 @@
  * top percentile of record indices for a given metric when rendering markers.
  */
 
+import { getAuxHeartRateValue } from "../../data/processing/auxHeartRateUtils.js";
+
 /**
  * @typedef {Object} MetricRecord
  *
@@ -10,6 +12,7 @@
  * @property {number} [power]
  * @property {number} [cadence]
  * @property {number} [heartRate]
+ * @property {number} [auxHeartRate]
  * @property {number} [altitude]
  */
 
@@ -63,6 +66,11 @@ export const MAP_FILTER_METRICS = [
         label: "Heart Rate",
         resolver: (row) =>
             typeof row?.heartRate === "number" ? row.heartRate : null,
+    },
+    {
+        key: "auxHeartRate",
+        label: "Aux Heart Rate",
+        resolver: (row) => getAuxHeartRateValue(row),
     },
     {
         key: "altitude",

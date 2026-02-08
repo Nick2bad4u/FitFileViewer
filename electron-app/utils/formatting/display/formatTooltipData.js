@@ -3,6 +3,10 @@
  * formatting for data displayed in map tooltips and chart overlays
  */
 
+import {
+    getAuxHeartRateValue,
+    resolveFieldDescriptionMessages,
+} from "../../data/processing/auxHeartRateUtils.js";
 import { getState } from "../../state/core/stateManager.js";
 
 /**
@@ -11,6 +15,7 @@ import { getState } from "../../state/core/stateManager.js";
  * @property {string | Date} [timestamp] - Message timestamp
  * @property {number} [altitude] - Altitude in meters
  * @property {number} [heartRate] - Heart rate in bpm
+ * @property {number} [auxHeartRate] - Auxiliary heart rate in bpm
  * @property {number} [speed] - Speed in m/s
  * @property {number} [power] - Power in watts
  * @property {number} [cadence] - Cadence in rpm
@@ -92,6 +97,16 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
                     globalThis.globalData &&
                         /** @type {any} */ (globalThis).globalData.recordMesgs
                 ),
+            globalData =
+                getState("globalData") ||
+                /** @type {any} */ (globalThis).globalData,
+            fieldDescriptionMesgs = resolveFieldDescriptionMessages(globalData),
+            auxHeartRate = formatHeartRate(
+                getAuxHeartRateValue(row, {
+                    fieldDescriptionMesgs,
+                    recordMesgs,
+                })
+            ),
             rideTime = formatRideTime(row.timestamp || "", recordMesgs),
             speed = formatSpeed(row.speed ?? null),
             // Build the tooltip HTML
@@ -113,6 +128,9 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         }
         if (heartRate) {
             tooltipParts.push(`<b>HR:</b> ${heartRate}`);
+        }
+        if (auxHeartRate) {
+            tooltipParts.push(`<b>Aux HR:</b> ${auxHeartRate}`);
         }
         if (speed) {
             tooltipParts.push(`<b>Speed:</b> ${speed}`);

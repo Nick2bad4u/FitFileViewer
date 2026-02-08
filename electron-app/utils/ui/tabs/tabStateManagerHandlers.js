@@ -2,6 +2,7 @@
  * Tab-specific handler utilities for the TabStateManager.
  */
 
+import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
@@ -10,7 +11,7 @@ import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
  * Handle alternative FIT viewer tab activation.
  */
 export function handleAltFitTab() {
-    const el = getDoc().querySelector("#altfit_iframe");
+    const el = querySelectorByIdFlexible(getDoc(), "#altfit_iframe");
     // Avoid cross-realm instanceof checks; rely on tagName and presence of src
     if (
         el &&
@@ -99,8 +100,14 @@ export async function handleDataTab(globalData) {
         return;
     }
 
-    const bgContainer = getDoc().querySelector("#background_data_container");
-    const visibleContainer = getDoc().querySelector("#content_data");
+    const bgContainer = querySelectorByIdFlexible(
+        getDoc(),
+        "#background_data_container"
+    );
+    const visibleContainer = querySelectorByIdFlexible(
+        getDoc(),
+        "#content_data"
+    );
 
     if (
         bgContainer &&

@@ -58,9 +58,13 @@ export function forceEnableTabButtons() {
                 btn.textContent?.trim() ||
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
+            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
             isOpenFile =
                 btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
+                btnId === "openFileBtn" ||
+                normalizedId === "openfilebtn" ||
+                normalizedId === "openfilebutton" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
         if (isOpenFile) {
@@ -109,9 +113,13 @@ export function forceFixTabButtons() {
                 btn.textContent?.trim() ||
                 "",
             btnText = (btn.textContent || "").trim().toLowerCase(),
+            normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
             isOpenFile =
                 btnId === "open_file_btn" ||
                 btnId === "open-file-btn" ||
+                btnId === "openFileBtn" ||
+                normalizedId === "openfilebtn" ||
+                normalizedId === "openfilebutton" ||
                 btn.classList.contains("open-file-btn") ||
                 btnText.includes("open file");
         if (isOpenFile) {
@@ -372,9 +380,13 @@ export function setTabButtonsEnabled(enabled) {
                     btn.textContent?.trim() ||
                     "",
                 btnText = (btn.textContent || "").trim().toLowerCase(),
+                normalizedId = btnId.replaceAll(/[-_\s]/gu, "").toLowerCase(),
                 isOpenFile =
                     btnId === "open_file_btn" ||
                     btnId === "open-file-btn" ||
+                    btnId === "openFileBtn" ||
+                    normalizedId === "openfilebtn" ||
+                    normalizedId === "openfilebutton" ||
                     btn.classList.contains("open-file-btn") ||
                     btnText.includes("open file");
             if (isOpenFile) {

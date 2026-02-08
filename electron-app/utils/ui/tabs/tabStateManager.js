@@ -8,17 +8,21 @@
  * @author FitFileViewer Development Team
  */
 
+import {
+    buildIdVariants,
+    getElementByIdFlexible,
+} from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { TAB_CONFIG } from "./tabStateManagerConfig.js";
 import {
-    handleAltFitTab,
-    handleBrowserTab,
-    handleChartTab,
-    handleDataTab,
-    handleMapTab,
-    handleSummaryTab,
+    handleAltFitTab as handleAltFitTabImpl,
+    handleBrowserTab as handleBrowserTabImpl,
+    handleChartTab as handleChartTabImpl,
+    handleDataTab as handleDataTabImpl,
+    handleMapTab as handleMapTabImpl,
+    handleSummaryTab as handleSummaryTabImpl,
 } from "./tabStateManagerHandlers.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 
@@ -121,25 +125,33 @@ class TabStateManager {
      * @returns {string | null} Tab name or null
      */
     extractTabName(buttonId) {
-        // Try direct lookup in config first
+        const variants = buildIdVariants(buttonId);
+
+        // Try direct lookup in config first (including ID variants)
         for (const [tabName, config] of Object.entries(TAB_CONFIG)) {
-            if (config.id === buttonId) {
+            if (variants.includes(config.id)) {
                 return tabName;
             }
         }
 
         // Fallback to pattern matching
         const patterns = [
-            /^tab-(.+)$/,
-            /^(.+)-tab$/,
-            /^btn-(.+)$/,
-            /^(.+)-btn$/,
+            /^tab[-_]?(.+)$/i,
+            /^(.+?)[-_]?tab$/i,
+            /^btn[-_]?(.+)$/i,
+            /^(.+?)[-_]?btn$/i,
         ];
 
         for (const pattern of patterns) {
             const match = buttonId.match(pattern);
-            if (match && match[1] && TAB_CONFIG[match[1]]) {
-                return match[1];
+            if (match && match[1]) {
+                const rawName = String(match[1]);
+                const normalized = rawName
+                    .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
+                    .toLowerCase();
+                if (TAB_CONFIG[normalized]) {
+                    return normalized;
+                }
             }
         }
 
@@ -158,12 +170,64 @@ class TabStateManager {
         return {
             config,
             contentElement: config
-                ? getDoc().getElementById(config.contentId)
+                ? getElementByIdFlexible(getDoc(), config.contentId)
                 : null,
-            element: config ? getDoc().getElementById(config.id) : null,
+            element: config
+                ? getElementByIdFlexible(getDoc(), config.id)
+                : null,
             name: activeTab,
             previous: this.previousTab,
         };
+    }
+
+    /**
+     * Handle Alt Fit tab activation.
+     */
+    handleAltFitTab() {
+        return handleAltFitTabImpl();
+    }
+
+    /**
+     * Handle browser tab activation.
+     */
+    handleBrowserTab() {
+        return handleBrowserTabImpl();
+    }
+
+    /**
+     * Handle chart tab activation.
+     *
+     * @param {any} globalData
+     */
+    handleChartTab(globalData) {
+        return handleChartTabImpl(globalData);
+    }
+
+    /**
+     * Handle data tab activation.
+     *
+     * @param {any} globalData
+     */
+    handleDataTab(globalData) {
+        return handleDataTabImpl(globalData);
+    }
+
+    /**
+     * Handle map tab activation.
+     *
+     * @param {any} globalData
+     */
+    handleMapTab(globalData) {
+        return handleMapTabImpl(globalData);
+    }
+
+    /**
+     * Handle summary tab activation.
+     *
+     * @param {any} globalData
+     */
+    handleSummaryTab(globalData) {
+        return handleSummaryTabImpl(globalData);
     }
 
     /**
@@ -267,32 +331,32 @@ class TabStateManager {
         try {
             switch (tabName) {
                 case "altfit": {
-                    handleAltFitTab();
+                    this.handleAltFitTab();
                     break;
                 }
                 case "browser": {
-                    await handleBrowserTab();
+                    await this.handleBrowserTab();
                     break;
                 }
                 case "chart":
                 // falls through to chartjs case
                 case "chartjs": {
-                    await handleChartTab(globalData);
+                    await this.handleChartTab(globalData);
                     break;
                 }
 
                 case "data": {
-                    await handleDataTab(globalData);
+                    await this.handleDataTab(globalData);
                     break;
                 }
 
                 case "map": {
-                    await handleMapTab(globalData);
+                    await this.handleMapTab(globalData);
                     break;
                 }
 
                 case "summary": {
-                    await handleSummaryTab(globalData);
+                    await this.handleSummaryTab(globalData);
                     break;
                 }
 
@@ -309,6 +373,26 @@ class TabStateManager {
             );
             showNotification(`Error loading ${tabConfig.label} tab`, "error");
         }
+    }
+
+    /**
+     * Generate a simple hash for data comparison.
+     *
+     * @param {{ recordMesgs?: any[] } | null | undefined} data
+     *
+     * @returns {string}
+     */
+    hashData(data) {
+        if (!data) {
+            return "";
+        }
+
+        const recordMesgs = data.recordMesgs || [];
+        const size = recordMesgs.length || 0;
+        const firstRecord = recordMesgs[0] || {};
+        const lastRecord = recordMesgs[size - 1] || {};
+
+        return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
     }
 
     /**
@@ -429,14 +513,20 @@ class TabStateManager {
 
         // Hide all content areas
         for (const config of Object.values(TAB_CONFIG)) {
-            const contentElement = getDoc().getElementById(config.contentId);
+            const contentElement = getElementByIdFlexible(
+                getDoc(),
+                config.contentId
+            );
             if (contentElement) {
                 contentElement.style.display = "none";
             }
         }
 
         // Show active content area
-        const activeContent = getDoc().getElementById(tabConfig.contentId);
+        const activeContent = getElementByIdFlexible(
+            getDoc(),
+            tabConfig.contentId
+        );
         if (activeContent) {
             activeContent.style.display = "block";
         }
@@ -454,7 +544,7 @@ class TabStateManager {
             if (!config.requiresData) {
                 continue;
             }
-            const el = getDoc().getElementById(config.id);
+            const el = getElementByIdFlexible(getDoc(), config.id);
             if (el) {
                 // Avoid cross-realm instanceof by duck-typing
                 /** @type {any} */

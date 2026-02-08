@@ -17,6 +17,7 @@ import {
     updateState,
 } from "../../state/core/stateManager.js";
 import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 
@@ -256,7 +257,8 @@ class ChartStateManager {
                 const instanceCount = Array.isArray(instances)
                     ? instances.length
                     : 0;
-                const container = document.querySelector(
+                const container = querySelectorByIdFlexible(
+                    document,
                     "#chartjs_chart_container"
                 );
                 const canvasCount = container
@@ -405,9 +407,12 @@ class ChartStateManager {
 
             // Get chart container
             const container =
-                document.querySelector("#chartjs_chart_container") ||
-                document.querySelector("#content_chartjs") ||
-                document.querySelector("#content_chart");
+                querySelectorByIdFlexible(
+                    document,
+                    "#chartjs_chart_container"
+                ) ||
+                querySelectorByIdFlexible(document, "#content_chartjs") ||
+                querySelectorByIdFlexible(document, "#content_chart");
 
             if (!container) {
                 console.warn("[ChartStateManager] Chart container not found");

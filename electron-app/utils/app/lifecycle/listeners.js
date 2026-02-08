@@ -7,6 +7,7 @@ import {
     buildDownloadFilename,
     sanitizeFileExtension,
 } from "../../files/sanitizeFilename.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
 
@@ -309,8 +310,10 @@ export function setupListeners({
                         safePath.split(".").pop() ?? ""
                     );
                     if (ext === "csv") {
-                        const container =
-                            document.querySelector("#content_summary");
+                        const container = querySelectorByIdFlexible(
+                            document,
+                            "#content_summary"
+                        );
                         if (
                             /** @type {any} */ (globalThis).copyTableAsCSV &&
                             container

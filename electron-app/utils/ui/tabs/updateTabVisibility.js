@@ -3,8 +3,12 @@
  * Now integrated with centralized state management for reactive updates.
  */
 
-// Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+// Prefer dynamic state manager accessor to avoid stale imports across suites
+import {
+    buildIdVariants,
+    getElementByIdFlexible,
+} from "../dom/elementIdUtils.js";
 
 // Resolve document by preferring the canonical test-provided document
 // (`__vitest_effective_document__`) first, then falling back to the
@@ -239,7 +243,7 @@ export function updateTabVisibility(visibleTabId) {
             "content_zwift",
         ];
     for (const id of tabContentIds) {
-        const el = getDoc().getElementById(/** @type {string} */ (id));
+        const el = getElementByIdFlexible(getDoc(), /** @type {string} */ (id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -258,6 +262,16 @@ export function updateTabVisibility(visibleTabId) {
     /** @type {string | null | undefined} */
     let targetId = visibleTabId;
     /** @type {string | null} */ let derivedTabName = null;
+    if (targetId && !(targetId in elementMap)) {
+        const variants = buildIdVariants(String(targetId));
+        const matchingVariant = variants.find(
+            (variant) => variant in elementMap
+        );
+        if (matchingVariant) {
+            targetId = matchingVariant;
+        }
+    }
+
     if (targetId && !(targetId in elementMap)) {
         const maybeName = extractTabNameFromContentId(String(targetId));
         if (maybeName) {
@@ -305,16 +319,21 @@ function extractTabNameFromContentId(contentId) {
     }
 
     const patterns = [
-        /^content_(.+)$/, // Content_summary -> summary
-        /^(.+)_content$/, // Summary_content -> summary
+        /^content_(.+)$/, // content_summary -> summary
+        /^content-(.+)$/, // content-summary -> summary
+        /^content([A-Z].+)$/, // contentSummary -> summary
+        /^(.+)_content$/, // summary_content -> summary
+        /^(.+)-content$/, // summary-content -> summary
     ];
 
     for (const pattern of patterns) {
         const match = contentId.match(pattern);
         if (match) {
-            return match[1] === "chartjs"
-                ? "chart"
-                : /** @type {string} */ (match[1]); // Special case for chartjs -> chart
+            const [, rawName] = match;
+            const normalized = String(rawName)
+                .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
+                .toLowerCase();
+            return normalized === "chartjs" ? "chart" : normalized;
         }
     }
 

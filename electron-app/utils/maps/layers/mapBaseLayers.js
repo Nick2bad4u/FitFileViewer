@@ -1,12 +1,14 @@
 // Leaflet base layers module. Resolves the Leaflet global if present; otherwise
 // Provides a minimal shim to keep imports safe in non-map/test environments.
 
-/** @typedef {{
+/**
+ * @typedef {{
  *     addTo?: Function;
  *     setZIndex?: Function;
  *     on?: Function;
  *     remove?: Function;
- * }} LeafletLayer */
+ * }} LeafletLayer
+ */
 /** @typedef {{ tileLayer: Function; maplibreGL?: Function }} LeafletMinimal */
 
 /**

@@ -6,7 +6,9 @@
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
-        const chartTabContent = document.querySelector("#content_chartjs");
+        const chartTabContent =
+            document.querySelector("#content_chartjs") ||
+            document.querySelector("#content-chartjs");
         if (!chartTabContent) {
             console.warn("[ChartStatus] Chart tab content not found");
             return null;

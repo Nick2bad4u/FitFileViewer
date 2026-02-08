@@ -37,6 +37,7 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         });
         expect(q3.hasGPS).toBe(true);
         expect(q3.hasHeartRate).toBe(true);
+        expect(q3.hasAuxHeartRate).toBe(false);
         expect(q3.hasPower).toBe(true);
         expect(q3.hasCadence).toBe(true);
         expect(q3.hasAltitude).toBe(true);
@@ -46,6 +47,7 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             expect.objectContaining({
                 gps: 33,
                 heartRate: 33,
+                auxHeartRate: 0,
                 power: 33,
                 cadence: 33,
                 altitude: 33,

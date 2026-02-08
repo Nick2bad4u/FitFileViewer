@@ -21,6 +21,7 @@ const /**
         grade: "#06B6D4", // Cyan - gradient/slope data
         grit: "#6e1cbb", // Dark purple - grit data
         heartRate: "#EF4444", // Red - heart rate data
+        auxHeartRate: "#d946ef", // Fuchsia - auxiliary heart rate data
         positionLat: "#ff5722", // Deep orange - latitude data
         positionLong: "#3f51b5", // Indigo - longitude data
         power: "#F59E0B", // Orange - power/watts data

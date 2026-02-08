@@ -31,6 +31,7 @@ const // Default unit preferences
     },
     // Fallback symbols for fitness metrics and other fields
     ORIGINAL_FIELD_LABELS = {
+        auxHeartRate: "bpm",
         cadence: "rpm",
         flow: "#",
         grit: "#",

@@ -41,6 +41,7 @@ export namespace fieldColors {
     let gps_track: string;
     let grit: string;
     let heartRate: string;
+    let auxHeartRate: string;
     let hr_lap_zone_individual: string;
     let hr_lap_zone_stacked: string;
     let hr_zone_doughnut: string;

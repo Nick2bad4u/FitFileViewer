@@ -188,6 +188,17 @@
             }
         },
         {
+            "files": "*.webmanifest",
+            "options": {
+                "jsonRecursiveSort": false,
+                "jsonSortOrder": "{\"*\": \"numeric\"}",
+                "plugins": [
+                    "prettier-plugin-sort-json",
+                    "prettier-plugin-multiline-arrays"
+                ]
+            }
+        },
+        {
             "files": "*.toml",
             "options": {
                 "plugins": [

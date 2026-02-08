@@ -22,6 +22,7 @@
  */
 
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 export function hideLoadingOverlay() {
@@ -249,7 +250,10 @@ function _centerMapOnMainFile() {
  */
 function setupActiveFileNameMapActions() {
     try {
-        const activeFileName = document.querySelector("#active_file_name");
+        const activeFileName = querySelectorByIdFlexible(
+            document,
+            "#active_file_name"
+        );
         if (!activeFileName) {
             console.log(
                 "[mapActionButtons] #active_file_name not found in DOM"
@@ -337,7 +341,10 @@ function setupActiveFileNameMapActions() {
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName() {
     try {
-        const targetElement = document.querySelector("#active_file_name"),
+        const targetElement = querySelectorByIdFlexible(
+                document,
+                "#active_file_name"
+            ),
             parent = targetElement?.parentNode;
 
         if (!parent) {

@@ -1070,13 +1070,15 @@ class MainProcessState {
      * @param {Object} [options]
      */
     update(updates, options = {}) {
-        /** @type {{
+        /**
+         * @type {{
          *     path: string;
          *     oldValue: any;
          *     newValue: any;
          *     timestamp: number;
          *     source: string;
-         * }[]} */
+         * }[]}
+         */
         const changes = [];
 
         for (const [path, value] of Object.entries(updates)) {

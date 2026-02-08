@@ -2,12 +2,16 @@
  * DOM utilities used by the main UI and drag-and-drop handlers.
  */
 
-/** @type {{
+import { getElementByIdFlexible } from "./dom/elementIdUtils.js";
+
+/**
+ * @type {{
  *     element: EventTarget;
  *     type: string;
  *     handler: EventListenerOrEventListenerObject;
  *     options?: AddEventListenerOptions | boolean;
- * }[]} */
+ * }[]}
+ */
 const eventListeners = [];
 
 /**
@@ -68,7 +72,7 @@ export function validateElectronAPI() {
  * @returns {HTMLElement | null}
  */
 export function validateElement(id) {
-    const element = document.getElementById(id);
+    const element = getElementByIdFlexible(document, id);
     if (!element) {
         console.warn(`Element with ID "${id}" not found`);
     }

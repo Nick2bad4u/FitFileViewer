@@ -21,6 +21,10 @@
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
+import {
+    applyAuxHeartRateToRecords,
+    resolveFieldDescriptionMessages,
+} from "../../data/processing/auxHeartRateUtils.js";
 import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCyclingPower.js";
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
@@ -116,6 +120,27 @@ export function showFitData(data, filePath, options = {}) {
                           )
                         : undefined,
                     settings: getPowerEstimationSettings(),
+                });
+            }
+        } catch {
+            /* ignore */
+        }
+
+        // Normalize auxiliary heart rate fields so charts/map/tables can render them.
+        try {
+            if (
+                globalThis.globalData &&
+                Array.isArray(
+                    /** @type {any} */ (globalThis.globalData).recordMesgs
+                )
+            ) {
+                applyAuxHeartRateToRecords({
+                    fieldDescriptionMesgs: resolveFieldDescriptionMessages(
+                        /** @type {any} */ (globalThis.globalData)
+                    ),
+                    recordMesgs: /** @type {Record<string, unknown>[]} */ (
+                        /** @type {any} */ (globalThis.globalData).recordMesgs
+                    ),
                 });
             }
         } catch {
@@ -234,8 +259,8 @@ export function showFitData(data, filePath, options = {}) {
          */ (globalThis);
 
         if (windowExt.updateTabVisibility && windowExt.updateActiveTab) {
-            windowExt.updateTabVisibility("content_map");
-            windowExt.updateActiveTab("tab_map");
+            windowExt.updateTabVisibility("content-map");
+            windowExt.updateActiveTab("tab-map");
 
             // Manually trigger map rendering since we're programmatically switching tabs
             if (windowExt.renderMap && !windowExt.isMapRendered) {

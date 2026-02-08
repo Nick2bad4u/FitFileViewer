@@ -8,12 +8,13 @@ import {
     setState,
     subscribe,
 } from "../../state/core/stateManager.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 /**
  * Clear current notification
  */
 export function clearNotification() {
-    const notif = document.querySelector("#notification");
+    const notif = querySelectorByIdFlexible(document, "#notification");
     if (notif) {
         notif.style.display = "none";
     }
@@ -74,7 +75,7 @@ export function setLoading(loading) {
     // Update state first
     setState("isLoading", loading, { source: "setLoading" });
 
-    const overlay = document.querySelector("#loading_overlay");
+    const overlay = querySelectorByIdFlexible(document, "#loading_overlay");
     if (!overlay) {
         console.warn("[RendererUtils] Loading overlay element not found");
         return;
@@ -120,7 +121,7 @@ export function showInfo(message, timeout = 4000) {
  *   notification disappears. Set to 0 to keep it visible. Default is `5000`
  */
 export function showNotification(message, type = "error", timeout = 5000) {
-    const notif = document.querySelector("#notification");
+    const notif = querySelectorByIdFlexible(document, "#notification");
     if (!notif) {
         console.warn("[RendererUtils] Notification element not found");
         return;
@@ -185,7 +186,7 @@ export function showWarning(message, timeout = 4000) {
  * @param {boolean} isLoading - Loading state
  */
 function updateLoadingUI(loading) {
-    const overlay = document.querySelector("#loading_overlay");
+    const overlay = querySelectorByIdFlexible(document, "#loading_overlay");
     if (overlay) {
         overlay.style.display = loading ? "flex" : "none";
         overlay.setAttribute("aria-hidden", (!loading).toString());

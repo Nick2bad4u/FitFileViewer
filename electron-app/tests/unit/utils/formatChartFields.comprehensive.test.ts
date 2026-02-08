@@ -14,7 +14,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
             it("should contain expected number of fields", () => {
                 expect(formatChartFields.length).toBeGreaterThan(0);
-                expect(formatChartFields.length).toBe(15); // Current count
+                expect(formatChartFields.length).toBe(16); // Current count
             });
 
             it("should contain only string values", () => {
@@ -34,6 +34,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should include basic measurement fields", () => {
                 expect(formatChartFields).toContain("speed");
                 expect(formatChartFields).toContain("heartRate");
+                expect(formatChartFields).toContain("auxHeartRate");
                 expect(formatChartFields).toContain("altitude");
                 expect(formatChartFields).toContain("power");
                 expect(formatChartFields).toContain("estimatedPower");
@@ -64,6 +65,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 const expectedOrder = [
                     "speed",
                     "heartRate",
+                    "auxHeartRate",
                     "altitude",
                     "power",
                     "estimatedPower",
@@ -85,7 +87,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should start with core measurement fields", () => {
                 expect(formatChartFields[0]).toBe("speed");
                 expect(formatChartFields[1]).toBe("heartRate");
-                expect(formatChartFields[2]).toBe("altitude");
+                expect(formatChartFields[2]).toBe("auxHeartRate");
             });
 
             it("should include enhanced fields after basic ones", () => {
@@ -137,7 +139,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should contain expected number of labels", () => {
                 const labelKeys = Object.keys(fieldLabels);
                 expect(labelKeys.length).toBeGreaterThan(0);
-                expect(labelKeys.length).toBe(26); // Current count including chart types
+                expect(labelKeys.length).toBe(27); // Current count including chart types
             });
 
             it("should have string keys and string values", () => {
@@ -162,6 +164,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should have labels for basic measurement fields", () => {
                 expect(fieldLabels.speed).toBe("Speed");
                 expect(fieldLabels.heartRate).toBe("Heart Rate");
+                expect(fieldLabels.auxHeartRate).toBe("Aux Heart Rate");
                 expect(fieldLabels.altitude).toBe("Altitude");
                 expect(fieldLabels.power).toBe("Power");
                 expect(fieldLabels.cadence).toBe("Cadence");
@@ -259,7 +262,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should contain expected number of colors", () => {
                 const colorKeys = Object.keys(fieldColors);
                 expect(colorKeys.length).toBeGreaterThan(0);
-                expect(colorKeys.length).toBe(26); // Current count including chart types
+                expect(colorKeys.length).toBe(27); // Current count including chart types
             });
 
             it("should have string keys and string values", () => {

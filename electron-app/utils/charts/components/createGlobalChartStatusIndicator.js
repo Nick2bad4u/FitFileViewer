@@ -327,7 +327,14 @@ function createStatusText(status) {
  * @returns {HTMLElement | null} Element or null if not found
  */
 function getElementSafely(id, description) {
-    const element = document.getElementById(id);
+    let element = document.getElementById(id);
+    if (!element) {
+        if (id.includes("_")) {
+            element = document.getElementById(id.replaceAll("_", "-"));
+        } else if (id.includes("-")) {
+            element = document.getElementById(id.replaceAll("-", "_"));
+        }
+    }
     if (!element) {
         logWithContext("warn", `${description} not found`, { id });
     }

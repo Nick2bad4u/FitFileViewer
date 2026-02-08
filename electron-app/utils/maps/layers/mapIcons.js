@@ -2,8 +2,8 @@
 // The global Leaflet object (L) is provided via a script include; minimal typing provided via global.d.ts.
 
 /**
- * @typedef {readonly [number, number]} PointTuple A fixed two-number tuple
- *   used for icon size/anchor specification.
+ * @typedef {readonly [number, number]} PointTuple A fixed two-number tuple used
+ *   for icon size/anchor specification.
  */
 
 /** @type {PointTuple} */

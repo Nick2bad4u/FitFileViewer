@@ -78,6 +78,7 @@ import { createDataPointFilterControl } from "../../ui/controls/createDataPointF
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
 import { createPowerEstimationButton } from "../../ui/controls/createPowerEstimationButton.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
@@ -123,7 +124,7 @@ export function renderMap() {
             ? queueMicrotask
             : (callback) => Promise.resolve().then(callback);
 
-    const mapContainer = document.querySelector("#content_map");
+    const mapContainer = querySelectorByIdFlexible(document, "#content_map");
     if (!mapContainer) {
         return;
     }
@@ -840,7 +841,10 @@ export function renderMap() {
     };
     map.on("zoomend zoomlevelschange", updateZoomSlider);
     updateZoomSlider();
-    const leafletMapContainer = document.querySelector("#leaflet-map");
+    const leafletMapContainer = querySelectorByIdFlexible(
+        document,
+        "#leaflet-map"
+    );
     if (leafletMapContainer) {
         leafletMapContainer.append(zoomSliderBar);
     }

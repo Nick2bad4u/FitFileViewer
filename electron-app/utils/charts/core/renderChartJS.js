@@ -51,6 +51,10 @@ import { settingsStateManager } from "../../state/domain/settingsStateManager.js
 // Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
 // We'll access a global instance if the app exposes one.
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
+import {
+    getElementByIdFlexible,
+    querySelectorByIdFlexible,
+} from "../../ui/dom/elementIdUtils.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
@@ -945,7 +949,8 @@ export function invalidateChartRenderCache(reason = "manual") {
 
 /**
  * Pre-warm the most expensive chart caches (labels + per-field converted values
- * + chart points).
+ *
+ * - Chart points).
  *
  * Why this helps:
  *
@@ -1063,6 +1068,8 @@ export async function prewarmChartRenderCaches({
             "enhanced_speed",
             "heart_rate",
             "heartRate",
+            "aux_heart_rate",
+            "auxHeartRate",
             "power",
             "enhanced_power",
             "altitude",
@@ -2373,7 +2380,10 @@ export async function renderChartJS(targetContainer, options = {}) {
         // If a string container ID was provided, resolve it early to satisfy DOM access expectations in tests
         if (typeof targetContainer === "string") {
             try {
-                document.getElementById(targetContainer);
+                const normalizedId = targetContainer.startsWith("#")
+                    ? targetContainer.slice(1)
+                    : targetContainer;
+                getElementByIdFlexible(document, normalizedId);
             } catch {
                 /* ignore */
             }
@@ -2521,15 +2531,21 @@ export async function renderChartJS(targetContainer, options = {}) {
             let container = /** @type {HTMLElement | null} */ (null);
             if (targetContainer) {
                 if (typeof targetContainer === "string") {
+                    const normalizedId = targetContainer.startsWith("#")
+                        ? targetContainer.slice(1)
+                        : targetContainer;
                     container =
-                        document.getElementById(targetContainer) ||
-                        document.querySelector(targetContainer);
+                        getElementByIdFlexible(document, normalizedId) ||
+                        querySelectorByIdFlexible(document, targetContainer);
                 } else if (isElement(targetContainer)) {
                     container = /** @type {HTMLElement} */ (targetContainer);
                 }
             }
             if (!container) {
-                container = document.querySelector("#content_chart");
+                container = querySelectorByIdFlexible(
+                    document,
+                    "#content_chart"
+                );
             }
             if (container) {
                 let themeConfig = await getThemeConfigSafe();
@@ -2748,11 +2764,16 @@ export async function renderChartJS(targetContainer, options = {}) {
         safeCompleteRendering(false);
 
         // Try to show error information to user
-        let container = document.querySelector("#content_chart");
+        let container = querySelectorByIdFlexible(document, "#content_chart");
         if (!container && targetContainer) {
             // Handle case where targetContainer is a string ID or DOM element
             if (typeof targetContainer === "string") {
-                container = document.getElementById(targetContainer);
+                const normalizedId = targetContainer.startsWith("#")
+                    ? targetContainer.slice(1)
+                    : targetContainer;
+                container =
+                    getElementByIdFlexible(document, normalizedId) ||
+                    querySelectorByIdFlexible(document, targetContainer);
             } else if (isElement(targetContainer)) {
                 container = /** @type {HTMLElement} */ (targetContainer);
             }
@@ -2789,7 +2810,11 @@ export async function renderChartJS(targetContainer, options = {}) {
             const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
             const safeError = sanitizeCssColorToken(colorsError, "#ef4444");
 
-            container.replaceChildren();
+            if (typeof container.replaceChildren === "function") {
+                container.replaceChildren();
+            } else {
+                container.innerHTML = "";
+            }
 
             const wrapper = document.createElement("div");
             wrapper.className = "chart-error";
@@ -2836,9 +2861,12 @@ export async function renderChartJS(targetContainer, options = {}) {
                 errAny?.stack || errAny?.message || errAny
             );
 
-            details.append(summary, pre);
-            wrapper.append(h3, msg, details);
-            container.append(wrapper);
+            safeAppend(details, summary);
+            safeAppend(details, pre);
+            safeAppend(wrapper, h3);
+            safeAppend(wrapper, msg);
+            safeAppend(wrapper, details);
+            safeAppend(container, wrapper);
         }
         return false;
     }
@@ -2938,11 +2966,24 @@ async function renderChartsWithData(
     }
 
     // Get chart container
-    let chartContainer = targetContainer
-        ? typeof targetContainer === "string"
-            ? document.getElementById(targetContainer)
-            : targetContainer
-        : document.querySelector("#chartjs_chart_container");
+    let chartContainer = null;
+    if (typeof targetContainer === "string") {
+        const normalizedId = targetContainer.startsWith("#")
+            ? targetContainer.slice(1)
+            : targetContainer;
+        chartContainer =
+            getElementByIdFlexible(document, normalizedId) ||
+            querySelectorByIdFlexible(document, targetContainer);
+    } else if (isElement(targetContainer)) {
+        chartContainer = targetContainer;
+    }
+
+    if (!chartContainer) {
+        chartContainer = querySelectorByIdFlexible(
+            document,
+            "#chartjs_chart_container"
+        );
+    }
 
     if (!chartContainer) {
         chartContainer = document.createElement("div");

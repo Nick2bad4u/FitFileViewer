@@ -98,6 +98,7 @@ export function getMetricDefinition(metricKey: string): MetricDefinition | null;
  * @property {number} [power]
  * @property {number} [cadence]
  * @property {number} [heartRate]
+ * @property {number} [auxHeartRate]
  * @property {number} [altitude]
  */
 /**
@@ -151,6 +152,7 @@ export type MetricRecord = {
     power?: number;
     cadence?: number;
     heartRate?: number;
+    auxHeartRate?: number;
     altitude?: number;
 };
 export type MapFilterMode = "topPercent" | "valueRange";

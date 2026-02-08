@@ -30,6 +30,7 @@ import {
     setupDOMContentLoaded,
     setupFullscreenListeners,
 } from "./utils/ui/controls/addFullScreenButton.js";
+import { getElementByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { DragDropHandler } from "./utils/ui/dragDropHandler.js";
 import {
     cleanupEventListeners,
@@ -109,7 +110,7 @@ function clearContentAreas() {
     ];
 
     for (const id of contentIds) {
-        const element = document.getElementById(id);
+        const element = getElementByIdFlexible(document, id);
         if (element) {
             element.innerHTML = "";
         }

@@ -19,6 +19,7 @@
 export const formatChartFields = [
     "speed",
     "heartRate",
+    "auxHeartRate",
     "altitude",
     "power",
     "estimatedPower",
@@ -56,6 +57,7 @@ export const fieldLabels = {
     gps_track: "GPS Track",
     grit: "Grit",
     heartRate: "Heart Rate",
+    auxHeartRate: "Aux Heart Rate",
     hr_lap_zone_individual: "HR Zone by Lap (Individual)",
     hr_lap_zone_stacked: "HR Zone by Lap (Stacked)",
     hr_zone_doughnut: "HR Zone Distribution (Doughnut)",
@@ -85,6 +87,7 @@ export const fieldColors = {
     gps_track: "#4caf50",
     grit: "#6e1cbb",
     heartRate: "#e53935",
+    auxHeartRate: "#d946ef",
     hr_lap_zone_individual: "#e91e63",
     hr_lap_zone_stacked: "#f44336",
     hr_zone_doughnut: "#e53935",

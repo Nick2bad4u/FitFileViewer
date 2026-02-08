@@ -1,4 +1,5 @@
 // @ts-check
+import pluginDocusaurus from "@docusaurus/eslint-plugin";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import css from "@eslint/css";
 import js from "@eslint/js";
@@ -242,6 +243,9 @@ export default defineConfig([
             "docs/docusaurus/build/**",
             "docs/docusaurus/docs/**",
             "docs/docusaurus/static/eslint-inspector/**",
+            "docusaurus/.cache/**",
+            "docusaurus/.docusaurus/**",
+            "docusaurus/build/**",
             "../docusaurus/.cache/**",
             "../docusaurus/.docusaurus/**",
             "../docusaurus/build/**",
@@ -331,7 +335,10 @@ export default defineConfig([
     {
         // Docusaurus uses TypeScript + React; configure the TS parser for that subtree.
         // Keep this lightweight (no type-aware rules) to avoid slowing lint runs.
-        files: ["../docusaurus/**/*.{ts,tsx}"],
+        files: [
+            "../docusaurus/**/*.{ts,tsx}",
+            "docusaurus/**/*.{ts,tsx}",
+        ],
         languageOptions: {
             parser: tseslintParser,
             parserOptions: {
@@ -357,7 +364,11 @@ export default defineConfig([
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
         // while keeping correctness-focused rules.
-        files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+        files: [
+            "**/*.{js,mjs,cjs,ts,tsx}",
+            "../docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+            "docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+        ],
         plugins: coerceEslintPluginMap({
             "@typescript-eslint": tseslint,
             compat: pluginCompat,
@@ -573,6 +584,23 @@ export default defineConfig([
             "unicorn/prevent-abbreviations": "off", // Allow common abbreviations (ctx, env, etc.)
         },
     },
+    {
+        files: [
+            "../docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+            "docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+        ],
+        plugins: {
+            "@docusaurus": pluginDocusaurus
+        },
+        rules: {
+            // Docusaurus Rules (@docusaurus/*)
+            "@docusaurus/no-html-links": "warn",
+            "@docusaurus/no-untranslated-text": "off",
+            "@docusaurus/prefer-docusaurus-heading": "warn",
+            // Docusaurus Rules
+            "@docusaurus/string-literal-i18n-messages": "off",
+        },
+    },
     // File-specific relaxations for legacy or intentionally dynamic code
     {
         files: ["utils/state/core/masterStateManager.js"],
@@ -604,7 +632,11 @@ export default defineConfig([
     },
     // Merging browser and node globals to support environments where both are used, such as Electron.
     {
-        files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+        files: [
+            "**/*.{js,mjs,cjs,ts,tsx}",
+            "../docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+            "docusaurus/**/*.{js,mjs,cjs,ts,tsx}",
+        ],
         languageOptions: {
             globals: {
                 ...globals.browser,
