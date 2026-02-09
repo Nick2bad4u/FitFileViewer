@@ -202,6 +202,8 @@ function initializeStateManager() {
         persistState(["charts.controlsVisible"])
     );
     subscribe("map.baseLayer", () => persistState(["map.baseLayer"]));
+    // Browser tab: persist selected sub-view (files/library/calendar)
+    subscribe("browser.view", () => persistState(["browser.view"]));
 
     stateManagerInitState.initialized = true;
 
@@ -220,6 +222,7 @@ function loadPersistedState(
         "ui",
         "charts.controlsVisible",
         "map.baseLayer",
+        "browser.view",
     ]
 ) {
     try {
@@ -300,9 +303,30 @@ function persistState(
         "ui",
         "charts.controlsVisible",
         "map.baseLayer",
+        "browser.view",
     ]
 ) {
-    const stateToSave = {};
+    /** @type {Record<string, unknown>} */
+    let stateToSave = {};
+
+    // Merge into existing persisted state so persisting a single path does not
+    // wipe other persisted paths.
+    try {
+        const existingRaw = localStorage.getItem("fitFileViewer_state");
+        if (existingRaw) {
+            const parsed = JSON.parse(existingRaw);
+            if (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            ) {
+                stateToSave = /** @type {Record<string, unknown>} */ (parsed);
+            }
+        }
+    } catch {
+        // Ignore parse errors and overwrite with a fresh object.
+        stateToSave = {};
+    }
 
     for (const path of paths) {
         const value = getState(path);

@@ -32,6 +32,32 @@ const DOM_SELECTORS = {
 let cachedSystemInfoItems = null;
 
 /**
+ * Returns true if the cached node list is still safe to use (elements are still
+ * connected to the document).
+ *
+ * This matters because some UIs (e.g., the About modal) re-render the system
+ * info grid by replacing `innerHTML`, which detaches the old elements.
+ *
+ * @param {NodeList | null} nodes
+ *
+ * @returns {boolean}
+ */
+function isCacheValid(nodes) {
+    if (!nodes) return false;
+    try {
+        for (const node of Array.from(nodes)) {
+            const el = /** @type {Element} */ (node);
+            if (!el || !el.isConnected) {
+                return false;
+            }
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Clears the cached DOM elements (useful for testing or DOM changes)
  *
  * @returns {void}
@@ -115,9 +141,12 @@ export function updateSystemInfo(info) {
  * @returns {NodeList} Cached system info value elements
  */
 function initializeSystemInfoCache() {
-    if (cachedSystemInfoItems) {
+    if (isCacheValid(cachedSystemInfoItems)) {
         return cachedSystemInfoItems;
     }
+
+    // Cache is missing or stale (detached nodes). Refresh it.
+    cachedSystemInfoItems = null;
 
     cachedSystemInfoItems = document.querySelectorAll(
         DOM_SELECTORS.SYSTEM_INFO_VALUE

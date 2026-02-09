@@ -16,7 +16,6 @@ import {
 } from "./enableTabButtonsDebug.js";
 import {
     getTabButtonIdentity,
-    isOpenFileButton,
     safeQueryTabButtons,
 } from "./enableTabButtonsHelpers.js";
 

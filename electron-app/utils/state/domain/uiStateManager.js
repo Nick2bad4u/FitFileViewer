@@ -284,7 +284,17 @@ export class UIStateManager {
         }
 
         // Theme toggle buttons
-        const themeButtons = safeQuerySelectorAll("[data-theme]");
+        //
+        // IMPORTANT:
+        // The theming system sets `data-theme` on <html> and <body>.
+        // If we attach click listeners to *all* `[data-theme]` elements, then
+        // any click anywhere in the app (bubbling to <body>) can re-assert the
+        // previous theme and effectively "undo" a user change.
+        //
+        // Only treat explicit UI controls as theme toggles.
+        const themeButtons = safeQuerySelectorAll(
+            'button[data-theme], [role="button"][data-theme]'
+        );
         for (const button of themeButtons) {
             const theme = /** @type {any} */ (button)?.dataset?.theme;
             safeAddClickListener(button, () => {
@@ -524,9 +534,11 @@ export class UIStateManager {
                 body.className = filtered.join(" ").trim();
             }
 
-            if (dataset) {
-                dataset.hasFitFile = hasRenderableFile ? "true" : "false";
-            }
+            // `HTMLBodyElement.dataset` is always present in Electron/Chromium.
+            // The previous `if (dataset)` guard triggers a TS diagnostic because
+            // `dataset` is typed as a non-null `DOMStringMap` and is therefore
+            // always truthy.
+            dataset.hasFitFile = hasRenderableFile ? "true" : "false";
         }
 
         const fileSpan = (() => {

@@ -197,7 +197,10 @@ function applyAndTrackTheme(theme, applyTheme) {
         }
 
         // Update state
-        setState("ui.theme", theme, { source: "setupTheme" });
+        // - Theme core persists: "auto" | "dark" | "light"
+        // - UI/state layer historically uses: "system" for auto
+        const uiTheme = theme === "auto" ? "system" : theme;
+        setState("ui.theme", uiTheme, { source: "setupTheme" });
 
         // Store in localStorage for persistence
         try {

@@ -185,6 +185,9 @@ export function hideAllTabContent() {
  * Initialize tab visibility state management
  */
 export function initializeTabVisibilityState() {
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let noDataSwitchTimer = null;
+
     // Subscribe to active tab changes to update content visibility
     getStateMgr().subscribe(
         "ui.activeTab",
@@ -198,16 +201,41 @@ export function initializeTabVisibilityState() {
     getStateMgr().subscribe(
         "globalData",
         /** @param {any} data */ (data) => {
-            const currentTab =
-                    getStateMgr().getState("ui.activeTab") || "summary",
-                hasData = data !== null && data !== undefined;
+            const hasData = data !== null && data !== undefined;
 
-            if (!hasData && currentTab !== "summary") {
-                // If no data, switch to summary tab
-                getStateMgr().setState("ui.activeTab", "summary", {
-                    source: "initializeTabVisibilityState",
-                });
+            // If data returns, cancel any pending fallback.
+            if (hasData) {
+                if (noDataSwitchTimer !== null) {
+                    clearTimeout(noDataSwitchTimer);
+                    noDataSwitchTimer = null;
+                }
+                return;
             }
+
+            // globalData can briefly become null during a file open/refresh cycle.
+            // Switching to Summary immediately causes a visible tab flash. Debounce
+            // the fallback and only switch when we remain in a no-data state and are
+            // not actively loading.
+            if (noDataSwitchTimer !== null) {
+                clearTimeout(noDataSwitchTimer);
+            }
+
+            noDataSwitchTimer = setTimeout(() => {
+                noDataSwitchTimer = null;
+
+                const latestData = getStateMgr().getState("globalData");
+                const stillNoData =
+                    latestData === null || latestData === undefined;
+                const isLoading = Boolean(getStateMgr().getState("isLoading"));
+                const latestTab =
+                    getStateMgr().getState("ui.activeTab") || "summary";
+
+                if (stillNoData && !isLoading && latestTab !== "summary") {
+                    getStateMgr().setState("ui.activeTab", "summary", {
+                        source: "initializeTabVisibilityState",
+                    });
+                }
+            }, 250);
         }
     );
 

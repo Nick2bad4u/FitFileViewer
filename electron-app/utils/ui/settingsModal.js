@@ -8,6 +8,7 @@
  * @author FitFileViewer Development Team
  */
 
+import { setState } from "../state/core/stateManager.js";
 import {
     getEffectiveAccentColor,
     isValidHexColor,
@@ -462,7 +463,33 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
                 const { target } = e;
                 const select = /** @type {HTMLSelectElement} */ (target);
                 const newTheme = select.value;
-                applyTheme(newTheme, true);
+                // Theme is controlled by state; applying directly without updating state
+                // causes other parts of the app (and/or the main process) to re-assert
+                // the previous theme on the next interaction.
+                //
+                // - Theme core persists: "auto" | "dark" | "light"
+                // - UI/state layer historically uses: "system" for auto
+                const stateTheme =
+                    newTheme === THEME_MODES.AUTO ? "system" : newTheme;
+
+                try {
+                    setState("ui.theme", stateTheme, {
+                        source: "settingsModal:theme-select",
+                    });
+                } catch {
+                    // Fallback for environments where state management is unavailable.
+                    applyTheme(newTheme, true);
+                }
+
+                // Keep the main process in sync so it doesn't override the renderer's
+                // theme later (e.g., after focus/menu interactions).
+                try {
+                    /** @type {any} */ (
+                        globalThis
+                    ).electronAPI?.sendThemeChanged?.(newTheme);
+                } catch {
+                    /* ignore */
+                }
 
                 // Update effective theme for accent color
                 effectiveTheme = getEffectiveTheme(newTheme);

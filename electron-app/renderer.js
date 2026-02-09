@@ -92,6 +92,7 @@ import { createExportGPXButton } from "./utils/files/export/createExportGPXButto
 // Avoid static import of AppActions because tests sometimes mock the module
 // Without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
+import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 // Import domain-level appState for tests that mock this path explicitly
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
@@ -584,10 +585,15 @@ async function initializeApplication() {
         }
 
         // Get required DOM elements
-        const openFileBtn = document.querySelector("#openFileBtn");
-        // Also support tests that only provide a hidden file input
+        // Prefer the canonical app ID (open_file_btn), but tolerate variants
+        // used by older templates and tests (openFileBtn).
+        const openFileBtn = querySelectorByIdFlexible(
+            document,
+            "#open_file_btn"
+        );
+        // Also support tests that only provide a hidden file input.
         const fileInput = /** @type {HTMLInputElement | null} */ (
-            document.querySelector("#fileInput")
+            querySelectorByIdFlexible(document, "#file_input")
         );
 
         // Setup global error handlers
@@ -925,7 +931,11 @@ function validateDOMElements() {
     // Accept multiple alternative IDs used across app and tests
     const alternatives = [
         [
+            // App HTML uses snake_case, while some tests use camelCase.
+            { id: "open_file_btn", name: "Open File button" },
             { id: "openFileBtn", name: "Open File button" },
+            // Some test harnesses only provide a hidden file input.
+            { id: "file_input", name: "File input" },
             { id: "fileInput", name: "File input" },
         ],
         [
@@ -933,6 +943,7 @@ function validateDOMElements() {
             { id: "notification-container", name: "Notification container" },
         ],
         [
+            { id: "loading_overlay", name: "Loading overlay" },
             { id: "loadingOverlay", name: "Loading overlay" },
             { id: "loading", name: "Loading overlay" },
         ],
@@ -1443,7 +1454,10 @@ try {
                 handleOpenFile: hof,
                 isOpeningFileRef,
                 listenForThemeChange: lf,
-                openFileBtn: document.querySelector("#openFileBtn"),
+                openFileBtn: querySelectorByIdFlexible(
+                    document,
+                    "#open_file_btn"
+                ),
                 setLoading,
                 showAboutModal: sam,
                 showNotification: sn,
@@ -1461,7 +1475,7 @@ try {
 // Attach file input change handler if present at import time (tests rely on this)
 try {
     const fileInput = /** @type {HTMLInputElement | null} */ (
-        document.querySelector("#fileInput")
+        querySelectorByIdFlexible(document, "#file_input")
     );
     if (fileInput && typeof fileInput.addEventListener === "function") {
         fileInput.addEventListener("change", async () => {
@@ -1502,7 +1516,7 @@ function registerElectronAPI(/** @type {any} */ api) {
                     if (action === "open-file") {
                         // Could trigger file input if needed
                         const inp = /** @type {HTMLInputElement | null} */ (
-                            document.querySelector("#fileInput")
+                            querySelectorByIdFlexible(document, "#file_input")
                         );
                         if (inp) {
                             inp.click?.();
@@ -1870,7 +1884,10 @@ try {
                         handleOpenFile: () => {},
                         isOpeningFileRef,
                         listenForThemeChange: () => {},
-                        openFileBtn: document.querySelector("#openFileBtn"),
+                        openFileBtn: querySelectorByIdFlexible(
+                            document,
+                            "#open_file_btn"
+                        ),
                         setLoading,
                         showAboutModal: () => {},
                         showNotification: () => {},

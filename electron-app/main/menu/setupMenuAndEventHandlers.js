@@ -18,6 +18,31 @@ function setupMenuAndEventHandlers() {
     registerIpcListener("theme-changed", async (event, theme) => {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
+            // Persist the theme in main-process settings so `theme:get` stays in sync.
+            // Renderer typically stores "ffv-theme" in localStorage, but the
+            // renderer's theme initialization also consults main via theme:get.
+            // Without persisting here, the main process can keep returning the
+            // previous theme and cause a bounce-back.
+            try {
+                const raw =
+                    typeof theme === "string" ? theme.trim().toLowerCase() : "";
+                const normalized = raw === "system" ? "auto" : raw;
+
+                if (
+                    normalized === "dark" ||
+                    normalized === "light" ||
+                    normalized === "auto"
+                ) {
+                    const { Conf } = require("electron-conf");
+                    const conf = new Conf({
+                        name: CONSTANTS.SETTINGS_CONFIG_NAME,
+                    });
+                    conf.set("theme", normalized);
+                }
+            } catch {
+                // Best-effort persistence; menu creation should still proceed.
+            }
+
             safeCreateAppMenu(
                 win,
                 theme || CONSTANTS.DEFAULT_THEME,

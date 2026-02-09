@@ -1191,7 +1191,7 @@ export default defineConfig([
             "html/class-spacing": "warn",
             "html/css-no-empty-blocks": "warn",
             "html/id-naming-convention": "warn",
-            "html/indent": ["error", 4],
+            "html/indent": "off",
             "html/lowercase": "warn",
             "html/max-element-depth": "warn",
             "html/no-abstract-roles": "warn",

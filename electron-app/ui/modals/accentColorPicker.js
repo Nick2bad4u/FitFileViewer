@@ -75,23 +75,42 @@ function addModalStyles() {
 			display: none;
 			position: fixed;
 			z-index: 10000;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			background-color: rgba(0, 0, 0, 0.5);
+			inset: 0;
+			background: var(--color-overlay-bg);
+			/* stylelint-disable property-no-vendor-prefix -- Electron/Chromium */
+			-webkit-backdrop-filter: var(--backdrop-blur);
+			/* stylelint-enable property-no-vendor-prefix */
+			backdrop-filter: var(--backdrop-blur);
+			padding: clamp(16px, 4vi, 40px);
+			overflow: auto;
+
+			/*
+				This modal originated upstream with variables like --color-background,
+				--color-text, --color-text-muted.
+				FitFileViewer uses --color-bg/--color-fg/etc. Define local aliases so
+				the modal never becomes transparent/illegible.
+			*/
+			--accent-picker-bg: var(--color-surface);
+			--accent-picker-fg: var(--color-fg);
+			--accent-picker-muted: rgb(var(--color-fg-rgb) / 72%);
+			--accent-picker-border: var(--color-glass-border);
+			--accent-picker-input-bg: rgb(var(--color-surface-rgb) / 70%);
 		}
 
 		.accent-picker-content {
-			background-color: var(--color-background);
-			color: var(--color-text);
-			margin: 5% auto;
+			background: var(--accent-picker-bg);
+			color: var(--accent-picker-fg);
+			margin: min(8vb, 72px) auto;
 			padding: 0;
-			border: 1px solid var(--color-border);
-			border-radius: 8px;
+			border: 1px solid var(--accent-picker-border);
+			border-radius: var(--border-radius);
 			width: 90%;
-			max-width: 500px;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			max-width: 560px;
+			box-shadow: var(--color-box-shadow);
+			/* stylelint-disable property-no-vendor-prefix -- Electron/Chromium */
+			-webkit-backdrop-filter: var(--backdrop-blur);
+			/* stylelint-enable property-no-vendor-prefix */
+			backdrop-filter: var(--backdrop-blur);
 		}
 
 		.accent-picker-header {
@@ -105,7 +124,7 @@ function addModalStyles() {
 		.accent-picker-header h2 {
 			margin: 0;
 			font-size: 1.25rem;
-			color: var(--color-text);
+			color: var(--accent-picker-fg);
 		}
 
 		.close-btn {
@@ -113,7 +132,7 @@ function addModalStyles() {
 			border: none;
 			font-size: 1.5rem;
 			cursor: pointer;
-			color: var(--color-text-muted);
+			color: var(--accent-picker-muted);
 			padding: 0;
 			width: 2rem;
 			height: 2rem;
@@ -123,7 +142,7 @@ function addModalStyles() {
 		}
 
 		.close-btn:hover {
-			color: var(--color-text);
+			color: var(--accent-picker-fg);
 		}
 
 		.accent-picker-body {
@@ -138,7 +157,7 @@ function addModalStyles() {
 		}
 
 		.current-theme-info strong {
-			color: var(--color-text);
+			color: var(--accent-picker-fg);
 		}
 
 		#current-theme-name {
@@ -154,7 +173,7 @@ function addModalStyles() {
 
 		.preview-label {
 			font-size: 0.875rem;
-			color: var(--color-text-muted);
+			color: var(--accent-picker-muted);
 			margin-bottom: 0.5rem;
 		}
 
@@ -171,13 +190,13 @@ function addModalStyles() {
 			font-family: monospace;
 			font-size: 1.125rem;
 			font-weight: 600;
-			color: var(--color-text);
+			color: var(--accent-picker-fg);
 		}
 
 		.section-title {
 			font-size: 0.875rem;
 			font-weight: 600;
-			color: var(--color-text);
+			color: var(--accent-picker-fg);
 			margin-bottom: 0.75rem;
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
@@ -205,13 +224,13 @@ function addModalStyles() {
 
 		.preset-color:hover {
 			transform: scale(1.1);
-			border-color: var(--color-text);
+			border-color: var(--accent-picker-fg);
 		}
 
 		.preset-color.selected {
-			border-color: var(--color-text);
+			border-color: var(--accent-picker-fg);
 			border-width: 3px;
-			box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent);
+			box-shadow: 0 0 0 2px var(--color-bg-solid), 0 0 0 4px var(--color-accent);
 		}
 
 		.preset-color::after {
@@ -225,7 +244,7 @@ function addModalStyles() {
 			opacity: 0;
 			transition: opacity 0.2s;
 			pointer-events: none;
-			color: var(--color-text-muted);
+			color: var(--accent-picker-muted);
 		}
 
 		.preset-color:hover::after {
@@ -244,7 +263,7 @@ function addModalStyles() {
 
 		.custom-color-input label {
 			font-size: 0.875rem;
-			color: var(--color-text-muted);
+			color: var(--accent-picker-muted);
 		}
 
 		#custom-color-picker {
@@ -260,8 +279,8 @@ function addModalStyles() {
 			padding: 0.5rem;
 			border: 1px solid var(--color-border);
 			border-radius: 4px;
-			background: var(--color-surface);
-			color: var(--color-text);
+			background: var(--accent-picker-input-bg);
+			color: var(--accent-picker-fg);
 			font-family: monospace;
 		}
 
@@ -288,8 +307,8 @@ function addModalStyles() {
 		}
 
 		.btn-reset {
-			background: var(--color-surface);
-			color: var(--color-text);
+			background: var(--accent-picker-input-bg);
+			color: var(--accent-picker-fg);
 			border: 1px solid var(--color-border);
 		}
 

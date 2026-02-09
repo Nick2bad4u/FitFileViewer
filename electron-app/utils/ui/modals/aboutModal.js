@@ -4,8 +4,10 @@
  */
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
+import { exportUtils } from "../../files/export/exportUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
+import { showNotification } from "../notifications/showNotification.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
@@ -28,7 +30,6 @@ const CONSTANTS = {
 /** @type {HTMLElement | null} */
 let lastFocusedElement = null;
 export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
-let showingFeatures = false; // Track whether features or system info is currently displayed
 
 /**
  * Creates the enhanced modal content with modern styling and branding Uses
@@ -49,7 +50,9 @@ export function getAboutModalContent() {
 							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					</button>
-				</div>				<div class="modal-body">					<h1 class="modal-title">
+                </div>
+                <div class="modal-body">
+                    <h1 class="modal-title">
 						<span class="title-gradient">Fit File Viewer</span>
 						<span class="version-badge">
 							<span class="version-prefix">v</span>
@@ -58,60 +61,29 @@ export function getAboutModalContent() {
 					</h1>
 					<p class="modal-subtitle">Advanced FIT file analysis and visualization tool</p>
 
-					<div class="modal-actions">
-						<button id="toggle-info-btn" class="features-btn" tabindex="0" aria-label="Toggle between features and system info">
-							<span class="btn-icon">✨</span>
-							<span class="btn-text">Features</span>
-						</button>
-					</div>
-
-					<div class="feature-highlights">
-						<div class="feature-item">
-							<div class="feature-icon">📊</div>
-							<span>Data Analysis</span>
-						</div>
-						<div class="feature-item">
-							<div class="feature-icon">🗺️</div>
-							<span>GPS Mapping</span>
-						</div>
-						<div class="feature-item">
-							<div class="feature-icon">📈</div>
-							<span>Performance Metrics</span>
-						</div>
-					</div>
-
-					<div id="info-toggle-section" class="system-info-section">
-						<div class="system-info-grid">
-							<div class="system-info-item">
-								<span class="system-info-label">Version</span>
-								<span class="system-info-value version-highlight">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">Electron</span>
-								<span class="system-info-value electron-highlight">${CONSTANTS.DEFAULT_VALUES.ELECTRON}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">Node.js</span>
-                                <span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">Chrome</span>
-								<span class="system-info-value chrome-highlight">${CONSTANTS.DEFAULT_VALUES.CHROME}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">Platform</span>
-								<span class="system-info-value platform-highlight">${CONSTANTS.DEFAULT_VALUES.PLATFORM}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">Author</span>
-								<span class="system-info-value author-highlight">${CONSTANTS.DEFAULT_VALUES.AUTHOR}</span>
-							</div>
-							<div class="system-info-item">
-								<span class="system-info-label">License</span>
-								<span class="system-info-value license-highlight">${CONSTANTS.DEFAULT_VALUES.LICENSE}</span>
-							</div>
-						</div>
-					</div>
+                    <div class="about-split">
+                        <section class="about-panel about-panel--features" aria-label="Key features">
+                            ${createFeaturesContent()}
+                        </section>
+                        <section class="about-panel about-panel--system" aria-label="System information">
+                            <div class="about-panel-header">
+                                <h3 class="features-title"><span>🧩</span> System Info</h3>
+                                <button
+                                    id="about-copy-system-info"
+                                    class="features-btn features-btn--compact"
+                                    type="button"
+                                    tabindex="0"
+                                    aria-label="Copy system information to clipboard"
+                                >
+                                    <span class="btn-icon">📋</span>
+                                    <span class="btn-text">Copy</span>
+                                </button>
+                            </div>
+                            <div class="system-info-section" id="info-toggle-section">
+                                ${createSystemInfoContent()}
+                            </div>
+                        </section>
+                    </div>
 					<div id="about-modal-body" class="modal-content-body"></div>
 					<div class="modal-footer">
 						<div class="tech-stack">
@@ -171,7 +143,7 @@ export function showAboutModal(html = "") {
     if (modal) {
         const body = document.querySelector("#about-modal-body"),
             closeBtn = document.querySelector("#about-modal-close"),
-            toggleBtn = document.querySelector("#toggle-info-btn");
+            copyBtn = document.querySelector("#about-copy-system-info");
 
         if (body && closeBtn) {
             // Set content
@@ -205,20 +177,52 @@ export function showAboutModal(html = "") {
                     hideAboutModal();
                 }
             });
-            // Toggle button functionality
-            if (toggleBtn) {
-                addEventListenerWithCleanup(toggleBtn, "click", (e) => {
+
+            if (copyBtn) {
+                const runCopy = async () => {
+                    const text = buildSystemInfoClipboardText();
+                    const ok = await exportUtils.copyTextToClipboard(text);
+                    if (ok) {
+                        showNotification(
+                            "System info copied to clipboard",
+                            "success",
+                            2500
+                        );
+                        // Brief UX feedback on the button itself.
+                        try {
+                            const btnText = copyBtn.querySelector(".btn-text");
+                            if (btnText) {
+                                const prev = btnText.textContent;
+                                btnText.textContent = "Copied";
+                                setTimeout(() => {
+                                    btnText.textContent = prev || "Copy";
+                                }, 1200);
+                            }
+                        } catch {
+                            /* ignore */
+                        }
+                    } else {
+                        showNotification(
+                            "Failed to copy system info",
+                            "error",
+                            3000
+                        );
+                    }
+                };
+
+                addEventListenerWithCleanup(copyBtn, "click", (e) => {
                     e.preventDefault();
-                    toggleInfoSection();
+                    void runCopy();
                 });
 
-                addEventListenerWithCleanup(toggleBtn, "keydown", (e) => {
+                addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        toggleInfoSection();
+                        void runCopy();
                     }
                 });
             }
+            // No toggle button: features + system info are displayed together.
 
             // Handle external links to open in user's default browser.
             // NOTE: The modal content container stops propagation to prevent backdrop-closing.
@@ -262,6 +266,46 @@ export function showAboutModal(html = "") {
             }
             // Sound functionality removed as requested
         }
+    }
+}
+
+/**
+ * Build a human-friendly clipboard payload from the About modal's system info.
+ * Falls back gracefully if the DOM isn't present.
+ *
+ * @returns {string}
+ */
+function buildSystemInfoClipboardText() {
+    try {
+        /** @type {string[]} */
+        const lines = ["Fit File Viewer – System Info"];
+
+        const versionNumber = document.querySelector("#version-number");
+        if (versionNumber && versionNumber.textContent) {
+            lines.push(`App Version: ${versionNumber.textContent.trim()}`);
+        }
+
+        const items = document.querySelectorAll(
+            "#info-toggle-section .system-info-item"
+        );
+
+        for (const item of Array.from(items)) {
+            const labelEl = item.querySelector(".system-info-label");
+            const valueEl = item.querySelector(".system-info-value");
+            const labelRaw = labelEl?.textContent
+                ? labelEl.textContent.trim()
+                : "";
+            const valueRaw = valueEl?.textContent
+                ? valueEl.textContent.trim()
+                : "";
+            if (labelRaw && valueRaw) {
+                lines.push(`${labelRaw}: ${valueRaw}`);
+            }
+        }
+
+        return lines.join("\n");
+    } catch {
+        return "Fit File Viewer – System Info";
     }
 }
 
@@ -375,34 +419,7 @@ function hideAboutModal() {
         setTimeout(() => {
             modal.style.display = "none";
 
-            // Reset to system info state when closing
-            showingFeatures = false;
-            const toggleButton = document.querySelector("#toggle-info-btn"),
-                toggleSection = document.querySelector("#info-toggle-section");
-            if (toggleSection && toggleButton) {
-                toggleSection.innerHTML = createSystemInfoContent();
-                const buttonIcon = toggleButton.querySelector(".btn-icon"),
-                    buttonText = toggleButton.querySelector(".btn-text");
-                if (buttonIcon) {
-                    buttonIcon.textContent = "✨";
-                }
-                if (buttonText) {
-                    buttonText.textContent = "Features";
-                }
-                toggleButton.setAttribute(
-                    "aria-label",
-                    "View detailed features"
-                );
-                // Reload system info
-                try {
-                    loadVersionInfo();
-                } catch (error) {
-                    console.warn(
-                        `${CONSTANTS.LOG_PREFIX} Failed to reload version info:`,
-                        error
-                    );
-                }
-            }
+            // No toggle state to reset.
 
             // Restore focus to last focused element
             if (lastFocusedElement) {
@@ -514,64 +531,6 @@ function sanitizeAboutBodyHtml(html) {
     }
 
     return template.content;
-}
-
-/**
- * Toggles between features and system info display
- */
-function toggleInfoSection() {
-    const toggleButton = document.querySelector("#toggle-info-btn"),
-        toggleSection = document.querySelector("#info-toggle-section");
-
-    if (!toggleSection || !toggleButton) {
-        return;
-    }
-
-    showingFeatures = !showingFeatures;
-
-    // Add transition effect
-    toggleSection.style.opacity = "0.5";
-
-    setTimeout(() => {
-        if (showingFeatures) {
-            // Show features
-            toggleSection.innerHTML = createFeaturesContent();
-            const buttonIcon = toggleButton.querySelector(".btn-icon"),
-                buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) {
-                buttonIcon.textContent = "🔧";
-            }
-            if (buttonText) {
-                buttonText.textContent = "System Info";
-            }
-            toggleButton.setAttribute("aria-label", "View system information");
-        } else {
-            // Show system info
-            toggleSection.innerHTML = createSystemInfoContent();
-            const buttonIcon = toggleButton.querySelector(".btn-icon"),
-                buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) {
-                buttonIcon.textContent = "✨";
-            }
-            if (buttonText) {
-                buttonText.textContent = "Features";
-            }
-            toggleButton.setAttribute("aria-label", "View detailed features");
-
-            // Reload system info data after switching back
-            try {
-                loadVersionInfo();
-            } catch (error) {
-                console.warn(
-                    `${CONSTANTS.LOG_PREFIX} Failed to reload version info:`,
-                    error
-                );
-            }
-        }
-
-        // Restore opacity
-        toggleSection.style.opacity = "1";
-    }, 150);
 }
 
 /**

@@ -6,7 +6,6 @@
  * @param {() => any} options.dialogRef
  * @param {{ DIALOG_FILTERS: { FIT_FILES: any } }} options.CONSTANTS
  * @param {(filePath: string) => void} options.addRecentFile
- * @param {(key: string, value: any) => void} options.setAppState
  * @param {() => any} options.browserWindowRef
  * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
  * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
@@ -22,7 +21,6 @@ function registerDialogHandlers({
     dialogRef,
     CONSTANTS,
     addRecentFile,
-    setAppState,
     browserWindowRef,
     getThemeFromRenderer,
     safeCreateAppMenu,
@@ -92,10 +90,6 @@ function registerDialogHandlers({
                 addRecentFile(firstPath);
             }
 
-            if (typeof setAppState === "function") {
-                setAppState("loadedFitFilePath", firstPath);
-            }
-
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
             if (
                 win &&
@@ -104,7 +98,12 @@ function registerDialogHandlers({
             ) {
                 try {
                     const theme = await getThemeFromRenderer(win);
-                    safeCreateAppMenu(win, theme, firstPath);
+                    // Do NOT treat a dialog selection as a "loaded" file.
+                    // We only set loadedFitFilePath when the renderer confirms
+                    // a successful load via the "fit-file-loaded" IPC event.
+                    // This keeps file-dependent actions (e.g. Summary Columns)
+                    // correctly disabled until data is actually available.
+                    safeCreateAppMenu(win, theme, null);
                 } catch (menuError) {
                     logWithContext?.(
                         "warn",

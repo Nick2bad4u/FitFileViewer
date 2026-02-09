@@ -1494,6 +1494,8 @@ body.theme-light .pill-accent {
 /* Light theme readability tuning */
 body.theme-light .app-header h1 {
     color: var(--color-fg);
+    background-color: transparent;
+    background-image: none;
     text-shadow:
         0 6px 18px rgb(var(--color-accent-rgb) / 18%),
         0 2px 8px rgb(var(--color-fg-rgb) / 12%);
@@ -2821,6 +2823,10 @@ body[data-has-fit-file="true"] .tab-bar {
     display: none;
     margin: 0;
     inline-size: 100%;
+
+    /* When inside .tab-card (a flex container), allow the active panel to fill. */
+    flex: 1 1 auto;
+    min-block-size: 0;
 }
 
 /* Ensure tab content fills the screen in fullscreen mode */
@@ -2879,15 +2885,34 @@ body[data-has-fit-file="true"] .tab-bar {
         clamp(10px, 1.5vi, 15px);
     margin: 0 auto clamp(24px, 4vi, 40px);
     inline-size: 98%;
-    min-block-size: clamp(420px, 60vb, 900px);
-    max-block-size: calc(100vb - 140px);
+
+    /*
+        Give the card a definite height so embedded panels (e.g. the AltFit
+        iframe used by the "Data" tab) can reliably size to 100% and avoid
+        rendering as a tiny internal scroll box.
+    */
+    block-size: clamp(420px, calc(100vb - 140px), 900px);
     position: relative;
-    overflow-inline: hidden;
-    overflow-block: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     scrollbar-gutter: stable both-edges;
     transition:
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.6s ease;
+}
+
+/* The active tab panel should scroll within the card (not the card itself). */
+.tab-card > .tab-content.active {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+/* Ensure embedded iframes (Alternative view / Zwift) fill the active panel. */
+.tab-card > .tab-content.active > .fullsize-container {
+    flex: 1 1 auto;
+    min-block-size: 0;
 }
 
 .tab-card::before,
@@ -2959,15 +2984,14 @@ body[data-has-fit-file="false"] .tab-card::after {
     animation: empty-aurora-flow 18s ease-in-out infinite;
 }
 
-.table-section,
-#content_data > div:nth-child(n) {
+.table-section {
     border: 1px solid var(--color-border);
     background: var(--color-bg-alt);
     margin-block-end: 15px;
     border-radius: 4px;
     box-shadow: 0 1px 3px var(--c_hex0000004d);
-    inline-size: auto !important;
-    block-size: auto !important;
+    inline-size: 100%;
+    box-sizing: border-box;
 }
 
 /* =====================================================
@@ -3178,6 +3202,22 @@ tr:hover {
     align-self: stretch;
     min-inline-size: clamp(160px, 20vi, 220px);
     justify-content: center;
+}
+
+/*
+    Pre-file-open layout: make the primary action (“Open FIT File”) feel like the
+    focal point of the header bar. Once a file is loaded, the header bar becomes
+    more compact (see body.app-has-file overrides) to make room for the filename.
+*/
+body:not(.app-has-file) .header-bar #open_file_btn.themed-btn,
+body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
+    flex: 1 1 280px;
+    min-inline-size: clamp(220px, 28vi, 360px);
+    max-inline-size: min(100%, 440px);
+    min-block-size: clamp(52px, 7vi, 66px);
+    padding-block: 14px;
+    padding-inline: clamp(28px, 4vi, 44px);
+    font-size: 1.05rem;
 }
 
 .header-bar .themed-btn .btn-label {
@@ -6396,6 +6436,38 @@ body.theme-light .data-point-filter-control__range-values {
     font-weight: 700;
 }
 
+/* Light theme: ensure the primary CTA remains readable.
+   Gradient-clipped text can render as nearly-transparent on some GPUs/drivers. */
+body.theme-light #open_file_btn .btn-label {
+    background: none;
+    /* stylelint-disable property-no-vendor-prefix -- override clipped text in WebKit */
+    -webkit-text-fill-color: currentcolor;
+    -webkit-background-clip: border-box;
+    /* stylelint-enable property-no-vendor-prefix */
+    background-clip: border-box;
+    color: rgb(255 255 255 / 96%);
+    text-shadow: 0 2px 10px rgb(2 6 23 / 22%);
+}
+
+body.theme-light #open_file_btn svg {
+    color: rgb(255 255 255 / 96%);
+}
+
+/* Light theme: make the CTA background more opaque so white label/icon are readable. */
+body.theme-light #open_file_btn.themed-btn {
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb)) 0%,
+        rgb(var(--color-secondary-accent-rgb)) 55%,
+        rgb(var(--color-accent-rgb)) 100%
+    );
+    border-color: rgb(var(--color-accent-rgb) / 55%);
+    box-shadow:
+        0 14px 30px rgb(var(--color-accent-rgb) / 28%),
+        0 6px 14px rgb(2 6 23 / 14%),
+        inset 0 1px 0 rgb(255 255 255 / 22%);
+}
+
 #open_file_btn svg {
     color: rgb(255 255 255 / 90%);
     filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 30%));
@@ -6576,6 +6648,22 @@ body.theme-light .data-point-filter-control__range-values {
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px rgb(var(--color-accent-rgb) / 35%);
+}
+
+/* Light theme: the base toast surface should read like a card (not white-on-white). */
+body.theme-light .notification {
+    background: rgb(255 255 255 / 94%);
+    color: var(--color-fg);
+    border-color: rgb(2 6 23 / 14%);
+    box-shadow: 0 18px 40px rgb(2 6 23 / 18%);
+}
+
+/* Light theme: add a touch of text shadow for colored toasts (white text). */
+body.theme-light .notification.success,
+body.theme-light .notification.error,
+body.theme-light .notification.warning,
+body.theme-light .notification.info {
+    text-shadow: 0 2px 10px rgb(2 6 23 / 22%);
 }
 
 /* Notification content styling */

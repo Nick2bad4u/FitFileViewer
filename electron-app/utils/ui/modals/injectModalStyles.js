@@ -36,10 +36,11 @@ export function injectModalStyles() {
 		}
 		.fancy-modal .modal-backdrop {
 			position: relative;
-			max-width: 90vw;
+			max-width: 92vw;
 			max-height: 85vh;
 			overflow: hidden;
-		}		.fancy-modal .modal-content {
+		}
+		.fancy-modal .modal-content {
 			background: var(--color-glass);
 			border-radius: 24px;
 			box-shadow: var(--color-box-shadow);
@@ -47,8 +48,8 @@ export function injectModalStyles() {
 			backdrop-filter: var(--backdrop-blur);
 			overflow: hidden;
 			position: relative;
-			width: 500px;
-			max-width: 90vw;
+			width: clamp(720px, 86vw, 980px);
+			max-width: 92vw;
 			max-height: 85vh;
 			color: var(--color-fg);
 			transform: scale(0.8) translateY(40px);
@@ -122,6 +123,18 @@ export function injectModalStyles() {
 			box-shadow: 0 0 0 3px var(--color-glass);
 		}
 
+		/* Compact variant for panel header actions (e.g. Copy System Info) */
+		.fancy-modal .features-btn--compact {
+			padding: 8px 14px;
+			border-radius: 12px;
+			font-size: 0.85rem;
+			gap: 6px;
+		}
+
+		.fancy-modal .features-btn--compact .btn-icon {
+			font-size: 1rem;
+		}
+
 		.fancy-modal .btn-icon {
 			font-size: 1.1rem;
 		}
@@ -163,10 +176,55 @@ export function injectModalStyles() {
 		/* Body Styles */
 		.fancy-modal .modal-body {
 			padding: 0 28px 20px;
-			text-align: center;
+			text-align: left;
 			overflow-y: auto;
 			flex: 1;
 			min-height: 0;
+		}
+
+		/* Keep title/subtitle centered even though the body is left aligned */
+		.fancy-modal .modal-title,
+		.fancy-modal .modal-subtitle {
+			text-align: center;
+			justify-content: center;
+		}
+
+		/* Two-column About layout (features + versions side-by-side) */
+		.fancy-modal .about-split {
+			display: grid;
+			grid-template-columns: minmax(320px, 1.15fr) minmax(300px, 1fr);
+			gap: 16px;
+			align-items: start;
+			margin: 18px 0 16px;
+		}
+
+		.fancy-modal .about-panel {
+			background: var(--color-glass);
+			border: 1px solid var(--color-glass-border);
+			border-radius: 16px;
+			padding: 16px;
+			backdrop-filter: var(--backdrop-blur);
+		}
+
+		.fancy-modal .about-panel-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 10px;
+		}
+
+		.fancy-modal .about-panel-header .features-title {
+			margin: 0;
+		}
+
+		.fancy-modal .about-panel--system .system-info-section {
+			margin: 0;
+			padding: 0;
+			background: transparent;
+			border: none;
+			max-height: none;
+			overflow: visible;
 		}
 		.fancy-modal .modal-title {
 			font-size: 2.2rem;
@@ -225,8 +283,8 @@ export function injectModalStyles() {
 			backdrop-filter: var(--backdrop-blur);
 			position: relative;
 			overflow: hidden;
-			max-height: 250px;
-			overflow-y: auto;
+			max-height: none;
+			overflow: visible;
 			transition: var(--transition-smooth);
 		}
 
@@ -630,27 +688,27 @@ export function injectModalStyles() {
 				margin: 0 16px;
 				max-height: 90vh;
 			}
-			
+
 			.fancy-modal .modal-body {
 				padding: 0 20px 16px;
 			}
-			
+
 			.fancy-modal .modal-header {
 				padding: 16px 20px 8px;
 			}
-			
+
 			.fancy-modal .modal-title {
 				font-size: 1.8rem;
 				flex-direction: column;
 				gap: 8px;
 			}
-			
+
 			.fancy-modal .feature-highlights {
 				flex-direction: column;
 				gap: 10px;
 				margin: 12px 0 16px;
 			}
-			
+
 			.fancy-modal .feature-item {
 				flex-direction: row;
 				justify-content: flex-start;
@@ -658,15 +716,18 @@ export function injectModalStyles() {
 				padding: 10px;
 			}
 
+			.fancy-modal .about-split {
+				grid-template-columns: 1fr;
+				gap: 12px;
+			}
+
+			.fancy-modal .about-panel {
+				padding: 14px;
+			}
+
 			.fancy-modal .system-info-grid {
 				grid-template-columns: 1fr;
 				gap: 10px;
-			}
-
-			.fancy-modal .system-info-section {
-				padding: 16px;
-				margin: 16px 0 16px;
-				max-height: 200px;
 			}
 
 			.fancy-modal .system-info-item {
@@ -687,7 +748,7 @@ export function injectModalStyles() {
 			.fancy-modal .modal-backdrop {
 				max-height: 80vh;
 			}
-			
+
 			.fancy-modal .modal-content {
 				max-height: 80vh;
 			}
@@ -698,7 +759,7 @@ export function injectModalStyles() {
 			.fancy-modal .modal-backdrop {
 				max-height: 85vh;
 			}
-			
+
 			.fancy-modal .modal-content {
 				max-height: 85vh;
 			}
