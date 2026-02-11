@@ -142,6 +142,33 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             .toUpperCase();
         wrapper.append(titleOverlay);
 
+        // Add zoom hint overlay (bottom-right) to guide chart interactions
+        const zoomHint = document.createElement("div");
+        zoomHint.className = "chart-zoom-hint";
+        zoomHint.style.cssText = `
+            position: absolute;
+            right: 12px;
+            bottom: 10px;
+            background: ${colors.surfaceSecondary || colors.surface || "#222"};
+            color: ${colors.textPrimary || "#fff"};
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 2px 8px ${colors.shadowLight || "#00000033"};
+            backdrop-filter: var(--backdrop-blur);
+            text-transform: none;
+            white-space: nowrap;
+            z-index: 10;
+        `;
+        zoomHint.textContent = "Zoom: Ctrl + scroll or pinch • Pan: drag";
+        wrapper.append(zoomHint);
+
         // Add hover event listeners to wrapper
         wrapper.addEventListener("mouseenter", () => {
             // Main transform and shadow effects
@@ -156,6 +183,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             // Title overlay effect
             titleOverlay.style.opacity = "1";
             titleOverlay.style.transform = "translateY(0)";
+
+            // Zoom hint effect
+            zoomHint.style.opacity = "1";
+            zoomHint.style.transform = "translateY(0)";
 
             // Add subtle background gradient shift
             wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
@@ -174,6 +205,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             // Reset title overlay
             titleOverlay.style.opacity = "0";
             titleOverlay.style.transform = "translateY(-8px)";
+
+            // Reset zoom hint
+            zoomHint.style.opacity = "0";
+            zoomHint.style.transform = "translateY(6px)";
 
             // Reset background
             wrapper.style.background = colors.surface || "#222";

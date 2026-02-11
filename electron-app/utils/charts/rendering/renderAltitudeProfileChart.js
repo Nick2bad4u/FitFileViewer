@@ -233,6 +233,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             },
                             wheel: {
                                 enabled: true,
+                                modifierKey: "ctrl",
                                 speed: 0.1,
                             },
                         },

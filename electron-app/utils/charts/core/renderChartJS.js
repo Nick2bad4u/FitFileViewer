@@ -3082,6 +3082,10 @@ async function renderChartsWithData(
                 },
                 wheel: {
                     enabled: true,
+                    // Without a modifier key, chartjs-plugin-zoom captures the mouse wheel
+                    // which prevents the Charts tab from scrolling when the cursor is over
+                    // a chart. Require Ctrl+wheel for zoom so normal wheel scroll works.
+                    modifierKey: "ctrl",
                     speed: 0.1,
                 },
             },

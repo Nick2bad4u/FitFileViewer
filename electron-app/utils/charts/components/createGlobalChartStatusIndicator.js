@@ -39,7 +39,7 @@ const CONSTANTS = {
     },
     LOG_PREFIX: "[GlobalChartStatus]",
     TEXTS: {
-        ALL_SET: "All Set",
+        ALL_SET: "Charts Ready",
         HIDE_CONTROLS: "▼ Hide Controls",
         LOAD_FIT: "Load FIT",
         SHOW_SETTINGS: "Show Settings",
@@ -225,6 +225,7 @@ function createQuickActionButton(status) {
         cursor: pointer;
         transition: var(--transition-smooth);
     `;
+    quickAction.dataset.actionable = status.hasHiddenCharts ? "true" : "false";
 
     if (status.hasHiddenCharts) {
         quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;

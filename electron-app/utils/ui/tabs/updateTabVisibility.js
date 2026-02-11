@@ -286,7 +286,9 @@ export function updateTabVisibility(visibleTabId) {
     }
 
     // Define constants for display styles
-    const DISPLAY_BLOCK = "block",
+    // Use flex so the visible tab can behave like a panel and allow its children
+    // (lists, maps, iframes) to fill height without leaving large blank areas.
+    const DISPLAY_FLEX = "flex",
         DISPLAY_NONE = "none";
 
     // Normalize the requested visible tab id to a canonical content id when possible.
@@ -318,8 +320,9 @@ export function updateTabVisibility(visibleTabId) {
     // Toggle visibility using the cached elements
     for (const [id, el] of Object.entries(elementMap)) {
         const isVisible = id === targetId;
-        el.style.display = isVisible ? DISPLAY_BLOCK : DISPLAY_NONE;
+        el.style.display = isVisible ? DISPLAY_FLEX : DISPLAY_NONE;
         el.setAttribute("aria-hidden", (!isVisible).toString());
+        el.classList.toggle("active", isVisible);
     }
 
     // Update state to track visible tab content

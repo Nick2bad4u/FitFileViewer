@@ -303,6 +303,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: 1 1 auto;
+    min-block-size: 0;
 }
 
 .file-library__header {
@@ -441,6 +443,8 @@ html[data-theme="light"] body .file-library__unitSelect {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: 1 1 auto;
+    min-block-size: 0;
 }
 
 .file-calendar__header {
@@ -468,6 +472,8 @@ html[data-theme="light"] body .file-library__unitSelect {
     grid-template-columns: repeat(7, minmax(48px, 1fr));
     gap: 8px;
     align-items: stretch;
+    flex: 1 1 auto;
+    min-block-size: 0;
 }
 
 .file-calendar__weekday {
@@ -815,11 +821,13 @@ body {
     gap: 6px;
     flex: 1;
     min-block-size: 0;
-    overflow: auto;
+    overflow: hidden auto;
+    box-sizing: border-box;
 }
 
 .file-browser__item {
     inline-size: 100%;
+    max-inline-size: 100%;
     text-align: start;
     border: 1px solid var(--color-glass-border);
     background: var(--color-glass);
@@ -827,6 +835,7 @@ body {
     border-radius: 10px;
     padding: 10px 12px;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 .file-browser__item:hover {
@@ -1991,12 +2000,128 @@ body[data-has-fit-file="true"] .header-bar {
         0 14px 30px rgb(var(--color-accent-rgb) / 18%),
         0 6px 16px var(--c_rgb000_18p),
         inset 0 1px 0 var(--c_rgb255255255_18p);
-    padding: clamp(12px, 2.4vi, 18px) clamp(18px, 3.5vi, 32px);
+
+    /* Compact the top bar aggressively to maximize space for tab content. */
+    padding: 8px 14px;
     justify-content: space-between;
-    gap: clamp(12px, 2vi, 22px);
+    gap: 10px;
     border-radius: calc(var(--border-radius));
     flex-wrap: nowrap;
+    align-items: center;
+    min-block-size: 56px;
     inline-size: min(100%, var(--layout-content-width));
+}
+
+/*
+    Loaded-file layout:
+    When a FIT file is loaded, keep the app height locked to the viewport and
+    let the tab card be the primary scroll container. Active tab content should
+    stretch to fill the card height so we do not show large blank areas.
+*/
+body.app-has-file,
+body[data-has-fit-file="true"] {
+    block-size: 100vb;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+body.app-has-file .tab-card,
+body[data-has-fit-file="true"] .tab-card {
+    flex: 1 1 auto;
+    min-block-size: 0;
+
+    /* In loaded-file mode, the card flex-grows; the active tab panel scrolls. */
+    block-size: auto;
+    margin: 0 auto;
+}
+
+/*
+    Charts tab: allow overflow when active so the bottom of the chart stack
+    isn't clipped by the card's rounded corners. (Scoped to charts only.)
+*/
+body.app-has-file .tab-card:has(#content_chartjs.tab-content.active),
+body[data-has-fit-file="true"] .tab-card:has(#content_chartjs.tab-content.active) {
+    overflow: visible;
+}
+
+body.app-has-file .tab-card > .tab-content.active,
+body[data-has-fit-file="true"] .tab-card > .tab-content.active {
+    flex: 1 1 auto;
+    min-block-size: 0;
+}
+
+/*
+    Loaded-file: add breathing room at the bottom of scrollable tab panels.
+    This prevents bottom controls (DataTables pagination, chart buttons, etc.)
+    from being clipped by the tab-card's rounded corners / overflow hidden.
+*/
+body.app-has-file #content_data.tab-content.active,
+body[data-has-fit-file="true"] #content_data.tab-content.active,
+body.app-has-file #content_chartjs.tab-content.active,
+body[data-has-fit-file="true"] #content_chartjs.tab-content.active {
+    box-sizing: border-box;
+    padding-block-end: 56px;
+}
+
+/* Spacer to ensure the last chart/control can scroll fully into view. */
+body.app-has-file #content_chartjs.tab-content.active::after,
+body[data-has-fit-file="true"] #content_chartjs.tab-content.active::after {
+    content: "";
+    display: block;
+    block-size: 64px;
+    inline-size: 100%;
+    flex: 0 0 auto;
+}
+
+/* Extra breathing room for bottom controls within these tabs. */
+body.app-has-file #content_data .dataTables_wrapper,
+body[data-has-fit-file="true"] #content_data .dataTables_wrapper {
+    padding-block-end: 28px;
+}
+
+body.app-has-file #content_chartjs #chartjs_chart_container,
+body[data-has-fit-file="true"] #content_chartjs #chartjs_chart_container {
+    padding-block-end: 28px;
+}
+
+body.app-has-file .credits-section,
+body[data-has-fit-file="true"] .credits-section {
+    /* Remove footer entirely when a file is loaded to reclaim vertical space. */
+    display: none;
+}
+
+body.app-has-file .brand-subtitle,
+body[data-has-fit-file="true"] .brand-subtitle {
+    display: none;
+}
+
+body.app-has-file .header-bar #open_file_btn.themed-btn,
+body[data-has-fit-file="true"] .header-bar #open_file_btn.themed-btn {
+    min-block-size: 40px;
+    padding-block: 8px;
+    padding-inline: 14px;
+    font-size: 0.9rem;
+}
+
+body.app-has-file #active_file_name_container.has-file,
+body[data-has-fit-file="true"] #active_file_name_container.has-file {
+    margin-inline-start: 6px;
+    padding-inline-start: 14px;
+}
+
+/* Background pre-render containers should never affect layout/scrolling. */
+body.app-has-file #background_chart_container,
+body[data-has-fit-file="true"] #background_chart_container,
+body.app-has-file #background_data_container,
+body[data-has-fit-file="true"] #background_data_container {
+    position: absolute;
+    inset-inline-start: -9999px;
+    inset-block-start: -9999px;
+    inline-size: 0;
+    block-size: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 body.app-has-file .header-bar > *,
@@ -2068,11 +2193,6 @@ body[data-has-fit-file="true"] .header-hint span {
         flex: 1 1 100%;
         justify-content: center;
     }
-}
-
-body:not(.app-has-file) #active_file_name_container,
-body[data-has-fit-file="false"] #active_file_name_container {
-    display: none;
 }
 
 body.app-has-file #active_file_name_container,
@@ -2635,14 +2755,20 @@ body[data-has-fit-file="true"] #active_file_name_container {
         inset 0 1px 0 var(--c_rgb255255255_20p);
     flex-wrap: wrap;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     inline-size: min(100%, var(--layout-content-width));
 }
 
 body.app-has-file .tab-bar,
 body[data-has-fit-file="true"] .tab-bar {
-    margin-block: 0;
-    padding-block-start: 5px;
+    flex: 0 1 auto;
+    margin: 0 auto 10px;
+    padding: 8px 12px;
+    padding-block-end: 12px;
+
+    /* Cap the panel height so long tabs still scroll, but shorter content
+       doesn't leave a large empty area below. */
+    max-block-size: calc(100vb - 220px);
 }
 
 .tab-bar::after {
@@ -2827,6 +2953,9 @@ body[data-has-fit-file="true"] .tab-bar {
     /* When inside .tab-card (a flex container), allow the active panel to fill. */
     flex: 1 1 auto;
     min-block-size: 0;
+
+    /* When shown via JS we use display:flex; define the panel layout here. */
+    flex-direction: column;
 }
 
 /* Ensure tab content fills the screen in fullscreen mode */
@@ -2856,9 +2985,18 @@ body[data-has-fit-file="true"] .tab-bar {
 }
 
 .tab-content.active {
-    display: block;
+    display: flex;
     animation: tab-content-fade 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
     will-change: opacity, transform;
+
+    /*
+        Scrolling behavior:
+        The active tab panel is the vertical scroll container (not .tab-card).
+        This prevents controls/buttons from being visually clipped by the card
+        and gives the panel a definite height for flex children (maps/iframes)
+        to expand reliably.
+    */
+    overflow: auto;
 }
 
 .tab-content.active .tab-card {
@@ -2887,32 +3025,30 @@ body[data-has-fit-file="true"] .tab-bar {
     inline-size: 98%;
 
     /*
-        Give the card a definite height so embedded panels (e.g. the AltFit
-        iframe used by the "Data" tab) can reliably size to 100% and avoid
-        rendering as a tiny internal scroll box.
+        Default (no-file) height:
+        Keep the landing/empty state visually substantial so the app doesn't
+        collapse into a small card when no FIT file is loaded.
+        The loaded-file state overrides this via body.app-has-file rules.
     */
     block-size: clamp(420px, calc(100vb - 140px), 900px);
+
+    /*
+        Layout:
+        The card is a flex-growing container; the *active tab panel* is the
+        scroll container. This keeps the card's glass/pseudo-element styling
+        consistent while preventing child control shadows from being cut.
+    */
+    flex: 1 1 auto;
+    min-block-size: 0;
     position: relative;
     display: flex;
     flex-direction: column;
+
+    /* Clip ambient pseudo-elements; scrolling happens on .tab-content.active. */
     overflow: hidden;
-    scrollbar-gutter: stable both-edges;
     transition:
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.6s ease;
-}
-
-/* The active tab panel should scroll within the card (not the card itself). */
-.tab-card > .tab-content.active {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-}
-
-/* Ensure embedded iframes (Alternative view / Zwift) fill the active panel. */
-.tab-card > .tab-content.active > .fullsize-container {
-    flex: 1 1 auto;
-    min-block-size: 0;
 }
 
 .tab-card::before,
@@ -3033,10 +3169,13 @@ body[data-has-fit-file="false"] .tab-card::after {
 }
 
 #content_summary {
-    max-inline-size: 100vi;
-    max-block-size: 70vb;
+    max-inline-size: 100%;
+
+    /* Fill the tab-card height; the active tab panel handles scrolling. */
+    block-size: 100%;
+    max-block-size: none;
     overflow: auto;
-    margin-block-end: 16px;
+    margin-block-end: 0;
 }
 
 #content_summary .copy-btn {
@@ -3375,6 +3514,9 @@ body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
 body.app-has-file .header-brand,
 body[data-has-fit-file="true"] .header-brand {
     display: inline-flex;
+    padding: 6px 12px;
+    min-inline-size: 0;
+    flex: 0 0 auto;
     animation: brand-fade-in 0.5s ease forwards;
 }
 
@@ -3567,6 +3709,7 @@ body[data-has-fit-file="true"] .header-brand {
 
 body.app-has-file #active_file_name,
 body[data-has-fit-file="true"] #active_file_name {
+    font-size: 0.9rem;
     background: linear-gradient(
         120deg,
         rgb(var(--color-accent-rgb) / 92%),
@@ -3788,9 +3931,12 @@ table.dataTable thead th {
 
 .global-chart-status button {
     transition: var(--transition-smooth) !important;
+    flex: 0 0 auto;
+    align-self: center;
+    inline-size: max-content;
 }
 
-.global-chart-status button:hover {
+.global-chart-status button[data-actionable="true"]:hover {
     background: var(--color-accent-hover) !important;
     transform: translateY(-1px) !important;
 }
@@ -4005,16 +4151,18 @@ body.theme-light .zone-color-preview:hover {
     background: var(--color-bg-alt);
     border-radius: 4px;
     inline-size: 100%;
-    min-block-size: clamp(420px, 70vb, 900px);
+    flex: 1 1 auto;
+    min-block-size: 0;
     block-size: auto;
     display: block;
 }
 
 #map-controls {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-block-start: 16px;
+    margin-block-start: 0;
     padding: 16px 20px;
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
@@ -4024,12 +4172,131 @@ body.theme-light .zone-color-preview:hover {
     inline-size: 100%;
 }
 
+/* Reduce map controls vertical footprint when a file is loaded. */
+body.app-has-file #map-controls,
+body[data-has-fit-file="true"] #map-controls {
+    padding: 10px 12px;
+    gap: 10px;
+}
+
+/* Map tab is a vertical panel: map fills space, controls follow. */
+#content_map {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    gap: 16px;
+}
+
+/* Browser tab should fill the panel and allow internal scrolling in the list/library/calendar. */
+.file-browser {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    box-sizing: border-box;
+}
+
+.file-browser__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    box-sizing: border-box;
+}
+
+.file-browser__library,
+.file-browser__calendar {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow: auto;
+}
+
+#content_browser.tab-content.active {
+    overflow: hidden auto;
+}
+
+/* Ensure iframes used in tabs fill their panels. */
+.tab-content iframe.fullsize-container {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    max-inline-size: 100%;
+}
+
+/* =====================================================
+   Charts Tab Layout (ChartJS)
+   ===================================================== */
+
+/* The Charts tab content panel should behave like a full-height flex column. */
+#content_chartjs {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding-inline: clamp(6px, 1.5vi, 14px);
+    box-sizing: border-box;
+}
+
+#content_chartjs.tab-content.active {
+    overflow: hidden auto;
+}
+
+/* Controls are inserted as siblings of #chartjs_chart_container. */
+#chart-controls-toggle,
+#chartjs-settings-wrapper {
+    flex: 0 0 auto;
+}
+
+/* Make the chart container a flex column so inner charts can stack naturally. */
+#chartjs_chart_container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 0 0 auto;
+    inline-size: 100%;
+}
+
+/*
+    Legacy/alternate chart container support:
+    Some flows (background pre-render + attach) may move a #chart-container
+    element into the Charts tab. The global #chart-container rule constrains
+    height (400px / 60vb) and creates an inner scroll region, which can make
+    the bottom of the Charts tab appear "cut off".
+
+    Inside the Charts tab, remove those constraints so the outer tab panel is
+    the only vertical scroller.
+*/
+#content_chartjs #chart-container {
+    block-size: auto;
+    max-block-size: none;
+    overflow: visible;
+}
+
 .map-controls-panel__primary {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 12px;
+    row-gap: 8px;
+    overflow: visible;
+    padding-block: 2px;
+}
+
+.map-controls-panel__primary > * {
+    flex: 0 0 auto;
+}
+
+/* Keep button labels from wrapping and increasing the panel height. */
+.map-controls-panel__primary .map-action-btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .map-controls-panel__primary {
+        flex-wrap: nowrap;
+        overflow-inline: auto;
+        overflow-block: hidden;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 .map-controls-panel__secondary {
@@ -5528,6 +5795,7 @@ html[data-theme="light"] body .marker-count-select {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 0 0 auto;
     min-inline-size: clamp(260px, 32vi, 340px);
     max-inline-size: min(360px, calc(100vi - 32px));
     max-block-size: min(440px, calc(100vb - 48px));
@@ -7041,10 +7309,23 @@ footer {
     z-index: 9999;
     box-shadow: var(--color-box-shadow-light);
     backdrop-filter: var(--backdrop-blur);
-    display: inline-block;
-    text-align: center;
+    display: grid;
+    justify-items: center;
+    row-gap: 2px;
     position: relative;
-    padding-inline-end: 20px;
+    padding-inline-end: 24px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.measure-label-line {
+    white-space: nowrap;
+}
+
+.measure-label-unit {
+    opacity: 0.85;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 /* =====================================================

@@ -226,6 +226,12 @@ export function injectModalStyles() {
 			max-height: none;
 			overflow: visible;
 		}
+
+		/* The base system-info section adds a top accent line via ::before.
+		   In the split-panel layout this looks like a stray green divider. */
+		.fancy-modal .about-panel--system .system-info-section::before {
+			content: none;
+		}
 		.fancy-modal .modal-title {
 			font-size: 2.2rem;
 			font-weight: 700;

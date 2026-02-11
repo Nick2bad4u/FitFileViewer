@@ -74,8 +74,7 @@ export async function renderFileBrowserTab() {
     if (!container.dataset.ffvBrowserInitialized) {
         container.dataset.ffvBrowserInitialized = "true";
         container.innerHTML = `
-            <div class="tab-card">
-                <div class="file-browser">
+            <div class="file-browser">
                     <div class="file-browser__notice" role="note">
                         Experimental feature — folder scanning and calendar may change.
                     </div>
@@ -107,7 +106,6 @@ export async function renderFileBrowserTab() {
                         <div class="file-browser__library" id="fit-browser-library" hidden></div>
                         <div class="file-browser__calendar" id="fit-browser-calendar" hidden></div>
                     </div>
-                </div>
             </div>
         `;
 

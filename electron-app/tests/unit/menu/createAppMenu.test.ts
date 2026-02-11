@@ -814,6 +814,8 @@ describe("createAppMenu", () => {
         // Spy on console.log and set app.isPackaged=false to execute debug logging path
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const originalMock = (globalThis as any).__electronHoistedMock;
+        const originalEnv = process.env.FFV_DEBUG_MENU;
+        process.env.FFV_DEBUG_MENU = "1";
         (globalThis as any).__electronHoistedMock = {
             ...originalMock,
             app: { ...originalMock.app, isPackaged: false },
@@ -823,6 +825,11 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         expect(logSpy).toHaveBeenCalled();
         logSpy.mockRestore();
+        if (originalEnv === undefined) {
+            delete process.env.FFV_DEBUG_MENU;
+        } else {
+            process.env.FFV_DEBUG_MENU = originalEnv;
+        }
         (globalThis as any).__electronHoistedMock = originalMock;
     });
 

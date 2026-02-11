@@ -263,6 +263,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                             wheel: {
                                 enabled: true,
+                                modifierKey: "ctrl",
                                 speed: 0.1,
                             },
                         },

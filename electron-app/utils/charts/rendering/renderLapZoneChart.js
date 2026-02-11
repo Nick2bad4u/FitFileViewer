@@ -247,6 +247,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                 },
                                 wheel: {
                                     enabled: true,
+                                    modifierKey: "ctrl",
                                     speed: 0.1,
                                 },
                             },

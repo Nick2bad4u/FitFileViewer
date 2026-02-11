@@ -146,11 +146,15 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             const dist = map.distance(p0, p1),
                 distKm = dist / 1000,
                 distMi = dist / 1609.344,
-                mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2);
+                mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2),
+                primaryValue = dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1),
+                primaryUnit = dist >= 1000 ? "km" : "m",
+                secondaryValue = distMi.toFixed(2),
+                secondaryUnit = "mi";
             measureLabel = L.marker(mid, {
                 icon: L.divIcon({
                     className: "measure-label",
-                    html: `<div class="measure-label-content">${createExitButton()}${dist >= 1000 ? `${distKm.toFixed(2)} km` : `${dist.toFixed(1)} m`}<br>${distMi.toFixed(2)} mi</div>`,
+                    html: `<div class="measure-label-content">${createExitButton()}<div class="measure-label-line"><span class="measure-label-value">${primaryValue}</span> <span class="measure-label-unit">${primaryUnit}</span></div><div class="measure-label-line"><span class="measure-label-value">${secondaryValue}</span> <span class="measure-label-unit">${secondaryUnit}</span></div></div>`,
                 }),
                 iconAnchor: [60, 19],
                 iconSize: [120, 38],

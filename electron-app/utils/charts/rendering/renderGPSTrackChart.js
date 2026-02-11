@@ -204,6 +204,7 @@ export function renderGPSTrackChart(container, data, options) {
                             },
                             wheel: {
                                 enabled: true,
+                                modifierKey: "ctrl",
                                 speed: 0.1,
                             },
                         },

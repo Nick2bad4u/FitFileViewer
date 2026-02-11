@@ -107,6 +107,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             cursor: pointer;
             transition: var(--transition-smooth);
         `;
+        quickAction.dataset.actionable = hasHiddenCharts ? "true" : "false";
 
         if (hasHiddenCharts) {
             quickAction.textContent = "⚙️ Show Settings";
@@ -134,7 +135,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                 }
             });
         } else if (isAllVisible && counts.available > 0) {
-            quickAction.textContent = "✨ All Set";
+            quickAction.textContent = "✨ Charts Ready";
             quickAction.title = "All available charts are visible";
             quickAction.style.opacity = "0.7";
             quickAction.style.cursor = "default";
@@ -181,6 +182,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             transition: all 0.3s ease;
             z-index: 999999;
             backdrop-filter: var(--backdrop-blur);
+            pointer-events: none;
         `;
 
         globalBreakdown.innerHTML = `
@@ -214,21 +216,24 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
 
         // Make global indicator interactive with hover
         globalIndicator.style.position = "relative";
-        globalIndicator.style.cursor = "pointer";
+        globalIndicator.style.cursor = "default";
 
-        globalIndicator.addEventListener("mouseenter", () => {
+        const showBreakdown = () => {
             globalIndicator.style.background = "var(--color-glass-border)";
             globalIndicator.style.transform = "translateY(-1px)";
             globalBreakdown.style.opacity = "1";
             globalBreakdown.style.visibility = "visible";
-        });
+        };
 
-        globalIndicator.addEventListener("mouseleave", () => {
+        const hideBreakdown = () => {
             globalIndicator.style.background = "var(--color-bg-alt)";
             globalIndicator.style.transform = "translateY(0)";
             globalBreakdown.style.opacity = "0";
             globalBreakdown.style.visibility = "hidden";
-        });
+        };
+
+        quickAction.addEventListener("mouseenter", showBreakdown);
+        quickAction.addEventListener("mouseleave", hideBreakdown);
 
         globalIndicator.append(globalBreakdown);
 

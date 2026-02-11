@@ -166,6 +166,7 @@ export function createEnhancedChart(canvas, options) {
                 maintainAspectRatio: false,
                 normalized: true,
                 parsing: false,
+                modifierKey: "ctrl",
                 spanGaps: enableSpanGaps,
                 plugins: {
                     chartBackgroundColorPlugin: {

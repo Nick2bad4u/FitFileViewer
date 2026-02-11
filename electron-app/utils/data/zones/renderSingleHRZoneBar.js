@@ -155,6 +155,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                                 color: theme === "dark" ? "#fff" : "#000",
                             },
                             title: {
+                                modifierKey: "ctrl",
                                 color: theme === "dark" ? "#fff" : "#000",
                                 display: true,
                                 text: `Time (${getUnitSymbol("time", "time")})`,

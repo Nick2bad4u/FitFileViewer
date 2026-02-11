@@ -114,6 +114,7 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                                 },
                                 wheel: {
                                     enabled: true,
+                                    modifierKey: "ctrl",
                                     speed: 0.1,
                                 },
                             },

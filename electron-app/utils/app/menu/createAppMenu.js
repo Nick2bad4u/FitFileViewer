@@ -86,6 +86,29 @@ function getConf() {
 let mainMenu = null;
 
 /**
+ * Determine if verbose createAppMenu debug logging should be enabled.
+ *
+ * Controlled via FFV_DEBUG_MENU=1 or globalThis.__FFV_debugMenu.
+ * Defaults to false to avoid console spam in normal dev sessions.
+ *
+ * @returns {boolean}
+ */
+function shouldLogMenuDebug() {
+    try {
+        const envFlag =
+            typeof process !== "undefined" &&
+            Boolean(process.env) &&
+            process.env.FFV_DEBUG_MENU === "1";
+        const globalFlag =
+            typeof globalThis !== "undefined" &&
+            Boolean(/** @type {any} */ (globalThis).__FFV_debugMenu);
+        return envFlag || globalFlag;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Open a URL in the user's browser using the centralized allow/deny policy.
  * This is defense-in-depth: menu URLs are hard-coded, but keeping validation
  * consistent prevents future regressions from accidentally introducing unsafe
@@ -1010,7 +1033,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         },
     ];
 
-    if (!app || !app.isPackaged) {
+    if ((!app || !app.isPackaged) && shouldLogMenuDebug()) {
         // Log only the menu labels for debugging, avoid full serialization
         const menuLabels = template.map(
             (item) => /** @type {Record<string, any>} */ (item).label
