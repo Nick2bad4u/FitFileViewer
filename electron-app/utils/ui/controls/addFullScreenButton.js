@@ -74,6 +74,47 @@ const isFullscreenActive = () => {
 };
 
 /**
+ * Request fullscreen with a safe fallback target when the primary request fails.
+ *
+ * @param {import("screenfull").Screenfull} screenfull
+ * @param {HTMLElement} primaryTarget
+ * @param {HTMLElement} fallbackTarget
+ *
+ * @returns {Promise<boolean>} Whether fullscreen was entered.
+ */
+async function requestFullscreenWithFallback(
+    screenfull,
+    primaryTarget,
+    fallbackTarget
+) {
+    const attempt = async (target) => {
+        const result = screenfull.request(target);
+        if (result && typeof result.then === "function") {
+            await result;
+        }
+        return isFullscreenActive();
+    };
+
+    try {
+        const success = await attempt(primaryTarget);
+        if (success) {
+            return true;
+        }
+    } catch {
+        /* ignore and fallback */
+    }
+
+    if (fallbackTarget && fallbackTarget !== primaryTarget) {
+        try {
+            return await attempt(fallbackTarget);
+        } catch {
+            return false;
+        }
+    }
+    return false;
+}
+
+/**
  * Adds a global fullscreen toggle button to the application Creates a floating
  * button that allows users to toggle fullscreen mode for the active tab content
  * Only creates one button instance to prevent duplicates
@@ -468,31 +509,39 @@ async function handleFullscreenToggle(event) {
             return;
         }
 
-        try {
-            if (screenfull.isFullscreen) {
+        if (screenfull.isFullscreen) {
+            try {
                 const result = screenfull.exit();
                 if (result && typeof result.then === "function") {
                     await result;
                 }
                 logWithContext("Exiting fullscreen mode");
-            } else {
-                const result = screenfull.request(target);
-                if (result && typeof result.then === "function") {
-                    await result;
-                }
+            } catch (error) {
                 logWithContext(
-                    `Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`
+                    `Screenfull exit failed; falling back to native: ${/** @type {any} */ (error).message}`,
+                    "warn"
                 );
+                nativeToggleFullscreen(document.documentElement);
             }
-        } catch (error) {
-            // Some environments can report screenfull as enabled but still reject the request.
-            // Fall back to the native DOM fullscreen API.
+            return;
+        }
+
+        const success = await requestFullscreenWithFallback(
+            screenfull,
+            target,
+            document.documentElement
+        );
+        if (!success) {
             logWithContext(
-                `Screenfull toggle failed; falling back to native: ${/** @type {any} */ (error).message}`,
+                "Screenfull request failed; using native fullscreen fallback",
                 "warn"
             );
-            nativeToggleFullscreen(target);
+            nativeToggleFullscreen(document.documentElement);
+            return;
         }
+        logWithContext(
+            `Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`
+        );
     } catch (error) {
         logWithContext(
             `Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`,
@@ -532,24 +581,46 @@ function handleKeyboardShortcuts(event) {
                 return;
             }
 
-            // Even when screenfull is enabled, ensure we have a stable target.
-            try {
-                if (screenfull.isFullscreen) {
+            if (screenfull.isFullscreen) {
+                try {
                     screenfull.exit();
                     logWithContext("F11: Exiting fullscreen mode");
-                } else {
-                    screenfull.request(target);
+                } catch (error) {
+                    logWithContext(
+                        `F11: Screenfull exit failed; using native fallback: ${/** @type {any} */ (error).message}`,
+                        "warn"
+                    );
+                    nativeToggleFullscreen(document.documentElement);
+                }
+                return;
+            }
+
+            const fallbackTarget = document.documentElement;
+            requestFullscreenWithFallback(
+                screenfull,
+                target,
+                fallbackTarget
+            )
+                .then((success) => {
+                    if (!success) {
+                        logWithContext(
+                            "F11: Screenfull request failed; using native fallback",
+                            "warn"
+                        );
+                        nativeToggleFullscreen(fallbackTarget);
+                        return;
+                    }
                     logWithContext(
                         `F11: Entering fullscreen for: ${activeContent ? activeContent.id : "document"}`
                     );
-                }
-            } catch (error) {
-                logWithContext(
-                    `F11: Screenfull request failed; using native fallback: ${/** @type {any} */ (error).message}`,
-                    "warn"
-                );
-                nativeToggleFullscreen(target);
-            }
+                })
+                .catch((error) => {
+                    logWithContext(
+                        `F11: Screenfull request failed; using native fallback: ${/** @type {any} */ (error).message}`,
+                        "warn"
+                    );
+                    nativeToggleFullscreen(fallbackTarget);
+                });
         }
     } catch (error) {
         logWithContext(
@@ -599,9 +670,8 @@ function nativeToggleFullscreen(target) {
                 ? overrideTarget
                 : getActiveTabContent();
         const doc = /** @type {any} */ (document);
-        const docEl = /** @type {any} */ (
-            activeContent || document.documentElement
-        );
+        const rootEl = /** @type {any} */ (document.documentElement);
+        const docEl = /** @type {any} */ (activeContent || rootEl);
 
         const isFs = Boolean(
             document.fullscreenElement ||
@@ -618,12 +688,23 @@ function nativeToggleFullscreen(target) {
             if (typeof exit === "function") exit.call(document);
             logWithContext("Exiting fullscreen mode (native fallback)");
         } else {
-            const req =
+            let requestTarget = docEl;
+            let req =
                 docEl.requestFullscreen ||
                 docEl.webkitRequestFullscreen ||
                 docEl.mozRequestFullScreen ||
                 docEl.msRequestFullscreen;
-            if (typeof req === "function") req.call(docEl);
+            if (!req && docEl !== rootEl) {
+                requestTarget = rootEl;
+                req =
+                    rootEl.requestFullscreen ||
+                    rootEl.webkitRequestFullscreen ||
+                    rootEl.mozRequestFullScreen ||
+                    rootEl.msRequestFullscreen;
+            }
+            if (typeof req === "function") {
+                req.call(requestTarget);
+            }
             logWithContext("Entering fullscreen mode (native fallback)");
         }
     } catch (error) {

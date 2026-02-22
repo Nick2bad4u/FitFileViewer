@@ -1,5 +1,6 @@
 // @ts-check
 import pluginDocusaurus from "@docusaurus/eslint-plugin";
+import { fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import css from "@eslint/css";
 import js from "@eslint/js";
@@ -49,12 +50,14 @@ import pluginWriteGood from "eslint-plugin-write-good-comments";
 import xss from "eslint-plugin-xss";
 import eslintPluginYml from "eslint-plugin-yml";
 import globals from "globals";
-import jsoncEslintParser from "jsonc-eslint-parser";
+import * as jsoncEslintParser from "jsonc-eslint-parser";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
+
+const pluginReactFixed = fixupPluginRules(pluginReact);
 
 /**
  * @see {@link https://www.schemastore.org/eslintrc.json} for JSON schema validation
@@ -384,7 +387,7 @@ export default defineConfig([
             "prefer-arrow": pluginPreferArrow,
             prettier: pluginPrettier,
             promise: pluginPromise,
-            react: pluginReact,
+            react: pluginReactFixed,
             "react-hooks": reactHooks,
             "react-perf": reactPerfPlugin,
             redos: pluginRedos,
@@ -844,7 +847,7 @@ export default defineConfig([
             "markdown/require-alt-text": "warn",
             "markdown/table-column-count": "warn",
             // Remark linting integration
-            "mdx/remark": "warn",
+            // "mdx/remark": "warn",
         },
         settings: {
             processor: mdx.createRemarkProcessor({
@@ -1416,7 +1419,7 @@ export default defineConfig([
             "prefer-arrow": pluginPreferArrow,
             prettier: pluginPrettier,
             promise: pluginPromise,
-            react: pluginReact,
+            react: pluginReactFixed,
             "react-hooks": reactHooks,
             "react-perf": reactPerfPlugin,
             redos: pluginRedos,

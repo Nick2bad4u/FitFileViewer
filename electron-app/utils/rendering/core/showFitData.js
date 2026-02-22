@@ -165,6 +165,9 @@ export function showFitData(data, filePath, options = {}) {
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
 
+            // Switch to map tab early to avoid a brief summary flash during load.
+            switchToMapTabOnLoad();
+
             try {
                 if (typeof globalThis.scrollTo === "function") {
                     const prefersReducedMotion =
@@ -245,30 +248,35 @@ export function showFitData(data, filePath, options = {}) {
     // Charts are rendered on-demand when the user activates the Charts tab.
     // Background pre-rendering was removed because it can freeze the UI.
 
-    // Switch to map tab as default when file is loaded
-    // Use setTimeout to ensure this happens after DOM updates and tab handlers are ready
-    setTimeout(() => {
-        // Use type assertion for window extensions
-        const windowExt = /**
-         * @type {Window & {
-         *     updateTabVisibility?: Function;
-         *     updateActiveTab?: Function;
-         *     renderMap?: Function;
-         *     isMapRendered?: boolean;
-         * }}
-         */ (globalThis);
+    // Default map tab switching happens earlier in the flow via switchToMapTabOnLoad.
+}
 
-        if (windowExt.updateTabVisibility && windowExt.updateActiveTab) {
-            windowExt.updateTabVisibility("content-map");
-            windowExt.updateActiveTab("tab-map");
+/**
+ * Switch to the Map tab immediately after a file is loaded.
+ * Keeps map rendering in sync while avoiding a summary tab flash.
+ */
+function switchToMapTabOnLoad() {
+    const windowExt = /**
+     * @type {Window & {
+     *     updateTabVisibility?: Function;
+     *     updateActiveTab?: Function;
+     *     renderMap?: Function;
+     *     isMapRendered?: boolean;
+     * }}
+     */ (globalThis);
 
-            // Manually trigger map rendering since we're programmatically switching tabs
-            if (windowExt.renderMap && !windowExt.isMapRendered) {
-                windowExt.renderMap();
-                windowExt.isMapRendered = true;
-            }
-        }
-    }, 0);
+    if (!windowExt.updateTabVisibility || !windowExt.updateActiveTab) {
+        return;
+    }
+
+    windowExt.updateTabVisibility("content-map");
+    windowExt.updateActiveTab("tab-map");
+
+    // Manually trigger map rendering since we're programmatically switching tabs
+    if (windowExt.renderMap && !windowExt.isMapRendered) {
+        windowExt.renderMap();
+        windowExt.isMapRendered = true;
+    }
 }
 
 /**

@@ -69,7 +69,7 @@ function resolveLegendColor(item, colors) {
 export const chartLegendItemBoxPlugin = {
     id: "chartLegendItemBoxPlugin",
     beforeDraw(chart) {
-        const legend = chart.legend;
+        const {legend} = chart;
         if (!legend || legend.options?.display === false) {
             return;
         }
@@ -80,7 +80,7 @@ export const chartLegendItemBoxPlugin = {
             return;
         }
 
-        const ctx = chart.ctx;
+        const {ctx} = chart;
         if (!ctx) {
             return;
         }

@@ -892,13 +892,31 @@ export function renderMap() {
     /** @type {(HTMLElement & { refreshSummary?: () => void }) | undefined} */
     let filterControl;
 
+    const resetLapSelectorSelection = () => {
+        const lapSelect = document.querySelector("#lap-select");
+        if (!(lapSelect instanceof HTMLSelectElement)) {
+            return false;
+        }
+        if (lapSelect.value === "all") {
+            return false;
+        }
+        lapSelect.selectedIndex = 0;
+        lapSelect.dispatchEvent(new Event("change"));
+        return true;
+    };
+
     if (controlsDiv && primaryControls) {
         primaryControls.append(createPrintButton());
         primaryControls.append(createMapThemeToggle());
         primaryControls.append(createExportGPXButton());
         primaryControls.append(createElevationProfileButton());
         filterControl = createDataPointFilterControl(({ action }) => {
-            if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+            const didReset = resetLapSelectorSelection();
+            if (
+                !didReset &&
+                windowExt.globalData &&
+                windowExt.globalData.recordMesgs
+            ) {
                 mapDrawLapsWrapper("all");
             }
             if (typeof windowExt.updateShownFilesList === "function") {
@@ -1028,7 +1046,12 @@ export function renderMap() {
         primaryControls.append(
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
-                if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+                const didReset = resetLapSelectorSelection();
+                if (
+                    !didReset &&
+                    windowExt.globalData &&
+                    windowExt.globalData.recordMesgs
+                ) {
                     mapDrawLapsWrapper("all");
                 }
                 if (windowExt.updateShownFilesList) {

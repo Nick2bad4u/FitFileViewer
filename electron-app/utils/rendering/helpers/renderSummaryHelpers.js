@@ -426,7 +426,7 @@ export function renderTable({
         data.lapMesgs.length > 0 &&
         (filterValue === "All" || filterValue.startsWith("Lap"))
     ) {
-        const lapMesgs = data.lapMesgs;
+        const {lapMesgs} = data;
         const lapCache = new Map();
         const lapFilterIndexRaw = filterValue.startsWith("Lap")
             ? Number.parseInt(filterValue.replace("Lap ", ""), 10)
@@ -625,7 +625,7 @@ function setupVirtualizedLapRows({
         }
         const containerRect = scrollContainer.getBoundingClientRect();
         const bodyRect = lapBody.getBoundingClientRect();
-        const scrollTop = scrollContainer.scrollTop;
+        const {scrollTop} = scrollContainer;
         const viewportHeight = scrollContainer.clientHeight;
         const bodyTop = bodyRect.top - containerRect.top + scrollTop;
         const relativeScroll = Math.max(0, scrollTop - bodyTop);
