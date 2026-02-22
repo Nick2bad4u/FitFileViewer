@@ -1,5 +1,43 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 
+const CHART_FULLSCREEN_BODY_CLASS = "chart-fullscreen-active";
+
+/** @type {{ close: () => void; wrapper: HTMLElement } | null} */
+let activeChartFullscreen = null;
+
+/**
+ * Resolve the Chart.js instance associated with a canvas if available.
+ *
+ * @param {HTMLCanvasElement} canvas
+ *
+ * @returns {{ resize?: () => void } | null}
+ */
+function getChartInstanceFromCanvas(canvas) {
+    const chartGlobal = /** @type {any} */ (globalThis).Chart;
+    if (chartGlobal && typeof chartGlobal.getChart === "function") {
+        const chart = chartGlobal.getChart(canvas);
+        return chart && typeof chart === "object" ? chart : null;
+    }
+
+    const legacyChart = /** @type {any} */ (canvas).__chartjs;
+    return legacyChart && typeof legacyChart === "object" ? legacyChart : null;
+}
+
+/**
+ * Request a Chart.js resize after layout changes.
+ *
+ * @param {HTMLCanvasElement | null} canvas
+ */
+function requestChartResize(canvas) {
+    if (!canvas) {
+        return;
+    }
+    const chart = getChartInstanceFromCanvas(canvas);
+    if (chart && typeof chart.resize === "function") {
+        chart.resize();
+    }
+}
+
 /**
  * Adds fancy hover effects to chart canvases to match the info box styling
  *
@@ -169,13 +207,212 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         zoomHint.textContent = "Zoom: Ctrl + scroll or pinch • Pan: drag";
         wrapper.append(zoomHint);
 
+        const chartCanvas =
+            canvas instanceof HTMLCanvasElement ? canvas : null;
+
+        // Add fullscreen action button (shown on hover)
+        const fullscreenButton = document.createElement("button");
+        fullscreenButton.className = "chart-fullscreen-btn";
+        fullscreenButton.type = "button";
+        fullscreenButton.title = "View chart fullscreen";
+        fullscreenButton.setAttribute(
+            "aria-label",
+            `View ${titleOverlay.textContent || "chart"} in fullscreen`
+        );
+
+        const enterFullscreenIcon = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 3H5a2 2 0 0 0-2 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M15 3h4a2 2 0 0 1 2 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M9 21H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M15 21h4a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        const exitFullscreenIcon = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 9H5a2 2 0 0 1-2-2V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M15 9h4a2 2 0 0 0 2-2V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M9 15H5a2 2 0 0 0-2 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M15 15h4a2 2 0 0 1 2 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        fullscreenButton.innerHTML = enterFullscreenIcon;
+
+        /**
+         * Tear down the fullscreen overlay and restore the chart wrapper.
+         *
+         * @param {HTMLElement} overlay
+         * @param {HTMLElement} placeholder
+         * @param {HTMLElement} parent
+         */
+        const closeChartFullscreen = (overlay, placeholder, parent) => {
+            if (activeChartFullscreen?.wrapper === wrapper) {
+                activeChartFullscreen = null;
+            }
+
+            document.body.classList.remove(CHART_FULLSCREEN_BODY_CLASS);
+            wrapper.classList.remove("chart-wrapper--fullscreen");
+
+            if (placeholder.parentNode === parent) {
+                parent.insertBefore(wrapper, placeholder);
+                placeholder.remove();
+            }
+
+            overlay.remove();
+            fullscreenButton.innerHTML = enterFullscreenIcon;
+            fullscreenButton.title = "View chart fullscreen";
+            fullscreenButton.setAttribute(
+                "aria-label",
+                `View ${titleOverlay.textContent || "chart"} in fullscreen`
+            );
+
+            if (typeof globalThis.requestAnimationFrame === "function") {
+                globalThis.requestAnimationFrame(() => {
+                    requestChartResize(chartCanvas);
+                });
+            } else {
+                requestChartResize(chartCanvas);
+            }
+        };
+
+        /**
+         * Open the chart in a fullscreen overlay.
+         *
+         * @returns {void}
+         */
+        const openChartFullscreen = () => {
+            if (wrapper.classList.contains("chart-wrapper--fullscreen")) {
+                return;
+            }
+
+            if (activeChartFullscreen && activeChartFullscreen.wrapper) {
+                activeChartFullscreen.close();
+            }
+
+            const parent = wrapper.parentNode;
+            if (!(parent instanceof HTMLElement)) {
+                return;
+            }
+
+            const placeholder = document.createElement("div");
+            placeholder.className = "chart-fullscreen-placeholder";
+            const wrapperRect = wrapper.getBoundingClientRect();
+            placeholder.style.height = `${wrapperRect.height}px`;
+            parent.insertBefore(placeholder, wrapper);
+
+            const overlay = document.createElement("div");
+            overlay.className = "chart-fullscreen-overlay";
+            overlay.setAttribute("role", "dialog");
+            overlay.setAttribute("aria-modal", "true");
+
+            const backdrop = document.createElement("div");
+            backdrop.className = "chart-fullscreen-overlay__backdrop";
+
+            const panel = document.createElement("div");
+            panel.className = "chart-fullscreen-overlay__panel";
+
+            const header = document.createElement("div");
+            header.className = "chart-fullscreen-overlay__header";
+
+            const title = document.createElement("div");
+            title.className = "chart-fullscreen-overlay__title";
+            title.textContent = titleOverlay.textContent || "Chart";
+
+            const closeButton = document.createElement("button");
+            closeButton.type = "button";
+            closeButton.className = "chart-fullscreen-overlay__close";
+            closeButton.setAttribute("aria-label", "Close chart fullscreen");
+            closeButton.title = "Close";
+            closeButton.innerHTML = `
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            `;
+
+            header.append(title, closeButton);
+
+            const content = document.createElement("div");
+            content.className = "chart-fullscreen-overlay__content";
+
+            panel.append(header, content);
+            overlay.append(backdrop, panel);
+
+            wrapper.classList.add("chart-wrapper--fullscreen");
+            content.append(wrapper);
+            document.body.append(overlay);
+            document.body.classList.add(CHART_FULLSCREEN_BODY_CLASS);
+
+            fullscreenButton.innerHTML = exitFullscreenIcon;
+            fullscreenButton.title = "Exit fullscreen";
+            fullscreenButton.setAttribute(
+                "aria-label",
+                `Exit ${titleOverlay.textContent || "chart"} fullscreen`
+            );
+
+            const handleKeydown = (event) => {
+                if (event.key === "Escape") {
+                    closeWithCleanup();
+                }
+            };
+
+            const handleOverlayClick = (event) => {
+                if (event.target === backdrop) {
+                    closeWithCleanup();
+                }
+            };
+
+            const closeWithCleanup = () => {
+                document.removeEventListener("keydown", handleKeydown);
+                overlay.removeEventListener("click", handleOverlayClick);
+                closeChartFullscreen(overlay, placeholder, parent);
+            };
+
+            closeButton.addEventListener("click", closeWithCleanup);
+            overlay.addEventListener("click", handleOverlayClick);
+            document.addEventListener("keydown", handleKeydown);
+
+            activeChartFullscreen = {
+                close: closeWithCleanup,
+                wrapper,
+            };
+
+            if (typeof globalThis.requestAnimationFrame === "function") {
+                globalThis.requestAnimationFrame(() => {
+                    requestChartResize(chartCanvas);
+                });
+            } else {
+                requestChartResize(chartCanvas);
+            }
+        };
+
+        fullscreenButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (wrapper.classList.contains("chart-wrapper--fullscreen")) {
+                if (activeChartFullscreen?.wrapper === wrapper) {
+                    activeChartFullscreen.close();
+                }
+                return;
+            }
+            openChartFullscreen();
+        });
+
+        wrapper.append(fullscreenButton);
+
         // Add hover event listeners to wrapper
         wrapper.addEventListener("mouseenter", () => {
+            const isFullscreen = wrapper.classList.contains(
+                "chart-wrapper--fullscreen"
+            );
             // Main transform and shadow effects
-            wrapper.style.transform = "translateY(-6px) scale(1.02)";
-            wrapper.style.boxShadow = `0 12px 40px ${colors.shadow || "#00000088"},
+            if (!isFullscreen) {
+                wrapper.style.transform = "translateY(-6px) scale(1.02)";
+                wrapper.style.boxShadow = `0 12px 40px ${colors.shadow || "#00000088"},
                                        0 8px 20px ${colors.primaryShadowHeavy || "#00000055"}`;
-            wrapper.style.borderColor = colors.primary || "";
+                wrapper.style.borderColor = colors.primary || "";
+            }
 
             // Glow effect
             glowOverlay.style.opacity = "0.3";
@@ -189,15 +426,22 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             zoomHint.style.transform = "translateY(0)";
 
             // Add subtle background gradient shift
-            wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
+            if (!isFullscreen) {
+                wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
+            }
         });
 
         wrapper.addEventListener("mouseleave", () => {
+            const isFullscreen = wrapper.classList.contains(
+                "chart-wrapper--fullscreen"
+            );
             // Reset all effects
-            wrapper.style.transform = "translateY(0) scale(1)";
-            wrapper.style.boxShadow = `0 4px 20px ${colors.shadowLight || "#00000055"},
+            if (!isFullscreen) {
+                wrapper.style.transform = "translateY(0) scale(1)";
+                wrapper.style.boxShadow = `0 4px 20px ${colors.shadowLight || "#00000055"},
                                        0 2px 8px ${colors.primaryShadowLight || "#00000033"}`;
-            wrapper.style.borderColor = colors.border || "";
+                wrapper.style.borderColor = colors.border || "";
+            }
 
             // Reset glow
             glowOverlay.style.opacity = "0";
@@ -211,11 +455,22 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             zoomHint.style.transform = "translateY(6px)";
 
             // Reset background
-            wrapper.style.background = colors.surface || "#222";
+            if (!isFullscreen) {
+                wrapper.style.background = colors.surface || "#222";
+            }
         });
 
         // Add click ripple effect
         wrapper.addEventListener("click", (e) => {
+            if (
+                e.target instanceof HTMLElement &&
+                e.target.closest(".chart-fullscreen-btn")
+            ) {
+                return;
+            }
+            if (wrapper.classList.contains("chart-wrapper--fullscreen")) {
+                return;
+            }
             const rect = wrapper.getBoundingClientRect(),
                 ripple = document.createElement("div"),
                 size = Math.max(rect.width, rect.height),

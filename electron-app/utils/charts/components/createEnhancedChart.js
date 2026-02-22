@@ -181,6 +181,10 @@ export function createEnhancedChart(canvas, options) {
                             font: {
                                 size: 12,
                             },
+                            boxHeight: 12,
+                            boxWidth: 16,
+                            padding: 12,
+                            pointStyleWidth: 16,
                             usePointStyle: true,
                         },
                         position: "top",

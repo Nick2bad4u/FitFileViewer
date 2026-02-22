@@ -56,6 +56,10 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 
 export const LABEL_COL = "__row_label__";
 
+const SUMMARY_VIRTUAL_ROW_THRESHOLD = 200;
+const SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK = 34;
+const SUMMARY_VIRTUAL_OVERSCAN = 8;
+
 /**
  * Determine whether a Summary column key is a "numbered column" (e.g. "0", "1",
  * "2").
@@ -196,6 +200,16 @@ export function renderTable({
     setVisibleColumns,
     visibleColumns,
 }) {
+    // Clean up any prior virtual scroll listeners from earlier renders.
+    const cleanupVirtualizer =
+        /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (container)
+            ._summaryVirtualCleanup;
+    if (typeof cleanupVirtualizer === "function") {
+        cleanupVirtualizer();
+        /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (container)
+            ._summaryVirtualCleanup = undefined;
+    }
+
     /** @type {HTMLElement | null} */
     let section = container.querySelector(".summary-section");
     if (!section) {
@@ -373,14 +387,19 @@ export function renderTable({
     const headerRow = document.createElement("tr"),
         orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
         sortedVisible = [LABEL_COL, ...orderedVisible],
-        tbody = document.createElement("tbody"),
         thead = document.createElement("thead");
+    /** @type {(() => void) | null} */
+    let virtualizerInit = null;
     for (const key of sortedVisible) {
         const th = document.createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
         headerRow.append(th);
     }
     thead.append(headerRow);
+    const summaryBody = document.createElement("tbody");
+    summaryBody.className = "summary-summary-body";
+    const lapBody = document.createElement("tbody");
+    lapBody.className = "summary-lap-body";
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
         const summaryRows = getSummaryRows(data),
@@ -399,7 +418,7 @@ export function renderTable({
             }
             summaryRow.append(td);
         }
-        tbody.append(summaryRow);
+        summaryBody.append(summaryRow);
     }
     // Lap rows
     if (
@@ -407,32 +426,248 @@ export function renderTable({
         data.lapMesgs.length > 0 &&
         (filterValue === "All" || filterValue.startsWith("Lap"))
     ) {
-        const patchedLaps = data.lapMesgs.map((lap) => {
-            const patched = { ...lap };
-            patchSummaryFields(patched);
-            return patched;
-        });
-        for (const [i, lap] of patchedLaps.entries()) {
-            if (filterValue === "All" || filterValue === `Lap ${i + 1}`) {
-                const lapRow = document.createElement("tr");
-                for (const key of sortedVisible) {
-                    const td = document.createElement("td");
-                    if (key === LABEL_COL) {
-                        td.textContent = `Lap ${i + 1}`;
-                    } else if (key === "timestamp" && lap.startTime) {
-                        td.textContent = lap.startTime; // Bracket access for index signature
-                    } else {
-                        td.textContent = lap[key] === undefined ? "" : lap[key];
-                    }
-                    lapRow.append(td);
-                }
-                tbody.append(lapRow);
+        const lapMesgs = data.lapMesgs;
+        const lapCache = new Map();
+        const lapFilterIndexRaw = filterValue.startsWith("Lap")
+            ? Number.parseInt(filterValue.replace("Lap ", ""), 10)
+            : Number.NaN;
+        const lapFilterIndex = Number.isFinite(lapFilterIndexRaw)
+            ? lapFilterIndexRaw - 1
+            : null;
+        const shouldVirtualize =
+            filterValue === "All" &&
+            lapMesgs.length > SUMMARY_VIRTUAL_ROW_THRESHOLD;
+
+        if (shouldVirtualize) {
+            virtualizerInit = () => {
+                const cleanup = setupVirtualizedLapRows({
+                    lapBody,
+                    lapCache,
+                    lapMesgs,
+                    scrollContainer: container,
+                    sortedVisible,
+                });
+                /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (
+                    container
+                )._summaryVirtualCleanup = cleanup;
+            };
+        } else if (lapFilterIndex !== null) {
+            if (lapFilterIndex >= 0 && lapFilterIndex < lapMesgs.length) {
+                const lap = getPatchedLapRow(
+                    lapMesgs,
+                    lapFilterIndex,
+                    lapCache
+                );
+                lapBody.append(
+                    createLapRowElement(lapFilterIndex, lap, sortedVisible)
+                );
+            }
+        } else {
+            for (let i = 0; i < lapMesgs.length; i += 1) {
+                const lap = getPatchedLapRow(lapMesgs, i, lapCache);
+                lapBody.append(createLapRowElement(i, lap, sortedVisible));
             }
         }
     }
     table.append(thead);
-    table.append(tbody);
+    table.append(summaryBody);
+    if (lapBody.childElementCount > 0 || virtualizerInit) {
+        table.append(lapBody);
+    }
     section.append(table);
+
+    if (typeof virtualizerInit === "function") {
+        const raf = globalThis.requestAnimationFrame;
+        if (typeof raf === "function") {
+            raf(() => virtualizerInit && virtualizerInit());
+        } else {
+            virtualizerInit();
+        }
+    }
+}
+
+/**
+ * Return a patched lap row, caching the transformed entry.
+ *
+ * @param {GenericRecord[]} lapMesgs
+ * @param {number} idx
+ * @param {Map<number, GenericRecord>} cache
+ *
+ * @returns {GenericRecord}
+ */
+function getPatchedLapRow(lapMesgs, idx, cache) {
+    const cached = cache.get(idx);
+    if (cached) {
+        return cached;
+    }
+    const raw = lapMesgs[idx] || {};
+    const patched = { ...raw };
+    patchSummaryFields(patched);
+    cache.set(idx, patched);
+    return patched;
+}
+
+/**
+ * Create a lap row element for the summary table.
+ *
+ * @param {number} lapIndex
+ * @param {GenericRecord} lap
+ * @param {string[]} sortedVisible
+ *
+ * @returns {HTMLTableRowElement}
+ */
+function createLapRowElement(lapIndex, lap, sortedVisible) {
+    const lapRow = document.createElement("tr");
+    for (const key of sortedVisible) {
+        const td = document.createElement("td");
+        if (key === LABEL_COL) {
+            td.textContent = `Lap ${lapIndex + 1}`;
+        } else if (key === "timestamp" && lap.startTime) {
+            td.textContent = lap.startTime;
+        } else {
+            td.textContent = lap[key] === undefined ? "" : String(lap[key]);
+        }
+        lapRow.append(td);
+    }
+    return lapRow;
+}
+
+/**
+ * Create a spacer row used to represent off-screen rows in a virtualized tbody.
+ *
+ * @param {number} colSpan
+ *
+ * @returns {{ row: HTMLTableRowElement; cell: HTMLTableCellElement }}
+ */
+function createSpacerRow(colSpan) {
+    const row = document.createElement("tr");
+    row.className = "summary-virtual-spacer";
+    const cell = document.createElement("td");
+    cell.colSpan = colSpan;
+    cell.style.padding = "0";
+    cell.style.border = "none";
+    cell.style.height = "0px";
+    cell.style.lineHeight = "0";
+    row.append(cell);
+    return { row, cell };
+}
+
+/**
+ * Initialize a virtualized lap tbody to keep DOM size small for large files.
+ *
+ * @param {{
+ *     lapBody: HTMLTableSectionElement;
+ *     lapCache: Map<number, GenericRecord>;
+ *     lapMesgs: GenericRecord[];
+ *     scrollContainer: HTMLElement;
+ *     sortedVisible: string[];
+ * }} params
+ *
+ * @returns {() => void} Cleanup callback to remove listeners.
+ */
+function setupVirtualizedLapRows({
+    lapBody,
+    lapCache,
+    lapMesgs,
+    scrollContainer,
+    sortedVisible,
+}) {
+    const lapCount = lapMesgs.length;
+    const colSpan = sortedVisible.length;
+    const { row: topSpacer, cell: topCell } = createSpacerRow(colSpan);
+    const { row: bottomSpacer, cell: bottomCell } = createSpacerRow(colSpan);
+    let rowHeight = SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK;
+    let lastStart = -1;
+    let lastEnd = -1;
+    let rafHandle = 0;
+
+    const measureRow = createLapRowElement(
+        0,
+        getPatchedLapRow(lapMesgs, 0, lapCache),
+        sortedVisible
+    );
+    measureRow.style.visibility = "hidden";
+    lapBody.append(measureRow);
+    rowHeight = Math.max(
+        SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK,
+        Math.round(measureRow.getBoundingClientRect().height)
+    );
+    measureRow.remove();
+
+    /**
+     * @param {number} start
+     * @param {number} end
+     */
+    const renderWindow = (start, end) => {
+        if (start === lastStart && end === lastEnd) {
+            return;
+        }
+        lastStart = start;
+        lastEnd = end;
+
+        const fragment = document.createDocumentFragment();
+        topCell.style.height = `${start * rowHeight}px`;
+        bottomCell.style.height = `${(lapCount - end) * rowHeight}px`;
+        fragment.append(topSpacer);
+
+        for (let i = start; i < end; i += 1) {
+            const lap = getPatchedLapRow(lapMesgs, i, lapCache);
+            fragment.append(createLapRowElement(i, lap, sortedVisible));
+        }
+
+        fragment.append(bottomSpacer);
+        lapBody.replaceChildren(fragment);
+    };
+
+    const updateVirtualRows = () => {
+        if (lapCount === 0) {
+            return;
+        }
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const bodyRect = lapBody.getBoundingClientRect();
+        const scrollTop = scrollContainer.scrollTop;
+        const viewportHeight = scrollContainer.clientHeight;
+        const bodyTop = bodyRect.top - containerRect.top + scrollTop;
+        const relativeScroll = Math.max(0, scrollTop - bodyTop);
+
+        const start = Math.max(
+            0,
+            Math.floor(relativeScroll / rowHeight) - SUMMARY_VIRTUAL_OVERSCAN
+        );
+        const end = Math.min(
+            lapCount,
+            Math.ceil((relativeScroll + viewportHeight) / rowHeight) +
+                SUMMARY_VIRTUAL_OVERSCAN
+        );
+        renderWindow(start, end);
+    };
+
+    const scheduleUpdate = () => {
+        if (rafHandle) {
+            return;
+        }
+        rafHandle = globalThis.requestAnimationFrame(() => {
+            rafHandle = 0;
+            updateVirtualRows();
+        });
+    };
+
+    const onScroll = () => scheduleUpdate();
+    const onResize = () => updateVirtualRows();
+
+    scrollContainer.addEventListener("scroll", onScroll, { passive: true });
+    globalThis.addEventListener("resize", onResize);
+
+    updateVirtualRows();
+
+    return () => {
+        scrollContainer.removeEventListener("scroll", onScroll);
+        globalThis.removeEventListener("resize", onResize);
+        if (rafHandle) {
+            globalThis.cancelAnimationFrame(rafHandle);
+            rafHandle = 0;
+        }
+    };
 }
 
 /**

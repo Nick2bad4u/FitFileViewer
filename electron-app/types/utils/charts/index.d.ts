@@ -11,6 +11,7 @@ export * from "./core/chartUpdater.js";
 export * from "./core/renderChartJS.js";
 export * from "./plugins/addChartHoverEffects.js";
 export * from "./plugins/chartBackgroundColorPlugin.js";
+export * from "./plugins/chartLegendItemBoxPlugin.js";
 export * from "./plugins/chartOptionsConfig.js";
 export * from "./plugins/chartZoomResetPlugin.js";
 export * from "./rendering/renderAltitudeProfileChart.js";
@@ -36,6 +37,9 @@ declare namespace _default {
     >;
     function chartBackgroundColorPlugin(): Promise<
         typeof import("./plugins/chartBackgroundColorPlugin.js")
+    >;
+    function chartLegendItemBoxPlugin(): Promise<
+        typeof import("./plugins/chartLegendItemBoxPlugin.js")
     >;
     function chartColorSchemes(): Promise<
         typeof import("./theming/chartColorSchemes.js")

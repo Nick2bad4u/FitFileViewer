@@ -273,6 +273,7 @@ import {
     removeChartHoverEffects,
 } from "../plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
+import { chartLegendItemBoxPlugin } from "../plugins/chartLegendItemBoxPlugin.js";
 import { renderEventMessagesChart } from "../rendering/renderEventMessagesChart.js";
 import { renderGPSTimeChart } from "../rendering/renderGPSTimeChart.js";
 import { renderGPSTrackChart } from "../rendering/renderGPSTrackChart.js";
@@ -1703,6 +1704,7 @@ try {
                         else if (g.ChartZoom) v.register(g.ChartZoom);
                         try {
                             v.register(chartBackgroundColorPlugin);
+                            v.register(chartLegendItemBoxPlugin);
                         } catch {
                             /* ignore */
                         }
@@ -1725,6 +1727,7 @@ try {
                         // Always attempt to register background color plugin
                         try {
                             v.register(chartBackgroundColorPlugin);
+                            v.register(chartLegendItemBoxPlugin);
                         } catch {
                             /* ignore */
                         }
@@ -2120,7 +2123,7 @@ try {
     /* ignore */
 }
 
-// Register the background color plugin globally
+// Register shared chart plugins globally
 try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
@@ -2129,12 +2132,54 @@ try {
         ChartRef.registry.plugins &&
         typeof ChartRef.registry.plugins.get === "function"
     );
-    const already = hasRegistry
+    const backgroundAlready = hasRegistry
         ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin")
         : false;
-    if (ChartRef && typeof ChartRef.register === "function" && !already) {
-        ChartRef.register(chartBackgroundColorPlugin);
-        console.log("[ChartJS] chartBackgroundColorPlugin registered");
+    const legendAlready = hasRegistry
+        ? ChartRef.registry.plugins.get("chartLegendItemBoxPlugin")
+        : false;
+    if (ChartRef && typeof ChartRef.register === "function") {
+        if (!backgroundAlready) {
+            ChartRef.register(chartBackgroundColorPlugin);
+            console.log("[ChartJS] chartBackgroundColorPlugin registered");
+        }
+        if (!legendAlready) {
+            ChartRef.register(chartLegendItemBoxPlugin);
+            console.log("[ChartJS] chartLegendItemBoxPlugin registered");
+        }
+
+        try {
+            const legendDefaults =
+                ChartRef.defaults?.plugins?.legend?.labels || null;
+            if (legendDefaults && typeof legendDefaults === "object") {
+                if (
+                    typeof legendDefaults.padding !== "number" ||
+                    legendDefaults.padding < 10
+                ) {
+                    legendDefaults.padding = 12;
+                }
+                if (
+                    typeof legendDefaults.boxWidth !== "number" ||
+                    legendDefaults.boxWidth < 14
+                ) {
+                    legendDefaults.boxWidth = 16;
+                }
+                if (
+                    typeof legendDefaults.boxHeight !== "number" ||
+                    legendDefaults.boxHeight < 10
+                ) {
+                    legendDefaults.boxHeight = 12;
+                }
+                if (
+                    typeof legendDefaults.pointStyleWidth !== "number" ||
+                    legendDefaults.pointStyleWidth < 14
+                ) {
+                    legendDefaults.pointStyleWidth = 16;
+                }
+            }
+        } catch {
+            /* ignore legend defaults */
+        }
     }
 } catch {
     /* Ignore errors */
