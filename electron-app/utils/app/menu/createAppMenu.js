@@ -88,8 +88,8 @@ let mainMenu = null;
 /**
  * Determine if verbose createAppMenu debug logging should be enabled.
  *
- * Controlled via FFV_DEBUG_MENU=1 or globalThis.__FFV_debugMenu.
- * Defaults to false to avoid console spam in normal dev sessions.
+ * Controlled via FFV_DEBUG_MENU=1 or globalThis.__FFV_debugMenu. Defaults to
+ * false to avoid console spam in normal dev sessions.
  *
  * @returns {boolean}
  */

@@ -2,6 +2,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} LegendHitBox
+ *
  * @property {number} left
  * @property {number} top
  * @property {number} width
@@ -10,6 +11,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} LegendItem
+ *
  * @property {boolean} [hidden]
  * @property {string} [fillStyle]
  * @property {string} [strokeStyle]
@@ -17,6 +19,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} LegendLike
+ *
  * @property {LegendHitBox[]} [legendHitBoxes]
  * @property {LegendItem[]} [legendItems]
  * @property {{ display?: boolean }} [options]
@@ -24,6 +27,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} MinimalChart
+ *
  * @property {CanvasRenderingContext2D} ctx
  * @property {LegendLike} [legend]
  * @property {{ plugins?: { legend?: { display?: boolean } } }} [options]
@@ -61,15 +65,15 @@ function resolveLegendColor(item, colors) {
 }
 
 /**
- * Draws a rounded rectangle legend box behind each legend item to make
- * legend click targets larger and easier to see.
+ * Draws a rounded rectangle legend box behind each legend item to make legend
+ * click targets larger and easier to see.
  *
  * @type {{ id: string; beforeDraw: (chart: MinimalChart) => void }}
  */
 export const chartLegendItemBoxPlugin = {
     id: "chartLegendItemBoxPlugin",
     beforeDraw(chart) {
-        const {legend} = chart;
+        const { legend } = chart;
         if (!legend || legend.options?.display === false) {
             return;
         }
@@ -80,7 +84,7 @@ export const chartLegendItemBoxPlugin = {
             return;
         }
 
-        const {ctx} = chart;
+        const { ctx } = chart;
         if (!ctx) {
             return;
         }

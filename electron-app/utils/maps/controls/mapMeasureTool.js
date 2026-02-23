@@ -147,7 +147,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
                 distKm = dist / 1000,
                 distMi = dist / 1609.344,
                 mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2),
-                primaryValue = dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1),
+                primaryValue =
+                    dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1),
                 primaryUnit = dist >= 1000 ? "km" : "m",
                 secondaryValue = distMi.toFixed(2),
                 secondaryUnit = "mi";

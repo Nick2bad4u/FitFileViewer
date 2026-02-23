@@ -354,8 +354,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         zoomHint.textContent = "Zoom: Ctrl + scroll or pinch • Pan: drag";
         wrapper.append(zoomHint);
 
-        const chartCanvas =
-            canvas instanceof HTMLCanvasElement ? canvas : null;
+        const chartCanvas = canvas instanceof HTMLCanvasElement ? canvas : null;
 
         // Add fullscreen action button (shown on hover)
         const fullscreenButton = document.createElement("button");

@@ -252,8 +252,8 @@ export function showFitData(data, filePath, options = {}) {
 }
 
 /**
- * Switch to the Map tab immediately after a file is loaded.
- * Keeps map rendering in sync while avoiding a summary tab flash.
+ * Switch to the Map tab immediately after a file is loaded. Keeps map rendering
+ * in sync while avoiding a summary tab flash.
  */
 function switchToMapTabOnLoad() {
     const windowExt = /**

@@ -202,12 +202,13 @@ export function renderTable({
 }) {
     // Clean up any prior virtual scroll listeners from earlier renders.
     const cleanupVirtualizer =
-        /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (container)
+        /** @type {{ _summaryVirtualCleanup?: () => void }} */ (container)
             ._summaryVirtualCleanup;
     if (typeof cleanupVirtualizer === "function") {
         cleanupVirtualizer();
-        /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (container)
-            ._summaryVirtualCleanup = undefined;
+        /** @type {{ _summaryVirtualCleanup?: () => void }} */ (
+            container
+        )._summaryVirtualCleanup = undefined;
     }
 
     /** @type {HTMLElement | null} */
@@ -426,7 +427,7 @@ export function renderTable({
         data.lapMesgs.length > 0 &&
         (filterValue === "All" || filterValue.startsWith("Lap"))
     ) {
-        const {lapMesgs} = data;
+        const { lapMesgs } = data;
         const lapCache = new Map();
         const lapFilterIndexRaw = filterValue.startsWith("Lap")
             ? Number.parseInt(filterValue.replace("Lap ", ""), 10)
@@ -447,7 +448,7 @@ export function renderTable({
                     scrollContainer: container,
                     sortedVisible,
                 });
-                /** @type {{ _summaryVirtualCleanup?: (() => void) }} */ (
+                /** @type {{ _summaryVirtualCleanup?: () => void }} */ (
                     container
                 )._summaryVirtualCleanup = cleanup;
             };
@@ -625,7 +626,7 @@ function setupVirtualizedLapRows({
         }
         const containerRect = scrollContainer.getBoundingClientRect();
         const bodyRect = lapBody.getBoundingClientRect();
-        const {scrollTop} = scrollContainer;
+        const { scrollTop } = scrollContainer;
         const viewportHeight = scrollContainer.clientHeight;
         const bodyTop = bodyRect.top - containerRect.top + scrollTop;
         const relativeScroll = Math.max(0, scrollTop - bodyTop);

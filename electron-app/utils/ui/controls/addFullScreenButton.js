@@ -74,7 +74,8 @@ const isFullscreenActive = () => {
 };
 
 /**
- * Request fullscreen with a safe fallback target when the primary request fails.
+ * Request fullscreen with a safe fallback target when the primary request
+ * fails.
  *
  * @param {import("screenfull").Screenfull} screenfull
  * @param {HTMLElement} primaryTarget
@@ -596,11 +597,7 @@ function handleKeyboardShortcuts(event) {
             }
 
             const fallbackTarget = document.documentElement;
-            requestFullscreenWithFallback(
-                screenfull,
-                target,
-                fallbackTarget
-            )
+            requestFullscreenWithFallback(screenfull, target, fallbackTarget)
                 .then((success) => {
                     if (!success) {
                         logWithContext(

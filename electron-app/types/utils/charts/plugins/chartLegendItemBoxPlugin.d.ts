@@ -1,6 +1,6 @@
 /**
- * Chart.js plugin to draw subtle background boxes behind legend items.
- * Improves the clickable area for toggling legend visibility.
+ * Chart.js plugin to draw subtle background boxes behind legend items. Improves
+ * the clickable area for toggling legend visibility.
  *
  * @example
  *     import { chartLegendItemBoxPlugin } from "./utils/charts/plugins/chartLegendItemBoxPlugin.js";

@@ -174,9 +174,11 @@
     /* blue glow */
     --color-hero-glow-strong: rgb(37 99 235 / 42%);
     /* blue glow strong */
-    --color-surface: linear-gradient(160deg,
-            rgb(18 26 38 / 95%) 0%,
-            rgb(12 19 31 / 98%) 100%);
+    --color-surface: linear-gradient(
+        160deg,
+        rgb(18 26 38 / 95%) 0%,
+        rgb(12 19 31 / 98%) 100%
+    );
     --color-surface-rgb: 18, 26, 38;
     --color-pill-bg: rgb(255 255 255 / 6%);
     --color-pill-border: rgb(255 255 255 / 12%);
@@ -198,8 +200,10 @@
     --transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     --layout-gutter: clamp(16px, 4vi, 48px);
-    --layout-content-width: min(1680px,
-            calc(100vi - (var(--layout-gutter) * 2)));
+    --layout-content-width: min(
+        1680px,
+        calc(100vi - (var(--layout-gutter) * 2))
+    );
 }
 
 body.theme-light {
@@ -243,9 +247,11 @@ body.theme-light {
     --color-overlay-bg: rgb(2 6 23 / 45%);
     --color-hero-glow: rgb(37 99 235 / 26%);
     --color-hero-glow-strong: rgb(29 78 216 / 32%);
-    --color-surface: linear-gradient(160deg,
-            rgb(255 255 255 / 92%) 0%,
-            rgb(249 250 251 / 96%) 100%);
+    --color-surface: linear-gradient(
+        160deg,
+        rgb(255 255 255 / 92%) 0%,
+        rgb(249 250 251 / 96%) 100%
+    );
     --color-surface-rgb: 255, 255, 255;
     --color-pill-bg: rgb(2 6 23 / 4%);
     --color-pill-border: rgb(2 6 23 / 8%);
@@ -262,15 +268,21 @@ body.theme-light {
 
     background-color: #f8fafc;
     background-image:
-        radial-gradient(140% 140% at 78% -20%,
+        radial-gradient(
+            140% 140% at 78% -20%,
             rgb(var(--color-accent-rgb) / 12%) 0%,
-            transparent 58%),
-        radial-gradient(130% 140% at 20% 116%,
+            transparent 58%
+        ),
+        radial-gradient(
+            130% 140% at 20% 116%,
             rgb(var(--color-secondary-accent-rgb) / 14%) 0%,
-            transparent 65%),
-        radial-gradient(150% 130% at 52% 34%,
+            transparent 65%
+        ),
+        radial-gradient(
+            150% 130% at 52% 34%,
             rgb(var(--color-tertiary-accent-rgb) / 14%) 0%,
-            transparent 70%),
+            transparent 70%
+        ),
         linear-gradient(200deg, #fff, #eef2ff, #e2e8f0);
     background-attachment: fixed;
     background-repeat: no-repeat;
@@ -613,19 +625,27 @@ body {
     font-size: 0.875rem;
     background-color: var(--c_hex05020b);
     background-image:
-        radial-gradient(140% 160% at 80% -30%,
+        radial-gradient(
+            140% 160% at 80% -30%,
             rgb(var(--color-accent-rgb) / 16%) 0%,
-            transparent 62%),
-        radial-gradient(140% 160% at 18% 120%,
+            transparent 62%
+        ),
+        radial-gradient(
+            140% 160% at 18% 120%,
             rgb(var(--color-secondary-accent-rgb) / 18%) 0%,
-            transparent 68%),
-        radial-gradient(160% 140% at 54% 42%,
+            transparent 68%
+        ),
+        radial-gradient(
+            160% 140% at 54% 42%,
             rgb(var(--color-tertiary-accent-rgb) / 24%) 0%,
-            transparent 72%),
-        linear-gradient(200deg,
+            transparent 72%
+        ),
+        linear-gradient(
+            200deg,
             var(--c_hex05010a) 0%,
             var(--c_hex0b0413) 48%,
-            var(--c_hex160b23) 100%);
+            var(--c_hex160b23) 100%
+        );
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -640,9 +660,11 @@ body {
 
 .file-calendar__day--hasActivities {
     border-color: rgb(var(--color-accent-rgb) / 70%);
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 20%),
-            rgb(var(--color-secondary-accent-rgb) / 10%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 20%),
+        rgb(var(--color-secondary-accent-rgb) / 10%)
+    );
     box-shadow:
         0 0 0 1px rgb(var(--color-accent-rgb) / 10%),
         0 14px 28px rgb(0 0 0 / 18%);
@@ -655,9 +677,11 @@ body {
     inset-inline: 0;
     block-size: 3px;
     border-radius: 10px 10px 0 0;
-    background: linear-gradient(90deg,
-            rgb(var(--color-accent-rgb) / 75%),
-            rgb(var(--color-secondary-accent-rgb) / 55%));
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 75%),
+        rgb(var(--color-secondary-accent-rgb) / 55%)
+    );
     opacity: 0.85;
 }
 
@@ -852,39 +876,59 @@ body::before {
     inline-size: 100%;
     block-size: 100%;
     background:
-        radial-gradient(circle at 18% 18%,
+        radial-gradient(
+            circle at 18% 18%,
             rgb(var(--color-accent-rgb) / 22%) 0%,
-            transparent 48%),
-        radial-gradient(circle at 84% 80%,
+            transparent 48%
+        ),
+        radial-gradient(
+            circle at 84% 80%,
             rgb(var(--color-secondary-accent-rgb) / 20%) 0%,
-            transparent 56%),
-        radial-gradient(150% 140% at 48% 0%,
+            transparent 56%
+        ),
+        radial-gradient(
+            150% 140% at 48% 0%,
             rgb(var(--color-tertiary-accent-rgb) / 16%) 0%,
-            transparent 70%),
-        radial-gradient(160% 160% at 16% 118%,
+            transparent 70%
+        ),
+        radial-gradient(
+            160% 160% at 16% 118%,
             rgb(var(--color-accent-rgb) / 12%) 0%,
-            transparent 74%),
-        conic-gradient(from 18deg at 26% 76%,
+            transparent 74%
+        ),
+        conic-gradient(
+            from 18deg at 26% 76%,
             rgb(var(--color-accent-rgb) / 14%) 0deg,
             transparent 150deg,
             rgb(var(--color-secondary-accent-rgb) / 12%) 280deg,
-            transparent 360deg),
-        linear-gradient(122deg,
+            transparent 360deg
+        ),
+        linear-gradient(
+            122deg,
             rgb(var(--color-tertiary-accent-rgb) / 8%) 0%,
             transparent 58%,
-            rgb(var(--color-secondary-accent-rgb) / 12%) 100%),
-        repeating-linear-gradient(118deg,
+            rgb(var(--color-secondary-accent-rgb) / 12%) 100%
+        ),
+        repeating-linear-gradient(
+            118deg,
             rgb(var(--color-accent-rgb) / 40%) 0 2px,
-            transparent 2px 140px),
-        repeating-linear-gradient(208deg,
+            transparent 2px 140px
+        ),
+        repeating-linear-gradient(
+            208deg,
             rgb(var(--color-tertiary-accent-rgb) / 40%) 0 1px,
-            transparent 1px 180px),
-        repeating-linear-gradient(90deg,
+            transparent 1px 180px
+        ),
+        repeating-linear-gradient(
+            90deg,
             rgb(var(--color-secondary-accent-rgb) / 30%) 0 1px,
-            transparent 1px 120px),
-        radial-gradient(circle at 50% 60%,
+            transparent 1px 120px
+        ),
+        radial-gradient(
+            circle at 50% 60%,
             var(--c_rgb10884148_14p) 0%,
-            transparent 78%);
+            transparent 78%
+        );
     background-size:
         auto,
         auto,
@@ -930,33 +974,49 @@ body::after {
     inline-size: 110%;
     block-size: 110%;
     background:
-        radial-gradient(150% 160% at 16% 118%,
+        radial-gradient(
+            150% 160% at 16% 118%,
             rgb(var(--color-accent-rgb) / 18%) 0%,
-            transparent 78%),
-        radial-gradient(150% 160% at 92% -16%,
+            transparent 78%
+        ),
+        radial-gradient(
+            150% 160% at 92% -16%,
             rgb(var(--color-secondary-accent-rgb) / 16%) 0%,
-            transparent 82%),
-        radial-gradient(180% 140% at 50% 120%,
+            transparent 82%
+        ),
+        radial-gradient(
+            180% 140% at 50% 120%,
             rgb(var(--color-tertiary-accent-rgb) / 14%) 0%,
-            transparent 76%),
-        conic-gradient(from 150deg at 48% 42%,
+            transparent 76%
+        ),
+        conic-gradient(
+            from 150deg at 48% 42%,
             rgb(var(--color-accent-rgb) / 12%) 0deg,
             transparent 160deg,
             rgb(var(--color-secondary-accent-rgb) / 12%) 280deg,
-            transparent 360deg),
-        radial-gradient(circle at 52% 50%,
+            transparent 360deg
+        ),
+        radial-gradient(
+            circle at 52% 50%,
             var(--c_rgb9260136_14p) 0%,
-            transparent 78%),
-        linear-gradient(305deg,
+            transparent 78%
+        ),
+        linear-gradient(
+            305deg,
             rgb(var(--color-tertiary-accent-rgb) / 12%) 0%,
             transparent 45%,
-            rgb(var(--color-secondary-accent-rgb) / 10%) 100%),
-        repeating-linear-gradient(128deg,
+            rgb(var(--color-secondary-accent-rgb) / 10%) 100%
+        ),
+        repeating-linear-gradient(
+            128deg,
             rgb(var(--color-accent-rgb) / 40%) 0 3px,
-            transparent 3px 230px),
-        repeating-linear-gradient(92deg,
+            transparent 3px 230px
+        ),
+        repeating-linear-gradient(
+            92deg,
             rgb(var(--color-secondary-accent-rgb) / 35%) 0 2px,
-            transparent 2px 180px);
+            transparent 2px 180px
+        );
     background-size:
         150% 150%,
         150% 150%,
@@ -1018,7 +1078,8 @@ h2 {
    ===================================================== */
 .app-header {
     text-align: center;
-    padding: clamp(40px, 8vi, 60px) clamp(20px, 4vi, 36px) clamp(32px, 6vi, 50px);
+    padding: clamp(40px, 8vi, 60px) clamp(20px, 4vi, 36px)
+        clamp(32px, 6vi, 50px);
     position: relative;
     inline-size: min(100%, var(--layout-content-width));
     margin: 0 auto clamp(16px, 3vi, 28px);
@@ -1039,16 +1100,22 @@ h2 {
     gap: 32px;
     border-radius: calc(var(--border-radius) + 28px);
     background:
-        radial-gradient(160% 140% at 22% -10%,
+        radial-gradient(
+            160% 140% at 22% -10%,
             rgb(var(--color-accent-rgb) / 28%) 0%,
-            transparent 55%),
-        radial-gradient(140% 160% at 80% 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            140% 160% at 80% 0%,
             var(--c_rgb108181255_22p) 0%,
-            transparent 60%),
-        linear-gradient(160deg,
+            transparent 60%
+        ),
+        linear-gradient(
+            160deg,
             rgb(var(--color-fg-rgb) / 12%) 0%,
             rgb(var(--color-accent-rgb) / 26%) 42%,
-            var(--c_rgb61020_85p) 100%);
+            var(--c_rgb61020_85p) 100%
+        );
     border: 1px solid rgb(var(--color-fg-rgb) / 16%);
     box-shadow:
         0 34px 96px rgb(var(--color-accent-rgb) / 26%),
@@ -1075,9 +1142,11 @@ h2 {
     content: "";
     position: absolute;
     inset: -15%;
-    background: radial-gradient(circle at 50% 50%,
-            rgb(var(--color-accent-rgb) / 15%) 0%,
-            transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgb(var(--color-accent-rgb) / 15%) 0%,
+        transparent 70%
+    );
     filter: blur(40px);
     opacity: 0.8;
     pointer-events: none;
@@ -1086,7 +1155,6 @@ h2 {
 }
 
 @keyframes brand-glow {
-
     0%,
     100% {
         opacity: 0.8;
@@ -1120,16 +1188,22 @@ h2 {
     border-radius: 46px;
     padding: clamp(14px, 2.8vi, 24px);
     background:
-        radial-gradient(circle at 12% 20%,
+        radial-gradient(
+            circle at 12% 20%,
             var(--c_rgb255255255_16p) 0%,
-            transparent 45%),
-        radial-gradient(circle at 80% 86%,
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 80% 86%,
             rgb(var(--color-accent-rgb) / 24%) 0%,
-            transparent 65%),
-        linear-gradient(140deg,
+            transparent 65%
+        ),
+        linear-gradient(
+            140deg,
             rgb(var(--color-accent-rgb) / 96%) 0%,
             rgb(var(--color-secondary-accent-rgb) / 82%) 55%,
-            var(--c_rgb25592143_70p) 100%);
+            var(--c_rgb25592143_70p) 100%
+        );
     box-shadow:
         0 34px 86px rgb(var(--color-accent-rgb) / 38%),
         0 18px 48px var(--c_rgb101220_60p),
@@ -1154,11 +1228,13 @@ h2 {
     content: "";
     position: absolute;
     inset: -30% -26% -32%;
-    background: conic-gradient(from 120deg at 50% 50%,
-            rgb(var(--color-accent-rgb) / 10%) 0deg,
-            transparent 120deg,
-            var(--c_rgb255255255_12p) 200deg,
-            transparent 320deg);
+    background: conic-gradient(
+        from 120deg at 50% 50%,
+        rgb(var(--color-accent-rgb) / 10%) 0deg,
+        transparent 120deg,
+        var(--c_rgb255255255_12p) 200deg,
+        transparent 320deg
+    );
     filter: blur(26px);
     opacity: 0.75;
     pointer-events: none;
@@ -1186,9 +1262,11 @@ h2 {
     content: "";
     position: absolute;
     inset: 10% 12% 28%;
-    background: radial-gradient(circle at 60% 50%,
-            rgb(var(--color-accent-rgb) / 32%) 0%,
-            transparent 80%);
+    background: radial-gradient(
+        circle at 60% 50%,
+        rgb(var(--color-accent-rgb) / 32%) 0%,
+        transparent 80%
+    );
     filter: blur(18px);
     opacity: 0.65;
     pointer-events: none;
@@ -1287,15 +1365,21 @@ h2 {
     position: absolute;
     inset: -110px;
     background:
-        radial-gradient(circle at 12% 24%,
+        radial-gradient(
+            circle at 12% 24%,
             var(--c_rgb255255255_35p) 0%,
-            transparent 45%),
-        radial-gradient(circle at 78% 66%,
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 78% 66%,
             rgb(var(--color-accent-rgb) / 42%) 0%,
-            transparent 58%),
-        radial-gradient(circle at 36% 78%,
+            transparent 58%
+        ),
+        radial-gradient(
+            circle at 36% 78%,
             var(--c_rgb255255255_18p) 0%,
-            transparent 62%);
+            transparent 62%
+        );
     filter: blur(40px);
     opacity: 0.45;
     pointer-events: none;
@@ -1305,16 +1389,22 @@ h2 {
 
 body.theme-light .app-header-logo {
     background:
-        radial-gradient(circle at 12% 20%,
+        radial-gradient(
+            circle at 12% 20%,
             var(--c_rgb255255255_40p) 0%,
-            transparent 50%),
-        radial-gradient(circle at 80% 86%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 80% 86%,
             var(--c_rgb112182255_35p) 0%,
-            transparent 70%),
-        linear-gradient(140deg,
+            transparent 70%
+        ),
+        linear-gradient(
+            140deg,
             var(--c_rgb248250255) 0%,
             var(--c_rgb210235255) 55%,
-            var(--c_rgb246227255) 100%);
+            var(--c_rgb246227255) 100%
+        );
     box-shadow:
         0 32px 70px rgb(var(--color-accent-rgb) / 26%),
         0 18px 44px var(--c_rgb175200240_38p),
@@ -1323,21 +1413,27 @@ body.theme-light .app-header-logo {
 
 body.theme-light .hero-mascot-frame {
     background:
-        radial-gradient(circle at 30% 12%,
+        radial-gradient(
+            circle at 30% 12%,
             var(--c_rgb255255255_62p) 0%,
-            transparent 70%),
-        linear-gradient(160deg,
+            transparent 70%
+        ),
+        linear-gradient(
+            160deg,
             var(--c_rgb250250255_92p) 0%,
-            var(--c_rgb220232255_70p) 100%);
+            var(--c_rgb220232255_70p) 100%
+        );
     box-shadow:
         inset 0 10px 32px var(--c_rgb255255255_45p),
         inset 0 -16px 38px rgb(var(--color-accent-rgb) / 22%);
 }
 
 body.theme-light .hero-mascot-frame::after {
-    background: radial-gradient(circle at 58% 48%,
-            rgb(var(--color-accent-rgb) / 35%) 0%,
-            transparent 80%);
+    background: radial-gradient(
+        circle at 58% 48%,
+        rgb(var(--color-accent-rgb) / 35%) 0%,
+        transparent 80%
+    );
 }
 
 body.theme-light .hero-mascot-badge {
@@ -1368,23 +1464,31 @@ body.theme-light .hero-floating-label {
 
 body.theme-light .hero-constellation {
     background:
-        radial-gradient(circle at 12% 24%,
+        radial-gradient(
+            circle at 12% 24%,
             var(--c_rgb255255255_65p) 0%,
-            transparent 50%),
-        radial-gradient(circle at 78% 66%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 78% 66%,
             rgb(var(--color-accent-rgb) / 38%) 0%,
-            transparent 58%),
-        radial-gradient(circle at 36% 78%,
+            transparent 58%
+        ),
+        radial-gradient(
+            circle at 36% 78%,
             var(--c_rgb255255255_55p) 0%,
-            transparent 64%);
+            transparent 64%
+        );
     opacity: 0.55;
 }
 
 body.theme-light .header-bar {
-    background: linear-gradient(135deg,
-            var(--c_rgb255255255_92p) 0%,
-            var(--c_rgb228240255_88p) 55%,
-            var(--c_rgb248236255_88p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb255255255_92p) 0%,
+        var(--c_rgb228240255_88p) 55%,
+        var(--c_rgb248236255_88p) 100%
+    );
     border-color: var(--c_rgb214222245_78p);
     box-shadow: 0 18px 42px var(--c_rgb177198236_28p);
     color: var(--color-fg);
@@ -1432,10 +1536,12 @@ body.theme-light .app-header h1 .title-highlight {
 
 body.theme-light .header-brand {
     color: var(--color-fg);
-    background: linear-gradient(140deg,
-            rgb(var(--color-fg-rgb) / 6%) 0%,
-            rgb(var(--color-accent-rgb) / 18%) 55%,
-            rgb(var(--color-secondary-accent-rgb) / 14%) 100%);
+    background: linear-gradient(
+        140deg,
+        rgb(var(--color-fg-rgb) / 6%) 0%,
+        rgb(var(--color-accent-rgb) / 18%) 55%,
+        rgb(var(--color-secondary-accent-rgb) / 14%) 100%
+    );
     border-color: rgb(var(--color-fg-rgb) / 12%);
     box-shadow:
         0 12px 24px rgb(var(--color-accent-rgb) / 16%),
@@ -1443,11 +1549,13 @@ body.theme-light .header-brand {
 }
 
 body.theme-light .header-brand::after {
-    background: linear-gradient(180deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 45%) 40%,
-            rgb(var(--color-secondary-accent-rgb) / 28%) 60%,
-            rgb(var(--color-secondary-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        180deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 45%) 40%,
+        rgb(var(--color-secondary-accent-rgb) / 28%) 60%,
+        rgb(var(--color-secondary-accent-rgb) / 0%) 100%
+    );
 }
 
 body.theme-light .brand-name {
@@ -1460,10 +1568,12 @@ body.theme-light .brand-subtitle {
 }
 
 body.theme-light .brand-subtitle::before {
-    background: linear-gradient(90deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 55%) 60%,
-            rgb(var(--color-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 55%) 60%,
+        rgb(var(--color-accent-rgb) / 0%) 100%
+    );
 }
 
 body.theme-light .header-hint {
@@ -1479,10 +1589,12 @@ body.theme-light .header-hint strong {
 body.theme-light .tab-bar,
 body[data-theme="light"] .tab-bar,
 html[data-theme="light"] body .tab-bar {
-    background: linear-gradient(135deg,
-            rgb(var(--color-fg-rgb) / 8%) 0%,
-            rgb(var(--color-accent-rgb) / 10%) 50%,
-            rgb(var(--color-fg-rgb) / 6%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-fg-rgb) / 8%) 0%,
+        rgb(var(--color-accent-rgb) / 10%) 50%,
+        rgb(var(--color-fg-rgb) / 6%) 100%
+    );
     border-color: rgb(var(--color-accent-rgb) / 18%);
     box-shadow:
         0 10px 28px rgb(var(--color-accent-rgb) / 14%),
@@ -1494,9 +1606,11 @@ body.theme-light .tab-button,
 body[data-theme="light"] .tab-button,
 html[data-theme="light"] body .tab-button {
     color: var(--color-fg);
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 12%) 0%,
-            rgb(var(--color-fg-rgb) / 5%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 12%) 0%,
+        rgb(var(--color-fg-rgb) / 5%) 100%
+    );
     border-color: rgb(var(--color-accent-rgb) / 18%);
     box-shadow:
         0 2px 8px rgb(var(--color-accent-rgb) / 12%),
@@ -1511,10 +1625,12 @@ html[data-theme="light"] body .tab-button:hover,
 html[data-theme="light"] body .tab-button.active {
     color: var(--color-fg);
     border-color: rgb(var(--color-accent-rgb) / 32%);
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 28%) 0%,
-            rgb(var(--color-secondary-accent-rgb) / 22%) 50%,
-            rgb(var(--color-accent-rgb) / 18%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 28%) 0%,
+        rgb(var(--color-secondary-accent-rgb) / 22%) 50%,
+        rgb(var(--color-accent-rgb) / 18%) 100%
+    );
     box-shadow:
         0 8px 18px rgb(var(--color-accent-rgb) / 24%),
         0 0 12px rgb(var(--color-secondary-accent-rgb) / 18%),
@@ -1540,7 +1656,6 @@ html[data-theme="light"] body .tab-button.active::after {
 }
 
 @keyframes hero-card-float {
-
     0%,
     100% {
         transform: translateY(0);
@@ -1552,7 +1667,6 @@ html[data-theme="light"] body .tab-button.active::after {
 }
 
 @keyframes hero-glow-sweep {
-
     0%,
     100% {
         opacity: 0.3;
@@ -1634,7 +1748,6 @@ html[data-theme="light"] body .tab-button.active::after {
 }
 
 @keyframes title-shimmer {
-
     0%,
     100% {
         background-position: 0% 50%;
@@ -1649,9 +1762,11 @@ html[data-theme="light"] body .tab-button.active::after {
     content: "";
     position: absolute;
     inset: -24% -16% 40% -12%;
-    background: radial-gradient(circle at 50% 50%,
-            var(--c_rgb255255255_18p) 0%,
-            transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--c_rgb255255255_18p) 0%,
+        transparent 70%
+    );
     opacity: 0.45;
     filter: blur(10px);
     z-index: -1;
@@ -1684,12 +1799,16 @@ html[data-theme="light"] body .tab-button.active::after {
     position: absolute;
     inset: -80px -160px -40px;
     background:
-        radial-gradient(120% 120% at 50% 10%,
+        radial-gradient(
+            120% 120% at 50% 10%,
             rgb(var(--color-accent-rgb) / 22%) 0%,
-            transparent 70%),
-        radial-gradient(circle at 80% 20%,
+            transparent 70%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
             var(--c_rgb255255255_12p) 0%,
-            transparent 58%);
+            transparent 58%
+        );
     opacity: 0.68;
     filter: blur(22px);
     z-index: -1;
@@ -1702,10 +1821,12 @@ html[data-theme="light"] body .tab-button.active::after {
     position: absolute;
     inset: auto 20% -12px;
     block-size: 3px;
-    background: linear-gradient(90deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 65%) 50%,
-            rgb(var(--color-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 65%) 50%,
+        rgb(var(--color-accent-rgb) / 0%) 100%
+    );
     border-radius: 999px;
     opacity: 0.35;
     filter: blur(0.6px);
@@ -1794,10 +1915,12 @@ html[data-theme="light"] body .tab-button.active::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(120deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 35%) 50%,
-            rgb(var(--color-secondary-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        120deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 35%) 50%,
+        rgb(var(--color-secondary-accent-rgb) / 0%) 100%
+    );
     opacity: 0;
     transition: opacity 0.55s ease;
     z-index: -2;
@@ -1882,10 +2005,12 @@ body[data-has-fit-file="true"] .header-bar {
     position: relative;
     inset-block-start: auto;
     z-index: 24;
-    background: linear-gradient(135deg,
-            rgb(var(--color-fg-rgb) / 12%) 0%,
-            rgb(var(--color-accent-rgb) / 18%) 55%,
-            rgb(var(--color-fg-rgb) / 10%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-fg-rgb) / 12%) 0%,
+        rgb(var(--color-accent-rgb) / 18%) 55%,
+        rgb(var(--color-fg-rgb) / 10%) 100%
+    );
     border: 1px solid rgb(var(--color-fg-rgb) / 18%);
     box-shadow:
         0 14px 30px rgb(var(--color-accent-rgb) / 18%),
@@ -1932,7 +2057,8 @@ body[data-has-fit-file="true"] .tab-card {
     isn't clipped by the card's rounded corners. (Scoped to charts only.)
 */
 body.app-has-file .tab-card:has(#content_chartjs.tab-content.active),
-body[data-has-fit-file="true"] .tab-card:has(#content_chartjs.tab-content.active) {
+body[data-has-fit-file="true"]
+    .tab-card:has(#content_chartjs.tab-content.active) {
     overflow: visible;
 }
 
@@ -2061,7 +2187,6 @@ body[data-has-fit-file="true"] .header-hint span {
 }
 
 @media (max-width: 880px) {
-
     body.app-has-file .header-bar,
     body[data-has-fit-file="true"] .header-bar {
         flex-wrap: wrap;
@@ -2093,7 +2218,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
     body::before,
     body::after,
     body:not(.theme-light)::before,
@@ -2156,7 +2280,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes pill-breathe {
-
     0%,
     100% {
         transform: translateY(0);
@@ -2168,7 +2291,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes gradient-shift {
-
     0%,
     100% {
         background-position: 0% 50%;
@@ -2180,7 +2302,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes cosmic-drift {
-
     0%,
     100% {
         transform: translate3d(0, 0, 0) scale(1);
@@ -2485,7 +2606,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes empty-state-pulse {
-
     0%,
     100% {
         border-color: rgb(var(--color-accent-rgb) / 30%);
@@ -2499,7 +2619,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes empty-float-glow {
-
     0%,
     100% {
         transform: translateY(0) rotate(0deg);
@@ -2518,7 +2637,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes empty-aurora-flow {
-
     0%,
     100% {
         transform: translateX(0) translateY(0) rotate(0deg);
@@ -2537,7 +2655,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes ambient-float {
-
     0%,
     100% {
         transform: translateY(0) scale(1) rotate(0deg);
@@ -2561,7 +2678,6 @@ body[data-has-fit-file="true"] #active_file_name_container {
 }
 
 @keyframes btn-glow-idle {
-
     0%,
     100% {
         opacity: 0;
@@ -2641,10 +2757,12 @@ body[data-has-fit-file="true"] #active_file_name_container {
     gap: clamp(8px, 1.5vi, 18px);
     margin: 0 auto clamp(20px, 4vi, 36px);
     padding: clamp(12px, 2.2vi, 18px) clamp(12px, 3vi, 24px);
-    background: linear-gradient(135deg,
-            rgb(var(--color-fg-rgb) / 12%) 0%,
-            rgb(var(--color-accent-rgb) / 8%) 50%,
-            rgb(var(--color-fg-rgb) / 10%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-fg-rgb) / 12%) 0%,
+        rgb(var(--color-accent-rgb) / 8%) 50%,
+        rgb(var(--color-fg-rgb) / 10%) 100%
+    );
     backdrop-filter: blur(15px);
     border: 1px solid rgb(var(--color-accent-rgb) / 15%);
     border-radius: calc(var(--border-radius) + 4px);
@@ -2674,9 +2792,11 @@ body[data-has-fit-file="true"] .tab-bar {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 0%,
-            rgb(var(--color-accent-rgb) / 5%) 0%,
-            transparent 60%);
+    background: radial-gradient(
+        circle at 50% 0%,
+        rgb(var(--color-accent-rgb) / 5%) 0%,
+        transparent 60%
+    );
     opacity: 0.45;
     pointer-events: none;
     z-index: 0;
@@ -2688,12 +2808,16 @@ body[data-has-fit-file="true"] .tab-bar {
     position: absolute;
     inset: -20px -30px;
     background:
-        radial-gradient(circle at 20% 80%,
+        radial-gradient(
+            circle at 20% 80%,
             rgb(var(--color-accent-rgb) / 8%) 0%,
-            transparent 40%),
-        radial-gradient(circle at 80% 20%,
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
             rgb(var(--color-secondary-accent-rgb) / 6%) 0%,
-            transparent 50%);
+            transparent 50%
+        );
     border-radius: 50%;
     filter: blur(20px);
     opacity: 0.38;
@@ -2705,10 +2829,12 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-button {
     padding: 12px 16px;
     cursor: pointer;
-    background: linear-gradient(135deg,
-            rgb(var(--color-fg-rgb) / 10%) 0%,
-            rgb(var(--color-accent-rgb) / 8%) 50%,
-            rgb(var(--color-fg-rgb) / 12%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-fg-rgb) / 10%) 0%,
+        rgb(var(--color-accent-rgb) / 8%) 50%,
+        rgb(var(--color-fg-rgb) / 12%) 100%
+    );
     border: 1px solid rgb(var(--color-accent-rgb) / 15%);
     border-radius: calc(var(--border-radius) + 2px);
     color: var(--color-fg);
@@ -2742,12 +2868,14 @@ body[data-has-fit-file="true"] .tab-bar {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(45deg,
-            var(--c_rgb255255255_0p) 0%,
-            var(--c_rgb255255255_15p) 30%,
-            var(--c_rgb255255255_50p) 50%,
-            var(--c_rgb255255255_15p) 70%,
-            var(--c_rgb255255255_0p) 100%);
+    background: linear-gradient(
+        45deg,
+        var(--c_rgb255255255_0p) 0%,
+        var(--c_rgb255255255_15p) 30%,
+        var(--c_rgb255255255_50p) 50%,
+        var(--c_rgb255255255_15p) 70%,
+        var(--c_rgb255255255_0p) 100%
+    );
     opacity: 0.2;
     border-radius: var(--border-radius-small);
     transition: var(--transition-smooth);
@@ -2758,10 +2886,12 @@ body[data-has-fit-file="true"] .tab-bar {
     content: "";
     position: absolute;
     inset: -40% -10%;
-    background: linear-gradient(120deg,
-            var(--c_rgb255255255_0p) 0%,
-            var(--c_rgb255255255_25p) 45%,
-            var(--c_rgb255255255_0p) 100%);
+    background: linear-gradient(
+        120deg,
+        var(--c_rgb255255255_0p) 0%,
+        var(--c_rgb255255255_25p) 45%,
+        var(--c_rgb255255255_0p) 100%
+    );
     opacity: 0;
     transform: translateX(-30%);
     transition:
@@ -2779,10 +2909,12 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-button.active {
     color: var(--c_rgb255255255_95p);
     border-color: rgb(var(--color-accent-rgb) / 30%);
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 20%) 0%,
-            rgb(var(--color-accent-rgb) / 25%) 50%,
-            rgb(var(--color-accent-rgb) / 18%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 20%) 0%,
+        rgb(var(--color-accent-rgb) / 25%) 50%,
+        rgb(var(--color-accent-rgb) / 18%) 100%
+    );
     box-shadow:
         0 6px 16px rgb(var(--color-accent-rgb) / 25%),
         0 0 12px rgb(var(--color-accent-rgb) / 15%),
@@ -2893,16 +3025,19 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
-    background: linear-gradient(135deg,
-            var(--color-surface) 0%,
-            rgb(var(--color-accent-rgb) / 3%) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--color-surface) 0%,
+        rgb(var(--color-accent-rgb) / 3%) 100%
+    );
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
     box-shadow:
         0 32px 60px var(--c_rgb000_28p),
         inset 0 1px 0 rgb(var(--color-accent-rgb) / 8%);
-    padding: clamp(12px, 1.75vi, 18px) clamp(9px, 1.5vi, 16px) clamp(10px, 1.5vi, 15px);
+    padding: clamp(12px, 1.75vi, 18px) clamp(9px, 1.5vi, 16px)
+        clamp(10px, 1.5vi, 15px);
     margin: 0 auto clamp(24px, 4vi, 40px);
     inline-size: 98%;
 
@@ -2945,9 +3080,11 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-card::before {
     inset: -40% -10% auto;
     block-size: 320px;
-    background: radial-gradient(circle at 30% 20%,
-            rgb(var(--color-accent-rgb) / 32%) 0%,
-            transparent 65%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        rgb(var(--color-accent-rgb) / 32%) 0%,
+        transparent 65%
+    );
     filter: blur(12px);
     animation: float-glow 16s ease-in-out infinite;
 }
@@ -2955,9 +3092,11 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-card::after {
     inset: auto -20% -45% 55%;
     block-size: 420px;
-    background: radial-gradient(circle at 50% 50%,
-            var(--c_rgb11875162_28p) 0%,
-            transparent 65%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--c_rgb11875162_28p) 0%,
+        transparent 65%
+    );
     filter: blur(18px);
     animation: aurora-flow 22s ease-in-out infinite;
 }
@@ -2970,25 +3109,31 @@ body[data-has-fit-file="true"] .tab-bar {
 /* Empty state styling for when no file is loaded */
 body[data-has-fit-file="false"] .tab-card {
     border: 2px dashed rgb(var(--color-accent-rgb) / 40%);
-    background: linear-gradient(135deg,
-            rgb(var(--color-surface-rgb) / 85%) 0%,
-            rgb(var(--color-accent-rgb) / 8%) 50%,
-            rgb(var(--color-surface-rgb) / 90%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-surface-rgb) / 85%) 0%,
+        rgb(var(--color-accent-rgb) / 8%) 50%,
+        rgb(var(--color-surface-rgb) / 90%) 100%
+    );
     backdrop-filter: blur(8px);
     animation: empty-state-pulse 3s ease-in-out infinite;
 }
 
 body[data-has-fit-file="false"] .tab-card::before {
-    background: radial-gradient(circle at 30% 20%,
-            rgb(var(--color-accent-rgb) / 20%) 0%,
-            transparent 65%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        rgb(var(--color-accent-rgb) / 20%) 0%,
+        transparent 65%
+    );
     animation: empty-float-glow 12s ease-in-out infinite;
 }
 
 body[data-has-fit-file="false"] .tab-card::after {
-    background: radial-gradient(circle at 70% 80%,
-            var(--c_rgb11875162_15p) 0%,
-            transparent 65%);
+    background: radial-gradient(
+        circle at 70% 80%,
+        var(--c_rgb11875162_15p) 0%,
+        transparent 65%
+    );
     animation: empty-aurora-flow 18s ease-in-out infinite;
 }
 
@@ -3134,10 +3279,12 @@ tr:hover {
     gap: clamp(16px, 3vi, 28px) clamp(18px, 3.5vi, 32px);
     margin: 0 auto clamp(18px, 3.5vi, 32px);
     padding: clamp(14px, 2.4vi, 22px) clamp(22px, 4vi, 34px);
-    background: linear-gradient(140deg,
-            rgb(var(--color-surface-rgb) / 92%) 0%,
-            rgb(var(--color-accent-rgb) / 16%) 48%,
-            rgb(var(--color-secondary-accent-rgb) / 12%) 100%);
+    background: linear-gradient(
+        140deg,
+        rgb(var(--color-surface-rgb) / 92%) 0%,
+        rgb(var(--color-accent-rgb) / 16%) 48%,
+        rgb(var(--color-secondary-accent-rgb) / 12%) 100%
+    );
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid rgb(var(--color-fg-rgb) / 18%);
     border-radius: var(--border-radius);
@@ -3172,10 +3319,12 @@ tr:hover {
     position: relative;
     padding: 10px 20px 10px 14px;
     border-radius: calc(var(--border-radius-small) + 8px);
-    background: linear-gradient(140deg,
-            rgb(var(--color-fg-rgb) / 12%) 0%,
-            rgb(var(--color-accent-rgb) / 22%) 55%,
-            rgb(var(--color-secondary-accent-rgb) / 18%) 100%);
+    background: linear-gradient(
+        140deg,
+        rgb(var(--color-fg-rgb) / 12%) 0%,
+        rgb(var(--color-accent-rgb) / 22%) 55%,
+        rgb(var(--color-secondary-accent-rgb) / 18%) 100%
+    );
     border: 1px solid rgb(var(--color-fg-rgb) / 22%);
     box-shadow:
         0 12px 24px rgb(var(--color-accent-rgb) / 22%),
@@ -3193,11 +3342,13 @@ tr:hover {
     transform: translateY(-50%);
     block-size: 28px;
     inline-size: 1px;
-    background: linear-gradient(180deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 65%) 40%,
-            rgb(var(--color-secondary-accent-rgb) / 45%) 60%,
-            rgb(var(--color-secondary-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        180deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 65%) 40%,
+        rgb(var(--color-secondary-accent-rgb) / 45%) 60%,
+        rgb(var(--color-secondary-accent-rgb) / 0%) 100%
+    );
     opacity: 0.7;
     border-radius: 999px;
 }
@@ -3242,9 +3393,11 @@ body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
     block-size: 78px;
     padding: 6px;
     border-radius: 24px;
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 95%),
-            rgb(var(--color-secondary-accent-rgb) / 82%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 95%),
+        rgb(var(--color-secondary-accent-rgb) / 82%)
+    );
     box-shadow:
         0 20px 38px rgb(var(--color-accent-rgb) / 36%),
         0 0 26px var(--c_rgb101218_68p),
@@ -3262,9 +3415,11 @@ body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
     position: absolute;
     inset: 12%;
     border-radius: 20px;
-    background: radial-gradient(circle at 30% 20%,
-            var(--c_rgb255255255_18p) 0%,
-            transparent 60%);
+    background: radial-gradient(
+        circle at 30% 20%,
+        var(--c_rgb255255255_18p) 0%,
+        transparent 60%
+    );
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
@@ -3315,11 +3470,13 @@ body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(120deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 35%) 45%,
-            rgb(var(--color-secondary-accent-rgb) / 30%) 70%,
-            rgb(var(--color-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        120deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 35%) 45%,
+        rgb(var(--color-secondary-accent-rgb) / 30%) 70%,
+        rgb(var(--color-accent-rgb) / 0%) 100%
+    );
     opacity: 0.8;
     mix-blend-mode: screen;
     pointer-events: none;
@@ -3342,19 +3499,23 @@ body[data-has-fit-file="false"] .header-bar #open_file_btn.themed-btn {
     inline-size: 20px;
     block-size: 2px;
     border-radius: 999px;
-    background: linear-gradient(90deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 55%) 60%,
-            rgb(var(--color-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 55%) 60%,
+        rgb(var(--color-accent-rgb) / 0%) 100%
+    );
 }
 
 .header-brand-ambient {
     position: absolute;
     inset: -18px -26px;
     border-radius: 24px;
-    background: radial-gradient(circle at 50% 50%,
-            rgb(var(--color-accent-rgb) / 28%) 0%,
-            transparent 70%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgb(var(--color-accent-rgb) / 28%) 0%,
+        transparent 70%
+    );
     filter: blur(18px);
     opacity: 0;
     transition: opacity 0.6s ease;
@@ -3444,10 +3605,12 @@ body[data-has-fit-file="true"] .header-brand {
 #active_file_name_container::before {
     inline-size: 12px;
     block-size: 12px;
-    background: radial-gradient(circle at 50% 50%,
-            rgb(var(--color-accent-rgb) / 100%) 0%,
-            rgb(var(--color-accent-rgb) / 35%) 60%,
-            transparent 100%);
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgb(var(--color-accent-rgb) / 100%) 0%,
+        rgb(var(--color-accent-rgb) / 35%) 60%,
+        transparent 100%
+    );
     box-shadow: 0 0 12px rgb(var(--color-accent-rgb) / 45%);
     animation: beacon-pulse 2.4s ease-in-out infinite;
 }
@@ -3455,10 +3618,12 @@ body[data-has-fit-file="true"] .header-brand {
 #active_file_name_container::after {
     inline-size: 30px;
     block-size: 14px;
-    background: linear-gradient(90deg,
-            rgb(var(--color-accent-rgb) / 0%) 0%,
-            rgb(var(--color-accent-rgb) / 40%) 50%,
-            rgb(var(--color-accent-rgb) / 0%) 100%);
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 0%) 0%,
+        rgb(var(--color-accent-rgb) / 40%) 50%,
+        rgb(var(--color-accent-rgb) / 0%) 100%
+    );
     filter: blur(6px);
     animation: beacon-trail 3.2s ease-in-out infinite;
 }
@@ -3544,7 +3709,6 @@ body[data-has-fit-file="true"] .header-brand {
 /* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
 
 @keyframes filename-scroll {
-
     0%,
     15% {
         transform: translateX(0);
@@ -3563,9 +3727,11 @@ body[data-has-fit-file="true"] .header-brand {
 body.app-has-file #active_file_name,
 body[data-has-fit-file="true"] #active_file_name {
     font-size: 0.9rem;
-    background: linear-gradient(120deg,
-            rgb(var(--color-accent-rgb) / 92%),
-            rgb(var(--color-secondary-accent-rgb) / 88%));
+    background: linear-gradient(
+        120deg,
+        rgb(var(--color-accent-rgb) / 92%),
+        rgb(var(--color-secondary-accent-rgb) / 88%)
+    );
     background-clip: text;
     color: inherit;
 }
@@ -3789,7 +3955,9 @@ table.dataTable thead th {
     justify-content: center;
     opacity: 0;
     transform: translateY(-6px);
-    transition: opacity 0.2s ease, transform 0.2s ease,
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
         border-color 0.2s ease;
     z-index: 12;
     box-shadow: 0 6px 16px rgb(0 0 0 / 25%);
@@ -3815,7 +3983,6 @@ table.dataTable thead th {
 }
 
 @media (max-width: 960px) {
-
     .chart-wrapper--fullscreen,
     .chart-wrapper:fullscreen,
     .chart-wrapper:-webkit-full-screen {
@@ -3954,10 +4121,12 @@ table.dataTable thead th {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(45deg,
-            transparent 30%,
-            var(--c_rgb255255255_10p) 50%,
-            transparent 70%);
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        var(--c_rgb255255255_10p) 50%,
+        transparent 70%
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -4407,9 +4576,11 @@ body .leaflet-div-icon.ffv-map-marker {
 }
 
 .ffv-map-marker--start .ffv-map-marker__pin {
-    background: linear-gradient(135deg,
-            rgb(var(--color-success-rgb) / 95%),
-            rgb(var(--color-success-rgb) / 70%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-success-rgb) / 95%),
+        rgb(var(--color-success-rgb) / 70%)
+    );
     border: 1px solid rgb(var(--color-success-rgb) / 80%);
 }
 
@@ -4418,9 +4589,11 @@ body .leaflet-div-icon.ffv-map-marker {
 }
 
 .ffv-map-marker--end .ffv-map-marker__pin {
-    background: linear-gradient(135deg,
-            rgb(var(--color-error-rgb) / 95%),
-            rgb(var(--color-error-rgb) / 70%));
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-error-rgb) / 95%),
+        rgb(var(--color-error-rgb) / 70%)
+    );
     border: 1px solid rgb(var(--color-error-rgb) / 80%);
 }
 
@@ -4449,7 +4622,9 @@ body .leaflet-measure-segment-label {
 
 /* Leaflet-measure icon assets are dark by default; invert in dark UI so the ruler icon is visible. */
 body.theme-dark .leaflet-control-measure .leaflet-control-measure-toggle,
-#leaflet-map.ffv-map-inverted .leaflet-control-measure .leaflet-control-measure-toggle {
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-measure
+    .leaflet-control-measure-toggle {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -4514,8 +4689,12 @@ body.theme-dark .leaflet-control-minimap.leaflet-container {
 
 /* When the map tiles are inverted, ensure the minimap background never flashes white. */
 #leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container,
-#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-map-pane,
-#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-tile-pane {
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-minimap.leaflet-container
+    .leaflet-map-pane,
+#leaflet-map.ffv-map-inverted
+    .leaflet-control-minimap.leaflet-container
+    .leaflet-tile-pane {
     background: rgb(0 0 0 / 75%);
 }
 
@@ -4709,27 +4888,37 @@ body .leaflet-control-layers.leaflet-control-layers-expanded {
 
 /* Make the layers selector scrollbar clearly visible (Chromium + Firefox).
    Apply styling to the inner list so we don't get nested/double scrollbars. */
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list {
     scrollbar-width: thin;
     scrollbar-color: var(--color-accent) rgb(0 0 0 / 18%);
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar {
     inline-size: 10px;
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-track {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-track {
     background: rgb(0 0 0 / 15%);
     border-radius: 999px;
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-thumb {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-thumb {
     background: var(--color-accent);
     border-radius: 999px;
     border: 2px solid rgb(0 0 0 / 18%);
 }
 
-body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-thumb:hover {
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-thumb:hover {
     background: rgb(var(--color-accent-rgb) / 85%);
 }
 
@@ -5725,14 +5914,16 @@ html[data-theme="light"] body .marker-count-select {
     block-size: 0;
     border-width: 0 10px 12px;
     border-style: solid;
-    border-color: transparent transparent var(--color-bg-alt-solid, #111827) transparent;
+    border-color: transparent transparent var(--color-bg-alt-solid, #111827)
+        transparent;
     filter: drop-shadow(0 6px 6px rgb(2 6 23 / 32%));
 }
 
 .data-point-filter-control__panel--reverse::before {
     inset-block: auto -12px;
     border-width: 12px 10px 0;
-    border-color: var(--color-bg-alt-solid, #111827) transparent transparent transparent;
+    border-color: var(--color-bg-alt-solid, #111827) transparent transparent
+        transparent;
     filter: drop-shadow(0 -6px 6px rgb(2 6 23 / 24%));
 }
 
@@ -6031,9 +6222,11 @@ body.theme-light .data-point-filter-control__range-values {
     inline-size: 100vi;
     block-size: 100vb;
     z-index: 9999;
-    background: linear-gradient(135deg,
-            var(--c_rgb000_50p) 0%,
-            var(--c_rgb000_70p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb000_50p) 0%,
+        var(--c_rgb000_70p) 100%
+    );
     backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
@@ -6062,10 +6255,12 @@ body.theme-light .data-point-filter-control__range-values {
     inset-inline-start: -100%;
     inline-size: 100%;
     block-size: 100%;
-    background: linear-gradient(90deg,
-            transparent,
-            var(--c_rgb255255255_10p),
-            transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--c_rgb255255255_10p),
+        transparent
+    );
     animation: shimmer 2s infinite ease-in-out;
 }
 
@@ -6484,9 +6679,11 @@ body.theme-light .data-point-filter-control__range-values {
 .modal {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg,
-            var(--c_rgb000_50p) 0%,
-            var(--c_rgb000_70p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb000_50p) 0%,
+        var(--c_rgb000_70p) 100%
+    );
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -6586,9 +6783,11 @@ body.theme-light .data-point-filter-control__range-values {
 }
 
 #open_file_btn .btn-label {
-    background: linear-gradient(135deg,
-            rgb(255 255 255 / 95%) 0%,
-            rgb(255 255 255 / 85%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(255 255 255 / 95%) 0%,
+        rgb(255 255 255 / 85%) 100%
+    );
     /* stylelint-disable property-no-vendor-prefix -- gradient text requires WebKit-specific properties */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -6616,10 +6815,12 @@ body.theme-light #open_file_btn svg {
 
 /* Light theme: make the CTA background more opaque so white label/icon are readable. */
 body.theme-light #open_file_btn.themed-btn {
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb)) 0%,
-            rgb(var(--color-secondary-accent-rgb)) 55%,
-            rgb(var(--color-accent-rgb)) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb)) 0%,
+        rgb(var(--color-secondary-accent-rgb)) 55%,
+        rgb(var(--color-accent-rgb)) 100%
+    );
     border-color: rgb(var(--color-accent-rgb) / 55%);
     box-shadow:
         0 14px 30px rgb(var(--color-accent-rgb) / 28%),
@@ -6635,10 +6836,12 @@ body.theme-light #open_file_btn.themed-btn {
 .themed-btn {
     padding: 12px 26px;
     background:
-        linear-gradient(135deg,
+        linear-gradient(
+            135deg,
             rgb(var(--color-accent-rgb) / 85%) 0%,
             rgb(var(--color-secondary-accent-rgb) / 78%) 50%,
-            rgb(var(--color-accent-rgb) / 90%) 100%),
+            rgb(var(--color-accent-rgb) / 90%) 100%
+        ),
         var(--color-btn-bg);
     color: var(--color-modal-fg);
     border: 1px solid rgb(var(--color-accent-rgb) / 40%);
@@ -6668,12 +6871,14 @@ body.theme-light #open_file_btn.themed-btn {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(45deg,
-            var(--c_rgb255255255_0p) 0%,
-            var(--c_rgb255255255_15p) 30%,
-            var(--c_rgb255255255_25p) 50%,
-            var(--c_rgb255255255_15p) 70%,
-            var(--c_rgb255255255_0p) 100%);
+    background: linear-gradient(
+        45deg,
+        var(--c_rgb255255255_0p) 0%,
+        var(--c_rgb255255255_15p) 30%,
+        var(--c_rgb255255255_25p) 50%,
+        var(--c_rgb255255255_15p) 70%,
+        var(--c_rgb255255255_0p) 100%
+    );
     opacity: 0.5;
     transition:
         opacity 0.4s ease,
@@ -6686,11 +6891,13 @@ body.theme-light #open_file_btn.themed-btn {
     content: "";
     position: absolute;
     inset: -2px;
-    background: linear-gradient(135deg,
-            rgb(var(--color-accent-rgb) / 40%) 0%,
-            transparent 30%,
-            transparent 70%,
-            rgb(var(--color-secondary-accent-rgb) / 30%) 100%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 40%) 0%,
+        transparent 30%,
+        transparent 70%,
+        rgb(var(--color-secondary-accent-rgb) / 30%) 100%
+    );
     border-radius: calc(var(--border-radius-small) + 2px);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -6760,36 +6967,44 @@ body.theme-light #open_file_btn.themed-btn {
 
 /* Enhanced notification type styles with better contrast */
 .notification.error {
-    background: linear-gradient(135deg,
-            var(--c_hexef4444) 0%,
-            var(--c_hexdc2626) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hexef4444) 0%,
+        var(--c_hexdc2626) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb2396868_30p);
 }
 
 .notification.success {
-    background: linear-gradient(135deg,
-            var(--c_hex10b981) 0%,
-            var(--c_hex059669) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hex10b981) 0%,
+        var(--c_hex059669) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb16185129_30p);
 }
 
 .notification.warning {
-    background: linear-gradient(135deg,
-            var(--c_hexf59e0b) 0%,
-            var(--c_hexd97706) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hexf59e0b) 0%,
+        var(--c_hexd97706) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px var(--c_rgb24515811_30p);
 }
 
 .notification.info {
-    background: linear-gradient(135deg,
-            var(--c_hex6d28d9) 0%,
-            var(--c_hex4c1d95) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_hex6d28d9) 0%,
+        var(--c_hex4c1d95) 100%
+    );
     color: var(--c_hexfff);
     border-color: var(--c_rgb255255255_30p);
     box-shadow: 0 8px 32px rgb(var(--color-accent-rgb) / 35%);
@@ -7096,7 +7311,8 @@ footer {
 }
 
 .credits-section footer.credits-marquee {
-    animation: credits-marquee var(--credits-scroll-duration, 18s) linear infinite;
+    animation: credits-marquee var(--credits-scroll-duration, 18s) linear
+        infinite;
 }
 
 .credits-section footer.credits-marquee:hover {
@@ -7115,16 +7331,20 @@ footer {
 
 .credits-section.credits-section--marquee-active::before {
     inset-inline-start: 0;
-    background: linear-gradient(to right,
-            var(--color-glass) 0%,
-            rgb(0 0 0 / 0%) 100%);
+    background: linear-gradient(
+        to right,
+        var(--color-glass) 0%,
+        rgb(0 0 0 / 0%) 100%
+    );
 }
 
 .credits-section.credits-section--marquee-active::after {
     inset-inline-end: 0;
-    background: linear-gradient(to left,
-            var(--color-glass) 0%,
-            rgb(0 0 0 / 0%) 100%);
+    background: linear-gradient(
+        to left,
+        var(--color-glass) 0%,
+        rgb(0 0 0 / 0%) 100%
+    );
 }
 
 .credits-section a {
@@ -7170,7 +7390,6 @@ footer {
 }
 
 @keyframes credits-marquee {
-
     0%,
     10% {
         transform: translateX(0);
@@ -7455,9 +7674,11 @@ body.theme-dark .map-action-btn.disabled {
     inset-inline-start: 0;
     inline-size: 100vi;
     block-size: 100vb;
-    background: linear-gradient(135deg,
-            var(--c_rgb303454_85p) 0%,
-            var(--c_rgb202444_90p) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--c_rgb303454_85p) 0%,
+        var(--c_rgb202444_90p) 100%
+    );
     backdrop-filter: blur(12px);
     z-index: 10050;
     display: none;
@@ -7489,17 +7710,18 @@ body.theme-dark .map-action-btn.disabled {
     content: "";
     position: absolute;
     inset: -2px;
-    background: linear-gradient(45deg,
-            var(--color-accent),
-            transparent,
-            var(--color-accent));
+    background: linear-gradient(
+        45deg,
+        var(--color-accent),
+        transparent,
+        var(--color-accent)
+    );
     border-radius: var(--border-radius);
     z-index: -1;
     animation: border-glow 3s linear infinite;
 }
 
 @keyframes pulse-glow {
-
     0%,
     100% {
         box-shadow:
@@ -7773,7 +7995,6 @@ button:disabled {
 
 /* Prevent layout thrashing during animations */
 @keyframes gradient-shift {
-
     0%,
     100% {
         background-position: 0% 50%;
@@ -7801,7 +8022,6 @@ button:disabled {
 
 /* Memory-efficient glow animations */
 @keyframes pulse-glow {
-
     0%,
     100% {
         box-shadow:
