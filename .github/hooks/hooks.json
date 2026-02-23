@@ -1,0 +1,44 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
+                "timeout": 10,
+                "type": "command",
+                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
+            }
+        ],
+        "Stop": [
+            {
+                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
+                "timeout": 10,
+                "type": "command",
+                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "command": "\".github/hooks/scripts/log-prompt.ps1\"",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
+                "timeout": 10,
+                "type": "command",
+                "windows": "\".github/hooks/scripts/log-prompt.ps1\""
+            }
+        ]
+    },
+    "version": 1
+}
