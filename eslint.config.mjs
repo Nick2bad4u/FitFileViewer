@@ -4,6 +4,8 @@
 // root so sibling packages (like docusaurus) can be linted without the
 // "outside of base path" warnings.
 
-import config from "./electron-app/eslint.config.mjs";
 
-export default config;
+
+
+
+export {default} from "./electron-app/eslint.config.mjs";

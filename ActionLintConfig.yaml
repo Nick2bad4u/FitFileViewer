@@ -15,18 +15,18 @@
 # "ignore" is an array of regular expression patterns. Matched error messages
 # are ignored. This is similar to the "-ignore" command line option.
 paths:
-    ../.github/workflows/summary.yml:
-        ignore:
-            - "unknown permission scope"
-
     ../.github/workflows/Build.yml:
         ignore:
             - "shellcheck reported issue in this script: SC2034:warning"
 
-    .github/workflows/summary.yml:
+    ../.github/workflows/summary.yml:
         ignore:
             - "unknown permission scope"
 
     .github/workflows/Build.yml:
         ignore:
             - "shellcheck reported issue in this script: SC2034:warning"
+    .github/workflows/summary.yml:
+        ignore:
+            - "unknown permission scope"
+

@@ -146,7 +146,7 @@ describe("createChartStatusIndicator", () => {
         // After 2s, outline should clear
         vi.advanceTimersByTime(2000);
         expect(fields.style.outline).toBe("none");
-        expect(fields.style.outlineOffset).toBe("0");
+        expect(fields.style.outlineOffset).toBe("0px");
         vi.useRealTimers();
     });
 

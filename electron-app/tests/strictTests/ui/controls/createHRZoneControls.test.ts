@@ -25,7 +25,7 @@ describe("createHRZoneControls", () => {
         const content = section.querySelector(
             "#hr-zone-content"
         ) as HTMLElement;
-        expect(content.style.maxHeight).toBe("0");
+        expect(content.style.maxHeight).toBe("0px");
         btn.click();
         expect(content.style.maxHeight).toBe("500px");
     });

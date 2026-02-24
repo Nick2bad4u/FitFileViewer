@@ -81,7 +81,7 @@ describe("addFullScreenButton", () => {
         expect(requestFullscreen).toHaveBeenCalledTimes(1);
     });
 
-    it("uses screenfull API when available and updates overlay state", async () => {
+    it("uses Electron fullscreen IPC when available and updates overlay state", async () => {
         const storedHandlers: Array<() => void> = [];
         const screenfullMock: ScreenfullMock = {
             isEnabled: true,
@@ -101,7 +101,8 @@ describe("addFullScreenButton", () => {
         document.body.append(activeContent);
         getActiveTabContentMock.mockReturnValue(activeContent);
 
-        (globalThis as any).electronAPI = { setFullScreen: vi.fn() };
+        const setFullScreen = vi.fn();
+        (globalThis as any).electronAPI = { setFullScreen };
 
         const module = await loadModule();
         module.addFullScreenButton();
@@ -110,11 +111,11 @@ describe("addFullScreenButton", () => {
         expect(button).toBeInstanceOf(HTMLButtonElement);
 
         (button as HTMLButtonElement).click();
-        expect(screenfullMock.request).toHaveBeenCalledWith(activeContent);
+        expect(setFullScreen).toHaveBeenCalledWith(true);
 
         screenfullMock.isFullscreen = true;
         (button as HTMLButtonElement).click();
-        expect(screenfullMock.exit).toHaveBeenCalledTimes(1);
+        expect(setFullScreen).toHaveBeenCalledWith(false);
 
         module.setupFullscreenListeners();
         expect(screenfullMock.on).toHaveBeenCalledWith(
@@ -135,11 +136,10 @@ describe("addFullScreenButton", () => {
 
         screenfullMock.isFullscreen = false;
         changeHandler();
-        expect(removeOverlayMock).toHaveBeenCalledWith(activeContent);
         expect(button?.title).toBe("Toggle Full Screen (F11)");
     });
 
-    it("handles F11 keyboard shortcut with screenfull and native fallback", async () => {
+    it("handles F11 keyboard shortcut with IPC and native fallback", async () => {
         const storedHandlers: Array<() => void> = [];
         const screenfullMock: ScreenfullMock = {
             isEnabled: true,
@@ -159,6 +159,9 @@ describe("addFullScreenButton", () => {
         document.body.append(activeContent);
         getActiveTabContentMock.mockReturnValue(activeContent);
 
+        const setFullScreen = vi.fn();
+        (globalThis as any).electronAPI = { setFullScreen };
+
         const module = await loadModule();
         module.setupFullscreenListeners();
 
@@ -167,16 +170,17 @@ describe("addFullScreenButton", () => {
             bubbles: true,
         });
         globalThis.dispatchEvent(keydown);
-        expect(screenfullMock.request).toHaveBeenCalledWith(activeContent);
+        expect(setFullScreen).toHaveBeenCalledWith(true);
 
         screenfullMock.isFullscreen = true;
         globalThis.dispatchEvent(
             new KeyboardEvent("keydown", { key: "F11", bubbles: true })
         );
-        expect(screenfullMock.exit).toHaveBeenCalledTimes(1);
+        expect(setFullScreen).toHaveBeenCalledWith(false);
 
         // Switch to native fallback scenario
         delete (globalThis as any).screenfull;
+        delete (globalThis as any).electronAPI;
         vi.resetModules();
         document.body.innerHTML = "";
         const nativeRequest = vi.fn();

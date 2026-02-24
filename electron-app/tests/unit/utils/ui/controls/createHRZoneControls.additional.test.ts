@@ -64,7 +64,7 @@ describe("createHRZoneControls additional coverage", () => {
         const button = section.querySelector(
             ".hr-zone-collapse-btn"
         ) as HTMLButtonElement;
-        expect(content.style.maxHeight).toBe("0");
+        expect(content.style.maxHeight).toBe("0px");
         expect(button.getAttribute("aria-expanded")).toBe("false");
         section.dispatchEvent(new Event("mouseenter"));
         expect(section.style.borderColor).toBe("var(--color-primary-alpha)");

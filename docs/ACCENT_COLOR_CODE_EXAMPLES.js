@@ -17,7 +17,7 @@
 // BASIC USAGE - Setting Accent Colors
 // ============================================================================
 
-import { setAccentColor, getEffectiveAccentColor, resetAccentColor } from './utils/theming/core/accentColor.js';
+import { getEffectiveAccentColor, resetAccentColor, setAccentColor } from './utils/theming/core/accentColor.js';
 
 // Set a custom accent color (automatically saves to localStorage)
 setAccentColor('#ec4899', 'dark'); // Pink for dark theme
@@ -313,16 +313,16 @@ async function testAllPresets() {
 // ============================================================================
 
 export {
-    setAccentColor,
-    getEffectiveAccentColor,
-    resetAccentColor,
-    validateColor,
-    hexToRgb,
-    rgbToHex,
     darkenColor,
-    lightenColor,
     debugAccentColors,
+    getEffectiveAccentColor,
+    hexToRgb,
+    lightenColor,
+    resetAccentColor,
+    rgbToHex,
+    setAccentColor,
     testAllPresets,
+    validateColor,
 };
 
 // ============================================================================

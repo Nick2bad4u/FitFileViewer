@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'docusaurus/**'
-      - 'electron-app/**'
-      - 'docs/**'
-      - '.github/workflows/docusaurus.yml'
+      - "docusaurus/**"
+      - "electron-app/**"
+      - "docs/**"
+      - ".github/workflows/docusaurus.yml"
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -37,8 +37,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6.2.0
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: docusaurus/package-lock.json
 
       - name: Install dependencies

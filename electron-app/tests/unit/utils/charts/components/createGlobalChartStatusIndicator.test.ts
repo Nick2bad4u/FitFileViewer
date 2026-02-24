@@ -72,7 +72,7 @@ describe("createGlobalChartStatusIndicator", () => {
         expect(console.warn).toHaveBeenCalled();
     });
 
-    it("creates indicator for all-visible charts with 'All Set' quick action", () => {
+    it("creates indicator for all-visible charts with 'Charts Ready' quick action", () => {
         mockGetChartCounts.mockReturnValue({ available: 4, visible: 4 });
         const indicator = createGlobalChartStatusIndicator();
         expect(indicator).toBeTruthy();
@@ -83,11 +83,11 @@ describe("createGlobalChartStatusIndicator", () => {
             indicator.querySelector("span");
         expect(icon?.textContent).toBe("✅");
 
-        // Quick action should indicate all set
+        // Quick action should indicate charts are ready
         const quickAction =
             /** @type {HTMLElement | null} */ indicator &&
             indicator.querySelector("button");
-        expect(quickAction?.textContent).toContain("All Set");
+        expect(quickAction?.textContent).toContain("Charts Ready");
     });
 
     it("creates indicator for some-hidden charts and opens settings on click", async () => {

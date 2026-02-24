@@ -136,14 +136,13 @@ jobs:
         strategy:
             matrix:
                 os:
-                    [
-                        ubuntu-latest,
-                        ubuntu-24.04-arm,
-                        windows-latest,
-                        macos-15,
-                        macos-latest,
-                        macos-15-intel,
-                    ]
+                        - ubuntu-latest
+                        - ubuntu-24.04-arm
+                        - windows-latest
+                        - macos-15
+                        - macos-latest
+                        - macos-15-intel
+                    
                 arch: [x64, ia32, arm64]
                 exclude:
                     # Exclude macOS with ia32 architecture as it is not supported by Electron

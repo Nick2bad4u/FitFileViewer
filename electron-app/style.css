@@ -1,3 +1,4 @@
+/* stylelint-disable comment-empty-line-before -- Notneeded here for some stuff */
 /* stylelint-disable no-descending-specificity -- legacy cascade ordering */
 /* stylelint-disable selector-class-pattern -- legacy class naming conventions */
 /* stylelint-disable selector-no-vendor-prefix -- vendor selectors required by third-party CSS */
@@ -2991,9 +2992,9 @@ body[data-has-fit-file="true"] .tab-bar {
     display: block !important;
 }
 
-/* Make all direct children of tab-content also fill fullscreen */
-.tab-content:fullscreen > *:not([id^="content"] > button),
-.tab-content:-webkit-full-screen > *:not([id^="content"] > button) {
+/* Keep embedded iframe panels filling fullscreen without forcing all children to 100% height. */
+.tab-content:fullscreen iframe.fullsize-container,
+.tab-content:-webkit-full-screen iframe.fullsize-container {
     inline-size: 100% !important;
     block-size: 100% !important;
     max-inline-size: 100vi !important;
@@ -3932,12 +3933,41 @@ table.dataTable thead th {
     overflow: hidden !important;
 }
 
+body.chart-overlay-fullscreen-active {
+    overflow: hidden;
+}
+
+.chart-wrapper--overlay-fullscreen {
+    position: fixed !important;
+    inset: clamp(10px, 2vh, 18px) !important;
+    z-index: 12000 !important;
+    margin: 0 !important;
+    inline-size: auto !important;
+    block-size: auto !important;
+}
+
+.chart-wrapper--overlay-fullscreen .chart-canvas {
+    block-size: 100% !important;
+    max-block-size: none !important;
+    max-inline-size: 100% !important;
+}
+
+.chart-overlay-fullscreen-placeholder {
+    inline-size: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .chart-wrapper--fullscreen .chart-canvas,
 .chart-wrapper:fullscreen .chart-canvas,
 .chart-wrapper:-webkit-full-screen .chart-canvas {
     block-size: 100% !important;
     max-block-size: none !important;
     max-inline-size: 100% !important;
+}
+
+.chart-wrapper .chart-canvas {
+    min-block-size: 320px;
 }
 
 .chart-fullscreen-btn {
@@ -3971,6 +4001,7 @@ table.dataTable thead th {
 .chart-wrapper:hover .chart-fullscreen-btn,
 .chart-wrapper:focus-within .chart-fullscreen-btn,
 .chart-wrapper--fullscreen .chart-fullscreen-btn,
+.chart-wrapper--overlay-fullscreen .chart-fullscreen-btn,
 .chart-wrapper:fullscreen .chart-fullscreen-btn,
 .chart-wrapper:-webkit-full-screen .chart-fullscreen-btn {
     opacity: 1;
@@ -5457,7 +5488,7 @@ body .custom-zoom-slider-bar input[type="range"] {
 }
 
 .fullscreen-btn-wrapper {
-    pointer-events: none;
+    pointer-events: auto;
     position: relative;
 }
 

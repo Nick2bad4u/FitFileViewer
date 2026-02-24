@@ -54,7 +54,7 @@ describe("createPowerZoneControlsSimple", () => {
             "true"
         );
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
-        expect(content?.style.maxHeight).toBe("0");
+        expect(content?.style.maxHeight).toBe("0px");
 
         collapseBtn?.click();
         expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
@@ -93,7 +93,7 @@ describe("createPowerZoneControlsSimple", () => {
             "#power-zone-content"
         );
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
-        expect(content?.style.maxHeight).toBe("0");
+        expect(content?.style.maxHeight).toBe("0px");
     });
 
     it("moves power zone controls into dedicated section and adjusts spacing", () => {

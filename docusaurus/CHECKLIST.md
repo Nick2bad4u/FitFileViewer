@@ -11,7 +11,7 @@ Use this checklist to verify your documentation site is working correctly.
 ## ✅ Development Server
 
 - [ ] Run `npm start`
-- [ ] Browser opens to http://localhost:3000/
+- [ ] Browser opens to <http://localhost:3000/>
 - [ ] Homepage loads with FitFileViewer branding
 - [ ] Dark theme is active by default
 - [ ] Navigation menu works
@@ -48,7 +48,7 @@ Use this checklist to verify your documentation site is working correctly.
 - [ ] No critical errors
 - [ ] `build/` directory created
 - [ ] Run `npm run serve`
-- [ ] Preview build at http://localhost:3000/
+- [ ] Preview build at <http://localhost:3000/>
 - [ ] All features work in production build
 
 ## ✅ Search
@@ -129,7 +129,7 @@ If you see these, something is wrong:
 3. **Deploy**
    - Commit and push to `main` branch
    - GitHub Actions will build and deploy
-   - Site will be live at https://fitfileviewer.typpi.online
+   - Site will be live at <https://fitfileviewer.typpi.online>
 
 ## 🔧 Troubleshooting
 

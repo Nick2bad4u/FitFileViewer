@@ -78,7 +78,7 @@ jobs:
 
             - name: Lint Code Base
               uses: super-linter/super-linter@12562e48d7059cf666c43a4ecb0d3b5a2b31bd9e # v8.4.0
-              #checkov:skip=skip-check:CKV2_GHA_1
+              # checkov:skip=skip-check:CKV2_GHA_1
               env:
                   DEFAULT_BRANCH: "main"
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

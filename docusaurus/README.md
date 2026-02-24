@@ -4,7 +4,7 @@ This directory contains the Docusaurus documentation site for FitFileViewer.
 
 ## 🌐 Live Site
 
-**Production**: https://fitfileviewer.typpi.online
+**Production**: <https://fitfileviewer.typpi.online>
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ npm install
 npm start
 ```
 
-The site will be available at http://localhost:3000/
+The site will be available at <http://localhost:3000/>
 
 ## 🏗️ Building
 

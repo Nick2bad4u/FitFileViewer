@@ -320,7 +320,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             );
         });
 
-        it("should show all set button when all charts visible", () => {
+        it("should show charts ready button when all charts visible", () => {
             const counts = {
                 total: 3,
                 visible: 3,
@@ -337,7 +337,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
-            expect(quickAction?.textContent).toBe("✨ All Set");
+            expect(quickAction?.textContent).toBe("✨ Charts Ready");
             expect(quickAction?.title).toBe("All available charts are visible");
             expect(quickAction?.style.opacity).toBe("0.7");
             expect(quickAction?.style.cursor).toBe("default");
@@ -479,7 +479,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             expect(quickAction?.style.transform).toBe("translateY(0)");
         });
 
-        it("should handle global indicator hover for breakdown tooltip", () => {
+        it("should handle quick action hover for breakdown tooltip", () => {
             const counts = {
                 total: 5,
                 visible: 2,
@@ -496,11 +496,13 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
-            // Simulate mouseenter on global indicator
+            const quickAction = indicator?.querySelector("button");
+
+            // Simulate mouseenter on quick action
             const mouseenterEvent = new (window as any).MouseEvent(
                 "mouseenter"
             );
-            indicator?.dispatchEvent(mouseenterEvent);
+            quickAction?.dispatchEvent(mouseenterEvent);
 
             expect(indicator?.style.background).toBe(
                 "var(--color-glass-border)"
@@ -509,11 +511,11 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             expect(breakdown?.style.opacity).toBe("1");
             expect(breakdown?.style.visibility).toBe("visible");
 
-            // Simulate mouseleave on global indicator
+            // Simulate mouseleave on quick action
             const mouseleaveEvent = new (window as any).MouseEvent(
                 "mouseleave"
             );
-            indicator?.dispatchEvent(mouseleaveEvent);
+            quickAction?.dispatchEvent(mouseleaveEvent);
 
             expect(indicator?.style.background).toBe("var(--color-bg-alt)");
             expect(indicator?.style.transform).toBe("translateY(0)");

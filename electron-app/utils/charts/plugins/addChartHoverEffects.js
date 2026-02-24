@@ -6,6 +6,55 @@ const FULLSCREEN_EVENTS = [
     "mozfullscreenchange",
     "MSFullscreenChange",
 ];
+const DEFAULT_CHART_HEIGHT = "400px";
+let chartFullscreenTraceCounter = 0;
+
+/**
+ * @returns {boolean}
+ */
+function isFullscreenTraceEnabled() {
+    const override = /** @type {any} */ (globalThis).__FFV_traceFullscreen;
+    if (typeof override === "boolean") {
+        return override;
+    }
+    return (
+        typeof process !== "undefined" &&
+        process.env?.NODE_ENV === "development"
+    );
+}
+
+/**
+ * @param {Element | null} element
+ *
+ * @returns {string}
+ */
+function describeElement(element) {
+    if (!element) {
+        return "<none>";
+    }
+    const id = element.id ? `#${element.id}` : "";
+    const className =
+        typeof element.className === "string" && element.className.length > 0
+            ? `.${element.className.trim().replace(/\s+/gu, ".")}`
+            : "";
+    return `${element.tagName.toLowerCase()}${id}${className}`;
+}
+
+/**
+ * @param {string} traceId
+ * @param {string} event
+ * @param {Record<string, unknown>} [payload]
+ */
+function traceChartFullscreen(traceId, event, payload = {}) {
+    if (!isFullscreenTraceEnabled()) {
+        return;
+    }
+    try {
+        console.log(`[ChartFullscreen:${traceId}] ${event}`, payload);
+    } catch {
+        /* ignore */
+    }
+}
 
 /**
  * Resolve the Chart.js instance associated with a canvas if available.
@@ -41,16 +90,22 @@ function requestChartResize(canvas) {
 }
 
 /**
- * Resolve screenfull if it is available globally.
+ * Apply the appropriate canvas height based on fullscreen state.
  *
- * @returns {import("screenfull").Screenfull | null}
+ * @param {HTMLCanvasElement | null} canvas
+ * @param {boolean} isFullscreen
  */
-function getScreenfullInstance() {
-    const instance = /** @type {any} */ (globalThis).screenfull;
-    if (instance && typeof instance.request === "function") {
-        return /** @type {import("screenfull").Screenfull} */ (instance);
+function applyCanvasSize(canvas, isFullscreen) {
+    if (!canvas || !canvas.style) {
+        return;
     }
-    return null;
+    if (isFullscreen) {
+        canvas.style.height = "100%";
+        canvas.style.maxHeight = "none";
+    } else {
+        canvas.style.height = DEFAULT_CHART_HEIGHT;
+        canvas.style.maxHeight = DEFAULT_CHART_HEIGHT;
+    }
 }
 
 /**
@@ -81,13 +136,18 @@ function isWrapperFullscreenActive(wrapper) {
     if (fsElement === wrapper) {
         return true;
     }
-    if (
-        fsElement === document.documentElement &&
-        wrapper.dataset.fullscreenRequested === "true"
-    ) {
-        return true;
-    }
     return false;
+}
+
+/**
+ * Determine whether the wrapper is currently using overlay fullscreen fallback.
+ *
+ * @param {HTMLElement} wrapper
+ *
+ * @returns {boolean}
+ */
+function isWrapperOverlayFullscreenActive(wrapper) {
+    return wrapper.classList.contains("chart-wrapper--overlay-fullscreen");
 }
 
 /**
@@ -115,62 +175,13 @@ async function requestNativeFullscreen(element) {
  * @param {HTMLElement} element
  */
 async function requestElementFullscreen(element) {
-    const screenfull = getScreenfullInstance();
-    const fallbackTarget = document.documentElement;
-
-    if (screenfull && screenfull.isEnabled) {
-        try {
-            const result = screenfull.request(element);
-            if (result && typeof result.then === "function") {
-                await result;
-            }
-            if (isWrapperFullscreenActive(element)) {
-                return;
-            }
-        } catch {
-            /* ignore and fall back */
-        }
-
-        if (fallbackTarget && fallbackTarget !== element) {
-            try {
-                const result = screenfull.request(fallbackTarget);
-                if (result && typeof result.then === "function") {
-                    await result;
-                }
-                return;
-            } catch {
-                /* ignore */
-            }
-        }
-    }
-
-    try {
-        await requestNativeFullscreen(element);
-        if (isWrapperFullscreenActive(element)) {
-            return;
-        }
-    } catch {
-        /* ignore */
-    }
-
-    if (fallbackTarget && fallbackTarget !== element) {
-        await requestNativeFullscreen(fallbackTarget);
-    }
+    await requestNativeFullscreen(element);
 }
 
 /**
  * Exit fullscreen mode if active.
  */
 async function exitFullscreen() {
-    const screenfull = getScreenfullInstance();
-    if (screenfull && screenfull.isEnabled) {
-        const result = screenfull.exit();
-        if (result && typeof result.then === "function") {
-            await result;
-        }
-        return;
-    }
-
     const doc = /** @type {any} */ (document);
     const exit =
         document.exitFullscreen ||
@@ -273,8 +284,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             canvas.style.display = "block";
             canvas.style.width = "100%";
             canvas.style.maxWidth = "100%";
-            canvas.style.height = "400px";
-            canvas.style.maxHeight = "400px";
+            canvas.style.height = DEFAULT_CHART_HEIGHT;
+            canvas.style.maxHeight = DEFAULT_CHART_HEIGHT;
             canvas.style.position = "relative";
             canvas.style.boxSizing = "border-box";
         }
@@ -385,14 +396,82 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         `;
 
         fullscreenButton.innerHTML = enterFullscreenIcon;
+        chartFullscreenTraceCounter += 1;
+        const traceId = `${chartFullscreenTraceCounter}`;
+        /** @type {HTMLDivElement | null} */
+        let overlayPlaceholder = null;
+        /** @type {HTMLElement | null} */
+        let overlayParent = null;
+
+        const overlayEscHandler = (event) => {
+            if (event.key === "Escape") {
+                exitOverlayFullscreen();
+                updateFullscreenState();
+            }
+        };
+
+        const enterOverlayFullscreen = () => {
+            if (overlayPlaceholder) {
+                return;
+            }
+            const parent = wrapper.parentNode;
+            if (!(parent instanceof HTMLElement)) {
+                return;
+            }
+
+            overlayParent = parent;
+            overlayPlaceholder = document.createElement("div");
+            overlayPlaceholder.className =
+                "chart-overlay-fullscreen-placeholder";
+            overlayPlaceholder.style.height = `${wrapper.getBoundingClientRect().height}px`;
+            parent.insertBefore(overlayPlaceholder, wrapper);
+
+            document.body.append(wrapper);
+            wrapper.classList.add("chart-wrapper--overlay-fullscreen");
+            document.body.classList.add("chart-overlay-fullscreen-active");
+
+            applyCanvasSize(chartCanvas, true);
+            requestChartResize(chartCanvas);
+            document.addEventListener("keydown", overlayEscHandler);
+
+            traceChartFullscreen(traceId, "overlay-enter", {
+                wrapper: describeElement(wrapper),
+            });
+        };
+
+        const exitOverlayFullscreen = () => {
+            if (!overlayPlaceholder || !overlayParent) {
+                return;
+            }
+
+            overlayParent.insertBefore(wrapper, overlayPlaceholder);
+            overlayPlaceholder.remove();
+            overlayPlaceholder = null;
+            overlayParent = null;
+
+            wrapper.classList.remove("chart-wrapper--overlay-fullscreen");
+            document.body.classList.remove("chart-overlay-fullscreen-active");
+            applyCanvasSize(chartCanvas, false);
+            requestChartResize(chartCanvas);
+            document.removeEventListener("keydown", overlayEscHandler);
+
+            traceChartFullscreen(traceId, "overlay-exit", {
+                wrapper: describeElement(wrapper),
+            });
+        };
 
         const updateFullscreenState = () => {
             const fsElement = getFullscreenElement();
-            const isActive = isWrapperFullscreenActive(wrapper);
-            if (!fsElement) {
-                delete wrapper.dataset.fullscreenRequested;
-            }
+            const isActive =
+                isWrapperFullscreenActive(wrapper) ||
+                isWrapperOverlayFullscreenActive(wrapper);
             wrapper.classList.toggle("chart-wrapper--fullscreen", isActive);
+            applyCanvasSize(chartCanvas, isActive);
+            traceChartFullscreen(traceId, "state-update", {
+                fullscreenElement: describeElement(fsElement),
+                isActive,
+                wrapper: describeElement(wrapper),
+            });
             fullscreenButton.innerHTML = isActive
                 ? exitFullscreenIcon
                 : enterFullscreenIcon;
@@ -416,6 +495,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         };
 
         const handleFullscreenChange = () => {
+            traceChartFullscreen(traceId, "fullscreenchange-event", {
+                fullscreenElement: describeElement(getFullscreenElement()),
+            });
             updateFullscreenState();
         };
 
@@ -427,25 +509,63 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             event.stopPropagation();
             const fsElement = getFullscreenElement();
             const isActive = isWrapperFullscreenActive(wrapper);
-            if (isActive) {
-                await exitFullscreen();
-                return;
+            const isOverlayActive = isWrapperOverlayFullscreenActive(wrapper);
+            traceChartFullscreen(traceId, "button-click", {
+                isActive,
+                isOverlayActive,
+                fullscreenElement: describeElement(fsElement),
+                wrapper: describeElement(wrapper),
+            });
+            try {
+                if (isOverlayActive) {
+                    exitOverlayFullscreen();
+                    return;
+                }
+                if (isActive) {
+                    traceChartFullscreen(traceId, "exit-request", {
+                        via: "button",
+                    });
+                    await exitFullscreen();
+                    return;
+                }
+                if (fsElement) {
+                    traceChartFullscreen(
+                        traceId,
+                        "blocked-existing-fullscreen",
+                        {
+                            fullscreenElement: describeElement(fsElement),
+                        }
+                    );
+                    return;
+                }
+                traceChartFullscreen(traceId, "enter-request", {
+                    target: describeElement(wrapper),
+                });
+                await requestElementFullscreen(wrapper);
+
+                // Fallback: if element fullscreen was denied or exited immediately,
+                // use an in-app overlay fullscreen mode.
+                if (getFullscreenElement() !== wrapper) {
+                    enterOverlayFullscreen();
+                }
+            } catch {
+                // Ignore fullscreen request/exit failures to keep controls responsive.
+                if (!isWrapperOverlayFullscreenActive(wrapper)) {
+                    enterOverlayFullscreen();
+                }
+            } finally {
+                updateFullscreenState();
             }
-            if (fsElement) {
-                return;
-            }
-            wrapper.dataset.fullscreenRequested = "true";
-            await requestElementFullscreen(wrapper);
-            updateFullscreenState();
         });
 
         wrapper.append(fullscreenButton);
+        applyCanvasSize(chartCanvas, false);
 
         // Add hover event listeners to wrapper
         wrapper.addEventListener("mouseenter", () => {
-            const isFullscreen = wrapper.classList.contains(
-                "chart-wrapper--fullscreen"
-            );
+            const isFullscreen =
+                wrapper.classList.contains("chart-wrapper--fullscreen") ||
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen");
             // Main transform and shadow effects
             if (!isFullscreen) {
                 wrapper.style.transform = "translateY(-6px) scale(1.02)";
@@ -472,9 +592,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         });
 
         wrapper.addEventListener("mouseleave", () => {
-            const isFullscreen = wrapper.classList.contains(
-                "chart-wrapper--fullscreen"
-            );
+            const isFullscreen =
+                wrapper.classList.contains("chart-wrapper--fullscreen") ||
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen");
             // Reset all effects
             if (!isFullscreen) {
                 wrapper.style.transform = "translateY(0) scale(1)";
@@ -509,6 +629,11 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 return;
             }
             if (getFullscreenElement() === wrapper) {
+                return;
+            }
+            if (
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ) {
                 return;
             }
             const rect = wrapper.getBoundingClientRect(),
@@ -652,8 +777,8 @@ export function removeChartHoverEffects(chartContainer) {
                 canvas.style.display = "";
                 canvas.style.width = "100%";
                 canvas.style.maxWidth = "";
-                canvas.style.height = "400px";
-                canvas.style.maxHeight = "400px";
+                canvas.style.height = "100%";
+                canvas.style.maxHeight = "none";
                 canvas.style.position = "";
                 canvas.style.boxSizing = "";
             }

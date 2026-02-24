@@ -14,15 +14,15 @@ const apiDir = path.resolve(__dirname, "../docs/api");
 /** @type {Map<string, string>} */
 const LABEL_OVERRIDES = new Map([
     ["fitParser", "FIT Parser"],
-    ["main", "Main Process"],
     ["main-ui", "Main UI"],
+    ["main", "Main Process"],
     ["mainProcessStateClient", "Main Process State Client"],
     ["mainProcessStateManager", "Main Process State Manager"],
     ["preload", "Preload"],
     ["renderer", "Renderer"],
+    ["stylelint.config", "Stylelint Config"],
     ["ui", "UI Components"],
     ["utils", "Utilities"],
-    ["stylelint.config", "Stylelint Config"],
     ["vitest.config", "Vitest Config"],
     ["windowStateUtils", "Window State Utils"],
 ]);

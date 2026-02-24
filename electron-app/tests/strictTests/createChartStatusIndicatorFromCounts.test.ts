@@ -458,7 +458,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
             vi.advanceTimersByTime(2100);
 
             expect(fieldsSection.style.outline).toBe("none");
-            expect(fieldsSection.style.outlineOffset).toBe("0");
+            expect(fieldsSection.style.outlineOffset).toBe("0px");
         });
 
         it("should handle missing fields section gracefully", () => {

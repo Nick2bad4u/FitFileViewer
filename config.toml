@@ -5,13 +5,11 @@ model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "medium"
 sandbox_mode = "danger-full-access"
+
 sandbox_workspace_write.network_access = true
-sandbox_workspace_write.writable_roots = [
-    "C:\\Users\\Nick\\AppData\\Roaming\\uptime-watcher",
-]
+sandbox_workspace_write.writable_roots = [ "C:\\Users\\Nick\\AppData\\Roaming\\uptime-watcher", ]
+
 [mcp.servers.vscode-mcp]
-    args = [
-        "@vscode-mcp/vscode-mcp-server@latest",
-    ]
+    args = [ "@vscode-mcp/vscode-mcp-server@latest", ]
     command = "npx"
     type = "stdio"

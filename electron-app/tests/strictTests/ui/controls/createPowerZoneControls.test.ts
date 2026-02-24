@@ -23,7 +23,7 @@ describe("createPowerZoneControls", () => {
             "#power-zone-content"
         ) as HTMLElement;
         btn.click();
-        expect(content.style.maxHeight).toBe("0");
+        expect(content.style.maxHeight).toBe("0px");
         btn.click();
         expect(content.style.maxHeight).toBe("500px");
     });

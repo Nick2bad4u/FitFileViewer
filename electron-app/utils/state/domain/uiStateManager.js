@@ -534,11 +534,13 @@ export class UIStateManager {
                 body.className = filtered.join(" ").trim();
             }
 
-            // `HTMLBodyElement.dataset` is always present in Electron/Chromium.
-            // The previous `if (dataset)` guard triggers a TS diagnostic because
-            // `dataset` is typed as a non-null `DOMStringMap` and is therefore
-            // always truthy.
-            dataset.hasFitFile = hasRenderableFile ? "true" : "false";
+            // In runtime Electron, `HTMLBodyElement.dataset` exists.
+            // In some tests, `document.body` can be a partial mock without dataset.
+            const datasetRef =
+                dataset && typeof dataset === "object" ? dataset : null;
+            if (datasetRef) {
+                datasetRef.hasFitFile = hasRenderableFile ? "true" : "false";
+            }
         }
 
         const fileSpan = (() => {
