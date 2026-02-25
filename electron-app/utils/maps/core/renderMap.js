@@ -1639,6 +1639,36 @@ export function renderMap() {
     }
     updateLapSelectorEnabledState();
 
+    const refreshMapLayout = () => {
+        try {
+            map.invalidateSize({ animate: false, pan: false });
+        } catch {
+            /* ignore */
+        }
+
+        try {
+            const miniMapInstance = windowExt._miniMapControl?._miniMap;
+            if (
+                miniMapInstance &&
+                typeof miniMapInstance.invalidateSize === "function"
+            ) {
+                miniMapInstance.invalidateSize();
+            }
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const raf =
+        typeof globalThis.requestAnimationFrame === "function"
+            ? globalThis.requestAnimationFrame
+            : /** @param {FrameRequestCallback} cb */ (cb) => setTimeout(cb, 0);
+
+    refreshMapLayout();
+    raf(() => refreshMapLayout());
+    setTimeout(refreshMapLayout, 90);
+    setTimeout(refreshMapLayout, 240);
+
     // --- Theme support (dark/light) ---
     if (document.querySelector("#leaflet-map")) {
         installUpdateMapThemeListeners();

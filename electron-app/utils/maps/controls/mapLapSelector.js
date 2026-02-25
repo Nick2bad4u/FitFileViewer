@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
 
 /**
  * @typedef {Object} LapMesg
@@ -86,142 +87,20 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     };
 
     /**
-     * @param {string} name
+     * @param {"circleHelp" | "circleX" | "route" | "timer"} iconName
+     * @param {number} [size]
      *
-     * @returns {SVGElement}
+     * @returns {HTMLElement}
      */
-    const svgEl = (name) =>
-        document.createElementNS("http://www.w3.org/2000/svg", name);
-
-    /**
-     * @returns {SVGElement}
-     */
-    const createStopwatchIcon = () => {
-        const svg = svgEl("svg");
-        svg.setAttribute("class", "icon");
-        svg.setAttribute("viewBox", "0 0 20 20");
-        svg.setAttribute("width", "18");
-        svg.setAttribute("height", "18");
-        svg.setAttribute("aria-hidden", "true");
-        svg.setAttribute("focusable", "false");
-
-        const circle = svgEl("circle");
-        circle.setAttribute("cx", "10");
-        circle.setAttribute("cy", "11");
-        circle.setAttribute("r", "6");
-        circle.setAttribute("fill", safeColors.surface);
-        circle.setAttribute("stroke", safeColors.primary);
-        circle.setAttribute("stroke-width", "1.5");
-
-        const rect = svgEl("rect");
-        rect.setAttribute("x", "8.5");
-        rect.setAttribute("y", "3");
-        rect.setAttribute("width", "3");
-        rect.setAttribute("height", "2.5");
-        rect.setAttribute("rx", "1");
-        rect.setAttribute("fill", safeColors.primary);
-
-        const hand1 = svgEl("line");
-        hand1.setAttribute("x1", "10");
-        hand1.setAttribute("y1", "11");
-        hand1.setAttribute("x2", "10");
-        hand1.setAttribute("y2", "7.5");
-        hand1.setAttribute("stroke", safeColors.primary);
-        hand1.setAttribute("stroke-width", "1.3");
-        hand1.setAttribute("stroke-linecap", "round");
-
-        const hand2 = svgEl("line");
-        hand2.setAttribute("x1", "10");
-        hand2.setAttribute("y1", "11");
-        hand2.setAttribute("x2", "13");
-        hand2.setAttribute("y2", "11");
-        hand2.setAttribute("stroke", safeColors.accent);
-        hand2.setAttribute("stroke-width", "1.3");
-        hand2.setAttribute("stroke-linecap", "round");
-
-        const dot = svgEl("circle");
-        dot.setAttribute("cx", "10");
-        dot.setAttribute("cy", "11");
-        dot.setAttribute("r", "1.2");
-        dot.setAttribute("fill", safeColors.accent);
-
-        svg.append(circle, rect, hand1, hand2, dot);
-        return svg;
-    };
-
-    /**
-     * @returns {SVGElement}
-     */
-    const createMultiLapIcon = () => {
-        const svg = svgEl("svg");
-        svg.setAttribute("class", "icon");
-        svg.setAttribute("viewBox", "0 0 20 20");
-        svg.setAttribute("width", "18");
-        svg.setAttribute("height", "18");
-        svg.setAttribute("aria-hidden", "true");
-        svg.setAttribute("focusable", "false");
-
-        /**
-         * @param {string} x
-         * @param {string} y
-         * @param {string} h
-         */
-        const addBar = (x, y, h) => {
-            const r = svgEl("rect");
-            r.setAttribute("x", x);
-            r.setAttribute("y", y);
-            r.setAttribute("width", "2.5");
-            r.setAttribute("height", h);
-            r.setAttribute("rx", "1");
-            r.setAttribute("fill", safeColors.accent);
-            r.setAttribute("stroke", safeColors.accent);
-            r.setAttribute("stroke-width", "1");
-            svg.append(r);
-        };
-
-        addBar("2", "11", "5");
-        addBar("6", "7", "9");
-        addBar("10", "4", "12");
-        addBar("14", "9", "7");
-        return svg;
-    };
-
-    /**
-     * @returns {SVGElement}
-     */
-    const createDeselectIcon = () => {
-        const svg = svgEl("svg");
-        svg.setAttribute("class", "icon");
-        svg.setAttribute("viewBox", "0 0 16 16");
-        svg.setAttribute("width", "16");
-        svg.setAttribute("height", "16");
-
-        const c = svgEl("circle");
-        c.setAttribute("cx", "8");
-        c.setAttribute("cy", "8");
-        c.setAttribute("r", "7");
-        c.setAttribute("fill", "none");
-        c.setAttribute("stroke", safeColors.textSecondary);
-        c.setAttribute("stroke-width", "2");
-
-        const l1 = svgEl("line");
-        l1.setAttribute("x1", "5");
-        l1.setAttribute("y1", "5");
-        l1.setAttribute("x2", "11");
-        l1.setAttribute("y2", "11");
-        l1.setAttribute("stroke", safeColors.textSecondary);
-        l1.setAttribute("stroke-width", "2");
-
-        const l2 = svgEl("line");
-        l2.setAttribute("x1", "11");
-        l2.setAttribute("y1", "5");
-        l2.setAttribute("x2", "5");
-        l2.setAttribute("y2", "11");
-        l2.setAttribute("stroke", safeColors.textSecondary);
-        l2.setAttribute("stroke-width", "2");
-
-        svg.append(c, l1, l2);
-        return svg;
+    const createControlIcon = (iconName, size = 16) => {
+        const icon = document.createElement("span");
+        icon.className = "icon";
+        icon.innerHTML = getAppIconSvg(iconName, {
+            className: "lap-control-icon",
+            size,
+            strokeWidth: 2,
+        });
+        return icon;
     };
 
     const bar = document.createElement("div");
@@ -233,7 +112,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     multiLapToggle.type = "button";
     multiLapToggle.title =
         "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
-    multiLapToggle.append(createStopwatchIcon());
+    multiLapToggle.append(createControlIcon("timer"));
     const lapsText = document.createElement("span");
     lapsText.textContent = "Laps:";
     lapsText.style.color = safeColors.text;
@@ -244,7 +123,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     deselectAllBtn.id = "deselect-all-btn";
     deselectAllBtn.className = "deselect-all-btn";
     deselectAllBtn.title = "Deselect all laps (Esc)";
-    deselectAllBtn.append(createDeselectIcon());
+    deselectAllBtn.append(createControlIcon("circleX"));
 
     const label = document.createElement("label");
     // Avoid redundant "Laps: Lap:" UI (multiLapToggle already indicates purpose).
@@ -273,7 +152,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     helpBtn.className = "lap-help-btn";
     helpBtn.setAttribute("aria-label", "Lap selection help");
     helpBtn.setAttribute("aria-expanded", "false");
-    helpBtn.textContent = "?";
+    helpBtn.append(createControlIcon("circleHelp"));
 
     const helpTooltip = document.createElement("div");
     helpTooltip.id = "lap-help-tooltip";
@@ -370,13 +249,11 @@ export function addLapSelector(_map, container, mapDrawLaps) {
 
     const renderToggleIcon = (on) => {
         // Keep the label span, just swap the first child icon.
-        const existingSvg = multiLapToggleEl.querySelector("svg");
-        if (existingSvg) {
-            existingSvg.remove();
+        const existingIcon = multiLapToggleEl.querySelector(".icon");
+        if (existingIcon) {
+            existingIcon.remove();
         }
-        multiLapToggleEl.prepend(
-            on ? createMultiLapIcon() : createStopwatchIcon()
-        );
+        multiLapToggleEl.prepend(createControlIcon(on ? "route" : "timer"));
     };
 
     /**

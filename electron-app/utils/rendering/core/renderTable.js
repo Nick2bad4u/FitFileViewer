@@ -1,4 +1,5 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
+import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
 
 /**
  * @typedef {Record<string, unknown>} TableRow
@@ -37,7 +38,8 @@ export function renderTable(container, title, table, index) {
     header.classList.add("table-header");
 
     const leftSpan = document.createElement("span");
-    leftSpan.textContent = title;
+    leftSpan.className = "table-header-title";
+    decorateSectionHeaderTitle(leftSpan, title);
 
     const rightContainer = document.createElement("div");
     rightContainer.style.display = "flex";
@@ -80,7 +82,7 @@ export function renderTable(container, title, table, index) {
     const headRow = document.createElement("tr");
     for (const col of columns) {
         const th = document.createElement("th");
-        th.textContent = col;
+        decorateTableHeaderCell(th, col);
         headRow.append(th);
     }
     thead.append(headRow);
@@ -153,6 +155,7 @@ export function renderTable(container, title, table, index) {
                 raf(() => {
                     try {
                         dt.columns.adjust();
+                        decorateTableHeaderCells(tableElement, columns);
                     } catch {
                         /* ignore */
                     }
@@ -160,6 +163,7 @@ export function renderTable(container, title, table, index) {
             } else {
                 try {
                     dt.columns.adjust();
+                    decorateTableHeaderCells(tableElement, columns);
                 } catch {
                     /* ignore */
                 }
@@ -181,6 +185,8 @@ export function renderTable(container, title, table, index) {
     const renderFallbackTableBody = () => {
         const tbody = tableElement.querySelector("tbody");
         if (!(tbody instanceof HTMLElement)) return;
+
+        decorateTableHeaderCells(tableElement, columns);
 
         tbody.replaceChildren();
         const limit = 500;
@@ -247,6 +253,112 @@ export function renderTable(container, title, table, index) {
     section.append(header);
     section.append(content);
     container.append(section);
+}
+
+/**
+ * @param {HTMLElement} container
+ * @param {import("../../ui/icons/iconFactory.js").AppIconName} iconName
+ * @param {string} text
+ * @param {string} iconClass
+ * @param {string} textClass
+ */
+function applyIconLabel(container, iconName, text, iconClass, textClass) {
+    const icon = document.createElement("span");
+    icon.className = iconClass;
+    icon.innerHTML = getAppIconSvg(iconName, {
+        className: `${iconClass}-svg`,
+        size: 13,
+        strokeWidth: 2,
+    });
+
+    const label = document.createElement("span");
+    label.className = textClass;
+    label.textContent = text;
+
+    container.replaceChildren(icon, label);
+}
+
+/**
+ * @param {HTMLElement} container
+ * @param {string} title
+ */
+function decorateSectionHeaderTitle(container, title) {
+    const icon = document.createElement("i");
+    icon.className = "table-header-title__icon";
+    icon.innerHTML = getAppIconSvg(resolveTableSectionIconName(title), {
+        className: "table-header-title__icon-svg",
+        size: 13,
+        strokeWidth: 2,
+    });
+
+    const label = document.createElement("strong");
+    label.className = "table-header-title__text";
+    label.textContent = title;
+
+    container.replaceChildren(icon, label);
+}
+
+/**
+ * @param {HTMLTableElement} tableElement
+ * @param {string[]} columns
+ */
+function decorateTableHeaderCells(tableElement, columns) {
+    const headerCells = tableElement.querySelectorAll("thead th");
+    for (const [index, cell] of headerCells.entries()) {
+        if (!(cell instanceof HTMLTableCellElement)) {
+            continue;
+        }
+        decorateTableHeaderCell(cell, columns[index] ?? cell.textContent ?? "");
+    }
+}
+
+/**
+ * @param {HTMLTableCellElement} cell
+ * @param {string} label
+ */
+function decorateTableHeaderCell(cell, label) {
+    applyIconLabel(
+        cell,
+        resolveTableColumnIconName(label),
+        label,
+        "table-column-title__icon",
+        "table-column-title__text"
+    );
+}
+
+/**
+ * @param {string} title
+ *
+ * @returns {import("../../ui/icons/iconFactory.js").AppIconName}
+ */
+function resolveTableSectionIconName(title) {
+    const normalized = title.toLowerCase();
+    if (normalized.includes("session")) return "activity";
+    if (normalized.includes("lap")) return "route";
+    if (normalized.includes("record")) return "table";
+    if (normalized.includes("event")) return "target";
+    if (normalized.includes("device")) return "database";
+    return "database";
+}
+
+/**
+ * @param {string} label
+ *
+ * @returns {import("../../ui/icons/iconFactory.js").AppIconName}
+ */
+function resolveTableColumnIconName(label) {
+    const normalized = label.toLowerCase();
+    if (/timestamp|time|date/u.test(normalized)) return "timer";
+    if (/lat|lon|position|location|coord|gps/u.test(normalized)) return "map";
+    if (/distance|dist|length|altitude|elevation|grade/u.test(normalized))
+        return "ruler";
+    if (/speed|pace|velocity/u.test(normalized)) return "gauge";
+    if (/cadence|rpm|stroke|turn/u.test(normalized)) return "activity";
+    if (/heart|hr|pulse/u.test(normalized)) return "activity";
+    if (/power|watt|calorie|energy/u.test(normalized)) return "activity";
+    if (/lap|segment|route/u.test(normalized)) return "route";
+    if (/id|index|num|count/u.test(normalized)) return "hash";
+    return "table";
 }
 
 /**

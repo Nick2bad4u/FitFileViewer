@@ -308,6 +308,102 @@ describe("addChartHoverEffects", () => {
 
             expect((mockCanvas as any).dataset.hoverEffectsAdded).toBe("true");
         });
+
+        it("should enter overlay fullscreen when chart fullscreen button is clicked", async () => {
+            addChartHoverEffects(mockContainer, mockThemeConfig);
+
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const fullscreenBtn = wrapper.querySelector(
+                ".chart-fullscreen-btn"
+            ) as HTMLButtonElement;
+
+            expect(fullscreenBtn).toBeTruthy();
+
+            // Force native fullscreen failure so fallback overlay mode is exercised.
+            Object.defineProperty(wrapper, "requestFullscreen", {
+                configurable: true,
+                value: vi.fn(() => {
+                    throw new Error("Native fullscreen unavailable in test");
+                }),
+            });
+            Object.defineProperty(wrapper, "webkitRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "mozRequestFullScreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "msRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+
+            fullscreenBtn.click();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(true);
+            expect(
+                document.body.classList.contains(
+                    "chart-overlay-fullscreen-active"
+                )
+            ).toBe(true);
+        });
+
+        it("should exit overlay fullscreen when chart fullscreen button is clicked again", async () => {
+            addChartHoverEffects(mockContainer, mockThemeConfig);
+
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const fullscreenBtn = wrapper.querySelector(
+                ".chart-fullscreen-btn"
+            ) as HTMLButtonElement;
+
+            Object.defineProperty(wrapper, "requestFullscreen", {
+                configurable: true,
+                value: vi.fn(() => {
+                    throw new Error("Native fullscreen unavailable in test");
+                }),
+            });
+            Object.defineProperty(wrapper, "webkitRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "mozRequestFullScreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "msRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+
+            fullscreenBtn.click();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(true);
+
+            fullscreenBtn.click();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(false);
+            expect(
+                document.body.classList.contains(
+                    "chart-overlay-fullscreen-active"
+                )
+            ).toBe(false);
+        });
     });
 
     describe("CSS Injection", () => {

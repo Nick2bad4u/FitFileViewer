@@ -1,5 +1,9 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
-
+import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
+import {
+    escapeHtml,
+    resolveChartTitleIconName,
+} from "./chartTitleOverlayUtils.js";
 const FULLSCREEN_EVENTS = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -122,6 +126,43 @@ function getFullscreenElement() {
         doc.msFullscreenElement ||
         null
     );
+}
+
+/**
+ * Wait until the browser has had a chance to process fullscreen state changes.
+ *
+ * @returns {Promise<void>}
+ */
+async function waitForAnimationFrame() {
+    await new Promise((resolve) => {
+        if (typeof globalThis.requestAnimationFrame === "function") {
+            globalThis.requestAnimationFrame(() => {
+                resolve();
+            });
+            return;
+        }
+        setTimeout(() => {
+            resolve();
+        }, 0);
+    });
+}
+
+/**
+ * Wait for a specific fullscreen target to become active.
+ *
+ * @param {Element | null} target
+ * @param {number} maxFrames
+ *
+ * @returns {Promise<boolean>}
+ */
+async function waitForFullscreenTarget(target, maxFrames = 3) {
+    for (let frame = 0; frame < maxFrames; frame += 1) {
+        if (getFullscreenElement() === target) {
+            return true;
+        }
+        await waitForAnimationFrame();
+    }
+    return getFullscreenElement() === target;
 }
 
 /**
@@ -305,14 +346,15 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             z-index: -1;
             transition: opacity 0.4s ease;
             pointer-events: none;
+            box-shadow: 0 2px 8px ${colors.shadowLight || "#00000033"};
         `;
-        // Explicitly set key properties for environments (e.g., JSDOM) that may not fully reflect cssText parsing.
         glowOverlay.style.opacity = "0";
         wrapper.append(glowOverlay);
 
-        // Add chart title overlay for better visual hierarchy
         const chartTitle = canvas.getAttribute("aria-label") || "Chart",
             titleOverlay = document.createElement("div");
+        const overlayTitle = chartTitle.replace("Chart for ", "").trim();
+        const overlayTitleText = overlayTitle.toUpperCase() || "CHART";
         titleOverlay.className = "chart-title-overlay";
         titleOverlay.style.cssText = `
             position: absolute;
@@ -331,11 +373,12 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             pointer-events: none;
             box-shadow: 0 2px 8px ${colors.shadowLight || "#00000033"};
         `;
+        titleOverlay.innerHTML = `${getAppIconSvg(resolveChartTitleIconName(overlayTitle), { className: "chart-title-overlay__icon", size: 12, strokeWidth: 2 })}<span class="chart-title-overlay__text">${escapeHtml(overlayTitleText)}</span>`;
+        titleOverlay.style.display = "inline-flex";
+        titleOverlay.style.alignItems = "center";
+        titleOverlay.style.gap = "6px";
         titleOverlay.style.opacity = "0";
         titleOverlay.style.transform = "translateY(-8px)";
-        titleOverlay.textContent = chartTitle
-            .replace("Chart for ", "")
-            .toUpperCase();
         wrapper.append(titleOverlay);
 
         // Add zoom hint overlay (bottom-right) to guide chart interactions
@@ -363,6 +406,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             z-index: 10;
         `;
         zoomHint.textContent = "Zoom: Ctrl + scroll or pinch • Pan: drag";
+        zoomHint.style.opacity = "0";
+        zoomHint.style.transform = "translateY(6px)";
         wrapper.append(zoomHint);
 
         const chartCanvas = canvas instanceof HTMLCanvasElement ? canvas : null;
@@ -374,7 +419,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         fullscreenButton.title = "View chart fullscreen";
         fullscreenButton.setAttribute(
             "aria-label",
-            `View ${titleOverlay.textContent || "chart"} in fullscreen`
+            `View ${overlayTitleText} in fullscreen`
         );
 
         const enterFullscreenIcon = `
@@ -476,8 +521,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             fullscreenButton.setAttribute(
                 "aria-label",
                 isActive
-                    ? `Exit ${titleOverlay.textContent || "chart"} fullscreen`
-                    : `View ${titleOverlay.textContent || "chart"} in fullscreen`
+                    ? `Exit ${overlayTitleText} fullscreen`
+                    : `View ${overlayTitleText} in fullscreen`
             );
 
             if (typeof globalThis.requestAnimationFrame === "function") {
@@ -508,6 +553,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         }
 
         fullscreenButton.addEventListener("click", async (event) => {
+            event.preventDefault();
             event.stopPropagation();
             const fsElement = getFullscreenElement();
             const isActive = isWrapperFullscreenActive(wrapper);
@@ -530,15 +576,25 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                     await exitFullscreen();
                     return;
                 }
-                if (fsElement) {
-                    traceChartFullscreen(
-                        traceId,
-                        "blocked-existing-fullscreen",
-                        {
-                            fullscreenElement: describeElement(fsElement),
-                        }
-                    );
-                    return;
+                if (fsElement && fsElement !== wrapper) {
+                    traceChartFullscreen(traceId, "exit-existing-fullscreen", {
+                        fullscreenElement: describeElement(fsElement),
+                    });
+                    await exitFullscreen();
+                    await waitForFullscreenTarget(null, 3);
+
+                    if (getFullscreenElement() !== null) {
+                        traceChartFullscreen(
+                            traceId,
+                            "blocked-existing-fullscreen",
+                            {
+                                fullscreenElement: describeElement(
+                                    getFullscreenElement()
+                                ),
+                            }
+                        );
+                        return;
+                    }
                 }
                 traceChartFullscreen(traceId, "enter-request", {
                     target: describeElement(wrapper),
@@ -547,7 +603,11 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 
                 // Fallback: if element fullscreen was denied or exited immediately,
                 // use an in-app overlay fullscreen mode.
-                if (getFullscreenElement() !== wrapper) {
+                const didEnterNativeFullscreen = await waitForFullscreenTarget(
+                    wrapper,
+                    3
+                );
+                if (!didEnterNativeFullscreen) {
                     enterOverlayFullscreen();
                 }
             } catch {

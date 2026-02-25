@@ -334,6 +334,53 @@ export function updateTabVisibility(visibleTabId) {
             });
         }
     }
+
+    if (targetId === "content_map") {
+        scheduleMapReflowRefresh();
+    }
+}
+
+/**
+ * Force Leaflet to recompute map layout after tab visibility changes.
+ *
+ * The map container can report stale dimensions immediately after toggling
+ * display, so we run a short invalidate sequence over a few frames.
+ */
+function scheduleMapReflowRefresh() {
+    /** @type {any} */
+    const g = globalThis;
+    const map = g._leafletMapInstance;
+
+    if (!map || typeof map.invalidateSize !== "function") {
+        return;
+    }
+
+    const reflow = () => {
+        try {
+            map.invalidateSize({ animate: false, pan: false });
+        } catch {
+            /* ignore */
+        }
+
+        try {
+            const miniMap = g._miniMapControl?._miniMap;
+            if (miniMap && typeof miniMap.invalidateSize === "function") {
+                miniMap.invalidateSize();
+            }
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const raf =
+        typeof globalThis.requestAnimationFrame === "function"
+            ? globalThis.requestAnimationFrame
+            : /** @param {FrameRequestCallback} cb */ (cb) => setTimeout(cb, 0);
+
+    reflow();
+    raf(() => reflow());
+    setTimeout(reflow, 70);
+    setTimeout(reflow, 180);
 }
 
 /**

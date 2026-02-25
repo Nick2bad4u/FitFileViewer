@@ -3,6 +3,7 @@
  * visibility and availability
  */
 
+import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 
 /**
@@ -27,7 +28,6 @@ const CONSTANTS = {
         ALL_VISIBLE: "✅",
         LOAD_FILE: "📂",
         NONE_VISIBLE: "❌",
-        SETTINGS: "⚙️",
         SOME_HIDDEN: "⚠️",
     },
     IDS: {
@@ -222,13 +222,16 @@ function createQuickActionButton(status) {
         background: var(--color-btn-bg);
         color: var(--color-fg-alt);
         font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         cursor: pointer;
         transition: var(--transition-smooth);
     `;
     quickAction.dataset.actionable = status.hasHiddenCharts ? "true" : "false";
 
     if (status.hasHiddenCharts) {
-        quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
+        quickAction.innerHTML = `${getAppIconSvg("settings", { className: "global-chart-status__settings-icon", size: 13, strokeWidth: 2 })}<span>${CONSTANTS.TEXTS.SHOW_SETTINGS}</span>`;
         quickAction.title = CONSTANTS.TOOLTIPS.SHOW_SETTINGS;
         quickAction.addEventListener("click", handleSettingsToggle);
 

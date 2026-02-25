@@ -333,9 +333,16 @@ body {
 }
 
 .file-library__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 900;
     font-size: 1rem;
     color: var(--color-fg);
+}
+
+.file-library__titleIcon {
+    color: rgb(var(--color-accent-rgb));
 }
 
 .file-library__controls {
@@ -356,8 +363,16 @@ body {
 }
 
 .file-library__controlLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--color-fg-muted);
     font-weight: 700;
+}
+
+.file-library__controlIcon {
+    color: rgb(var(--color-accent-rgb));
+    opacity: 0.88;
 }
 
 .file-library__daysInput,
@@ -407,9 +422,17 @@ html[data-theme="light"] body .file-library__unitSelect {
 }
 
 .file-library__cardLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: 0.8rem;
     font-weight: 800;
     color: var(--color-fg-muted);
+}
+
+.file-library__cardIcon {
+    color: rgb(var(--color-accent-rgb));
+    opacity: 0.9;
 }
 
 .file-library__cardValue {
@@ -726,9 +749,16 @@ body {
 }
 
 .file-library__rowMain {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-weight: 700;
     margin-block-end: 2px;
+}
+
+.file-library__rowIcon {
+    color: rgb(var(--color-accent-rgb));
+    flex: 0 0 auto;
 }
 
 @media (width <=760px) {
@@ -763,8 +793,10 @@ body {
 }
 
 .file-browser__btn-icon {
-    font-size: 1rem;
+    inline-size: 1rem;
+    block-size: 1rem;
     line-height: 1;
+    flex: 0 0 auto;
 }
 
 .file-browser__segmented {
@@ -802,8 +834,10 @@ body {
 }
 
 .file-browser__seg-icon {
-    font-size: 1rem;
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
     line-height: 1;
+    flex: 0 0 auto;
 }
 
 .file-browser__path {
@@ -853,6 +887,23 @@ body {
     padding: 10px 12px;
     cursor: pointer;
     box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-browser__item-icon {
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
+    flex: 0 0 auto;
+    color: rgb(var(--color-accent-rgb));
+}
+
+.file-browser__item-label {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .file-browser__item:hover {
@@ -3165,6 +3216,27 @@ body[data-has-fit-file="false"] .tab-card::after {
     transition: background 0.3s;
 }
 
+.table-header-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+}
+
+.table-header-title__icon {
+    display: inline-flex;
+    align-items: center;
+    font-style: normal;
+    color: rgb(var(--color-accent-rgb));
+    flex: 0 0 auto;
+}
+
+.table-header-title__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .table-header:hover {
     background: var(--color-table-hover);
 }
@@ -3242,6 +3314,24 @@ th {
     white-space: nowrap;
     text-overflow: ellipsis;
     position: relative;
+}
+
+.table-column-title__icon,
+.table-column-title__text {
+    pointer-events: none;
+}
+
+.table-column-title__icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgb(var(--color-accent-rgb));
+    opacity: 0.9;
+    margin-inline-end: 6px;
+    vertical-align: middle;
+}
+
+.table-column-title__text {
+    vertical-align: middle;
 }
 
 th::after {
@@ -3968,6 +4058,18 @@ body.chart-overlay-fullscreen-active {
 
 .chart-wrapper .chart-canvas {
     min-block-size: 320px;
+}
+
+.chart-title-overlay__icon {
+    inline-size: 12px;
+    block-size: 12px;
+    color: currentcolor;
+    opacity: 0.95;
+    flex: 0 0 auto;
+}
+
+.chart-title-overlay__text {
+    line-height: 1;
 }
 
 .chart-fullscreen-btn {
@@ -5378,6 +5480,11 @@ body .custom-zoom-slider-bar input[type="range"] {
 .lap-help-btn:focus-visible {
     background: var(--color-accent-hover);
     border-color: rgb(var(--color-accent-rgb) / 65%);
+}
+
+.lap-help-btn .lap-control-icon {
+    inline-size: 14px;
+    block-size: 14px;
 }
 
 .ffv-map-tooltip {
@@ -7231,6 +7338,11 @@ body.theme-light .notification.info {
         color 0.2s;
 }
 
+.summary-gear-btn__icon {
+    inline-size: 22px;
+    block-size: 22px;
+}
+
 /* =====================================================
    Summary Filter Dropdown
    ===================================================== */
@@ -7521,6 +7633,10 @@ body.theme-light .multi-lap-toggle:hover {
     margin-inline: 0 6px;
     background: none;
     color: var(--color-fg);
+    inline-size: auto;
+    min-inline-size: 54px;
+    padding-inline: 6px;
+    gap: 4px;
 }
 
 .multi-lap-toggle .icon,
@@ -7532,9 +7648,16 @@ body.theme-light .multi-lap-toggle:hover {
     vertical-align: middle;
 }
 
-#deselect-all-btn:hover > svg > circle,
-#deselect-all-btn:hover > svg > line {
-    stroke: red !important;
+.lap-control-icon {
+    color: rgb(var(--color-accent-rgb));
+}
+
+.deselect-all-btn .lap-control-icon {
+    color: rgb(var(--color-fg-rgb) / 70%);
+}
+
+#deselect-all-btn:hover .lap-control-icon {
+    color: rgb(220 38 38);
 }
 
 /* =====================================================

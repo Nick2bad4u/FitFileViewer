@@ -14,6 +14,7 @@ import { escapeHtml } from "../../dom/index.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
+import { getAppIconSvg } from "../icons/iconFactory.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -81,20 +82,20 @@ export async function renderFileBrowserTab() {
                     <div class="file-browser__header">
                         <div class="file-browser__controls">
                             <button type="button" class="file-browser__btn" id="fit-browser-pick-folder">
-                                <span class="file-browser__btn-icon" aria-hidden="true">📁</span>
+                                ${getAppIconSvg("folderOpen", { className: "file-browser__btn-icon", size: 16 })}
                                 <span class="file-browser__btn-label">Choose Folder</span>
                             </button>
                             <div class="file-browser__segmented" role="tablist" aria-label="Browser view">
                                 <button type="button" class="file-browser__seg-btn" id="fit-browser-view-files" role="tab" aria-selected="true">
-                                    <span class="file-browser__seg-icon" aria-hidden="true">📄</span>
+                                    ${getAppIconSvg("file", { className: "file-browser__seg-icon", size: 14 })}
                                     <span class="file-browser__seg-label">Files</span>
                                 </button>
                                 <button type="button" class="file-browser__seg-btn" id="fit-browser-view-library" role="tab" aria-selected="false">
-                                    <span class="file-browser__seg-icon" aria-hidden="true">📚</span>
+                                    ${getAppIconSvg("database", { className: "file-browser__seg-icon", size: 14 })}
                                     <span class="file-browser__seg-label">Library</span>
                                 </button>
                                 <button type="button" class="file-browser__seg-btn" id="fit-browser-view-calendar" role="tab" aria-selected="false">
-                                    <span class="file-browser__seg-icon" aria-hidden="true">🗓️</span>
+                                    ${getAppIconSvg("calendar", { className: "file-browser__seg-icon", size: 14 })}
                                     <span class="file-browser__seg-label">Calendar</span>
                                 </button>
                             </div>
@@ -557,6 +558,181 @@ function parentRelPath(relPath) {
 }
 
 /**
+ * @param {unknown} value
+ *
+ * @returns {value is string}
+ */
+function isNonEmptyString(value) {
+    return typeof value === "string" && value.trim().length > 0;
+}
+
+/**
+ * @param {string} value
+ *
+ * @returns {string}
+ */
+function normalizePathSeparators(value) {
+    return value.replaceAll("\\", "/");
+}
+
+/**
+ * @param {string} value
+ *
+ * @returns {string[]}
+ */
+function splitPathSegments(value) {
+    return normalizePathSeparators(value)
+        .split("/")
+        .filter((segment) => segment.length > 0);
+}
+
+/**
+ * @param {string} value
+ *
+ * @returns {boolean}
+ */
+function isWindowsStylePath(value) {
+    const normalized = normalizePathSeparators(value.trim());
+    return /^[A-Za-z]:\//u.test(normalized) || normalized.startsWith("//");
+}
+
+/**
+ * @param {string} rootPath
+ * @param {string} fullPath
+ *
+ * @returns {string | null}
+ */
+function getRelativePathWithinRoot(rootPath, fullPath) {
+    if (!isNonEmptyString(rootPath) || !isNonEmptyString(fullPath)) {
+        return null;
+    }
+
+    const rootSegments = splitPathSegments(rootPath);
+    const fullSegments = splitPathSegments(fullPath);
+
+    if (fullSegments.length <= rootSegments.length) {
+        return null;
+    }
+
+    const caseInsensitive =
+        isWindowsStylePath(rootPath) || isWindowsStylePath(fullPath);
+
+    for (let index = 0; index < rootSegments.length; index += 1) {
+        const left = rootSegments[index];
+        const right = fullSegments[index];
+        if (typeof left !== "string" || typeof right !== "string") {
+            return null;
+        }
+
+        if (caseInsensitive) {
+            if (left.toLowerCase() !== right.toLowerCase()) {
+                return null;
+            }
+            continue;
+        }
+
+        if (left !== right) {
+            return null;
+        }
+    }
+
+    return fullSegments.slice(rootSegments.length).join("/");
+}
+
+/**
+ * Ensure a Browser-tab file path is approved in the main process before calling
+ * file:read.
+ *
+ * Why this is needed:
+ *
+ * - Approvals are in-memory only (main process)
+ * - Browser Library/Calendar can render from persisted cache after restart
+ * - Cached row clicks may reference valid files that are not yet approved in this
+ *   process lifetime
+ *
+ * We safely re-approve by listing the parent folder through the existing
+ * browser:listFolder IPC path, which enforces root-folder boundaries and
+ * approves discovered .fit files.
+ *
+ * @param {ElectronAPI} api
+ * @param {string} filePath
+ *
+ * @returns {Promise<boolean>}
+ */
+async function ensureBrowserFileReadApproval(api, filePath) {
+    if (!isNonEmptyString(filePath)) {
+        return false;
+    }
+
+    if (
+        typeof api.getFitBrowserFolder !== "function" ||
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
+        return false;
+    }
+
+    if (!/\.fit$/iu.test(filePath.trim())) {
+        return false;
+    }
+
+    const root = await api.getFitBrowserFolder();
+    if (!isNonEmptyString(root)) {
+        return false;
+    }
+
+    const relPath = getRelativePathWithinRoot(root, filePath);
+    if (!isNonEmptyString(relPath)) {
+        return false;
+    }
+
+    const parentPath = parentRelPath(relPath);
+    const responseRaw = await api.listFitBrowserFolder(parentPath);
+    return isFitBrowserListResponse(responseRaw);
+}
+
+/**
+ * Open a file selected from Browser tab views (files/library/calendar) with a
+ * preflight approval refresh.
+ *
+ * @param {string} filePath
+ *
+ * @returns {Promise<void>}
+ */
+async function openBrowserFile(filePath) {
+    try {
+        const api = getElectronAPI();
+        if (!api) {
+            showNotification("Browser is unavailable.", "error");
+            return;
+        }
+
+        const approved = await ensureBrowserFileReadApproval(api, filePath);
+        if (!approved) {
+            showNotification(
+                "File is unavailable for reading in the current Browser folder.",
+                "error"
+            );
+            return;
+        }
+
+        const openFileBtn = document.getElementById("open_file_btn");
+        await openFitFileFromPath({
+            filePath,
+            openFileBtn:
+                openFileBtn instanceof HTMLElement ? openFileBtn : undefined,
+            showNotification,
+        });
+    } catch (error) {
+        const message =
+            error instanceof Error
+                ? error.message
+                : "Unknown browser open error";
+        console.error("[fileBrowserTab] openBrowserFile failed", error);
+        showNotification(`Failed to open file: ${message}`, "error", 8000);
+    }
+}
+
+/**
  * @param {unknown} raw
  *
  * @returns {Date | null}
@@ -753,7 +929,7 @@ async function refreshListing() {
         const up = document.createElement("button");
         up.type = "button";
         up.className = "file-browser__item file-browser__item--dir";
-        up.textContent = "..";
+        up.innerHTML = `${getAppIconSvg("arrowLeft", { className: "file-browser__item-icon", size: 14 })}<span class="file-browser__item-label">..</span>`;
         up.addEventListener("click", async () => {
             setState(TAB_STATE_PATH_REL, parentRelPath(relPath), {
                 source: "fileBrowser.up",
@@ -776,7 +952,8 @@ async function refreshListing() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `file-browser__item ${kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"}`;
-        btn.textContent = name;
+        const iconName = kind === "dir" ? "folder" : "file";
+        btn.innerHTML = `${getAppIconSvg(iconName, { className: "file-browser__item-icon", size: 14 })}<span class="file-browser__item-label">${escapeHtml(name)}</span>`;
 
         if (kind === "dir") {
             btn.addEventListener("click", async () => {
@@ -787,16 +964,7 @@ async function refreshListing() {
             });
         } else {
             btn.addEventListener("click", async () => {
-                const openFileBtn = document.getElementById("open_file_btn");
-
-                await openFitFileFromPath({
-                    filePath: fullPath,
-                    openFileBtn:
-                        openFileBtn instanceof HTMLElement
-                            ? openFileBtn
-                            : undefined,
-                    showNotification,
-                });
+                await openBrowserFile(fullPath);
             });
         }
 
@@ -1076,15 +1244,7 @@ function renderCalendarResults(root, payload) {
             );
             const encoded = encodedRaw || "";
             const fullPath = decodeURIComponent(encoded);
-            const openFileBtn = document.getElementById("open_file_btn");
-            await openFitFileFromPath({
-                filePath: fullPath,
-                openFileBtn:
-                    openFileBtn instanceof HTMLElement
-                        ? openFileBtn
-                        : undefined,
-                showNotification,
-            });
+            await openBrowserFile(fullPath);
         });
     }
 }
@@ -1127,10 +1287,10 @@ async function renderCalendarView() {
                 <div class="file-calendar__header">
                     <div class="file-calendar__title" id="fit-calendar-title"></div>
                     <div class="file-calendar__nav">
-                        <button type="button" class="file-browser__btn" id="fit-calendar-prev" data-tooltip="Previous month">◀</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-today" data-tooltip="Jump to today">Today</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-next" data-tooltip="Next month">▶</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-scan" data-tooltip="Scan folder for activities">Scan folder</button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-prev" data-tooltip="Previous month">${getAppIconSvg("arrowLeft", { className: "file-browser__btn-icon", size: 14 })}<span>Prev</span></button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-today" data-tooltip="Jump to today">${getAppIconSvg("calendar", { className: "file-browser__btn-icon", size: 14 })}<span>Today</span></button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-next" data-tooltip="Next month">${getAppIconSvg("arrowRight", { className: "file-browser__btn-icon", size: 14 })}<span>Next</span></button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-scan" data-tooltip="Scan folder for activities">${getAppIconSvg("database", { className: "file-browser__btn-icon", size: 14 })}<span>Scan folder</span></button>
                     </div>
                 </div>
                 <div class="file-calendar__grid" id="fit-calendar-grid"></div>
@@ -1213,10 +1373,22 @@ function renderLibraryResults(root, payload) {
         const weekVal = fmt(totals.weekDistanceM);
         const monthVal = fmt(totals.monthDistanceM);
         cardsEl.innerHTML = `
-            <div class="file-library__card"><div class="file-library__cardLabel">Files</div><div class="file-library__cardValue">${payload.items.length}</div></div>
-            <div class="file-library__card"><div class="file-library__cardLabel">Last ${prefs.lastDays} days</div><div class="file-library__cardValue">${lastDaysVal} ${unitLabel}</div></div>
-            <div class="file-library__card"><div class="file-library__cardLabel">This week</div><div class="file-library__cardValue">${weekVal} ${unitLabel}</div></div>
-            <div class="file-library__card"><div class="file-library__cardLabel">This month</div><div class="file-library__cardValue">${monthVal} ${unitLabel}</div></div>
+            <div class="file-library__card">
+                <div class="file-library__cardLabel">${getAppIconSvg("file", { className: "file-library__cardIcon", size: 13 })}<span>Files</span></div>
+                <div class="file-library__cardValue">${payload.items.length}</div>
+            </div>
+            <div class="file-library__card">
+                <div class="file-library__cardLabel">${getAppIconSvg("history", { className: "file-library__cardIcon", size: 13 })}<span>Last ${prefs.lastDays} days</span></div>
+                <div class="file-library__cardValue">${lastDaysVal} ${unitLabel}</div>
+            </div>
+            <div class="file-library__card">
+                <div class="file-library__cardLabel">${getAppIconSvg("calendarWeek", { className: "file-library__cardIcon", size: 13 })}<span>This week</span></div>
+                <div class="file-library__cardValue">${weekVal} ${unitLabel}</div>
+            </div>
+            <div class="file-library__card">
+                <div class="file-library__cardLabel">${getAppIconSvg("calendarRange", { className: "file-library__cardIcon", size: 13 })}<span>This month</span></div>
+                <div class="file-library__cardValue">${monthVal} ${unitLabel}</div>
+            </div>
         `;
     }
 
@@ -1238,7 +1410,7 @@ function renderLibraryResults(root, payload) {
                 const safeFileName = escapeHtml(it.fileName);
                 return `
                     <button type="button" class="file-library__row" data-fullpath="${encodeURIComponent(it.fullPath)}">
-                        <span class="file-library__rowMain">${safeFileName}</span>
+                        <span class="file-library__rowMain">${getAppIconSvg("file", { className: "file-library__rowIcon", size: 13 })}<span>${safeFileName}</span></span>
                         <span class="file-library__rowMeta">${date} • ${dist} ${unitLabel}${safeSport}</span>
                     </button>
                 `;
@@ -1250,15 +1422,7 @@ function renderLibraryResults(root, payload) {
             btn.addEventListener("click", async () => {
                 const encoded = btn.dataset.fullpath || "";
                 const fullPath = decodeURIComponent(encoded);
-                const openFileBtn = document.getElementById("open_file_btn");
-                await openFitFileFromPath({
-                    filePath: fullPath,
-                    openFileBtn:
-                        openFileBtn instanceof HTMLElement
-                            ? openFileBtn
-                            : undefined,
-                    showNotification,
-                });
+                await openBrowserFile(fullPath);
             });
         }
     }
@@ -1300,10 +1464,10 @@ async function renderLibraryView() {
         libraryEl.innerHTML = `
             <div class="file-library">
                 <div class="file-library__header">
-                    <div class="file-library__title">Folder Summary</div>
+                    <div class="file-library__title">${getAppIconSvg("folder", { className: "file-library__titleIcon", size: 16 })}<span>Folder Summary</span></div>
                     <div class="file-library__controls">
                         <label class="file-library__control">
-                            <span class="file-library__controlLabel">Last</span>
+                            <span class="file-library__controlLabel">${getAppIconSvg("history", { className: "file-library__controlIcon", size: 12 })}<span>Last</span></span>
                             <input
                                 type="number"
                                 min="1"
@@ -1315,13 +1479,13 @@ async function renderLibraryView() {
                             <span class="file-library__controlLabel">days</span>
                         </label>
                         <label class="file-library__control">
-                            <span class="file-library__controlLabel">Units</span>
+                            <span class="file-library__controlLabel">${getAppIconSvg("ruler", { className: "file-library__controlIcon", size: 12 })}<span>Units</span></span>
                             <select class="file-library__unitSelect" id="fit-library-unit">
                                 <option value="km">km</option>
                                 <option value="mi">mi</option>
                             </select>
                         </label>
-                        <button type="button" class="file-browser__btn" id="fit-library-scan">Scan folder</button>
+                        <button type="button" class="file-browser__btn" id="fit-library-scan">${getAppIconSvg("database", { className: "file-browser__btn-icon", size: 14 })}<span>Scan folder</span></button>
                     </div>
                 </div>
                 <div class="file-library__status" id="fit-library-status"></div>
