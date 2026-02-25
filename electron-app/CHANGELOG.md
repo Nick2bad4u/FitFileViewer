@@ -4,6 +4,306 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.9.0] - 2026-02-25
+
+
+[[68f2926](https://github.com/Nick2bad4u/FitFileViewer/commit/68f29268251e34703fcd21c34dcc3f6fc922aae2)...
+[68dd221](https://github.com/Nick2bad4u/FitFileViewer/commit/68dd2210220e14be31a056650d72ee6cd1580ecb)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68f29268251e34703fcd21c34dcc3f6fc922aae2...68dd2210220e14be31a056650d72ee6cd1580ecb))
+
+
+### 💼 Other
+
+- ✨ [feat] Enhance map rendering and UI icon integration
+
+ - 🔧 [map] Introduced a `refreshMapLayout` function to improve map size invalidation on rendering.
+ - 🔧 [map] Added requestAnimationFrame calls to ensure smooth layout updates for the main map and mini-map.
+ - 🎨 [ui] Replaced inline SVG icons in the summary and table rendering with a new icon factory for consistency.
+ - 🎨 [ui] Updated file browser tab buttons to use SVG icons from the new icon factory, enhancing visual consistency.
+ - 🎨 [ui] Improved library and calendar views by integrating SVG icons for better user experience.
+ - 🚜 [refactor] Created an `iconFactory.js` to manage SVG icons centrally, ensuring consistent styling and easier updates.
+ - 🔧 [tabs] Implemented a `scheduleMapReflowRefresh` function to handle map layout adjustments when tab visibility changes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9e12f8a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e12f8a08b8f3398fc5b697e680d39f301d1fb59)
+
+
+- ✨ [feat] Enhance project configuration and documentation
+ - 🛠️ [fix] Add "homepage" format to .ncurc.json for improved package metadata
+ - 📝 [docs] Update USER_GUIDE.md for better clarity on map controls and export formats
+ - 🎨 [style] Refactor linting rules in package.json for better consistency
+ - ⚡ [perf] Optimize ESLint configuration for better performance across multiple directories
+ - 🚜 [refactor] Improve chart hover effects handling in addChartHoverEffects.js
+ - 🧪 [test] Update tests for tab visibility to ensure correct display behavior
+ - 🧹 [chore] Clean up unused styles in index.module.css
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(0f65c4f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f65c4fbfcdd44172dd4b587bc3aaca73e62234d)
+
+
+- 🛠️ [fix] Update style property checks for consistency
+ - 🛠️ Update maxHeight checks in createPowerZoneControls tests to use "0px" instead of "0"
+ - 🛠️ Update outlineOffset checks in createChartStatusIndicator tests to use "0px" instead of "0"
+ - 🛠️ Update maxHeight checks in createHRZoneControls tests to use "0px" instead of "0"
+ - 🛠️ Update maxHeight checks in createPowerZoneControlsSimple tests to use "0px" instead of "0"
+
+✨ [feat] Enhance fullscreen functionality in addFullScreenButton
+ - ✨ Refactor fullscreen handling to utilize Electron IPC for fullscreen requests
+ - ✨ Implement overlay fullscreen mode as a fallback when native fullscreen is unavailable
+ - ✨ Add keyboard shortcut handling for F11 and Escape keys to manage fullscreen state
+
+⚡ [perf] Optimize chart resizing during fullscreen transitions
+ - ⚡ Introduce resizeExistingCharts function to handle chart resizing without full re-rendering
+ - ⚡ Prevent unnecessary chart re-renders during fullscreen transitions
+
+🎨 [style] Improve code readability and organization
+ - 🎨 Clean up comments and structure in addFullScreenButton.js for better clarity
+ - 🎨 Refactor variable names and function definitions for consistency
+
+🧪 [test] Update tests for new fullscreen behavior
+ - 🧪 Modify tests in addFullScreenButton to reflect changes in fullscreen handling
+ - 🧪 Adjust tests in createChartStatusIndicator and createGlobalChartStatusIndicator for updated expectations
+
+📝 [docs] Update ESLint configuration export
+ - 📝 Change export statement in eslint.config.mjs for better compatibility with other packages
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(43ad5dd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43ad5dd98e09beb31e8a1d5628b891dab7326925)
+
+
+- 🎨 [style] Improve code formatting and documentation clarity
+
+ - 📝 Update comments in chartLegendItemBoxPlugin.d.ts for better readability
+ - 📝 Enhance comments in createAppMenu.js to avoid line breaks
+ - 🎨 Adjust formatting in addChartHoverEffects.js for consistency
+ - 📝 Clarify comments in chartLegendItemBoxPlugin.js for better understanding
+ - 🎨 Refactor code in mapMeasureTool.js for improved readability
+ - 📝 Update comments in showFitData.js to enhance clarity
+ - 🎨 Improve formatting in renderSummaryHelpers.js for consistency
+ - 🎨 Adjust comments in addFullScreenButton.js for better readability
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(07accd0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07accd0bbfbec34b5c9b1f85ada442d27bb7f51e)
+
+
+- ✨ [feat] Enhance fullscreen functionality and chart hover effects
+
+ - 🔧 [refactor] Implement fullscreen handling in `addChartHoverEffects.js`
+   - Introduced a more robust fullscreen management system using the `screenfull` library.
+   - Added functions to handle fullscreen requests and exits with fallbacks to native fullscreen APIs.
+   - Updated the fullscreen button to reflect the current state and improve accessibility.
+
+ - 🎨 [style] Clean up fullscreen logic
+   - Removed the previous fullscreen overlay management and replaced it with a more streamlined approach.
+   - Simplified the fullscreen state updates and event listeners for better performance.
+
+ - 🛠️ [fix] Improve legend item box rendering in `chartLegendItemBoxPlugin.js`
+   - Destructured the `legend` and `ctx` properties from the chart object for cleaner code.
+
+ - ⚡ [perf] Optimize map rendering controls in `renderMap.js`
+   - Added a function to reset lap selector selection to improve user experience when filtering data points.
+   - Ensured that map rendering is triggered correctly based on user interactions.
+
+ - ✨ [feat] Automatically switch to map tab on file load in `showFitData.js`
+   - Introduced a new function to switch to the map tab immediately after loading a file, preventing UI flashes.
+
+ - 🛠️ [fix] Refactor summary rendering helpers in `renderSummaryHelpers.js`
+   - Destructured properties from the `data` object for improved readability and performance.
+
+ - 🔧 [refactor] Enhance fullscreen button functionality in `addFullScreenButton.js`
+   - Created a fallback mechanism for fullscreen requests to ensure a smoother user experience across different environments.
+   - Improved error handling and logging for fullscreen operations.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(569d172)`](https://github.com/Nick2bad4u/FitFileViewer/commit/569d17221d6429d42fdbe4b37fb364e90668cdb4)
+
+
+- ✨ [feat] Implement chart fullscreen overlay and legend item box plugin
+ - 🎨 [style] Add CSS styles for chart fullscreen overlay, including backdrop, panel, header, and close button
+ - ✨ [feat] Create chartLegendItemBoxPlugin to enhance legend item interaction
+ - 🛠️ [fix] Update rendering logic to register new chart plugins and adjust legend item box dimensions
+ - 🚜 [refactor] Modularize chart rendering functions and improve state management for fullscreen functionality
+ - ⚡ [perf] Optimize rendering performance for summary and lap sections with virtual scrolling
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d1acbd4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d1acbd4206022d6c475fdd8ab3ad77ad0e4cfeda)
+
+
+- ✨ [feat] Enhance chart interactions and UI responsiveness
+ - Added modifier key support for zooming in charts using Ctrl + scroll
+ - Implemented zoom hint overlay to guide users on chart interactions
+ - Updated chart rendering functions to include modifier key for wheel events
+ - Improved layout and responsiveness of various UI components for better user experience
+ - Refactored file browser tab structure for cleaner HTML and improved accessibility
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3112102)`](https://github.com/Nick2bad4u/FitFileViewer/commit/311210256206fd35b29e85a40d002cd2df4f3a13)
+
+
+- 🚜 [refactor] Modularize IPC listener setup and improve state management
+
+ - ✨ [feat] Introduce `registerMenuIpcListeners` to handle menu-driven IPC actions separately from general lifecycle listeners, improving code organization and readability.
+ - 🛠️ [fix] Ensure menu actions like "restart update" and "open overlay" are properly handled with error catching to prevent crashes.
+ - 🔧 [build] Update `stateManager` to persist additional UI state for the browser view, enhancing user experience by remembering the last selected sub-view.
+ - ⚡ [perf] Optimize `persistState` function to merge new state with existing persisted state, preventing data loss during updates.
+ - 🎨 [style] Refactor `aboutModal` to simplify the display of features and system info, removing the toggle functionality for a cleaner UI.
+ - 📝 [docs] Add clipboard functionality to copy system info from the about modal, providing users with easy access to important application details.
+ - ⚡ [perf] Improve tab visibility management by debouncing the switch to the summary tab when no data is available, reducing unnecessary UI flashes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(13e6163)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13e61635a8678b3daafacfb1e781d846529069f5)
+
+
+- 🚜 [refactor] Centralizes UI DOM helpers
+
+🚜 [refactor] Adds shared chart DOM lookup helpers to reduce duplicated container fallbacks and improve resilience across chart rendering, settings, and status flows
+ - 🛠️ [fix] Uses safe click handling to avoid crashes with stubbed elements
+🚜 [refactor] Consolidates tab ID parsing and button identity logic to keep tab state handling consistent across controls and visibility updates
+🎨 [style] Aligns HTML linting and markup formatting, including deferred script loading and standardized indentation
+🧪 [test] Lowers coverage thresholds to match current baselines
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(139a339)`](https://github.com/Nick2bad4u/FitFileViewer/commit/139a339f2fd1f2c666d2db0e36d24f888a34116b)
+
+
+- 🔧 [build] Update Docusaurus ESLint plugin and configuration
+
+ - Added "@docusaurus/eslint-plugin" version "^3.9.2" to package.json and package-lock.json for improved linting support.
+ - Updated ESLint configuration to include the Docusaurus plugin for enhanced linting capabilities.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ccb24aa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ccb24aa4e7ba5efdf0f8458d4253fca87fcf73af)
+
+
+- ✨ [feat] Add auxiliary heart rate support
+
+✨ [feat] Adds auxiliary heart rate detection and visibility
+ - Normalizes auxiliary HR from varied record keys and developer fields for charts, maps, tooltips, and quality metrics
+ - Adds labels, colors, units, and filters so auxiliary HR renders consistently
+🚜 [refactor] Standardizes tab and content handling with flexible IDs
+ - Adds ID variant helpers and updates tab routing and DOM lookups to tolerate mixed naming styles
+ - Improves chart rendering fallbacks when containers or DOM APIs differ
+🛠️ [fix] Hardens IPC listener cleanup in runtime bridges
+ - Supports alternate listener removal APIs in test or mocked environments
+🧪 [test] Expands coverage for auxiliary heart rate and chart metadata
+ - Updates expectations for new metric counts and labels
+🧹 [chore] Refreshes linting rules, scripts, and dependencies
+ - Aligns markdown linting, root lint config, and tooling versions
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(205204a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/205204acafa1e0a0430e4363e5ea1c9d43d6211f)
+
+
+- 🔧 [build] Enhance linting setup and documentation
+
+ - 📝 [docs] Add lint notes to document root and Docusaurus lint scripts
+ - 🔧 [build] Update Docusaurus package.json to include linting scripts for code and content
+ - 🔧 [build] Modify ESLint configuration for Docusaurus to support TypeScript and React
+ - 🔧 [build] Create root package.json to manage linting across the workspace
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(13a501d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13a501d1195b0467ca0330deab44bd8ac142d434)
+
+
+- ✨ [feat] Implement data point filter control and tab state management enhancements
+
+ - 🆕 [feat] Add data point filter control panel
+   - Introduced `createPanelController` to manage the positioning and visibility of the data point filter UI.
+   - Added functionality for opening and closing the panel, handling outside clicks, and repositioning based on viewport size.
+
+ - 🆕 [feat] Create summary refresher for data point filter
+   - Implemented `createSummaryRefresher` to update the summary display based on the current filter state and metrics.
+
+ - 🚜 [refactor] Revise tab state management structure
+   - Consolidated tab state management logic into dedicated handlers and support files.
+   - Removed redundant code and improved modularity by separating concerns into `tabStateManagerHandlers.js` and `tabStateManagerSupport.js`.
+
+ - 🆕 [feat] Define tab configuration in a separate module
+   - Created `tabStateManagerConfig.js` to centralize tab definitions, improving maintainability and readability.
+
+ - 🛠️ [fix] Enhance error handling and state management
+   - Improved error handling in tab activation methods to ensure robustness during data rendering and state updates.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(588b2db)`](https://github.com/Nick2bad4u/FitFileViewer/commit/588b2db4d34a657df1cf7e9028273c70e363a03d)
+
+
+- 🚜 [refactor] Standardizes UI IDs
+
+🚜 [refactor] Extracts UI helpers into focused modules to improve reuse, cleanup, and test isolation
+ - 🚜 [refactor] Moves drag-and-drop handling, legacy globals, external link setup, chart resize hooks, and settings parsing into shared utilities for clearer ownership
+ - 🚜 [refactor] Centralizes overlay list item interactions and tab chart document helpers to reduce inline UI logic
+🚜 [refactor] Aligns tab/content selectors and state wiring around snake_case IDs to reduce selector drift and simplify tab activation and rendering flows
+🎨 [style] Updates layout tokens to logical properties, rem units, and viewport-relative sizing to improve responsiveness and writing-mode safety
+🧹 [chore] Refines HTML and lint schema configuration to reduce noisy defaults and improve validation consistency
+🧪 [test] Updates UI tests and mocks to match renamed selectors and expanded tab name patterns
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a98413b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a98413be89e2dea54c2a12bde1f8360b662028a3)
+
+
+- 🔧 [build] Update ESLint and Stylelint configurations, enhance CSS properties, and improve HTML metadata
+
+ - 🛠️ [fix] Add new prompt for fixing ESLint errors and warnings
+ - 🛠️ [fix] Update .stylelintignore to include additional paths for ignored files
+ - 🎨 [style] Change CSS properties from width/height to inline-size/block-size for better responsiveness
+ - 📝 [docs] Enhance index.html with Open Graph metadata for improved SEO
+ - 🛠️ [fix] Modify stylelint.config.js to ignore more file patterns
+ - 🛠️ [fix] Update vitest.config.js to ensure proper directory creation with error handling
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d5f5697)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5f56979e51eb96f7732662c629db884612b8c06)
+
+
+- 🔧 [build] Update dependencies in package.json
+
+ - 🔧 Update "leaflet.locatecontrol" from "^0.86.0" to "^0.87.0" for improved functionality.
+ - 🔧 Upgrade "@actions/artifact" from "^5.0.3" to "^6.0.0" for enhanced features.
+ - 🔧 Upgrade "@actions/cache" from "^5.0.4" to "^6.0.0" for better caching performance.
+ - 🔧 Upgrade "@actions/core" from "^2.0.3" to "^3.0.0" for new core functionalities.
+ - 🔧 Upgrade "@actions/exec" from "^2.0.0" to "^3.0.0" for improved execution capabilities.
+ - 🔧 Upgrade "@actions/github" from "^8.0.1" to "^9.0.0" for the latest GitHub API features.
+ - 🔧 Upgrade "@actions/glob" from "^0.5.1" to "^0.6.1" for better file globbing support.
+ - 🔧 Upgrade "@actions/http-client" from "^3.0.2" to "^4.0.0" for enhanced HTTP client features.
+ - 🔧 Upgrade "@actions/io" from "^2.0.0" to "^3.0.2" for improved I/O operations.
+ - 🔧 Upgrade "@actions/tool-cache" from "^3.0.1" to "^4.0.0" for better tool caching.
+ - 🔧 Update "baseline-browser-mapping" from "^2.9.18" to "^2.9.19" for bug fixes and improvements.
+ - 🔧 Upgrade "electron" from "^40.0.0" to "^40.1.0" for the latest features and fixes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b444597)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b444597c62d2bbb4e56bb01b7cfeaeceb0beff09)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* V29.9.0 [skip ci] [`(68dd221)`](https://github.com/Nick2bad4u/FitFileViewer/commit/68dd2210220e14be31a056650d72ee6cd1580ecb)
+
+
+- Update changelogs for v29.8.0 [skip ci] [`(68f2926)`](https://github.com/Nick2bad4u/FitFileViewer/commit/68f29268251e34703fcd21c34dcc3f6fc922aae2)
+
+
+
+### 🛡️ Security
+
+- 🔧 [build] Update dependencies and improve project configuration
+ - 📦 Added new dependencies for enhanced linting and formatting:
+   - `@awmottaz/prettier-plugin-void-html`, `@html-eslint/eslint-plugin`, `@prettier/plugin-xml`, and others for better code quality.
+ - 🔄 Updated existing dependencies to their latest versions for improved performance and security.
+
+🛠️ [fix] Enhance API validation in preload script
+ - 🔍 Improved validation checks for `contextBridge` and `ipcRenderer` to ensure all necessary methods are available.
+ - 🔄 Changed return statement to use `Boolean()` for clearer intent.
+
+🎨 [style] Clean up stylelint configuration
+ - 🧹 Removed redundant rules and reorganized the configuration for better readability.
+ - 🔄 Added rules back to maintain consistency in style enforcement.
+
+🚜 [refactor] Improve window state management
+ - 🔄 Enhanced comments for better maintainability and understanding of the code.
+ - 🛡️ Added error handling and validation for window state settings to ensure robustness.
+
+📝 [docs] Update comments for clarity
+ - 📝 Improved documentation comments throughout the codebase to provide clearer explanations of functions and parameters.
+
+⚡ [perf] Optimize file sanitization logic
+ - 🔄 Reordered reserved filename characters for better performance in checks.
+
+🧪 [test] Update Vitest configuration
+ - 🔄 Adjusted test configuration for better coverage reporting and error handling.
+ - 🔄 Enabled additional options for clearer test execution and reporting.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b7fca7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b7fca7f947eec5ee811f09f1cbe68e608d5456c7)
+
+
+
+
+
+
 ## [29.8.0] - 2026-01-29
 
 
@@ -31,9 +331,9 @@ All notable changes to this project will be documented in this file.
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer>
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
 
-* 'main' of <https://github.com/nick2bad4u/FitFileViewer>:
+* 'main' of https://github.com/nick2bad4u/FitFileViewer:
   [dependency] Update qs in /docusaurus in the npm_and_yarn group across 1 directory (#171)
   [ci](deps): [dependency] Update dependency group (#170)
   Update metrics.repository.svg - [Skip GitHub Action]
@@ -46,9 +346,9 @@ All notable changes to this project will be documented in this file.
 Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e719fdf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e719fdfde0aab39308c30c507f08e10f68caccb4)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer>
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
 
-* 'main' of <https://github.com/nick2bad4u/FitFileViewer>:
+* 'main' of https://github.com/nick2bad4u/FitFileViewer:
   [ci](deps): [dependency] Update dependency group
   Update metrics.repository.svg - [Skip GitHub Action]
   chore: update changelogs for v29.4.0 [skip ci] [`(077f23d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/077f23d7f736d2f6de8c8df4cc66d3860b2f207a)
@@ -1249,9 +1549,9 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8452
 ## [28.5.0] - 2025-10-21
 
 
-[[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)...
+[[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
 [ff0303c](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9...ff0303c7ffff8dcc2eef7387883623dceac901a9))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...ff0303c7ffff8dcc2eef7387883623dceac901a9))
 
 
 ### 💼 Other
@@ -1281,32 +1581,6 @@ Adds the ability to filter map data points by a value range, in addition to the 
 Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ff0303c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)
 
 
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v28.4.0 [skip ci] [`(87a8732)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a87329051bce8c23d87b223d1accc4f2960db2)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 28.4.0 [`(6e0d4cc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)
-
-
-
-
-
-
-## [28.4.0] - 2025-10-19
-
-
-[[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
-[c1ee70e](https://github.com/Nick2bad4u/FitFileViewer/commit/c1ee70e56c50ff3358a873f2a0ac51a768996d70)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...c1ee70e56c50ff3358a873f2a0ac51a768996d70))
-
-
-### 💼 Other
-
 - 🎨 [style] Improve chart canvas styling and theming
 
 Improves the styling and theming of chart canvases for better visual consistency and dark mode compatibility.
@@ -1324,11 +1598,17 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c1ee
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v28.4.0 [skip ci] [`(87a8732)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a87329051bce8c23d87b223d1accc4f2960db2)
+
+
 - Update changelogs for v28.3.0 [skip ci] [`(abe9060)`](https://github.com/Nick2bad4u/FitFileViewer/commit/abe9060f8a0ba2baafcdeccc1399f110b78c23a2)
 
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 28.4.0 [`(6e0d4cc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)
+
 
 - [dependency] Update version 28.3.0 [`(70d3b03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)
 
@@ -2781,7 +3061,7 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(2f90
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer>
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
 
 Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8036ad0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8036ad07530e6d3185e90aeb988d9ba6372fc696)
 
@@ -3245,7 +3525,7 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 21 updat
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(96cad7d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96cad7d341362ff48163db0f26edaf11dea1767a)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(96cad7d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96cad7d341362ff48163db0f26edaf11dea1767a)
 
 
 
@@ -3390,7 +3670,7 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 21 updat
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(d6709d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d6709d42a69c8a6bca0436b93c32ab0406e37205)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(d6709d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d6709d42a69c8a6bca0436b93c32ab0406e37205)
 
 
 
@@ -3468,7 +3748,7 @@ Replaces the previous lap map drawing implementation with a refactored and renam
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(31786a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(31786a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)
 
 
 
@@ -3530,7 +3810,7 @@ Prepares utilities for easier extension and consistent UI/UX in data display and
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(cf1c487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(cf1c487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)
 
 
 
@@ -3630,7 +3910,7 @@ Enhances reliability and user feedback for version and system info display by in
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(1381b2f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1381b2fc79c8f66797b3788b8b886f459bbc207a)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1381b2f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1381b2fc79c8f66797b3788b8b886f459bbc207a)
 
 
 
@@ -3763,7 +4043,7 @@ No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFile
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(dd3386b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(dd3386b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)
 
 
 
@@ -3921,7 +4201,7 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 9 update
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(1ad9b4d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1ad9b4d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)
 
 
 
@@ -4049,7 +4329,7 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 17 updat
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(9e9c0df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(9e9c0df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)
 
 
 
@@ -4088,7 +4368,7 @@ Enhances user control, accessibility, and code maintainability, while resolving 
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(f3d97bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(f3d97bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)
 
 
 
@@ -4131,7 +4411,7 @@ Enhances user control, accessibility, and code maintainability, while resolving 
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
 
 
 
@@ -4172,7 +4452,7 @@ Enhances user control, accessibility, and code maintainability, while resolving 
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(c7ba0c5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(c7ba0c5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)
 
 
 
@@ -4226,7 +4506,7 @@ Refactors map action button logic into dedicated modules for better maintainabil
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/nick2bad4u/FitFileViewer> [`(3cbd5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(3cbd5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)
 
 
 
@@ -4283,7 +4563,7 @@ Refactors map action button logic into dedicated modules for better maintainabil
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
 
 
 
@@ -4318,7 +4598,7 @@ Refactors map action button logic into dedicated modules for better maintainabil
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(482d49d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(482d49d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)
 
 
 
@@ -4349,7 +4629,7 @@ Adds extra encoding and transformation layers to default credential obfuscation,
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(80c4c78)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80c4c78c6465a125984744b2f18402dcb3d6e4c1)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(80c4c78)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80c4c78c6465a125984744b2f18402dcb3d6e4c1)
 
 
 
@@ -4409,7 +4689,7 @@ Implements direct Gyazo chart upload using a secure OAuth flow, including automa
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(3613ca1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3613ca1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)
 
 
 
@@ -4554,25 +4834,25 @@ Prepares for cleaner future diffs and better cross-platform collaboration. [`(25
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(7a0ea19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7a0ea19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(2e05c27)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e05c270c142a462bb24d6af3e4a0c7ea23e1ca0)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2e05c27)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e05c270c142a462bb24d6af3e4a0c7ea23e1ca0)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(46198fa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46198fab5a175aca2405b50d38b9c44399a31dc9)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(46198fa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46198fab5a175aca2405b50d38b9c44399a31dc9)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(91cc6b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91cc6b5af574df34d84c1afacdf0a2fa3f3a0d04)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(91cc6b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91cc6b5af574df34d84c1afacdf0a2fa3f3a0d04)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(3a8f259)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a8f2596504ff0b3495abc240d6c1659dc5923b2)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3a8f259)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a8f2596504ff0b3495abc240d6c1659dc5923b2)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(64fb65c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64fb65c84b6a05f68acde1b4d25712f6756a044c)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(64fb65c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64fb65c84b6a05f68acde1b4d25712f6756a044c)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(d92fb25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d92fb2552e55766b61165a120dc54458050edf79)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(d92fb25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d92fb2552e55766b61165a120dc54458050edf79)
 
 
 
@@ -5232,25 +5512,25 @@ Also bumps version to 20.5.0 and updates npm dependencies, including a major Jes
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(6480c2c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6480c2caca0080aa1e0a232ecd762c394f4dd1bd)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(6480c2c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6480c2caca0080aa1e0a232ecd762c394f4dd1bd)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(3f9bd8c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3f9bd8cf8235b87316eccaf9fa13fb1a1c30c4e3)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3f9bd8c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3f9bd8cf8235b87316eccaf9fa13fb1a1c30c4e3)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(c6aceed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6aceedfafcc7231f0f4bb7bae5ac54c86c03d59)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(c6aceed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6aceedfafcc7231f0f4bb7bae5ac54c86c03d59)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(2f6f371)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f6f37124af395d4d46fd24d0cdeccf16a27269d)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2f6f371)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f6f37124af395d4d46fd24d0cdeccf16a27269d)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(bdc9ea6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bdc9ea623d24d62c350ed546c6c5352cb90636ac)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(bdc9ea6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bdc9ea623d24d62c350ed546c6c5352cb90636ac)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(640e8c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/640e8c92d29454bb9d0fc19794699961a6243598)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(640e8c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/640e8c92d29454bb9d0fc19794699961a6243598)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(a22b677)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a22b67767af5599390b9633790b93049c6ebbf2a)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(a22b677)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a22b67767af5599390b9633790b93049c6ebbf2a)
 
 
 
@@ -5376,58 +5656,58 @@ dependencies. [`(62e5f5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(6925d08)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6925d08d06b25f9a68de6e9776112d3266107e23)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(6925d08)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6925d08d06b25f9a68de6e9776112d3266107e23)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(c7c65a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7c65a21bbcd2e0026c4f53e2a1b6df80d344bf4)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(c7c65a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7c65a21bbcd2e0026c4f53e2a1b6df80d344bf4)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(2600179)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2600179d769fc96b412523703b3c2e462b2779ed)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2600179)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2600179d769fc96b412523703b3c2e462b2779ed)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(f2ae023)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f2ae023ee136e38843ea242981753f1bd5e61b73)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f2ae023)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f2ae023ee136e38843ea242981753f1bd5e61b73)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(1e3dc84)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1e3dc84e8d071785f9901ae48d121e4f091dcd9c)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(1e3dc84)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1e3dc84e8d071785f9901ae48d121e4f091dcd9c)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(78683de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/78683de607aea2d997ea8b13bf4516ac444430bf)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(78683de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/78683de607aea2d997ea8b13bf4516ac444430bf)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(0a1c68d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0a1c68d6274223896fa709d426b0b76415812932)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(0a1c68d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0a1c68d6274223896fa709d426b0b76415812932)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(ba27314)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ba27314eac8cbff612b54041f99d9123eb7fb6f3)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ba27314)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ba27314eac8cbff612b54041f99d9123eb7fb6f3)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(2e2b456)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e2b4569cce888ea9f374969363f7292cbbcdbd7)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2e2b456)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e2b4569cce888ea9f374969363f7292cbbcdbd7)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(face0aa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/face0aa543d1daff0da244b06f91ca597f5ea344)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(face0aa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/face0aa543d1daff0da244b06f91ca597f5ea344)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(90f1bb2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/90f1bb2a5cb16b0d68c00a952e475237173269e0)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(90f1bb2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/90f1bb2a5cb16b0d68c00a952e475237173269e0)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(d778569)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d778569a5449c47fbee5372abe1d1142e48b9cc9)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(d778569)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d778569a5449c47fbee5372abe1d1142e48b9cc9)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(ca1dd8c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca1dd8c07474452b8d949d3baebda6e11ac1d512)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ca1dd8c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca1dd8c07474452b8d949d3baebda6e11ac1d512)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(4c5887a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c5887a84e76c84381018a477fc7bd7d2af6849c)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(4c5887a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c5887a84e76c84381018a477fc7bd7d2af6849c)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(a79eb36)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a79eb36f3f0234a2102f0cb8bcd9b723872f94f1)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(a79eb36)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a79eb36f3f0234a2102f0cb8bcd9b723872f94f1)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(75b3cae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/75b3caed074c41bc2d9728b7101d6bb6412a45ee)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(75b3cae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/75b3caed074c41bc2d9728b7101d6bb6412a45ee)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(16f629d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/16f629d891ba165fba32f633a740e8c95f5bf020)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(16f629d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/16f629d891ba165fba32f633a740e8c95f5bf020)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(ca4c59b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca4c59b68af77d7014a58e34e6398e9f5e77b4cc)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ca4c59b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca4c59b68af77d7014a58e34e6398e9f5e77b4cc)
 
 
 
@@ -5638,19 +5918,19 @@ Enhances the release cleanup script with parameters to control the number of rel
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(27ca540)`](https://github.com/Nick2bad4u/FitFileViewer/commit/27ca5403d5ad087b6589e807423c31bed0a67a7e)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(27ca540)`](https://github.com/Nick2bad4u/FitFileViewer/commit/27ca5403d5ad087b6589e807423c31bed0a67a7e)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(3400b65)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3400b65612f6074c1c1fc91e1261bf86083e0a7e)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3400b65)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3400b65612f6074c1c1fc91e1261bf86083e0a7e)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(72b57f0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/72b57f0f8242dfee0159c6d24ab9976bfda6c9f9)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(72b57f0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/72b57f0f8242dfee0159c6d24ab9976bfda6c9f9)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(3a53649)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a53649fd03f2576195eb082c83e582af64470f0)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3a53649)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a53649fd03f2576195eb082c83e582af64470f0)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(fea2bfd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fea2bfd910a2213d8386e33c6e5ac69fb012879c)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(fea2bfd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fea2bfd910a2213d8386e33c6e5ac69fb012879c)
 
 
 
@@ -5735,22 +6015,22 @@ adds win32 versions to the CI pipeline [`(04fc871)`](https://github.com/Nick2bad
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(6b66159)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b66159a0bcf95fae98e925abc823dfb5da2fd24)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(6b66159)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b66159a0bcf95fae98e925abc823dfb5da2fd24)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(6fbade0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6fbade08a71ac0bb93bc39fa316b6d11514e0530)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(6fbade0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6fbade08a71ac0bb93bc39fa316b6d11514e0530)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(cdd5a3f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cdd5a3ff3822fe05cb04c1a384d28f83cd78937c)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(cdd5a3f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cdd5a3ff3822fe05cb04c1a384d28f83cd78937c)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(db2c163)`](https://github.com/Nick2bad4u/FitFileViewer/commit/db2c1634d175deb5650ba9d2be986984bb7683fe)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(db2c163)`](https://github.com/Nick2bad4u/FitFileViewer/commit/db2c1634d175deb5650ba9d2be986984bb7683fe)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(52015b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/52015b9f45b02988317feb44752ae87959cec642)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(52015b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/52015b9f45b02988317feb44752ae87959cec642)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(737eedc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/737eedc1d77bbe97aff86c5eececce2066ce8d8d)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(737eedc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/737eedc1d77bbe97aff86c5eececce2066ce8d8d)
 
 
 
@@ -7409,13 +7689,13 @@ Refines event listener options for better touch and scroll control, enhancing re
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(f7aba3f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f7aba3fe8bb9347ef54dadc821a3c3da161c9be0)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f7aba3f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f7aba3fe8bb9347ef54dadc821a3c3da161c9be0)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(7dd4981)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7dd498131bb11b312d772e512f99f3cc705bd62d)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7dd4981)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7dd498131bb11b312d772e512f99f3cc705bd62d)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(1c4e526)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1c4e526a8e6576ff74197addd9b3de484ef25dc6)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(1c4e526)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1c4e526a8e6576ff74197addd9b3de484ef25dc6)
 
 
 
@@ -7607,7 +7887,7 @@ Relates to improved user experience in map visualization. [`(2316116)`](https://
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(23cdd2a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/23cdd2a6c3d26e40ab55dd277ba77533bf9ec15b)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(23cdd2a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/23cdd2a6c3d26e40ab55dd277ba77533bf9ec15b)
 
 
 
@@ -7964,7 +8244,7 @@ Signed-off-by: dependabot[bot] <support@github.com> [`(2fdd378)`](https://github
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(f576138)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f5761380971bf9b74865cd5b2bd5bac52ddcea10)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f576138)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f5761380971bf9b74865cd5b2bd5bac52ddcea10)
 
 
 
@@ -8047,19 +8327,19 @@ Signed-off-by: dependabot[bot] <support@github.com> [`(2fdd378)`](https://github
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(e67a065)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e67a0654d4c156c8912718d34a5c1315ff6d5c64)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(e67a065)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e67a0654d4c156c8912718d34a5c1315ff6d5c64)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(420da52)`](https://github.com/Nick2bad4u/FitFileViewer/commit/420da52a90b66ccf9c5724347ebf31bdce4d227d)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(420da52)`](https://github.com/Nick2bad4u/FitFileViewer/commit/420da52a90b66ccf9c5724347ebf31bdce4d227d)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(d8baac6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d8baac6e2130cedb11585d38cb0f85346ce2591f)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(d8baac6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d8baac6e2130cedb11585d38cb0f85346ce2591f)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(31d7bc5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31d7bc5d59aeeabf1b791332903f86d43a6635b8)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(31d7bc5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31d7bc5d59aeeabf1b791332903f86d43a6635b8)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(f85cddb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f85cddb6853e7babb03bf6bdfe660dcac5415a31)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f85cddb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f85cddb6853e7babb03bf6bdfe660dcac5415a31)
 
 
 
@@ -8259,25 +8539,25 @@ Signed-off-by: dependabot[bot] <support@github.com> [`(2fdd378)`](https://github
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(18b7e71)`](https://github.com/Nick2bad4u/FitFileViewer/commit/18b7e711bda6d07d1126105eb2619cc3040b77f4)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(18b7e71)`](https://github.com/Nick2bad4u/FitFileViewer/commit/18b7e711bda6d07d1126105eb2619cc3040b77f4)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(ec33142)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ec331426b84c841101aab14fd1e32961bedbfb3f)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ec33142)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ec331426b84c841101aab14fd1e32961bedbfb3f)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(c867345)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c867345490eed84b17f286d9cee3779d15fe4d17)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(c867345)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c867345490eed84b17f286d9cee3779d15fe4d17)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(df84d9e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df84d9ea1d4b5ec07678696db2142c41b1c46962)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df84d9e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df84d9ea1d4b5ec07678696db2142c41b1c46962)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(e7ef411)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7ef411b5cd1ee18b31d1ff058af46a93453253a)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(e7ef411)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7ef411b5cd1ee18b31d1ff058af46a93453253a)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(edd9e38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/edd9e38b5498ee6c1a84f8ce4e931f4f04299704)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(edd9e38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/edd9e38b5498ee6c1a84f8ce4e931f4f04299704)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(316bc70)`](https://github.com/Nick2bad4u/FitFileViewer/commit/316bc70e077d8f2fd02b1614b9dcc66ebcdc31fc)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(316bc70)`](https://github.com/Nick2bad4u/FitFileViewer/commit/316bc70e077d8f2fd02b1614b9dcc66ebcdc31fc)
 
 
 
@@ -8538,19 +8818,19 @@ build(deps-dev): bump @types/chrome from 0.0.317 to 0.0.318 in /electron-app/lib
 
 ### 🔀 Merge Commits
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(a5fadb7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a5fadb7bc640b51a387ca53687903dba00e7f372)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(a5fadb7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a5fadb7bc640b51a387ca53687903dba00e7f372)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(49dc7f8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/49dc7f8701f0cda2f9a51603d2248c435f0726ee)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(49dc7f8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/49dc7f8701f0cda2f9a51603d2248c435f0726ee)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(ee28234)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ee2823473e09746a4d71068d67411d2209cc13da)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ee28234)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ee2823473e09746a4d71068d67411d2209cc13da)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(7601eee)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7601eee55cedaf8c6e19e54cb966f4235f6e18da)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7601eee)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7601eee55cedaf8c6e19e54cb966f4235f6e18da)
 
 
-- [chore] Merge Branch 'main' of <https://github.com/Nick2bad4u/FitFileViewer> [`(a58b129)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a58b1297d372be61346d4f0f45d94b41966ba09e)
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(a58b129)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a58b1297d372be61346d4f0f45d94b41966ba09e)
 
 
 

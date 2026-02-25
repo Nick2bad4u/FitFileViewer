@@ -4,6 +4,372 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.9.0] - 2026-02-25
+
+
+[[68f2926](https://github.com/Nick2bad4u/FitFileViewer/commit/68f29268251e34703fcd21c34dcc3f6fc922aae2)...
+[68dd221](https://github.com/Nick2bad4u/FitFileViewer/commit/68dd2210220e14be31a056650d72ee6cd1580ecb)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68f29268251e34703fcd21c34dcc3f6fc922aae2...68dd2210220e14be31a056650d72ee6cd1580ecb))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
+
+* 'main' of https://github.com/nick2bad4u/FitFileViewer:
+  [dependency] Update the npm_and_yarn group across 1 directory with 2 updates (#172)
+  [ci](deps): [dependency] Update dependency group (#175)
+  Update metrics.repository.svg - [Skip GitHub Action] [`(5d1a6f7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d1a6f76188a53af4368af33b1386338dc538d9c)
+
+
+
+### 💼 Other
+
+- ✨ [feat] Enhance map rendering and UI icon integration
+
+ - 🔧 [map] Introduced a `refreshMapLayout` function to improve map size invalidation on rendering.
+ - 🔧 [map] Added requestAnimationFrame calls to ensure smooth layout updates for the main map and mini-map.
+ - 🎨 [ui] Replaced inline SVG icons in the summary and table rendering with a new icon factory for consistency.
+ - 🎨 [ui] Updated file browser tab buttons to use SVG icons from the new icon factory, enhancing visual consistency.
+ - 🎨 [ui] Improved library and calendar views by integrating SVG icons for better user experience.
+ - 🚜 [refactor] Created an `iconFactory.js` to manage SVG icons centrally, ensuring consistent styling and easier updates.
+ - 🔧 [tabs] Implemented a `scheduleMapReflowRefresh` function to handle map layout adjustments when tab visibility changes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9e12f8a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e12f8a08b8f3398fc5b697e680d39f301d1fb59)
+
+
+- ✨ [feat] Enhance project configuration and documentation
+ - 🛠️ [fix] Add "homepage" format to .ncurc.json for improved package metadata
+ - 📝 [docs] Update USER_GUIDE.md for better clarity on map controls and export formats
+ - 🎨 [style] Refactor linting rules in package.json for better consistency
+ - ⚡ [perf] Optimize ESLint configuration for better performance across multiple directories
+ - 🚜 [refactor] Improve chart hover effects handling in addChartHoverEffects.js
+ - 🧪 [test] Update tests for tab visibility to ensure correct display behavior
+ - 🧹 [chore] Clean up unused styles in index.module.css
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(0f65c4f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f65c4fbfcdd44172dd4b587bc3aaca73e62234d)
+
+
+- 🛠️ [fix] Update style property checks for consistency
+ - 🛠️ Update maxHeight checks in createPowerZoneControls tests to use "0px" instead of "0"
+ - 🛠️ Update outlineOffset checks in createChartStatusIndicator tests to use "0px" instead of "0"
+ - 🛠️ Update maxHeight checks in createHRZoneControls tests to use "0px" instead of "0"
+ - 🛠️ Update maxHeight checks in createPowerZoneControlsSimple tests to use "0px" instead of "0"
+
+✨ [feat] Enhance fullscreen functionality in addFullScreenButton
+ - ✨ Refactor fullscreen handling to utilize Electron IPC for fullscreen requests
+ - ✨ Implement overlay fullscreen mode as a fallback when native fullscreen is unavailable
+ - ✨ Add keyboard shortcut handling for F11 and Escape keys to manage fullscreen state
+
+⚡ [perf] Optimize chart resizing during fullscreen transitions
+ - ⚡ Introduce resizeExistingCharts function to handle chart resizing without full re-rendering
+ - ⚡ Prevent unnecessary chart re-renders during fullscreen transitions
+
+🎨 [style] Improve code readability and organization
+ - 🎨 Clean up comments and structure in addFullScreenButton.js for better clarity
+ - 🎨 Refactor variable names and function definitions for consistency
+
+🧪 [test] Update tests for new fullscreen behavior
+ - 🧪 Modify tests in addFullScreenButton to reflect changes in fullscreen handling
+ - 🧪 Adjust tests in createChartStatusIndicator and createGlobalChartStatusIndicator for updated expectations
+
+📝 [docs] Update ESLint configuration export
+ - 📝 Change export statement in eslint.config.mjs for better compatibility with other packages
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(43ad5dd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43ad5dd98e09beb31e8a1d5628b891dab7326925)
+
+
+- ✨ [feat] Implement Git hooks for session management and logging
+ - 📝 Add hooks for SessionStart, Stop, and UserPromptSubmit events
+ - 🛠️ Create log-prompt scripts for both PowerShell and Bash to handle user input and log events
+ - 🧹 Introduce remove-temp script to clean temporary files in the project
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(420e543)`](https://github.com/Nick2bad4u/FitFileViewer/commit/420e54348eeed4aaf17f3664b9cfbf6b6139552e)
+
+
+- 🎨 [style] Improve code formatting and documentation clarity
+
+ - 📝 Update comments in chartLegendItemBoxPlugin.d.ts for better readability
+ - 📝 Enhance comments in createAppMenu.js to avoid line breaks
+ - 🎨 Adjust formatting in addChartHoverEffects.js for consistency
+ - 📝 Clarify comments in chartLegendItemBoxPlugin.js for better understanding
+ - 🎨 Refactor code in mapMeasureTool.js for improved readability
+ - 📝 Update comments in showFitData.js to enhance clarity
+ - 🎨 Improve formatting in renderSummaryHelpers.js for consistency
+ - 🎨 Adjust comments in addFullScreenButton.js for better readability
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(07accd0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07accd0bbfbec34b5c9b1f85ada442d27bb7f51e)
+
+
+- ✨ [feat] Enhance fullscreen functionality and chart hover effects
+
+ - 🔧 [refactor] Implement fullscreen handling in `addChartHoverEffects.js`
+   - Introduced a more robust fullscreen management system using the `screenfull` library.
+   - Added functions to handle fullscreen requests and exits with fallbacks to native fullscreen APIs.
+   - Updated the fullscreen button to reflect the current state and improve accessibility.
+
+ - 🎨 [style] Clean up fullscreen logic
+   - Removed the previous fullscreen overlay management and replaced it with a more streamlined approach.
+   - Simplified the fullscreen state updates and event listeners for better performance.
+
+ - 🛠️ [fix] Improve legend item box rendering in `chartLegendItemBoxPlugin.js`
+   - Destructured the `legend` and `ctx` properties from the chart object for cleaner code.
+
+ - ⚡ [perf] Optimize map rendering controls in `renderMap.js`
+   - Added a function to reset lap selector selection to improve user experience when filtering data points.
+   - Ensured that map rendering is triggered correctly based on user interactions.
+
+ - ✨ [feat] Automatically switch to map tab on file load in `showFitData.js`
+   - Introduced a new function to switch to the map tab immediately after loading a file, preventing UI flashes.
+
+ - 🛠️ [fix] Refactor summary rendering helpers in `renderSummaryHelpers.js`
+   - Destructured properties from the `data` object for improved readability and performance.
+
+ - 🔧 [refactor] Enhance fullscreen button functionality in `addFullScreenButton.js`
+   - Created a fallback mechanism for fullscreen requests to ensure a smoother user experience across different environments.
+   - Improved error handling and logging for fullscreen operations.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(569d172)`](https://github.com/Nick2bad4u/FitFileViewer/commit/569d17221d6429d42fdbe4b37fb364e90668cdb4)
+
+
+- ✨ [feat] Implement chart fullscreen overlay and legend item box plugin
+ - 🎨 [style] Add CSS styles for chart fullscreen overlay, including backdrop, panel, header, and close button
+ - ✨ [feat] Create chartLegendItemBoxPlugin to enhance legend item interaction
+ - 🛠️ [fix] Update rendering logic to register new chart plugins and adjust legend item box dimensions
+ - 🚜 [refactor] Modularize chart rendering functions and improve state management for fullscreen functionality
+ - ⚡ [perf] Optimize rendering performance for summary and lap sections with virtual scrolling
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d1acbd4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d1acbd4206022d6c475fdd8ab3ad77ad0e4cfeda)
+
+
+- ✨ [feat] Enhance chart interactions and UI responsiveness
+ - Added modifier key support for zooming in charts using Ctrl + scroll
+ - Implemented zoom hint overlay to guide users on chart interactions
+ - Updated chart rendering functions to include modifier key for wheel events
+ - Improved layout and responsiveness of various UI components for better user experience
+ - Refactored file browser tab structure for cleaner HTML and improved accessibility
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3112102)`](https://github.com/Nick2bad4u/FitFileViewer/commit/311210256206fd35b29e85a40d002cd2df4f3a13)
+
+
+- 🚜 [refactor] Modularize IPC listener setup and improve state management
+
+ - ✨ [feat] Introduce `registerMenuIpcListeners` to handle menu-driven IPC actions separately from general lifecycle listeners, improving code organization and readability.
+ - 🛠️ [fix] Ensure menu actions like "restart update" and "open overlay" are properly handled with error catching to prevent crashes.
+ - 🔧 [build] Update `stateManager` to persist additional UI state for the browser view, enhancing user experience by remembering the last selected sub-view.
+ - ⚡ [perf] Optimize `persistState` function to merge new state with existing persisted state, preventing data loss during updates.
+ - 🎨 [style] Refactor `aboutModal` to simplify the display of features and system info, removing the toggle functionality for a cleaner UI.
+ - 📝 [docs] Add clipboard functionality to copy system info from the about modal, providing users with easy access to important application details.
+ - ⚡ [perf] Improve tab visibility management by debouncing the switch to the summary tab when no data is available, reducing unnecessary UI flashes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(13e6163)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13e61635a8678b3daafacfb1e781d846529069f5)
+
+
+- 🚜 [refactor] Centralizes UI DOM helpers
+
+🚜 [refactor] Adds shared chart DOM lookup helpers to reduce duplicated container fallbacks and improve resilience across chart rendering, settings, and status flows
+ - 🛠️ [fix] Uses safe click handling to avoid crashes with stubbed elements
+🚜 [refactor] Consolidates tab ID parsing and button identity logic to keep tab state handling consistent across controls and visibility updates
+🎨 [style] Aligns HTML linting and markup formatting, including deferred script loading and standardized indentation
+🧪 [test] Lowers coverage thresholds to match current baselines
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(139a339)`](https://github.com/Nick2bad4u/FitFileViewer/commit/139a339f2fd1f2c666d2db0e36d24f888a34116b)
+
+
+- ✨ [feat] Add DeDupe Loop agent for comprehensive codebase review and refactoring
+ - Introduced a new agent prompt to conduct a thorough review of the codebase focusing on improvements, bugs, and architectural optimization.
+ - Emphasized refactoring by identifying inline utility functions and generic logic for modularity enhancement.
+ - Categorized findings into high-priority bugs, medium-priority enhancements, and low-priority tweaks, ensuring adherence to modern best practices.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7cf40e3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7cf40e325dc8010504c9c1cc2d94cb56ab144b45)
+
+
+- 🔧 [build] Update Docusaurus ESLint plugin and configuration
+
+ - Added "@docusaurus/eslint-plugin" version "^3.9.2" to package.json and package-lock.json for improved linting support.
+ - Updated ESLint configuration to include the Docusaurus plugin for enhanced linting capabilities.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ccb24aa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ccb24aa4e7ba5efdf0f8458d4253fca87fcf73af)
+
+
+- ✨ [feat] Add auxiliary heart rate support
+
+✨ [feat] Adds auxiliary heart rate detection and visibility
+ - Normalizes auxiliary HR from varied record keys and developer fields for charts, maps, tooltips, and quality metrics
+ - Adds labels, colors, units, and filters so auxiliary HR renders consistently
+🚜 [refactor] Standardizes tab and content handling with flexible IDs
+ - Adds ID variant helpers and updates tab routing and DOM lookups to tolerate mixed naming styles
+ - Improves chart rendering fallbacks when containers or DOM APIs differ
+🛠️ [fix] Hardens IPC listener cleanup in runtime bridges
+ - Supports alternate listener removal APIs in test or mocked environments
+🧪 [test] Expands coverage for auxiliary heart rate and chart metadata
+ - Updates expectations for new metric counts and labels
+🧹 [chore] Refreshes linting rules, scripts, and dependencies
+ - Aligns markdown linting, root lint config, and tooling versions
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(205204a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/205204acafa1e0a0430e4363e5ea1c9d43d6211f)
+
+
+- 🔧 [build] Update BeastMode agent tools and configuration
+
+ - Refactor tools list for the BeastMode agent to streamline commands and improve readability.
+ - Remove redundant entries and consolidate tool categories for better organization.
+ - Ensure the agent remains user-invokable and model invocation is disabled for enhanced control.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(5af3fb6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5af3fb64c22625609a2c111645e0f8f9cae3987f)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(41f5fa7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/41f5fa7ab3afa05f9d5c4032ee61220e5d7a9df1)
+
+
+- 🔧 [build] Enhance linting setup and documentation
+
+ - 📝 [docs] Add lint notes to document root and Docusaurus lint scripts
+ - 🔧 [build] Update Docusaurus package.json to include linting scripts for code and content
+ - 🔧 [build] Modify ESLint configuration for Docusaurus to support TypeScript and React
+ - 🔧 [build] Create root package.json to manage linting across the workspace
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(13a501d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13a501d1195b0467ca0330deab44bd8ac142d434)
+
+
+- ✨ [feat] Implement data point filter control and tab state management enhancements
+
+ - 🆕 [feat] Add data point filter control panel
+   - Introduced `createPanelController` to manage the positioning and visibility of the data point filter UI.
+   - Added functionality for opening and closing the panel, handling outside clicks, and repositioning based on viewport size.
+
+ - 🆕 [feat] Create summary refresher for data point filter
+   - Implemented `createSummaryRefresher` to update the summary display based on the current filter state and metrics.
+
+ - 🚜 [refactor] Revise tab state management structure
+   - Consolidated tab state management logic into dedicated handlers and support files.
+   - Removed redundant code and improved modularity by separating concerns into `tabStateManagerHandlers.js` and `tabStateManagerSupport.js`.
+
+ - 🆕 [feat] Define tab configuration in a separate module
+   - Created `tabStateManagerConfig.js` to centralize tab definitions, improving maintainability and readability.
+
+ - 🛠️ [fix] Enhance error handling and state management
+   - Improved error handling in tab activation methods to ensure robustness during data rendering and state updates.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(588b2db)`](https://github.com/Nick2bad4u/FitFileViewer/commit/588b2db4d34a657df1cf7e9028273c70e363a03d)
+
+
+- 🚜 [refactor] Standardizes UI IDs
+
+🚜 [refactor] Extracts UI helpers into focused modules to improve reuse, cleanup, and test isolation
+ - 🚜 [refactor] Moves drag-and-drop handling, legacy globals, external link setup, chart resize hooks, and settings parsing into shared utilities for clearer ownership
+ - 🚜 [refactor] Centralizes overlay list item interactions and tab chart document helpers to reduce inline UI logic
+🚜 [refactor] Aligns tab/content selectors and state wiring around snake_case IDs to reduce selector drift and simplify tab activation and rendering flows
+🎨 [style] Updates layout tokens to logical properties, rem units, and viewport-relative sizing to improve responsiveness and writing-mode safety
+🧹 [chore] Refines HTML and lint schema configuration to reduce noisy defaults and improve validation consistency
+🧪 [test] Updates UI tests and mocks to match renamed selectors and expanded tab name patterns
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a98413b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a98413be89e2dea54c2a12bde1f8360b662028a3)
+
+
+- 🔧 [build] Update ESLint and Stylelint configurations, enhance CSS properties, and improve HTML metadata
+
+ - 🛠️ [fix] Add new prompt for fixing ESLint errors and warnings
+ - 🛠️ [fix] Update .stylelintignore to include additional paths for ignored files
+ - 🎨 [style] Change CSS properties from width/height to inline-size/block-size for better responsiveness
+ - 📝 [docs] Enhance index.html with Open Graph metadata for improved SEO
+ - 🛠️ [fix] Modify stylelint.config.js to ignore more file patterns
+ - 🛠️ [fix] Update vitest.config.js to ensure proper directory creation with error handling
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d5f5697)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5f56979e51eb96f7732662c629db884612b8c06)
+
+
+- 🔧 [build] Update dependencies in package.json and package-lock.json
+ - 🔧 Upgrade "@easyops-cn/docusaurus-search-local" from "^0.52.2" to "^0.52.3"
+ - 🔧 Upgrade "@types/node" from "^25.0.10" to "^25.1.0"
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7866a3e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7866a3e83df052f01d8413d7b460e3c377028db7)
+
+
+- 🔧 [build] Update dependencies in package.json
+
+ - 🔧 Update "leaflet.locatecontrol" from "^0.86.0" to "^0.87.0" for improved functionality.
+ - 🔧 Upgrade "@actions/artifact" from "^5.0.3" to "^6.0.0" for enhanced features.
+ - 🔧 Upgrade "@actions/cache" from "^5.0.4" to "^6.0.0" for better caching performance.
+ - 🔧 Upgrade "@actions/core" from "^2.0.3" to "^3.0.0" for new core functionalities.
+ - 🔧 Upgrade "@actions/exec" from "^2.0.0" to "^3.0.0" for improved execution capabilities.
+ - 🔧 Upgrade "@actions/github" from "^8.0.1" to "^9.0.0" for the latest GitHub API features.
+ - 🔧 Upgrade "@actions/glob" from "^0.5.1" to "^0.6.1" for better file globbing support.
+ - 🔧 Upgrade "@actions/http-client" from "^3.0.2" to "^4.0.0" for enhanced HTTP client features.
+ - 🔧 Upgrade "@actions/io" from "^2.0.0" to "^3.0.2" for improved I/O operations.
+ - 🔧 Upgrade "@actions/tool-cache" from "^3.0.1" to "^4.0.0" for better tool caching.
+ - 🔧 Update "baseline-browser-mapping" from "^2.9.18" to "^2.9.19" for bug fixes and improvements.
+ - 🔧 Upgrade "electron" from "^40.0.0" to "^40.1.0" for the latest features and fixes.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b444597)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b444597c62d2bbb4e56bb01b7cfeaeceb0beff09)
+
+
+- 🔧 [build] Implement retry logic for macOS builds in CI workflow
+
+ - Add a function to retry macOS build commands up to three times to handle occasional failures during DMG creation.
+ - Clean the 'dist' directory before each retry to ensure a fresh start.
+ - Update build steps for macOS to utilize the new retry mechanism for arm64 and universal builds.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e362fda)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e362fda131c1ee61eda4d64778496cf0f4f1a4be)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* V29.9.0 [skip ci] [`(68dd221)`](https://github.com/Nick2bad4u/FitFileViewer/commit/68dd2210220e14be31a056650d72ee6cd1580ecb)
+
+
+- Update changelogs for v29.8.0 [skip ci] [`(68f2926)`](https://github.com/Nick2bad4u/FitFileViewer/commit/68f29268251e34703fcd21c34dcc3f6fc922aae2)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update the npm_and_yarn group across 1 directory with 2 updates (#172)
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> [`(572a85e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/572a85ed7784d6ed67f7c6174b5ab116a71eeb1a)
+
+
+- *(deps)* [dependency] Update dependency group (#175) [`(0f0dff8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f0dff884b7cca15e068a4d99bdcbfebfacc24f2)
+
+
+
+### 🛡️ Security
+
+- 🔧 [build] Update dependencies and improve project configuration
+ - 📦 Added new dependencies for enhanced linting and formatting:
+   - `@awmottaz/prettier-plugin-void-html`, `@html-eslint/eslint-plugin`, `@prettier/plugin-xml`, and others for better code quality.
+ - 🔄 Updated existing dependencies to their latest versions for improved performance and security.
+
+🛠️ [fix] Enhance API validation in preload script
+ - 🔍 Improved validation checks for `contextBridge` and `ipcRenderer` to ensure all necessary methods are available.
+ - 🔄 Changed return statement to use `Boolean()` for clearer intent.
+
+🎨 [style] Clean up stylelint configuration
+ - 🧹 Removed redundant rules and reorganized the configuration for better readability.
+ - 🔄 Added rules back to maintain consistency in style enforcement.
+
+🚜 [refactor] Improve window state management
+ - 🔄 Enhanced comments for better maintainability and understanding of the code.
+ - 🛡️ Added error handling and validation for window state settings to ensure robustness.
+
+📝 [docs] Update comments for clarity
+ - 📝 Improved documentation comments throughout the codebase to provide clearer explanations of functions and parameters.
+
+⚡ [perf] Optimize file sanitization logic
+ - 🔄 Reordered reserved filename characters for better performance in checks.
+
+🧪 [test] Update Vitest configuration
+ - 🔄 Adjusted test configuration for better coverage reporting and error handling.
+ - 🔄 Enabled additional options for clearer test execution and reporting.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b7fca7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b7fca7f947eec5ee811f09f1cbe68e608d5456c7)
+
+
+
+
+
+
 ## [29.8.0] - 2026-01-29
 
 
@@ -1393,9 +1759,9 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8452
 ## [28.5.0] - 2025-10-21
 
 
-[[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)...
+[[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
 [ff0303c](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9...ff0303c7ffff8dcc2eef7387883623dceac901a9))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...ff0303c7ffff8dcc2eef7387883623dceac901a9))
 
 
 ### 💼 Other
@@ -1425,32 +1791,6 @@ Adds the ability to filter map data points by a value range, in addition to the 
 Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ff0303c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)
 
 
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v28.4.0 [skip ci] [`(87a8732)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a87329051bce8c23d87b223d1accc4f2960db2)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 28.4.0 [`(6e0d4cc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)
-
-
-
-
-
-
-## [28.4.0] - 2025-10-19
-
-
-[[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
-[c1ee70e](https://github.com/Nick2bad4u/FitFileViewer/commit/c1ee70e56c50ff3358a873f2a0ac51a768996d70)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...c1ee70e56c50ff3358a873f2a0ac51a768996d70))
-
-
-### 💼 Other
-
 - 🎨 [style] Improve chart canvas styling and theming
 
 Improves the styling and theming of chart canvases for better visual consistency and dark mode compatibility.
@@ -1468,11 +1808,17 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c1ee
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v28.4.0 [skip ci] [`(87a8732)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a87329051bce8c23d87b223d1accc4f2960db2)
+
+
 - Update changelogs for v28.3.0 [skip ci] [`(abe9060)`](https://github.com/Nick2bad4u/FitFileViewer/commit/abe9060f8a0ba2baafcdeccc1399f110b78c23a2)
 
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 28.4.0 [`(6e0d4cc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)
+
 
 - [dependency] Update version 28.3.0 [`(70d3b03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)
 
