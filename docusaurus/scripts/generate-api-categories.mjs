@@ -77,18 +77,16 @@ async function main() {
     await generateCategoryFile(apiDir, "Generated API Docs");
 
     const entries = await readdir(apiDir, { withFileTypes: true });
+    const directories = entries.filter((entry) => entry.isDirectory());
 
-    for (const entry of entries) {
-        if (!entry.isDirectory()) {
-            continue;
-        }
-
-        const dirName = entry.name; // e.g. "fitParser", "main", "ui"
-        const dirPath = path.join(apiDir, dirName);
-
-        const label = prettifyLabel(dirName);
-        await generateCategoryFile(dirPath, label);
-    }
+    await Promise.all(
+        directories.map(async (entry) => {
+            const dirName = entry.name; // e.g. "fitParser", "main", "ui"
+            const dirPath = path.join(apiDir, dirName);
+            const label = prettifyLabel(dirName);
+            await generateCategoryFile(dirPath, label);
+        })
+    );
 }
 
 main().catch((error) => {

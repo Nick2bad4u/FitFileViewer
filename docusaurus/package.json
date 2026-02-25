@@ -20,7 +20,7 @@
         "lint": "npm run lint:code && npm run lint:content",
         "lint:code": "cd .. && node ./electron-app/node_modules/eslint/bin/eslint.js --config ./eslint.config.mjs --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-docusaurus --fix docusaurus/**/*.{js,jsx,ts,tsx}",
         "lint:code:check": "cd .. && node ./electron-app/node_modules/eslint/bin/eslint.js --config ./eslint.config.mjs --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-docusaurus docusaurus/**/*.{js,jsx,ts,tsx}",
-        "lint:content": "npx --yes markdownlint-cli2 \"docs/**/*.{md,mdx}\" \"blog/**/*.{md,mdx}\" \"src/**/*.{md,mdx}\" --config ../.markdownlint.json"
+        "lint:content": "npx --yes markdownlint-cli2 \"docs/**/*.{md,mdx}\" \"!docs/api/**/*.md\" \"blog/**/*.{md,mdx}\" \"src/**/*.{md,mdx}\" --config ../.markdownlint.json"
     },
     "dependencies": {
         "@docusaurus/core": "^3.9.2",

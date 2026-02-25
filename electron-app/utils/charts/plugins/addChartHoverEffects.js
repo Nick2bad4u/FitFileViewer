@@ -402,13 +402,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         let overlayPlaceholder = null;
         /** @type {HTMLElement | null} */
         let overlayParent = null;
-
-        const overlayEscHandler = (event) => {
-            if (event.key === "Escape") {
-                exitOverlayFullscreen();
-                updateFullscreenState();
-            }
-        };
+        /** @type {(event: KeyboardEvent) => void} */
+        let overlayEscHandler = () => {};
 
         const enterOverlayFullscreen = () => {
             if (overlayPlaceholder) {
@@ -491,6 +486,13 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 });
             } else {
                 requestChartResize(chartCanvas);
+            }
+        };
+
+        overlayEscHandler = (event) => {
+            if (event.key === "Escape") {
+                exitOverlayFullscreen();
+                updateFullscreenState();
             }
         };
 

@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 
+import Link from "@docusaurus/Link";
+
 import styles from "./styles.module.css";
 
 /**
@@ -9,30 +11,30 @@ import styles from "./styles.module.css";
 export default function GitHubStatsComponent(): JSX.Element {
     return (
         <div className={styles.githubStats}>
-            <a
+            <Link
                 className={styles.statBadge}
                 href="https://github.com/Nick2bad4u/FitFileViewer/stargazers"
                 rel="noopener noreferrer"
                 target="_blank"
             >
                 ⭐ Stars
-            </a>
-            <a
+            </Link>
+            <Link
                 className={styles.statBadge}
                 href="https://github.com/Nick2bad4u/FitFileViewer/network/members"
                 rel="noopener noreferrer"
                 target="_blank"
             >
                 🍴 Forks
-            </a>
-            <a
+            </Link>
+            <Link
                 className={styles.statBadge}
                 href="https://github.com/Nick2bad4u/FitFileViewer/issues"
                 rel="noopener noreferrer"
                 target="_blank"
             >
                 🐛 Issues
-            </a>
+            </Link>
         </div>
     );
 }

@@ -120,14 +120,14 @@ The application uses a tabbed interface with four main sections:
 
 #### Map Controls
 
-| Control          | Function                          |
-| ---------------- | --------------------------------- |
-| **Zoom In/Out**  | `+` / `-` buttons or mouse wheel  |
-| **Pan**          | Click and drag the map            |
-| **Fullscreen**   | 📱 button for fullscreen map view |
-| **Layers**       | 🗂️ button to change map style     |
-| **Measure Tool** | 📏 button to measure distances    |
-| **⚡ Est Power**  | Configure estimated cycling power for files without power data (adds “Est. Power” to map tooltips) |
+| Control          | Function                                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| **Zoom In/Out**  | `+` / `-` buttons or mouse wheel                                                                   |
+| **Pan**          | Click and drag the map                                                                             |
+| **Fullscreen**   | 📱 button for fullscreen map view                                                                  |
+| **Layers**       | 🗂️ button to change map style                                                                      |
+| **Measure Tool** | 📏 button to measure distances                                                                     |
+| **⚡ Est Power** | Configure estimated cycling power for files without power data (adds “Est. Power” to map tooltips) |
 
 #### Available Map Styles
 
@@ -340,7 +340,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 
 ### Supported Export Formats
 
-#### Data Export
+#### Data File Export
 
 - **CSV**: Spreadsheet-compatible comma-separated values
 - **GPX**: GPS Exchange Format for other mapping software

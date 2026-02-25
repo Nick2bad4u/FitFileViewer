@@ -3926,7 +3926,7 @@ table.dataTable thead th {
     inline-size: 100% !important;
     block-size: 100% !important;
     margin: 0 !important;
-    padding: clamp(20px, 2.6vw, 36px) !important;
+    padding: clamp(20px, 2.6vi, 36px) !important;
     border: none !important;
     background: var(--color-bg-alt) !important;
     box-shadow: none !important;
@@ -3939,7 +3939,7 @@ body.chart-overlay-fullscreen-active {
 
 .chart-wrapper--overlay-fullscreen {
     position: fixed !important;
-    inset: clamp(10px, 2vh, 18px) !important;
+    inset: clamp(10px, 2vb, 18px) !important;
     z-index: 12000 !important;
     margin: 0 !important;
     inline-size: auto !important;
@@ -7164,7 +7164,7 @@ body.theme-light .notification.info {
 .summary-section .summary-virtual-spacer td {
     padding: 0 !important;
     border: none !important;
-    height: 0;
+    block-size: 0;
     line-height: 0;
 }
 

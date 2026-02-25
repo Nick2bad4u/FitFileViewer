@@ -90,7 +90,7 @@ describe("About Modal - UI behaviors", () => {
         expect(document.activeElement?.id).toBe("focus-origin");
     });
 
-    it("toggles features and back to system info, reloading version info on return", async () => {
+    it("renders features and system info together and loads version info", async () => {
         const { ensureAboutModal, showAboutModal } = await importModules();
         const { loadVersionInfo } =
             await import("../../../../utils/app/initialization/loadVersionInfo.js");
@@ -98,25 +98,17 @@ describe("About Modal - UI behaviors", () => {
         ensureAboutModal();
         showAboutModal();
 
-        const toggleBtn = document.getElementById(
-            "toggle-info-btn"
-        ) as HTMLButtonElement;
-        expect(toggleBtn).toBeTruthy();
-
-        // First click -> show features (content swapped after 150ms)
-        toggleBtn.click();
-        vi.advanceTimersByTime(200);
         const section = document.getElementById(
             "info-toggle-section"
         ) as HTMLElement;
-        expect(section.innerHTML).toContain("features-title");
-
-        // Second click -> back to system info and should trigger loadVersionInfo
-        toggleBtn.click();
-        vi.advanceTimersByTime(200);
+        expect(section).toBeTruthy();
         expect(section.innerHTML).toContain("system-info-grid");
-        // loadVersionInfo is called: once in ensureAboutModal, once in showAboutModal, and once after toggling back
-        expect(loadVersionInfo).toHaveBeenCalledTimes(3);
+
+        const featuresPanel = document.querySelector(".about-panel--features");
+        expect(featuresPanel).toBeTruthy();
+
+        // loadVersionInfo is called by ensureAboutModal and showAboutModal
+        expect(loadVersionInfo).toHaveBeenCalledTimes(2);
     });
 
     it("closes on Escape key via global handler", async () => {

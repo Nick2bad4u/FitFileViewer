@@ -339,7 +339,7 @@
         "baseline-browser-mapping": "^2.10.0",
         "color": "^5.0.3",
         "cross-env": "^10.1.0",
-        "electron": "^40.6.0",
+        "electron": "^40.6.1",
         "electron-builder": "^26.8.1",
         "electron-builder-squirrel-windows": "^26.8.1",
         "eslint": "^10.0.2",

@@ -508,17 +508,7 @@
   transition: all 0.6s ease-out;
 }
 
-.scroll-reveal {
-  /* Motion handled via transition when "visible" is toggled; base state is readable */
-}
-
-.scroll-reveal-left {
-  /* Left reveal offset applied only when "visible" is toggled */
-}
-
-.scroll-reveal-right {
-  /* Right reveal offset applied only when "visible" is toggled */
-}
+/* Motion reveal variants intentionally share the same safe base styles above. */
 
 .scroll-reveal.visible,
 .scroll-reveal-left.visible,

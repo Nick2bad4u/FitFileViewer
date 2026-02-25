@@ -28,6 +28,7 @@
     "format": [
         "dep",
         "time",
+        "homepage",
         "ownerChanged"
     ],
     "global": false,

@@ -1,3 +1,5 @@
+/* eslint-disable max-lines -- Summary rendering + virtualization helpers are intentionally co-located pending modular refactor. */
+
 import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";

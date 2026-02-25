@@ -105,7 +105,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             const summaryElement = document.getElementById("content_summary");
             const mapElement = document.getElementById("content_map");
 
-            expect(summaryElement.style.display).toBe("block");
+            expect(summaryElement.style.display).toBe("flex");
             expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
             expect(mapElement.style.display).toBe("none");
             expect(mapElement.getAttribute("aria-hidden")).toBe("true");
@@ -338,7 +338,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             showTabContent("summary");
 
             const summaryElement = document.getElementById("content_summary");
-            expect(summaryElement.style.display).toBe("block");
+            expect(summaryElement.style.display).toBe("flex");
             expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
         });
 
@@ -398,7 +398,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             specialMappings.forEach(({ tab, expected }) => {
                 showTabContent(tab);
                 const element = document.getElementById(expected);
-                expect(element?.style.display).toBe("block");
+                expect(element?.style.display).toBe("flex");
             });
         });
 

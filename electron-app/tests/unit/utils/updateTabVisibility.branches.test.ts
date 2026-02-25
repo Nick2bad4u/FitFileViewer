@@ -53,7 +53,7 @@ describe("updateTabVisibility - additional branches", () => {
         // Also verify display toggling behavior: summary visible, others hidden
         const summary = document.getElementById("content_summary")!;
         const data = document.getElementById("content_data")!;
-        expect(summary.style.display).toBe("block");
+        expect(summary.style.display).toBe("flex");
         expect(data.style.display).toBe("none");
     });
 
@@ -83,7 +83,7 @@ describe("updateTabVisibility - additional branches", () => {
         );
         const map = document.getElementById("content_map")!;
         const summary = document.getElementById("content_summary")!;
-        expect(map.style.display).toBe("block");
+        expect(map.style.display).toBe("flex");
         expect(summary.style.display).toBe("none");
     });
 });
