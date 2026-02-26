@@ -14,16 +14,21 @@ modules:
           - install -Dm755 ./main.js /app/main.js
           - install -Dm755 ./preload.js /app/preload.js
           - install -Dm755 ./renderer.js /app/renderer.js
+          - install -Dm755 ./main-ui.js /app/main-ui.js
+          - install -Dm755 ./fitParser.js /app/fitParser.js
+          - install -Dm755 ./windowStateUtils.js /app/windowStateUtils.js
           - install -Dm644 ./package.json /app/package.json
+          - install -Dm644 ./index.html /app/index.html
+          - install -Dm644 ./style.css /app/style.css
+          - install -Dm644 ./elevProfile.css /app/elevProfile.css
+          - install -Dm644 ./favicon.ico /app/favicon.ico
+          - cp -r ./assets /app/
+          - cp -r ./ffv /app/
           - cp -r ./icons /app/
-          - cp -r ./libs /app/
+          - cp -r ./main /app/
+          - cp -r ./ui /app/
           - cp -r ./utils /app/
-          - cp -r ./index.html /app/
-          - cp -r ./style.css /app/
-          - cp -r ./favicon.ico /app/
-          - cp -r ./fitParser.js /app/
-          - cp -r ./main-ui.js /app/
-          - cp -r ./windowStateUtils.js /app/
+          - cp -r ./vendor /app/
       buildsystem: simple
       name: app
       sources:
