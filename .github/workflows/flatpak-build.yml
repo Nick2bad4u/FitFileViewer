@@ -54,7 +54,7 @@ jobs:
             - name: Install dependencies
               run: |
                   cd electron-app
-                  npm install
+                  npm install --force
 
             - name: Build Flatpak
               run: |
