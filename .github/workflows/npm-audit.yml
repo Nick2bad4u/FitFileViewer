@@ -41,7 +41,7 @@ jobs:
                 working-directory: electron-app
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
               with:
                   egress-policy: audit
 
@@ -56,7 +56,7 @@ jobs:
 
             - name: install dependencies
               run: npm install
-            - uses: oke-py/npm-audit-action@6ec7878c81d7dfe2b3295a63e1a608e9c952f46a # v3.0.0
+            - uses: oke-py/npm-audit-action@f02a3cf15e7a1860efac849dd45126f9c2cafe4f # v4.0.1
               with:
                   audit_level: moderate
                   github_token: ${{ secrets.GITHUB_TOKEN }}
