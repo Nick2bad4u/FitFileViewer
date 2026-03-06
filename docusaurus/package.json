@@ -45,7 +45,7 @@
         "@types/react": "^19.2.13",
         "@types/react-dom": "^19.2.3",
         "clsx": "^2.1.1",
-        "markdownlint-cli2": "^0.20.0",
+        "markdownlint-cli2": "^0.21.0",
         "prism-react-renderer": "^2.4.1",
         "typedoc": "^0.28.16",
         "typedoc-docusaurus-theme": "^1.4.2",
