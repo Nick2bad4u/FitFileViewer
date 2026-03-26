@@ -7,8 +7,8 @@ import { themes as prismThemes } from "prism-react-renderer";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const siteUrl =
-    process.env["DOCUSAURUS_SITE_URL"] ?? "https://fitfileviewer.typpi.online";
-const baseUrl = process.env["DOCUSAURUS_BASE_URL"] ?? "/";
+    process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
+const baseUrl = process.env["DOCUSAURUS_BASE_URL"] ?? "/FitFileViewer/";
 const enableExperimentalFaster =
     process.env["DOCUSAURUS_ENABLE_EXPERIMENTAL"] === "true";
 
@@ -212,6 +212,12 @@ const config: Config = {
                     sidebarCollapsed: true,
                     sidebarCollapsible: true,
                     sidebarPath: "./sidebars.ts",
+                },
+                googleTagManager: {
+                    containerId: "GTM-T8J6HPLF",
+                },
+                gtag: {
+                    trackingID: "G-18DR1S6R1T",
                 },
                 pages: {
                     editUrl:

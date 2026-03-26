@@ -50,8 +50,8 @@
   <a href="https://github.com/Nick2bad4u/fitfileviewer/forks" title="Forks">
     <img alt="Badge: Forks (dynamic count, flat-square style)" src="https://img.shields.io/github/forks/nick2bad4u/fitfileviewer?style=flat-square&logo=greasyfork" title="Forks">
   </a>
-  <a href="https://fitfileviewer.typpi.online/" title="GitHub Pages Status">
-    <img alt="Badge: GitHub Pages Status (dynamic, flat-square style)" src="https://img.shields.io/website?url=https://fitfileviewer.typpi.online&up_message=Online&down_message=Offline&style=flat-square&logo=github&label=Github%20Pages&cacheSeconds=6000&link=https://fitfileviewer.typpi.online/" title="GitHub Pages Status">
+  <a href="https://nick2bad4u.github.io/FitFileViewer/" title="GitHub Pages Status">
+    <img alt="Badge: GitHub Pages Status (dynamic, flat-square style)" src="https://img.shields.io/website?url=https://nick2bad4u.github.io/FitFileViewer&up_message=Online&down_message=Offline&style=flat-square&logo=github&label=Github%20Pages&cacheSeconds=6000&link=https://nick2bad4u.github.io/FitFileViewer/" title="GitHub Pages Status">
   </a>
   <a href="https://deepwiki.com/Nick2bad4u/FitFileViewer">
     <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
@@ -222,32 +222,32 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 <sub> - Most Windows users should download the "Installer EXE", "MSI" or "Portable" versions </sub>
 
-| Platform | Architecture | Format        | Filename Example                        |
-| -------- | ------------ | ------------- | --------------------------------------- |
-| :------- | :----------- | :------------ | :-------------------------------------- |
-| Windows  | x64          | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
-| Windows  | x64          | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
-| Windows  | x64          | Installer 7z  | fitfileviewer-X.X.X-x64.nsis.7z         |
-| Windows  | x64          | Squirrel EXE  | Fit-File-Viewer-squirrel-x64-X.X.X.exe  |
-| Windows  | x64          | MSI           | Fit-File-Viewer-msi-x64-X.X.X.msi       |
-| Windows  | x64          | MSI 7z        | Fit-File-Viewer-msi-x64-X.X.X.7z        |
-| Windows  | x64          | MSI TAR.BZ2   | Fit-File-Viewer-msi-x64-X.X.X.tar.bz2   |
-| Windows  | x64          | MSI TAR.GZ    | Fit-File-Viewer-msi-x64-X.X.X.tar.gz    |
-| Windows  | x64          | MSI TAR.XZ    | Fit-File-Viewer-msi-x64-X.X.X.tar.xz    |
-| Windows  | x64          | MSI ZIP       | Fit-File-Viewer-msi-x64-X.X.X.zip       |
-| Windows  | x64          | Portable      | Fit-File-Viewer-portable-x64-X.X.X.exe  |
-| Windows  | ia32 / win32 | Installer EXE | Fit-File-Viewer-nsis-ia32-X.X.X.exe     |
-| Windows  | ia32 / win32 | Installer Web | Fit-File-Viewer-nsis-web-ia32-X.X.X.exe |
-| Windows  | ia32 / win32 | Installer 7z  | fitfileviewer-X.X.X-ia32.nsis.7z        |
-| Windows  | ia32 / win32 | Squirrel EXE  | Fit-File-Viewer-squirrel-ia32-X.X.X.exe |
-| Windows  | ia32 / win32 | MSI           | Fit-File-Viewer-msi-ia32-X.X.X.msi      |
-| Windows  | ia32 / win32 | MSI 7z        | Fit-File-Viewer-msi-ia32-X.X.X.7z       |
-| Windows  | ia32 / win32 | MSI TAR.BZ2   | Fit-File-Viewer-msi-ia32-X.X.X.tar.bz2  |
-| Windows  | ia32 / win32 | MSI TAR.GZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.gz   |
-| Windows  | ia32 / win32 | MSI TAR.XZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.xz   |
-| Windows  | ia32 / win32 | MSI ZIP       | Fit-File-Viewer-msi-ia32-X.X.X.zip      |
-| Windows  | ia32 / win32 | Portable      | Fit-File-Viewer-portable-ia32-X.X.X.exe |
-| Windows  | Win7 (legacy)| Portable EXE  | Fit-File-Viewer-win7-X.X.X.exe[.zip]    |
+| Platform | Architecture  | Format        | Filename Example                        |
+| -------- | ------------- | ------------- | --------------------------------------- |
+| :------- | :-----------  | :------------ | :-------------------------------------- |
+| Windows  | x64           | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
+| Windows  | x64           | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
+| Windows  | x64           | Installer 7z  | fitfileviewer-X.X.X-x64.nsis.7z         |
+| Windows  | x64           | Squirrel EXE  | Fit-File-Viewer-squirrel-x64-X.X.X.exe  |
+| Windows  | x64           | MSI           | Fit-File-Viewer-msi-x64-X.X.X.msi       |
+| Windows  | x64           | MSI 7z        | Fit-File-Viewer-msi-x64-X.X.X.7z        |
+| Windows  | x64           | MSI TAR.BZ2   | Fit-File-Viewer-msi-x64-X.X.X.tar.bz2   |
+| Windows  | x64           | MSI TAR.GZ    | Fit-File-Viewer-msi-x64-X.X.X.tar.gz    |
+| Windows  | x64           | MSI TAR.XZ    | Fit-File-Viewer-msi-x64-X.X.X.tar.xz    |
+| Windows  | x64           | MSI ZIP       | Fit-File-Viewer-msi-x64-X.X.X.zip       |
+| Windows  | x64           | Portable      | Fit-File-Viewer-portable-x64-X.X.X.exe  |
+| Windows  | ia32 / win32  | Installer EXE | Fit-File-Viewer-nsis-ia32-X.X.X.exe     |
+| Windows  | ia32 / win32  | Installer Web | Fit-File-Viewer-nsis-web-ia32-X.X.X.exe |
+| Windows  | ia32 / win32  | Installer 7z  | fitfileviewer-X.X.X-ia32.nsis.7z        |
+| Windows  | ia32 / win32  | Squirrel EXE  | Fit-File-Viewer-squirrel-ia32-X.X.X.exe |
+| Windows  | ia32 / win32  | MSI           | Fit-File-Viewer-msi-ia32-X.X.X.msi      |
+| Windows  | ia32 / win32  | MSI 7z        | Fit-File-Viewer-msi-ia32-X.X.X.7z       |
+| Windows  | ia32 / win32  | MSI TAR.BZ2   | Fit-File-Viewer-msi-ia32-X.X.X.tar.bz2  |
+| Windows  | ia32 / win32  | MSI TAR.GZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.gz   |
+| Windows  | ia32 / win32  | MSI TAR.XZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.xz   |
+| Windows  | ia32 / win32  | MSI ZIP       | Fit-File-Viewer-msi-ia32-X.X.X.zip      |
+| Windows  | ia32 / win32  | Portable      | Fit-File-Viewer-portable-ia32-X.X.X.exe |
+| Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-X.X.X.exe[.zip]    |
 
 <details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
 

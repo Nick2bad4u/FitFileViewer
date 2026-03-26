@@ -4,7 +4,7 @@ This directory contains the Docusaurus documentation site for FitFileViewer.
 
 ## 🌐 Live Site
 
-**Production**: <https://fitfileviewer.typpi.online>
+**Production**: <https://nick2bad4u.github.io/FitFileViewer>
 
 ## Quick Start
 
@@ -28,6 +28,7 @@ npm run build
 ```
 
 This command:
+
 1. Runs `npm run docs:typedoc` to generate API docs from JSDoc comments
 2. Runs `docusaurus build` to build the complete site
 
@@ -64,6 +65,7 @@ npm run docs:typedoc:local
 ### What Gets Documented
 
 TypeDoc processes:
+
 - All `.js` files in `electron-app/` with JSDoc comments
 - Formats documentation as Markdown
 - Creates cross-references and type links
@@ -75,6 +77,7 @@ TypeDoc processes:
 - **typedoc.local.json** - Absolute paths (for local development)
 
 Both configs:
+
 - Use `electron-app/tsconfig.json` for type context
 - Exclude tests, build outputs, and generated types
 - Enable JSDoc compatibility mode

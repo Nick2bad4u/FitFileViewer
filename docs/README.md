@@ -116,7 +116,7 @@ Some existing documentation files provide additional context:
 
 - **[GitHub Repository](https://github.com/Nick2bad4u/FitFileViewer)** - Source code and issue tracking
 - **[Releases Page](https://github.com/Nick2bad4u/FitFileViewer/releases)** - Download latest builds
-- **[GitHub Pages](https://fitfileviewer.typpi.online/)** - Project website
+- **[GitHub Pages](https://nick2bad4u.github.io/FitFileViewer/)** - Project website
 
 #### Dependencies Documentation
 

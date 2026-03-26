@@ -5,11 +5,13 @@
 The FitFileViewer documentation site is now fully configured with:
 
 ### 🌐 Custom Domain
-- **Production URL**: `https://fitfileviewer.typpi.online`
-- **Base URL**: `/` (root path)
+
+- **Production URL**: `https://nick2bad4u.github.io`
+- **Base URL**: `/FitFileViewer/`
 - Uses existing `CNAME` file for GitHub Pages
 
 ### 📚 TypeDoc Integration
+
 - **Auto-generates API docs** from JSDoc comments in `electron-app/**/*.js`
 - **Integrated into build**: `npm run build` runs TypeDoc before Docusaurus
 - **Output**: Generated docs appear in `docs/api/` directory
@@ -96,7 +98,7 @@ Push to `main` branch → workflow triggers:
 1. Runs `npm install` in `docusaurus/`
 2. Runs `npm run build` (includes TypeDoc)
 3. Deploys to GitHub Pages
-4. Available at `https://fitfileviewer.typpi.online`
+4. Available at `https://nick2bad4u.github.io/FitFileViewer`
 
 ### Manual
 
@@ -111,6 +113,7 @@ npm run deploy
 ### TypeDoc Warnings
 
 The warnings about `.d.ts` files are **expected** and can be ignored:
+
 ```
 [warning] The entry point .../types/.../*.d.ts is not referenced by tsconfig
 ```
@@ -120,6 +123,7 @@ These are generated type definitions, not source files. They're excluded from pr
 ### TypeDoc Errors
 
 If TypeDoc encounters errors:
+
 - Check `typedoc.json` exclude list
 - Problematic files can be excluded individually
 - `skipErrorChecking: true` helps with minor issues
@@ -127,6 +131,7 @@ If TypeDoc encounters errors:
 ### Missing API Docs
 
 If `docs/api/` is empty after build:
+
 - Run `npm run docs:typedoc` separately to see errors
 - Check TypeDoc output for specific issues
 - Verify electron-app has JSDoc comments
@@ -139,20 +144,21 @@ Document your code with JSDoc:
 /**
  * Formats a distance value for display.
  *
- * @param {number} meters - Distance in meters
- * @param {string} [unit='km'] - Target unit ('km' or 'mi')
- * @returns {string} Formatted distance string
+ * @example FormatDistance(5000); // "5.00 km" formatDistance(5000, 'mi'); //
+ * "3.11 mi"
  *
- * @example
- * formatDistance(5000);        // "5.00 km"
- * formatDistance(5000, 'mi');  // "3.11 mi"
+ * @param {number} meters - Distance in meters
+ * @param {string} [unit='km'] - Target unit ('km' or 'mi'). Default is `'km'`
+ *
+ * @returns {string} Formatted distance string
  */
-export function formatDistance(meters, unit = 'km') {
-    // Implementation
+export function formatDistance(meters, unit = "km") {
+ // Implementation
 }
 ```
 
 TypeDoc will automatically:
+
 - Extract this documentation
 - Generate Markdown files
 - Create navigation structure
@@ -168,6 +174,7 @@ TypeDoc will automatically:
 ## 📦 Dependencies
 
 Key Docusaurus plugins:
+
 - `@docusaurus/theme-mermaid` - Diagram support
 - `@docusaurus/theme-live-codeblock` - Interactive code examples
 - `@easyops-cn/docusaurus-search-local` - Local search
@@ -176,6 +183,7 @@ Key Docusaurus plugins:
 - `docusaurus-plugin-llms` - AI-friendly docs
 
 TypeDoc plugins:
+
 - `typedoc-plugin-markdown` - Markdown output
 - `typedoc-plugin-mdn-links` - MDN links
 - `typedoc-plugin-missing-exports` - Find exports

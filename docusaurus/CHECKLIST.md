@@ -84,8 +84,8 @@ Use this checklist to verify your documentation site is working correctly.
 
 - [ ] Workflow file exists: `.github/workflows/docusaurus.yml`
 - [ ] Workflow uses correct environment variables:
-  - `DOCUSAURUS_SITE_URL: https://fitfileviewer.typpi.online`
-  - `DOCUSAURUS_BASE_URL: /`
+  - `DOCUSAURUS_SITE_URL: https://nick2bad4u.github.io`
+  - `DOCUSAURUS_BASE_URL: /FitFileViewer/`
 - [ ] Workflow triggers on push to main and docusaurus changes
 
 ## 🐛 Known Warnings (Can Ignore)
@@ -93,15 +93,19 @@ Use this checklist to verify your documentation site is working correctly.
 These warnings are **expected** and safe to ignore:
 
 ### TypeDoc Warnings
+
 ```
 [warning] The entry point .../types/.../*.d.ts is not referenced by the 'files' or 'include' option in your tsconfig
 ```
+
 **Reason**: Generated `.d.ts` files are outputs, not sources. They're excluded from TypeDoc processing.
 
 ### TypeScript Compilation Errors (Before npm install)
+
 ```
 Cannot find module '@docusaurus/...' or its corresponding type declarations
 ```
+
 **Reason**: Dependencies not installed yet. Resolved after `npm install`.
 
 ## 🚨 Critical Issues to Fix
@@ -129,7 +133,7 @@ If you see these, something is wrong:
 3. **Deploy**
    - Commit and push to `main` branch
    - GitHub Actions will build and deploy
-   - Site will be live at <https://fitfileviewer.typpi.online>
+   - Site will be live at <https://nick2bad4u.github.io/FitFileViewer>
 
 ## 🔧 Troubleshooting
 

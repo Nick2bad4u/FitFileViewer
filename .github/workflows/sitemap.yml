@@ -34,7 +34,7 @@ jobs:
               id: sitemap
               uses: cicirello/generate-sitemap@6a56a20238e631d653600cf792c3596722b78259 # v1.10.4
               with:
-                  base-url-path: https://fitfileviewer.typpi.online/
+                  base-url-path: https://nick2bad4u.github.io/FitFileViewer
                   additional-extensions: doc docx ppt pptx js css json xml xlsx xls pdf md markdown txt lua yaml yml png
 
             # Step to output the sitemap generation stats for debugging and verification
