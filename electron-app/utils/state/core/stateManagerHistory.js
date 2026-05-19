@@ -1,29 +1,19 @@
 /**
- * State history tracking utilities for the core state manager.
+ * Mutable state change history used by the core state manager.
  */
-
+export const stateHistory = [];
 /**
- * State change history for debugging.
- *
- * @type {Object[]}
+ * Clears state change history.
  */
-const stateHistory = [];
-
-/**
- * Clear state change history.
- */
-function clearStateHistory() {
+export function clearStateHistory() {
     stateHistory.length = 0;
     console.log("[StateManager] State history cleared");
 }
-
 /**
- * Get state change history for debugging.
+ * Gets a snapshot of state change history for debugging.
  *
- * @returns {Object[]} Array of state changes
+ * @returns Array of state changes.
  */
-function getStateHistory() {
+export function getStateHistory() {
     return [...stateHistory];
 }
-
-export { clearStateHistory, getStateHistory, stateHistory };
