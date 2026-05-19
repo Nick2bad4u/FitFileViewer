@@ -22,13 +22,24 @@ const { Buffer } = require("node:buffer");
  */
 
 /**
+ * @typedef {import("./shared/fit").DecoderOptions} DecoderOptions
+ * @typedef {import("./shared/fit").DecoderOptionsValidationResult} DecoderOptionsValidationResult
+ * @typedef {import("./shared/fit").FitDecodeErrorPayload} FitDecodeErrorPayload
+ * @typedef {import("./shared/fit").FitDecodeMetadata} FitDecodeMetadata
+ * @typedef {import("./shared/fit").FitDecodeResult} FitDecodeResult
+ * @typedef {import("./shared/fit").FitFieldValue} FitFieldValue
+ * @typedef {import("./shared/fit").FitFileLoadedPayload} FitFileLoadedPayload
+ * @typedef {import("./shared/fit").FitMessages} FitMessages
+ */
+
+/**
  * @typedef {Object} SettingsStateManager
  *
- * @property {(category: string) => any} getCategory Retrieve a settings
+ * @property {(category: string) => Partial<DecoderOptions> | null | undefined} getCategory Retrieve a settings
  *   category
  * @property {(
  *     category: string,
- *     value: any,
+ *     value: Partial<DecoderOptions>,
  *     opts?: { silent?: boolean; source?: string }
  * ) => void} updateCategory
  *   Update a settings category
@@ -41,7 +52,7 @@ const { Buffer } = require("node:buffer");
  *   progress percentage
  * @property {(error: Error) => void} handleFileLoadingError Record a loading
  *   error
- * @property {(payload: { messages: FitMessages; metadata: any }) => void} handleFileLoaded
+ * @property {(payload: FitFileLoadedPayload) => void} handleFileLoaded
  *   Record successful load
  * @property {(messages: FitMessages) => number} getRecordCount Derive record
  *   count for metadata
@@ -62,31 +73,6 @@ const { Buffer } = require("node:buffer");
  * @property {"boolean"} type Primitive type expected (only boolean currently)
  * @property {boolean} default Default value
  * @property {string} description Human readable description
- */
-
-/**
- * @typedef {Object} DecoderOptions
- *
- * @property {boolean} applyScaleAndOffset
- * @property {boolean} expandSubFields
- * @property {boolean} expandComponents
- * @property {boolean} convertTypesToStrings
- * @property {boolean} convertDateTimesToDates
- * @property {boolean} includeUnknownData
- * @property {boolean} mergeHeartRates
- */
-
-/**
- * @typedef {Object} DecoderOptionsValidationResult
- *
- * @property {boolean} isValid Whether supplied options passed validation
- * @property {string[]} errors Validation messages (empty when valid)
- * @property {DecoderOptions} validatedOptions Sanitized + default‑filled
- *   options
- */
-
-/**
- * @typedef {Record<string, any[] | object[]>} FitMessages
  */
 
 /**
@@ -123,8 +109,8 @@ class FitDecodeError extends Error {
      * Create a FIT decode error
      *
      * @param {string} message - Error message
-     * @param {any} details - Additional error details
-     * @param {Object} [metadata] - Optional metadata for state management
+ * @param {FitFieldValue} details - Additional error details
+ * @param {FitDecodeMetadata} [metadata] - Optional metadata for state management
      */
     constructor(message, details, metadata = {}) {
         super(message);
@@ -140,7 +126,7 @@ class FitDecodeError extends Error {
     /**
      * Convert error to JSON for state management
      *
-     * @returns {Object} Serializable error object
+ * @returns {FitDecodeErrorPayload & { name: string; stack?: string }} Serializable error object
      */
     toJSON() {
         return {
@@ -397,18 +383,17 @@ function applyUnknownMessageLabels(messages) {
  * management.
  *
  * @param {Buffer | Uint8Array} fileBuffer - The FIT file buffer to decode.
- * @param {Object} [options] - Optional decoder.read options.
+ * @param {Partial<DecoderOptions>} [options] - Optional decoder.read options.
  * @param {Object} [fitsdk] - Optional fitsdk dependency for testing/mocking.
  *
- * @returns {Promise<Object>} Decoded messages or error object.
+ * @returns {Promise<FitDecodeResult>} Decoded messages or error object.
  */
 /**
  * @param {Buffer | Uint8Array} fileBuffer
  * @param {Partial<DecoderOptions>} [options]
- * @param {any} [fitsdk] Optional injected sdk for tests (should expose Decoder
- *   & Stream)
+ * @param {{ Decoder: unknown; Stream: unknown } | null} [fitsdk] Optional injected sdk for tests.
  *
- * @returns {Promise<FitMessages | { error: string; details: any }>}
+ * @returns {Promise<FitDecodeResult>}
  */
 async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
     const operationId = `fitFile_decode_${Date.now()}`;

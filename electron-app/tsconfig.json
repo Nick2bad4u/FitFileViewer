@@ -1,7 +1,6 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
     "compilerOptions": {
-        "baseUrl": ".",
         "jsx": "react-jsx",
         "module": "ESNext",
         "moduleDetection": "auto",
@@ -26,9 +25,9 @@
             "ESNext"
         ],
         "paths": {
-            "@shared/*": ["shared/*"],
-            "@electron/*": ["electron/*"],
-            "@app/*": ["src/*"]
+            "@shared/*": ["./shared/*"],
+            "@electron/*": ["./electron/*"],
+            "@app/*": ["./src/*"]
         },
         "plugins": [
             {
@@ -46,7 +45,6 @@
         "declarationDir": "./types",
         "declarationMap": false,
         "disableSizeLimit": true,
-        "downlevelIteration": true,
         "esModuleInterop": true,
         "exactOptionalPropertyTypes": true,
         "forceConsistentCasingInFileNames": true,
@@ -103,14 +101,13 @@
         "dist-shared",
         "**/dist-shared/**",
         "electron",
-        "shared",
         "node_modules",
         "node_modules/**/*",
         "out",
         "release",
-        "src/**/*.test.ts",
+        "**/*.test.ts",
         "**/html/**",
-        "src/**/*.test.tsx",
+        "**/*.test.tsx",
         "**/tests/**",
         // Exclude test mocks and debug helper from project typecheck
         "__mocks__/**",
@@ -120,7 +117,7 @@
     "include": [
         "**/*.js",
         "global.d.ts",
-        "src/**/*.css",
+        "shared/**/*.ts",
         "src/**/*.css",
         "src/**/*.ts",
         "src/**/*.mts",
@@ -130,6 +127,7 @@
         "src/App.tsx",
         "src/index.css",
         "src/types/global.d.ts",
+        "utils/**/*.ts",
         "vite.config.ts",
         "vite/client",
         "vitest.config.ts",

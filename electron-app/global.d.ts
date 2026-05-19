@@ -1,31 +1,31 @@
 /* eslint-disable */
+import type {
+    FitDecodeResult,
+    FitMessages,
+} from "./shared/fit";
+import type {
+    ChannelInfo,
+    GenericInvokeChannel,
+    GenericSendChannel,
+    GyazoServerStartResult,
+    GyazoServerStopResult,
+    IpcEventCallback,
+    IpcRequestPayload,
+    IpcResponsePayload,
+    IpcSerializable,
+    MainStateListener,
+    PlatformInfo,
+    RendererIpcEventChannel,
+    UpdateEventName,
+} from "./shared/ipc";
+
 /*
  Global ambient type augmentation for values injected via the Electron preload script.
  This provides TypeScript awareness for `window.electronAPI` and related helpers so that
  renderer JavaScript (checked with `checkJs`) does not emit "Property 'electronAPI' does not exist" errors.
 
- Keep the interface intentionally simple at this stage; we refine return/argument types incrementally.
+ Legacy globals remain isolated below while the preload API uses explicit IPC contract types.
 */
-
-interface GyazoServerStartResult {
-    success: boolean;
-    port: number;
-    message?: string;
-}
-interface GyazoServerStopResult {
-    success: boolean;
-    message?: string;
-}
-interface PlatformInfo {
-    platform: string;
-    arch: string;
-}
-interface ChannelInfo {
-    channels: Record<string, string>;
-    events: Record<string, string>;
-    totalChannels: number;
-    totalEvents: number;
-}
 
 interface ElectronAPI {
     // File operations
@@ -49,12 +49,15 @@ interface ElectronAPI {
      */
     openOverlayDialog(): Promise<string[]>;
     readFile(filePath: string): Promise<ArrayBuffer>;
-    parseFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
-    decodeFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
+    parseFitFile(arrayBuffer: ArrayBuffer): Promise<FitDecodeResult>;
+    decodeFitFile(arrayBuffer: ArrayBuffer): Promise<FitDecodeResult>;
     /** Get the persisted FIT browser folder (main process setting). */
     getFitBrowserFolder(): Promise<string | null>;
     /** List entries under the persisted FIT browser folder. */
-    listFitBrowserFolder(relPath?: string): Promise<any>;
+    listFitBrowserFolder(relPath?: string): Promise<IpcSerializable>;
+    isFitBrowserEnabled(): Promise<boolean>;
+    setFitBrowserEnabled(enabled: boolean): Promise<boolean>;
+    setFitBrowserFolder(folderPath: string): Promise<boolean>;
     recentFiles(): Promise<string[]>;
     addRecentFile(filePath: string): Promise<string[]>;
 
@@ -84,11 +87,13 @@ interface ElectronAPI {
     onSetTheme(callback: (theme: string) => void): () => void;
     onOpenSummaryColumnSelector(callback: () => void): () => void;
     onUpdateEvent(
-        eventName: string,
-        callback: (...args: any[]) => void
+        eventName: UpdateEventName,
+        callback: (...args: IpcResponsePayload[]) => void
     ): () => void;
     /** Fired when a file is opened and parsed in main process */
-    onFileOpened?(callback: (fileData: any, filePath: string) => void): void;
+    onFileOpened?(
+        callback: (fileData: FitMessages, filePath: string) => void
+    ): void;
 
     // Updater
     checkForUpdates(): void;
@@ -97,31 +102,38 @@ interface ElectronAPI {
 
     // Generic IPC
     onIpc(
-        channel: string,
-        callback: (event: object, ...args: any[]) => void
+        channel: RendererIpcEventChannel,
+        callback: IpcEventCallback
     ): (() => void) | undefined;
-    send(channel: string, ...args: any[]): void;
-    invoke(channel: string, ...args: any[]): Promise<any>;
+    send(channel: GenericSendChannel, ...args: IpcRequestPayload[]): void;
+    invoke(
+        channel: GenericInvokeChannel,
+        ...args: IpcRequestPayload[]
+    ): Promise<IpcResponsePayload>;
 
     // Main process state bridge
-    getMainState(path?: string): Promise<any>;
-    setMainState(path: string, value: any, options?: any): Promise<boolean>;
+    getMainState(path?: string): Promise<IpcSerializable>;
+    setMainState(
+        path: string,
+        value: IpcSerializable,
+        options?: IpcSerializable
+    ): Promise<boolean>;
     listenToMainState(
         path: string,
-        callback: (change: any) => void
+        callback: MainStateListener
     ): Promise<boolean>;
     unlistenFromMainState(
         path: string,
-        callback: (change: any) => void
+        callback: MainStateListener
     ): Promise<boolean>;
     subscribeToMainState(
         path: string,
-        callback: (change: any) => void
+        callback: MainStateListener
     ): Promise<() => Promise<boolean>>;
-    getOperation(operationId: string): Promise<any>;
-    getOperations(): Promise<any>;
-    getErrors(limit?: number): Promise<any>;
-    getMetrics(): Promise<any>;
+    getOperation(operationId: string): Promise<IpcSerializable | null>;
+    getOperations(): Promise<IpcSerializable>;
+    getErrors(limit?: number): Promise<IpcSerializable>;
+    getMetrics(): Promise<IpcSerializable>;
 
     // Dev / debug
     /** Notify main process of the currently loaded file (or null when cleared). */
