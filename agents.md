@@ -1,63 +1,32 @@
-# Agents Guide
+# Repository Guidelines
 
-## Thinking Mode & Role Expectations
+## Project Structure & Module Organization
 
-- Always operate in the highest reasoning mode available (Deep Think, Ultra Think, Think Harder, Super Think, Think Twice, Think More, Think Better).
-- Assume unlimited time and compute; reason step by step before acting.
-- Act as a world-class engineer across TypeScript/JavaScript/Electron/Zustand/Tailwind/Vite, Node.js, architecture, security, and testing.
+FitFileViewer is a JavaScript/TypeScript workspace centered on `electron-app/`, the desktop app for parsing and visualizing `.fit` activity files. App entry points are `electron-app/main.js`, `preload.js`, `renderer.js`, and `main-ui.js`. Feature modules are grouped under `electron-app/utils/` by domain, including `charts/`, `maps/`, `state/`, `storage/`, `theming/`, and `ui/`. Tests live in `electron-app/tests/`; Docusaurus docs live in `docusaurus/`; repo-level guides live in `docs/`. Sample FIT files are in `fit-test-files/`, with icons and screenshots in `electron-app/icons/` and `electron-app/screenshots/`.
 
-## Core Operating Rules
+## Build, Test, and Development Commands
 
-- Track multi-step work with a markdown todo list; skip only for trivial tasks.
-- Read relevant code before editing; verify names, files, and flows in the repo.
-- Integrate changes with existing patterns; avoid ad-hoc shortcuts or hacks.
-- Plan explicitly, documenting steps and revisiting after each update.
-- Wait for command output before continuing; assume failure until verified.
-- Prefer Windows-flavored commands unless explicitly told otherwise.
-- Research external libraries/tools before use; confirm behavior in docs.
-- Use sequential thinking tools when tackling complex changes.
+- `npm install`: install root lint tooling; also run inside `electron-app/` and `docusaurus/` when working there.
+- `npm run lint`: run root, Electron, and Docusaurus lint workflows.
+- `cd electron-app && npm start`: launch the Electron app with debug ports.
+- `cd electron-app && npm test`: run the Vitest suite once.
+- `cd electron-app && npm run typecheck`: run TypeScript checks without emitting files.
+- `cd electron-app && npm run build`: package the app with `electron-builder`.
+- `cd docusaurus && npm start`: run the documentation site locally.
+- `cd docusaurus && npm run build`: generate API docs and build the static site.
 
-## Workflow Playbook (Adapted from Beast Mode)
+## Coding Style & Naming Conventions
 
-1. **Gather Inputs**
-   - Fetch or read every user-provided file/URL that matters to the task. Use built-in tooling to fetch URLs when network access is necessary and permitted.
-2. **Understand the Problem Deeply**
-   - Clarify expected behavior, edge cases, dependencies, and how the change fits the wider system.
-3. **Investigate the Codebase**
-   - Locate relevant files, read generously for context, and confirm assumptions before editing.
-4. **Research When Needed**
-   - For third-party APIs, frameworks, or libraries, consult up-to-date references; capture key findings locally when possible.
-5. **Plan Explicitly**
-   - Break the work into clear, verifiable steps. Track them as a checklist and update status as you progress.
-6. **Implement Incrementally**
-   - Make focused edits, prefer small diffs, and keep changes well-documented with inline comments only when an implementation is non-obvious.
-7. **Debug Methodically**
-   - Use repository scripts (`npm --prefix electron-app run lint`, `npm --prefix electron-app test`, `npm --prefix electron-app run type-check`, etc.) to surface issues early. No prefix needed if in electron-app folder.
-8. **Test Rigorously**
-   - Run applicable suites after each meaningful change. Capture output summaries; rerun on failure until clean.
-9. **Reflect Before Finishing**
-   - Review diffs, ensure the checklist is complete, and describe the impact and next steps succinctly when reporting back.
+Follow the existing CommonJS app style in `electron-app/` and TypeScript where it is already used for tests, declarations, and docs tooling. Use Prettier via `prettier-config-nick2bad4u`, ESLint via `eslint-config-nick2bad4u`, Stylelint for CSS, Remark/Markdownlint for Markdown, and Secretlint for secret checks. Name files by behavior, for example `renderMap.js`, `formatDuration.js`, or `stateMiddleware.branches.test.ts`. Prefer small domain modules under `electron-app/utils/<area>/` instead of expanding entry-point files.
 
-## Prohibitions
+## Testing Guidelines
 
-- No guesses about architecture or behavior—verify everything in code or docs.
-- No shortcuts, temporary hacks, or breaking established conventions.
-- No introducing new patterns without deliberate justification and alignment.
-- No ignoring lint/type/test errors or proceeding with partial understanding.
-- No Linux-only commands in terminals; this environment is Windows-first.
+Use Vitest for primary app tests and Jest only for existing Jest/e2e paths. Place new tests near the relevant domain under `electron-app/tests/`, using `*.test.ts` or `*.test.js`. Add reusable fixtures under `electron-app/tests/fixtures/`, and use `fit-test-files/` for real FIT-file scenarios. Run targeted tests during development, then run `cd electron-app && npm test` before a PR.
 
-## Code Quality & Testing Standards
+## Commit & Pull Request Guidelines
 
-- Treat formatting as secondary to logic, but clean up via `npm --prefix electron-app run lint:fix` when needed.
-- Add unit, integration, e2e, or property-based tests (fast-check) when the change warrants it—after source compiles and lint/type checks are green.
+Commit messages use the repository’s emoji and bracketed type format, for example `✨ [feat] Add map lap selector` or `🛠️ [fix] Correct FIT parser error handling`. Prioritize source changes before test or tooling notes in multi-line commits. Pull requests should fill the matching template, link issues, summarize changed files, describe test coverage, and include screenshots or GIFs for UI changes. Note platform coverage for Windows, macOS, Linux, light theme, and dark theme when behavior or packaging changes.
 
-## Architecture Snapshot
+## Agent-Specific Instructions
 
-- **Tech Stack**: JavaScript + Zustand + Electron + Vite.
-
-## When in Doubt
-
-- Prioritize the highest-level instructions (system -> developer -> user -> files).
-- Keep interactions concise, factual, and solution oriented.
-- Never COMMIT or PUSH without explicit instruction. Never git restore without permission.
-- Ask for permission to reset or delete files.
+Keep changes scoped, verify with the relevant npm scripts, and do not report work as complete while lint, typecheck, or tests that apply to the change are still failing.

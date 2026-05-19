@@ -364,3 +364,6 @@ electron-app/recent-files-test.json
 electron-app/test-report.junit.xml
 todo.md
 electron-app/temp-win7/
+# Ignore generated doc coverage badges
+docs/docusaurus/static/img/coverage.json
+docs/docusaurus/static/img/coverage.svg

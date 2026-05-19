@@ -1,0 +1,35 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "erasableSyntaxOnly": true,
+        "isolatedDeclarations": false,
+        "noEmit": true,
+        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.js.tsbuildinfo",
+        "types": [
+            "node"
+        ]
+    },
+    "exclude": [
+        ".cache/**",
+        "coverage/**",
+        "dist/**",
+        "docs/docusaurus/.docusaurus/**",
+        "docs/docusaurus/build/**",
+        "eslint.config.bundled_*.mjs",
+        "node_modules/**",
+        "test/fixtures/**"
+    ],
+    "extends": "./tsconfig.json",
+    "include": [
+        "*.cjs",
+        "*.d.cts",
+        "*.d.ts",
+        "*.d.mts",
+        "*.js",
+        "*.mjs",
+        "test/**/*.mjs",
+        "test/_internal/**/*.d.ts"
+    ]
+}

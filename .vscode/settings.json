@@ -57,5 +57,9 @@
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "typescript.suggest.autoImports": true,
     "typescript.tsc.autoDetect": "off",
-    "vitest.rootConfig": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\vitest.config.js"
+    "vitest.rootConfig": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\vitest.config.js",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "nick2bad4u",
+        "projectKey": "Nick2bad4u_FitFileViewer"
+    }
 }
