@@ -5,25 +5,47 @@
  * contexts, and privacy settings can make storage unavailable or throw. These
  * helpers centralize storage access so callers fail closed.
  */
+
+/**
+ * Minimal storage API used by renderer helpers.
+ */
+export type StorageLike = {
+    getItem?: (key: string) => null | string;
+    removeItem?: (key: string) => void;
+    setItem?: (key: string, value: string) => void;
+};
+
+/**
+ * Optional storage-provider callback for tests or alternate storage scopes.
+ */
+export type StorageProvider = () => null | StorageLike;
+
+type GlobalWithStorage = typeof globalThis & {
+    localStorage?: StorageLike;
+};
+
 /**
  * Resolve an injected storage provider or the current global localStorage.
  *
  * @param getStorage - Optional storage provider.
  * @returns A usable storage object, or null when storage is unavailable.
  */
-export function resolveStorage(getStorage) {
+export function resolveStorage(getStorage?: StorageProvider): null | StorageLike {
     try {
-        const scope = globalThis;
-        const storage = getStorage === undefined ? (scope.localStorage ?? null) : getStorage();
+        const scope = globalThis as GlobalWithStorage;
+        const storage =
+            getStorage === undefined ? (scope.localStorage ?? null) : getStorage();
+
         if (typeof storage !== "object" || storage === null) {
             return null;
         }
+
         return storage;
-    }
-    catch {
+    } catch {
         return null;
     }
 }
+
 /**
  * Read a storage value without letting storage failures escape.
  *
@@ -31,30 +53,36 @@ export function resolveStorage(getStorage) {
  * @param getStorage - Optional storage provider.
  * @returns Stored value, or null when unavailable.
  */
-export function safeStorageGetItem(key, getStorage) {
+export function safeStorageGetItem(
+    key: string,
+    getStorage?: StorageProvider
+): null | string {
     const storage = resolveStorage(getStorage);
     try {
         return storage?.getItem === undefined ? null : storage.getItem(key);
-    }
-    catch {
+    } catch {
         return null;
     }
 }
+
 /**
  * Remove a storage value without letting storage failures escape.
  *
  * @param key - Storage key.
  * @param getStorage - Optional storage provider.
  */
-export function safeStorageRemoveItem(key, getStorage) {
+export function safeStorageRemoveItem(
+    key: string,
+    getStorage?: StorageProvider
+): void {
     const storage = resolveStorage(getStorage);
     try {
         storage?.removeItem?.(key);
-    }
-    catch {
+    } catch {
         // Ignore unavailable or restricted storage.
     }
 }
+
 /**
  * Write a storage value without letting storage failures escape.
  *
@@ -62,12 +90,15 @@ export function safeStorageRemoveItem(key, getStorage) {
  * @param value - String value to store.
  * @param getStorage - Optional storage provider.
  */
-export function safeStorageSetItem(key, value, getStorage) {
+export function safeStorageSetItem(
+    key: string,
+    value: string,
+    getStorage?: StorageProvider
+): void {
     const storage = resolveStorage(getStorage);
     try {
         storage?.setItem?.(key, value);
-    }
-    catch {
+    } catch {
         // Ignore unavailable or restricted storage.
     }
 }

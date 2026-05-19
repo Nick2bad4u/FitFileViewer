@@ -75,6 +75,7 @@
         "utils/errors/index.ts",
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
+        "utils/storage/storageUtils.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",
         "utils/dom/escapeHtml.ts",
