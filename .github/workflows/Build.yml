@@ -5,25 +5,6 @@ concurrency:
     cancel-in-progress: true
 
 on:
-    push:
-        branches:
-            - main
-        paths-ignore:
-            - "*"
-            - "*/**"
-            - "!electron-app/icons/**"
-            - "!electron-app/icons"
-            - "!electron-app/**"
-            - "!electron-app"
-            - "**/CHANGELOG.md"
-            - "CHANGELOG.md"
-            - "electron-app/scripts/**"
-            - "electron-app/scripts"
-            - "electron-app/tests/**"
-            - "electron-app/tests"
-            - "electron-app/assets/**"
-            - "electron-app/assets"
-            - "electron-app/vite.config.js"
     workflow_dispatch:
         inputs:
             branch:
@@ -34,7 +15,6 @@ on:
 permissions: write-all
 jobs:
     bump-version:
-        if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -127,7 +107,6 @@ jobs:
 
     build:
         needs: bump-version
-        if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ${{ matrix.os }}
         env:
             # Vite/electron-builder can be memory intensive across renderer/main/preload builds.
@@ -136,13 +115,13 @@ jobs:
         strategy:
             matrix:
                 os:
-                        - ubuntu-latest
-                        - ubuntu-24.04-arm
-                        - windows-latest
-                        - macos-15
-                        - macos-latest
-                        - macos-15-intel
-                    
+                    - ubuntu-latest
+                    - ubuntu-24.04-arm
+                    - windows-latest
+                    - macos-15
+                    - macos-latest
+                    - macos-15-intel
+
                 arch: [x64, ia32, arm64]
                 exclude:
                     # Exclude macOS with ia32 architecture as it is not supported by Electron
@@ -403,7 +382,6 @@ jobs:
 
     release:
         needs: [build, bump-version]
-        if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.build.result == 'success' && needs.bump-version.result == 'success' }}
         runs-on: ubuntu-latest
         steps:
             - name: Harden the runner (Audit all outbound calls)
