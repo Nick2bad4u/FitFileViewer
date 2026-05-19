@@ -73,6 +73,8 @@
         "utils/logging/index.ts",
         "utils/errors/errorHandling.ts",
         "utils/errors/index.ts",
+        "utils/async/pLimitCompat.ts",
+        "utils/net/networkUtils.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",
         "utils/dom/escapeHtml.ts",
