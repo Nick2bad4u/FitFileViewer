@@ -1,0 +1,82 @@
+import { describe, expect, it, vi } from "vitest";
+import config, {
+    CONFIG,
+    CONVERSION_FACTORS,
+    FILE_CONSTANTS,
+    TIME_UNITS,
+    UI_CONSTANTS,
+    getConfig,
+    initializeConfig,
+    validateConfig,
+} from "../../../utils/config/index.js";
+
+describe("config/index.js", () => {
+    it("exports shared constants as named values", () => {
+        expect.assertions(4);
+
+        expect(CONVERSION_FACTORS.METERS_PER_KILOMETER).toBe(1000);
+        expect(CONVERSION_FACTORS.METERS_PER_MILE).toBe(1609.344);
+        expect(TIME_UNITS.SECONDS).toBe("seconds");
+        expect(FILE_CONSTANTS.SUPPORTED_EXTENSIONS).toStrictEqual([".fit"]);
+    });
+
+    it("preserves default namespace access for existing consumers", () => {
+        expect.assertions(3);
+
+        expect(config.CONVERSION_FACTORS.METERS_TO_INCHES).toBe(39.3701);
+        expect(config.TIME_UNITS.HOURS).toBe("hours");
+        expect(config.CONFIG.CONVERSION.KG_TO_POUNDS).toBe(2.204_62);
+    });
+
+    it("supports grouped CONFIG access", () => {
+        expect.assertions(3);
+
+        expect(CONFIG.UI.DEFAULT_THEME).toBe(UI_CONSTANTS.DEFAULT_THEME);
+        expect(CONFIG.FILE.DEFAULT_EXPORT_FORMAT).toBe("gpx");
+        expect(CONFIG.TIME_UNITS.MINUTES).toBe("minutes");
+    });
+
+    it("reads values by dot-notation path", () => {
+        expect.assertions(2);
+
+        expect(getConfig("UI_CONSTANTS.DEFAULT_THEME")).toBe("dark");
+        expect(getConfig("CONVERSION_FACTORS.METERS_PER_MILE")).toBe(
+            1609.344
+        );
+    });
+
+    it("returns the provided default for missing config paths", () => {
+        expect.assertions(2);
+
+        expect(getConfig("UI_CONSTANTS.DOES_NOT_EXIST", "fallback")).toBe(
+            "fallback"
+        );
+        expect(getConfig("MISSING_GROUP.VALUE", 42)).toBe(42);
+    });
+
+    it("validates the current configuration", () => {
+        expect.assertions(1);
+
+        expect(validateConfig()).toStrictEqual({
+            errors: [],
+            isValid: true,
+            warnings: [],
+        });
+    });
+
+    it("initializes config and logs success when validation passes", () => {
+        expect.assertions(2);
+
+        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+        try {
+            expect(initializeConfig()).toBeUndefined();
+
+            expect(logSpy).toHaveBeenCalledWith(
+                "[Config] Configuration system initialized successfully"
+            );
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+});

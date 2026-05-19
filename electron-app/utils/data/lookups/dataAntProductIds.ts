@@ -463,6 +463,7 @@ export const dataAntProductIds = {
         65_532: "android_antplus_plugin",
         65_534: "connect",
     },
+
     // Wahoo Fitness products (ID: 32)
     32: {
         1: "kickr_v1",
@@ -480,6 +481,7 @@ export const dataAntProductIds = {
         22: "tickr_run",
         // Add more Wahoo products as needed
     },
+
     // Stages Cycling products (ID: 68)
     68: {
         1: "power_meter_gen1",
@@ -488,12 +490,14 @@ export const dataAntProductIds = {
         4: "power_meter_lr",
         // Add more Stages products as needed
     },
+
     // Favero Electronics products
     263: {
         12: "assioma_duo",
         13: "assioma_uno",
         // Add more Favero products as discovered
     },
+
     // SRAM products (ID: 280)
     280: {
         1: "quarq_dzero",

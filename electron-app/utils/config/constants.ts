@@ -17,7 +17,8 @@ export const CONVERSION_FACTORS = {
     MPS_TO_MPH: 2.237,
     SECONDS_PER_HOUR: 3600,
     SECONDS_PER_MINUTE: 60,
-};
+} as const;
+
 /**
  * Distance unit definitions with consistent naming.
  */
@@ -26,7 +27,8 @@ export const DISTANCE_UNITS = {
     KILOMETERS: "kilometers",
     METERS: "meters",
     MILES: "miles",
-};
+} as const;
+
 /**
  * Time unit definitions.
  */
@@ -35,7 +37,8 @@ export const TIME_UNITS = {
     MILLISECONDS: "milliseconds",
     MINUTES: "minutes",
     SECONDS: "seconds",
-};
+} as const;
+
 /**
  * Temperature unit definitions.
  */
@@ -43,7 +46,8 @@ export const TEMPERATURE_UNITS = {
     CELSIUS: "celsius",
     FAHRENHEIT: "fahrenheit",
     KELVIN: "kelvin",
-};
+} as const;
+
 /**
  * UI-related constants and configurations.
  */
@@ -107,7 +111,8 @@ export const UI_CONSTANTS = {
         LIGHT: "light",
         SYSTEM: "system",
     },
-};
+} as const;
+
 /**
  * File handling constants.
  */
@@ -124,7 +129,8 @@ export const FILE_CONSTANTS = {
     MAX_FILE_SIZE: 50 * 1024 * 1024,
     SUPPORTED_EXTENSIONS: [".fit"],
     SUPPORTED_MIME_TYPES: ["application/octet-stream"],
-};
+} as const;
+
 /**
  * Chart-related constants.
  */
@@ -146,7 +152,8 @@ export const CHART_CONSTANTS = {
     DEFAULT_ZOOM_LEVEL: 1,
     MAX_ZOOM_LEVEL: 10,
     MIN_ZOOM_LEVEL: 0.1,
-};
+} as const;
+
 /**
  * Map-related constants.
  */
@@ -158,7 +165,8 @@ export const MAP_CONSTANTS = {
         OPENSTREETMAP: "openstreetmap",
         SATELLITE: "satellite",
     },
-};
+} as const;
+
 /**
  * Performance monitoring constants.
  */
@@ -174,7 +182,8 @@ export const PERFORMANCE_CONSTANTS = {
     MAX_HISTORY_SIZE: 100,
     MEMORY_CHECK_INTERVAL: 30_000,
     SLOW_OPERATION_THRESHOLD: 10,
-};
+} as const;
+
 /**
  * Validation constants and rules.
  */
@@ -187,7 +196,8 @@ export const VALIDATION_CONSTANTS = {
     MIN_DURATION: 0,
     MIN_SPEED: 0,
     MIN_STRING_LENGTH: 1,
-};
+} as const;
+
 /**
  * Error handling constants.
  */
@@ -212,7 +222,8 @@ export const ERROR_CONSTANTS = {
         UNKNOWN_ERROR: "An unknown error occurred",
         VALIDATION_ERROR: "Input validation failed",
     },
-};
+} as const;
+
 /**
  * Development and debugging constants.
  */
@@ -231,7 +242,8 @@ export const DEBUG_CONSTANTS = {
         INFO: "info",
         WARN: "warn",
     },
-};
+} as const;
+
 /**
  * Application metadata constants.
  */
@@ -260,7 +272,8 @@ export const APP_CONSTANTS = {
     },
     NAME: "FitFileViewer",
     VERSION: "26.8.0",
-};
+} as const;
+
 const MODULE_EXPORTS = {
     APP_CONSTANTS,
     CHART_CONSTANTS,
@@ -275,7 +288,17 @@ const MODULE_EXPORTS = {
     TIME_UNITS,
     UI_CONSTANTS,
     VALIDATION_CONSTANTS,
-};
+} as const;
+
+/**
+ * Validation result returned by {@link validateConfig}.
+ */
+export interface ConfigValidationResult {
+    errors: string[];
+    isValid: boolean;
+    warnings: string[];
+}
+
 /**
  * Get a configuration value by dot-notation path.
  *
@@ -287,46 +310,57 @@ const MODULE_EXPORTS = {
  * @param defaultValue - Value returned when the path does not exist.
  * @returns Configuration value, or the provided default value.
  */
-export function getConfig(path, defaultValue) {
-    let current = MODULE_EXPORTS;
+export function getConfig(path: string, defaultValue?: unknown): unknown {
+    let current: unknown = MODULE_EXPORTS;
+
     try {
         for (const part of path.split(".")) {
             if (isRecord(current) && part in current) {
                 current = current[part];
-            }
-            else {
+            } else {
                 return defaultValue;
             }
         }
         return current;
-    }
-    catch {
+    } catch {
         return defaultValue;
     }
 }
+
 /**
  * Initialize the configuration system and fail fast on invalid constants.
  *
  * @throws Error when required configuration values are missing or invalid.
  */
-export function initializeConfig() {
+export function initializeConfig(): void {
     const validation = validateConfig();
+
     if (!validation.isValid) {
-        console.error("[Config] Configuration validation failed:", validation.errors);
-        throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`);
+        console.error(
+            "[Config] Configuration validation failed:",
+            validation.errors
+        );
+        throw new Error(
+            `Configuration validation failed: ${validation.errors.join(", ")}`
+        );
     }
+
     if (validation.warnings.length > 0) {
         console.warn("[Config] Configuration warnings:", validation.warnings);
     }
+
     console.log("[Config] Configuration system initialized successfully");
 }
+
 /**
  * Validate configuration integrity.
  *
  * @returns Current configuration validation result.
  */
-export function validateConfig() {
-    const errors = [], warnings = [];
+export function validateConfig(): ConfigValidationResult {
+    const errors: string[] = [],
+        warnings: string[] = [];
+
     for (const path of [
         "CONVERSION_FACTORS.METERS_PER_KILOMETER",
         "UI_CONSTANTS.DEFAULT_THEME",
@@ -336,18 +370,24 @@ export function validateConfig() {
             errors.push(`Missing required configuration: ${path}`);
         }
     }
+
     if (CONVERSION_FACTORS.METERS_PER_KILOMETER !== 1000) {
         errors.push("METERS_PER_KILOMETER should be 1000");
     }
+
     if (!themeExists(UI_CONSTANTS.DEFAULT_THEME)) {
-        warnings.push(`Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`);
+        warnings.push(
+            `Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`
+        );
     }
+
     return {
         errors,
         isValid: errors.length === 0,
         warnings,
     };
 }
+
 /**
  * Namespaced constant groups for consumers that prefer grouped access.
  */
@@ -365,10 +405,14 @@ export const CONFIG = {
     TIME_UNITS,
     UI: UI_CONSTANTS,
     VALIDATION: VALIDATION_CONSTANTS,
-};
-function isRecord(value) {
+} as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object";
 }
-function themeExists(theme) {
-    return Object.values(UI_CONSTANTS.THEMES).includes(theme);
+
+function themeExists(theme: string): boolean {
+    return Object.values(UI_CONSTANTS.THEMES).includes(
+        theme as (typeof UI_CONSTANTS.THEMES)[keyof typeof UI_CONSTANTS.THEMES]
+    );
 }
