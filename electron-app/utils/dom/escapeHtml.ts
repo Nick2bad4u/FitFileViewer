@@ -5,7 +5,7 @@
  * Note: Prefer creating DOM nodes and assigning `textContent` where feasible.
  * This helper is intended for places where templated HTML is already used.
  */
-export function escapeHtml(value) {
+export function escapeHtml(value: string): string {
     return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")

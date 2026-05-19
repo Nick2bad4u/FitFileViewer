@@ -59,6 +59,29 @@ import { showNotification } from "../notifications/showNotification.js";
  * @typedef {HTMLDivElement & { _updateFromReset?: Function }} HTMLDivElementExtended
  */
 
+/**
+ * Resolve chart instances from the renderer global. In Electron's renderer,
+ * `globalThis` and `window` normally point at the same object; Vitest's jsdom
+ * environment can keep them separate.
+ *
+ * @returns {any[] | undefined}
+ */
+function getChartInstances() {
+    const globalScope = /** @type {WindowExtensions} */ (globalThis);
+    if (Array.isArray(globalScope._chartjsInstances)) {
+        return globalScope._chartjsInstances;
+    }
+
+    if (typeof window !== "undefined") {
+        const windowScope = /** @type {WindowExtensions} */ (window);
+        if (Array.isArray(windowScope._chartjsInstances)) {
+            return windowScope._chartjsInstances;
+        }
+    }
+
+    return undefined;
+}
+
 export function applySettingsPanelStyles(/** @type {HTMLElement} */ wrapper) {
     wrapper.style.cssText = `
 		background: var(--color-bg-alt);
@@ -281,8 +304,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
         },
         {
             action: () => {
-                const charts = /** @type {WindowExtensions} */ (globalThis)
-                    ._chartjsInstances;
+                const charts = getChartInstances();
                 if (!charts || charts.length === 0) {
                     showNotification(
                         "No charts available to export",
@@ -644,8 +666,7 @@ export function showChartSelectionModal(
     singleCallback,
     combinedCallback
 ) {
-    const charts = /** @type {WindowExtensions} */ (globalThis)
-        ._chartjsInstances;
+    const charts = getChartInstances();
     if (!charts || charts.length === 0) {
         showNotification("No charts available", "warning");
         return;
@@ -669,6 +690,8 @@ export function showChartSelectionModal(
 
     // Create modal overlay
     const overlay = document.createElement("div");
+    overlay.className = "chart-selection-modal-overlay";
+    overlay.dataset.ffvModal = "chart-selection";
     overlay.style.cssText = `
 		position: fixed;
 		top: 0;

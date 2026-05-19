@@ -2,6 +2,12 @@
  * Utilities for producing file-system safe names and extensions while obeying
  * Electron's legacy renderer constraints (no additional dependencies).
  */
+
+interface BuildDownloadFilenameOptions {
+    defaultExtension?: string;
+    fallbackBase?: string;
+}
+
 const RESERVED_FILENAME_CHARACTERS = new Set([
     ":",
     "?",
@@ -38,75 +44,109 @@ const RESERVED_DEVICE_NAMES = new Set([
     "NUL",
     "PRN",
 ]);
+
 const DEFAULT_FALLBACK_BASE = "file";
 const MAX_FILENAME_LENGTH = 120;
 const MAX_EXTENSION_LENGTH = 16;
 const PATH_SPLIT_REGEX = /[\\/]+/u;
+
 /**
  * Builds a safe download name from an arbitrary path/label. If the source lacks
  * an extension, `defaultExtension` is appended after sanitisation. The result
  * is always safe to assign to the `download` attribute of an anchor element.
  */
-export function buildDownloadFilename(candidatePath, options = {}) {
-    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } = options;
+export function buildDownloadFilename(
+    candidatePath: string,
+    options: BuildDownloadFilenameOptions = {}
+): string {
+    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } =
+        options;
     const pathSegment = typeof candidatePath === "string" ? candidatePath : "";
     const leaf = pathSegment.split(PATH_SPLIT_REGEX).pop() ?? "";
     const dotIndex = leaf.lastIndexOf(".");
+
     const rawBase = dotIndex > 0 ? leaf.slice(0, dotIndex) : leaf;
     const rawExtension = dotIndex > 0 ? leaf.slice(dotIndex + 1) : "";
-    const sanitizedBase = sanitizeFilenameComponent(rawBase || leaf, fallbackBase);
+
+    const sanitizedBase = sanitizeFilenameComponent(
+        rawBase || leaf,
+        fallbackBase
+    );
     const extensionSource = defaultExtension || rawExtension;
     const sanitizedExtension = sanitizeFileExtension(extensionSource);
+
     if (sanitizedExtension) {
         return `${sanitizedBase}.${sanitizedExtension}`;
     }
     return sanitizedBase;
 }
+
 /**
  * Normalises file extensions by removing leading dots/whitespace and any
  * characters that are not alphanumeric, dashes or underscores. Extensions are
  * lower-cased for consistency.
  */
-export function sanitizeFileExtension(extension, fallback = "") {
+export function sanitizeFileExtension(
+    extension: string,
+    fallback = ""
+): string {
     if (typeof extension !== "string" || extension.length === 0) {
         if (!fallback || fallback === extension) {
             return "";
         }
         return sanitizeFileExtension(fallback, "");
     }
+
     let normalised = extension.normalize("NFKC").toLowerCase();
     normalised = normalised.replaceAll(/^[.\s]+/gu, "");
     normalised = normalised.replaceAll(/[^a-z0-9_-]+/gu, "");
+
     if (!normalised) {
         if (!fallback || fallback === extension) {
             return "";
         }
         return sanitizeFileExtension(fallback, "");
     }
+
     return [...normalised].slice(0, MAX_EXTENSION_LENGTH).join("");
 }
+
 /**
  * Safely transforms an arbitrary string into a file-system friendly segment.
  * Reserved Windows characters, ASCII control codes (0x00-0x1F), trailing dots
  * and leading periods are stripped. Whitespace collapses to single underscores.
  */
-export function sanitizeFilenameComponent(value, fallback = DEFAULT_FALLBACK_BASE) {
+export function sanitizeFilenameComponent(
+    value: string,
+    fallback = DEFAULT_FALLBACK_BASE
+): string {
     return sanitiseFilenameInternal(value, fallback, 0);
 }
+
 /**
  * Internal helper that performs the heavy lifting for name sanitisation. A
  * recursion guard is included so malicious inputs cannot cause stack growth.
  */
-function sanitiseFilenameInternal(value, fallback, depth) {
+function sanitiseFilenameInternal(
+    value: unknown,
+    fallback: string,
+    depth: number
+): string {
     if (depth > 3) {
         return DEFAULT_FALLBACK_BASE;
     }
+
     if (typeof value !== "string" || value.length === 0) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
+
     let normalised = "";
     for (const char of value.normalize("NFKC")) {
         const codePoint = char.codePointAt(0);
@@ -119,24 +159,33 @@ function sanitiseFilenameInternal(value, fallback, depth) {
         }
         normalised += char;
     }
+
     let compacted = normalised.trim();
     compacted = compacted.replaceAll(/\s+/gu, "_");
     compacted = compacted.replaceAll(/_+/gu, "_");
     compacted = compacted.replaceAll(/^_+|_+$/gu, "");
     compacted = compacted.replaceAll(/^\.+/gu, "");
     compacted = compacted.replaceAll(/\.+$/gu, "");
+
     if (!compacted) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
+
     if (RESERVED_DEVICE_NAMES.has(compacted.toUpperCase())) {
         compacted = `${compacted}_file`;
     }
+
     const limited = [...compacted].slice(0, MAX_FILENAME_LENGTH).join("");
     return limited || DEFAULT_FALLBACK_BASE;
 }
+
 /** Constants exposed only for focused unit tests. */
 export const __TESTING_INTERNALS__ = {
     RESERVED_DEVICE_NAMES,

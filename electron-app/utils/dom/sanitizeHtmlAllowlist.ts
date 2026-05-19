@@ -5,6 +5,34 @@
  * untrusted/derived sources. It is intentionally conservative and should not
  * be treated as a full HTML sanitizer replacement for arbitrary documents.
  */
+
+/**
+ * Small presentation-only HTML allowlist.
+ */
+export interface SanitizeAllowlistOptions {
+    allowedTags: readonly string[];
+    allowedAttributes: readonly string[];
+    stripUrlInStyle?: boolean;
+}
+
+interface DomPurifyLike {
+    sanitize(
+        html: string,
+        options: {
+            ALLOWED_ATTR: string[];
+            ALLOWED_TAGS: string[];
+            FORBID_ATTR: string[];
+            FORBID_CONTENTS: string[];
+            FORBID_TAGS: string[];
+            RETURN_DOM_FRAGMENT: true;
+        }
+    ): DocumentFragment;
+}
+
+interface GlobalWithDomPurify {
+    DOMPurify?: DomPurifyLike;
+}
+
 /**
  * Attributes that can trigger network/file fetches or navigation.
  *
@@ -26,6 +54,7 @@ const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
     "srcset",
     "xlink:href",
 ]);
+
 /**
  * Tags that are never allowed regardless of the caller allowlist.
  *
@@ -47,6 +76,7 @@ const ALWAYS_FORBID_TAGS = new Set([
     "style",
     "svg",
 ]);
+
 /**
  * Sanitise an HTML string into a safe DocumentFragment.
  *
@@ -61,52 +91,70 @@ const ALWAYS_FORBID_TAGS = new Set([
  * Disallowed non-dangerous elements are replaced with their textContent so
  * user-visible text remains.
  */
-export function sanitizeHtmlAllowlist(html, options = {
-    allowedAttributes: [],
-    allowedTags: [],
-}) {
+export function sanitizeHtmlAllowlist(
+    html: string,
+    options: SanitizeAllowlistOptions = {
+        allowedAttributes: [],
+        allowedTags: [],
+    }
+): DocumentFragment {
     const allowedTagsInput = Array.isArray(options.allowedTags)
         ? options.allowedTags
         : [];
     const allowedAttributesInput = Array.isArray(options.allowedAttributes)
         ? options.allowedAttributes
         : [];
+
     // This project loads DOMPurify as a classic script (global DOMPurify) in
     // index.html. A bare ESM import breaks under file:// because the browser
     // cannot resolve Node-style module specifiers without a bundler.
     const purifier = getGlobalDomPurify();
+
     if (purifier) {
         const fragment = purifier.sanitize(String(html), {
-            ALLOWED_ATTR: allowedAttributesInput.map((a) => String(a).toLowerCase()),
+            ALLOWED_ATTR: allowedAttributesInput.map((a) =>
+                String(a).toLowerCase()
+            ),
             ALLOWED_TAGS: allowedTagsInput.map((t) => String(t).toLowerCase()),
             FORBID_ATTR: Array.from(ALWAYS_STRIP_URL_ATTRIBUTES),
             FORBID_CONTENTS: Array.from(ALWAYS_FORBID_TAGS),
             FORBID_TAGS: Array.from(ALWAYS_FORBID_TAGS),
             RETURN_DOM_FRAGMENT: true,
         });
+
         if (options.stripUrlInStyle !== false) {
             stripUnsafeStyleAttributes(fragment);
         }
+
         return fragment;
     }
+
     const fragment = parseHtmlFragment(String(html));
-    sanitizeFragment(fragment, allowedTagsInput, allowedAttributesInput, options.stripUrlInStyle !== false);
+    sanitizeFragment(
+        fragment,
+        allowedTagsInput,
+        allowedAttributesInput,
+        options.stripUrlInStyle !== false
+    );
     return fragment;
 }
-function getGlobalDomPurify() {
+
+function getGlobalDomPurify(): DomPurifyLike | undefined {
     try {
-        const globalPurifier = globalThis.DOMPurify;
-        if (globalPurifier &&
-            typeof globalPurifier.sanitize === "function") {
+        const globalPurifier = (globalThis as GlobalWithDomPurify).DOMPurify;
+        if (
+            globalPurifier &&
+            typeof globalPurifier.sanitize === "function"
+        ) {
             return globalPurifier;
         }
-    }
-    catch {
+    } catch {
         // Ignore globals that throw during access.
     }
     return undefined;
 }
-function parseHtmlFragment(html) {
+
+function parseHtmlFragment(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- This is the sanitizer boundary; sanitizeFragment strips the parsed tree before callers receive it.
     const parsed = new DOMParser().parseFromString(html, "text/html");
     const fragment = document.createDocumentFragment();
@@ -115,84 +163,117 @@ function parseHtmlFragment(html) {
     }
     return fragment;
 }
-function sanitizeFragment(fragment, allowedTagsInput, allowedAttributesInput, stripUrlInStyle) {
+
+function sanitizeFragment(
+    fragment: DocumentFragment,
+    allowedTagsInput: readonly string[],
+    allowedAttributesInput: readonly string[],
+    stripUrlInStyle: boolean
+): void {
     // DOM Element.tagName is always uppercase in HTML documents. Normalizing
     // here makes the sanitizer resilient to caller-provided casing.
-    const forbiddenTagsUpper = new Set(Array.from(ALWAYS_FORBID_TAGS, (t) => t.toUpperCase()));
-    const allowedTags = new Set(allowedTagsInput.map((t) => String(t).toUpperCase()));
-    const allowedAttributes = new Set(allowedAttributesInput.map((a) => String(a).toLowerCase()));
-    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
-    const nodesToReplace = [];
-    const nodesToRemove = [];
+    const forbiddenTagsUpper = new Set(
+        Array.from(ALWAYS_FORBID_TAGS, (t) => t.toUpperCase())
+    );
+    const allowedTags = new Set(
+        allowedTagsInput.map((t) => String(t).toUpperCase())
+    );
+    const allowedAttributes = new Set(
+        allowedAttributesInput.map((a) => String(a).toLowerCase())
+    );
+
+    const walker = document.createTreeWalker(
+        fragment,
+        NodeFilter.SHOW_ELEMENT
+    );
+    const nodesToReplace: Element[] = [];
+    const nodesToRemove: Element[] = [];
+
     while (walker.nextNode()) {
         const el = walker.currentNode;
         if (!(el instanceof Element)) {
             continue;
         }
+
         if (forbiddenTagsUpper.has(el.tagName)) {
             nodesToRemove.push(el);
             continue;
         }
+
         if (!allowedTags.has(el.tagName)) {
             nodesToReplace.push(el);
             continue;
         }
+
         sanitizeElementAttributes(el, allowedAttributes, stripUrlInStyle);
     }
+
     removeElements(nodesToRemove);
     replaceElementsWithText(nodesToReplace);
 }
-function sanitizeElementAttributes(el, allowedAttributes, stripUrlInStyle) {
+
+function sanitizeElementAttributes(
+    el: Element,
+    allowedAttributes: ReadonlySet<string>,
+    stripUrlInStyle: boolean
+): void {
     for (const attr of Array.from(el.attributes)) {
         const name = attr.name.toLowerCase();
         const value = String(attr.value);
+
         // Inline event handlers are never allowed.
         if (name.startsWith("on")) {
             el.removeAttribute(attr.name);
             continue;
         }
+
         // Defensive: disallow URL-bearing attributes.
         if (ALWAYS_STRIP_URL_ATTRIBUTES.has(name)) {
             el.removeAttribute(attr.name);
             continue;
         }
+
         if (!allowedAttributes.has(name)) {
             el.removeAttribute(attr.name);
             continue;
         }
+
         if (stripUrlInStyle && name === "style" && containsUnsafeCss(value)) {
             el.removeAttribute(attr.name);
         }
     }
 }
-function removeElements(elements) {
+
+function removeElements(elements: readonly Element[]): void {
     for (const el of elements) {
         try {
             el.remove();
-        }
-        catch {
+        } catch {
             // Ignore DOM shim edge cases.
         }
     }
 }
-function replaceElementsWithText(elements) {
+
+function replaceElementsWithText(elements: readonly Element[]): void {
     for (const el of elements) {
         try {
             const text = el.textContent ?? "";
             el.replaceWith(document.createTextNode(text));
-        }
-        catch {
+        } catch {
             try {
                 el.remove();
-            }
-            catch {
+            } catch {
                 // Ignore DOM shim edge cases.
             }
         }
     }
 }
-function stripUnsafeStyleAttributes(fragment) {
-    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+
+function stripUnsafeStyleAttributes(fragment: DocumentFragment): void {
+    const walker = document.createTreeWalker(
+        fragment,
+        NodeFilter.SHOW_ELEMENT
+    );
     while (walker.nextNode()) {
         const el = walker.currentNode;
         if (!(el instanceof Element)) {
@@ -204,38 +285,47 @@ function stripUnsafeStyleAttributes(fragment) {
         }
     }
 }
-function containsUnsafeCss(styleValue) {
+
+function containsUnsafeCss(styleValue: string): boolean {
     // Remove comments first so `u/*x*/rl(` can't bypass scans.
     const withoutComments = styleValue.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
     const decoded = decodeCssEscapesForScan(withoutComments);
     const normalized = decoded.toLowerCase().replaceAll(/\s+/gu, "");
+
     // Block URL-like constructs.
-    return (normalized.includes("url(") ||
+    return (
+        normalized.includes("url(") ||
         normalized.includes("expression(") ||
         normalized.includes("@import") ||
         // Old IE behavior() can fetch remote resources.
-        normalized.includes("behavior:"));
+        normalized.includes("behavior:")
+    );
 }
-function decodeCssEscapesForScan(input) {
+
+function decodeCssEscapesForScan(input: string): string {
     // CSS escapes:
     // - \HHHHHH[whitespace]? (1-6 hex digits)
     // - \<any char>
     // Ref: CSS Syntax Level 3.
-    return input.replaceAll(/\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu, (_match, hex, single) => {
-        if (hex) {
-            const codePoint = Number.parseInt(hex, 16);
-            if (!Number.isFinite(codePoint) ||
-                codePoint <= 0 ||
-                codePoint > 0x10_ff_ff) {
-                return "";
+    return input.replaceAll(
+        /\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu,
+        (_match: string, hex: string | undefined, single: string | undefined) => {
+            if (hex) {
+                const codePoint = Number.parseInt(hex, 16);
+                if (
+                    !Number.isFinite(codePoint) ||
+                    codePoint <= 0 ||
+                    codePoint > 0x10_ff_ff
+                ) {
+                    return "";
+                }
+                try {
+                    return String.fromCodePoint(codePoint);
+                } catch {
+                    return "";
+                }
             }
-            try {
-                return String.fromCodePoint(codePoint);
-            }
-            catch {
-                return "";
-            }
+            return typeof single === "string" ? single : "";
         }
-        return typeof single === "string" ? single : "";
-    });
+    );
 }

@@ -501,7 +501,9 @@ describe("ensureChartSettingsDropdowns integration", () => {
         savePngBtn.click();
 
         // Modal should exist with chart buttons and combined
-        const overlay = document.querySelector('div[style*="position: fixed"]');
+        const overlay = document.querySelector(
+            '[data-ffv-modal="chart-selection"]'
+        );
         expect(overlay).toBeTruthy();
         const chartButtons = Array.from(
             overlay!.querySelectorAll("button")
