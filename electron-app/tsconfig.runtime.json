@@ -75,6 +75,7 @@
         "utils/errors/index.ts",
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
+        "utils/docs/documentationStandards.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",

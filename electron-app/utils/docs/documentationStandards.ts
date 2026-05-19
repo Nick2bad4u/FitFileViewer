@@ -1,4 +1,20 @@
 /**
+ * Documentation requirement map for one standards category.
+ */
+export type DocumentationRequirementMap = Record<string, string | readonly string[]>;
+
+/**
+ * Documentation standards and requirements for consistency across the codebase.
+ */
+export type DocumentationStandards = {
+    FILE_HEADER: DocumentationRequirementMap;
+    FUNCTION_DOCS: DocumentationRequirementMap;
+    EXAMPLE_STANDARDS: DocumentationRequirementMap;
+    CONSISTENCY_PATTERNS: DocumentationRequirementMap;
+    QUALITY_CHECKLIST: DocumentationRequirementMap;
+};
+
+/**
  * Consistent JSDoc documentation patterns for FitFileViewer modules.
  */
 export const DOCUMENTATION_STANDARDS = {
@@ -46,4 +62,4 @@ export const DOCUMENTATION_STANDARDS = {
             "Cross-reference related functions",
         ],
     },
-};
+} as const satisfies DocumentationStandards;
