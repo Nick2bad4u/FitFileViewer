@@ -19,10 +19,16 @@ export const formatChartFields = [
     "positionLat",
     "positionLong",
 ];
+
+/**
+ * Chartable FIT field keys.
+ */
+export type ChartField = (typeof formatChartFields)[number];
+
 /**
  * Maps FIT field keys and derived chart type keys to user-facing labels.
  */
-export const fieldLabels = {
+export const fieldLabels: Record<string, string> = {
     altitude: "Altitude",
     altitude_profile: "Altitude Profile",
     auxHeartRate: "Aux Heart Rate",
@@ -51,10 +57,11 @@ export const fieldLabels = {
     speed_vs_distance: "Speed vs Distance",
     temperature: "Temperature",
 };
+
 /**
  * Maps FIT field keys and derived chart type keys to chart colors.
  */
-export const fieldColors = {
+export const fieldColors: Record<string, string> = {
     altitude: "#43a047",
     altitude_profile: "#8bc34a",
     auxHeartRate: "#d946ef",

@@ -1,11 +1,13 @@
 import { getManufacturerName } from "../display/formatAntNames.js";
+
 const MANUFACTURER_CONFIG = {
     ERROR_MESSAGES: {
         FORMATTING_ERROR: "Error formatting manufacturer:",
         ID_LOOKUP_ERROR: "Error looking up manufacturer by ID:",
     },
     FALLBACK_NAME: "Unknown Manufacturer",
-};
+} as const;
+
 const MANUFACTURER_MAP = {
     bell: "Bell",
     bontrager: "Bontrager",
@@ -71,7 +73,10 @@ const MANUFACTURER_MAP = {
     vortex: "Tacx Vortex",
     wahoo: "Wahoo",
     zwift: "Zwift",
-};
+} as const;
+
+type ManufacturerMapKey = keyof typeof MANUFACTURER_MAP;
+
 /**
  * Formats manufacturer names for consistent display across the application.
  *
@@ -79,42 +84,54 @@ const MANUFACTURER_MAP = {
  *
  * @returns Formatted manufacturer name.
  */
-export function formatManufacturer(manufacturer) {
+export function formatManufacturer(manufacturer: unknown): string {
     if (manufacturer === null || manufacturer === undefined) {
-        console.warn("[formatManufacturer] Null or undefined manufacturer provided");
+        console.warn(
+            "[formatManufacturer] Null or undefined manufacturer provided"
+        );
         return MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
+
     try {
         let manufacturerName = manufacturer;
+
         if (isNumericManufacturer(manufacturer)) {
             try {
                 const nameFromId = getManufacturerName(manufacturer);
                 if (nameFromId && nameFromId !== String(manufacturer)) {
                     manufacturerName = nameFromId;
                 }
-            }
-            catch (error) {
-                console.warn(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`, error);
+            } catch (error) {
+                console.warn(
+                    `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`,
+                    error
+                );
             }
         }
+
         const normalizedName = String(manufacturerName).toLowerCase().trim();
+
         return isManufacturerMapKey(normalizedName)
             ? MANUFACTURER_MAP[normalizedName]
             : String(manufacturer);
-    }
-    catch (error) {
-        console.error(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`,
+            error
+        );
         return String(manufacturer) || MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
 }
+
 /**
  * Gets all available manufacturer mappings.
  *
  * @returns Copy of the manufacturer mapping object.
  */
-export function getAllManufacturerMappings() {
+export function getAllManufacturerMappings(): Record<string, string> {
     return { ...MANUFACTURER_MAP };
 }
+
 /**
  * Checks if a manufacturer has a defined mapping.
  *
@@ -122,18 +139,22 @@ export function getAllManufacturerMappings() {
  *
  * @returns True if manufacturer has a defined mapping.
  */
-export function hasManufacturerMapping(manufacturer) {
+export function hasManufacturerMapping(manufacturer: unknown): boolean {
     if (typeof manufacturer !== "string") {
         return false;
     }
     return isManufacturerMapKey(manufacturer.toLowerCase().trim());
 }
-function isManufacturerMapKey(value) {
+
+function isManufacturerMapKey(value: string): value is ManufacturerMapKey {
     return Object.hasOwn(MANUFACTURER_MAP, value);
 }
-function isNumericManufacturer(value) {
-    return (typeof value === "number" ||
+
+function isNumericManufacturer(value: unknown): value is number | string {
+    return (
+        typeof value === "number" ||
         (typeof value === "string" &&
             value !== "" &&
-            !Number.isNaN(Number(value))));
+            !Number.isNaN(Number(value)))
+    );
 }

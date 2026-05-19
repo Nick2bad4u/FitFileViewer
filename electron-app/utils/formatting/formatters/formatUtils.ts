@@ -2,7 +2,18 @@ const FORMATTING_CONSTANTS = {
     DEFAULT_DECIMAL_DIGITS: 2,
     LOG_PREFIX: "[FormatUtils]",
     SEPARATOR: ", ",
-};
+} as const;
+
+type LogLevel = "error" | "info" | "warn";
+
+/**
+ * Options for formatting arrays and comma-separated number strings.
+ */
+export interface FormatArrayOptions {
+    separator?: string;
+    strictValidation?: boolean;
+}
+
 /**
  * Formats an array or a comma-separated string of numbers.
  *
@@ -20,63 +31,86 @@ const FORMATTING_CONSTANTS = {
  * @returns Formatted values, or the original value when it is not processable.
  * @throws Error when strict validation is enabled and a value is invalid.
  */
-export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_DIGITS, options = {}) {
+export function formatArray<T>(
+    val: T,
+    digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_DIGITS,
+    options: FormatArrayOptions | null | undefined = {}
+): string | T {
     const config = {
         separator: FORMATTING_CONSTANTS.SEPARATOR,
         strictValidation: true,
         ...(options ?? {}),
     };
+
     try {
         if (Array.isArray(val)) {
             return formatArrayInput(val, digits, config);
         }
+
         if (typeof val === "string" && val.includes(",")) {
             return formatCommaSeparatedString(val, digits, config);
         }
+
         return val;
-    }
-    catch (error) {
-        logWithContext(`Error formatting array: ${getLegacyErrorMessage(error)}`, "error");
+    } catch (error) {
+        logWithContext(
+            `Error formatting array: ${getLegacyErrorMessage(error)}`,
+            "error"
+        );
         throw error;
     }
 }
-function formatArrayInput(values, digits, config) {
+
+function formatArrayInput(
+    values: readonly unknown[],
+    digits: number,
+    config: Required<FormatArrayOptions>
+): string {
     return values
         .map((value) => {
-        if (!isValidNumber(value)) {
-            const error = `Invalid number: ${value}`;
-            if (config.strictValidation) {
-                throw new Error(error);
+            if (!isValidNumber(value)) {
+                const error = `Invalid number: ${value}`;
+                if (config.strictValidation) {
+                    throw new Error(error);
+                }
+                logWithContext(error, "warn");
+                return String(value);
             }
-            logWithContext(error, "warn");
-            return String(value);
-        }
-        return Number.parseFloat(Number(value).toFixed(digits));
-    })
+
+            return Number.parseFloat(Number(value).toFixed(digits));
+        })
         .join(config.separator);
 }
-function formatCommaSeparatedString(value, digits, config) {
+
+function formatCommaSeparatedString(
+    value: string,
+    digits: number,
+    config: Required<FormatArrayOptions>
+): string {
     return value
         .split(",")
         .map((entry) => {
-        const trimmed = entry.trim();
-        if (!isValidNumber(trimmed)) {
-            const error = `Invalid number in string: ${trimmed}`;
-            if (config.strictValidation) {
-                throw new Error(error);
+            const trimmed = entry.trim();
+            if (!isValidNumber(trimmed)) {
+                const error = `Invalid number in string: ${trimmed}`;
+                if (config.strictValidation) {
+                    throw new Error(error);
+                }
+                logWithContext(error, "warn");
+                return trimmed;
             }
-            logWithContext(error, "warn");
-            return trimmed;
-        }
-        return Number(trimmed).toFixed(digits);
-    })
+
+            return Number(trimmed).toFixed(digits);
+        })
         .join(config.separator);
 }
-function isValidNumber(value) {
+
+function isValidNumber(value: unknown): boolean {
     const numericValue = Number(value);
     return !Number.isNaN(numericValue) && Number.isFinite(numericValue);
 }
-function logWithContext(message, level = "info") {
+
+function logWithContext(message: string, level: LogLevel = "info"): void {
     try {
         const prefix = FORMATTING_CONSTANTS.LOG_PREFIX;
         switch (level) {
@@ -92,15 +126,16 @@ function logWithContext(message, level = "info") {
                 console.log(`${prefix} ${message}`);
             }
         }
-    }
-    catch {
+    } catch {
         // Logging failures must not break formatting paths.
     }
 }
-function getLegacyErrorMessage(error) {
+
+function getLegacyErrorMessage(error: unknown): string | undefined {
     if (error !== null && typeof error === "object" && "message" in error) {
         const message = error.message;
         return message === undefined ? undefined : String(message);
     }
+
     return undefined;
 }

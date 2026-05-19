@@ -1,4 +1,11 @@
 /**
+ * Options controlling capitalization behavior.
+ */
+export interface FormatCapitalizeOptions {
+    lowercaseRest?: boolean;
+}
+
+/**
  * Capitalizes the first letter of a string.
  *
  * Non-string inputs are returned unchanged for compatibility with existing
@@ -14,13 +21,18 @@
  * @param options - Capitalization options.
  * @returns Capitalized string, or the original non-string value.
  */
-export function formatCapitalize(value, options = {}) {
+export function formatCapitalize<T>(
+    value: T,
+    options: FormatCapitalizeOptions = {}
+): string | T {
     if (!value || typeof value !== "string") {
         return value;
     }
+
     const { lowercaseRest = true } = options;
     if (lowercaseRest) {
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
     }
+
     return value.charAt(0).toUpperCase() + value.slice(1);
 }

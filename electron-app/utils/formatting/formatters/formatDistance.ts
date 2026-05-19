@@ -2,7 +2,8 @@ const DISTANCE_CONVERSION_FACTORS = {
     DECIMAL_PLACES: 2,
     METERS_PER_KILOMETER: 1000,
     METERS_PER_MILE: 1609.344,
-};
+} as const;
+
 /**
  * Formats a distance in meters to a string showing both kilometers and miles.
  *
@@ -16,18 +17,25 @@ const DISTANCE_CONVERSION_FACTORS = {
  * @param meters - The distance in meters to format.
  * @returns The formatted distance as "X.XX km / Y.YY mi", or an empty string.
  */
-export function formatDistance(meters) {
-    if (typeof meters !== "number" ||
+export function formatDistance(meters: unknown): string {
+    if (
+        typeof meters !== "number" ||
         !Number.isFinite(meters) ||
-        meters <= 0) {
+        meters <= 0
+    ) {
         return "";
     }
-    const kilometers = metersToKilometers(meters), miles = metersToMiles(meters);
+
+    const kilometers = metersToKilometers(meters),
+        miles = metersToMiles(meters);
+
     return `${kilometers.toFixed(DISTANCE_CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(DISTANCE_CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }
-function metersToKilometers(meters) {
+
+function metersToKilometers(meters: number): number {
     return meters / DISTANCE_CONVERSION_FACTORS.METERS_PER_KILOMETER;
 }
-function metersToMiles(meters) {
+
+function metersToMiles(meters: number): number {
     return meters / DISTANCE_CONVERSION_FACTORS.METERS_PER_MILE;
 }
