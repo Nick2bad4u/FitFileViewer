@@ -1,4 +1,13 @@
 /**
+ * Console levels supported by the structured logger.
+ */
+export type LogLevel = "error" | "info" | "log" | "warn";
+
+type LoggingGlobal = typeof globalThis & {
+    __vitest_object_keys_allow_throw?: boolean;
+};
+
+/**
  * Logs a message with a timestamped FitFileViewer prefix and optional shallow
  * context payload.
  *
@@ -6,19 +15,24 @@
  * @param message - Message to log.
  * @param context - Optional plain object context.
  */
-export function logWithLevel(level, message, context) {
+export function logWithLevel(
+    level: LogLevel | string,
+    message: string,
+    context?: Record<string, unknown> | null
+): void {
     try {
         setObjectKeysThrowFlag(true);
+
         const prefix = "[FFV]";
         const timestamp = new Date().toISOString();
         const base = `${timestamp} ${prefix} ${String(message)}`;
         const payload = createLogPayload(context);
+
         switch (level) {
             case "error": {
                 if (payload) {
                     console.error(base, payload);
-                }
-                else {
+                } else {
                     console.error(base);
                 }
                 break;
@@ -26,8 +40,7 @@ export function logWithLevel(level, message, context) {
             case "info": {
                 if (payload) {
                     console.info(base, payload);
-                }
-                else {
+                } else {
                     console.info(base);
                 }
                 break;
@@ -35,8 +48,7 @@ export function logWithLevel(level, message, context) {
             case "warn": {
                 if (payload) {
                     console.warn(base, payload);
-                }
-                else {
+                } else {
                     console.warn(base);
                 }
                 break;
@@ -44,54 +56,57 @@ export function logWithLevel(level, message, context) {
             default: {
                 if (payload) {
                     console.log(base, payload);
-                }
-                else {
+                } else {
                     console.log(base);
                 }
             }
         }
-    }
-    catch {
+    } catch {
         try {
             console.log("[FFV][logWithLevel] Logging failure");
-        }
-        catch {
+        } catch {
             // Nothing else can be done if console itself is unavailable.
         }
-    }
-    finally {
+    } finally {
         setObjectKeysThrowFlag(false);
     }
 }
-function createLogPayload(context) {
-    const isPlainObject = context !== null &&
+
+function createLogPayload(
+    context?: Record<string, unknown> | null
+): Record<string, unknown> | undefined {
+    const isPlainObject =
+        context !== null &&
         context !== undefined &&
         typeof context === "object" &&
         !Array.isArray(context);
+
     if (!isPlainObject) {
         return undefined;
     }
+
     const hasProps = Object.keys(context).length > 0;
-    const clone = {};
+    const clone: Record<string, unknown> = {};
     let hasAny = false;
+
     for (const key in context) {
         if (Object.hasOwn(context, key)) {
             try {
                 clone[key] = context[key];
                 hasAny = true;
-            }
-            catch {
+            } catch {
                 // Skip keys with throwing getters.
             }
         }
     }
+
     return hasProps && hasAny ? clone : undefined;
 }
-function setObjectKeysThrowFlag(value) {
+
+function setObjectKeysThrowFlag(value: boolean): void {
     try {
-        globalThis.__vitest_object_keys_allow_throw = value;
-    }
-    catch {
+        (globalThis as LoggingGlobal).__vitest_object_keys_allow_throw = value;
+    } catch {
         // Ignore test-hook cleanup failures.
     }
 }

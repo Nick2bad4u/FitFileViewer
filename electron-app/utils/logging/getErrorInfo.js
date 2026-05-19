@@ -1,19 +1,20 @@
 /**
- * Safely extract message/stack from unknown errors
+ * Safely extracts a message and optional stack from an unknown thrown value.
  *
- * @param {unknown} err
+ * @param err - Unknown thrown value.
  *
- * @returns {{ message: string; stack?: string }}
+ * @returns Normalized error information.
  */
 export function getErrorInfo(err) {
     if (err && typeof err === "object") {
-        const anyErr = /** @type {any} */ (err),
-            message =
-                typeof anyErr.message === "string"
-                    ? anyErr.message
-                    : String(err),
-            stack = typeof anyErr.stack === "string" ? anyErr.stack : undefined;
-        return { message, stack };
+        const errorRecord = err;
+        const message = typeof errorRecord["message"] === "string"
+            ? errorRecord["message"]
+            : String(err);
+        const stack = typeof errorRecord["stack"] === "string"
+            ? errorRecord["stack"]
+            : undefined;
+        return stack === undefined ? { message } : { message, stack };
     }
     return { message: String(err) };
 }

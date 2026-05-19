@@ -2,6 +2,7 @@
  * Provides consistent error handling patterns across the FitFileViewer
  * application.
  */
+
 /**
  * Stable error code strings used across application error boundaries.
  */
@@ -14,47 +15,143 @@ export const ERROR_CODES = {
     STATE_ERROR: "STATE_ERROR",
     UNKNOWN_ERROR: "UNKNOWN_ERROR",
     VALIDATION_ERROR: "VALIDATION_ERROR",
+} as const;
+
+/**
+ * Union of supported application error code values.
+ */
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+/**
+ * Console log levels supported by the shared error utilities.
+ */
+export type LogLevel = "debug" | "error" | "info" | "warn";
+
+/**
+ * Notification variants supported by the renderer notification bridge.
+ */
+export type NotificationType = "error" | "info" | "warning";
+
+/**
+ * Structured context attached to handled errors and telemetry records.
+ */
+export type ErrorContext = {
+    code?: ErrorCode;
+    component?: string;
+    input?: unknown;
+    operation?: string;
+    path?: string;
 };
-const globalRef = globalThis;
-let globalErrorListenerAbortController;
-function getUnknownErrorMessage(error) {
+
+/**
+ * Options that control whether handled errors throw, log, notify, or fallback.
+ */
+export type ErrorHandlingOptions<Fallback = null> = {
+    failSafe?: boolean;
+    fallback?: Fallback;
+    logError?: boolean;
+    logLevel?: LogLevel;
+    notificationType?: NotificationType;
+    notify?: boolean;
+};
+
+/**
+ * Result returned by validation helpers after all validators have run.
+ */
+export type ValidationResult<T = unknown> = {
+    errors: string[];
+    isValid: boolean;
+    validatedValue: T;
+    warnings: string[];
+};
+
+/**
+ * Result shape accepted from individual validators.
+ */
+export type ValidatorResult<T = unknown> = {
+    errors?: string[];
+    isValid: boolean;
+    validatedValue?: T;
+    value?: T;
+    warnings?: string[];
+};
+
+/**
+ * Function signature for reusable input validators.
+ */
+export type Validator<T = unknown> = (
+    value: unknown,
+    fieldName: string
+) => boolean | ValidatorResult<T>;
+
+type GlobalWithErrorIntegrations = typeof globalThis & {
+    performanceMonitor?: {
+        recordError(error: Error, operation: string): void;
+    };
+    showNotification?: (message: string, type: NotificationType) => void;
+};
+
+type MaybePromise<T> = Promise<T> | T;
+
+const globalRef = globalThis as GlobalWithErrorIntegrations;
+let globalErrorListenerAbortController: AbortController | undefined;
+
+function getUnknownErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
-function isValidationObject(value) {
+
+function isValidationObject<T>(value: unknown): value is ValidatorResult<T> {
     return typeof value === "object" && value !== null && "isValid" in value;
 }
-function isPromiseLike(value) {
-    return (typeof value === "object" &&
+
+function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
+    return (
+        typeof value === "object" &&
         value !== null &&
         "then" in value &&
-        typeof value.then === "function");
+        typeof (value as { then?: unknown }).then === "function"
+    );
 }
+
 /**
  * Enhanced Error class with additional context.
  */
 export class AppError extends Error {
-    context;
-    timestamp;
-    constructor(message, context = {}) {
+    public readonly context: ErrorContext;
+    public readonly timestamp: number;
+
+    public constructor(message: string, context: ErrorContext = {}) {
         super(message);
         this.name = "AppError";
         this.context = context;
         this.timestamp = Date.now();
     }
-    getFormattedMessage() {
+
+    public getFormattedMessage(): string {
         const parts = [this.message];
+
         if (this.context.operation !== undefined) {
             parts.push(`Operation: ${this.context.operation}`);
         }
+
         if (this.context.component !== undefined) {
             parts.push(`Component: ${this.context.component}`);
         }
+
         if (this.context.path !== undefined) {
             parts.push(`Path: ${this.context.path}`);
         }
+
         return parts.join(" | ");
     }
-    toJSON() {
+
+    public toJSON(): {
+        context: ErrorContext;
+        message: string;
+        name: string;
+        stack: string | undefined;
+        timestamp: number;
+    } {
         return {
             context: this.context,
             message: this.message,
@@ -64,13 +161,18 @@ export class AppError extends Error {
         };
     }
 }
+
 /**
  * Validation Error class for input validation failures.
  */
 export class ValidationError extends AppError {
-    errors;
-    warnings;
-    constructor(message, details) {
+    public readonly errors: string[];
+    public readonly warnings: string[];
+
+    public constructor(
+        message: string,
+        details: { errors?: string[]; warnings?: string[] }
+    ) {
         super(message, {
             code: ERROR_CODES.VALIDATION_ERROR,
             operation: "validation",
@@ -80,105 +182,142 @@ export class ValidationError extends AppError {
         this.warnings = details.warnings ?? [];
     }
 }
+
 /**
  * Create a standardized error handler for strict or fail-safe execution paths.
  */
-export function createErrorHandler(options = {}) {
+export function createErrorHandler<Fallback = null>(
+    options: ErrorHandlingOptions<Fallback> = {}
+): (error: unknown, context?: ErrorContext) => Fallback {
     const config = {
         failSafe: false,
-        fallback: null,
+        fallback: null as Fallback,
         logError: true,
-        logLevel: "error",
-        notificationType: "error",
+        logLevel: "error" as LogLevel,
+        notificationType: "error" as NotificationType,
         notify: false,
         ...options,
     };
-    return function handleError(error, context = {}) {
-        const err = error instanceof Error
-            ? error
-            : new AppError(getUnknownErrorMessage(error), context);
+
+    return function handleError(
+        error: unknown,
+        context: ErrorContext = {}
+    ): Fallback {
+        const err =
+            error instanceof Error
+                ? error
+                : new AppError(getUnknownErrorMessage(error), context);
+
         if (!(err instanceof AppError) && Object.keys(context).length > 0) {
             Object.assign(err, { context });
         }
+
         if (config.logError) {
-            const message = err instanceof AppError
-                ? err.getFormattedMessage()
-                : err.message;
+            const message =
+                err instanceof AppError
+                    ? err.getFormattedMessage()
+                    : err.message;
             console[config.logLevel](`[ErrorHandler] ${message}`, err);
         }
-        if (config.notify &&
-            typeof globalRef.showNotification === "function") {
+
+        if (
+            config.notify &&
+            typeof globalRef.showNotification === "function"
+        ) {
             try {
                 globalRef.showNotification(err.message, config.notificationType);
-            }
-            catch (notificationError) {
-                console.warn("[ErrorHandler] Failed to show notification:", notificationError);
+            } catch (notificationError) {
+                console.warn(
+                    "[ErrorHandler] Failed to show notification:",
+                    notificationError
+                );
             }
         }
+
         if (config.failSafe) {
             return config.fallback;
         }
+
         throw err;
     };
 }
+
 /**
  * Validate a value with one or more validators and collect all diagnostics.
  */
-export function validateInput(value, validatorsToRun, fieldName = "input") {
-    const result = {
+export function validateInput<T = unknown>(
+    value: unknown,
+    validatorsToRun: readonly Validator<T>[],
+    fieldName = "input"
+): ValidationResult<T | unknown> {
+    const result: ValidationResult<T | unknown> = {
         errors: [],
         isValid: true,
         validatedValue: value,
         warnings: [],
     };
+
     for (const validator of validatorsToRun) {
         try {
             const validationResult = validator(value, fieldName);
+
             if (typeof validationResult === "boolean") {
                 if (!validationResult) {
                     result.isValid = false;
                     result.errors.push(`Invalid ${fieldName}`);
                 }
-            }
-            else if (isValidationObject(validationResult)) {
+            } else if (isValidationObject<T>(validationResult)) {
                 if (!validationResult.isValid) {
                     result.isValid = false;
                 }
+
                 result.errors.push(...(validationResult.errors ?? []));
                 result.warnings.push(...(validationResult.warnings ?? []));
+
                 if (validationResult.validatedValue !== undefined) {
                     result.validatedValue = validationResult.validatedValue;
-                }
-                else if (validationResult.value !== undefined) {
+                } else if (validationResult.value !== undefined) {
                     result.validatedValue = validationResult.value;
                 }
             }
-        }
-        catch (error) {
+        } catch (error) {
             result.isValid = false;
-            result.errors.push(`Validation error for ${fieldName}: ${getUnknownErrorMessage(error)}`);
+            result.errors.push(
+                `Validation error for ${fieldName}: ${getUnknownErrorMessage(
+                    error
+                )}`
+            );
         }
     }
+
     return result;
 }
+
 /**
  * Wrap a sync or async function with standardized error handling.
  */
-export function withErrorHandling(fn, options = {}) {
+export function withErrorHandling<Args extends unknown[], Result, Fallback = null>(
+    fn: (...args: Args) => MaybePromise<Result>,
+    options: ErrorHandlingOptions<Fallback> = {}
+): (...args: Args) => MaybePromise<Fallback | Result> {
     const handleError = createErrorHandler(options);
     const functionName = fn.name || "anonymous";
-    return function wrappedFunction(...args) {
+
+    return function wrappedFunction(...args: Args): MaybePromise<Fallback | Result> {
         try {
             const result = fn(...args);
-            if (isPromiseLike(result)) {
-                return Promise.resolve(result).catch((error) => handleError(error, {
-                    input: args,
-                    operation: functionName,
-                }));
+
+            if (isPromiseLike<Result>(result)) {
+                return Promise.resolve(result).catch((error: unknown) =>
+                    handleError(error, {
+                        input: args,
+                        operation: functionName,
+                    })
+                );
             }
+
             return result;
-        }
-        catch (error) {
+        } catch (error) {
             return handleError(error, {
                 input: args,
                 operation: functionName,
@@ -186,13 +325,15 @@ export function withErrorHandling(fn, options = {}) {
         }
     };
 }
+
 /**
  * Common validators for typical input types.
  */
 export const validators = {
-    isFiniteNumber(value, fieldName) {
+    isFiniteNumber(value: unknown, fieldName: string): ValidatorResult<number> {
         const isNumber = typeof value === "number";
         const isValid = isNumber && Number.isFinite(value);
+
         return {
             errors: isNumber
                 ? Number.isFinite(value)
@@ -203,9 +344,11 @@ export const validators = {
             value: isNumber ? value : Number(value),
         };
     },
-    isNonEmptyString(value, fieldName) {
+
+    isNonEmptyString(value: unknown, fieldName: string): ValidatorResult<string> {
         const isString = typeof value === "string";
         const trimmedValue = isString ? value.trim() : String(value).trim();
+
         return {
             errors: isString
                 ? trimmedValue.length > 0
@@ -216,10 +359,12 @@ export const validators = {
             value: trimmedValue,
         };
     },
-    isPositiveNumber(value, fieldName) {
+
+    isPositiveNumber(value: unknown, fieldName: string): ValidatorResult<number> {
         const isNumber = typeof value === "number";
         const isFiniteNumber = isNumber && Number.isFinite(value);
         const isValid = isFiniteNumber && value > 0;
+
         return {
             errors: isNumber
                 ? isFiniteNumber
@@ -232,46 +377,64 @@ export const validators = {
             value: isNumber ? value : Number(value),
         };
     },
-    isRequired(value, fieldName) {
+
+    isRequired(value: unknown, fieldName: string): ValidatorResult<unknown> {
         return {
-            errors: value === null || value === undefined
-                ? [`${fieldName} is required`]
-                : [],
+            errors:
+                value === null || value === undefined
+                    ? [`${fieldName} is required`]
+                    : [],
             isValid: value !== null && value !== undefined,
             value,
         };
     },
-};
+} as const;
+
 /**
  * Initialize browser-level global error logging hooks.
  */
-export function initializeErrorHandling(_options = {}) {
+export function initializeErrorHandling(_options: Record<string, never> = {}): void {
     if (typeof globalRef.addEventListener === "function") {
         globalErrorListenerAbortController?.abort();
         globalErrorListenerAbortController = new AbortController();
         const listenerOptions = {
             signal: globalErrorListenerAbortController.signal,
         };
-        globalRef.addEventListener("error", (event) => {
+
+        globalRef.addEventListener("error", (event: ErrorEvent) => {
             logError(event.error ?? new Error(event.message), {
                 operation: "global-error-handler",
                 path: `${event.filename}:${event.lineno}:${event.colno}`,
             });
         }, listenerOptions);
-        globalRef.addEventListener("unhandledrejection", (event) => {
-            logError(event.reason instanceof Error
-                ? event.reason
-                : new Error(String(event.reason)), {
-                operation: "unhandled-rejection",
-            });
-        }, listenerOptions);
+
+        globalRef.addEventListener(
+            "unhandledrejection",
+            (event: PromiseRejectionEvent) => {
+                logError(
+                    event.reason instanceof Error
+                        ? event.reason
+                        : new Error(String(event.reason)),
+                    {
+                        operation: "unhandled-rejection",
+                    }
+                );
+            },
+            listenerOptions
+        );
     }
+
     console.log("[ErrorHandling] Error handling system initialized");
 }
+
 /**
  * Log an error with structured context and optional performance telemetry.
  */
-export function logError(error, context = {}, level = "error") {
+export function logError(
+    error: Error,
+    context: ErrorContext = {},
+    level: LogLevel = "error"
+): void {
     const timestamp = new Date().toISOString();
     const errorInfo = {
         context,
@@ -280,20 +443,29 @@ export function logError(error, context = {}, level = "error") {
         stack: error.stack,
         timestamp,
     };
+
     console[level](`[${timestamp}] Error:`, errorInfo);
+
     if (globalRef.performanceMonitor?.recordError !== undefined) {
         try {
-            globalRef.performanceMonitor.recordError(error, context.operation ?? "unknown");
-        }
-        catch {
+            globalRef.performanceMonitor.recordError(
+                error,
+                context.operation ?? "unknown"
+            );
+        } catch {
             // Ignore secondary telemetry failures.
         }
     }
 }
+
 /**
  * Create a fail-safe function wrapper that returns a caller-provided fallback.
  */
-export function makeResilient(fn, fallback, options = {}) {
+export function makeResilient<Args extends unknown[], Result, Fallback>(
+    fn: (...args: Args) => MaybePromise<Result>,
+    fallback: Fallback,
+    options: ErrorHandlingOptions<Fallback> = {}
+): (...args: Args) => MaybePromise<Fallback | Result> {
     return withErrorHandling(fn, {
         failSafe: true,
         fallback,
@@ -302,11 +474,16 @@ export function makeResilient(fn, fallback, options = {}) {
         ...options,
     });
 }
+
 /**
  * Create a fail-safe function wrapper that returns null when the function fails.
  */
-export function makeSafe(fn, options = {}) {
+export function makeSafe<Args extends unknown[], Result>(
+    fn: (...args: Args) => MaybePromise<Result>,
+    options: { logErrors?: boolean } = {}
+): (...args: Args) => MaybePromise<Result | null> {
     const { logErrors = true } = options;
+
     return withErrorHandling(fn, {
         failSafe: true,
         fallback: null,
