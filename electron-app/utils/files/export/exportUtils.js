@@ -354,9 +354,18 @@ const GyazoTokenResponseSchema = z
     })
     .passthrough();
 
+const GyazoUploadResponseSchema = z
+    .object({
+        permalink_url: z.string().min(1).optional(),
+        url: z.string().min(1).optional(),
+    })
+    .passthrough();
+
 /**
  * @typedef {{ code: string; state: string }} GyazoOAuthCallbackPayload
  * @typedef {{ access_token: string } & Record<string, unknown>} GyazoTokenResponse
+ * @typedef {{ permalink_url?: string; url?: string } & Record<string, unknown>} GyazoUploadResponse
+ * @typedef {Response & Partial<GyazoUploadResponse>} GyazoUploadFetchResponse
  */
 
 /**
@@ -1198,7 +1207,7 @@ export const exportUtils = {
      */
     createGyazoAuthModal(
         authUrl,
-        /** @type {any} */ _state,
+        _state,
         resolve,
         reject,
         useServer,
@@ -3415,10 +3424,12 @@ body {
                 new Set(["upload.gyazo.com"])
             );
 
-            const uploadResponse = await fetchWithTimeout(uploadUrl, 15_000, {
-                body: formData,
-                method: "POST",
-            });
+            const uploadResponse = /** @type {GyazoUploadFetchResponse} */ (
+                await fetchWithTimeout(uploadUrl, 15_000, {
+                    body: formData,
+                    method: "POST",
+                })
+            );
 
             // Treat missing `ok` (common in test doubles) as success.
             // A real Fetch Response always has a boolean `ok`.
@@ -3437,10 +3448,16 @@ body {
                 );
             }
 
+            const rawData =
+                    typeof uploadResponse.json === "function"
+                        ? await uploadResponse.json()
+                        : uploadResponse,
+                parsed = GyazoUploadResponseSchema.safeParse(rawData);
+            if (!parsed.success) {
+                throw new Error("Invalid Gyazo upload response");
+            }
             const data =
-                typeof uploadResponse.json === "function"
-                    ? await uploadResponse.json()
-                    : /** @type {any} */ (uploadResponse);
+                /** @type {GyazoUploadResponse} */ (parsed.data);
             if (data.permalink_url) {
                 return data.permalink_url;
             } else if (data.url) {
