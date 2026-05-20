@@ -1,33 +1,51 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { exportUtils as rawExportUtils } from "./exportUtils.js";
-const chartExportGlobal = globalThis;
-const exportUtils = rawExportUtils;
-function getChartLabel(chart, index) {
+import type { ExportableChart } from "./exportUtils.js";
+
+type ChartExportUtils = {
+    downloadChartAsPNG(chart: ExportableChart, filename: string): unknown;
+};
+
+type ChartExportGlobal = typeof globalThis & {
+    _chartjsInstances?: ExportableChart[];
+};
+
+const chartExportGlobal = globalThis as ChartExportGlobal;
+const exportUtils = rawExportUtils as ChartExportUtils;
+
+function getChartLabel(chart: ExportableChart, index: number): string {
     const label = chart.data?.datasets?.[0]?.label;
     return typeof label === "string" && label.length > 0
         ? label
         : `chart-${index}`;
 }
-function getChartExportFilename(chart, index) {
+
+function getChartExportFilename(chart: ExportableChart, index: number): string {
     const field = getChartLabel(chart, index);
     return `${field.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
 }
+
 /**
  * Exports every currently rendered Chart.js instance as an individual PNG.
  */
-export function exportAllCharts() {
+export function exportAllCharts(): void {
     const chartInstances = chartExportGlobal._chartjsInstances;
+
     if (!Array.isArray(chartInstances) || chartInstances.length === 0) {
         showNotification("No charts available to export", "warning");
         return;
     }
+
     try {
         for (const [index, chart] of chartInstances.entries()) {
-            exportUtils.downloadChartAsPNG(chart, getChartExportFilename(chart, index));
+            exportUtils.downloadChartAsPNG(
+                chart,
+                getChartExportFilename(chart, index)
+            );
         }
+
         showNotification(`Exported ${chartInstances.length} charts`, "success");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error exporting all charts:", error);
         showNotification("Failed to export charts", "error");
     }
