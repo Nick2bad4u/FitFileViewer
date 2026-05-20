@@ -1,7 +1,17 @@
 /**
  * Tab configuration definitions.
  */
-const TAB_CONFIG = {
+
+/** Metadata for one tab managed by the legacy tab state manager. */
+export type TabDef = {
+    contentId: string;
+    handler: null | string;
+    id: string;
+    label: string;
+    requiresData: boolean;
+};
+
+const TAB_CONFIG: Record<string, TabDef> = {
     altfit: {
         contentId: "content-altfit",
         handler: null,
@@ -59,4 +69,5 @@ const TAB_CONFIG = {
         requiresData: false,
     },
 };
+
 export { TAB_CONFIG };
