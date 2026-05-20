@@ -1135,148 +1135,145 @@ export const exportUtils = {
             box-shadow: var(--color-box-shadow);
         `;
 
-        const actionButtons = useServerFlag
-                ? `
-            <div style="display: flex; gap: 8px;">
-                <button id="gyazo-cancel-auth" style="
-                    flex: 1;
-                    padding: 12px;
-                    background: var(--color-border-light);
-                    border: 1px solid var(--color-border);
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    ❌ Cancel
-                </button>
-            </div>
-        `
-                : `
-            <div style="display: flex; gap: 8px;">
-                <button id="gyazo-complete-auth" style="
-                    flex: 1;
-                    padding: 12px;
-                    background: var(--color-success);
-                    border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    ✅ Complete Authentication
-                </button>
-                <button id="gyazo-cancel-auth" style="
-                    flex: 1;
-                    padding: 12px;
-                    background: var(--color-border-light);
-                    border: 1px solid var(--color-border);
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    ❌ Cancel
-                </button>
-            </div>
-        `,
-            codeInputSection = useServer
-                ? ""
-                : `
-            <div style="margin-bottom: 16px;">
-                <label style="display: block; margin-bottom: 8px; color: var(--color-fg); font-weight: 600;">
-                    Authorization Code:
-                </label>
-                <input type="text" id="gyazo-auth-code" placeholder="Paste the authorization code here..." style="
-                    width: 100%;
-                    padding: 10px 12px;
-                    border-radius: 8px;
-                    border: 1px solid var(--color-border);
-                    background: var(--color-glass);
-                    color: var(--color-fg);
-                    font-size: 14px;
-                    box-sizing: border-box;
-                ">
-            </div>
-        `,
-            instructions = useServer
-                ? `
-            <div style="margin-bottom: 20px; color: var(--color-fg); line-height: 1.5;">
-                <p>To upload charts to Gyazo, you need to authenticate with your Gyazo account.</p>
-                <div style="margin: 16px 0; padding: 12px; background: var(--color-glass); border-radius: 8px;">
-                    <strong>� Automatic Mode:</strong> Click the button below to open Gyazo authentication.
-                    After you log in and authorize the app, this window will close automatically.
-                </div>
-            </div>
-        `
-                : `
-            <div style="margin-bottom: 20px; color: var(--color-fg); line-height: 1.5;">
-                <p>To upload charts to Gyazo, you need to authenticate with your Gyazo account.</p>
-                <ol style="margin: 16px 0; padding-left: 20px;">
-                    <li>Click "Open Gyazo Login" to open the authentication page in your browser</li>
-                    <li>Log in to your Gyazo account and authorize the application</li>
-                    <li>Copy the authorization code from the redirect page</li>
-                    <li>Paste the code in the input field below</li>
-                    <li>Click "Complete Authentication"</li>
-                </ol>
-            </div>
-        `;
+        const title = document.createElement("h3");
+        title.style.cssText =
+            "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
+        title.textContent = "🔐 Gyazo Authentication";
+        modal.append(title);
 
-        modal.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
-                🔐 Gyazo Authentication
-            </h3>
-            ${instructions}
-            <div style="margin-bottom: 16px;">
-                <a
-                   data-external-link="true"
-                   role="link"
-                   tabindex="0"
-                   id="gyazo-open-auth"
-                   style="
-                    display: block;
-                    width: 100%;
-                    padding: 12px;
-                    background: var(--color-accent);
-                    border: none;
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                    text-decoration: none;
-                    text-align: center;
-                    box-sizing: border-box;
-                ">
-                    🌐 Open Gyazo Login in Browser
-                </a>
-            </div>
-            ${codeInputSection}
-            ${actionButtons}
-        `;
+        const instructions = document.createElement("div");
+        instructions.style.cssText =
+            "margin-bottom: 20px; color: var(--color-fg); line-height: 1.5;";
+        const instructionsIntro = document.createElement("p");
+        instructionsIntro.textContent =
+            "To upload charts to Gyazo, you need to authenticate with your Gyazo account.";
+        instructions.append(instructionsIntro);
 
-        // Security: assign the external URL via DOM API to avoid attribute injection.
-        const authLink = modal.querySelector("#gyazo-open-auth");
-        if (authLink) {
-            try {
-                /** @type {HTMLAnchorElement} */ (authLink).setAttribute(
-                    "href",
-                    String(authUrl)
-                );
-            } catch {
-                /* ignore */
+        if (useServerFlag) {
+            const automaticMode = document.createElement("div"),
+                automaticModeLabel = document.createElement("strong");
+            automaticMode.style.cssText =
+                "margin: 16px 0; padding: 12px; background: var(--color-glass); border-radius: 8px;";
+            automaticModeLabel.textContent = "Automatic Mode:";
+            automaticMode.append(
+                automaticModeLabel,
+                " Click the button below to open Gyazo authentication. After you log in and authorize the app, this window will close automatically."
+            );
+            instructions.append(automaticMode);
+        } else {
+            const steps = document.createElement("ol");
+            steps.style.cssText = "margin: 16px 0; padding-left: 20px;";
+            for (const step of [
+                'Click "Open Gyazo Login" to open the authentication page in your browser',
+                "Log in to your Gyazo account and authorize the application",
+                "Copy the authorization code from the redirect page",
+                "Paste the code in the input field below",
+                'Click "Complete Authentication"',
+            ]) {
+                const item = document.createElement("li");
+                item.textContent = step;
+                steps.append(item);
             }
+            instructions.append(steps);
+        }
+        modal.append(instructions);
+
+        const authLinkContainer = document.createElement("div"),
+            authLink = document.createElement("a");
+        authLinkContainer.style.cssText = "margin-bottom: 16px;";
+        authLink.dataset.externalLink = "true";
+        authLink.href = String(authUrl);
+        authLink.id = "gyazo-open-auth";
+        authLink.role = "link";
+        authLink.tabIndex = 0;
+        authLink.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: var(--color-accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--color-fg-alt);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            text-align: center;
+            box-sizing: border-box;
+        `;
+        authLink.textContent = "🌐 Open Gyazo Login in Browser";
+        authLinkContainer.append(authLink);
+        modal.append(authLinkContainer);
+
+        /** @type {HTMLInputElement | null} */
+        let codeInput = null;
+        /** @type {HTMLButtonElement | null} */
+        let completeAuthBtn = null;
+
+        if (!useServerFlag) {
+            const codeInputSection = document.createElement("div"),
+                codeInputLabel = document.createElement("label");
+            codeInputSection.style.cssText = "margin-bottom: 16px;";
+            codeInputLabel.style.cssText =
+                "display: block; margin-bottom: 8px; color: var(--color-fg); font-weight: 600;";
+            codeInputLabel.textContent = "Authorization Code:";
+            codeInput = document.createElement("input");
+            codeInput.id = "gyazo-auth-code";
+            codeInput.placeholder = "Paste the authorization code here...";
+            codeInput.type = "text";
+            codeInput.style.cssText = `
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--color-border);
+                background: var(--color-glass);
+                color: var(--color-fg);
+                font-size: 14px;
+                box-sizing: border-box;
+            `;
+            codeInputSection.append(codeInputLabel, codeInput);
+            modal.append(codeInputSection);
         }
 
-        // Event handlers
-        const cancelBtn = modal.querySelector("#gyazo-cancel-auth"),
-            codeInput = modal.querySelector("#gyazo-auth-code"),
-            completeAuthBtn = modal.querySelector("#gyazo-complete-auth");
+        const actionButtons = document.createElement("div"),
+            cancelBtn = document.createElement("button");
+        actionButtons.style.cssText = "display: flex; gap: 8px;";
+        cancelBtn.id = "gyazo-cancel-auth";
+        cancelBtn.style.cssText = `
+            flex: 1;
+            padding: 12px;
+            background: var(--color-border-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-fg-alt);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        `;
+        cancelBtn.textContent = "❌ Cancel";
+
+        if (!useServerFlag) {
+            completeAuthBtn = document.createElement("button");
+            completeAuthBtn.id = "gyazo-complete-auth";
+            completeAuthBtn.style.cssText = `
+                flex: 1;
+                padding: 12px;
+                background: var(--color-success);
+                border: none;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: var(--transition-smooth);
+            `;
+            completeAuthBtn.textContent = "✅ Complete Authentication";
+            actionButtons.append(completeAuthBtn);
+        }
+
+        actionButtons.append(cancelBtn);
+        modal.append(actionButtons);
 
         // The external link will be handled by main-ui.js external link handler
         // No need for a click handler on the link itself
