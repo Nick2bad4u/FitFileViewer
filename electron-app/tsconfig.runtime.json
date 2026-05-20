@@ -140,6 +140,7 @@
         "utils/charts/theming/getThemeColors.ts",
         "utils/theming/core/accentColor.ts",
         "utils/theming/core/setupTheme.ts",
+        "utils/theming/specific/updateMapTheme.ts",
         "utils/ui/notifications/showRenderNotification.ts",
         "utils/ui/tabs/tabIdUtils.ts",
         "utils/performance/index.ts",

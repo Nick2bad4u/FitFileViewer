@@ -5,10 +5,18 @@
  * control. Users can toggle between dark and light maps independently from the
  * application theme.
  */
-import { getMapThemeInverted, MAP_THEME_EVENTS, } from "./createMapThemeToggle.js";
-let updateMapThemeListener = null;
-let updateMapThemeAbortController = null;
+
+import {
+    getMapThemeInverted,
+    MAP_THEME_EVENTS,
+} from "./createMapThemeToggle.js";
+
+let updateMapThemeListener: (() => void) | null = null;
+
+let updateMapThemeAbortController: AbortController | null = null;
+
 let mapThemeListenersInstalled = false;
+
 /**
  * Install document-level listeners that keep the map tiles in sync when:
  *
@@ -18,10 +26,11 @@ let mapThemeListenersInstalled = false;
  * This is intentionally NOT executed at module import time to avoid
  * side-effects when the module is imported in tests or non-map contexts.
  */
-export function installUpdateMapThemeListeners() {
+export function installUpdateMapThemeListeners(): void {
     if (mapThemeListenersInstalled) {
         return;
     }
+
     mapThemeListenersInstalled = true;
     updateMapThemeAbortController = new AbortController();
     updateMapThemeListener = () => {
@@ -30,20 +39,35 @@ export function installUpdateMapThemeListeners() {
     const listenerOptions = {
         signal: updateMapThemeAbortController.signal,
     };
+
     if (typeof document !== "undefined") {
         // themechange is dispatched on body in some places, but it bubbles and document receives it.
-        document.addEventListener("themechange", updateMapThemeListener, listenerOptions);
-        document.addEventListener(MAP_THEME_EVENTS.CHANGED, updateMapThemeListener, listenerOptions);
+        document.addEventListener(
+            "themechange",
+            updateMapThemeListener,
+            listenerOptions
+        );
+        document.addEventListener(
+            MAP_THEME_EVENTS.CHANGED,
+            updateMapThemeListener,
+            listenerOptions
+        );
     }
+
     if (typeof window !== "undefined") {
-        window.addEventListener("beforeunload", uninstallUpdateMapThemeListeners, listenerOptions);
+        window.addEventListener(
+            "beforeunload",
+            uninstallUpdateMapThemeListeners,
+            listenerOptions
+        );
     }
 }
+
 /**
  * Remove previously-installed listeners. Useful for cleanup and for test
  * isolation.
  */
-export function uninstallUpdateMapThemeListeners() {
+export function uninstallUpdateMapThemeListeners(): void {
     if (!mapThemeListenersInstalled || updateMapThemeListener === null) {
         updateMapThemeAbortController?.abort();
         updateMapThemeAbortController = null;
@@ -51,23 +75,29 @@ export function uninstallUpdateMapThemeListeners() {
         updateMapThemeListener = null;
         return;
     }
+
     updateMapThemeAbortController?.abort();
+
     mapThemeListenersInstalled = false;
     updateMapThemeListener = null;
     updateMapThemeAbortController = null;
 }
+
 /**
  * Updates the Leaflet map theme based on user's map theme preference. Applies
  * dark theme (inversion filter) when user prefers dark maps, regardless of UI
  * theme.
  */
-export function updateMapTheme() {
+export function updateMapTheme(): void {
     try {
-        const leafletMap = document.querySelector("#leaflet-map"), mapShouldBeDark = getMapThemeInverted();
+        const leafletMap = document.querySelector("#leaflet-map"),
+            mapShouldBeDark = getMapThemeInverted();
+
         if (leafletMap) {
             // Expose the current map theme state to CSS (used for selectively inverting
             // scale/attribution/minimap UI elements without filtering the whole map container).
             leafletMap.classList.toggle("ffv-map-inverted", mapShouldBeDark);
+
             // IMPORTANT:
             // Previously we applied an inversion filter to the entire map container (#leaflet-map).
             // That also inverts Leaflet controls (layers selector), custom controls (lap selector),
@@ -78,20 +108,26 @@ export function updateMapTheme() {
             const filter = mapShouldBeDark
                 ? "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
                 : "none";
+
             // Ensure we never accidentally filter the full container.
             if (leafletMap instanceof HTMLElement) {
                 leafletMap.style.filter = "none";
             }
+
             // Apply to all tile panes within this map container (includes minimap tile panes).
-            for (const tilePane of leafletMap.querySelectorAll(".leaflet-tile-pane")) {
+            for (const tilePane of leafletMap.querySelectorAll(
+                ".leaflet-tile-pane"
+            )) {
                 if (tilePane instanceof HTMLElement) {
                     tilePane.style.filter = filter;
                 }
             }
-            console.log(`[updateMapTheme] Map theme updated - Map dark: ${mapShouldBeDark}`);
+
+            console.log(
+                `[updateMapTheme] Map theme updated - Map dark: ${mapShouldBeDark}`
+            );
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[updateMapTheme] Error updating map theme:", error);
     }
 }
