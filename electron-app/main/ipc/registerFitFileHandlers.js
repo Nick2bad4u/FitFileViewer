@@ -1,16 +1,29 @@
 /**
  * Registers IPC handlers for FIT file parsing and decoding operations.
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => Promise<void>} options.ensureFitParserStateIntegration
- * @param {(
+ * @typedef {import("../../shared/fit").FitDecodeResult} FitDecodeResult
+ *
+ * @typedef {(
+ *     event: unknown,
+ *     arrayBuffer: unknown
+ * ) => Promise<FitDecodeResult>} FitFileIpcHandler
+ *
+ * @typedef {(channel: string, handler: FitFileIpcHandler) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- * @param {{ decodeFitFile: (buffer: Buffer) => Promise<any> }} [options.fitParserModule]
- *   Optional injected FIT parser for testing
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{ decodeFitFile: (buffer: Buffer) => Promise<FitDecodeResult> }} FitParserModule
+ *
+ * @param {object} options
+ * @param {RegisterIpcHandle} options.registerIpcHandle
+ * @param {() => Promise<void>} options.ensureFitParserStateIntegration
+ * @param {LogWithContext} options.logWithContext
+ * @param {FitParserModule} [options.fitParserModule] Optional injected FIT
+ *   parser for testing
  */
 function registerFitFileHandlers({
     registerIpcHandle,
@@ -62,7 +75,6 @@ function registerFitFileHandlers({
             ArrayBuffer.isView(value) &&
             value.buffer instanceof ArrayBuffer
         ) {
-            // @ts-ignore - ArrayBufferView typing
             assertWithinFitLimit(value.byteLength);
             return Buffer.from(
                 value.buffer,
@@ -78,11 +90,16 @@ function registerFitFileHandlers({
             try {
                 await ensureFitParserStateIntegration();
                 const buffer = toBuffer(arrayBuffer);
-                const fitParser = fitParserModule ?? require("../../fitParser");
+                const fitParser =
+                    fitParserModule ??
+                    /** @type {FitParserModule} */ (require("../../fitParser"));
                 return await fitParser.decodeFitFile(buffer);
             } catch (error) {
                 logWithContext?.("error", `Error in ${channel}:`, {
-                    error: /** @type {Error} */ (error)?.message,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown FIT IPC handler error",
                 });
                 throw error;
             }

@@ -1,33 +1,33 @@
-/**
- * Registers IPC handlers for FIT file parsing and decoding operations.
- *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => Promise<void>} options.ensureFitParserStateIntegration
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- * @param {{ decodeFitFile: (buffer: Buffer) => Promise<any> }} [options.fitParserModule]
- *   Optional injected FIT parser for testing
- */
-export function registerFitFileHandlers({
-    registerIpcHandle,
-    ensureFitParserStateIntegration,
-    logWithContext,
-    fitParserModule,
-}: {
-    registerIpcHandle: (channel: string, handler: Function) => void;
+import type { Buffer } from "node:buffer";
+import type { FitDecodeResult } from "../../../shared/fit";
+
+export type FitFileIpcHandler = (
+    event: unknown,
+    arrayBuffer: unknown
+) => Promise<FitDecodeResult>;
+
+export type RegisterIpcHandle = (
+    channel: string,
+    handler: FitFileIpcHandler
+) => void;
+
+export type LogWithContext = (
+    level: "error" | "warn" | "info",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+export interface FitParserModule {
+    decodeFitFile: (buffer: Buffer) => Promise<FitDecodeResult>;
+}
+
+export interface RegisterFitFileHandlersOptions {
+    registerIpcHandle: RegisterIpcHandle;
     ensureFitParserStateIntegration: () => Promise<void>;
-    logWithContext: (
-        level: "error" | "warn" | "info",
-        message: string,
-        context?: Record<string, any>
-    ) => void;
-    fitParserModule?:
-        | {
-              decodeFitFile: (buffer: Buffer) => Promise<any>;
-          }
-        | undefined;
-}): void;
+    logWithContext: LogWithContext;
+    fitParserModule?: FitParserModule;
+}
+
+export function registerFitFileHandlers(
+    options: RegisterFitFileHandlersOptions
+): void;
