@@ -11,8 +11,50 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Speed vs Distance chart
 /**
+ * @typedef {Object} SpeedDistanceDatum
+ *
+ * @property {unknown} [distance]
+ * @property {unknown} [enhancedSpeed]
+ * @property {unknown} [speed]
+ */
+/**
+ * @typedef {Object} SpeedDistancePoint
+ *
+ * @property {number} x
+ * @property {number} y
+ */
+/**
+ * @typedef {Object} SpeedDistanceThemeConfig
+ *
+ * @property {Record<string, string>} [colors]
+ */
+/**
+ * @typedef {Object} SpeedDistanceTooltipContext
+ *
+ * @property {{ x?: unknown; y?: unknown }} parsed
+ */
+/**
+ * @param {unknown} value
+ *
+ * @returns {number | null}
+ */
+function getFiniteNumber(value) {
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {number}
+ */
+function toFiniteNumber(value) {
+    const numericValue = getFiniteNumber(value);
+    return numericValue === null ? 0 : numericValue;
+}
+
+/**
  * @param {HTMLElement} container
- * @param {any[]} data
+ * @param {SpeedDistanceDatum[]} data
  * @param {{
  *     maxPoints: number | "all";
  *     showPoints?: boolean;
@@ -42,11 +84,11 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         } = options;
 
         const hasDistance = data.some(
-                ({ distance }) => distance !== undefined && distance !== null
+                ({ distance }) => getFiniteNumber(distance) !== null
             ),
             hasSpeed = data.some(({ speed, enhancedSpeed }) => {
                 const preferredSpeed = enhancedSpeed ?? speed;
-                return preferredSpeed !== undefined && preferredSpeed !== null;
+                return getFiniteNumber(preferredSpeed) !== null;
             });
 
         if (!hasSpeed || !hasDistance) {
@@ -62,8 +104,9 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         // Determine theme
         const currentTheme =
             theme && theme !== "auto" ? theme : detectCurrentTheme();
-        /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = /** @type {SpeedDistanceThemeConfig} */ (
+            getThemeConfig()
+        );
         const { colors } = themeConfig || {};
         // Override colors if theme is forced and doesn't match config (simplified)
         const isDark = currentTheme === "dark";
@@ -71,19 +114,19 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
         const bgColor = isDark ? "#181c24" : "#ffffff";
 
+        /** @type {SpeedDistancePoint[]} */
         let chartData = data
             .map(({ distance, enhancedSpeed, speed }) => {
-                const preferredSpeed = enhancedSpeed ?? speed;
+                const preferredSpeed = getFiniteNumber(enhancedSpeed ?? speed),
+                    numericDistance = getFiniteNumber(distance);
 
                 if (
-                    preferredSpeed !== undefined &&
                     preferredSpeed !== null &&
-                    distance !== undefined &&
-                    distance !== null
+                    numericDistance !== null
                 ) {
                     // Apply unit conversion based on user preferences
                     const convertedDistance = convertValueToUserUnits(
-                            distance,
+                            numericDistance,
                             "distance"
                         ),
                         convertedSpeed = convertValueToUserUnits(
@@ -191,38 +234,42 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         borderColor: isDark ? "#555" : "#ddd",
                         borderWidth: 1,
                         callbacks: {
-                            /** @param {any} context */
+                            /** @param {SpeedDistanceTooltipContext} context */
                             label(context) {
                                 // Chart values are in user's preferred units, but we need raw values for tooltip
                                 // Reverse convert to get raw meters/mps for the formatTooltipWithUnits function
                                 // Use passed distanceUnits option instead of localStorage
-                                let rawDistance = context.parsed.x;
+                                const parsedX = toFiniteNumber(
+                                        context.parsed.x
+                                    ),
+                                    parsedY = toFiniteNumber(context.parsed.y);
+                                let rawDistance = parsedX;
                                 switch (distanceUnits) {
                                     case "feet": {
                                         rawDistance =
-                                            context.parsed.x / 3.280_84; // Convert feet back to meters
+                                            parsedX / 3.280_84; // Convert feet back to meters
                                         break;
                                     }
                                     case "kilometers": {
-                                        rawDistance = context.parsed.x * 1000; // Convert km back to meters
+                                        rawDistance = parsedX * 1000; // Convert km back to meters
                                         break;
                                     }
                                     case "miles": {
                                         rawDistance =
-                                            context.parsed.x * 1609.344; // Convert miles back to meters
+                                            parsedX * 1609.344; // Convert miles back to meters
                                         break;
                                     }
                                     // No default
                                 }
 
-                                let rawSpeed = context.parsed.y;
+                                let rawSpeed = parsedY;
                                 if (
                                     distanceUnits === "miles" ||
                                     distanceUnits === "feet"
                                 ) {
-                                    rawSpeed = context.parsed.y / 2.236_936;
+                                    rawSpeed = parsedY / 2.236_936;
                                 } else {
-                                    rawSpeed = context.parsed.y / 3.6;
+                                    rawSpeed = parsedY / 3.6;
                                 }
 
                                 return [
