@@ -142,6 +142,7 @@
         "utils/theming/core/setupTheme.ts",
         "utils/theming/specific/updateMapTheme.ts",
         "utils/ui/notifications/showRenderNotification.ts",
+        "utils/ui/notifications/showUpdateNotification.ts",
         "utils/ui/tabs/tabIdUtils.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
