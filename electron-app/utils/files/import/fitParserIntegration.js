@@ -24,30 +24,112 @@ import { settingsStateManager } from "../../state/domain/settingsStateManager.js
  *
  * @typedef {{ success: boolean; error?: string }} IntegrationResult
  */
+/**
+ * @typedef {Record<string, unknown>} DecoderOptions
+ */
+/**
+ * @typedef {{ error?: string; success?: boolean; options?: DecoderOptions } & Record<string, unknown>} DecoderResult
+ */
+/**
+ * @typedef {{
+ *     decodeFitFile: (fileBuffer: Buffer | Uint8Array, options?: DecoderOptions) => Promise<DecoderResult>;
+ *     getCurrentDecoderOptions?: () => DecoderOptions;
+ *     getDefaultDecoderOptions?: () => DecoderOptions;
+ *     initializeStateManagement?: (deps: {
+ *         fitFileStateManager: unknown;
+ *         performanceMonitor: unknown;
+ *         settingsStateManager: unknown;
+ *     }) => void;
+ *     resetDecoderOptions?: () => DecoderResult | Promise<DecoderResult>;
+ *     updateDecoderOptions?: (newOptions: DecoderOptions) => DecoderResult | Promise<DecoderResult>;
+ * }} FitParserModule
+ */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {DecoderOptions}
+ */
+function normalizeDecoderOptions(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value)
+        ? /** @type {DecoderOptions} */ (value)
+        : {};
+}
+
+/**
+ * @returns {FitParserModule}
+ */
+function loadFitParser() {
+    return /** @type {FitParserModule} */ (require("../../../fitParser.js"));
+}
+
+/**
+ * @param {import("electron").IpcMainInvokeEvent} event
+ *
+ * @returns {boolean}
+ */
+function isTrustedFitParserIpcEvent(event) {
+    const senderUrl = event.senderFrame?.url || event.sender?.getURL?.() || "";
+    if (!senderUrl) {
+        return false;
+    }
+
+    try {
+        const url = new URL(senderUrl);
+        if (url.protocol === "file:" || url.protocol === "app:") {
+            return true;
+        }
+
+        const isLoopbackHost =
+            url.hostname === "localhost" ||
+            url.hostname === "127.0.0.1" ||
+            url.hostname === "[::1]";
+        return url.protocol === "http:" && isLoopbackHost;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @param {import("electron").IpcMainInvokeEvent} event
+ * @param {string} channel
+ *
+ * @returns {DecoderResult | null}
+ */
+function rejectUntrustedFitParserIpc(event, channel) {
+    if (isTrustedFitParserIpcEvent(event)) {
+        return null;
+    }
+
+    console.warn(
+        `[FitParserIntegration] Rejected ${channel} from untrusted IPC sender`
+    );
+    return {
+        error: "Untrusted IPC sender",
+        success: false,
+    };
+}
 
 /**
  * Create a wrapper for decodeFitFile that integrates with renderer state This
  * function can be called from the renderer process via IPC
  *
  * @param {Buffer | Uint8Array} fileBuffer - FIT file buffer
- * @param {Object} options - Decoder options
+ * @param {DecoderOptions} options - Decoder options
  *
- * @returns {Promise<Object>} Decoded file data or error
+ * @returns {Promise<DecoderResult>} Decoded file data or error
  */
 /**
  * Decode FIT file and update state
  *
  * @param {Buffer | Uint8Array} fileBuffer
- * @param {Object} [options]
+ * @param {DecoderOptions} [options]
  *
- * @returns {Promise<any>} Decoder result or error shape
+ * @returns {Promise<DecoderResult>} Decoder result or error shape
  */
 export async function decodeFitFileWithState(fileBuffer, options = {}) {
     try {
-        // Import fitParser
-        /** @type {any} */
-        // Path adjustment same as above
-        const fitParser = require("../../../fitParser.js"),
+        const fitParser = loadFitParser(),
             // Decode the file with state management integration
             result = await fitParser.decodeFitFile(fileBuffer, options);
 
@@ -86,17 +168,16 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
 /**
  * Get current decoder options with state management integration
  *
- * @returns {Object} Current decoder options
+ * @returns {DecoderOptions} Current decoder options
  */
 /**
  * Get current decoder options or fallback defaults
  *
- * @returns {any}
+ * @returns {DecoderOptions}
  */
 export function getCurrentDecoderOptionsWithState() {
     try {
-        /** @type {any} */
-        const fitParser = require("../../../fitParser.js");
+        const fitParser = loadFitParser();
         return typeof fitParser.getCurrentDecoderOptions === "function"
             ? fitParser.getCurrentDecoderOptions()
             : typeof fitParser.getDefaultDecoderOptions === "function"
@@ -108,7 +189,7 @@ export function getCurrentDecoderOptionsWithState() {
             error
         );
         try {
-            const fitParserFallback = require("../../../fitParser.js");
+            const fitParserFallback = loadFitParser();
             return typeof fitParserFallback.getDefaultDecoderOptions ===
                 "function"
                 ? fitParserFallback.getDefaultDecoderOptions()
@@ -126,28 +207,24 @@ export function getCurrentDecoderOptionsWithState() {
  */
 export async function initializeFitParserIntegration() {
     try {
-        // Import the fitParser module (Node.js require in main process)
-        /** @type {any} */
-        // Path: utils/files/import -> utils/files -> utils -> (electron-app root)
-        const fitParser = require("../../../fitParser.js");
+        const fitParser = loadFitParser();
 
         // Initialize with state management instances
-        fitParser.initializeStateManagement({
-            fitFileStateManager,
-            performanceMonitor,
-            settingsStateManager,
-        });
+        if (typeof fitParser.initializeStateManagement === "function") {
+            fitParser.initializeStateManagement({
+                fitFileStateManager,
+                performanceMonitor,
+                settingsStateManager,
+            });
+        }
 
         // Set up decoder options schema in settings if not already present
         try {
             // Attempt to read existing decoder options from settings state (dynamic category not in schema)
-            const existingDecoder = /** @type {any} */ (
-                settingsStateManager && settingsStateManager.getSetting
-                    ? settingsStateManager.getSetting(
-                          /** @type {any} */ ("decoder")
-                      )
-                    : undefined
+            const settingsManager = /** @type {{ getSetting?: (key: string) => unknown }} */ (
+                settingsStateManager
             );
+            const existingDecoder = settingsManager.getSetting?.("decoder");
             if (existingDecoder == null) {
                 const defaultOptions =
                     typeof fitParser.getDefaultDecoderOptions === "function"
@@ -196,11 +273,17 @@ export function setupFitParserIPC(ipcMain) {
     ipcMain.handle(
         "fit:decode",
         /**
-         * @param {import("electron").IpcMainInvokeEvent} _event
+         * @param {import("electron").IpcMainInvokeEvent} event
          * @param {ArrayBuffer | Uint8Array | Buffer} fileBuffer
-         * @param {any} options
+         * @param {unknown} options
          */
-        async (_event, fileBuffer, options) => {
+        // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before decoding.
+        async (event, fileBuffer, options) => {
+            const rejection = rejectUntrustedFitParserIpc(event, "fit:decode");
+            if (rejection) {
+                return rejection;
+            }
+
             // Normalize ArrayBuffer to Uint8Array before forwarding
             let normalized = fileBuffer;
             if (fileBuffer instanceof ArrayBuffer) {
@@ -208,7 +291,7 @@ export function setupFitParserIPC(ipcMain) {
             }
             return decodeFitFileWithState(
                 /** @type {Uint8Array | Buffer} */ (normalized),
-                options
+                normalizeDecoderOptions(options)
             );
         }
     );
@@ -217,30 +300,54 @@ export function setupFitParserIPC(ipcMain) {
     ipcMain.handle(
         "update-decoder-options",
         /**
-         * @param {import("electron").IpcMainInvokeEvent} _event
-         * @param {any} newOptions
+         * @param {import("electron").IpcMainInvokeEvent} event
+         * @param {unknown} newOptions
          */
-        async (_event, newOptions) => updateDecoderOptionsWithState(newOptions)
+        // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before updating options.
+        async (event, newOptions) => {
+            const rejection = rejectUntrustedFitParserIpc(
+                event,
+                "update-decoder-options"
+            );
+            return (
+                rejection ||
+                updateDecoderOptionsWithState(
+                    normalizeDecoderOptions(newOptions)
+                )
+            );
+        }
     );
 
     // Handle getting current decoder options
     ipcMain.handle(
         "get-decoder-options",
-        /** @param {import("electron").IpcMainInvokeEvent} _event */
-        async (_event) => getCurrentDecoderOptionsWithState()
+        /** @param {import("electron").IpcMainInvokeEvent} event */
+        // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler returns only after rejectUntrustedFitParserIpc allows the sender.
+        async (event) =>
+            rejectUntrustedFitParserIpc(event, "get-decoder-options") ||
+            getCurrentDecoderOptionsWithState()
     );
 
     // Handle resetting decoder options
     ipcMain.handle(
         "reset-decoder-options",
-        /** @param {import("electron").IpcMainInvokeEvent} _event */ async (
-            _event
-        ) => {
+        /**
+         * @param {import("electron").IpcMainInvokeEvent} event
+         */
+        // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before resetting options.
+        async (event) => {
+            const rejection = rejectUntrustedFitParserIpc(
+                event,
+                "reset-decoder-options"
+            );
+            if (rejection) {
+                return rejection;
+            }
+
             try {
-                /** @type {any} */
-                const fitParser = require("../../../fitParser.js");
+                const fitParser = loadFitParser();
                 return typeof fitParser.resetDecoderOptions === "function"
-                    ? fitParser.resetDecoderOptions()
+                    ? await fitParser.resetDecoderOptions()
                     : {
                           error: "resetDecoderOptions not available",
                           success: false,
@@ -271,8 +378,8 @@ export function setupFitParserIPC(ipcMain) {
  * @param {import("electron").IpcRenderer} ipcRenderer
  */
 export function setupFitParserPreload(
-    /** @type {any} */ contextBridge,
-    /** @type {any} */ ipcRenderer
+    contextBridge,
+    ipcRenderer
 ) {
     if (
         contextBridge &&
@@ -283,9 +390,9 @@ export function setupFitParserPreload(
              * Decode a FIT file buffer
              *
              * @param {ArrayBuffer | Uint8Array | Buffer} fileBuffer
-             * @param {any} [options]
+             * @param {unknown} [options]
              *
-             * @returns {Promise<any>}
+             * @returns {Promise<unknown>}
              */
             decodeFitFile: (fileBuffer, options) => {
                 // Normalize ArrayBuffer to Uint8Array to satisfy type expectations downstream
@@ -298,22 +405,22 @@ export function setupFitParserPreload(
             /**
              * Get current decoder options
              *
-             * @returns {Promise<any>}
+             * @returns {Promise<unknown>}
              */
             getDecoderOptions: () => ipcRenderer.invoke("get-decoder-options"),
             /**
              * Reset decoder options to defaults
              *
-             * @returns {Promise<any>}
+             * @returns {Promise<unknown>}
              */
             resetDecoderOptions: () =>
                 ipcRenderer.invoke("reset-decoder-options"),
             /**
              * Update decoder options
              *
-             * @param {any} newOptions
+             * @param {unknown} newOptions
              *
-             * @returns {Promise<any>}
+             * @returns {Promise<unknown>}
              */
             updateDecoderOptions: (newOptions) =>
                 ipcRenderer.invoke("update-decoder-options", newOptions),
@@ -328,29 +435,27 @@ export function setupFitParserPreload(
 /**
  * Update decoder options through the state management system
  *
- * @param {Object} newOptions - New decoder options
+ * @param {DecoderOptions} newOptions - New decoder options
  *
- * @returns {Promise<Object>} Update result
+ * @returns {Promise<DecoderResult>} Update result
  */
 /**
  * Update decoder options via fitParser and emit change events
  *
- * @param {Object} newOptions
+ * @param {DecoderOptions} newOptions
  *
- * @returns {Promise<any>}
+ * @returns {Promise<DecoderResult>}
  */
 export async function updateDecoderOptionsWithState(newOptions) {
     try {
-        /** @type {any} */
-        // Path adjustment same as above
-        const fitParser = require("../../../fitParser.js"),
-            result =
-                typeof fitParser.updateDecoderOptions === "function"
-                    ? fitParser.updateDecoderOptions(newOptions)
-                    : {
-                          error: "updateDecoderOptions not available",
-                          success: false,
-                      };
+        const fitParser = loadFitParser(),
+            result = await (typeof fitParser.updateDecoderOptions ===
+            "function"
+                ? fitParser.updateDecoderOptions(newOptions)
+                : {
+                      error: "updateDecoderOptions not available",
+                      success: false,
+                  });
 
         if (result.success && masterStateManager) {
             try {
