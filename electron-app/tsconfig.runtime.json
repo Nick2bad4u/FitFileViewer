@@ -138,6 +138,7 @@
         "utils/charts/theming/chartThemeListener.ts",
         "utils/charts/theming/getFieldColor.ts",
         "utils/charts/theming/getThemeColors.ts",
+        "utils/theming/core/accentColor.ts",
         "utils/theming/core/setupTheme.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",

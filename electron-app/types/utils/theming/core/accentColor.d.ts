@@ -1,88 +1,101 @@
 /**
- * Applies accent color to CSS variables
+ * Theme names that influence accent color contrast calculations.
+ */
+export type AccentTheme = "dark" | "light";
+/**
+ * CSS variable values derived from a base accent color.
+ */
+export type AccentColorVariations = {
+    accent: string;
+    accentHover: string;
+    accentRgb: string;
+    accentSecondary: string;
+    btnBg: string;
+    btnBgSolid: string;
+    btnHover: string;
+    heroGlow: string;
+    heroGlowStrong: string;
+    info: string;
+    modalBg: string;
+    svgIconStroke: string;
+};
+/**
+ * Applies accent color CSS variables to the document root and body.
  *
- * @param {string} color - Accent color hex
- * @param {string} theme - Current theme ('dark' or 'light')
+ * @param color - Accent color hex value.
+ * @param theme - Current theme.
  */
 export function applyAccentColor(color: string, theme: string): void;
 /**
- * Clears the custom accent color (revert to default)
+ * Clears the custom accent color.
  *
- * @returns {boolean} True if cleared successfully
+ * @returns True when localStorage was updated.
  */
 export function clearAccentColor(): boolean;
 /**
- * Generates color variations from a base accent color
+ * Generates CSS variable values from a base accent color.
  *
- * @param {string} baseColor - Base accent color hex
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {Object} Color variations object
+ * @param baseColor - Base accent color hex value.
+ * @param theme - Current theme.
+ * @returns Color variation map.
  */
 export function generateAccentColorVariations(
     baseColor: string,
     theme: string
-): Object;
+): AccentColorVariations;
 /**
- * Gets the default accent color for the current theme
+ * Gets the default accent color for a theme.
  *
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {string} Default accent color hex
+ * @param theme - Current theme.
+ * @returns Default accent color hex value.
  */
 export function getDefaultAccentColor(theme: string): string;
 /**
- * Gets the effective accent color (custom or default)
+ * Gets the custom accent color or theme default.
  *
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {string} Accent color hex
+ * @param theme - Current theme.
+ * @returns Effective accent color hex value.
  */
 export function getEffectiveAccentColor(theme: string): string;
 /**
- * Initializes accent color on page load
+ * Initializes accent color CSS variables for the current theme.
  *
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {string} The applied accent color
+ * @param theme - Current theme.
+ * @returns Applied accent color hex value.
  */
 export function initializeAccentColor(theme: string): string;
 /**
- * Validates if a string is a valid hex color
+ * Checks whether a value is a six-digit hex color.
  *
- * @param {string} color - Color string to validate
- *
- * @returns {boolean} True if valid hex color
+ * @param color - Color candidate.
+ * @returns True when the value is a valid hex color.
  */
-export function isValidHexColor(color: string): boolean;
+export function isValidHexColor(color: unknown): color is string;
 /**
- * Loads the custom accent color from localStorage
+ * Loads the custom accent color from localStorage.
  *
- * @returns {string | null} Custom accent color or null if not set
+ * @returns Stored accent color, or null when absent or invalid.
  */
-export function loadAccentColor(): string | null;
+export function loadAccentColor(): null | string;
 /**
- * Resets accent color to theme default
+ * Resets the accent color to the current theme default.
  *
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {string} The default accent color
+ * @param theme - Current theme.
+ * @returns Default accent color hex value.
  */
 export function resetAccentColor(theme: string): string;
 /**
- * Saves the custom accent color to localStorage
+ * Saves the custom accent color to localStorage.
  *
- * @param {string} color - Hex color to save
- *
- * @returns {boolean} True if saved successfully
+ * @param color - Hex color to save.
+ * @returns True when saved successfully.
  */
 export function saveAccentColor(color: string): boolean;
 /**
- * Sets a new custom accent color
+ * Sets and applies a custom accent color.
  *
- * @param {string} color - New accent color hex
- * @param {string} theme - Current theme ('dark' or 'light')
- *
- * @returns {boolean} True if set successfully
+ * @param color - New accent color hex value.
+ * @param theme - Current theme.
+ * @returns True when the value was saved and applied.
  */
 export function setAccentColor(color: string, theme: string): boolean;

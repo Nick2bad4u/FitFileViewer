@@ -1,59 +1,110 @@
 /**
  * Utilities for managing custom accent colors with automatic shade generation.
  */
-const DEFAULT_ACCENT_COLORS = {
+
+/** Theme names that influence accent color contrast calculations. */
+export type AccentTheme = "dark" | "light";
+
+/** CSS variable values derived from a base accent color. */
+export type AccentColorVariations = {
+    accent: string;
+    accentHover: string;
+    accentRgb: string;
+    accentSecondary: string;
+    btnBg: string;
+    btnBgSolid: string;
+    btnHover: string;
+    heroGlow: string;
+    heroGlowStrong: string;
+    info: string;
+    modalBg: string;
+    svgIconStroke: string;
+};
+
+type RgbColor = {
+    b: number;
+    g: number;
+    r: number;
+};
+
+const DEFAULT_ACCENT_COLORS: Record<AccentTheme, string> = {
     dark: "#3b82f6",
     light: "#2563eb",
 };
+
 const ACCENT_COLOR_STORAGE_KEY = "ffv-accent-color";
+
 /**
  * Applies accent color CSS variables to the document root and body.
  *
  * @param color - Accent color hex value.
  * @param theme - Current theme.
  */
-export function applyAccentColor(color, theme) {
+export function applyAccentColor(color: string, theme: string): void {
     if (typeof document === "undefined") {
         return;
     }
+
     const resolvedTheme = normalizeTheme(theme);
     let resolvedColor = color;
+
     if (!isValidHexColor(resolvedColor)) {
         console.warn("[AccentColor] Invalid color, using default");
         resolvedColor = getDefaultAccentColor(resolvedTheme);
     }
-    const variations = generateAccentColorVariations(resolvedColor, resolvedTheme);
+
+    const variations = generateAccentColorVariations(
+        resolvedColor,
+        resolvedTheme
+    );
+
     for (const target of getAccentColorTargets()) {
         target.style.setProperty("--color-accent", variations.accent);
         target.style.setProperty("--color-accent-rgb", variations.accentRgb);
-        target.style.setProperty("--color-accent-secondary", variations.accentSecondary);
-        target.style.setProperty("--color-accent-hover", variations.accentHover);
+        target.style.setProperty(
+            "--color-accent-secondary",
+            variations.accentSecondary
+        );
+        target.style.setProperty(
+            "--color-accent-hover",
+            variations.accentHover
+        );
         target.style.setProperty("--color-btn-bg", variations.btnBg);
         target.style.setProperty("--color-btn-bg-solid", variations.btnBgSolid);
         target.style.setProperty("--color-btn-hover", variations.btnHover);
         target.style.setProperty("--color-hero-glow", variations.heroGlow);
-        target.style.setProperty("--color-hero-glow-strong", variations.heroGlowStrong);
+        target.style.setProperty(
+            "--color-hero-glow-strong",
+            variations.heroGlowStrong
+        );
         target.style.setProperty("--color-info", variations.info);
         target.style.setProperty("--color-modal-bg", variations.modalBg);
-        target.style.setProperty("--color-svg-icon-stroke", variations.svgIconStroke);
+        target.style.setProperty(
+            "--color-svg-icon-stroke",
+            variations.svgIconStroke
+        );
     }
-    console.log(`[AccentColor] Applied accent color: ${resolvedColor} for ${resolvedTheme} theme`);
+
+    console.log(
+        `[AccentColor] Applied accent color: ${resolvedColor} for ${resolvedTheme} theme`
+    );
 }
+
 /**
  * Clears the custom accent color.
  *
  * @returns True when localStorage was updated.
  */
-export function clearAccentColor() {
+export function clearAccentColor(): boolean {
     try {
         localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY);
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[AccentColor] Failed to clear accent color:", error);
         return false;
     }
 }
+
 /**
  * Generates CSS variable values from a base accent color.
  *
@@ -61,10 +112,17 @@ export function clearAccentColor() {
  * @param theme - Current theme.
  * @returns Color variation map.
  */
-export function generateAccentColorVariations(baseColor, theme) {
-    const resolvedTheme = normalizeTheme(theme), resolvedBaseColor = isValidHexColor(baseColor)
-        ? baseColor
-        : getDefaultAccentColor(resolvedTheme), { b, g, r } = hexToRgb(resolvedBaseColor), isDark = resolvedTheme === "dark";
+export function generateAccentColorVariations(
+    baseColor: string,
+    theme: string
+): AccentColorVariations {
+    const resolvedTheme = normalizeTheme(theme),
+        resolvedBaseColor = isValidHexColor(baseColor)
+            ? baseColor
+            : getDefaultAccentColor(resolvedTheme),
+        { b, g, r } = hexToRgb(resolvedBaseColor),
+        isDark = resolvedTheme === "dark";
+
     return {
         accent: resolvedBaseColor,
         accentHover: `rgb(${r} ${g} ${b} / ${isDark ? "20%" : "15%"})`,
@@ -86,93 +144,100 @@ export function generateAccentColorVariations(baseColor, theme) {
             : resolvedBaseColor,
     };
 }
+
 /**
  * Gets the default accent color for a theme.
  *
  * @param theme - Current theme.
  * @returns Default accent color hex value.
  */
-export function getDefaultAccentColor(theme) {
+export function getDefaultAccentColor(theme: string): string {
     return DEFAULT_ACCENT_COLORS[normalizeTheme(theme)];
 }
+
 /**
  * Gets the custom accent color or theme default.
  *
  * @param theme - Current theme.
  * @returns Effective accent color hex value.
  */
-export function getEffectiveAccentColor(theme) {
+export function getEffectiveAccentColor(theme: string): string {
     return loadAccentColor() || getDefaultAccentColor(theme);
 }
+
 /**
  * Initializes accent color CSS variables for the current theme.
  *
  * @param theme - Current theme.
  * @returns Applied accent color hex value.
  */
-export function initializeAccentColor(theme) {
+export function initializeAccentColor(theme: string): string {
     const effectiveColor = getEffectiveAccentColor(theme);
     applyAccentColor(effectiveColor, theme);
     return effectiveColor;
 }
+
 /**
  * Checks whether a value is a six-digit hex color.
  *
  * @param color - Color candidate.
  * @returns True when the value is a valid hex color.
  */
-export function isValidHexColor(color) {
+export function isValidHexColor(color: unknown): color is string {
     return typeof color === "string" && /^#[\da-f]{6}$/i.test(color);
 }
+
 /**
  * Loads the custom accent color from localStorage.
  *
  * @returns Stored accent color, or null when absent or invalid.
  */
-export function loadAccentColor() {
+export function loadAccentColor(): null | string {
     try {
         const saved = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY);
         if (isValidHexColor(saved)) {
             return saved;
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.warn("[AccentColor] Failed to load accent color:", error);
     }
     return null;
 }
+
 /**
  * Resets the accent color to the current theme default.
  *
  * @param theme - Current theme.
  * @returns Default accent color hex value.
  */
-export function resetAccentColor(theme) {
+export function resetAccentColor(theme: string): string {
     clearAccentColor();
     const defaultColor = getDefaultAccentColor(theme);
     applyAccentColor(defaultColor, theme);
     return defaultColor;
 }
+
 /**
  * Saves the custom accent color to localStorage.
  *
  * @param color - Hex color to save.
  * @returns True when saved successfully.
  */
-export function saveAccentColor(color) {
+export function saveAccentColor(color: string): boolean {
     if (!isValidHexColor(color)) {
         console.warn("[AccentColor] Invalid color format:", color);
         return false;
     }
+
     try {
         localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[AccentColor] Failed to save accent color:", error);
         return false;
     }
 }
+
 /**
  * Sets and applies a custom accent color.
  *
@@ -180,46 +245,72 @@ export function saveAccentColor(color) {
  * @param theme - Current theme.
  * @returns True when the value was saved and applied.
  */
-export function setAccentColor(color, theme) {
+export function setAccentColor(color: string, theme: string): boolean {
     if (!isValidHexColor(color)) {
         console.warn("[AccentColor] Invalid color format");
         return false;
     }
+
     if (saveAccentColor(color)) {
         applyAccentColor(color, theme);
         return true;
     }
+
     return false;
 }
-function darkenColor(hex, percent) {
-    const { b, g, r } = hexToRgb(hex), amount = percent / 100, newR = r * (1 - amount), newG = g * (1 - amount), newB = b * (1 - amount);
+
+function darkenColor(hex: string, percent: number): string {
+    const { b, g, r } = hexToRgb(hex),
+        amount = percent / 100,
+        newR = r * (1 - amount),
+        newG = g * (1 - amount),
+        newB = b * (1 - amount);
+
     return rgbToHex(newR, newG, newB);
 }
-function getAccentColorTargets() {
-    const targets = [];
+
+function getAccentColorTargets(): HTMLElement[] {
+    const targets: HTMLElement[] = [];
+
     if (document.documentElement instanceof HTMLElement) {
         targets.push(document.documentElement);
     }
+
     if (document.body instanceof HTMLElement) {
         targets.push(document.body);
     }
+
     return targets;
 }
-function hexToRgb(hex) {
-    const cleaned = hex.replace("#", ""), r = Number.parseInt(cleaned.slice(0, 2), 16), g = Number.parseInt(cleaned.slice(2, 4), 16), b = Number.parseInt(cleaned.slice(4, 6), 16);
+
+function hexToRgb(hex: string): RgbColor {
+    const cleaned = hex.replace("#", ""),
+        r = Number.parseInt(cleaned.slice(0, 2), 16),
+        g = Number.parseInt(cleaned.slice(2, 4), 16),
+        b = Number.parseInt(cleaned.slice(4, 6), 16);
+
     return { b, g, r };
 }
-function lightenColor(hex, percent) {
-    const { b, g, r } = hexToRgb(hex), amount = (percent / 100) * 255, newR = r + (255 - r) * (amount / 255), newG = g + (255 - g) * (amount / 255), newB = b + (255 - b) * (amount / 255);
+
+function lightenColor(hex: string, percent: number): string {
+    const { b, g, r } = hexToRgb(hex),
+        amount = (percent / 100) * 255,
+        newR = r + (255 - r) * (amount / 255),
+        newG = g + (255 - g) * (amount / 255),
+        newB = b + (255 - b) * (amount / 255);
+
     return rgbToHex(newR, newG, newB);
 }
-function normalizeTheme(theme) {
+
+function normalizeTheme(theme: string): AccentTheme {
     return theme === "light" ? "light" : "dark";
 }
-function rgbToHex(r, g, b) {
-    const toHex = (value) => {
+
+function rgbToHex(r: number, g: number, b: number): string {
+    const toHex = (value: number): string => {
         const clamped = Math.max(0, Math.min(255, Math.round(value)));
         return clamped.toString(16).padStart(2, "0");
     };
+
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
