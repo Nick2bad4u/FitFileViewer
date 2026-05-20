@@ -1,5 +1,5 @@
 /**
- * Ensures chart settings dropdowns exist and applies styling
+ * Ensures chart settings dropdowns exist and applies styling.
  *
  * @param targetContainer - Container element or ID.
  * @returns Current settings object.
