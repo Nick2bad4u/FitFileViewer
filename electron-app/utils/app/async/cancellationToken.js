@@ -2,8 +2,6 @@
  * Provides a mechanism to cancel ongoing async operations like chart rendering
  * when the user navigates away or performs other actions that make the
  * operation irrelevant.
- *
- * @file Cancellation Token System for Async Operations
  */
 /**
  * Cancellation token for async operations
@@ -41,6 +39,7 @@ export class CancellationToken {
      *
      * @param callback - Callback function.
      * @returns Unsubscribe function.
+     * @throws TypeError when callback is not a function.
      */
     onCancel(callback) {
         if (typeof callback !== "function") {
@@ -68,7 +67,7 @@ export class CancellationToken {
     /**
      * Throw if cancelled
      *
-     * @throws {Error} If operation is cancelled
+     * @throws Error when the operation is cancelled.
      */
     throwIfCancelled() {
         if (this._isCancelled) {
