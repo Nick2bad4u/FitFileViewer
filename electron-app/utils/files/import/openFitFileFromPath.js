@@ -8,6 +8,21 @@
 /**
  * @typedef {{ handleFileLoadingError?: (error: Error) => void }} FitFileStateManagerLike
  */
+/** @typedef {import("../../../shared/fit").FitDecodeResult} FitDecodeResult */
+/**
+ * @typedef {{
+ *     notifyFitFileLoaded?: (filePath: string) => void;
+ *     parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitDecodeResult | { data: FitDecodeResult }>;
+ *     readFile: (filePath: string) => Promise<ArrayBuffer>;
+ * }} FitFileElectronAPI
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     __FFV_fitFileStateManager?: unknown;
+ *     electronAPI?: Partial<FitFileElectronAPI>;
+ *     showFitData?: (data: FitDecodeResult, filePath: string) => void;
+ * }} OpenFitFileGlobal
+ */
 
 /**
  * @param {Object} params
@@ -27,12 +42,9 @@ export async function openFitFileFromPath({
         return false;
     }
 
-    const api = /** @type {any} */ (globalThis).electronAPI;
-    if (
-        !api ||
-        typeof api.readFile !== "function" ||
-        typeof api.parseFitFile !== "function"
-    ) {
+    const appGlobal = getOpenFitFileGlobal();
+    const api = resolveFitFileElectronAPI();
+    if (!api) {
         showNotification("Electron file API unavailable.", "error");
         return false;
     }
@@ -60,17 +72,13 @@ export async function openFitFileFromPath({
             throw new Error("Invalid or unsupported file buffer");
         }
 
-        const result = await api.parseFitFile(arrayBuffer);
-        const data =
-            result && typeof result === "object" && "data" in result
-                ? /** @type {any} */ (result).data
-                : result;
+        const data = unwrapParsedFitData(await api.parseFitFile(arrayBuffer));
 
-        if (typeof globalThis.showFitData !== "function") {
+        if (typeof appGlobal.showFitData !== "function") {
             throw new TypeError("showFitData is not available");
         }
 
-        globalThis.showFitData(data, filePath);
+        appGlobal.showFitData(data, filePath);
 
         try {
             if (typeof api.notifyFitFileLoaded === "function") {
@@ -102,12 +110,6 @@ export async function openFitFileFromPath({
 }
 
 /**
- * Resolve the renderer-side fit file state manager if it has been installed.
- * This is used only for reporting errors into the app state pipeline.
- *
- * @returns {FitFileStateManagerLike | null}
- */
-/**
  * @param {unknown} value
  *
  * @returns {value is string}
@@ -124,6 +126,45 @@ function isNonEmptyString(value) {
 function isValidFitBuffer(buffer) {
     // Hard cap: 100MB
     return buffer.byteLength > 0 && buffer.byteLength <= 100 * 1024 * 1024;
+}
+
+/**
+ * @returns {OpenFitFileGlobal}
+ */
+function getOpenFitFileGlobal() {
+    return /** @type {OpenFitFileGlobal} */ (globalThis);
+}
+
+/**
+ * @returns {FitFileElectronAPI | null}
+ */
+function resolveFitFileElectronAPI() {
+    const { electronAPI } = getOpenFitFileGlobal();
+    if (!electronAPI || typeof electronAPI !== "object") {
+        return null;
+    }
+
+    if (
+        typeof electronAPI.readFile !== "function" ||
+        typeof electronAPI.parseFitFile !== "function"
+    ) {
+        return null;
+    }
+
+    return /** @type {FitFileElectronAPI} */ (electronAPI);
+}
+
+/**
+ * @param {FitDecodeResult | { data: FitDecodeResult }} result
+ *
+ * @returns {FitDecodeResult}
+ */
+function unwrapParsedFitData(result) {
+    if (result && typeof result === "object" && "data" in result) {
+        return result.data;
+    }
+
+    return result;
 }
 
 /**
