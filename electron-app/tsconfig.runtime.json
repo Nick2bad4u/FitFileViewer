@@ -98,6 +98,7 @@
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
+        "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
         "utils/charts/core/chartSpecFactory.ts",

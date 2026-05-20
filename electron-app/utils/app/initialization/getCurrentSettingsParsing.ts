@@ -1,57 +1,88 @@
-function normalizeChartOption(option) {
+/**
+ * Primitive chart setting value as stored by the settings layer.
+ */
+export type StoredSettingValue = string | number | boolean | null | undefined;
+
+/**
+ * Minimal option metadata needed to coerce a stored chart setting value.
+ */
+export interface ChartOptionConfig {
+    default: unknown;
+    id?: string;
+    type?: string;
+}
+
+function normalizeChartOption(option: unknown): ChartOptionConfig {
     if (typeof option !== "object" || option === null) {
         return { default: undefined, type: "" };
     }
-    const candidate = option;
+
+    const candidate = option as Record<string, unknown>;
     const optionType = candidate["type"];
-    const normalized = {
+    const normalized: ChartOptionConfig = {
         default: candidate["default"],
         type: typeof optionType === "string" ? optionType : "",
     };
+
     const optionId = candidate["id"];
     if (typeof optionId === "string") {
         normalized.id = optionId;
     }
+
     return normalized;
 }
+
 /**
  * Parse stored chart setting values according to chart option semantics.
  */
-export function parseStoredValue(stored, option) {
+export function parseStoredValue(
+    stored: StoredSettingValue,
+    option: unknown
+): unknown {
     const opt = normalizeChartOption(option);
     if (stored === null || stored === undefined) {
         return opt.default;
     }
+
     switch (opt.type) {
         case "range": {
             if (typeof stored === "number" && Number.isFinite(stored)) {
                 return stored;
             }
+
             const parsed = Number.parseFloat(String(stored));
             return Number.isFinite(parsed) ? parsed : opt.default;
         }
+
         case "select": {
             if (opt.id !== "maxpoints") {
                 return String(stored);
             }
+
             if (stored === "all") {
                 return "all";
             }
+
             if (typeof stored === "number" && Number.isFinite(stored)) {
                 return stored;
             }
+
             const parsed = Number.parseInt(String(stored), 10);
             return Number.isFinite(parsed) ? parsed : opt.default;
         }
+
         case "toggle": {
             if (typeof stored === "boolean") {
                 return stored;
             }
+
             if (typeof stored === "string") {
                 return stored === "true" || stored === "on";
             }
+
             return Boolean(stored);
         }
+
         default: {
             return stored;
         }
