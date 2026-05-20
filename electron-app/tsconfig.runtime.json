@@ -160,6 +160,7 @@
         "utils/ui/mainUiGlobals.ts",
         "utils/ui/icons/iconFactory.ts",
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
+        "utils/ui/browser/initFitBrowserFeatureGate.ts",
         "utils/ui/notifications/showRenderNotification.ts",
         "utils/ui/notifications/showNotification.ts",
         "utils/ui/notifications/showUpdateNotification.ts",
