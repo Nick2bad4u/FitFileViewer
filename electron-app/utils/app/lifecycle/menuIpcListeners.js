@@ -1,6 +1,19 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 
 /**
+ * @typedef {typeof globalThis & {
+ *     __ffvMenuForwardRegistry?: Set<string>;
+ * }} MenuIpcGlobal
+ */
+
+/**
+ * @returns {MenuIpcGlobal}
+ */
+function getMenuIpcGlobal() {
+    return /** @type {MenuIpcGlobal} */ (globalThis);
+}
+
+/**
  * Registers renderer-side IPC listeners that are specifically driven by the
  * Electron application menu.
  *
@@ -11,9 +24,9 @@ import { openFileSelector } from "../../files/import/openFileSelector.js";
  *
  * @param {{
  *     trackUnsubscribe: (maybeUnsubscribe: unknown) => void;
- *     debugMenuLog: (...args: any[]) => void;
+ *     debugMenuLog: (...args: unknown[]) => void;
  *     isTestEnvironment: boolean;
- *     showAboutModal: (...args: any[]) => void;
+ *     showAboutModal: (...args: unknown[]) => void;
  *     showNotification: (message: string, type?: string, durationMs?: number) => void;
  * }} params
  */
@@ -70,9 +83,9 @@ export function registerMenuIpcListeners({
     // Forward selected menu events back to main process.
     // (Main triggers renderer event; renderer calls `electronAPI.send(channel)`;
     // main listens to that channel and performs the privileged action.)
+    /** @param {string} channel */
     const ensureMenuForwarder = (channel) => {
-        /** @type {Record<string, any>} */
-        const holder = /** @type {any} */ (globalThis);
+        const holder = getMenuIpcGlobal();
         if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
             holder.__ffvMenuForwardRegistry = new Set();
         }
@@ -99,7 +112,7 @@ export function registerMenuIpcListeners({
 
     trackUnsubscribe(
         globalThis.electronAPI.onIpc("menu-about", () => {
-            // Show the about modal without any content since the styled system info
+            // Show the about modal without extra content since the styled system info
             // section will automatically load and display all the version information.
             showAboutModal();
         })
