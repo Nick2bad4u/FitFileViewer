@@ -3101,71 +3101,116 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        modal.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
-                🔧 Gyazo Setup Guide
-            </h3>
-            <div style="color: var(--color-fg); line-height: 1.6;">
-                <p><strong>To enable Gyazo integration, you need to:</strong></p>
-                <ol style="margin: 16px 0; padding-left: 20px;">
-                    <li>Visit <a href="https://gyazo.com/oauth/applications" data-external-link="true" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
-                    <li>Create a new application with these settings:
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li><strong>Application Name:</strong> FitFileViewer</li>
-                            <li><strong>Redirect URI:</strong> <code style="background: var(--color-glass); padding: 2px 4px; border-radius: 4px;">http://localhost:3000/gyazo/callback</code></li>
-                        </ul>
-                    </li>
-                    <li>Copy your <strong>Client ID</strong> and <strong>Client Secret</strong></li>
-                    <li>Update the exportUtils.gyazoConfig in the source code:
-                        <pre style="
-                            background: var(--color-glass);
-                            padding: 12px;
-                            border-radius: 8px;
-                            font-size: 12px;
-                            margin: 8px 0;
-                            overflow-x: auto;
-                            color: var(--color-fg);
-                        ">gyazoConfig: {
+        const title = document.createElement("h3");
+        title.style.cssText =
+            "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
+        title.textContent = "🔧 Gyazo Setup Guide";
+
+        const content = document.createElement("div"),
+            intro = document.createElement("p"),
+            introStrong = document.createElement("strong"),
+            steps = document.createElement("ol"),
+            visitStep = document.createElement("li"),
+            developerLink = document.createElement("a"),
+            createStep = document.createElement("li"),
+            createSettings = document.createElement("ul"),
+            appNameStep = document.createElement("li"),
+            appNameLabel = document.createElement("strong"),
+            redirectStep = document.createElement("li"),
+            redirectLabel = document.createElement("strong"),
+            redirectCode = document.createElement("code"),
+            copyStep = document.createElement("li"),
+            clientIdLabel = document.createElement("strong"),
+            clientSecretLabel = document.createElement("strong"),
+            updateStep = document.createElement("li"),
+            configExample = document.createElement("pre"),
+            restartStep = document.createElement("li"),
+            securityNote = document.createElement("div"),
+            securityLabel = document.createElement("strong"),
+            closeBtn = document.createElement("button");
+
+        content.style.cssText = "color: var(--color-fg); line-height: 1.6;";
+        introStrong.textContent = "To enable Gyazo integration, you need to:";
+        intro.append(introStrong);
+        steps.style.cssText = "margin: 16px 0; padding-left: 20px;";
+        developerLink.dataset.externalLink = "true";
+        developerLink.href = "https://gyazo.com/oauth/applications";
+        developerLink.style.cssText = "color: var(--color-accent);";
+        developerLink.textContent = "Gyazo Developer Applications";
+        visitStep.append("Visit ", developerLink);
+        createStep.append("Create a new application with these settings:");
+        createSettings.style.cssText = "margin: 8px 0; padding-left: 20px;";
+        appNameLabel.textContent = "Application Name:";
+        appNameStep.append(appNameLabel, " FitFileViewer");
+        redirectLabel.textContent = "Redirect URI:";
+        redirectCode.style.cssText =
+            "background: var(--color-glass); padding: 2px 4px; border-radius: 4px;";
+        redirectCode.textContent = "http://localhost:3000/gyazo/callback";
+        redirectStep.append(redirectLabel, " ", redirectCode);
+        createSettings.append(appNameStep, redirectStep);
+        createStep.append(createSettings);
+        clientIdLabel.textContent = "Client ID";
+        clientSecretLabel.textContent = "Client Secret";
+        copyStep.append(
+            "Copy your ",
+            clientIdLabel,
+            " and ",
+            clientSecretLabel
+        );
+        updateStep.append(
+            "Update the exportUtils.gyazoConfig in the source code:"
+        );
+        configExample.style.cssText = `
+            background: var(--color-glass);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            color: var(--color-fg);
+        `;
+        configExample.textContent = `gyazoConfig: {
     clientId: 'YOUR_ACTUAL_CLIENT_ID',
     clientSecret: 'YOUR_ACTUAL_CLIENT_SECRET',
     // ... rest of config
-}</pre>
-                    </li>
-                    <li>Restart the application</li>
-                </ol>
-                <div style="
-                    background: var(--color-warning-bg);
-                    border: 1px solid var(--color-warning);
-                    border-radius: 8px;
-                    padding: 12px;
-                    margin: 16px 0;
-                ">
-                    <strong>⚠️ Security Note:</strong> Keep your Client Secret secure and never expose it in public code repositories.
-                </div>
-            </div>
-            <button id="setup-close" style="
-                width: 100%;
-                padding: 12px;
-                background: var(--color-accent);
-                border: none;
-                border-radius: 8px;
-                color: var(--color-fg-alt);
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-                margin-top: 16px;
-            ">
-                Got it!
-            </button>
+}`;
+        updateStep.append(configExample);
+        restartStep.textContent = "Restart the application";
+        steps.append(visitStep, createStep, copyStep, updateStep, restartStep);
+        securityNote.style.cssText = `
+            background: var(--color-warning-bg);
+            border: 1px solid var(--color-warning);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
         `;
+        securityLabel.textContent = "⚠️ Security Note:";
+        securityNote.append(
+            securityLabel,
+            " Keep your Client Secret secure and never expose it in public code repositories."
+        );
+        content.append(intro, steps, securityNote);
 
-        const closeBtn = modal.querySelector("#setup-close");
-        if (closeBtn) {
-            closeBtn.addEventListener("click", () => {
-                overlay.remove();
-            });
-        }
+        closeBtn.id = "setup-close";
+        closeBtn.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            background: var(--color-accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--color-fg-alt);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            margin-top: 16px;
+        `;
+        closeBtn.textContent = "Got it!";
+        modal.append(title, content, closeBtn);
+
+        closeBtn.addEventListener("click", () => {
+            overlay.remove();
+        });
 
         // ESC key and click outside handlers
         const handleEscape = (/** @type {any} */ e) => {
@@ -3493,127 +3538,130 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        modal.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
-                📸 Imgur Settings
-            </h3>
+        const title = document.createElement("h3");
+        title.style.cssText =
+            "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
+        title.textContent = "📸 Imgur Settings";
+        modal.append(title);
 
-            <!-- Status Section -->
-            <div style="margin-bottom: 20px; text-align: center;">
-                <div style="margin-bottom: 12px;">
-                    <span id="imgur-status" style="
-                        display: inline-block;
-                        padding: 4px 12px;
-                        border-radius: 16px;
-                        font-size: 12px;
-                        font-weight: 600;
-                        background: ${isConfigured ? "var(--color-success)" : "var(--color-warning)"};
-                        color: white;
-                    ">
-                        ${isConfigured ? "✅ Configured" : "⚠️ Using Default (Limited)"}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Setup Instructions -->
-            <div style="margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;">
-                <h4 style="margin: 0 0 12px 0; color: var(--color-accent); font-size: 14px;">
-                    🚀 Getting Started
-                </h4>
-                <p style="margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;">
-                    To upload charts to Imgur, you need your own Imgur Client ID.
-                    Click <strong>"Setup Guide"</strong> below for step-by-step instructions.
-                </p>
-            </div>
-
-            <!-- Configuration Form -->
-            <div style="margin-bottom: 20px;">
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 14px;">
-                        Imgur Client ID:
-                    </label>
-                          <input type="text" id="imgur-client-id" placeholder="Enter your Imgur Client ID" style="
-                        width: 100%;
-                        padding: 10px 12px;
-                        border-radius: 8px;
-                        border: 1px solid var(--color-border);
-                        background: var(--color-glass);
-                        color: var(--color-fg);
-                        font-size: 14px;
-                        box-sizing: border-box;
-                        font-family: monospace;
-                    ">
-                </div>
-                <button id="save-imgur-config" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: var(--color-success);
-                    border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    💾 Save Configuration
-                </button>
-            </div>
-
-            <!-- Actions -->
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button id="imgur-setup-guide" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: var(--color-accent);
-                    border: none;
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    📖 Setup Guide
-                </button>
-
-                <button id="clear-imgur-config" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: var(--color-warning);
-                    border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    🗑️ Clear Configuration
-                </button>
-
-                <button id="imgur-close" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: var(--color-border-light);
-                    border: 1px solid var(--color-border);
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    Close
-                </button>
-            </div>
+        const statusSection = document.createElement("div"),
+            statusWrap = document.createElement("div"),
+            statusElement = document.createElement("span");
+        statusSection.style.cssText = "margin-bottom: 20px; text-align: center;";
+        statusWrap.style.cssText = "margin-bottom: 12px;";
+        statusElement.id = "imgur-status";
+        statusElement.style.cssText = `
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background: ${isConfigured ? "var(--color-success)" : "var(--color-warning)"};
+            color: white;
         `;
+        statusElement.textContent = isConfigured
+            ? "✅ Configured"
+            : "⚠️ Using Default (Limited)";
+        statusWrap.append(statusElement);
+        statusSection.append(statusWrap);
+        modal.append(statusSection);
 
-        // Event handlers
-        const saveBtn = modal.querySelector("#save-imgur-config");
-        const setupGuideBtn = modal.querySelector("#imgur-setup-guide");
-        const clearBtn = modal.querySelector("#clear-imgur-config");
-        const closeBtn = modal.querySelector("#imgur-close");
-        const clientIdInput = modal.querySelector("#imgur-client-id");
+        const setupInstructions = document.createElement("div"),
+            setupTitle = document.createElement("h4"),
+            setupCopy = document.createElement("p"),
+            setupGuideLabel = document.createElement("strong");
+        setupInstructions.style.cssText =
+            "margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;";
+        setupTitle.style.cssText =
+            "margin: 0 0 12px 0; color: var(--color-accent); font-size: 14px;";
+        setupTitle.textContent = "🚀 Getting Started";
+        setupCopy.style.cssText =
+            "margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;";
+        setupGuideLabel.textContent = '"Setup Guide"';
+        setupCopy.append(
+            "To upload charts to Imgur, you need your own Imgur Client ID. Click ",
+            setupGuideLabel,
+            " below for step-by-step instructions."
+        );
+        setupInstructions.append(setupTitle, setupCopy);
+        modal.append(setupInstructions);
+
+        const configForm = document.createElement("div"),
+            inputField = document.createElement("div"),
+            clientIdLabel = document.createElement("label"),
+            clientIdInput = document.createElement("input"),
+            saveBtn = document.createElement("button");
+        configForm.style.cssText = "margin-bottom: 20px;";
+        inputField.style.cssText = "margin-bottom: 12px;";
+        clientIdLabel.style.cssText =
+            "display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 14px;";
+        clientIdLabel.textContent = "Imgur Client ID:";
+        clientIdInput.id = "imgur-client-id";
+        clientIdInput.placeholder = "Enter your Imgur Client ID";
+        clientIdInput.type = "text";
+        clientIdInput.style.cssText = `
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            background: var(--color-glass);
+            color: var(--color-fg);
+            font-size: 14px;
+            box-sizing: border-box;
+            font-family: monospace;
+        `;
+        saveBtn.id = "save-imgur-config";
+        saveBtn.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            background: var(--color-success);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        `;
+        saveBtn.textContent = "💾 Save Configuration";
+        inputField.append(clientIdLabel, clientIdInput);
+        configForm.append(inputField, saveBtn);
+        modal.append(configForm);
+
+        const actions = document.createElement("div"),
+            setupGuideBtn = document.createElement("button"),
+            clearBtn = document.createElement("button"),
+            closeBtn = document.createElement("button");
+        actions.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
+        setupGuideBtn.id = "imgur-setup-guide";
+        clearBtn.id = "clear-imgur-config";
+        closeBtn.id = "imgur-close";
+        for (const button of [setupGuideBtn, clearBtn, closeBtn]) {
+            button.style.cssText = `
+                width: 100%;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: var(--transition-smooth);
+            `;
+        }
+        setupGuideBtn.style.background = "var(--color-accent)";
+        setupGuideBtn.style.border = "none";
+        setupGuideBtn.style.color = "var(--color-fg-alt)";
+        setupGuideBtn.style.fontWeight = "600";
+        setupGuideBtn.textContent = "📖 Setup Guide";
+        clearBtn.style.background = "var(--color-warning)";
+        clearBtn.style.border = "none";
+        clearBtn.style.color = "white";
+        clearBtn.style.fontWeight = "600";
+        clearBtn.textContent = "🗑️ Clear Configuration";
+        closeBtn.style.background = "var(--color-border-light)";
+        closeBtn.style.border = "1px solid var(--color-border)";
+        closeBtn.style.color = "var(--color-fg-alt)";
+        closeBtn.textContent = "Close";
+        actions.append(setupGuideBtn, clearBtn, closeBtn);
+        modal.append(actions);
 
         // Security: assign potentially-untrusted stored value via DOM property.
         if (clientIdInput) {
@@ -3717,93 +3765,150 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        modal.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
-                🔧 Imgur Setup Guide
-            </h3>
-            <div style="color: var(--color-fg); line-height: 1.6;">
-                <p><strong>To enable Imgur integration, follow these steps:</strong></p>
-                <ol style="margin: 16px 0; padding-left: 20px;">
-                    <li>Visit <a href="https://api.imgur.com/oauth2/addclient" data-external-link="true" style="color: var(--color-accent);">Imgur API Registration</a></li>
-                    <li>Create a new application with these settings:
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li><strong>Application Name:</strong> FitFileViewer</li>
-                            <li><strong>Authorization Type:</strong> Select "Anonymous usage without user authorization"</li>
-                            <li><strong>Authorization Callback URL:</strong> Leave blank (not needed for anonymous usage)</li>
-                        </ul>
-                    </li>
-                    <li>After creating the app, copy your <strong>Client ID</strong></li>
-                    <li>Return to the Imgur Settings and paste your Client ID</li>
-                    <li>Click "Save Configuration"</li>
-                </ol>
-                <div style="
-                    background: var(--color-glass);
-                    border: 1px solid var(--color-accent);
-                    border-radius: 8px;
-                    padding: 12px;
-                    margin: 16px 0;
-                ">
-                    <strong>💡 Tips:</strong>
-                    <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li>Anonymous usage is sufficient for uploading chart images</li>
-                        <li>Your Client ID is safe to use publicly (it's not a secret)</li>
-                        <li>Imgur allows up to 12,500 uploads per day for registered applications</li>
-                    </ul>
-                </div>
-                <div style="
-                    background: var(--color-warning-bg);
-                    border: 1px solid var(--color-warning);
-                    border-radius: 8px;
-                    padding: 12px;
-                    margin: 16px 0;
-                ">
-                    <strong>⚠️ Note:</strong> Without your own Client ID, the application uses a default that may have rate limits or restrictions.
-                </div>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 20px;">
-                <button id="imgur-guide-back" style="
-                    flex: 1;
-                    padding: 12px;
-                    background: var(--color-border-light);
-                    border: 1px solid var(--color-border);
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    ← Back to Settings
-                </button>
-                <button id="imgur-guide-close" style="
-                    flex: 1;
-                    padding: 12px;
-                    background: var(--color-accent);
-                    border: none;
-                    border-radius: 8px;
-                    color: var(--color-fg-alt);
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: var(--transition-smooth);
-                ">
-                    Got it!
-                </button>
-            </div>
+        const title = document.createElement("h3");
+        title.style.cssText =
+            "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
+        title.textContent = "🔧 Imgur Setup Guide";
+
+        const content = document.createElement("div");
+        content.style.cssText = "color: var(--color-fg); line-height: 1.6;";
+
+        const intro = document.createElement("p");
+        const introText = document.createElement("strong");
+        introText.textContent =
+            "To enable Imgur integration, follow these steps:";
+        intro.append(introText);
+
+        const steps = document.createElement("ol");
+        steps.style.cssText = "margin: 16px 0; padding-left: 20px;";
+
+        const registrationStep = document.createElement("li");
+        registrationStep.append("Visit ");
+        const registrationLink = document.createElement("a");
+        registrationLink.href = "https://api.imgur.com/oauth2/addclient";
+        registrationLink.dataset.externalLink = "true";
+        registrationLink.style.color = "var(--color-accent)";
+        registrationLink.textContent = "Imgur API Registration";
+        registrationStep.append(registrationLink);
+
+        const appStep = document.createElement("li");
+        appStep.append("Create a new application with these settings:");
+        const appSettings = document.createElement("ul");
+        appSettings.style.cssText = "margin: 8px 0; padding-left: 20px;";
+        const appName = document.createElement("li");
+        const appNameLabel = document.createElement("strong");
+        appNameLabel.textContent = "Application Name:";
+        appName.append(appNameLabel, " FitFileViewer");
+        const authType = document.createElement("li");
+        const authTypeLabel = document.createElement("strong");
+        authTypeLabel.textContent = "Authorization Type:";
+        authType.append(
+            authTypeLabel,
+            ' Select "Anonymous usage without user authorization"'
+        );
+        const callbackUrl = document.createElement("li");
+        const callbackUrlLabel = document.createElement("strong");
+        callbackUrlLabel.textContent = "Authorization Callback URL:";
+        callbackUrl.append(
+            callbackUrlLabel,
+            " Leave blank (not needed for anonymous usage)"
+        );
+        appSettings.append(appName, authType, callbackUrl);
+        appStep.append(appSettings);
+
+        const copyStep = document.createElement("li");
+        const clientIdLabel = document.createElement("strong");
+        clientIdLabel.textContent = "Client ID";
+        copyStep.append("After creating the app, copy your ", clientIdLabel);
+        const pasteStep = document.createElement("li");
+        pasteStep.textContent =
+            "Return to the Imgur Settings and paste your Client ID";
+        const saveStep = document.createElement("li");
+        saveStep.textContent = 'Click "Save Configuration"';
+        steps.append(registrationStep, appStep, copyStep, pasteStep, saveStep);
+
+        const tips = document.createElement("div");
+        tips.style.cssText = `
+            background: var(--color-glass);
+            border: 1px solid var(--color-accent);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
         `;
-
-        const backBtn = modal.querySelector("#imgur-guide-back");
-        const closeBtn = modal.querySelector("#imgur-guide-close");
-
-        if (backBtn) {
-            backBtn.addEventListener("click", () => {
-                overlay.remove();
-                exportUtils.showImgurAccountManager();
-            });
+        const tipsLabel = document.createElement("strong");
+        tipsLabel.textContent = "💡 Tips:";
+        const tipsList = document.createElement("ul");
+        tipsList.style.cssText = "margin: 8px 0; padding-left: 20px;";
+        for (const tip of [
+            "Anonymous usage is sufficient for uploading chart images",
+            "Your Client ID is safe to use publicly (it's not a secret)",
+            "Imgur allows up to 12,500 uploads per day for registered applications",
+        ]) {
+            const item = document.createElement("li");
+            item.textContent = tip;
+            tipsList.append(item);
         }
+        tips.append(tipsLabel, tipsList);
 
-        if (closeBtn) {
-            closeBtn.addEventListener("click", () => overlay.remove());
-        }
+        const note = document.createElement("div");
+        note.style.cssText = `
+            background: var(--color-warning-bg);
+            border: 1px solid var(--color-warning);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+        `;
+        const noteLabel = document.createElement("strong");
+        noteLabel.textContent = "⚠️ Note:";
+        note.append(
+            noteLabel,
+            " Without your own Client ID, the application uses a default that may have rate limits or restrictions."
+        );
+
+        content.append(intro, steps, tips, note);
+
+        const actions = document.createElement("div");
+        actions.style.cssText = "display: flex; gap: 8px; margin-top: 20px;";
+
+        const backBtn = document.createElement("button");
+        backBtn.id = "imgur-guide-back";
+        backBtn.style.cssText = `
+            flex: 1;
+            padding: 12px;
+            background: var(--color-border-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-fg-alt);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        `;
+        backBtn.textContent = "← Back to Settings";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.id = "imgur-guide-close";
+        closeBtn.style.cssText = `
+            flex: 1;
+            padding: 12px;
+            background: var(--color-accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--color-fg-alt);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        `;
+        closeBtn.textContent = "Got it!";
+
+        actions.append(backBtn, closeBtn);
+        modal.append(title, content, actions);
+
+        backBtn.addEventListener("click", () => {
+            overlay.remove();
+            exportUtils.showImgurAccountManager();
+        });
+        closeBtn.addEventListener("click", () => overlay.remove());
 
         // ESC key and click outside handlers
         const handleEscape = (e) => {
