@@ -9,18 +9,28 @@
  */
 
 /**
+ * @typedef {{
+ *     disconnect: () => void;
+ *     resizeHandler: () => void;
+ * }} FilenameAutoScrollState
+ * @typedef {HTMLElement & {
+ *     __ffvFilenameAutoScrollState?: FilenameAutoScrollState;
+ * }} FilenameElementWithState
+ */
+
+/**
  * Adds auto-scroll animation to active filename
  */
 export function initFilenameAutoScroll() {
-    const filenameElement = document.getElementById("active_file_name");
+    const filenameElement =
+        /** @type {FilenameElementWithState | null} */ (
+            document.getElementById("active_file_name")
+        );
     if (!filenameElement) {
         return;
     }
 
-    /** @type {any} */
-    const elAny = filenameElement;
-    const stateKey = "__ffvFilenameAutoScrollState";
-    const existingState = elAny[stateKey];
+    const existingState = filenameElement.__ffvFilenameAutoScrollState;
     if (existingState && typeof existingState === "object") {
         try {
             if (typeof existingState.disconnect === "function") {
@@ -37,7 +47,7 @@ export function initFilenameAutoScroll() {
         }
     }
 
-    // Function to check if filename needs scrolling
+    // Helper to check if filename needs scrolling.
     const checkScroll = () => {
         const container = filenameElement.parentElement;
         if (!container) return;
@@ -82,7 +92,7 @@ export function initFilenameAutoScroll() {
     window.addEventListener("resize", resizeHandler);
 
     // Store idempotency + cleanup state on the element.
-    elAny[stateKey] = {
+    filenameElement.__ffvFilenameAutoScrollState = {
         disconnect: () => observer.disconnect(),
         resizeHandler,
     };
