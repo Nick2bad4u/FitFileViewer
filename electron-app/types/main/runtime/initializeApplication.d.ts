@@ -3,6 +3,7 @@
  * Extracted from the monolithic main.js to make the orchestration easier to
  * comprehend.
  *
- * @returns {Promise<any>} Resolves with the created BrowserWindow instance.
+ * @returns {Promise<MainWindowLike>} Resolves with the created BrowserWindow instance.
  */
-export function initializeApplication(): Promise<any>;
+export function initializeApplication(): Promise<MainWindowLike>;
+import type { MainWindowLike } from "../window/bootstrapMainWindow";
