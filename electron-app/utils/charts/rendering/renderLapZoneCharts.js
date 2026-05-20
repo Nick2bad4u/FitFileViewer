@@ -13,6 +13,14 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
  * @property {number} zoneIndex
  */
 /**
+ * @typedef {Object} ZoneSummaryDatum
+ *
+ * @property {string} color
+ * @property {string} label
+ * @property {number} value
+ * @property {number} [time]
+ */
+/**
  * @typedef {Object} LapZoneEntry
  *
  * @property {string} lapLabel
@@ -35,6 +43,82 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
  * @property {LapZoneVisibility} [visibilitySettings]
  * @property {Record<string, unknown>} [zoomPluginConfig]
  */
+/**
+ * @typedef {Object} TimeInZoneMessage
+ *
+ * @property {unknown} [referenceIndex]
+ * @property {unknown} [referenceMesg]
+ * @property {unknown} [timeInHrZone]
+ * @property {unknown} [timeInPowerZone]
+ */
+/**
+ * @typedef {Object} LapZoneRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ * @property {unknown} [__FFV_debugChartsVerbose]
+ * @property {unknown} [_chartjsInstances]
+ * @property {{ timeInZoneMesgs?: unknown } | undefined} [globalData]
+ * @property {unknown} [heartRateZones]
+ * @property {unknown} [powerZones]
+ * @property {((message: string, type: string) => void) | undefined} [showNotification]
+ */
+
+const chartGlobal = /** @type {LapZoneRuntimeGlobal} */ (globalThis);
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is TimeInZoneMessage}
+ */
+function isTimeInZoneMessage(value) {
+    return value !== null && typeof value === "object";
+}
+
+/**
+ * @param {unknown} chart
+ */
+function registerChartInstance(chart) {
+    if (!chart) {
+        return;
+    }
+
+    if (!Array.isArray(chartGlobal._chartjsInstances)) {
+        chartGlobal._chartjsInstances = [];
+    }
+    chartGlobal._chartjsInstances.push(chart);
+}
+
+/**
+ * @param {unknown} rawZones
+ *
+ * @returns {ZoneSummaryDatum[]}
+ */
+function normalizeSessionZones(rawZones) {
+    if (!Array.isArray(rawZones)) {
+        return [];
+    }
+
+    return rawZones
+        .filter((zone) => zone !== null && typeof zone === "object")
+        .map((zone) => {
+            const record = /** @type {Record<string, unknown>} */ (zone);
+            const value =
+                typeof record.value === "number"
+                    ? record.value
+                    : typeof record.time === "number"
+                      ? record.time
+                      : 0;
+            const normalizedZone = {
+                color: typeof record.color === "string" ? record.color : "",
+                label: typeof record.label === "string" ? record.label : "",
+                value,
+            };
+            if (typeof record.time === "number") {
+                return { ...normalizedZone, time: record.time };
+            }
+            return normalizedZone;
+        });
+}
 
 // Lap zone charts renderer - renders 4 different lap zone visualizations
 /**
@@ -50,20 +134,23 @@ export function renderLapZoneCharts(container, options = {}) {
             process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
             isTestEnvironment ||
-            (isDevEnvironment &&
-                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+            (isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts));
         const isVerboseDebugLoggingEnabled =
             isTestEnvironment ||
             (isDebugLoggingEnabled &&
-                Boolean(
-                    /** @type {any} */ (globalThis).__FFV_debugChartsVerbose
-                ));
+                Boolean(chartGlobal.__FFV_debugChartsVerbose));
 
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderLapZoneCharts called");
         }
 
-        if (!globalThis.globalData || !globalThis.globalData.timeInZoneMesgs) {
+        const timeInZoneMesgs = Array.isArray(
+            chartGlobal.globalData?.timeInZoneMesgs
+        )
+            ? chartGlobal.globalData.timeInZoneMesgs
+            : null;
+
+        if (!timeInZoneMesgs) {
             if (isDebugLoggingEnabled) {
                 console.log(
                     "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -72,12 +159,14 @@ export function renderLapZoneCharts(container, options = {}) {
             return;
         }
 
-        const { timeInZoneMesgs } = globalThis.globalData,
-            lapZoneMsgs = timeInZoneMesgs.filter(
-                (/** @type {any} */ msg) => msg.referenceMesg === "lap"
+        const lapZoneMsgs = timeInZoneMesgs.filter(
+                (msg) =>
+                    isTimeInZoneMessage(msg) && msg.referenceMesg === "lap"
             ),
             // Get theme configuration (used for logging and downstream hover styling)
-            themeConfig = /** @type {any} */ (getThemeConfig() || {});
+            themeConfig = /** @type {{ name?: unknown }} */ (
+                getThemeConfig() || {}
+            );
         if (
             themeConfig &&
             typeof themeConfig === "object" &&
@@ -123,34 +212,51 @@ export function renderLapZoneCharts(container, options = {}) {
         /**
          * @param {unknown} val
          *
-         * @returns {any[]}
+         * @returns {number[]}
          */
         function safeParseArray(val) {
-            if (Array.isArray(val)) {
-                return val;
-            }
-            if (!val || typeof val !== "string") {
-                return [];
-            }
+            const parsedValue = Array.isArray(val)
+                ? val
+                : (() => {
+                      if (!val || typeof val !== "string") {
+                          return [];
+                      }
+                      try {
+                          const clean = val.trim().replaceAll(/^"+|"+$/g, ""),
+                              arr = JSON.parse(clean);
+                          return Array.isArray(arr) ? arr : [];
+                      } catch {
+                          return [];
+                      }
+                  })();
+
+            return parsedValue.map((value) => {
+                const numericValue = Number(value);
+                return Number.isFinite(numericValue) ? numericValue : 0;
+            });
+        }
+
+        /**
+         * @param {unknown} referenceIndex
+         * @param {number} fallbackIndex
+         *
+         * @returns {string}
+         */
+        function getLapLabel(referenceIndex, fallbackIndex) {
             try {
-                const clean = val.trim().replaceAll(/^"+|"+$/g, ""),
-                    arr = JSON.parse(clean);
-                if (!Array.isArray(arr)) {
-                    throw new TypeError("Not an array");
-                }
-                return arr;
+                return `Lap ${referenceIndex || fallbackIndex + 1}`;
             } catch {
-                return [];
+                return `Lap ${fallbackIndex + 1}`;
             }
         }
 
         // Process HR zone data for laps
         const hrZoneDataRaw = lapZoneMsgs
-                .filter((/** @type {any} */ msg) => msg.timeInHrZone)
-                .map((/** @type {any} */ msg, /** @type {number} */ index) => {
+                .filter((msg) => msg.timeInHrZone)
+                .map((msg, index) => {
                     const zones = safeParseArray(msg.timeInHrZone);
                     return {
-                        lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
+                        lapLabel: getLapLabel(msg.referenceIndex, index),
                         zones: zones.slice(1).map((value, zoneIndex) => ({
                             color: getZoneColor("hr", zoneIndex),
                             label: `HR Zone ${zoneIndex + 1}`,
@@ -204,11 +310,11 @@ export function renderLapZoneCharts(container, options = {}) {
 
         // Process Power zone data for laps
         const pwrZoneDataRaw = lapZoneMsgs
-                .filter((/** @type {any} */ msg) => msg.timeInPowerZone)
-                .map((/** @type {any} */ msg, /** @type {number} */ index) => {
+                .filter((msg) => msg.timeInPowerZone)
+                .map((msg, index) => {
                     const zones = safeParseArray(msg.timeInPowerZone);
                     return {
-                        lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
+                        lapLabel: getLapLabel(msg.referenceIndex, index),
                         zones: zones.slice(1).map((value, zoneIndex) => ({
                             color: getZoneColor("power", zoneIndex),
                             label: `Power Zone ${zoneIndex + 1}`,
@@ -271,12 +377,7 @@ export function renderLapZoneCharts(container, options = {}) {
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
                 title: "HR Zone by Lap (Stacked)",
             });
-            if (hrChart) {
-                if (!Array.isArray(globalThis._chartjsInstances)) {
-                    globalThis._chartjsInstances = [];
-                }
-                globalThis._chartjsInstances.push(hrChart);
-            }
+            registerChartInstance(hrChart);
         }
 
         // Chart 2: Lap Power Zone Distribution (Stacked Bar)
@@ -287,12 +388,7 @@ export function renderLapZoneCharts(container, options = {}) {
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
                 title: "Power Zone by Lap (Stacked)",
             });
-            if (pwrChart) {
-                if (!Array.isArray(globalThis._chartjsInstances)) {
-                    globalThis._chartjsInstances = [];
-                }
-                globalThis._chartjsInstances.push(pwrChart);
-            }
+            registerChartInstance(pwrChart);
         }
 
         // Chart 3: Single HR Zone Bar (entire ride data)
@@ -300,30 +396,26 @@ export function renderLapZoneCharts(container, options = {}) {
             if (isDebugLoggingEnabled) {
                 console.log("[ChartJS] Chart 3 - HR zone data check:", {
                     hrZoneDataLength: hrZoneData.length,
-                    windowHeartRateZones: globalThis.heartRateZones,
+                    windowHeartRateZones: chartGlobal.heartRateZones,
                 });
             }
 
             // Use session-level HR zone data if available, otherwise aggregate from laps
-            let sessionHRZones = null;
+            const rawSessionHRZones = Array.isArray(chartGlobal.heartRateZones)
+                ? chartGlobal.heartRateZones
+                : [];
+            let sessionHRZones = normalizeSessionZones(
+                rawSessionHRZones
+            );
 
-            if (
-                globalThis.heartRateZones &&
-                globalThis.heartRateZones.length > 0
-            ) {
-                sessionHRZones = globalThis.heartRateZones;
+            if (sessionHRZones.length > 0) {
                 if (isVerboseDebugLoggingEnabled) {
                     console.log(
                         "[ChartJS] Using session HR zone data:",
-                        sessionHRZones
+                        rawSessionHRZones
                     );
                 }
 
-                // Check if data has 'time' property and convert to 'value' if needed
-                sessionHRZones = sessionHRZones.map((zone) => ({
-                    ...zone,
-                    value: zone.value || zone.time || 0,
-                }));
                 if (isVerboseDebugLoggingEnabled) {
                     console.log(
                         "[ChartJS] HR zone data after value mapping:",
@@ -377,12 +469,7 @@ export function renderLapZoneCharts(container, options = {}) {
                         title: "HR Zone by Lap (Individual)",
                     }
                 );
-                if (singleHRChart) {
-                    if (!Array.isArray(globalThis._chartjsInstances)) {
-                        globalThis._chartjsInstances = [];
-                    }
-                    globalThis._chartjsInstances.push(singleHRChart);
-                }
+                registerChartInstance(singleHRChart);
             } else {
                 if (isDebugLoggingEnabled) {
                     console.log(
@@ -397,27 +484,26 @@ export function renderLapZoneCharts(container, options = {}) {
             if (isDebugLoggingEnabled) {
                 console.log("[ChartJS] Chart 4 - Power zone data check:", {
                     pwrZoneDataLength: pwrZoneData.length,
-                    windowPowerZones: globalThis.powerZones,
+                    windowPowerZones: chartGlobal.powerZones,
                 });
             }
 
             // Use session-level Power zone data if available, otherwise aggregate from laps
-            let sessionPowerZones = null;
+            const rawSessionPowerZones = Array.isArray(chartGlobal.powerZones)
+                ? chartGlobal.powerZones
+                : [];
+            let sessionPowerZones = normalizeSessionZones(
+                rawSessionPowerZones
+            );
 
-            if (globalThis.powerZones && globalThis.powerZones.length > 0) {
-                sessionPowerZones = globalThis.powerZones;
+            if (sessionPowerZones.length > 0) {
                 if (isVerboseDebugLoggingEnabled) {
                     console.log(
                         "[ChartJS] Using session Power zone data:",
-                        sessionPowerZones
+                        rawSessionPowerZones
                     );
                 }
 
-                // Check if data has 'time' property and convert to 'value' if needed
-                sessionPowerZones = sessionPowerZones.map((zone) => ({
-                    ...zone,
-                    value: zone.value || zone.time || 0,
-                }));
                 if (isVerboseDebugLoggingEnabled) {
                     console.log(
                         "[ChartJS] Power zone data after value mapping:",
@@ -468,23 +554,12 @@ export function renderLapZoneCharts(container, options = {}) {
 
                 const singlePwrChart = renderSinglePowerZoneBar(
                     canvas4,
-                    /**
-                     * @type {{
-                     *     label: string;
-                     *     value: number;
-                     *     color: string;
-                     * }[]}
-                     */ (sessionPowerZones),
+                    sessionPowerZones,
                     {
                         title: "Power Zone by Lap (Individual)",
                     }
                 );
-                if (singlePwrChart) {
-                    if (!Array.isArray(globalThis._chartjsInstances)) {
-                        globalThis._chartjsInstances = [];
-                    }
-                    globalThis._chartjsInstances.push(singlePwrChart);
-                }
+                registerChartInstance(singlePwrChart);
             } else {
                 if (isDebugLoggingEnabled) {
                     console.log(
@@ -499,8 +574,8 @@ export function renderLapZoneCharts(container, options = {}) {
         }
     } catch (error) {
         console.error("[ChartJS] Error rendering lap zone charts:", error);
-        if (globalThis.showNotification) {
-            globalThis.showNotification(
+        if (chartGlobal.showNotification) {
+            chartGlobal.showNotification(
                 "Failed to render lap zone charts",
                 "error"
             );
