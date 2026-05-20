@@ -100,6 +100,7 @@
         "utils/docs/documentationStandards.ts",
         "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/app/initialization/loadSharedConfiguration.ts",
+        "utils/app/initialization/updateSystemInfo.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
         "utils/charts/core/chartSpecFactory.ts",
