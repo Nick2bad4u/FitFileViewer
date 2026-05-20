@@ -6,6 +6,69 @@ import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 /** @type {any} */
 let lastFocusedElement = null;
 const modalAnimationDuration = 300; // Animation duration in milliseconds
+const SVG_NS = "http://www.w3.org/2000/svg";
+const SHORTCUT_CATEGORIES = [
+    {
+        category: "File Operations",
+        items: [
+            {
+                action: "Open File",
+                description: "Open a FIT file for analysis",
+                keys: "Ctrl+O",
+            },
+            {
+                action: "Save As",
+                description: "Save current data to file",
+                keys: "Ctrl+S",
+            },
+            {
+                action: "Print",
+                description: "Print current view",
+                keys: "Ctrl+P",
+            },
+            {
+                action: "Close Window",
+                description: "Close the application window",
+                keys: "Ctrl+W",
+            },
+        ],
+    },
+    {
+        category: "View Controls",
+        items: [
+            {
+                action: "Reload",
+                description: "Refresh the current view",
+                keys: "Ctrl+R",
+            },
+            {
+                action: "Toggle Fullscreen",
+                description: "Enter or exit fullscreen mode",
+                keys: "F11",
+            },
+            {
+                action: "Toggle DevTools",
+                description: "Open developer tools for debugging",
+                keys: "Ctrl+Shift+I",
+            },
+        ],
+    },
+    {
+        category: "Application",
+        items: [
+            {
+                action: "Export",
+                description: "Export data (assign in menu)",
+                keys: "No default",
+            },
+            {
+                action: "Theme: Dark/Light",
+                description: "Switch between dark and light themes",
+                keys: "Settings > Theme",
+            },
+        ],
+    },
+];
 
 /**
  * Closes the keyboard shortcuts modal with smooth animations
@@ -49,7 +112,7 @@ function ensureKeyboardShortcutsModal() {
     modal.id = "keyboard-shortcuts-modal";
     modal.className = "modal fancy-modal";
     modal.style.display = "none";
-    modal.innerHTML = getKeyboardShortcutsModalContent();
+    modal.append(createKeyboardShortcutsModalContent());
     document.body.append(modal);
     console.log("Modal element created and appended to body");
 
@@ -69,125 +132,181 @@ function ensureKeyboardShortcutsModal() {
 }
 
 /**
- * Creates the enhanced keyboard shortcuts modal content with modern styling
+ * Creates the enhanced keyboard shortcuts modal content with modern styling.
  *
- * @returns {string} HTML content for the modal
+ * @returns {HTMLElement} Content root for the modal
  */
-function getKeyboardShortcutsModalContent() {
-    const shortcuts = [
-        {
-            category: "File Operations",
-            items: [
-                {
-                    action: "Open File",
-                    description: "Open a FIT file for analysis",
-                    keys: "Ctrl+O",
-                },
-                {
-                    action: "Save As",
-                    description: "Save current data to file",
-                    keys: "Ctrl+S",
-                },
-                {
-                    action: "Print",
-                    description: "Print current view",
-                    keys: "Ctrl+P",
-                },
-                {
-                    action: "Close Window",
-                    description: "Close the application window",
-                    keys: "Ctrl+W",
-                },
-            ],
-        },
-        {
-            category: "View Controls",
-            items: [
-                {
-                    action: "Reload",
-                    description: "Refresh the current view",
-                    keys: "Ctrl+R",
-                },
-                {
-                    action: "Toggle Fullscreen",
-                    description: "Enter or exit fullscreen mode",
-                    keys: "F11",
-                },
-                {
-                    action: "Toggle DevTools",
-                    description: "Open developer tools for debugging",
-                    keys: "Ctrl+Shift+I",
-                },
-            ],
-        },
-        {
-            category: "Application",
-            items: [
-                {
-                    action: "Export",
-                    description: "Export data (assign in menu)",
-                    keys: "No default",
-                },
-                {
-                    action: "Theme: Dark/Light",
-                    description: "Switch between dark and light themes",
-                    keys: "Settings > Theme",
-                },
-            ],
-        },
-    ];
+function createKeyboardShortcutsModalContent() {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
 
-    let shortcutsHtml = "";
-    for (const category of shortcuts) {
-        shortcutsHtml += `
-			<div class="shortcuts-category">
-				<h3 class="shortcuts-category-title">${category.category}</h3>
-				<div class="shortcuts-list">
-					${category.items
-                        .map(
-                            (item) => `
-						<div class="shortcut-item">
-							<div class="shortcut-info">
-								<span class="shortcut-action">${item.action}</span>
-								<span class="shortcut-description">${item.description}</span>
-							</div>
-							<kbd class="shortcut-keys">${item.keys}</kbd>
-						</div>
-					`
-                        )
-                        .join("")}
-				</div>
-			</div>
-		`;
+    const content = document.createElement("div");
+    content.className = "modal-content";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const iconWrapper = document.createElement("div");
+    iconWrapper.className = "modal-icon";
+    iconWrapper.append(createKeyboardIcon());
+
+    const closeButton = document.createElement("button");
+    closeButton.id = "shortcuts-modal-close";
+    closeButton.className = "modal-close";
+    closeButton.type = "button";
+    closeButton.tabIndex = 0;
+    closeButton.setAttribute(
+        "aria-label",
+        "Close Keyboard Shortcuts dialog"
+    );
+    closeButton.append(createCloseIcon());
+
+    header.append(iconWrapper, closeButton);
+
+    const body = document.createElement("div");
+    body.className = "modal-body";
+
+    const title = document.createElement("h1");
+    title.className = "modal-title";
+    const titleText = document.createElement("span");
+    titleText.className = "title-gradient";
+    titleText.textContent = "Keyboard Shortcuts";
+    title.append(titleText);
+
+    const subtitle = document.createElement("p");
+    subtitle.className = "modal-subtitle";
+    subtitle.textContent =
+        "Boost your productivity with these keyboard shortcuts";
+
+    const shortcutsContainer = document.createElement("div");
+    shortcutsContainer.className = "shortcuts-container";
+    for (const category of SHORTCUT_CATEGORIES) {
+        shortcutsContainer.append(createShortcutCategory(category));
     }
-    return `
-		<div class="modal-backdrop">
-			<div class="modal-content">
-				<div class="modal-header">
-					<div class="modal-icon">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg" class="keyboard-icon">
-							<rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
-							<path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-						</svg>
-					</div>
-					<button id="shortcuts-modal-close" class="modal-close" tabindex="0" aria-label="Close Keyboard Shortcuts dialog">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
-							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-				</div>
-				<div class="modal-body">
-					<h1 class="modal-title">
-						<span class="title-gradient">Keyboard Shortcuts</span>
-					</h1>
-					<p class="modal-subtitle">Boost your productivity with these keyboard shortcuts</p>
-					<div class="shortcuts-container">
-						${shortcutsHtml}
-					</div>
-				</div>
-			</div>
-		</div>
-	`;
+
+    body.append(title, subtitle, shortcutsContainer);
+    content.append(header, body);
+    backdrop.append(content);
+
+    return backdrop;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createKeyboardIcon() {
+    const icon = createSvgIcon("keyboard-icon");
+
+    const keyboardBody = document.createElementNS(SVG_NS, "rect");
+    keyboardBody.setAttribute("x", "2");
+    keyboardBody.setAttribute("y", "4");
+    keyboardBody.setAttribute("width", "20");
+    keyboardBody.setAttribute("height", "16");
+    keyboardBody.setAttribute("rx", "2");
+    keyboardBody.setAttribute("stroke", "currentColor");
+    keyboardBody.setAttribute("stroke-width", "2");
+
+    const keys = document.createElementNS(SVG_NS, "path");
+    keys.setAttribute(
+        "d",
+        "M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"
+    );
+    keys.setAttribute("stroke", "currentColor");
+    keys.setAttribute("stroke-width", "2");
+    keys.setAttribute("stroke-linecap", "round");
+
+    icon.append(keyboardBody, keys);
+
+    return icon;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createCloseIcon() {
+    const icon = createSvgIcon();
+    const closePath = document.createElementNS(SVG_NS, "path");
+    closePath.setAttribute("d", "M18 6L6 18M6 6l12 12");
+    closePath.setAttribute("stroke", "currentColor");
+    closePath.setAttribute("stroke-width", "2");
+    closePath.setAttribute("stroke-linecap", "round");
+    closePath.setAttribute("stroke-linejoin", "round");
+    icon.append(closePath);
+
+    return icon;
+}
+
+/**
+ * @param {string} [className]
+ *
+ * @returns {SVGSVGElement}
+ */
+function createSvgIcon(className = "") {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("xmlns", SVG_NS);
+    if (className) {
+        icon.classList.add(className);
+    }
+    return icon;
+}
+
+/**
+ * @param {{
+ *     category: string;
+ *     items: Array<{ action: string; description: string; keys: string }>;
+ * }} category
+ *
+ * @returns {HTMLElement}
+ */
+function createShortcutCategory(category) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "shortcuts-category";
+
+    const title = document.createElement("h3");
+    title.className = "shortcuts-category-title";
+    title.textContent = category.category;
+
+    const list = document.createElement("div");
+    list.className = "shortcuts-list";
+    for (const item of category.items) {
+        list.append(createShortcutItem(item));
+    }
+
+    wrapper.append(title, list);
+
+    return wrapper;
+}
+
+/**
+ * @param {{ action: string; description: string; keys: string }} item
+ *
+ * @returns {HTMLElement}
+ */
+function createShortcutItem(item) {
+    const row = document.createElement("div");
+    row.className = "shortcut-item";
+
+    const info = document.createElement("div");
+    info.className = "shortcut-info";
+
+    const action = document.createElement("span");
+    action.className = "shortcut-action";
+    action.textContent = item.action;
+
+    const description = document.createElement("span");
+    description.className = "shortcut-description";
+    description.textContent = item.description;
+
+    const keys = document.createElement("kbd");
+    keys.className = "shortcut-keys";
+    keys.textContent = item.keys;
+
+    info.append(action, description);
+    row.append(info, keys);
+
+    return row;
 }
 
 /**
