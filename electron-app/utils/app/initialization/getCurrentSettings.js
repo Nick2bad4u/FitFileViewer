@@ -38,7 +38,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { parseStoredValue } from "./getCurrentSettingsParsing.js";
 
 /**
- * @typedef {HTMLElement & { _updateFromReset?: Function }} ResettableElement
+ * @typedef {HTMLElement & { _updateFromReset?: () => void }} ResettableElement
  */
 /**
  * Type guard for elements that expose a custom _updateFromReset method
@@ -48,10 +48,22 @@ import { parseStoredValue } from "./getCurrentSettingsParsing.js";
  * @returns {el is ResettableElement}
  */
 function isResettable(el) {
-    // @ts-ignore augment runtime check
-    return Boolean(
-        el && isHTMLElement(el) && typeof el._updateFromReset === "function"
+    const candidate = /** @type {HTMLElement & { _updateFromReset?: unknown }} */ (
+        el
     );
+    return Boolean(
+        el &&
+            isHTMLElement(el) &&
+            typeof candidate._updateFromReset === "function"
+    );
+}
+
+/**
+ * @param {unknown} error
+ * @returns {unknown}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : error;
 }
 
 // Storage/logging prefix
@@ -63,7 +75,7 @@ const LOG_PREFIX = "[ChartSettings]";
  * @property {string} id
  * @property {string} label
  * @property {string} type - Select|toggle|range|other
- * @property {any} default
+ * @property {unknown} default
  * @property {number} [min]
  * @property {number} [max]
  */
@@ -76,7 +88,7 @@ const LOG_PREFIX = "[ChartSettings]";
  * @typedef {Object} ChartSettings
  *
  * @property {FieldColorMap} colors
- * @property {Object<string, any>} [extra]
+ * @property {Record<string, unknown>} [extra]
  */
 
 /**
@@ -90,7 +102,7 @@ const LOG_PREFIX = "[ChartSettings]";
  */
 export function getCurrentSettings() {
     try {
-        const /** @type {Record<string, any> & { colors: Record<string, string> }} */
+        const /** @type {Record<string, unknown> & { colors: Record<string, string> }} */
             settings = { colors: {} },
             themeConfig = getThemeConfig();
 
@@ -99,22 +111,24 @@ export function getCurrentSettings() {
         // Get chart option settings
         for (const opt of chartOptionsConfig || []) {
             const storedValue = chartSettings?.[opt.id];
-            // @ts-ignore opt shape
             settings[opt.id] = parseStoredValue(storedValue, opt);
         }
 
         // Get color settings
         settings.colors = {};
-        /** @type {any[]} */
         const fields = Array.isArray(formatChartFields)
-            ? formatChartFields
+            ? formatChartFields.filter(
+                  (/** @type {unknown} */ field) => typeof field === "string"
+              )
             : [];
+        const colorDefaults = /** @type {Record<string, string>} */ (
+            fieldColors
+        );
         for (const field of fields) {
             const stored = chartSettings?.[`color_${field}`];
-            // @ts-ignore dynamic field key
             settings.colors[field] =
                 (typeof stored === "string" && stored) ||
-                /** @type {any} */ (fieldColors)[field] ||
+                colorDefaults[field] ||
                 (themeConfig && themeConfig.colors
                     ? themeConfig.colors.primaryAlpha
                     : "#3b82f6");
@@ -122,10 +136,9 @@ export function getCurrentSettings() {
 
         return settings;
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error getting current settings:`,
-            err?.message || err
+            getErrorMessage(error)
         );
         return getDefaultSettings();
     }
@@ -141,13 +154,12 @@ export function getCurrentSettings() {
  */
 export function getDefaultSettings() {
     try {
-        /** @type {Record<string, any> & { colors: Record<string, string> }} */
+        /** @type {Record<string, unknown> & { colors: Record<string, string> }} */
         const settings = { colors: {} };
 
         // Get default values from chart options config
         for (const opt of chartOptionsConfig || []) {
-            // @ts-ignore config shape trusted
-            settings[opt.id] = /** @type {any} */ (opt).default;
+            settings[opt.id] = opt.default;
         }
 
         // Add default field colors
@@ -155,10 +167,9 @@ export function getDefaultSettings() {
 
         return settings;
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error getting default settings:`,
-            err?.message || err
+            getErrorMessage(error)
         );
         return {};
     }
@@ -434,8 +445,7 @@ function performDirectControlUpdates() {
                     for (const toggle of containers) {
                         const parent = toggle.parentElement;
                         if (isResettable(parent)) {
-                            parent._updateFromReset &&
-                                parent._updateFromReset();
+                            parent._updateFromReset();
                             updated = true;
                         }
                     }
@@ -583,9 +593,7 @@ function resetUIControlsToDefaults(wrapper) {
                     wrapper.querySelector(`#chartjs-${opt.id}`) ||
                     wrapper.querySelector(`[data-option-id="${opt.id}"]`);
                 if (isResettable(toggleContainer)) {
-                    // @ts-ignore existence
-                    toggleContainer._updateFromReset &&
-                        toggleContainer._updateFromReset();
+                    toggleContainer._updateFromReset();
                 } else {
                     // Find toggle container by checking for toggle-switch elements
                     const toggleSwitches =
@@ -605,8 +613,7 @@ function resetUIControlsToDefaults(wrapper) {
                                         .toLowerCase()
                                         .includes(opt.label.toLowerCase())
                                 ) {
-                                    parent._updateFromReset &&
-                                        parent._updateFromReset();
+                                    parent._updateFromReset();
                                     console.log(
                                         `${LOG_PREFIX} Updated toggle ${opt.id} via context matching`
                                     );
@@ -677,8 +684,7 @@ function updateCustomControlsFromReset(wrapper) {
 
         for (const element of allElements) {
             if (isResettable(element)) {
-                // @ts-ignore existence
-                element._updateFromReset && element._updateFromReset();
+                element._updateFromReset();
                 updatedCount++;
             }
         }
@@ -813,16 +819,14 @@ function updateUIControl(control, option, value) {
                     control.checked = Boolean(value);
                 } else if (isResettable(control)) {
                     // For custom toggle controls, use their update method
-                    // @ts-ignore guard
-                    control._updateFromReset && control._updateFromReset();
+                    control._updateFromReset();
                 } else {
                     // Try to find the parent container with the update method
                     const parent =
                         control.closest("[data-option-id]") ||
                         control.parentElement;
                     if (isResettable(parent)) {
-                        // @ts-ignore guard
-                        parent._updateFromReset && parent._updateFromReset();
+                        parent._updateFromReset();
                     }
                 }
                 break;
