@@ -1,5 +1,41 @@
 const { z } = require("zod");
 
+/**
+ * @typedef {{
+ *     writeText?: (text: string) => void;
+ *     writeImage?: (image: unknown) => void;
+ * }} ClipboardWriter
+ *
+ * @typedef {{ createFromDataURL?: (dataUrl: string) => unknown }} NativeImageFactory
+ *
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     clipboardRef?: () => ClipboardWriter | null | undefined;
+ *     nativeImageRef?: () => NativeImageFactory | null | undefined;
+ *     logWithContext?: LogWithContext;
+ * }} RegisterClipboardHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
 // Keep payload limits conservative to defend against accidental huge clipboard writes.
 // CSV exports can be large, so we allow several MB.
 const MAX_TEXT_CHARS = 5_000_000;
@@ -25,15 +61,7 @@ const pngDataUrlSchema = z
  * `clipboard` / `nativeImage` modules directly. Therefore, clipboard writes
  * must be performed in the main process.
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.clipboardRef
- * @param {() => any} options.nativeImageRef
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
+ * @param {RegisterClipboardHandlersOptions} options
  */
 function registerClipboardHandlers({
     registerIpcHandle,
@@ -61,7 +89,7 @@ function registerClipboardHandlers({
             return true;
         } catch (error) {
             logWithContext?.("warn", "clipboard:writeText failed", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             return false;
         }
@@ -93,7 +121,7 @@ function registerClipboardHandlers({
                 return true;
             } catch (error) {
                 logWithContext?.("warn", "clipboard:writePngDataUrl failed", {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 });
                 return false;
             }
