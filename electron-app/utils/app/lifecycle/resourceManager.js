@@ -29,9 +29,17 @@ import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
  * @property {string} id - Unique resource identifier
  * @property {ResourceType} type - Type of resource
  * @property {string} [owner] - Optional owner/component identifier
- * @property {Function} cleanup - Cleanup function for this resource
- * @property {any} [instance] - Optional reference to the resource instance
+ * @property {ResourceCleanup} cleanup - Cleanup function for this resource
+ * @property {unknown} [instance] - Optional reference to the resource instance
  * @property {number} timestamp - When the resource was registered
+ */
+/**
+ * @typedef {() => unknown} ResourceCleanup
+ * @typedef {() => unknown | Promise<unknown>} ShutdownHook
+ * @typedef {{ destroy: () => unknown }} DestroyableChart
+ * @typedef {{ remove: () => unknown }} RemovableMap
+ * @typedef {{ disconnect: () => unknown }} DisconnectableObserver
+ * @typedef {typeof globalThis & { resourceManager?: ResourceManager }} ResourceManagerGlobal
  */
 
 /**
@@ -41,6 +49,48 @@ import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
  * @property {Object<ResourceType, number>} byType - Count of resources by type
  * @property {Object<string, number>} byOwner - Count of resources by owner
  */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is DestroyableChart}
+ */
+function isDestroyableChart(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "destroy" in value &&
+        typeof value.destroy === "function"
+    );
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is DisconnectableObserver}
+ */
+function isDisconnectableObserver(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "disconnect" in value &&
+        typeof value.disconnect === "function"
+    );
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is RemovableMap}
+ */
+function isRemovableMap(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "remove" in value &&
+        typeof value.remove === "function"
+    );
+}
 
 /**
  * Centralized resource manager for the application Tracks and cleans up all
@@ -57,7 +107,7 @@ class ResourceManager {
         /** @type {boolean} */
         this.isShuttingDown = false;
 
-        /** @type {Set<Function>} */
+        /** @type {Set<ShutdownHook>} */
         this.shutdownHooks = new Set();
 
         // Bind methods to preserve context
@@ -71,7 +121,7 @@ class ResourceManager {
     /**
      * Add a shutdown hook to be called during application shutdown
      *
-     * @param {Function} hook - Function to call during shutdown
+     * @param {ShutdownHook} hook - Callback to call during shutdown
      */
     addShutdownHook(hook) {
         if (typeof hook === "function") {
@@ -213,7 +263,7 @@ class ResourceManager {
      * @returns {{ id: string; type: ResourceType; owner?: string }[]}
      */
     list() {
-        return Array.from(this.resources.values()).map((resource) => ({
+        return Array.from(this.resources.values(), (resource) => ({
             id: resource.id,
             owner: resource.owner,
             timestamp: resource.timestamp,
@@ -225,11 +275,11 @@ class ResourceManager {
      * Register a new resource for automatic cleanup
      *
      * @param {ResourceType} type - Type of resource
-     * @param {Function} cleanup - Cleanup function to call when resource is
+     * @param {ResourceCleanup} cleanup - Cleanup function to call when resource is
      *   released
      * @param {Object} [options] - Optional configuration
      * @param {string} [options.owner] - Owner/component identifier
-     * @param {any} [options.instance] - Reference to the resource instance
+     * @param {unknown} [options.instance] - Reference to the resource instance
      * @param {string} [options.id] - Custom ID (auto-generated if not provided)
      *
      * @returns {string} Resource ID for later cleanup
@@ -265,7 +315,7 @@ class ResourceManager {
     /**
      * Register a chart for automatic cleanup
      *
-     * @param {any} chart - ChartJS instance
+     * @param {unknown} chart - ChartJS instance
      * @param {Object} [options] - Optional configuration
      * @param {string} [options.owner] - Owner/component identifier
      * @param {string} [options.id] - Custom ID
@@ -273,7 +323,7 @@ class ResourceManager {
      * @returns {string} Resource ID
      */
     registerChart(chart, options = {}) {
-        if (!chart || typeof chart.destroy !== "function") {
+        if (!isDestroyableChart(chart)) {
             console.warn("[ResourceManager] Invalid chart instance");
             return "";
         }
@@ -317,7 +367,7 @@ class ResourceManager {
     /**
      * Register a map for automatic cleanup
      *
-     * @param {any} map - Leaflet map instance
+     * @param {unknown} map - Leaflet map instance
      * @param {Object} [options] - Optional configuration
      * @param {string} [options.owner] - Owner/component identifier
      * @param {string} [options.id] - Custom ID
@@ -325,7 +375,7 @@ class ResourceManager {
      * @returns {string} Resource ID
      */
     registerMap(map, options = {}) {
-        if (!map || typeof map.remove !== "function") {
+        if (!isRemovableMap(map)) {
             console.warn("[ResourceManager] Invalid map instance");
             return "";
         }
@@ -349,7 +399,7 @@ class ResourceManager {
     /**
      * Register an observer for automatic cleanup
      *
-     * @param {any} observer - Observer instance (MutationObserver,
+     * @param {unknown} observer - Observer instance (MutationObserver,
      *   IntersectionObserver, etc.)
      * @param {Object} [options] - Optional configuration
      * @param {string} [options.owner] - Owner/component identifier
@@ -358,7 +408,7 @@ class ResourceManager {
      * @returns {string} Resource ID
      */
     registerObserver(observer, options = {}) {
-        if (!observer || typeof observer.disconnect !== "function") {
+        if (!isDisconnectableObserver(observer)) {
             console.warn("[ResourceManager] Invalid observer instance");
             return "";
         }
@@ -434,7 +484,7 @@ class ResourceManager {
     /**
      * Remove a shutdown hook
      *
-     * @param {Function} hook - Function to remove
+     * @param {ShutdownHook} hook - Callback to remove
      */
     removeShutdownHook(hook) {
         this.shutdownHooks.delete(hook);
@@ -456,7 +506,7 @@ class ResourceManager {
 
         // Execute shutdown hooks first
         await Promise.all(
-            Array.from(this.shutdownHooks).map(async (hook) => {
+            Array.from(this.shutdownHooks, async (hook) => {
                 try {
                     await hook();
                 } catch (error) {
@@ -541,5 +591,6 @@ export const {
 
 // Make available globally for debugging
 if (typeof globalThis !== "undefined") {
-    /** @type {any} */ (globalThis).resourceManager = resourceManager;
+    /** @type {ResourceManagerGlobal} */ (globalThis).resourceManager =
+        resourceManager;
 }
