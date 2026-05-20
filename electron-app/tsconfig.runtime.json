@@ -143,6 +143,7 @@
         "utils/charts/theming/getThemeColors.ts",
         "utils/theming/core/accentColor.ts",
         "utils/theming/core/setupTheme.ts",
+        "utils/theming/specific/createMapThemeToggle.ts",
         "utils/theming/specific/updateMapTheme.ts",
         "utils/rendering/helpers/updateControlsState.ts",
         "utils/ui/events/eventListenerManager.ts",
