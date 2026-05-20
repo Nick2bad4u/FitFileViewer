@@ -3,10 +3,13 @@
  * is insufficient the credits text transitions into a marquee-style animation
  * that scrolls horizontally without wrapping to additional lines.
  */
+
 const CREDITS_SECTION_SELECTOR = "body > .credits-section";
 const MARQUEE_CLASS = "credits-marquee";
 const SECTION_ACTIVE_CLASS = "credits-section--marquee-active";
-let cleanupCallbacks = [];
+
+let cleanupCallbacks: (() => void)[] = [];
+
 /**
  * Calculates whether the credits footer content overflows its container and
  * applies marquee styling when necessary. The marquee animation pauses on hover
@@ -14,46 +17,65 @@ let cleanupCallbacks = [];
  * ResizeObserver/MutationObserver fallbacks.
  *
  */
-export function setupCreditsMarquee() {
+export function setupCreditsMarquee(): void {
     teardownCreditsMarquee();
+
     const sections = document.querySelectorAll(CREDITS_SECTION_SELECTOR);
     for (const section of sections) {
         const footer = section.querySelector("footer");
         if (!(footer instanceof HTMLElement)) {
             continue;
         }
-        let resizeObserver = null;
+
+        let resizeObserver: ResizeObserver | null = null;
         /**
          * Applies or removes marquee styles based on computed overflow.
          */
-        const updateMarquee = () => {
+        const updateMarquee = (): void => {
             footer.classList.remove(MARQUEE_CLASS);
             section.classList.remove(SECTION_ACTIVE_CLASS);
             footer.style.removeProperty("--credits-scroll-distance");
             footer.style.removeProperty("--credits-scroll-duration");
+
             const availableWidth = section.clientWidth;
             const contentWidth = footer.scrollWidth;
-            if (!availableWidth ||
+            if (
+                !availableWidth ||
                 !contentWidth ||
-                contentWidth <= availableWidth) {
+                contentWidth <= availableWidth
+            ) {
                 return;
             }
-            const scrollDistance = Math.max(0, contentWidth - availableWidth + 32);
-            const durationSeconds = Math.min(45, Math.max(16, scrollDistance / 20));
-            footer.style.setProperty("--credits-scroll-distance", `${scrollDistance}px`);
-            footer.style.setProperty("--credits-scroll-duration", `${durationSeconds}s`);
+
+            const scrollDistance = Math.max(
+                0,
+                contentWidth - availableWidth + 32
+            );
+            const durationSeconds = Math.min(
+                45,
+                Math.max(16, scrollDistance / 20)
+            );
+
+            footer.style.setProperty(
+                "--credits-scroll-distance",
+                `${scrollDistance}px`
+            );
+            footer.style.setProperty(
+                "--credits-scroll-duration",
+                `${durationSeconds}s`
+            );
             footer.classList.add(MARQUEE_CLASS);
             section.classList.add(SECTION_ACTIVE_CLASS);
         };
+
         // Observe size/content changes
         if (typeof ResizeObserver === "function") {
             resizeObserver = new ResizeObserver(() => updateMarquee());
             resizeObserver.observe(section);
             resizeObserver.observe(footer);
-        }
-        else {
+        } else {
             const listenerController = new AbortController();
-            const resizeHandler = () => updateMarquee();
+            const resizeHandler = (): void => updateMarquee();
             window.addEventListener("resize", resizeHandler, {
                 passive: true,
                 signal: listenerController.signal,
@@ -63,18 +85,24 @@ export function setupCreditsMarquee() {
                 window.removeEventListener("resize", resizeHandler);
             });
         }
+
         const mutationObserver = new MutationObserver(() => updateMarquee());
         mutationObserver.observe(footer, {
             childList: true,
             characterData: true,
             subtree: true,
         });
-        const animationHandle = typeof requestAnimationFrame === "function"
-            ? requestAnimationFrame(() => updateMarquee())
-            : null;
+
+        const animationHandle =
+            typeof requestAnimationFrame === "function"
+                ? requestAnimationFrame(() => updateMarquee())
+                : null;
+
         cleanupCallbacks.push(() => {
-            if (typeof cancelAnimationFrame === "function" &&
-                typeof animationHandle === "number") {
+            if (
+                typeof cancelAnimationFrame === "function" &&
+                typeof animationHandle === "number"
+            ) {
                 cancelAnimationFrame(animationHandle);
             }
             mutationObserver.disconnect();
@@ -88,17 +116,20 @@ export function setupCreditsMarquee() {
         });
     }
 }
+
 /**
  * Removes registered observers and inline styles applied by
  * {@link setupCreditsMarquee}.
  */
-export function teardownCreditsMarquee() {
+export function teardownCreditsMarquee(): void {
     for (const cleanup of cleanupCallbacks) {
         try {
             cleanup();
-        }
-        catch (error) {
-            console.warn("[creditsMarquee] Failed to clean up observer:", error);
+        } catch (error) {
+            console.warn(
+                "[creditsMarquee] Failed to clean up observer:",
+                error
+            );
         }
     }
     cleanupCallbacks = [];
