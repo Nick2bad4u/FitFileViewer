@@ -3,9 +3,11 @@
  * in main.js. The routine ensures mocked Electron modules expose
  * whenReady/getAllWindows calls before tests run.
  *
- * @param {() => Promise<any>} initializeApplication - Function used to
+ * @param {InitializeApplication} initializeApplication - Callback used to
  *   bootstrap the app when a window already exists in tests.
  */
 export function primeTestEnvironment(
-    initializeApplication: () => Promise<any>
+    initializeApplication: InitializeApplication
 ): void;
+import type { MainWindowLike } from "../window/bootstrapMainWindow";
+export type InitializeApplication = () => Promise<MainWindowLike>;
