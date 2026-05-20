@@ -99,6 +99,7 @@
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
         "utils/app/initialization/getCurrentSettingsParsing.ts",
+        "utils/app/initialization/loadSharedConfiguration.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
         "utils/charts/core/chartSpecFactory.ts",
