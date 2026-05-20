@@ -1,3 +1,6 @@
+/** Flexible callback type for legacy renderer extension points. */
+export type UnknownRendererFunction = (...args: unknown[]) => unknown;
+/** Optional global properties installed by the renderer entry point. */
 export type WindowExtensions = {
     /**
      * - Development mode flag
@@ -6,34 +9,36 @@ export type WindowExtensions = {
     /**
      * - Export GPX button creator
      */
-    createExportGPXButton?: Function;
+    createExportGPXButton?: () => HTMLButtonElement;
     /**
      * - Application information
      */
-    APP_INFO?: Object;
+    APP_INFO?: Record<string, unknown>;
     /**
      * - Renderer debug utilities
      */
-    __renderer_debug?: Object;
+    __renderer_debug?: Record<string, unknown>;
     /**
      * - Renderer development utilities
      */
-    __renderer_dev?: Object;
+    __renderer_dev?: Record<string, unknown>;
     /**
      * - Sensor debug utilities
      */
-    __sensorDebug?: Object;
+    __sensorDebug?: Record<string, unknown>;
     /**
      * - Chart formatting debug utilities
      */
-    __debugChartFormatting?: Object;
+    __debugChartFormatting?: Record<string, unknown>;
 };
+/** Extra development-only properties exposed on the preload bridge. */
 export type ElectronAPIExtensions = {
     /**
      * - Development mode flag in electron API
      */
     __devMode?: boolean;
 };
+/** Browser performance object with Chromium memory metrics. */
 export type PerformanceExtended = {
     /**
      * - Memory usage information
@@ -44,16 +49,18 @@ export type PerformanceExtended = {
         jsHeapSizeLimit?: number | undefined;
     };
 };
+/** Minimal state manager surface consumed by renderer debug helpers. */
 export type MasterStateManagerExtended = {
     /**
      * - Get current state
      */
-    getState: Function;
+    getState: () => unknown;
     /**
      * - Get state history
      */
-    getHistory: Function;
+    getHistory: () => unknown[];
 };
+/** Dependencies injected into renderer component initialization. */
 export type RendererDependencies = {
     /**
      * - Open file button element
@@ -66,31 +73,40 @@ export type RendererDependencies = {
         value: boolean;
     };
     /**
-     * - Function to show/hide loading state
+     * - Callback to show/hide loading state
      */
-    setLoading: Function;
+    setLoading: (loading: boolean) => void;
     /**
-     * - Function to display notifications
+     * - Callback to display notifications
      */
-    showNotification: Function;
+    showNotification: (
+        message: string,
+        type?: string,
+        timeout?: number
+    ) => unknown;
     /**
-     * - Function to handle file opening
+     * - Callback to handle file opening
      */
-    handleOpenFile: Function;
+    handleOpenFile: UnknownRendererFunction;
     /**
-     * - Function to show update notifications
+     * - Callback to show update notifications
      */
-    showUpdateNotification: Function;
+    showUpdateNotification: (
+        message: string,
+        type?: string,
+        duration?: number,
+        withAction?: boolean | string
+    ) => void;
     /**
-     * - Function to display about modal
+     * - Callback to display about modal
      */
-    showAboutModal: Function;
+    showAboutModal: (html?: string) => void;
     /**
-     * - Function to apply theme changes
+     * - Callback to apply theme changes
      */
-    applyTheme: Function;
+    applyTheme: (theme: string, withTransition?: boolean) => void;
     /**
-     * - Function to listen for theme changes
+     * - Callback to listen for theme changes
      */
-    listenForThemeChange: Function;
+    listenForThemeChange: (onThemeChange: (theme: string) => void) => void;
 };

@@ -24,16 +24,23 @@
 // ==========================================
 
 /**
+ * @typedef {(...args: unknown[]) => unknown} UnknownRendererFunction
+ */
+
+/**
  * @typedef {Object} WindowExtensions
  *
  * @property {boolean} [__DEVELOPMENT__] - Development mode flag
- * @property {Function} [createExportGPXButton] - Export GPX button creator
- * @property {Object} [APP_INFO] - Application information
- * @property {Object} [__renderer_debug] - Renderer debug utilities
- * @property {Object} [__renderer_dev] - Renderer development utilities
- * @property {Object} [__sensorDebug] - Sensor debug utilities
- * @property {Object} [__debugChartFormatting] - Chart formatting debug
+ * @property {() => HTMLButtonElement} [createExportGPXButton] - Export GPX
+ *   button creator
+ * @property {Record<string, unknown>} [APP_INFO] - Application information
+ * @property {Record<string, unknown>} [__renderer_debug] - Renderer debug
  *   utilities
+ * @property {Record<string, unknown>} [__renderer_dev] - Renderer development
+ *   utilities
+ * @property {Record<string, unknown>} [__sensorDebug] - Sensor debug utilities
+ * @property {Record<string, unknown>} [__debugChartFormatting] - Chart
+ *   formatting debug utilities
  */
 
 /**
@@ -54,8 +61,8 @@
 /**
  * @typedef {Object} MasterStateManagerExtended
  *
- * @property {Function} getState - Get current state
- * @property {Function} getHistory - Get state history
+ * @property {() => unknown} getState - Get current state
+ * @property {() => unknown[]} getHistory - Get state history
  */
 
 // In electron-app/renderer.js
@@ -70,15 +77,20 @@
  * @property {HTMLElement | null} openFileBtn - Open file button element
  * @property {{ value: boolean }} isOpeningFileRef - Reference to file opening
  *   state
- * @property {Function} setLoading - Function to show/hide loading state
- * @property {Function} showNotification - Function to display notifications
- * @property {Function} handleOpenFile - Function to handle file opening
- * @property {Function} showUpdateNotification - Function to show update
- *   notifications
- * @property {Function} showAboutModal - Function to display about modal
- * @property {Function} applyTheme - Function to apply theme changes
- * @property {Function} listenForThemeChange - Function to listen for theme
- *   changes
+ * @property {(loading: boolean) => void} setLoading - Function to show/hide
+ *   loading state
+ * @property {(message: string, type?: string, timeout?: number) => unknown}
+ *   showNotification - Function to display notifications
+ * @property {UnknownRendererFunction} handleOpenFile - Function to handle file
+ *   opening
+ * @property {(message: string, type?: string, duration?: number, withAction?: boolean | string) => void}
+ *   showUpdateNotification - Function to show update notifications
+ * @property {(html?: string) => void} showAboutModal - Function to display
+ *   about modal
+ * @property {(theme: string, withTransition?: boolean) => void} applyTheme -
+ *   Function to apply theme changes
+ * @property {(onThemeChange: (theme: string) => void) => void}
+ *   listenForThemeChange - Function to listen for theme changes
  */
 
 // ==========================================
