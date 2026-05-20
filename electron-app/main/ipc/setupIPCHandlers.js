@@ -35,11 +35,24 @@ const { registerInfoHandlers } = require("./registerInfoHandlers");
 const { registerRecentFileHandlers } = require("./registerRecentFileHandlers");
 
 /**
+ * @typedef {import("electron").BrowserWindow} BrowserWindow
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
  * Registers all IPC handlers for the main process. The structure mirrors the
  * legacy implementation but lives in a dedicated module to keep main.js lean.
  *
- * @param {any} mainWindow - Primary BrowserWindow instance (may be undefined in
- *   some test scenarios).
+ * @param {BrowserWindow | null | undefined} mainWindow - Primary BrowserWindow
+ *   instance (may be undefined in some test scenarios).
  */
 function setupIPCHandlers(mainWindow) {
     ensureFitParserStateIntegration().catch((error) => {
@@ -47,7 +60,7 @@ function setupIPCHandlers(mainWindow) {
             "warn",
             "Fit parser state integration failed to initialize",
             {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             }
         );
     });
@@ -168,7 +181,7 @@ function setupIPCHandlers(mainWindow) {
                         "warn",
                         "Failed to auto-default fitBrowser folder",
                         {
-                            error: /** @type {Error} */ (error)?.message,
+                            error: getErrorMessage(error),
                         }
                     );
                 }
@@ -177,7 +190,7 @@ function setupIPCHandlers(mainWindow) {
                     "warn",
                     "Rejected fit-file-loaded with unapproved path",
                     {
-                        error: /** @type {Error} */ (error)?.message,
+                        error: getErrorMessage(error),
                         filePath,
                     }
                 );
@@ -194,7 +207,7 @@ function setupIPCHandlers(mainWindow) {
                     "error",
                     "Failed to update menu after fit file loaded:",
                     {
-                        error: /** @type {Error} */ (error).message,
+                        error: getErrorMessage(error),
                     }
                 );
             }
