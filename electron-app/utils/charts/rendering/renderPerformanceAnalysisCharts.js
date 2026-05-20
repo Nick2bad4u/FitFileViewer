@@ -5,12 +5,41 @@ import { renderSpeedVsDistanceChart } from "./renderSpeedVsDistanceChart.js";
 // Performance analysis charts renderer
 
 /**
+ * @typedef {Object} PerformanceAnalysisOptions
+ *
+ * @property {string} [animationStyle]
+ * @property {string} [chartType]
+ * @property {unknown} [customColors]
+ * @property {string} [distanceUnits]
+ * @property {string} [interpolation]
+ * @property {number | "all"} maxPoints
+ * @property {boolean} [showFill]
+ * @property {boolean} [showGrid]
+ * @property {boolean} [showLegend]
+ * @property {boolean} [showPoints]
+ * @property {boolean} [showTitle]
+ * @property {number} [smoothing]
+ * @property {string} [theme]
+ * @property {string} [timeUnits]
+ * @property {Record<string, unknown>} [zoomPluginConfig]
+ */
+/**
+ * @typedef {Object} PerformanceAnalysisRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ */
+
+const chartGlobal = /** @type {PerformanceAnalysisRuntimeGlobal} */ (
+    globalThis
+);
+
+/**
  * Render performance analysis charts.
  *
  * @param {HTMLElement} container
- * @param {any} data
+ * @param {Record<string, unknown>[]} data
  * @param {(string | number)[]} labels
- * @param {any} options
+ * @param {PerformanceAnalysisOptions} options
  */
 export function renderPerformanceAnalysisCharts(
     container,
@@ -24,7 +53,7 @@ export function renderPerformanceAnalysisCharts(
             process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
             isDevEnvironment &&
-            Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+            Boolean(chartGlobal.__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderPerformanceAnalysisCharts called");
         }
