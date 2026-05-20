@@ -19,27 +19,7 @@
  * @global
  */
 
-import {
-    applyTheme,
-    copyTableAsCSV,
-    createTables,
-    formatArray,
-    formatDistance,
-    formatDuration,
-    listenForThemeChange,
-    loadTheme,
-    patchSummaryFields,
-    renderMap,
-    renderSummary,
-    renderTable,
-    setLoading,
-    setTabButtonsEnabled,
-    showFitData,
-    showNotification,
-    updateActiveTab,
-    updateMapTheme,
-    updateTabVisibility,
-} from "./utils/index.js";
+import { globalUtilities } from "./utils/legacy/globalUtilityRegistry.js";
 
 /**
  * @typedef {Object} ConstantsType
@@ -203,38 +183,7 @@ function validateFunction(fn, name) {
 }
 
 // List of utilities to expose globally with enhanced metadata
-const utils = {
-    // Theme utilities
-    applyTheme,
-    copyTableAsCSV,
-    createTables,
-
-    formatArray,
-    // Formatting utilities
-    formatDistance,
-    formatDuration,
-    listenForThemeChange,
-
-    loadTheme,
-    // Data processing utilities
-    patchSummaryFields,
-
-    // Visualization utilities
-    renderMap,
-    renderSummary,
-    renderTable,
-    setLoading,
-
-    setTabButtonsEnabled,
-    showFitData,
-    // Notification utilities
-    showNotification,
-    // UI management utilities
-    updateActiveTab,
-
-    updateMapTheme,
-    updateTabVisibility,
-};
+const utils = globalUtilities;
 
 /**
  * @typedef {Object} AttachmentResult

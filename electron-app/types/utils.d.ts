@@ -74,23 +74,25 @@ declare namespace CONSTANTS {
     let LOG_PREFIX: string;
     let VERSION: string;
 }
-import { applyTheme } from "./utils/index.js";
-import { copyTableAsCSV } from "./utils/index.js";
-import { createTables } from "./utils/index.js";
-import { formatArray } from "./utils/index.js";
-import { formatDistance } from "./utils/index.js";
-import { formatDuration } from "./utils/index.js";
-import { listenForThemeChange } from "./utils/index.js";
-import { loadTheme } from "./utils/index.js";
-import { patchSummaryFields } from "./utils/index.js";
-import { renderMap } from "./utils/index.js";
-import { renderSummary } from "./utils/index.js";
-import { renderTable } from "./utils/index.js";
-import { setLoading } from "./utils/index.js";
-import { setTabButtonsEnabled } from "./utils/index.js";
-import { showFitData } from "./utils/index.js";
-import { showNotification } from "./utils/index.js";
-import { updateActiveTab } from "./utils/index.js";
-import { updateMapTheme } from "./utils/index.js";
-import { updateTabVisibility } from "./utils/index.js";
+import { setLoading } from "../utils/app/initialization/rendererUtils.js";
+import { patchSummaryFields } from "../utils/data/processing/patchSummaryFields.js";
+import { copyTableAsCSV } from "../utils/files/export/copyTableAsCSV.js";
+import { formatArray } from "../utils/formatting/formatters/formatUtils.js";
+import { formatDistance } from "../utils/formatting/formatters/formatDistance.js";
+import { formatDuration } from "../utils/formatting/formatters/formatDuration.js";
+import { renderMap } from "../utils/maps/core/renderMap.js";
+import { createTables } from "../utils/rendering/components/createTables.js";
+import { renderSummary } from "../utils/rendering/core/renderSummary.js";
+import { renderTable } from "../utils/rendering/core/renderTable.js";
+import { showFitData } from "../utils/rendering/core/showFitData.js";
+import {
+    applyTheme,
+    listenForThemeChange,
+    loadTheme,
+} from "../utils/theming/core/theme.js";
+import { updateMapTheme } from "../utils/theming/specific/updateMapTheme.js";
+import { setTabButtonsEnabled } from "../utils/ui/controls/enableTabButtons.js";
+import { showNotification } from "../utils/ui/notifications/showNotification.js";
+import { updateActiveTab } from "../utils/ui/tabs/updateActiveTab.js";
+import { updateTabVisibility } from "../utils/ui/tabs/updateTabVisibility.js";
 export { CONSTANTS as UTILS_CONSTANTS };
