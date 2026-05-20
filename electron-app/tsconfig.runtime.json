@@ -192,6 +192,7 @@
         "utils/ui/controls/addExitFullscreenOverlay.ts",
         "utils/ui/controls/removeExitFullscreenOverlay.ts",
         "utils/ui/controls/createAddFitFileToMapButton.ts",
+        "utils/ui/controls/createElevationProfileButton.ts",
         "utils/ui/controls/createPowerEstimationButton.ts",
         "utils/ui/controls/createMarkerCountSelector.ts",
         "utils/ui/controls/dataPointFilterControl/stateHelpers.ts",

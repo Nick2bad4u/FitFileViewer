@@ -1,19 +1,148 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
-function createElevationIcon(color) {
+
+interface ElevationFitData {
+    cachedFilePath?: unknown;
+    recordMesgs?: unknown;
+}
+
+interface ElevationFitFile {
+    data?: ElevationFitData;
+    filePath?: unknown;
+}
+
+interface ElevationPoint {
+    readonly x: number;
+    readonly y: number;
+}
+
+interface ElevationProfileFileModel {
+    readonly altitudes: ElevationPoint[];
+    readonly color: string;
+    readonly filePath: string;
+}
+
+interface ElevationPopupOptions {
+    readonly fitFilesModel: ElevationProfileFileModel[];
+    readonly isDark: boolean;
+    readonly safeThemeColors: ElevationPopupThemeColors;
+}
+
+interface ElevationPopupThemeColors {
+    readonly background: string;
+    readonly border: string;
+    readonly borderLight: string;
+    readonly primary: string;
+    readonly primaryShadow: string;
+    readonly shadowLight: string;
+    readonly shadowMedium: string;
+    readonly surface: string;
+    readonly text: string;
+    readonly textSecondary: string;
+}
+
+type ElevationGlobal = typeof globalThis & {
+    chartOverlayColorPalette?: unknown;
+    globalData?: ElevationFitData | null;
+    loadedFitFiles?: unknown;
+};
+
+interface ChartColorBuilder {
+    alpha: (opacity: number) => {
+        rgbString: () => string;
+    };
+}
+
+interface ElevationChartConstructor {
+    new (context: CanvasRenderingContext2D, config: ElevationChartConfig): unknown;
+    helpers?: {
+        color?: (color: string) => ChartColorBuilder;
+    };
+}
+
+interface ElevationChartWindow extends Window {
+    Chart?: unknown;
+}
+
+interface ElevationChartConfig {
+    readonly data: {
+        readonly datasets: Array<{
+            readonly backgroundColor: string;
+            readonly borderColor: string;
+            readonly borderWidth: number;
+            readonly data: number[];
+            readonly fill: boolean;
+            readonly hoverBorderWidth: number;
+            readonly label: string;
+            readonly pointRadius: number;
+            readonly tension: number;
+        }>;
+        readonly labels: number[];
+    };
+    readonly options: ElevationChartOptions;
+    readonly type: "line";
+}
+
+interface ElevationChartOptions {
+    readonly maintainAspectRatio: boolean;
+    readonly plugins: {
+        readonly legend: { readonly display: boolean };
+        readonly tooltip: {
+            readonly backgroundColor: string;
+            readonly bodyColor: string;
+            readonly borderColor: string;
+            readonly borderWidth: number;
+            readonly callbacks: {
+                readonly title: (context: ChartTooltipContext[]) => string;
+            };
+            readonly displayColors: boolean;
+            readonly intersect: boolean;
+            readonly mode: "index";
+            readonly padding: number;
+            readonly titleColor: string;
+        };
+    };
+    readonly responsive: boolean;
+    readonly scales: Record<
+        "x" | "y",
+        {
+            readonly grid: { readonly color: string };
+            readonly ticks: {
+                readonly color: string;
+                readonly font: { readonly size: number };
+                readonly maxTicksLimit: number;
+            };
+            readonly title: {
+                readonly color: string;
+                readonly display: boolean;
+                readonly font: { readonly weight: number };
+                readonly text: string;
+            };
+        }
+    >;
+}
+
+interface ChartTooltipContext {
+    readonly dataIndex: number;
+}
+
+function createElevationIcon(color: string): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
+
     const polyline = document.createElementNS(SVG_NS, "polyline");
     polyline.setAttribute("points", "2,16 6,10 10,14 14,6 18,12");
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("stroke", color);
     polyline.setAttribute("stroke-width", "2");
     icon.append(polyline);
-    const points = [
+
+    const points: Array<readonly [string, string]> = [
         ["2", "16"],
         ["6", "10"],
         ["10", "14"],
@@ -28,40 +157,80 @@ function createElevationIcon(color) {
         circle.setAttribute("fill", color);
         icon.append(circle);
     }
+
     return icon;
 }
+
 /**
  * Creates the map toolbar button that opens an elevation profile popup.
  */
-export function createElevationProfileButton() {
+export function createElevationProfileButton(): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.className = "map-action-btn";
-    const themeColorsInit = getThemeColors(), p = sanitizeCssColorToken(themeColorsInit["primary"], "#3b82f6");
+    const themeColorsInit = getThemeColors(),
+        p = sanitizeCssColorToken(themeColorsInit["primary"], "#3b82f6");
     const label = document.createElement("span");
     label.textContent = "Elevation";
     btn.append(createElevationIcon(p), label);
     btn.title = "Show Elevation Profile";
+
     const buttonListener = new AbortController();
     btn.addEventListener("click", () => {
         const fitFiles = getElevationFitFiles();
-        const chartWin = window.open("", "Elevation Profile", "width=900,height=600"), isDark = document.body.classList.contains("theme-dark"), themeColors = getThemeColors();
+        const chartWin = window.open(
+                "",
+                "Elevation Profile",
+                "width=900,height=600"
+            ),
+            isDark = document.body.classList.contains("theme-dark"),
+            themeColors = getThemeColors();
         if (!chartWin) {
             return;
         }
+
         const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
+
         // Sanitize the theme colors used in template-string CSS.
         const safeThemeColors = {
-            background: sanitizeCssColorToken(themeColors["background"], isDark ? "#0b1220" : "#ffffff"),
-            border: sanitizeCssColorToken(themeColors["border"], isDark ? "#334155" : "#e5e7eb"),
-            borderLight: sanitizeCssColorToken(themeColors["borderLight"], isDark ? "#475569" : "#f1f5f9"),
+            background: sanitizeCssColorToken(
+                themeColors["background"],
+                isDark ? "#0b1220" : "#ffffff"
+            ),
+            border: sanitizeCssColorToken(
+                themeColors["border"],
+                isDark ? "#334155" : "#e5e7eb"
+            ),
+            borderLight: sanitizeCssColorToken(
+                themeColors["borderLight"],
+                isDark ? "#475569" : "#f1f5f9"
+            ),
             primary: sanitizeCssColorToken(themeColors["primary"], "#3b82f6"),
-            primaryShadow: sanitizeCssColorToken(themeColors["primaryShadow"], isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"),
-            shadowLight: sanitizeCssColorToken(themeColors["shadowLight"], isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"),
-            shadowMedium: sanitizeCssColorToken(themeColors["shadowMedium"], isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"),
-            surface: sanitizeCssColorToken(themeColors["surface"], isDark ? "#111827" : "#ffffff"),
-            text: sanitizeCssColorToken(themeColors["text"], isDark ? "#e5e7eb" : "#0f172a"),
-            textSecondary: sanitizeCssColorToken(themeColors["textSecondary"], isDark ? "#cbd5e1" : "#475569"),
+            primaryShadow: sanitizeCssColorToken(
+                themeColors["primaryShadow"],
+                isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"
+            ),
+            shadowLight: sanitizeCssColorToken(
+                themeColors["shadowLight"],
+                isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"
+            ),
+            shadowMedium: sanitizeCssColorToken(
+                themeColors["shadowMedium"],
+                isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
+            ),
+            surface: sanitizeCssColorToken(
+                themeColors["surface"],
+                isDark ? "#111827" : "#ffffff"
+            ),
+            text: sanitizeCssColorToken(
+                themeColors["text"],
+                isDark ? "#e5e7eb" : "#0f172a"
+            ),
+            textSecondary: sanitizeCssColorToken(
+                themeColors["textSecondary"],
+                isDark ? "#cbd5e1" : "#475569"
+            ),
         };
+
         buildElevationProfilePopup(chartWin, {
             fitFilesModel,
             isDark,
@@ -70,23 +239,30 @@ export function createElevationProfileButton() {
     }, { signal: buttonListener.signal });
     return btn;
 }
-function createElevationProfileFileModel(file, idx) {
+
+function createElevationProfileFileModel(
+    file: ElevationFitFile,
+    idx: number
+): ElevationProfileFileModel {
     return {
         altitudes: getElevationPoints(file),
         color: getOverlayColor(idx),
         filePath: getDisplayFilePath(file, idx),
     };
 }
-function getDisplayFilePath(file, idx) {
+
+function getDisplayFilePath(file: ElevationFitFile, idx: number): string {
     return typeof file.filePath === "string" && file.filePath.length > 0
         ? file.filePath
         : `File ${idx + 1}`;
 }
-function getElevationFitFiles() {
+
+function getElevationFitFiles(): ElevationFitFile[] {
     const { globalData, loadedFitFiles } = getElevationGlobal();
     if (Array.isArray(loadedFitFiles) && loadedFitFiles.length > 0) {
         return loadedFitFiles.filter(isElevationFitFile);
     }
+
     if (isElevationFitData(globalData) && Array.isArray(globalData.recordMesgs)) {
         return [
             {
@@ -95,87 +271,139 @@ function getElevationFitFiles() {
             },
         ];
     }
+
     return [];
 }
-function getElevationGlobal() {
-    return globalThis;
+
+function getElevationGlobal(): ElevationGlobal {
+    return globalThis as ElevationGlobal;
 }
-function getElevationPoints(file) {
+
+function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {
     const records = file.data?.recordMesgs;
     if (!Array.isArray(records)) {
         return [];
     }
-    return records.reduce((points, record, index) => {
+
+    return records.reduce<ElevationPoint[]>((points, record, index) => {
         if (isAltitudeRecord(record)) {
             points.push({ x: index, y: record.altitude });
         }
+
         return points;
     }, []);
 }
-function getOverlayColor(idx) {
+
+function getOverlayColor(idx: number): string {
     const { chartOverlayColorPalette } = getElevationGlobal();
-    if (Array.isArray(chartOverlayColorPalette) &&
-        chartOverlayColorPalette.length > 0) {
-        return sanitizeCssColorToken(chartOverlayColorPalette[idx % chartOverlayColorPalette.length], "#1976d2");
+    if (
+        Array.isArray(chartOverlayColorPalette) &&
+        chartOverlayColorPalette.length > 0
+    ) {
+        return sanitizeCssColorToken(
+            chartOverlayColorPalette[idx % chartOverlayColorPalette.length],
+            "#1976d2"
+        );
     }
+
     return "#1976d2";
 }
-function isAltitudeRecord(value) {
+
+function isAltitudeRecord(
+    value: unknown
+): value is {
+    altitude: number;
+    positionLat: unknown;
+    positionLong: unknown;
+} {
     if (!value || typeof value !== "object") {
         return false;
     }
-    const record = value;
-    return (record["positionLat"] != null &&
+
+    const record = value as Record<string, unknown>;
+    return (
+        record["positionLat"] != null &&
         record["positionLong"] != null &&
         typeof record["altitude"] === "number" &&
-        Number.isFinite(record["altitude"]));
+        Number.isFinite(record["altitude"])
+    );
 }
-function isElevationFitData(value) {
+
+function isElevationFitData(value: unknown): value is ElevationFitData {
     return value !== null && typeof value === "object";
 }
-function isElevationFitFile(value) {
+
+function isElevationFitFile(value: unknown): value is ElevationFitFile {
     return value !== null && typeof value === "object";
 }
-function isElevationChartConstructor(value) {
+
+function isElevationChartConstructor(
+    value: unknown
+): value is ElevationChartConstructor {
     return typeof value === "function";
 }
-function buildElevationProfilePopup(chartWin, { fitFilesModel, isDark, safeThemeColors }) {
+
+function buildElevationProfilePopup(
+    chartWin: Window,
+    { fitFilesModel, isDark, safeThemeColors }: ElevationPopupOptions
+): void {
     const chartDoc = chartWin.document;
     chartDoc.title = "Elevation Profiles";
+
     chartDoc.head.replaceChildren();
     chartDoc.body.replaceChildren();
     chartDoc.body.className = isDark ? "theme-dark" : "theme-light";
+
     const viewport = chartDoc.createElement("meta");
     viewport.name = "viewport";
     viewport.content = "width=device-width, initial-scale=1";
+
     const chartScript = chartDoc.createElement("script");
     chartScript.src = "./node_modules/chart.js/dist/chart.umd.js";
+
     const stylesheet = chartDoc.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = "./elevProfile.css";
+
     const style = chartDoc.createElement("style");
     style.textContent = createElevationPopupStyles(safeThemeColors, isDark);
+
     chartDoc.head.append(viewport, stylesheet, style);
+
     const header = chartDoc.createElement("header");
     const heading = chartDoc.createElement("h2");
     heading.style.cssText =
         "margin:0;font-size:1.5em;font-weight:700;letter-spacing:0.01em;";
     heading.textContent = "Elevation Profiles";
+
     const fileCount = chartDoc.createElement("span");
     fileCount.style.cssText = "font-size:1.1em;opacity:0.7;";
-    fileCount.textContent = `${fitFilesModel.length} file${fitFilesModel.length > 1 ? "s" : ""}`;
+    fileCount.textContent = `${fitFilesModel.length} file${
+        fitFilesModel.length > 1 ? "s" : ""
+    }`;
     header.append(heading, fileCount);
+
     const container = chartDoc.createElement("div");
     container.id = "elevChartsContainer";
     chartDoc.body.append(header, container);
+
     const scriptLoadListener = new AbortController();
     chartScript.addEventListener("load", () => {
-        renderElevationCharts(chartWin, container, fitFilesModel, isDark);
+        renderElevationCharts(
+            chartWin as ElevationChartWindow,
+            container,
+            fitFilesModel,
+            isDark
+        );
         scriptLoadListener.abort();
     }, { signal: scriptLoadListener.signal });
     chartDoc.head.append(chartScript);
 }
-function createElevationPopupStyles(colors, isDark) {
+
+function createElevationPopupStyles(
+    colors: ElevationPopupThemeColors,
+    isDark: boolean
+): string {
     return `
         body {
             margin: 0;
@@ -266,14 +494,26 @@ function createElevationPopupStyles(colors, isDark) {
         }
     `;
 }
-function renderElevationCharts(chartWin, container, fitFiles, isDark) {
-    const Chart = chartWin.Chart;
+
+function renderElevationCharts(
+    chartWin: ElevationChartWindow,
+    container: HTMLDivElement,
+    fitFiles: ElevationProfileFileModel[],
+    isDark: boolean
+): void {
+    const Chart = (chartWin as ElevationChartWindow).Chart;
     if (!isElevationChartConstructor(Chart)) {
         return;
     }
+
     for (const [idx, file] of fitFiles.entries()) {
-        const block = createElevationChartBlock(chartWin.document, file, idx);
+        const block = createElevationChartBlock(
+            chartWin.document,
+            file,
+            idx
+        );
         container.append(block);
+
         if (file.altitudes.length === 0) {
             const noData = chartWin.document.createElement("div");
             noData.className = "no-altitude-data";
@@ -281,19 +521,23 @@ function renderElevationCharts(chartWin, container, fitFiles, isDark) {
             block.append(noData);
             continue;
         }
+
         const canvas = block.querySelector("canvas");
-        const ctx = canvas instanceof HTMLCanvasElement
-            ? canvas.getContext("2d")
-            : null;
+        const ctx =
+            canvas instanceof HTMLCanvasElement
+                ? canvas.getContext("2d")
+                : null;
         if (!ctx) {
             continue;
         }
         const colorHelper = Chart.helpers?.color;
-        const backgroundColor = typeof colorHelper === "function"
-            ? colorHelper(file.color)
-                .alpha(isDark ? 0.18 : 0.1)
-                .rgbString()
-            : file.color;
+        const backgroundColor =
+            typeof colorHelper === "function"
+                ? colorHelper(file.color)
+                      .alpha(isDark ? 0.18 : 0.1)
+                      .rgbString()
+                : file.color;
+
         new Chart(ctx, {
             data: {
                 datasets: [
@@ -316,26 +560,40 @@ function renderElevationCharts(chartWin, container, fitFiles, isDark) {
         });
     }
 }
-function createElevationChartBlock(doc, file, idx) {
+
+function createElevationChartBlock(
+    doc: Document,
+    file: ElevationProfileFileModel,
+    idx: number
+): HTMLDivElement {
     const block = doc.createElement("div");
     block.className = "elev-profile-block";
+
     const label = doc.createElement("div");
     label.className = "elev-profile-label";
     label.style.color = file.color;
+
     const dot = doc.createElement("span");
     dot.className = "dot";
     dot.style.background = file.color;
+
     const text = doc.createElement("span");
     text.textContent = file.filePath;
     label.append(dot, text);
     block.append(label);
+
     const canvas = doc.createElement("canvas");
     canvas.id = `elevChart_${idx}`;
     canvas.className = "elev-profile-canvas";
     block.append(canvas);
+
     return block;
 }
-function createElevationChartOptions(fileColor, isDark) {
+
+function createElevationChartOptions(
+    fileColor: string,
+    isDark: boolean
+): ElevationChartOptions {
     return {
         maintainAspectRatio: true,
         plugins: {
