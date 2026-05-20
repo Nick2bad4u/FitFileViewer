@@ -76,6 +76,10 @@ interface ElectronAPI {
     // External
     openExternal(url: string): Promise<boolean>;
 
+    // Clipboard
+    writeClipboardText(text: string): Promise<boolean>;
+    writeClipboardPngDataUrl(pngDataUrl: string): Promise<boolean>;
+
     // Gyazo server
     startGyazoServer(port: number): Promise<GyazoServerStartResult>;
     stopGyazoServer(): Promise<GyazoServerStopResult>;

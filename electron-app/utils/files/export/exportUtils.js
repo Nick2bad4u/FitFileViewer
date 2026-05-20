@@ -830,7 +830,7 @@ export const exportUtils = {
     async copyTextToClipboard(text) {
         // 1) Electron bridge (preferred)
         try {
-            const api = /** @type {any} */ (globalThis).electronAPI;
+            const { electronAPI: api } = globalThis;
             if (api && typeof api.writeClipboardText === "function") {
                 const ok = Boolean(await api.writeClipboardText(text));
                 if (ok) return true;
@@ -881,7 +881,7 @@ export const exportUtils = {
     async copyPngDataUrlToClipboard(pngDataUrl) {
         // 1) Electron bridge (preferred)
         try {
-            const api = /** @type {any} */ (globalThis).electronAPI;
+            const { electronAPI: api } = globalThis;
             if (api && typeof api.writeClipboardPngDataUrl === "function") {
                 const ok = Boolean(
                     await api.writeClipboardPngDataUrl(pngDataUrl)
