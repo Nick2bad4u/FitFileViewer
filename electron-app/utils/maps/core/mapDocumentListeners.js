@@ -7,6 +7,36 @@
  * render.
  */
 
+/** @typedef {{ current: boolean }} MapZoomDraggingRef */
+/**
+ * @typedef {typeof globalThis & {
+ *     __ffvLayoutLayersControl?: () => void;
+ *     __ffvMapDocumentListenersInstalled?: boolean;
+ *     __ffvMapTypeButton?: unknown;
+ *     __ffvMapZoomDraggingRef?: unknown;
+ * }} MapDocumentGlobal
+ */
+
+/**
+ * @returns {MapDocumentGlobal}
+ */
+function getMapDocumentGlobal() {
+    return /** @type {MapDocumentGlobal} */ (globalThis);
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is MapZoomDraggingRef}
+ */
+function isMapZoomDraggingRef(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return typeof candidate.current === "boolean";
+}
+
 /**
  * Install document-level map listeners once to avoid leaks when renderMap() is
  * invoked repeatedly.
@@ -19,18 +49,17 @@
  * @returns {void}
  */
 export function ensureMapDocumentListenersInstalled() {
-    /** @type {any} */
-    const g = globalThis;
+    const appGlobal = getMapDocumentGlobal();
 
-    if (g.__ffvMapDocumentListenersInstalled === true) {
+    if (appGlobal.__ffvMapDocumentListenersInstalled === true) {
         return;
     }
-    g.__ffvMapDocumentListenersInstalled = true;
+    appGlobal.__ffvMapDocumentListenersInstalled = true;
 
     // Collapse the Leaflet layers panel when clicking outside.
     document.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
         try {
-            const mapTypeBtn = g.__ffvMapTypeButton;
+            const mapTypeBtn = appGlobal.__ffvMapTypeButton;
             if (!(mapTypeBtn instanceof HTMLElement)) {
                 return;
             }
@@ -97,7 +126,7 @@ export function ensureMapDocumentListenersInstalled() {
                     return;
                 }
 
-                const layoutFn = g.__ffvLayoutLayersControl;
+                const layoutFn = appGlobal.__ffvLayoutLayersControl;
                 if (typeof layoutFn === "function") {
                     layoutFn();
                 }
@@ -110,8 +139,8 @@ export function ensureMapDocumentListenersInstalled() {
     // Reset the zoom-slider dragging flag when the interaction ends.
     const resetDragging = () => {
         try {
-            const ref = g.__ffvMapZoomDraggingRef;
-            if (ref && typeof ref === "object") {
+            const ref = appGlobal.__ffvMapZoomDraggingRef;
+            if (isMapZoomDraggingRef(ref)) {
                 ref.current = false;
             }
         } catch {
