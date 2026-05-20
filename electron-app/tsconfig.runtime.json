@@ -159,6 +159,7 @@
         "utils/ui/events/eventListenerManager.ts",
         "utils/ui/mainUiDomUtils.ts",
         "utils/ui/mainUiGlobals.ts",
+        "utils/ui/components/LoadingOverlay.ts",
         "utils/ui/icons/iconFactory.ts",
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
         "utils/ui/setupExternalLinkHandlers.ts",
