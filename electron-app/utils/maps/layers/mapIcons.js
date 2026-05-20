@@ -5,41 +5,62 @@
  * @typedef {readonly [number, number]} PointTuple A fixed two-number tuple used
  *   for icon size/anchor specification.
  */
+/** @typedef {import("leaflet").Icon | import("leaflet").DivIcon | Record<string, never>} LeafletMarkerIcon */
+/**
+ * @typedef {object} LeafletIconFactory
+ * @property {(options: import("leaflet").IconOptions) => LeafletMarkerIcon} icon
+ * @property {(options?: import("leaflet").DivIconOptions) => LeafletMarkerIcon} divIcon
+ */
 
+// Base path for asset URLs (ensure single trailing slash).
+const ASSET_BASE_PATH = "assets/map-icons/";
 /** @type {PointTuple} */
-const // Base path for asset URLs (ensure single trailing slash)
-    ASSET_BASE_PATH = "assets/map-icons/",
-    /** @type {PointTuple} */
-    ICON_ANCHOR = [16, 32],
-    ICON_SIZE = [32, 32],
-    /** @type {PointTuple} */
-    POPUP_ANCHOR = [0, -32];
+const ICON_ANCHOR = [16, 32];
+/** @type {PointTuple} */
+const ICON_SIZE = [32, 32];
+/** @type {PointTuple} */
+const POPUP_ANCHOR = [0, -32];
+
+/**
+ * @param {unknown} value
+ * @returns {value is LeafletIconFactory}
+ */
+function isLeafletIconFactory(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return (
+        typeof candidate.divIcon === "function" &&
+        typeof candidate.icon === "function"
+    );
+}
 
 /**
  * Safely obtain the Leaflet global. If unavailable (e.g. during test without
  * DOM), returns a no-op shim.
  *
- * @returns {any}
+ * @returns {LeafletIconFactory}
  */
 function getLeaflet() {
-    // Access via index signature to avoid TS error when no ambient L property declared with richer type.
-    const leaflet = /** @type {any} */ (/** @type {any} */ (globalThis)?.L);
-    if (!leaflet) {
-        return {
-            divIcon: () => ({}),
-            icon: () => ({}),
-        };
+    const leaflet = /** @type {{ L?: unknown }} */ (globalThis).L;
+    if (isLeafletIconFactory(leaflet)) {
+        return leaflet;
     }
-    return leaflet;
+
+    return {
+        divIcon: () => ({}),
+        icon: () => ({}),
+    };
 }
 
-/** @type {any} */
 const LRef = getLeaflet();
 
 /**
  * Creates a Leaflet icon for the end marker.
  *
- * @returns {any} A Leaflet icon configured for the end marker.
+ * @returns {LeafletMarkerIcon} A Leaflet icon configured for the end marker.
  */
 export function createEndIcon() {
     return LRef.icon({
@@ -53,7 +74,7 @@ export function createEndIcon() {
 /**
  * Creates a Leaflet icon for the start marker.
  *
- * @returns {any} A Leaflet icon configured for the start marker.
+ * @returns {LeafletMarkerIcon} A Leaflet icon configured for the start marker.
  */
 export function createStartIcon() {
     return LRef.icon({
