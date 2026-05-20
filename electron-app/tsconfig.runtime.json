@@ -126,6 +126,7 @@
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartThemeHelpers.ts",
         "utils/charts/core/updateChartAnimations.ts",
+        "utils/charts/core/updateGlobalChartStatusIndicator.ts",
         "utils/charts/core/chartUpdater.ts",
         "utils/charts/dom/chartDomUtils.ts",
         "utils/charts/components/createChartCanvas.ts",
