@@ -142,7 +142,7 @@ function clearContentAreas() {
     for (const id of contentIds) {
         const element = getElementByIdFlexible(document, id);
         if (element) {
-            element.innerHTML = "";
+            element.replaceChildren();
         }
     }
 }
