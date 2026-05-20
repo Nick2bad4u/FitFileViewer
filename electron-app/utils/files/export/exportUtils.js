@@ -1455,7 +1455,7 @@ export const exportUtils = {
         document.addEventListener("keydown", handleEscape);
 
         // Click outside to close
-        overlay.addEventListener("click", async (/** @type {any} */ e) => {
+        overlay.addEventListener("click", async (/** @type {MouseEvent} */ e) => {
             if (e.target === overlay) {
                 document.removeEventListener("keydown", handleEscape);
 
@@ -3120,7 +3120,7 @@ body {
         }
 
         // ESC key handler
-        const handleEscape = (/** @type {any} */ e) => {
+        const handleEscape = (/** @type {KeyboardEvent} */ e) => {
             if (e.key === "Escape") {
                 overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
@@ -3129,7 +3129,7 @@ body {
         document.addEventListener("keydown", handleEscape);
 
         // Click outside to close
-        overlay.addEventListener("click", (/** @type {any} */ e) => {
+        overlay.addEventListener("click", (/** @type {MouseEvent} */ e) => {
             if (e.target === overlay) {
                 overlay.remove();
             }
@@ -3283,7 +3283,7 @@ body {
         });
 
         // ESC key and click outside handlers
-        const handleEscape = (/** @type {any} */ e) => {
+        const handleEscape = (/** @type {KeyboardEvent} */ e) => {
             if (e.key === "Escape") {
                 overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
@@ -3291,7 +3291,7 @@ body {
         };
         document.addEventListener("keydown", handleEscape);
 
-        overlay.addEventListener("click", (/** @type {any} */ e) => {
+        overlay.addEventListener("click", (/** @type {MouseEvent} */ e) => {
             if (e.target === overlay) {
                 overlay.remove();
             }
