@@ -6,8 +6,36 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 // GPS track chart renderer
 /**
+ * @typedef {Object} GPSTrackDatum
+ *
+ * @property {number | null | undefined} [positionLat]
+ * @property {number | null | undefined} [positionLong]
+ */
+/**
+ * @typedef {Object} GPSTrackPoint
+ *
+ * @property {number} pointIndex
+ * @property {number} x
+ * @property {number} y
+ */
+/**
+ * @typedef {Object} GPSTrackThemeConfig
+ *
+ * @property {Record<string, string>} colors
+ */
+/**
+ * @typedef {Object} GPSTrackTooltipContext
+ *
+ * @property {GPSTrackPoint} raw
+ */
+/**
+ * @typedef {Object} GPSTrackRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ */
+/**
  * @param {HTMLElement} container
- * @param {any[]} data
+ * @param {GPSTrackDatum[]} data
  * @param {{
  *     maxPoints: number | "all";
  *     showPoints?: boolean;
@@ -26,7 +54,10 @@ export function renderGPSTrackChart(container, data, options) {
         const isDebugLoggingEnabled =
             isTestEnvironment ||
             (isDevEnvironment &&
-                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+                Boolean(
+                    /** @type {GPSTrackRuntimeGlobal} */ (globalThis)
+                        .__FFV_debugCharts
+                ));
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTrackChart called");
         }
@@ -59,10 +90,12 @@ export function renderGPSTrackChart(container, data, options) {
             return;
         }
 
-        /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = /** @type {GPSTrackThemeConfig} */ (
+            getThemeConfig()
+        );
 
         // Convert GPS positions to chart data
+        /** @type {GPSTrackPoint[]} */
         let gpsData = safeData
             .map((row, index) => {
                 if (
@@ -161,7 +194,7 @@ export function renderGPSTrackChart(container, data, options) {
                         borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
-                            /** @param {any} context */
+                            /** @param {GPSTrackTooltipContext} context */
                             label(context) {
                                 const point = context.raw;
                                 return [
@@ -219,7 +252,7 @@ export function renderGPSTrackChart(container, data, options) {
                             display: options.showGrid,
                         },
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 return `${value.toFixed(4)}°`;
                             },
@@ -239,7 +272,7 @@ export function renderGPSTrackChart(container, data, options) {
                             display: options.showGrid,
                         },
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 return `${value.toFixed(4)}°`;
                             },
