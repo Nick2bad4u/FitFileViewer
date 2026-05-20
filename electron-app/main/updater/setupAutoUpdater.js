@@ -7,6 +7,38 @@ const { isWindowUsable } = require("../window/windowValidation");
 const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess");
 
 /**
+ * @typedef {import("../../types/main/updater/autoUpdaterAccess").AutoUpdaterLike} AutoUpdaterLike
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
+ *
+ * @typedef {{ level?: string }} FileTransportLike
+ *
+ * @typedef {{
+ *     error?: (message: string) => void;
+ *     info?: (message: string) => void;
+ *     transports?: { file?: FileTransportLike };
+ * }} UpdaterLoggerLike
+ *
+ * @typedef {AutoUpdaterLike & {
+ *     autoDownload: boolean;
+ *     feedURL?: unknown;
+ *     logger?: UpdaterLoggerLike;
+ *     on: (event: string, listener: (...args: unknown[]) => void) => unknown;
+ * }} ConfigurableAutoUpdater
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return error == null ? "unknown" : String(error);
+}
+
+/**
  * Redact credentials from a URL-like string for logging.
  *
  * This is intentionally best-effort and must never throw.
@@ -33,9 +65,10 @@ function redactUrlCredentials(value) {
  * relay progress to the renderer. The logic matches the historic main.js
  * implementation so behaviour and logging stay consistent.
  *
- * @param {any} mainWindow - BrowserWindow receiving updater events.
- * @param {any} [providedAutoUpdater] - Optional pre-resolved autoUpdater (used
- *   by tests).
+ * @param {MainWindowLike | null | undefined} mainWindow - BrowserWindow
+ *   receiving updater events.
+ * @param {AutoUpdaterLike | null} [providedAutoUpdater] - Optional
+ *   pre-resolved autoUpdater (used by tests).
  */
 function setupAutoUpdater(mainWindow, providedAutoUpdater) {
     // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
@@ -64,30 +97,29 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         return;
     }
 
-    autoUpdater.autoDownload = true;
+    const updater = /** @type {ConfigurableAutoUpdater} */ (autoUpdater);
+    updater.autoDownload = true;
 
     try {
         const log = require("electron-log");
         if (log) {
-            autoUpdater.logger = log;
+            updater.logger = log;
         } else {
             logWithContext(
                 "warn",
                 "Logger initialization failed. Falling back to console logging."
             );
-            autoUpdater.logger = console;
+            updater.logger = console;
         }
     } catch (error) {
         logWithContext("error", "Error initializing logger:", {
-            error: /** @type {Error} */ (error).message,
+            error: getErrorMessage(error),
         });
-        autoUpdater.logger = console;
+        updater.logger = console;
     }
 
     try {
-        /** @type {any} */
-        const transportsFile = /** @type {any} */ (autoUpdater.logger)
-            ?.transports?.file;
+        const transportsFile = updater.logger?.transports?.file;
         if (transportsFile && "level" in transportsFile) {
             transportsFile.level = CONSTANTS.LOG_LEVELS.INFO;
         }
@@ -95,14 +127,14 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         // Non-fatal; logger implementations differ between environments.
     }
 
-    const rawFeedUrl = /** @type {any} */ (autoUpdater).feedURL;
+    const rawFeedUrl = updater.feedURL;
     if (rawFeedUrl !== undefined && rawFeedUrl !== null) {
         const safeFeedUrl = redactUrlCredentials(String(rawFeedUrl));
         const feedInfo = { feedURL: safeFeedUrl };
-        autoUpdater.logger.info(`AutoUpdater feed URL: ${safeFeedUrl}`);
+        updater.logger?.info?.(`AutoUpdater feed URL: ${safeFeedUrl}`);
         logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
     } else {
-        autoUpdater.logger.info(
+        updater.logger?.info?.(
             "AutoUpdater using default feed (likely GitHub releases)"
         );
         logWithContext(
@@ -123,11 +155,8 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
             );
         },
         error: (err) => {
-            const errorMessage =
-                err == null ? "unknown" : err.message || err.toString();
-            if (autoUpdater.logger) {
-                autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
-            }
+            const errorMessage = getErrorMessage(err);
+            updater.logger?.error?.(`AutoUpdater Error: ${errorMessage}`);
             sendToRenderer(
                 mainWindow,
                 CONSTANTS.UPDATE_EVENTS.ERROR,
@@ -170,7 +199,7 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         }
         if (typeof mainProcessState.registerEventHandler === "function") {
             mainProcessState.registerEventHandler(
-                autoUpdater,
+                updater,
                 event,
                 handler,
                 handlerId

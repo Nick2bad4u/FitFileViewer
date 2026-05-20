@@ -29,10 +29,10 @@ export interface InitializeMainWindowOptions {
         channel: string,
         ...args: unknown[]
     ) => void;
-    resolveAutoUpdater: () => Promise<AutoUpdaterLike>;
+    resolveAutoUpdater: () => Promise<AutoUpdaterLike | null>;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
-        autoUpdater: AutoUpdaterLike
+        autoUpdater: AutoUpdaterLike | null
     ) => void;
     logWithContext: LogWithContext;
 }

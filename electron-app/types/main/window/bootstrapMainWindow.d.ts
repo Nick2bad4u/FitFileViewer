@@ -55,10 +55,10 @@ export interface BootstrapMainWindowOptions {
         channel: string,
         ...args: unknown[]
     ) => void;
-    resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike>;
+    resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike | null>;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
-        autoUpdater: AutoUpdaterLike
+        autoUpdater: AutoUpdaterLike | null
     ) => void;
     logWithContext: LogWithContext;
 }

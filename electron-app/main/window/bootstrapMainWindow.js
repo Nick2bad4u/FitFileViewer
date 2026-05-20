@@ -45,10 +45,10 @@
  *         channel: string,
  *         ...args: unknown[]
  *     ) => void;
- *     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike>;
+ *     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike | null>;
  *     setupAutoUpdater: (
  *         mainWindow: MainWindowLike,
- *         autoUpdater: AutoUpdaterLike
+ *         autoUpdater: AutoUpdaterLike | null
  *     ) => void;
  *     logWithContext: LogWithContext;
  * }} BootstrapMainWindowOptions
@@ -171,8 +171,13 @@ async function bootstrapMainWindow({
             try {
                 const autoUpdater = await resolveAutoUpdaterAsync();
                 setupAutoUpdater(mainWindow, autoUpdater);
-                await autoUpdater.checkForUpdatesAndNotify();
-                setAppState("autoUpdaterInitialized", true);
+                if (
+                    autoUpdater &&
+                    typeof autoUpdater.checkForUpdatesAndNotify === "function"
+                ) {
+                    await autoUpdater.checkForUpdatesAndNotify();
+                    setAppState("autoUpdaterInitialized", true);
+                }
             } catch (error) {
                 logWithContext("error", "Failed to setup auto-updater:", {
                     error: getErrorMessage(error),
