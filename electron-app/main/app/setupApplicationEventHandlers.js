@@ -22,6 +22,24 @@ const SESSION_PERMISSIONS_MARKER = "__ffvSessionPermissionHandlersRegistered";
 const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
 
 /**
+ * @typedef {import("electron").BrowserWindow} ElectronBrowserWindow
+ * @typedef {import("electron").PermissionCheckHandlerHandlerDetails} ElectronPermissionCheckDetails
+ * @typedef {import("electron").PermissionRequest |
+ *     import("electron").FilesystemPermissionRequest |
+ *     import("electron").MediaAccessPermissionRequest |
+ *     import("electron").OpenExternalPermissionRequest} ElectronPermissionRequestDetails
+ * @typedef {import("electron").Session} ElectronSession
+ * @typedef {import("electron").WebContents} ElectronWebContents
+ * @typedef {{ preventDefault?: () => void }} PreventableEvent
+ * @typedef {ElectronPermissionCheckDetails | ElectronPermissionRequestDetails | {
+ *     requestingOrigin?: string;
+ *     requestingURL?: string;
+ *     requestingUrl?: string;
+ * } | null | undefined} PermissionDetailsLike
+ * @typedef {ElectronSession | null | undefined} SessionLike
+ */
+
+/**
  * Registry for app-level listeners so we can replace them safely.
  *
  * We intentionally do NOT short-circuit setupApplicationEventHandlers() on
@@ -43,7 +61,7 @@ const APP_LISTENER_REGISTRY = new Map();
  * - Allow only blob: and data: URLs.
  * - Cancel everything else.
  *
- * @param {any} session
+ * @param {SessionLike} session
  */
 function configureSessionDownloadPolicy(session) {
     if (!session || typeof session !== "object") return;
@@ -105,7 +123,7 @@ function configureSessionDownloadPolicy(session) {
  * camera/microphone/geolocation. If a future feature requires a permission, add
  * an explicit allowlist here.
  *
- * @param {any} session
+ * @param {SessionLike} session
  */
 function configureSessionPermissionHandlers(session) {
     if (!session || typeof session !== "object") return;
@@ -117,7 +135,7 @@ function configureSessionPermissionHandlers(session) {
      * We run the renderer from file:// in production, and some internal flows
      * can use about:blank. We explicitly do NOT allow http(s) origins.
      *
-     * @param {any} details
+     * @param {PermissionDetailsLike} details
      *
      * @returns {boolean}
      */
@@ -170,8 +188,8 @@ function configureSessionPermissionHandlers(session) {
      * We intentionally keep this in main-process state (not persisted to disk)
      * to avoid storing sensitive decisions without explicit settings UI.
      *
-     * @param {any} webContents
-     * @param {any} details
+     * @param {ElectronWebContents | null | undefined} webContents
+     * @param {PermissionDetailsLike} details
      *
      * @returns {Promise<boolean>}
      */
@@ -198,6 +216,7 @@ function configureSessionPermissionHandlers(session) {
         }
 
         // Prefer a parent window for modality.
+        /** @type {ElectronBrowserWindow | null} */
         let browserWindow = null;
         try {
             const BrowserWindow = browserWindowRef();
@@ -511,7 +530,7 @@ function isTestMode() {
 function markOnce(target, key) {
     if (!target || typeof target !== "object") return true;
 
-    if (Object.hasOwn(target, key) && Boolean(target[key])) {
+    if (Object.hasOwn(target, key) && Boolean(Reflect.get(target, key))) {
         return false;
     }
     try {
@@ -524,8 +543,7 @@ function markOnce(target, key) {
     } catch {
         // Fall back to assignment if defineProperty fails.
         try {
-            // @ts-ignore
-            target[key] = true;
+            Reflect.set(target, key, true);
         } catch {
             /* ignore */
         }
@@ -537,7 +555,7 @@ function markOnce(target, key) {
  * (Re)register an Electron app event listener.
  *
  * @param {string} eventName
- * @param {Function} listener
+ * @param {(...args: unknown[]) => void} listener
  */
 function registerAppListener(eventName, listener) {
     const app = appRef();
@@ -692,7 +710,7 @@ function setupApplicationEventHandlers() {
             /**
              * Shared handler for will-navigate and will-redirect.
              *
-             * @param {any} event
+             * @param {PreventableEvent} event
              * @param {string} url
              */
             const handleNavigationAttempt = (event, url) => {
@@ -719,6 +737,7 @@ function setupApplicationEventHandlers() {
         }
 
         if (contents && typeof contents.setWindowOpenHandler === "function") {
+            // eslint-disable-next-line sdl/no-electron-unrestricted-navigation -- isAllowedInAppUrl is a reviewed default-deny allowlist for in-app window creation.
             contents.setWindowOpenHandler(({ url }) => {
                 if (!isAllowedInAppUrl(url)) {
                     logWithContext(
@@ -770,12 +789,13 @@ function setupApplicationEventHandlers() {
  */
 function tryOpenExternal(url) {
     try {
-        // Centralized validation (http/https only, no credentials).
+        // Centralized validation (https/mailto only, no credentials).
         // Returns the trimmed original string (no canonicalization).
         const validated = validateExternalUrl(url);
         const shell = shellRef();
         if (shell && typeof shell.openExternal === "function") {
             // Fire-and-forget; do not block the navigation handler on the external browser.
+            // eslint-disable-next-line sdl/no-electron-untrusted-open-external -- validateExternalUrl allows only https/mailto URLs without credentials.
             Promise.resolve(shell.openExternal(validated)).catch(() => {
                 /* ignore */
             });
