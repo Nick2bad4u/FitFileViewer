@@ -1,50 +1,31 @@
 /**
- * @typedef {Object} ChartOptionConfig
- *
- * @property {string} id
- * @property {string} label
- * @property {string} type - Select|toggle|range|other
- * @property {any} default
- * @property {number} [min]
- * @property {number} [max]
- */
-/**
- * @typedef {Object<string, string>} FieldColorMap
- */
-/**
- * @typedef {Object} ChartSettings
- *
- * @property {FieldColorMap} colors
- * @property {Object<string, any>} [extra]
- */
-/**
  * Gets current settings from settings state and DOM
  *
  * Retrieves all chart settings from the settings state manager with fallbacks
  * to default values. Handles type conversion and validation for different
  * setting types (select, toggle, range, colors).
  *
- * @returns {Object} Current settings object
+ * @returns Current settings object
  */
-export function getCurrentSettings(): Object;
+export function getCurrentSettings(): ChartSettings;
 /**
  * Gets default settings object based on chart configuration
  *
  * Creates a settings object with all default values from the chart options
  * configuration and default field colors.
  *
- * @returns {Object} Default settings object
+ * @returns Default settings object
  */
-export function getDefaultSettings(): Object;
+export function getDefaultSettings(): ChartSettings;
 /**
  * Re-renders charts after a setting change
  *
- * @param {string} settingName - Name of the setting that changed
- * @param {any} newValue - New value of the setting
+ * @param settingName - Name of the setting that changed
+ * @param newValue - New value of the setting
  */
 export function reRenderChartsAfterSettingChange(
     settingName: string,
-    newValue: any
+    newValue: unknown
 ): void;
 /**
  * Resets all chart settings to their default values
@@ -53,29 +34,35 @@ export function reRenderChartsAfterSettingChange(
  * controls to default values, and re-renders charts with the default
  * configuration. Shows a success notification when complete.
  *
- * @returns {boolean} True if reset was successful, false otherwise
+ * @returns True if reset was successful, false otherwise
  */
 export function resetAllSettings(): boolean;
+/**
+ * Element that exposes the legacy chart settings reset hook.
+ */
 export type ResettableElement = HTMLElement & {
-    _updateFromReset?: Function;
+    _updateFromReset: () => void;
 };
+/**
+ * Chart option configuration. Supported type values include select, toggle,
+ * range, and legacy custom controls.
+ */
 export type ChartOptionConfig = {
     id: string;
     label: string;
-    /**
-     * - Select|toggle|range|other
-     */
     type: string;
-    default: any;
+    default: unknown;
     min?: number;
     max?: number;
 };
-export type FieldColorMap = {
-    [x: string]: string;
-};
-export type ChartSettings = {
+/**
+ * Map of chart field names to CSS color strings.
+ */
+export type FieldColorMap = Record<string, string>;
+/**
+ * Current chart settings keyed by chart option id, with colors grouped
+ * separately by field name.
+ */
+export type ChartSettings = Record<string, unknown> & {
     colors: FieldColorMap;
-    extra?: {
-        [x: string]: any;
-    };
 };

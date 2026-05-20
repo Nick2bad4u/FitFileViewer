@@ -38,7 +38,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { parseStoredValue } from "./getCurrentSettingsParsing.js";
 
 /**
- * @typedef {HTMLElement & { _updateFromReset?: () => void }} ResettableElement
+ * @typedef {HTMLElement & { _updateFromReset: () => void }} ResettableElement
  */
 /**
  * Type guard for elements that expose a custom _updateFromReset method
@@ -61,11 +61,13 @@ function isResettable(el) {
 /** @typedef {{ clearCharts?: () => unknown; requestRerender?: (reason: string) => unknown }} ChartActionsLike */
 /** @typedef {{ debouncedRender: (reason: string) => unknown }} ChartRenderManagerLike */
 /** @typedef {{ destroy: () => unknown }} DestroyableChart */
+/** @typedef {string | number | boolean | null | undefined} StoredSettingValue */
 /**
  * @typedef {typeof globalThis & {
  *     _chartjsInstances?: unknown;
  *     chartActions?: unknown;
  *     chartStateManager?: unknown;
+ *     globalData?: { recordMesgs?: unknown } | null;
  *     renderChartJS?: (target?: Element | null) => unknown;
  * }} ChartSettingsGlobal
  */
@@ -143,29 +145,43 @@ function isSelectElement(value) {
     return value instanceof HTMLSelectElement;
 }
 
+/**
+ * @param {unknown} value
+ * @returns {value is StoredSettingValue}
+ */
+function isStoredSettingValue(value) {
+    return (
+        value === null ||
+        value === undefined ||
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+    );
+}
+
 // Storage/logging prefix
 const LOG_PREFIX = "[ChartSettings]";
 
 /**
- * @typedef {Object} ChartOptionConfig
+ * @typedef {{
+ *     id: string;
+ *     label: string;
+ *     type: string;
+ *     default: unknown;
+ *     min?: number;
+ *     max?: number;
+ * }} ChartOptionConfig
  *
- * @property {string} id
- * @property {string} label
- * @property {string} type - Select|toggle|range|other
- * @property {unknown} default
- * @property {number} [min]
- * @property {number} [max]
+ * Chart option configuration. Supported type values include select, toggle,
+ * range, and legacy custom controls.
  */
 
 /**
- * @typedef {Object<string, string>} FieldColorMap
+ * @typedef {Record<string, string>} FieldColorMap
  */
 
 /**
- * @typedef {Object} ChartSettings
- *
- * @property {FieldColorMap} colors
- * @property {Record<string, unknown>} [extra]
+ * @typedef {Record<string, unknown> & { colors: FieldColorMap }} ChartSettings
  */
 
 /**
@@ -175,7 +191,7 @@ const LOG_PREFIX = "[ChartSettings]";
  * to default values. Handles type conversion and validation for different
  * setting types (select, toggle, range, colors).
  *
- * @returns {Object} Current settings object
+ * @returns {ChartSettings} Current settings object
  */
 export function getCurrentSettings() {
     try {
@@ -188,7 +204,10 @@ export function getCurrentSettings() {
         // Get chart option settings
         for (const opt of chartOptionsConfig || []) {
             const storedValue = chartSettings?.[opt.id];
-            settings[opt.id] = parseStoredValue(storedValue, opt);
+            settings[opt.id] = parseStoredValue(
+                isStoredSettingValue(storedValue) ? storedValue : undefined,
+                opt
+            );
         }
 
         // Get color settings
@@ -201,14 +220,17 @@ export function getCurrentSettings() {
         const colorDefaults = /** @type {Record<string, string>} */ (
             fieldColors
         );
+        const themePrimaryAlpha = themeConfig?.colors?.primaryAlpha;
+        const defaultThemeColor =
+            typeof themePrimaryAlpha === "string"
+                ? themePrimaryAlpha
+                : "#3b82f6";
         for (const field of fields) {
             const stored = chartSettings?.[`color_${field}`];
             settings.colors[field] =
                 (typeof stored === "string" && stored) ||
                 colorDefaults[field] ||
-                (themeConfig && themeConfig.colors
-                    ? themeConfig.colors.primaryAlpha
-                    : "#3b82f6");
+                defaultThemeColor;
         }
 
         return settings;
@@ -227,7 +249,7 @@ export function getCurrentSettings() {
  * Creates a settings object with all default values from the chart options
  * configuration and default field colors.
  *
- * @returns {Object} Default settings object
+ * @returns {ChartSettings} Default settings object
  */
 export function getDefaultSettings() {
     try {
@@ -248,7 +270,7 @@ export function getDefaultSettings() {
             `${LOG_PREFIX} Error getting default settings:`,
             getErrorMessage(error)
         );
-        return {};
+        return { colors: {} };
     }
 }
 
@@ -862,7 +884,12 @@ function updateUIControl(control, option, value) {
                         ? control
                         : control.querySelector("select");
                 if (!selectEl) {
-                    selectEl = query(`#chartjs-${option.id}-dropdown`);
+                    const fallbackSelect = query(
+                        `#chartjs-${option.id}-dropdown`
+                    );
+                    selectEl = isSelectElement(fallbackSelect)
+                        ? fallbackSelect
+                        : null;
                 }
                 if (isSelectElement(selectEl)) {
                     selectEl.value = String(value);
