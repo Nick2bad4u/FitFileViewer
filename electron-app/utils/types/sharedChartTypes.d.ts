@@ -4,8 +4,6 @@
  * intentionally partial; extend gradually.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /** Single activity record (subset) */
 export interface RecordMesg {
     timestamp?: number;
@@ -19,7 +17,7 @@ export interface RecordMesg {
     enhancedAltitude?: number;
     power?: number;
     distance?: number;
-    [key: string]: any; // allow unknown developer fields while migrating
+    [key: string]: unknown; // allow unknown developer fields while migrating
 }
 
 /** Zone datum used for zone charts */
@@ -41,12 +39,12 @@ export interface SessionMesg {
     max_speed?: number;
     total_ascent?: number;
     total_descent?: number;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 declare global {
     interface Window {
-        _chartjsInstances?: any[];
+        _chartjsInstances?: unknown[];
     }
 }
 
