@@ -75,7 +75,6 @@ function setupIPCHandlers(mainWindow) {
         mainWindow,
         registerIpcHandle,
         safeCreateAppMenu,
-        setAppState,
     });
 
     registerRecentFileHandlers({

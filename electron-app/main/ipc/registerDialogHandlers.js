@@ -1,20 +1,59 @@
 /**
- * Registers dialog IPC handlers for opening FIT files and overlay selections.
+ * @typedef {import("electron").BrowserWindow} BrowserWindow
+ * @typedef {import("electron").OpenDialogOptions} OpenDialogOptions
+ * @typedef {import("electron").OpenDialogReturnValue} OpenDialogReturnValue
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.dialogRef
- * @param {{ DIALOG_FILTERS: { FIT_FILES: any } }} options.CONSTANTS
- * @param {(filePath: string) => void} options.addRecentFile
- * @param {() => any} options.browserWindowRef
- * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
- * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
- * @param {(
+ * @typedef {{ showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue> }} DialogApi
+ *
+ * @typedef {{ getFocusedWindow?: () => BrowserWindow | null }} BrowserWindowApi
+ *
+ * @typedef {{
+ *     DIALOG_FILTERS: {
+ *         FIT_FILES: OpenDialogOptions["filters"];
+ *     };
+ * }} DialogConstants
+ *
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- * @param {any} options.mainWindow
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     dialogRef: () => DialogApi | null | undefined;
+ *     CONSTANTS: DialogConstants;
+ *     addRecentFile: (filePath: string) => void;
+ *     browserWindowRef: () => BrowserWindowApi | null | undefined;
+ *     getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
+ *     safeCreateAppMenu: (
+ *         win: BrowserWindow,
+ *         theme: string,
+ *         loadedFitFilePath?: string | null
+ *     ) => void;
+ *     logWithContext?: LogWithContext;
+ *     mainWindow?: BrowserWindow | null;
+ * }} RegisterDialogHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Registers dialog IPC handlers for opening FIT files and overlay selections.
+ *
+ * @param {RegisterDialogHandlersOptions} options
  */
 function registerDialogHandlers({
     registerIpcHandle,
@@ -80,7 +119,7 @@ function registerDialogHandlers({
                     "warn",
                     "Failed to approve file path for reading",
                     {
-                        error: /** @type {Error} */ (policyError)?.message,
+                        error: getErrorMessage(policyError),
                         filePath: firstPath,
                     }
                 );
@@ -109,7 +148,7 @@ function registerDialogHandlers({
                         "warn",
                         "Failed to refresh menu after file dialog selection",
                         {
-                            error: /** @type {Error} */ (menuError)?.message,
+                            error: getErrorMessage(menuError),
                         }
                     );
                 }
@@ -118,7 +157,7 @@ function registerDialogHandlers({
             return firstPath;
         } catch (error) {
             logWithContext?.("error", "Error in dialog:openFile", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -157,7 +196,7 @@ function registerDialogHandlers({
                     "warn",
                     "Failed to approve overlay file paths for reading",
                     {
-                        error: /** @type {Error} */ (policyError)?.message,
+                        error: getErrorMessage(policyError),
                     }
                 );
             }
@@ -165,7 +204,7 @@ function registerDialogHandlers({
             return filtered;
         } catch (error) {
             logWithContext?.("error", "Error in dialog:openOverlayFiles", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -175,8 +214,10 @@ function registerDialogHandlers({
 /**
  * Resolves a sensible target window for menu updates.
  *
- * @param {() => any} browserWindowRef
- * @param {any} fallback
+ * @param {() => BrowserWindowApi | null | undefined} browserWindowRef
+ * @param {BrowserWindow | null | undefined} fallback
+ *
+ * @returns {BrowserWindow | null}
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {
