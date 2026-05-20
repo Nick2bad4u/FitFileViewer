@@ -3,16 +3,60 @@
  * ability to inject hoisted mocks via {@link globalThis.__electronHoistedMock},
  * so we mirror the defensive implementation that previously lived in main.js.
  */
-let electronOverride =
-    (typeof globalThis !== "undefined" &&
-        /** @type {any} */ (globalThis).__electronHoistedMock) ||
-    null;
+
+/**
+ * @typedef {Partial<typeof import("electron")> & Record<string, unknown>} ElectronLike
+ */
+
+/** @type {ElectronLike | null} */
+let electronOverride = getHoistedElectronMock();
+
+/**
+ * @param {unknown} candidate
+ *
+ * @returns {ElectronLike | null}
+ */
+function asElectronLike(candidate) {
+    if (
+        candidate &&
+        (typeof candidate === "object" || typeof candidate === "function")
+    ) {
+        return /** @type {ElectronLike} */ (candidate);
+    }
+    return null;
+}
+
+/**
+ * @returns {ElectronLike | null}
+ */
+function getHoistedElectronMock() {
+    if (typeof globalThis === "undefined") return null;
+    return asElectronLike(Reflect.get(globalThis, "__electronHoistedMock"));
+}
+
+/**
+ * @param {unknown} candidate
+ *
+ * @returns {candidate is ElectronLike}
+ */
+function hasElectronApis(candidate) {
+    const electronLike = asElectronLike(candidate);
+    return Boolean(
+        electronLike &&
+            (electronLike.app ||
+                electronLike.BrowserWindow ||
+                electronLike.ipcMain ||
+                electronLike.Menu ||
+                electronLike.shell ||
+                electronLike.dialog)
+    );
+}
 
 /**
  * Lazily resolves the Electron module, handling CJS/ESM interop and honoring
  * test overrides.
  *
- * @returns {any} Electron module reference or an empty object when unavailable.
+ * @returns {ElectronLike} Electron module reference or an empty object when unavailable.
  */
 function getElectron() {
     try {
@@ -21,27 +65,20 @@ function getElectron() {
 
         const hoisted =
             typeof globalThis === "undefined"
-                ? /** @type {any} */ null
-                : globalThis.__electronHoistedMock;
+                ? null
+                : getHoistedElectronMock();
         if (hoisted) return hoisted;
 
         if (electronOverride) return electronOverride;
 
         const mod = require("electron");
-        const hasApis = (/** @type {any} */ candidate) =>
-            candidate &&
-            (candidate.app ||
-                candidate.BrowserWindow ||
-                candidate.ipcMain ||
-                candidate.Menu ||
-                candidate.shell ||
-                candidate.dialog);
-        if (hasApis(mod)) return mod;
-        const def = /** @type {any} */ (mod).default;
-        if (hasApis(def)) return def;
-        return mod || /** @type {any} */ ({});
+        if (hasElectronApis(mod)) return mod;
+        const moduleLike = asElectronLike(mod);
+        const def = moduleLike ? moduleLike.default : undefined;
+        if (hasElectronApis(def)) return def;
+        return moduleLike || {};
     } catch {
-        return /** @type {any} */ ({});
+        return {};
     }
 }
 
@@ -49,7 +86,7 @@ function getElectron() {
  * Returns the currently configured Electron override (used by test priming
  * helpers).
  *
- * @returns {any} Cached override or null when none is set.
+ * @returns {ElectronLike | null} Cached override or null when none is set.
  */
 function getElectronOverride() {
     return electronOverride;
@@ -59,47 +96,47 @@ function getElectronOverride() {
  * Allows tests to inject a pre-resolved Electron module that will be returned
  * by {@link getElectron}.
  *
- * @param {any} override - Electron module mock to use for subsequent lookups.
+ * @param {unknown} override - Electron module mock to use for subsequent lookups.
  */
 function setElectronOverride(override) {
-    electronOverride = override;
+    electronOverride = asElectronLike(override);
 }
 
 /**
- * @returns {any} Electron app reference (may be undefined when Electron is
+ * @returns {typeof import("electron").app | undefined} Electron app reference (may be undefined when Electron is
  *   unavailable).
  */
-const appRef = () => /** @type {any} */ (getElectron().app);
+const appRef = () => getElectron().app;
 /**
- * @returns {any} Electron BrowserWindow reference.
+ * @returns {typeof import("electron").BrowserWindow | undefined} Electron BrowserWindow reference.
  */
-const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
+const browserWindowRef = () => getElectron().BrowserWindow;
 /**
- * @returns {any} Electron dialog API reference.
+ * @returns {typeof import("electron").dialog | undefined} Electron dialog API reference.
  */
-const dialogRef = () => /** @type {any} */ (getElectron().dialog);
+const dialogRef = () => getElectron().dialog;
 /**
- * @returns {any} Electron ipcMain reference.
+ * @returns {typeof import("electron").ipcMain | undefined} Electron ipcMain reference.
  */
-const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
+const ipcMainRef = () => getElectron().ipcMain;
 /**
- * @returns {any} Electron Menu reference.
+ * @returns {typeof import("electron").Menu | undefined} Electron Menu reference.
  */
-const menuRef = () => /** @type {any} */ (getElectron().Menu);
+const menuRef = () => getElectron().Menu;
 /**
- * @returns {any} Electron shell reference.
+ * @returns {typeof import("electron").shell | undefined} Electron shell reference.
  */
-const shellRef = () => /** @type {any} */ (getElectron().shell);
+const shellRef = () => getElectron().shell;
 
 /**
- * @returns {any} Electron clipboard API reference.
+ * @returns {typeof import("electron").clipboard | undefined} Electron clipboard API reference.
  */
-const clipboardRef = () => /** @type {any} */ (getElectron().clipboard);
+const clipboardRef = () => getElectron().clipboard;
 
 /**
- * @returns {any} Electron nativeImage API reference.
+ * @returns {typeof import("electron").nativeImage | undefined} Electron nativeImage API reference.
  */
-const nativeImageRef = () => /** @type {any} */ (getElectron().nativeImage);
+const nativeImageRef = () => getElectron().nativeImage;
 
 module.exports = {
     appRef,
