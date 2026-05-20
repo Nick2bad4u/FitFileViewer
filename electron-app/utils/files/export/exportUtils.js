@@ -94,6 +94,12 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
 );
 
 /**
+ * @typedef {typeof globalThis & {
+ *     crypto?: Pick<Crypto, "getRandomValues">;
+ * }} SecureRandomGlobal
+ */
+
+/**
  * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
  * without using fetch().
  *
@@ -159,30 +165,29 @@ function escapeHtml(value) {
 }
 
 /**
- * Generate a cryptographically-strong OAuth state token when possible. Falls
- * back to Math.random in older or constrained environments.
+ * Generate a cryptographically-strong OAuth state token.
  *
  * @returns {string}
  */
 function generateOAuthState() {
-    try {
-        const cryptoObj = /** @type {any} */ (globalThis).crypto;
-        if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
-            const bytes = new Uint8Array(16);
-            cryptoObj.getRandomValues(bytes);
-            // Hex encoding keeps this simple and deterministic across environments.
-            return Array.from(bytes, (b) =>
-                b.toString(16).padStart(2, "0")
-            ).join("");
-        }
-    } catch {
-        /* ignore */
+    const { crypto: cryptoObject } = getSecureRandomGlobal();
+
+    if (!cryptoObject || typeof cryptoObject.getRandomValues !== "function") {
+        throw new Error("Secure random number generation is unavailable");
     }
 
-    return (
-        Math.random().toString(36).slice(2, 15) +
-        Math.random().toString(36).slice(2, 15)
-    );
+    const bytes = new Uint8Array(16);
+    cryptoObject.getRandomValues(bytes);
+
+    // Hex encoding keeps this simple and deterministic across environments.
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * @returns {SecureRandomGlobal}
+ */
+function getSecureRandomGlobal() {
+    return /** @type {SecureRandomGlobal} */ (globalThis);
 }
 
 /**
@@ -481,6 +486,10 @@ export const exportUtils = {
             );
         }
 
+        // Generate state before opening the local server so environments without
+        // secure randomness fail closed without leaving a server running.
+        const state = generateOAuthState();
+
         try {
             // Start the OAuth callback server
             const serverResult = await electronAPI.startGyazoServer(3000);
@@ -532,8 +541,6 @@ export const exportUtils = {
                     }
                 };
 
-                // Generate a random state for CSRF protection
-                const state = generateOAuthState();
                 safeStorageSetItem(
                     "gyazo_oauth_state",
                     state,
