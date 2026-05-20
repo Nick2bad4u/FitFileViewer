@@ -1,23 +1,74 @@
 /**
- * Creates or restores the main BrowserWindow and wires up load-time handlers.
+ * @typedef {{
+ *     executeJavaScript?: (script: string) => Promise<unknown>;
+ *     isDestroyed?: () => boolean;
+ *     on: (event: "did-finish-load", listener: () => void | Promise<void>) => void;
+ *     send?: (channel: string, ...args: unknown[]) => void;
+ * }} WebContentsLike
  *
- * @param {object} options
- * @param {() => any} options.browserWindowRef
- * @param {(key: string, value?: any) => any} options.getAppState
- * @param {(key: string, value: any) => void} options.setAppState
- * @param {(win: any, theme: string, loadedPath?: string) => void} options.safeCreateAppMenu
- * @param {{ DEFAULT_THEME: string }} options.CONSTANTS
- * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
- * @param {(win: any, channel: string, ...args: any[]) => void} options.sendToRenderer
- * @param {() => Promise<any>} options.resolveAutoUpdaterAsync
- * @param {(mainWindow: any, autoUpdater: any) => void} options.setupAutoUpdater
- * @param {(
+ * @typedef {{
+ *     isDestroyed?: () => boolean;
+ *     webContents: WebContentsLike;
+ * }} MainWindowLike
+ *
+ * @typedef {{
+ *     getAllWindows?: () => MainWindowLike[];
+ * }} BrowserWindowApi
+ *
+ * @typedef {new (...args: never[]) => MainWindowLike} BrowserWindowConstructor
+ *
+ * @typedef {boolean | string | MainWindowLike | null | undefined} AppStateValue
+ *
+ * @typedef {{
+ *     checkForUpdatesAndNotify: () => Promise<unknown> | unknown;
+ * }} AutoUpdaterLike
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
+ *     context?: Record<string, unknown>
  * ) => void} options.logWithContext
  *
- * @returns {Promise<any>}
+ * @typedef {{
+ *     browserWindowRef: () => BrowserWindowApi | BrowserWindowConstructor | null | undefined;
+ *     getAppState: (key: string) => AppStateValue;
+ *     setAppState: (key: string, value: AppStateValue) => void;
+ *     safeCreateAppMenu: (
+ *         win: MainWindowLike,
+ *         theme: string,
+ *         loadedPath?: string | null
+ *     ) => void;
+ *     CONSTANTS: { DEFAULT_THEME: string };
+ *     getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
+ *     sendToRenderer: (
+ *         win: MainWindowLike,
+ *         channel: string,
+ *         ...args: unknown[]
+ *     ) => void;
+ *     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike>;
+ *     setupAutoUpdater: (
+ *         mainWindow: MainWindowLike,
+ *         autoUpdater: AutoUpdaterLike
+ *     ) => void;
+ *     logWithContext: LogWithContext;
+ * }} BootstrapMainWindowOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Creates or restores the main BrowserWindow and wires up load-time handlers.
+ *
+ * @param {BootstrapMainWindowOptions} options
+ *
+ * @returns {Promise<MainWindowLike>}
  */
 async function bootstrapMainWindow({
     browserWindowRef,
@@ -31,7 +82,7 @@ async function bootstrapMainWindow({
     setupAutoUpdater,
     logWithContext,
 }) {
-    if (/** @type {any} */ (process.env).NODE_ENV === "test") {
+    if (process.env.NODE_ENV === "test") {
         try {
             const { app: __wa } = require("electron");
             if (__wa && typeof __wa.whenReady === "function") {
@@ -49,13 +100,11 @@ async function bootstrapMainWindow({
     const BW = browserWindowRef();
     const isConstructor = typeof BW === "function";
 
-    /** @type {any} */
+    /** @type {MainWindowLike | undefined} */
     let mainWindow;
-    if (
-        /** @type {any} */ (process.env).NODE_ENV === "test" ||
-        !isConstructor
-    ) {
+    if (process.env.NODE_ENV === "test" || !isConstructor) {
         try {
+            /** @type {MainWindowLike[] | undefined} */
             let list;
             try {
                 const { BrowserWindow: __tBW } = require("electron");
@@ -126,7 +175,7 @@ async function bootstrapMainWindow({
                 setAppState("autoUpdaterInitialized", true);
             } catch (error) {
                 logWithContext("error", "Failed to setup auto-updater:", {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 });
             }
         }
@@ -145,7 +194,7 @@ async function bootstrapMainWindow({
                 "warn",
                 "Failed to get theme from renderer, using fallback",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
             safeCreateAppMenu(
