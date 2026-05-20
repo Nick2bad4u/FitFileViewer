@@ -1,5 +1,93 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @param {ReturnType<typeof getThemeColors>} themeColors
+ *
+ * @returns {HTMLDivElement}
+ */
+function createOverlayContent(themeColors) {
+    const container = document.createElement("div");
+    Object.assign(container.style, {
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+    });
+
+    const spinner = document.createElement("div");
+    spinner.className = "modern-spinner";
+    Object.assign(spinner.style, {
+        height: "54px",
+        marginBottom: "22px",
+        width: "54px",
+    });
+
+    const style = document.createElement("style");
+    style.textContent = `
+        @keyframes fitfile-spin { 100% { transform: rotate(360deg); } }
+        .modern-spinner {
+            display: inline-block;
+            position: relative;
+        }
+        .modern-spinner svg {
+            animation: fitfile-spin 1.1s linear infinite;
+            display: block;
+        }
+    `;
+
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 50 50");
+    svg.setAttribute("width", "54");
+    svg.setAttribute("height", "54");
+
+    const track = document.createElementNS(SVG_NS, "circle");
+    track.setAttribute("cx", "25");
+    track.setAttribute("cy", "25");
+    track.setAttribute("r", "20");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", themeColors.border);
+    track.setAttribute("stroke-width", "5");
+    track.setAttribute("opacity", "0.18");
+
+    const progress = document.createElementNS(SVG_NS, "circle");
+    progress.setAttribute("cx", "25");
+    progress.setAttribute("cy", "25");
+    progress.setAttribute("r", "20");
+    progress.setAttribute("fill", "none");
+    progress.setAttribute("stroke", themeColors.primary);
+    progress.setAttribute("stroke-width", "5");
+    progress.setAttribute("stroke-linecap", "round");
+    progress.setAttribute("stroke-dasharray", "31.4 94.2");
+
+    svg.append(track, progress);
+    spinner.append(style, svg);
+
+    const text = document.createElement("div");
+    text.id = "fitfile-loading-text";
+    text.textContent = "Loading...";
+    Object.assign(text.style, {
+        fontSize: "1.15em",
+        fontWeight: "500",
+        marginBottom: "6px",
+    });
+
+    const filename = document.createElement("div");
+    filename.id = "fitfile-loading-filename";
+    Object.assign(filename.style, {
+        color: themeColors.textSecondary,
+        fontSize: "0.98em",
+        maxWidth: "340px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    });
+
+    container.append(spinner, text, filename);
+
+    return container;
+}
+
 /**
  * Loading overlay management functions
  */
@@ -43,29 +131,7 @@ export const LoadingOverlay = {
                 zIndex: "99999",
             });
 
-            overlay.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;">
-                    <div class="modern-spinner" style="margin-bottom:22px;width:54px;height:54px;">
-                        <style>
-                        @keyframes fitfile-spin { 100% { transform: rotate(360deg); } }
-                        .modern-spinner {
-                            display: inline-block;
-                            position: relative;
-                        }
-                        .modern-spinner svg {
-                            animation: fitfile-spin 1.1s linear infinite;
-                            display: block;
-                        }
-                        </style>
-                        <svg viewBox="0 0 50 50" width="54" height="54">
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="${themeColors.border}" stroke-width="5" opacity="0.18"/>
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="${themeColors.primary}" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 94.2"/>
-                        </svg>
-                    </div>
-                    <div id="fitfile-loading-text" style="font-size:1.15em;font-weight:500;margin-bottom:6px;">Loading...</div>
-                    <div id="fitfile-loading-filename" style="font-size:0.98em;color:${themeColors.textSecondary};max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-                </div>
-            `;
+            overlay.append(createOverlayContent(themeColors));
             document.body.append(overlay);
         }
 
