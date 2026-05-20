@@ -1,10 +1,10 @@
 /**
- * Determines if a render notification should be shown based on state changes
+ * Determines whether a chart-render notification should be shown for the
+ * current render pass.
  *
- * @param {number} currentChartCount - Number of charts currently rendered
- * @param {number} currentVisibleFields - Number of visible fields
- *
- * @returns {boolean} Whether to show notification
+ * @param currentChartCount - Number of charts currently rendered.
+ * @param currentVisibleFields - Number of visible fields.
+ * @returns Whether to show a render notification.
  */
 export function showRenderNotification(
     currentChartCount: number,

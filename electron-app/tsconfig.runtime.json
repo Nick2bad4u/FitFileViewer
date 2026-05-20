@@ -140,6 +140,7 @@
         "utils/charts/theming/getThemeColors.ts",
         "utils/theming/core/accentColor.ts",
         "utils/theming/core/setupTheme.ts",
+        "utils/ui/notifications/showRenderNotification.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
