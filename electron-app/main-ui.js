@@ -49,6 +49,39 @@ import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.
  * @property {boolean} [silent]
  * @property {string} source
  */
+/**
+ * @typedef {Object} PerformanceMonitorLike
+ *
+ * @property {boolean | (() => boolean)} [isEnabled]
+ * @property {(operationId: string) => void} [startTimer]
+ * @property {(operationId: string) => void} [endTimer]
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     chartTabIntegration?: { destroy?: () => void };
+ *     devCleanup?: () => void;
+ *     dragDropHandler?: unknown;
+ *     injectMenu?: (theme?: string | null, fitFilePath?: string | null) => void;
+ * }} MainUiGlobal
+ */
+
+/**
+ * @returns {MainUiGlobal}
+ */
+function getMainUiGlobal() {
+    return /** @type {MainUiGlobal} */ (globalThis);
+}
+
+/**
+ * @param {PerformanceMonitorLike} monitor
+ *
+ * @returns {boolean}
+ */
+function isPerformanceMonitorEnabled(monitor) {
+    return typeof monitor.isEnabled === "function"
+        ? monitor.isEnabled()
+        : Boolean(monitor.isEnabled);
+}
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
@@ -79,20 +112,17 @@ const CONSTANTS = {
  * @type {{
  *     element: EventTarget;
  *     type: string;
- *     handler: Function;
- *     options?: any;
+ *     handler: EventListenerOrEventListenerObject;
+ *     options?: AddEventListenerOptions | boolean;
  * }[]}
  */
 
 /**
  * Register an event listener and track it for cleanup.
  *
- * @param {EventTarget & {
- *     addEventListener: Function;
- *     removeEventListener: Function;
- * }} element
+ * @param {EventTarget} element
  * @param {string} type
- * @param {Function} handler
+ * @param {EventListenerOrEventListenerObject} handler
  * @param {AddEventListenerOptions | boolean} [options]
  *
  * @returns {void}
@@ -138,14 +168,8 @@ function unloadFitFile() {
 
     // Start performance monitoring (tolerate differing impl shapes)
     {
-        const pm = /** @type {any} */ (performanceMonitor);
-        if (
-            pm &&
-            (typeof pm.isEnabled === "function"
-                ? pm.isEnabled()
-                : Boolean(pm.isEnabled)) &&
-            typeof pm.startTimer === "function"
-        ) {
+        const pm = /** @type {PerformanceMonitorLike} */ (performanceMonitor);
+        if (isPerformanceMonitorEnabled(pm) && pm.startTimer) {
             pm.startTimer(operationId);
         }
     }
@@ -203,14 +227,10 @@ function unloadFitFile() {
     } finally {
         // End performance monitoring
         {
-            const pm2 = /** @type {any} */ (performanceMonitor);
-            if (
-                pm2 &&
-                (typeof pm2.isEnabled === "function"
-                    ? pm2.isEnabled()
-                    : Boolean(pm2.isEnabled)) &&
-                typeof pm2.endTimer === "function"
-            ) {
+            const pm2 = /** @type {PerformanceMonitorLike} */ (
+                performanceMonitor
+            );
+            if (isPerformanceMonitorEnabled(pm2) && pm2.endTimer) {
                 pm2.endTimer(operationId);
             }
         }
@@ -252,18 +272,13 @@ if (
     globalThis.electronAPI.onOpenSummaryColumnSelector === undefined
 ) {
     globalThis.electronAPI.onOpenSummaryColumnSelector = (callback) => {
-        if (
-            globalThis.electronAPI &&
-            /** @type {any} */ (globalThis.electronAPI)
-                ._summaryColListenerAdded !== true
-        ) {
-            /** @type {any} */ (
-                globalThis.electronAPI
-            )._summaryColListenerAdded = true;
-            globalThis.electronAPI.onIpc(
-                "open-summary-column-selector",
-                callback
-            );
+        const electronAPI = /** @type {{
+            _summaryColListenerAdded?: boolean;
+            onIpc: (channel: string, callback: (...args: unknown[]) => void) => void;
+        }} */ (globalThis.electronAPI);
+        if (electronAPI["_summaryColListenerAdded"] !== true) {
+            electronAPI["_summaryColListenerAdded"] = true;
+            electronAPI.onIpc("open-summary-column-selector", callback);
         }
     };
 }
@@ -275,10 +290,7 @@ if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
             // Switch to summary tab if not already active
             const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
             if (tabSummary && !tabSummary.classList.contains("active")) {
-                (tabSummary instanceof HTMLElement
-                    ? tabSummary
-                    : /** @type {any} */ (tabSummary)
-                ).click();
+                tabSummary.click();
             }
 
             // Wait for renderSummary to finish, then open the column selector
@@ -286,11 +298,8 @@ if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
                 const gearBtn = document.querySelector(
                     CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN
                 );
-                if (gearBtn) {
-                    (gearBtn instanceof HTMLElement
-                        ? gearBtn
-                        : /** @type {any} */ (gearBtn)
-                    ).click();
+                if (gearBtn instanceof HTMLElement) {
+                    gearBtn.click();
                 } else {
                     console.warn("Summary gear button not found");
                 }
@@ -319,8 +328,7 @@ if (unloadBtn) {
 const dragDropHandler = new DragDropHandler();
 
 // Expose dragDropHandler for cleanup if needed
-// @ts-ignore legacy global
-globalThis.dragDropHandler = dragDropHandler;
+getMainUiGlobal().dragDropHandler = dragDropHandler;
 
 // Move event listener setup to utility functions
 // Sets up event listeners to handle fullscreen mode toggling for the application.
@@ -374,8 +382,7 @@ if (document.readyState === "loading") {
 }
 
 // Enhanced development helper function with better error handling
-// @ts-ignore legacy global
-globalThis.injectMenu = function (theme = null, fitFilePath = null) {
+getMainUiGlobal().injectMenu = function (theme = null, fitFilePath = null) {
     try {
         if (
             globalThis.electronAPI &&
@@ -399,8 +406,7 @@ globalThis.injectMenu = function (theme = null, fitFilePath = null) {
 };
 
 // Add cleanup function to development helpers with state management integration
-// @ts-ignore legacy global
-globalThis.devCleanup = function () {
+getMainUiGlobal().devCleanup = function () {
     cleanupEventListeners();
 
     // Clear state using the new system
@@ -414,10 +420,7 @@ globalThis.devCleanup = function () {
     setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
 
     // Clean up our new state managers
-    if (/** @type {any} */ (globalThis).chartTabIntegration) {
-        // @ts-ignore legacy
-        globalThis.chartTabIntegration.destroy();
-    }
+    chartTabIntegration.destroy();
 
     // Cleanup all resources via resource manager
     resourceManager.cleanupAll();
