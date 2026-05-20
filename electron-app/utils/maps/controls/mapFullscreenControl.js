@@ -4,6 +4,64 @@
  * @property {() => void} invalidateSize - Invalidates map size
  * @property {HTMLElement} [_container] - Map container element
  */
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @param {"enter" | "exit"} state
+ *
+ * @returns {SVGSVGElement}
+ */
+function createFullscreenIcon(state) {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.setAttribute("width", "22");
+    icon.setAttribute("height", "22");
+    icon.setAttribute("viewBox", "0 0 22 22");
+    icon.setAttribute("fill", "none");
+
+    const rects =
+        state === "enter"
+            ? [
+                  ["3", "3", "5", "2"],
+                  ["3", "3", "2", "5"],
+                  ["14", "3", "5", "2"],
+                  ["17", "3", "2", "5"],
+                  ["3", "17", "5", "2"],
+                  ["3", "14", "2", "5"],
+                  ["14", "17", "5", "2"],
+                  ["17", "14", "2", "5"],
+              ]
+            : [
+                  ["7", "3", "2", "5"],
+                  ["3", "7", "5", "2"],
+                  ["14", "3", "2", "5"],
+                  ["15", "7", "5", "2"],
+                  ["3", "14", "5", "2"],
+                  ["7", "15", "2", "5"],
+                  ["15", "15", "2", "5"],
+                  ["15", "15", "5", "2"],
+              ];
+
+    for (const [x, y, width, height] of rects) {
+        const rect = document.createElementNS(SVG_NS, "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", width);
+        rect.setAttribute("height", height);
+        rect.setAttribute("rx", "1");
+        rect.setAttribute("fill", "currentColor");
+        icon.append(rect);
+    }
+
+    return icon;
+}
+
+/**
+ * @param {HTMLButtonElement} button
+ * @param {"enter" | "exit"} state
+ */
+function setFullscreenButtonIcon(button, state) {
+    button.replaceChildren(createFullscreenIcon(state));
+}
 
 /**
  * Utility to add a custom fullscreen control to a Leaflet map
@@ -14,13 +72,17 @@ export function addFullscreenControl(map) {
     const fullscreenControl = document.createElement("div");
     fullscreenControl.className =
         "custom-fullscreen-control leaflet-top leaflet-left";
-    const fullscreenEnterSVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="https://www.w3.org/2000/svg"><rect x="3" y="3" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="14" y="3" width="5" height="2" rx="1" fill="currentColor"/><rect x="17" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="3" y="17" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="14" width="2" height="5" rx="1" fill="currentColor"/><rect x="14" y="17" width="5" height="2" rx="1" fill="currentColor"/><rect x="17" y="14" width="2" height="5" rx="1" fill="currentColor"/></svg>`,
-        fullscreenExitSVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="https://www.w3.org/2000/svg"><rect x="7" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="3" y="7" width="5" height="2" rx="1" fill="currentColor"/><rect x="14" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="7" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="14" width="5" height="2" rx="1" fill="currentColor"/><rect x="7" y="15" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="15" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="15" width="5" height="2" rx="1" fill="currentColor"/></svg>`;
-    fullscreenControl.innerHTML = `
-		<div class="leaflet-bar custom-fullscreen-bar">
-			<button id="fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">${fullscreenEnterSVG}</button>
-		</div>
-	`;
+    const bar = document.createElement("div");
+    bar.className = "leaflet-bar custom-fullscreen-bar";
+    const button = document.createElement("button");
+    button.id = "fullscreen-btn";
+    button.type = "button";
+    button.title = "Toggle Fullscreen";
+    button.setAttribute("aria-label", "Toggle Fullscreen");
+    setFullscreenButtonIcon(button, "enter");
+    bar.append(button);
+    fullscreenControl.append(bar);
+
     const mapDiv = document.querySelector("#leaflet-map");
     if (!mapDiv) {
         console.warn("[mapFullscreenControl] Map container not found");
@@ -28,26 +90,21 @@ export function addFullscreenControl(map) {
     }
     mapDiv.append(fullscreenControl);
 
-    const fullscreenBtn = fullscreenControl.querySelector("#fullscreen-btn");
-    if (!fullscreenBtn) {
-        console.warn("[mapFullscreenControl] Fullscreen button not found");
-        return;
-    }
-
-    const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
     button.addEventListener("click", () => {
         if (!mapDiv) {
             return;
         }
         const isFullscreen = mapDiv.classList.toggle("fullscreen");
         button.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
-        button.innerHTML = isFullscreen
-            ? fullscreenExitSVG
-            : fullscreenEnterSVG;
+        setFullscreenButtonIcon(button, isFullscreen ? "exit" : "enter");
         if (isFullscreen) {
-            mapDiv.requestFullscreen && mapDiv.requestFullscreen();
+            if (mapDiv.requestFullscreen) {
+                mapDiv.requestFullscreen();
+            }
         } else {
-            document.exitFullscreen && document.exitFullscreen();
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
         setTimeout(() => map.invalidateSize(), 300);
     });
@@ -57,7 +114,7 @@ export function addFullscreenControl(map) {
         if (!isNowFullscreen) {
             mapDiv.classList.remove("fullscreen");
             button.title = "Enter Fullscreen";
-            button.innerHTML = fullscreenEnterSVG;
+            setFullscreenButtonIcon(button, "enter");
             // Only call invalidateSize if map is still valid and map container is in the DOM
             if (
                 map &&
