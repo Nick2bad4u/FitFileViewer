@@ -23,6 +23,20 @@ export interface ThemeConfig {
  */
 export type EffectiveTheme = "dark" | "light";
 
+/**
+ * Canonical persisted app theme preference.
+ */
+export type ThemePreference = "auto" | "dark" | "light";
+
+export function applyTheme(
+    theme: string,
+    withTransition?: boolean
+): void;
+
 export function getEffectiveTheme(theme?: null | string): EffectiveTheme;
 
 export function getThemeConfig(): ThemeConfig;
+
+export function listenForThemeChange(
+    onThemeChange: (theme: string) => void
+): void;

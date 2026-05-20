@@ -1,0 +1,129 @@
+import { describe, expect, it, vi } from "vitest";
+
+type SetupWindowModule = typeof import("../../../../utils/app/initialization/setupWindow.js");
+
+const mocks = vi.hoisted(() => ({
+    applyTheme: vi.fn<(theme: string, withTransition?: boolean) => void>(),
+    chartStateCleanup: vi.fn<() => void>(),
+    chartTabCleanup: vi.fn<() => void>(),
+    chartTabInitialize: vi.fn<() => void>(),
+    listenForThemeChange: vi.fn<
+        (onThemeChange: (theme: string) => void) => void
+    >(),
+    setupTheme: vi.fn<() => Promise<"dark">>(() => Promise.resolve("dark")),
+    showNotification: vi.fn<
+        (message: string, type: string, duration?: number) => void
+    >(),
+    tabStateCleanup: vi.fn<() => void>(),
+    tabSwitchToTab: vi.fn<(tabId: string) => void>(),
+}));
+
+vi.mock(
+    import("../../../../utils/charts/core/chartStateManager.js"),
+    () => ({
+        chartStateManager: {
+            cleanup: mocks.chartStateCleanup,
+        },
+    })
+);
+
+vi.mock(
+    import("../../../../utils/charts/core/chartTabIntegration.js"),
+    () => ({
+        chartTabIntegration: {
+            cleanup: mocks.chartTabCleanup,
+            initialize: mocks.chartTabInitialize,
+        },
+    })
+);
+
+vi.mock(import("../../../../utils/theming/core/setupTheme.js"), () => ({
+    setupTheme: mocks.setupTheme,
+}));
+
+vi.mock(import("../../../../utils/theming/core/theme.js"), () => ({
+    applyTheme: mocks.applyTheme,
+    listenForThemeChange: mocks.listenForThemeChange,
+}));
+
+vi.mock(
+    import("../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
+);
+
+vi.mock(import("../../../../utils/ui/tabs/tabStateManager.js"), () => ({
+    tabStateManager: {
+        cleanup: mocks.tabStateCleanup,
+        switchToTab: mocks.tabSwitchToTab,
+    },
+}));
+
+describe("setupWindow", () => {
+    it("initializes theme, chart integration, default tab, and notification", async () => {
+        expect.assertions(6);
+
+        resetTestState();
+
+        const { setupWindow } = await importSetupWindow();
+        const result = await setupWindow();
+
+        expect(result).toBeUndefined();
+        expect(mocks.setupTheme).toHaveBeenCalledWith(
+            mocks.applyTheme,
+            mocks.listenForThemeChange
+        );
+        expect(mocks.chartTabInitialize).toHaveBeenCalledOnce();
+        expect(mocks.tabSwitchToTab).toHaveBeenCalledWith("summary");
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "Application initialized successfully",
+            "success",
+            2000
+        );
+        expect(mocks.chartStateCleanup).not.toHaveBeenCalled();
+    });
+
+    it("reports and rethrows initialization failures", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+        const setupError = new Error("theme failed");
+        mocks.setupTheme.mockRejectedValueOnce(setupError);
+
+        const { setupWindow } = await importSetupWindow();
+
+        await expect(setupWindow()).rejects.toBe(setupError);
+        expect(mocks.chartTabInitialize).not.toHaveBeenCalled();
+        expect(mocks.tabSwitchToTab).not.toHaveBeenCalled();
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "Application initialization failed",
+            "error",
+            5000
+        );
+    });
+
+    it("cleans up chart, tab, and integration managers", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+
+        const { cleanup } = await importSetupWindow();
+        const result = cleanup();
+
+        expect(result).toBeUndefined();
+        expect(mocks.chartStateCleanup).toHaveBeenCalledOnce();
+        expect(mocks.tabStateCleanup).toHaveBeenCalledOnce();
+        expect(mocks.chartTabCleanup).toHaveBeenCalledOnce();
+    });
+});
+
+async function importSetupWindow(): Promise<SetupWindowModule> {
+    return import("../../../../utils/app/initialization/setupWindow.js");
+}
+
+function resetTestState(): void {
+    vi.resetModules();
+    vi.clearAllMocks();
+    mocks.setupTheme.mockResolvedValue("dark");
+}
