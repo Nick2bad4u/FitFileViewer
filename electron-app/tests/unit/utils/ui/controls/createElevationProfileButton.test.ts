@@ -8,24 +8,36 @@ type ElevationProfileFileModel = {
     color: string;
     filePath: string;
 };
+type MockElevationPopupWindow = Window & {
+    Chart: ReturnType<typeof vi.fn>;
+};
 
-// Create a spy on getThemeColors that will be used in all tests
-vi.spyOn(getThemeColorsModule, "getThemeColors").mockReturnValue({
-    primary: "#3b82f6",
-    background: "#f8fafc",
-    surface: "#ffffff",
-    shadowLight: "rgba(0,0,0,0.1)",
-    shadowMedium: "rgba(0,0,0,0.15)",
-    text: "#1e293b",
-    textSecondary: "#64748b",
-    border: "#e2e8f0",
-    borderLight: "#f1f5f9",
-    primaryShadow: "rgba(59,130,246,0.25)",
-});
+let openSpy: any;
 
-describe("createElevationProfileButton", () => {
+const getPopupWindow = (): MockElevationPopupWindow =>
+    openSpy.mock.results[0].value as MockElevationPopupWindow;
+
+const getPopupChartContainer = (mockWin: MockElevationPopupWindow) => {
+    const container = mockWin.document.querySelector("#elevChartsContainer");
+
+    expect(container).toBeInstanceOf(HTMLDivElement);
+
+    return container as HTMLDivElement;
+};
+
+const triggerChartScriptLoad = (mockWin: MockElevationPopupWindow) => {
+    const script = mockWin.document.querySelector(
+        'script[src="./node_modules/chart.js/dist/chart.umd.js"]'
+    );
+
+    expect(script).toBeInstanceOf(HTMLScriptElement);
+
+    script?.dispatchEvent(new Event("load"));
+};
+
+describe(createElevationProfileButton, () => {
     let originalWindow: any;
-    let openSpy: any;
+    let getContextSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         // Store original window properties
@@ -34,16 +46,32 @@ describe("createElevationProfileButton", () => {
         // Mock document.createElement
         document.body.innerHTML = "";
         document.body.classList.remove("theme-dark");
+        vi.spyOn(getThemeColorsModule, "getThemeColors").mockReturnValue({
+            primary: "#3b82f6",
+            background: "#f8fafc",
+            surface: "#ffffff",
+            shadowLight: "rgba(0,0,0,0.1)",
+            shadowMedium: "rgba(0,0,0,0.15)",
+            text: "#1e293b",
+            textSecondary: "#64748b",
+            border: "#e2e8f0",
+            borderLight: "#f1f5f9",
+            primaryShadow: "rgba(59,130,246,0.25)",
+        });
+        getContextSpy = vi
+            .spyOn(HTMLCanvasElement.prototype, "getContext")
+            .mockReturnValue({} as CanvasRenderingContext2D);
 
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {
-            // Create a mock window object with document.write and document.close
+            const popupDocument =
+                document.implementation.createHTMLDocument("");
+
             return {
-                document: {
-                    write: vi.fn(),
-                    close: vi.fn(),
-                },
-            } as any;
+                Chart: vi.fn(function MockChart() {}),
+                HTMLCanvasElement,
+                document: popupDocument,
+            } as MockElevationPopupWindow;
         });
     });
 
@@ -81,14 +109,17 @@ describe("createElevationProfileButton", () => {
             "width=900,height=600"
         );
 
-        // Verify document.write was called (with empty files array in HTML)
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.document.write.mock.calls[0][0]).toContain(
-            "window.__ffvElevationFitFiles"
+        const mockWin = getPopupWindow();
+
+        expect(mockWin.document.body.className).toBe("theme-light");
+        expect(mockWin.document.querySelector("header")?.textContent).toContain(
+            "0 file"
         );
-        expect(mockWin.__ffvElevationFitFiles).toEqual([]);
-        expect(mockWin.document.close).toHaveBeenCalled();
+        expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
+
+        triggerChartScriptLoad(mockWin);
+
+        expect(mockWin.Chart).not.toHaveBeenCalled();
     });
 
     it("should handle loadedFitFiles when available", () => {
@@ -110,22 +141,19 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledOnce();
 
-        // Verify document.write was called with correct data
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
+        const mockWin = getPopupWindow();
+        triggerChartScriptLoad(mockWin);
 
-        // Data is passed via a window property (prevents script-breakout injection).
-        expect(Array.isArray(mockWin.__ffvElevationFitFiles)).toBe(true);
-        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
-            "test-file.fit"
+        expect(mockWin.document.querySelector("header")?.textContent).toContain(
+            "1 file"
         );
-        expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([
-            { x: 0, y: 100 },
-            { x: 1, y: 200 },
-        ]);
+        expect(mockWin.document.body.textContent).toContain("test-file.fit");
+        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(
+            mockWin.Chart.mock.calls[0][1].data.datasets[0].data
+        ).toStrictEqual([100, 200]);
     });
 
     it("should handle globalData when no loadedFitFiles available", () => {
@@ -143,15 +171,16 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledOnce();
 
-        // Verify document.write was called with correct data
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
-            "global-test.fit"
-        );
+        const mockWin = getPopupWindow();
+        triggerChartScriptLoad(mockWin);
+
+        expect(mockWin.document.body.textContent).toContain("global-test.fit");
+        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(
+            mockWin.Chart.mock.calls[0][1].data.datasets[0].data
+        ).toStrictEqual([300, 400]);
     });
 
     it("should handle globalData without recordMesgs", () => {
@@ -166,22 +195,16 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledOnce();
 
-        // Verify document.write was called
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
+        const mockWin = getPopupWindow();
 
-        // The current implementation only shows files with recordMesgs array
-        // If globalData doesn't have recordMesgs, it won't be included
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        // Since there are no fitFiles in this case, we should have "0 file" in the header
-        expect(writtenHtml).toContain(
-            '<span style="font-size:1.1em;opacity:0.7;">0 file'
+        expect(mockWin.document.querySelector("header")?.textContent).toContain(
+            "0 file"
         );
-        expect(writtenHtml).toContain("window.__ffvElevationFitFiles");
-        expect(mockWin.__ffvElevationFitFiles).toEqual([]);
+        expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
     });
+
     it("should handle popup window being blocked", () => {
         // Make window.open return null to simulate blocked popup
         openSpy.mockReturnValueOnce(null);
@@ -191,7 +214,8 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledOnce();
+        expect(document.body.childElementCount).toBe(0);
 
         // Nothing should happen (function returns early)
     });
@@ -205,14 +229,14 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify window.open was called
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledOnce();
 
-        // Verify document.write was called with dark theme
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain('class="theme-dark"');
-        expect(writtenHtml).toContain("const isDark = true");
+        const mockWin = getPopupWindow();
+
+        expect(mockWin.document.body.className).toBe("theme-dark");
+        expect(
+            mockWin.document.querySelector("style")?.textContent
+        ).toContain("text-shadow: 0 0 2px #000");
     });
 
     it("should handle files without altitude data", () => {
@@ -230,14 +254,14 @@ describe("createElevationProfileButton", () => {
         const button = createElevationProfileButton();
         button.click();
 
-        // Verify document.write was called with code for handling no data
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
-            "no-altitude.fit"
+        const mockWin = getPopupWindow();
+        triggerChartScriptLoad(mockWin);
+
+        expect(mockWin.document.body.textContent).toContain("no-altitude.fit");
+        expect(mockWin.document.body.textContent).toContain(
+            "No altitude data."
         );
-        expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([]);
+        expect(mockWin.Chart).not.toHaveBeenCalled();
     });
 
     it("should use chartOverlayColorPalette from window.opener when available", () => {
@@ -266,12 +290,14 @@ describe("createElevationProfileButton", () => {
         button.click();
 
         // Verify model uses the palette
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
-        expect(mockWin.__ffvElevationFitFiles[0].color).toBe("#ff0000");
-        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe(
+        const mockWin = getPopupWindow();
+        triggerChartScriptLoad(mockWin);
+
+        expect(mockWin.document.body.textContent).toContain(
             "test-with-colors.fit"
+        );
+        expect(mockWin.Chart.mock.calls[0][1].data.datasets[0].borderColor).toBe(
+            "#ff0000"
         );
 
         // Clean up the mock
@@ -315,21 +341,23 @@ describe("createElevationProfileButton", () => {
         const button = createElevationProfileButton();
         button.click();
 
-        // Verify document.write was called with appropriate HTML
-        const mockWin = openSpy.mock.results[0].value;
-        expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("3 files");
+        const mockWin = getPopupWindow();
+        triggerChartScriptLoad(mockWin);
 
-        expect(mockWin.__ffvElevationFitFiles).toHaveLength(3);
-        expect(
-            (mockWin.__ffvElevationFitFiles as ElevationProfileFileModel[]).map(
-                (f) => f.filePath
-            )
-        ).toEqual([
+        expect(mockWin.document.querySelector("header")?.textContent).toContain(
+            "3 files"
+        );
+
+        const labels = Array.from(
+            mockWin.document.querySelectorAll(".elev-profile-label")
+        , (label) => label.textContent);
+
+        expect(labels).toStrictEqual([
             "with-altitude.fit",
             "without-altitude.fit",
             "partial-data.fit",
         ]);
+        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(getContextSpy).toHaveBeenCalledOnce();
     });
 });
