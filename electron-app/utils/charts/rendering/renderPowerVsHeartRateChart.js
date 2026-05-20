@@ -8,8 +8,30 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Power vs Heart Rate chart
 /**
+ * @typedef {Object} PowerHeartRateDatum
+ *
+ * @property {unknown} [heartRate]
+ * @property {unknown} [power]
+ */
+/**
+ * @typedef {Object} PowerHeartRatePoint
+ *
+ * @property {unknown} x
+ * @property {unknown} y
+ */
+/**
+ * @typedef {Object} PowerHeartRateThemeConfig
+ *
+ * @property {Record<string, string>} [colors]
+ */
+/**
+ * @typedef {Object} PowerHeartRateTooltipContext
+ *
+ * @property {{ x?: unknown; y?: unknown }} parsed
+ */
+/**
  * @param {HTMLElement} container
- * @param {any[]} data
+ * @param {PowerHeartRateDatum[]} data
  * @param {{
  *     maxPoints: number | "all";
  *     showPoints?: boolean;
@@ -52,14 +74,16 @@ export function renderPowerVsHeartRateChart(container, data, options) {
         // Determine theme
         const currentTheme =
             theme && theme !== "auto" ? theme : detectCurrentTheme();
-        /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = /** @type {PowerHeartRateThemeConfig} */ (
+            getThemeConfig()
+        );
         const { colors } = themeConfig || {};
         const isDark = currentTheme === "dark";
         const textColor = isDark ? "#fff" : "#000";
         const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
         const bgColor = isDark ? "#181c24" : "#ffffff";
 
+        /** @type {PowerHeartRatePoint[]} */
         let chartData = data
             .map(({ heartRate, power }) => {
                 if (
@@ -143,7 +167,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         borderColor: isDark ? "#555" : "#ddd",
                         borderWidth: 1,
                         callbacks: {
-                            /** @param {any} context */
+                            /** @param {PowerHeartRateTooltipContext} context */
                             label(context) {
                                 return [
                                     `Heart Rate: ${context.parsed.x} bpm`,
