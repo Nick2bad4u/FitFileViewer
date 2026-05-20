@@ -5,9 +5,29 @@
  * @file Barrel Export for files/recent
  */
 
-/** @type {any | null} */
+/**
+ * @typedef {object} RecentFilesModule
+ * @property {(filePath: string) => void} [addRecentFile]
+ * @property {(file: string) => string} [getShortRecentName]
+ * @property {() => string[]} [loadRecentFiles]
+ * @property {(list: string[]) => void} [saveRecentFiles]
+ */
+
+/** @type {RecentFilesModule | null} */
 let __recentModule = null;
 
+/**
+ * @param {unknown} value
+ * @returns {value is RecentFilesModule}
+ */
+function isRecentFilesModule(value) {
+    return typeof value === "object" && value !== null;
+}
+
+/**
+ * @param {string} filePath
+ * @returns {void}
+ */
 export function addRecentFile(filePath) {
     const mod = loadRecentModule();
     if (mod && typeof mod.addRecentFile === "function")
@@ -15,9 +35,13 @@ export function addRecentFile(filePath) {
     // No-op in renderer/SSR without Node file access
 }
 
+/**
+ * @param {unknown} file
+ * @returns {string}
+ */
 export function getShortRecentName(file) {
     const mod = loadRecentModule();
-    if (mod && typeof mod.getShortRecentName === "function")
+    if (typeof file === "string" && typeof mod?.getShortRecentName === "function")
         return mod.getShortRecentName(file);
     if (typeof file !== "string") return "";
     // Fallback basename logic without path module
@@ -25,6 +49,9 @@ export function getShortRecentName(file) {
     return parts.at(-1) || "";
 }
 
+/**
+ * @returns {string[]}
+ */
 export function loadRecentFiles() {
     const mod = loadRecentModule();
     if (mod && typeof mod.loadRecentFiles === "function")
@@ -32,6 +59,10 @@ export function loadRecentFiles() {
     return [];
 }
 
+/**
+ * @param {string[]} list
+ * @returns {void}
+ */
 export function saveRecentFiles(list) {
     const mod = loadRecentModule();
     if (mod && typeof mod.saveRecentFiles === "function")
@@ -39,13 +70,19 @@ export function saveRecentFiles(list) {
     // No-op in renderer/SSR without Node file access
 }
 
+/**
+ * @returns {RecentFilesModule | null}
+ */
 function loadRecentModule() {
     if (__recentModule) return __recentModule;
     try {
         // Only attempt to require in environments where require exists (Node/Electron main/tests)
         if (typeof require === "function") {
-            __recentModule = require("./recentFiles.js");
-            return __recentModule;
+            const requiredModule = /** @type {unknown} */ (require("./recentFiles.js"));
+            if (isRecentFilesModule(requiredModule)) {
+                __recentModule = requiredModule;
+                return __recentModule;
+            }
         }
     } catch {
         /* ignore */
