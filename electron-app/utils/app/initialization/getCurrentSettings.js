@@ -58,12 +58,73 @@ function isResettable(el) {
     );
 }
 
+/** @typedef {{ clearCharts?: () => unknown; requestRerender?: (reason: string) => unknown }} ChartActionsLike */
+/** @typedef {{ debouncedRender: (reason: string) => unknown }} ChartRenderManagerLike */
+/** @typedef {{ destroy: () => unknown }} DestroyableChart */
+/**
+ * @typedef {typeof globalThis & {
+ *     _chartjsInstances?: unknown;
+ *     chartActions?: unknown;
+ *     chartStateManager?: unknown;
+ *     renderChartJS?: (target?: Element | null) => unknown;
+ * }} ChartSettingsGlobal
+ */
+
 /**
  * @param {unknown} error
- * @returns {unknown}
+ * @returns {string}
  */
 function getErrorMessage(error) {
-    return error instanceof Error ? error.message : error;
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * @returns {ChartSettingsGlobal}
+ */
+function getChartSettingsGlobal() {
+    return /** @type {ChartSettingsGlobal} */ (globalThis);
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is ChartActionsLike}
+ */
+function isChartActionsLike(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return (
+        typeof candidate.clearCharts === "function" ||
+        typeof candidate.requestRerender === "function"
+    );
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is ChartRenderManagerLike}
+ */
+function isChartRenderManagerLike(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return typeof candidate.debouncedRender === "function";
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is DestroyableChart}
+ */
+function isDestroyableChart(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return typeof candidate.destroy === "function";
 }
 
 // Storage/logging prefix
@@ -179,12 +240,13 @@ export function getDefaultSettings() {
  * Re-renders charts after a setting change
  *
  * @param {string} settingName - Name of the setting that changed
- * @param {any} newValue - New value of the setting
+ * @param {unknown} newValue - New value of the setting
  */
 export function reRenderChartsAfterSettingChange(settingName, newValue) {
     try {
+        const chartGlobal = getChartSettingsGlobal();
         // Check if chart data is available
-        if (!globalThis.globalData || !globalThis.globalData.recordMesgs) {
+        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
             console.log(
                 `${LOG_PREFIX} No chart data available for re-rendering after ${settingName} change`
             );
@@ -208,15 +270,10 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
 
         const reason = `Setting change: ${settingName}`;
         // Prefer the shared render pipeline (no destructive teardown on every tweak).
-        const managerCandidate =
-            chartStateManager &&
-            typeof chartStateManager.debouncedRender === "function"
-                ? chartStateManager
-                : /** @type {any} */ (globalThis).chartStateManager;
-        if (
-            managerCandidate &&
-            typeof managerCandidate.debouncedRender === "function"
-        ) {
+        const managerCandidate = isChartRenderManagerLike(chartStateManager)
+            ? chartStateManager
+            : chartGlobal.chartStateManager;
+        if (isChartRenderManagerLike(managerCandidate)) {
             managerCandidate.debouncedRender(reason);
             console.log(
                 `${LOG_PREFIX} Delegated re-render to chartStateManager`
@@ -224,8 +281,10 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             return;
         }
 
-        const actions = /** @type {any} */ (globalThis).chartActions;
-        if (actions && typeof actions.requestRerender === "function") {
+        const actions = isChartActionsLike(chartGlobal.chartActions)
+            ? chartGlobal.chartActions
+            : undefined;
+        if (typeof actions?.requestRerender === "function") {
             actions.requestRerender(reason);
             console.log(
                 `${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`
@@ -234,20 +293,18 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         // LAST RESORT fallback (legacy): full teardown/rebuild.
-        if (actions && typeof actions.clearCharts === "function") {
+        if (typeof actions?.clearCharts === "function") {
             actions.clearCharts();
-        } else if (
-            globalThis._chartjsInstances &&
-            Array.isArray(globalThis._chartjsInstances)
-        ) {
+        } else if (Array.isArray(chartGlobal._chartjsInstances)) {
+            const chartInstances = chartGlobal._chartjsInstances;
             console.log(
-                `${LOG_PREFIX} Destroying ${globalThis._chartjsInstances.length} existing chart instances`
+                `${LOG_PREFIX} Destroying ${chartInstances.length} existing chart instances`
             );
             for (const [
                 index,
                 chart,
-            ] of globalThis._chartjsInstances.entries()) {
-                if (chart && typeof chart.destroy === "function") {
+            ] of chartInstances.entries()) {
+                if (isDestroyableChart(chart)) {
                     try {
                         chart.destroy();
                         console.log(
@@ -261,7 +318,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
                     }
                 }
             }
-            globalThis._chartjsInstances = [];
+            chartGlobal._chartjsInstances = [];
         }
 
         const existingCanvases = queryAll(
@@ -284,20 +341,17 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         );
 
         // Force re-render through modern state management
-        if (
-            typeof (/** @type {any} */ (globalThis).renderChartJS) ===
-            "function"
-        ) {
+        if (typeof chartGlobal.renderChartJS === "function") {
             // Fallback: direct rendering for compatibility if globally exposed
             const target =
                 container || getChartRenderContainer(document) || document.body;
-            /** @type {any} */ (globalThis).renderChartJS(target);
+            chartGlobal.renderChartJS(target);
         } else {
             // Final fallback: dispatch a render request event handled elsewhere
             console.log(
                 `${LOG_PREFIX} Dispatching render request event fallback`
             );
-            globalThis.dispatchEvent(
+            chartGlobal.dispatchEvent(
                 new CustomEvent("ffv:request-render-charts", {
                     detail: { reason: `setting-change:${settingName}` },
                 })
@@ -308,14 +362,14 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             `${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`
         );
     } catch (error) {
-        const err = /** @type {any} */ (error);
+        const errorMessage = getErrorMessage(error);
         console.error(
             `${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`,
-            err?.message || err
+            errorMessage
         );
         if (typeof showNotification === "function") {
             showNotification(
-                `Failed to update chart setting: ${err?.message || err}`,
+                `Failed to update chart setting: ${errorMessage}`,
                 "error"
             );
         }
