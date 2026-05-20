@@ -23,6 +23,8 @@ const FULLSCREEN_CONFIG = {
     },
 };
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 /**
  * Adds an exit fullscreen overlay button to the specified container
  *
@@ -69,27 +71,48 @@ export function addExitFullscreenOverlay(container) {
 }
 
 /**
- * Creates the HTML content for the exit fullscreen button
+ * Creates the DOM content for the exit fullscreen button
  *
  * @private
  *
- * @returns {string} The HTML string for the button content
+ * @returns {HTMLSpanElement} The button content
  */
-function createButtonHTML() {
+function createButtonContent() {
     const { HEIGHT, STROKE_WIDTH, WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
+    const icon = document.createElement("span");
+    icon.className = FULLSCREEN_CONFIG.CSS_CLASSES.ICON;
+    icon.setAttribute("aria-hidden", "true");
 
-    return `
-        <span class="${FULLSCREEN_CONFIG.CSS_CLASSES.ICON}" aria-hidden="true">
-            <!-- Material Design Exit Fullscreen Icon -->
-            <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" fill="none" xmlns="https://www.w3.org/2000/svg" class="${FULLSCREEN_CONFIG.CSS_CLASSES.INLINE_SVG}">
-                <title>Exit Fullscreen Icon</title>
-                <path d="M9 19H5V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M19 9H23V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M19 19H23V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9 9H5V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </span>
-    `;
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.classList.add(FULLSCREEN_CONFIG.CSS_CLASSES.INLINE_SVG);
+    svg.setAttribute("width", String(WIDTH));
+    svg.setAttribute("height", String(HEIGHT));
+    svg.setAttribute("viewBox", `0 0 ${WIDTH} ${HEIGHT}`);
+    svg.setAttribute("fill", "none");
+
+    const title = document.createElementNS(SVG_NS, "title");
+    title.textContent = "Exit Fullscreen Icon";
+    svg.append(title);
+
+    const paths = [
+        "M9 19H5V23",
+        "M19 9H23V5",
+        "M19 19H23V23",
+        "M9 9H5V5",
+    ];
+    for (const d of paths) {
+        const path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "currentColor");
+        path.setAttribute("stroke-width", String(STROKE_WIDTH));
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+        svg.append(path);
+    }
+
+    icon.append(svg);
+
+    return icon;
 }
 
 /**
@@ -102,6 +125,7 @@ function createButtonHTML() {
  */
 function createExitButton() {
     const button = document.createElement("button");
+    button.type = "button";
 
     // Apply CSS classes for styling
     button.className = [
@@ -111,7 +135,8 @@ function createExitButton() {
     ].join(" ");
 
     button.title = FULLSCREEN_CONFIG.BUTTON_TITLE;
-    button.innerHTML = createButtonHTML();
+    button.setAttribute("aria-label", FULLSCREEN_CONFIG.BUTTON_TITLE);
+    button.append(createButtonContent());
 
     // Add click event handler
     button.addEventListener("click", handleExitFullscreen);
