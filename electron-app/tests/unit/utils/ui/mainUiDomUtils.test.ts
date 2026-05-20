@@ -1,0 +1,148 @@
+import { describe, expect, it, vi } from "vitest";
+
+import {
+    addEventListenerWithCleanup,
+    cleanupEventListeners,
+    validateElectronAPI,
+    validateElement,
+} from "../../../../utils/ui/mainUiDomUtils.js";
+
+const ELECTRON_API_PROPERTY = "electronAPI";
+
+function resetTestState(): void {
+    cleanupEventListeners();
+    document.body.innerHTML = "";
+    Reflect.deleteProperty(globalThis, ELECTRON_API_PROPERTY);
+    vi.restoreAllMocks();
+}
+
+describe("mainUiDomUtils", () => {
+    it("tracks event listeners and removes them during cleanup", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const button = document.createElement("button");
+        const handler = vi.fn<(event: Event) => void>();
+
+        addEventListenerWithCleanup(button, "click", handler);
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+        cleanupEventListeners();
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+        expect(handler).toHaveBeenCalledOnce();
+        expect(handler.mock.calls[0]?.[0].type).toBe("click");
+
+        resetTestState();
+    });
+
+    it("warns when a listener cannot be registered", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const failure = new Error("listener failed");
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+        class FailingTarget extends EventTarget {
+            public override addEventListener(
+                _type: string,
+                _callback: EventListenerOrEventListenerObject | null,
+                _options?: AddEventListenerOptions | boolean
+            ): void {
+                throw failure;
+            }
+        }
+
+        expect(() =>
+            addEventListenerWithCleanup(
+                new FailingTarget(),
+                "drop",
+                vi.fn<(event: Event) => void>()
+            )
+        ).not.toThrow();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[main-ui] Failed to add event listener for drop",
+            failure
+        );
+
+        resetTestState();
+    });
+
+    it("rejects a missing electron API", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        expect({ isValid: validateElectronAPI() }).toStrictEqual({
+            isValid: false,
+        });
+
+        resetTestState();
+    });
+
+    it("rejects an electron API without a FIT decoder function", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
+            configurable: true,
+            value: { decodeFitFile: "not-a-function" },
+        });
+
+        expect({ isValid: validateElectronAPI() }).toStrictEqual({
+            isValid: false,
+        });
+
+        resetTestState();
+    });
+
+    it("accepts an electron API with a FIT decoder function", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
+            configurable: true,
+            value: { decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>() },
+        });
+
+        expect({ isValid: validateElectronAPI() }).toStrictEqual({
+            isValid: true,
+        });
+
+        resetTestState();
+    });
+
+    it("finds elements with flexible id variants", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const element = document.createElement("div");
+        element.id = "alt-fit-iframe";
+        document.body.append(element);
+
+        expect(validateElement("alt_fit_iframe")).toBe(element);
+        expect(validateElement("altFitIframe")).toBe(element);
+
+        resetTestState();
+    });
+
+    it("warns when an element cannot be found", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+        expect(validateElement("missing_element")).toBeNull();
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Element with ID "missing_element" not found'
+        );
+
+        resetTestState();
+    });
+});

@@ -154,6 +154,7 @@
         "utils/theming/specific/updateMapTheme.ts",
         "utils/rendering/helpers/updateControlsState.ts",
         "utils/ui/events/eventListenerManager.ts",
+        "utils/ui/mainUiDomUtils.ts",
         "utils/ui/icons/iconFactory.ts",
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
         "utils/ui/notifications/showRenderNotification.ts",
