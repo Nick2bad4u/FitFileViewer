@@ -535,11 +535,19 @@ export function __setTestDeps(overrides) {
 // JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.
 
 /**
+ * @typedef {string | number | Date} ChartDataPointX
+ * @typedef {string | number | null | undefined} ChartDataPointY
+ * @typedef {{ x: ChartDataPointX; y: ChartDataPointY }} ChartDataPoint
+ * @typedef {{ data?: ChartDataPoint[]; label?: string }} ChartDataset
+ * @typedef {{ datasets?: ChartDataset[] }} ChartData
+ */
+
+/**
  * @typedef {Object} ChartJSInstance
  *
  * @property {HTMLCanvasElement} canvas - Chart canvas element
  * @property {{ type?: string }} config - Chart configuration
- * @property {Object} data - Chart data object
+ * @property {ChartData} data - Chart data object
  * @property {Object} options - Chart options object
  * @property {(type?: string, quality?: number, backgroundColor?: string) => string} toBase64Image - Function to export chart as base64 image
  * @property {() => void} update - Function to update chart
@@ -574,20 +582,30 @@ export function __setTestDeps(overrides) {
  * @property {string} [error] - Error message if failed
  */
 
+/**
+ * @param {ChartJSInstance} chart
+ *
+ * @returns {ChartDataset | undefined}
+ */
+function getFirstChartDataset(chart) {
+    return chart.data.datasets?.[0];
+}
+
 // Export utilities
 export const exportUtils = {
     /**
      * Helper method to add combined CSV data to ZIP
      *
      * @param {ExportZipLike} zip - JSZip instance
-     * @param {any[]} charts - Array of Chart.js instances
+     * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
     async addCombinedCSVToZip(zip, charts) {
         try {
+            /** @type {Set<ChartDataPointX>} */
             const allTimestamps = new Set();
             for (const chart of charts) {
-                const [dataset] = /** @type {any} */ (chart.data).datasets;
-                if (dataset && dataset.data) {
+                const dataset = getFirstChartDataset(chart);
+                if (dataset?.data) {
                     for (const point of dataset.data)
                         allTimestamps.add(point.x);
                 }
@@ -596,7 +614,7 @@ export const exportUtils = {
             const headers = ["timestamp"],
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
-                const [dataset] = /** @type {any} */ (chart.data).datasets,
+                const dataset = getFirstChartDataset(chart),
                     fieldName =
                         dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
@@ -604,13 +622,13 @@ export const exportUtils = {
 
             const rows = [headers.join(",")];
             for (const timestamp of timestamps) {
-                const row = [timestamp];
+                const row = [String(timestamp)];
                 for (const chart of charts) {
-                    const [dataset] = /** @type {any} */ (chart.data).datasets,
+                    const dataset = getFirstChartDataset(chart),
                         point = dataset?.data?.find(
-                            (/** @type {any} */ p) => p.x === timestamp
+                            (p) => p.x === timestamp
                         );
-                    row.push(point ? point.y : "");
+                    row.push(point?.y == null ? "" : String(point.y));
                 }
                 rows.push(row.join(","));
             }
@@ -1600,7 +1618,7 @@ export const exportUtils = {
             for (const [i, chart] of charts.entries()) {
                 const // Add chart image
                     canvas = document.createElement("canvas"),
-                    [dataset] = /** @type {any} */ (chart.data).datasets,
+                    dataset = getFirstChartDataset(chart),
                     fieldName = dataset?.label || `chart-${i}`,
                     safeFieldName = fieldName.replaceAll(/[^\dA-Za-z]/g, "-");
                 canvas.width = chart.canvas.width;
@@ -1630,8 +1648,7 @@ export const exportUtils = {
                         csvContent = [
                             headers.join(","),
                             ...dataset.data.map(
-                                (/** @type {any} */ point) =>
-                                    `${point.x},${point.y}`
+                                (point) => `${point.x},${point.y}`
                             ),
                         ].join("\n");
                     zip.file(`${safeFieldName}-data.csv`, csvContent);
@@ -1728,7 +1745,7 @@ export const exportUtils = {
             // Add combined JSON data
             const allChartsData = {
                 charts: charts.map((chart, index) => {
-                    const [dataset] = /** @type {any} */ (chart.data).datasets;
+                    const dataset = getFirstChartDataset(chart);
                     return {
                         data: dataset?.data || [],
                         field: dataset?.label || `chart-${index}`,
@@ -1766,7 +1783,7 @@ export const exportUtils = {
     /**
      * Exports chart data as CSV
      *
-     * @param {any[]} chartData - Chart data array
+     * @param {ChartDataPoint[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
@@ -1779,9 +1796,7 @@ export const exportUtils = {
             const headers = ["timestamp", fieldName],
                 csvContent = [
                     headers.join(","),
-                    ...chartData.map(
-                        (/** @type {any} */ point) => `${point.x},${point.y}`
-                    ),
+                    ...chartData.map((point) => `${point.x},${point.y}`),
                 ].join("\n"),
                 blob = new Blob([csvContent], {
                     type: "text/csv;charset=utf-8;",
@@ -1802,7 +1817,7 @@ export const exportUtils = {
     /**
      * Exports chart data as JSON
      *
-     * @param {any[]} chartData - Chart data array
+     * @param {ChartDataPoint[]} chartData - Chart data array
      * @param {string} fieldName - Field name for the data
      * @param {string} filename - Download filename
      */
@@ -1837,7 +1852,7 @@ export const exportUtils = {
     /**
      * Exports combined chart data as CSV
      *
-     * @param {any[]} charts - Array of Chart.js instances
+     * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */
     async exportCombinedChartsDataAsCSV(
@@ -1850,10 +1865,11 @@ export const exportUtils = {
             }
 
             // Get all unique timestamps
+            /** @type {Set<ChartDataPointX>} */
             const allTimestamps = new Set();
             for (const chart of charts) {
-                const [dataset] = /** @type {any} */ (chart.data).datasets;
-                if (dataset && dataset.data) {
+                const dataset = getFirstChartDataset(chart);
+                if (dataset?.data) {
                     for (const point of dataset.data)
                         allTimestamps.add(point.x);
                 }
@@ -1863,7 +1879,7 @@ export const exportUtils = {
                 headers = ["timestamp"],
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
-                const [dataset] = /** @type {any} */ (chart.data).datasets,
+                const dataset = getFirstChartDataset(chart),
                     fieldName =
                         dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
@@ -1872,13 +1888,13 @@ export const exportUtils = {
             // Create data rows
             const rows = [headers.join(",")];
             for (const timestamp of timestamps) {
-                const row = [timestamp];
+                const row = [String(timestamp)];
                 for (const chart of charts) {
-                    const [dataset] = /** @type {any} */ (chart.data).datasets,
+                    const dataset = getFirstChartDataset(chart),
                         point = dataset?.data?.find(
-                            (/** @type {any} */ p) => p.x === timestamp
+                            (p) => p.x === timestamp
                         );
-                    row.push(point ? point.y : "");
+                    row.push(point?.y == null ? "" : String(point.y));
                 }
                 rows.push(row.join(","));
             }
@@ -2246,7 +2262,7 @@ img {
     /**
      * Prints multiple charts in a combined format
      *
-     * @param {any[]} charts - Array of Chart.js instances
+     * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
     printCombinedCharts(charts) {
         try {
@@ -2312,7 +2328,7 @@ body {
             for (const [index, chart] of charts.entries()) {
                 const // Create canvas with theme background
                     canvas = document.createElement("canvas"),
-                    [dataset] = /** @type {any} */ (chart.data).datasets,
+                    dataset = getFirstChartDataset(chart),
                     fieldName = dataset?.label || `Chart ${index + 1}`;
                 canvas.width = chart.canvas.width;
                 canvas.height = chart.canvas.height;
