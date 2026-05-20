@@ -26,6 +26,97 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  *
  * @property {string} [title]
  */
+/**
+ * @typedef {Object} LapZoneThemeColors
+ *
+ * @property {string} [chartBackground]
+ * @property {string} [chartBorder]
+ * @property {string} [chartGrid]
+ * @property {string} [chartSurface]
+ * @property {string} [primary]
+ * @property {string} [primaryAlpha]
+ * @property {string} [textPrimary]
+ * @property {string} [textSecondary]
+ */
+/**
+ * @typedef {Object} LapZoneThemeConfig
+ *
+ * @property {LapZoneThemeColors} [colors]
+ * @property {unknown} [name]
+ */
+/**
+ * @typedef {Object} LapZoneDataset
+ *
+ * @property {string} backgroundColor
+ * @property {string} borderColor
+ * @property {number} borderWidth
+ * @property {number[]} data
+ * @property {string} label
+ * @property {string} stack
+ */
+/**
+ * @typedef {Object} TooltipParsedValue
+ *
+ * @property {unknown} [y]
+ */
+/**
+ * @typedef {Object} TooltipFooterItem
+ *
+ * @property {TooltipParsedValue} [parsed]
+ */
+/**
+ * @typedef {Object} TooltipDataset
+ *
+ * @property {unknown} [data]
+ */
+/**
+ * @typedef {Object} TooltipChartData
+ *
+ * @property {TooltipDataset[]} [datasets]
+ */
+/**
+ * @typedef {Object} TooltipChart
+ *
+ * @property {TooltipChartData} [data]
+ */
+/**
+ * @typedef {Object} TooltipLabelContext
+ *
+ * @property {TooltipChart} [chart]
+ * @property {number} dataIndex
+ * @property {{ label?: unknown }} [dataset]
+ * @property {TooltipParsedValue} [parsed]
+ */
+/**
+ * @typedef {Object} LapZoneRuntimeGlobal
+ *
+ * @property {unknown} [Chart]
+ * @property {((message: string, type: string) => void) | undefined} [showNotification]
+ */
+
+const chartGlobal = /** @type {LapZoneRuntimeGlobal} */ (globalThis);
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {number}
+ */
+function toFiniteNumber(value) {
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+/**
+ * @param {TooltipDataset} dataset
+ * @param {number} dataIndex
+ *
+ * @returns {number}
+ */
+function getDatasetValue(dataset, dataIndex) {
+    if (!Array.isArray(dataset.data)) {
+        return 0;
+    }
+    return toFiniteNumber(dataset.data[dataIndex]);
+}
 
 // Helper function to render lap-by-lap zone analysis bar chart
 /**
@@ -36,17 +127,19 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  * @param {LapZoneEntry[]} lapZoneData
  * @param {LapZoneChartOptions} [options]
  *
- * @returns {any | null}
+ * @returns {object | null}
  */
 export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
     try {
-        if (!globalThis.Chart || !canvas || !Array.isArray(lapZoneData)) {
+        if (!chartGlobal.Chart || !canvas || !Array.isArray(lapZoneData)) {
             throw new Error("Chart.js, canvas, or lapZoneData missing");
         }
         if (!canvas.classList.contains("chart-canvas")) {
             canvas.classList.add("chart-canvas");
         }
-        const themeConfig = /** @type {any} */ (getThemeConfig() || {});
+        const themeConfig = /** @type {LapZoneThemeConfig} */ (
+            getThemeConfig() || {}
+        );
         if (
             themeConfig &&
             typeof themeConfig === "object" &&
@@ -59,8 +152,8 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         }
 
         // Get unique zone labels from all laps (since we now filter zones)
-        const allZoneData = new Map(), // Zone label -> zone info
-            allZoneLabels = new Set();
+        const /** @type {Map<string, LapZoneDatum>} */ allZoneData = new Map(), // Zone label -> zone info
+            /** @type {Set<string>} */ allZoneLabels = new Set();
 
         for (const lap of lapZoneData) {
             for (const zone of lap.zones) {
@@ -72,7 +165,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         }
 
         const // Create one dataset per zone (stacked across laps)
-            /** @type {any[]} */
+            /** @type {LapZoneDataset[]} */
             datasets = [],
             zoneLabels = [...allZoneLabels].sort((a, b) => {
                 const aNum = parseZoneNumber(a, 0),
@@ -126,7 +219,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         const lapLabels = lapZoneData.map((lap) =>
                 lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap"
             ),
-            /** @type {any} */
+            /** @type {Record<string, unknown>} */
             config = {
                 data: {
                     datasets,
@@ -168,11 +261,11 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                 themeConfig?.colors?.chartBorder || "#333",
                             borderWidth: 1,
                             callbacks: {
-                                /** @param {any[]} tooltipItems */
+                                /** @param {TooltipFooterItem[]} tooltipItems */
                                 footer(tooltipItems) {
                                     let total = 0;
                                     for (const item of tooltipItems) {
-                                        total += item.parsed?.y || 0;
+                                        total += toFiniteNumber(item.parsed?.y);
                                     }
                                     const totalFormatted = formatTime(
                                         total,
@@ -180,21 +273,20 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                     );
                                     return `Total: ${totalFormatted}`;
                                 },
-                                /** @param {any} context */
+                                /** @param {TooltipLabelContext} context */
                                 label(context) {
                                     let lapTotal = 0;
                                     const datasetsArr =
                                         context.chart?.data?.datasets || [];
                                     for (const dataset of datasetsArr) {
-                                        const dsData = /** @type {number[]} */ (
-                                                dataset.data || []
-                                            ),
-                                            v = dsData[context.dataIndex];
-                                        if (typeof v === "number") {
-                                            lapTotal += v;
-                                        }
+                                        lapTotal += getDatasetValue(
+                                            dataset,
+                                            context.dataIndex
+                                        );
                                     }
-                                    const value = context.parsed?.y || 0,
+                                    const value = toFiniteNumber(
+                                            context.parsed?.y
+                                        ),
                                         percentage =
                                             lapTotal > 0
                                                 ? (
@@ -202,8 +294,13 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                                       100
                                                   ).toFixed(1)
                                                 : "0.0",
+                                        datasetLabel =
+                                            typeof context.dataset?.label ===
+                                            "string"
+                                                ? context.dataset.label
+                                                : "Zone",
                                         timeFormatted = formatTime(value, true);
-                                    return `${context.dataset?.label || "Zone"}: ${timeFormatted} (${percentage}%)`;
+                                    return `${datasetLabel}: ${timeFormatted} (${percentage}%)`;
                                 },
                             },
                             intersect: false,
@@ -318,11 +415,10 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 type: "bar",
             };
 
-        const chart = createManagedChart(canvas, config);
-        return chart;
+        return createManagedChart(canvas, config);
     } catch (error) {
-        if (globalThis.showNotification) {
-            globalThis.showNotification(
+        if (chartGlobal.showNotification) {
+            chartGlobal.showNotification(
                 "Failed to render lap zone chart",
                 "error"
             );
