@@ -127,6 +127,22 @@ function isDestroyableChart(value) {
     return typeof candidate.destroy === "function";
 }
 
+/**
+ * @param {unknown} value
+ * @returns {value is HTMLInputElement}
+ */
+function isInputElement(value) {
+    return value instanceof HTMLInputElement;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is HTMLSelectElement}
+ */
+function isSelectElement(value) {
+    return value instanceof HTMLSelectElement;
+}
+
 // Storage/logging prefix
 const LOG_PREFIX = "[ChartSettings]";
 
@@ -420,10 +436,9 @@ export function resetAllSettings() {
         console.log(`${LOG_PREFIX} Settings reset completed successfully`);
         return true;
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error resetting settings:`,
-            err?.message || err
+            getErrorMessage(error)
         );
         showNotification("Failed to reset settings", "error");
         return false;
@@ -439,10 +454,9 @@ function clearAllStorageItems() {
 
         console.log(`${LOG_PREFIX} All storage items cleared`);
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error clearing storage items:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
@@ -461,9 +475,9 @@ function performDirectControlUpdates() {
             switch (opt.type) {
                 case "range": {
                     const slider = query(`#chartjs-${opt.id}-slider`);
-                    if (slider && "type" in slider && slider.type === "range") {
-                        // @ts-ignore value exists
-                        slider.value = opt.default;
+                    if (isInputElement(slider) && slider.type === "range") {
+                        const defaultValue = opt.default;
+                        slider.value = String(defaultValue);
 
                         // Update value display
                         const valueDisplay =
@@ -476,8 +490,14 @@ function performDirectControlUpdates() {
                         }
 
                         // Update visual styling
-                        // @ts-ignore slider is range
-                        updateRangeSliderStyling(slider, opt, opt.default);
+                        const numericDefault = Number(defaultValue);
+                        if (Number.isFinite(numericDefault)) {
+                            updateRangeSliderStyling(
+                                slider,
+                                opt,
+                                numericDefault
+                            );
+                        }
                         updated = true;
                     }
                     break;
@@ -485,9 +505,8 @@ function performDirectControlUpdates() {
 
                 case "select": {
                     const select = query(`#chartjs-${opt.id}-dropdown`);
-                    if (select && select.tagName === "SELECT") {
-                        // @ts-ignore value exists
-                        select.value = opt.default;
+                    if (isSelectElement(select)) {
+                        select.value = String(opt.default);
                         updated = true;
                     }
                     break;
@@ -519,10 +538,9 @@ function performDirectControlUpdates() {
             `${LOG_PREFIX} Performed ${updatedCount} direct control updates`
         );
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error in direct control updates:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
@@ -532,8 +550,9 @@ function performDirectControlUpdates() {
  */
 function reRenderChartsAfterReset() {
     try {
+        const chartGlobal = getChartSettingsGlobal();
         // Check if chart data is available
-        if (!globalThis.globalData || !globalThis.globalData.recordMesgs) {
+        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
             console.log(
                 `${LOG_PREFIX} No chart data available for re-rendering`
             );
@@ -554,42 +573,35 @@ function reRenderChartsAfterReset() {
         const chartsContainer = getChartRenderContainer(document);
 
         // Clear existing chart instances
-        if (
-            globalThis._chartjsInstances &&
-            Array.isArray(globalThis._chartjsInstances)
-        ) {
-            for (const chart of globalThis._chartjsInstances) {
-                if (chart && typeof chart.destroy === "function") {
+        if (Array.isArray(chartGlobal._chartjsInstances)) {
+            for (const chart of chartGlobal._chartjsInstances) {
+                if (isDestroyableChart(chart)) {
                     chart.destroy();
                 }
             }
-            globalThis._chartjsInstances = [];
+            chartGlobal._chartjsInstances = [];
         }
 
         // Force a complete re-render through modern state management
-        if (chartStateManager) {
+        if (isChartRenderManagerLike(chartStateManager)) {
             chartStateManager.debouncedRender("Settings reset");
-        } else if (
-            typeof (/** @type {any} */ (globalThis).renderChartJS) ===
-            "function"
-        ) {
+        } else if (typeof chartGlobal.renderChartJS === "function") {
             const target =
                 chartsContainer ||
                 getChartRenderContainer(document) ||
                 document.body;
-            /** @type {any} */ (globalThis).renderChartJS(target);
+            chartGlobal.renderChartJS(target);
         } else {
-            globalThis.dispatchEvent(
+            chartGlobal.dispatchEvent(
                 new CustomEvent("ffv:request-render-charts", {
                     detail: { reason: "settings-reset" },
                 })
             );
         }
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error re-rendering charts:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
