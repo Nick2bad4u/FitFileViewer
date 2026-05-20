@@ -19,18 +19,56 @@ import { showNotification as __realShowNotification } from "../../ui/notificatio
 // In test environment, allow vi.mock to be honored even for modules this file imports statically
 // By consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
 // Or when no mock is registered, we simply use the real implementations.
-/** @type {(p: string) => any | null} */
+/**
+ * @typedef {Record<string, unknown>} ManualMockModule
+ * @typedef {typeof globalThis & {
+ *     __vitest_manual_mocks__?: Map<string, unknown>;
+ * }} VitestManualMockGlobal
+ */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is ManualMockModule}
+ */
+function __isManualMockModule(value) {
+    return typeof value === "object" && value !== null;
+}
+
+/**
+ * @returns {Map<string, unknown> | undefined}
+ */
+function __getManualMockRegistry() {
+    return /** @type {VitestManualMockGlobal} */ (globalThis)
+        .__vitest_manual_mocks__;
+}
+
+/**
+ * @param {unknown} mock
+ *
+ * @returns {ManualMockModule | null}
+ */
+function __normalizeManualMock(mock) {
+    if (!__isManualMockModule(mock)) {
+        return null;
+    }
+
+    return __isManualMockModule(mock.default) ? mock.default : mock;
+}
+
+/**
+ * @param {string} p
+ *
+ * @returns {ManualMockModule | null}
+ */
 function __resolveManualMockBySuffix(p) {
     try {
-        // @ts-ignore
-        const reg = /** @type {Map<string, any> | undefined} */ (
-            globalThis.__vitest_manual_mocks__
-        );
+        const reg = __getManualMockRegistry();
         if (reg && typeof reg.forEach === "function") {
             for (const [id, mod] of reg.entries()) {
                 const norm = String(id).replaceAll("\\", "/");
                 if (norm.endsWith(p)) {
-                    return mod && mod.default ? mod.default : mod;
+                    return __normalizeManualMock(mod);
                 }
             }
         }
@@ -58,10 +96,7 @@ try {
         process.env.FFV_DEBUG_TEST_MOCKS === "1";
 
     if (debugEnabled) {
-        // @ts-ignore
-        const __dbgReg = /** @type {Map<string, any> | undefined} */ (
-            globalThis.__vitest_manual_mocks__
-        );
+        const __dbgReg = __getManualMockRegistry();
         if (__dbgReg && typeof __dbgReg.forEach === "function") {
             /** @type {string[]} */
             const keys = [];
