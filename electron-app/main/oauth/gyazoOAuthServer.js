@@ -4,6 +4,45 @@ const { getAppState, setAppState } = require("../state/appState");
 const { validateWindow } = require("../window/windowValidation");
 
 /**
+ * @typedef {import("node:http").Server} OAuthServer
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {boolean}
+ */
+function isAddressInUseError(error) {
+    if (!error || typeof error !== "object") return false;
+    return Reflect.get(error, "code") === "EADDRINUSE";
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {OAuthServer | null}
+ */
+function asOAuthServer(value) {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof Reflect.get(value, "close") === "function"
+    ) {
+        return /** @type {OAuthServer} */ (value);
+    }
+    return null;
+}
+
+/**
  * Apply common security headers for all responses.
  *
  * The callback server is bound to localhost, but we still:
@@ -13,7 +52,7 @@ const { validateWindow } = require("../window/windowValidation");
  * - Prevent framing
  * - Restrict resource loading
  *
- * @param {any} res
+ * @param {import("node:http").ServerResponse} res
  */
 function applyStandardHeaders(res) {
     try {
@@ -23,7 +62,7 @@ function applyStandardHeaders(res) {
         res.setHeader("Referrer-Policy", "no-referrer");
         res.setHeader("X-Frame-Options", "DENY");
 
-        // We serve only simple inline HTML. Disallow any remote loads.
+        // We serve only simple inline HTML. Disallow remote loads.
         res.setHeader(
             "Content-Security-Policy",
             "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'"
@@ -210,7 +249,7 @@ async function startGyazoOAuthServer(port = 3000) {
             });
 
             server.on("error", (err) => {
-                if (/** @type {any} */ (err).code === "EADDRINUSE") {
+                if (isAddressInUseError(err)) {
                     logWithContext(
                         "warn",
                         `Port ${port} is in use, trying port ${port + 1}`
@@ -246,7 +285,7 @@ async function startGyazoOAuthServer(port = 3000) {
             });
         } catch (error) {
             logWithContext("error", "Failed to start Gyazo OAuth server:", {
-                error: /** @type {Error} */ (error).message,
+                error: getErrorMessage(error),
             });
             reject(error);
         }
@@ -261,7 +300,7 @@ async function startGyazoOAuthServer(port = 3000) {
  */
 async function stopGyazoOAuthServer() {
     return new Promise((resolve) => {
-        const gyazoServer = getAppState("gyazoServer");
+        const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
         if (gyazoServer) {
             try {
                 gyazoServer.close(() => {
@@ -281,7 +320,7 @@ async function stopGyazoOAuthServer() {
                     "warn",
                     "Failed to close Gyazo OAuth callback server",
                     {
-                        error: /** @type {Error} */ (error)?.message,
+                        error: getErrorMessage(error),
                     }
                 );
                 setAppState("gyazoServer", null);
