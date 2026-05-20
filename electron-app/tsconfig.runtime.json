@@ -96,6 +96,7 @@
         "utils/logging/index.ts",
         "utils/errors/errorHandling.ts",
         "utils/errors/index.ts",
+        "utils/app/async/cancellationToken.ts",
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
