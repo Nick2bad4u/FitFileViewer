@@ -3,12 +3,30 @@ import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZon
 import { renderZoneChart } from "./renderZoneChart.js";
 /** @typedef {import("../../../global").ZoneInfo} ZoneInfo */
 /** @typedef {{ doughnutVisible?: boolean }} ZoneVisibilitySettings */
+/**
+ * @typedef {{
+ *     chartType?: string;
+ *     showGrid?: boolean;
+ *     showLegend?: boolean;
+ *     showTitle?: boolean;
+ *     zoomPluginConfig?: Record<string, unknown>;
+ * } & Record<string, unknown>} TimeInZoneChartOptions
+ */
+/**
+ * @typedef {Object} TimeInZoneRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ * @property {unknown} [heartRateZones]
+ * @property {unknown} [powerZones]
+ */
+
+const chartGlobal = /** @type {TimeInZoneRuntimeGlobal} */ (globalThis);
 
 /**
  * Render HR / Power time-in-zone charts (doughnut by default) into a container.
  *
  * @param {HTMLElement} container Parent element to append charts into
- * @param {{ chartType?: string } & Record<string, any>} [options] Optional
+ * @param {TimeInZoneChartOptions} [options] Optional
  *   chart options forwarded to renderZoneChart
  */
 export function renderTimeInZoneCharts(container, options = {}) {
@@ -18,7 +36,7 @@ export function renderTimeInZoneCharts(container, options = {}) {
             process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
             isDevEnvironment &&
-            Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+            Boolean(chartGlobal.__FFV_debugCharts);
 
         if (!container) {
             return;
@@ -28,8 +46,8 @@ export function renderTimeInZoneCharts(container, options = {}) {
         }
 
         /** @type {ZoneInfo[] | undefined} */
-        const hrZones = Array.isArray(globalThis.heartRateZones)
-                ? globalThis.heartRateZones
+        const hrZones = Array.isArray(chartGlobal.heartRateZones)
+                ? chartGlobal.heartRateZones
                 : undefined,
             /** @type {ZoneVisibilitySettings} */
             hrZoneSettings = (getHRZoneVisibilitySettings &&
@@ -37,8 +55,8 @@ export function renderTimeInZoneCharts(container, options = {}) {
                 doughnutVisible: true,
             },
             /** @type {ZoneInfo[] | undefined} */
-            powerZones = Array.isArray(globalThis.powerZones)
-                ? globalThis.powerZones
+            powerZones = Array.isArray(chartGlobal.powerZones)
+                ? chartGlobal.powerZones
                 : undefined;
         if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {
             if (isDebugLoggingEnabled) {
