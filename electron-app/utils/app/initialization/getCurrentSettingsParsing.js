@@ -1,16 +1,32 @@
 /**
+ * @typedef {"range" | "select" | "toggle" | string} ChartOptionType
+ * @typedef {string | number | boolean | null | undefined} StoredSettingValue
+ * @typedef {object} ChartOptionConfig
+ * @property {unknown} default
+ * @property {string} [id]
+ * @property {ChartOptionType} [type]
+ */
+
+/**
+ * @param {unknown} option
+ * @returns {ChartOptionConfig}
+ */
+function normalizeChartOption(option) {
+    return typeof option === "object" && option !== null
+        ? /** @type {ChartOptionConfig} */ (option)
+        : { default: undefined, type: "" };
+}
+
+/**
  * Parse stored value based on chart option configuration.
  *
- * @param {string | number | boolean | null | undefined} stored - Stored setting
- *   value
- * @param {ChartOptionConfig | any} option - Chart option configuration
+ * @param {StoredSettingValue} stored - Stored setting value
+ * @param {unknown} option - Chart option configuration
  *
- * @returns {any} Parsed value with correct type
+ * @returns {unknown} Parsed value with correct type
  */
 export function parseStoredValue(stored, option) {
-    /** @type {ChartOptionConfig} */
-    // @ts-ignore - runtime trusted from config import
-    const opt = option;
+    const opt = normalizeChartOption(option);
     if (stored === null || stored === undefined) {
         return opt.default;
     }
