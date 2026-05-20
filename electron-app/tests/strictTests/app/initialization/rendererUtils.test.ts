@@ -1,163 +1,262 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-// Mock the state manager used by rendererUtils
-vi.mock("../../../../utils/state/core/stateManager.js", () => {
-    const listeners = new Map<string, Set<Function>>();
-    const state: Record<string, any> = {};
+type StateListener = (
+    newValue: unknown,
+    oldValue: unknown,
+    path: string
+) => void;
+
+type RendererUtilsModule = typeof import("../../../../utils/app/initialization/rendererUtils.js");
+
+const stateMock = vi.hoisted(() => {
+    const listeners = new Map<string, Set<StateListener>>();
+    const state = new Map<string, unknown>();
+
     return {
-        subscribe: (path: string, cb: Function) => {
-            if (!listeners.has(path)) listeners.set(path, new Set());
-            listeners.get(path)!.add(cb);
-            return () => listeners.get(path)!.delete(cb);
+        getState: vi.fn<(path: string) => unknown>((path) => state.get(path)),
+        reset(): void {
+            listeners.clear();
+            state.clear();
+            this.getState.mockClear();
+            this.setState.mockClear();
+            this.subscribe.mockClear();
         },
-        getState: (path: string) => state[path],
-        setState: (path: string, value: any) => {
-            const prev = state[path];
-            state[path] = value;
-            const set = listeners.get(path);
-            if (set) set.forEach((cb) => cb(value, prev, path));
-        },
+        setState: vi.fn<
+            (
+                path: string,
+                value: unknown,
+                options?: { source?: string }
+            ) => void
+        >((path, value) => {
+            const previousValue = state.get(path);
+            state.set(path, value);
+
+            const pathListeners = listeners.get(path);
+            if (!pathListeners) {
+                return;
+            }
+
+            for (const listener of pathListeners) {
+                listener(value, previousValue, path);
+            }
+        }),
+        subscribe: vi.fn<
+            (path: string, callback: StateListener) => () => void
+        >((path, callback) => {
+            const pathListeners = listeners.get(path) ?? new Set();
+            pathListeners.add(callback);
+            listeners.set(path, pathListeners);
+
+            return () => {
+                pathListeners.delete(callback);
+            };
+        }),
     };
 });
 
-const modPath = "../../../../utils/app/initialization/rendererUtils.js";
+vi.mock(import("../../../../utils/state/core/stateManager.js"), () => ({
+    getState: stateMock.getState,
+    setState: stateMock.setState,
+    subscribe: stateMock.subscribe,
+}));
 
-function setupDOM() {
-    document.body.innerHTML = `
-    <div id="loadingOverlay" style="display:none"></div>
-    <div id="notification" style="display:none"></div>
-    <button id="openFileBtn">Open</button>
-    <button id="otherBtn">Other</button>
-    <input id="someInput" />
-  `;
+async function importRendererUtils(): Promise<RendererUtilsModule> {
+    return import("../../../../utils/app/initialization/rendererUtils.js");
+}
+
+function resetTestState(): void {
+    vi.useFakeTimers();
+    vi.resetModules();
+    stateMock.reset();
+    document.body.textContent = "";
+    document.body.className = "";
+    document.body.removeAttribute("aria-busy");
+    setupDOM();
+}
+
+function setupDOM(): void {
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.id = "loadingOverlay";
+    loadingOverlay.style.display = "none";
+
+    const notification = document.createElement("div");
+    notification.id = "notification";
+    notification.style.display = "none";
+
+    const openFileButton = document.createElement("button");
+    openFileButton.id = "openFileBtn";
+    openFileButton.textContent = "Open";
+
+    const otherButton = document.createElement("button");
+    otherButton.id = "otherBtn";
+    otherButton.textContent = "Other";
+
+    const input = document.createElement("input");
+    input.id = "someInput";
+
+    document.body.append(
+        loadingOverlay,
+        notification,
+        openFileButton,
+        otherButton,
+        input
+    );
+}
+
+function requireHTMLElement(id: string): HTMLElement {
+    const element = document.getElementById(id);
+
+    if (!element) {
+        throw new Error(`Expected #${id} to exist`);
+    }
+
+    return element;
 }
 
 describe("rendererUtils", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
-        document.body.className = "";
-        document.body.removeAttribute("aria-busy");
-        vi.useFakeTimers();
-        vi.resetModules();
-        setupDOM();
-    });
+    it("showNotification updates DOM, state, and clears after timeout", async () => {
+        expect.assertions(6);
 
-    it("showNotification updates DOM and clears after timeout", async () => {
-        const { showNotification, getCurrentNotification } = await import(
-            modPath
-        );
-        // Initially, state should be undefined/null
-        expect(getCurrentNotification()).toBeUndefined();
+        resetTestState();
+
+        const { getCurrentNotification, showNotification } =
+            await importRendererUtils();
+
+        expect(getCurrentNotification()).toBeNull();
+
         showNotification("Hello", "info", 1000);
-        const notif = document.getElementById("notification")!;
-        expect(notif.textContent).toBe("Hello");
-        expect(notif.className).toContain("info");
-        expect(notif.style.display).toBe("block");
-        // Advance timers to auto-hide
+
+        const notification = requireHTMLElement("notification");
+
+        expect(notification.textContent).toBe("Hello");
+        expect(notification.className).toBe("notification info");
+        expect(notification.style.display).toBe("block");
+        expect(getCurrentNotification()).toStrictEqual(
+            expect.objectContaining({ message: "Hello", type: "info" })
+        );
+
         vi.runAllTimers();
-        expect(notif.style.display).toBe("none");
+
+        expect(notification.style.display).toBe("none");
     });
 
-    it("showNotification warns if element missing", async () => {
-        document.getElementById("notification")?.remove();
+    it("showNotification warns when the notification element is missing", async () => {
+        expect.assertions(2);
+
+        resetTestState();
+        requireHTMLElement("notification").remove();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const { showNotification } = await import(modPath);
-        showNotification("Hi", "success", 0);
-        expect(warnSpy).toHaveBeenCalled();
-        warnSpy.mockRestore();
+        const { showNotification } = await importRendererUtils();
+
+        try {
+            showNotification("Hi", "success", 0);
+
+            expect(document.getElementById("notification")).toBeNull();
+            expect(warnSpy).toHaveBeenCalledWith(
+                "[RendererUtils] Notification element not found"
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
     });
 
     it("setLoading toggles overlay, cursor, and aria attributes", async () => {
-        const { setLoading } = await import(modPath);
-        const overlay = document.getElementById(
-            "loadingOverlay"
-        )! as HTMLDivElement;
-        const openBtn = document.getElementById(
-            "openFileBtn"
-        )! as HTMLButtonElement;
-        const otherBtn = document.getElementById(
+        expect.assertions(7);
+
+        resetTestState();
+
+        const { setLoading } = await importRendererUtils();
+        const overlay = requireHTMLElement("loadingOverlay");
+        const openButton = requireHTMLElement("openFileBtn");
+        const otherButton = requireHTMLElement(
             "otherBtn"
-        )! as HTMLButtonElement;
-        const input = document.getElementById("someInput")! as HTMLInputElement;
-        otherBtn.disabled = false;
-        input.disabled = false;
+        ) as HTMLButtonElement;
+        const input = requireHTMLElement("someInput") as HTMLInputElement;
 
         setLoading(true);
+
         expect(overlay.style.display).toBe("flex");
         expect(document.body.style.cursor).toBe("wait");
         expect(overlay.getAttribute("aria-hidden")).toBe("false");
         expect(document.body.getAttribute("aria-busy")).toBe("true");
-        // openFileBtn should remain enabled
-        expect(openBtn.disabled).toBe(false);
-        // setLoading does not manage disabling; that's handled by initializeRendererUtils subscription
-        expect(otherBtn.disabled).toBe(false);
-        expect(input.disabled).toBe(false);
+        expect(openButton.getAttribute("disabled")).toBeNull();
 
         setLoading(false);
-        expect(overlay.style.display).toBe("none");
-        expect(document.body.style.cursor).toBe("");
-        expect(overlay.getAttribute("aria-hidden")).toBe("true");
-        expect(document.body.getAttribute("aria-busy")).toBe("false");
-        // Controls remain unchanged by setLoading alone
-        expect(otherBtn.disabled).toBe(false);
-        expect(input.disabled).toBe(false);
+
+        expect(otherButton.disabled ? "disabled" : "enabled").toBe("enabled");
+        expect(input.disabled ? "disabled" : "enabled").toBe("enabled");
     });
 
     it("initializeRendererUtils wires subscriptions and updates UI on state change", async () => {
-        const { initializeRendererUtils } = await import(modPath);
-        const overlay = document.getElementById(
-            "loadingOverlay"
-        )! as HTMLDivElement;
-        const notif = document.getElementById(
-            "notification"
-        )! as HTMLDivElement;
+        expect.assertions(4);
+
+        resetTestState();
+
+        const { initializeRendererUtils } = await importRendererUtils();
+        const overlay = requireHTMLElement("loadingOverlay");
+        const notification = requireHTMLElement("notification");
 
         initializeRendererUtils();
-        // Trigger state updates via mocked setState through subscription API
-        // Import mocked stateManager to access setState
-        const stateMgr =
-            await import("../../../../utils/state/core/stateManager.js");
-        stateMgr.setState("isLoading", true);
-        expect(overlay.style.display).toBe("flex");
+        stateMock.setState("isLoading", true);
 
-        stateMgr.setState("ui.currentNotification", {
+        expect(overlay.style.display).toBe("flex");
+        expect(document.body.getAttribute("aria-busy")).toBe("true");
+
+        stateMock.setState("ui.currentNotification", {
             message: "Done",
             type: "success",
         });
-        expect(notif.textContent).toBe("Done");
-        expect(notif.className).toContain("success");
-        expect(notif.style.display).toBe("block");
+
+        expect(notification.textContent).toBe("Done");
+        expect(notification.getAttribute("role")).toBe("alert");
     });
 
-    it("helper wrappers call showNotification with proper types", async () => {
-        const { showSuccess, showError, showInfo, showWarning } = await import(
-            modPath
-        );
-        const notif = document.getElementById(
-            "notification"
-        )! as HTMLDivElement;
+    it("helper wrappers call showNotification with their expected types", async () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        const { showError, showInfo, showSuccess, showWarning } =
+            await importRendererUtils();
+        const notification = requireHTMLElement("notification");
+        const classes: string[] = [];
 
         showSuccess("ok", 0);
-        expect(notif.className).toContain("success");
+        classes.push(notification.className);
 
         showError("bad", 0);
-        expect(notif.className).toContain("error");
+        classes.push(notification.className);
 
         showInfo("info", 0);
-        expect(notif.className).toContain("info");
+        classes.push(notification.className);
 
         showWarning("warn", 0);
-        expect(notif.className).toContain("warning");
+        classes.push(notification.className);
+
+        expect(classes).toStrictEqual([
+            "notification success",
+            "notification error",
+            "notification info",
+            "notification warning",
+        ]);
     });
 
-    it("clearNotification hides element and clears state", async () => {
-        const { clearNotification, showInfo } = await import(modPath);
-        const notif = document.getElementById(
-            "notification"
-        )! as HTMLDivElement;
+    it("clearNotification hides the element and clears state", async () => {
+        expect.assertions(3);
+
+        resetTestState();
+
+        const { clearNotification, getCurrentNotification, showInfo } =
+            await importRendererUtils();
+        const notification = requireHTMLElement("notification");
+
         showInfo("temp", 0);
-        expect(notif.style.display).toBe("block");
+
+        expect(notification.style.display).toBe("block");
+
         clearNotification();
-        expect(notif.style.display).toBe("none");
+
+        expect(notification.style.display).toBe("none");
+        expect(getCurrentNotification()).toBeNull();
     });
 });
