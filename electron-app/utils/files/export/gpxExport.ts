@@ -14,7 +14,8 @@ type GpxBuildOptions = {
     trackName?: string;
 };
 
-type GpxRecord = {
+/** Minimal record shape required for GPX track point serialization. */
+export type GpxRecord = {
     altitude?: number;
     cadence?: number;
     enhancedAltitude?: number;
@@ -26,7 +27,8 @@ type GpxRecord = {
     [key: string]: unknown;
 };
 
-type LoadedFitFileDescriptor = {
+/** Loaded FIT file metadata used to derive a human-readable GPX track name. */
+export type LoadedFitFileDescriptor = {
     displayName?: string;
     filePath?: string;
     name?: string;
