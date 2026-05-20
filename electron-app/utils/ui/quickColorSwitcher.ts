@@ -1,5 +1,23 @@
-import { getEffectiveAccentColor, setAccentColor, } from "../theming/core/accentColor.js";
+import {
+    getEffectiveAccentColor,
+    setAccentColor,
+} from "../theming/core/accentColor.js";
 import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
+
+interface ColorPreset {
+    readonly color: string;
+    readonly name: string;
+}
+
+interface QuickColorSwitcherState {
+    closeTimer: ReturnType<typeof setTimeout> | null;
+    listenerController: AbortController;
+}
+
+type QuickColorSwitcherElement = HTMLDivElement & {
+    __ffvQuickColorSwitcherState?: QuickColorSwitcherState;
+};
+
 const COLOR_PRESETS = [
     { color: "#3b82f6", name: "Blue-tiful" },
     { color: "#8b5cf6", name: "Purple Rain" },
@@ -9,19 +27,26 @@ const COLOR_PRESETS = [
     { color: "#ef4444", name: "Red Hot" },
     { color: "#06b6d4", name: "Cyan-tific" },
     { color: "#f97316", name: "Orange Crush" },
-];
+] as const satisfies readonly ColorPreset[];
+
 const SWITCHER_ID = "quick-color-switcher";
 const SWITCHER_CLOSE_DELAY_MS = 500;
 const SVG_NS = "http://www.w3.org/2000/svg";
-function createPaletteIcon() {
+
+function createPaletteIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("switcher-icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
+
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z");
+    path.setAttribute(
+        "d",
+        "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+    );
     path.setAttribute("fill", "currentColor");
+
     const circle = document.createElementNS(SVG_NS, "circle");
     circle.setAttribute("cx", "12");
     circle.setAttribute("cy", "12");
@@ -29,44 +54,59 @@ function createPaletteIcon() {
     circle.setAttribute("fill", "currentColor");
     circle.setAttribute("opacity", "0.7");
     icon.append(path, circle);
+
     return icon;
 }
-function createSettingsIcon() {
+
+function createSettingsIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
     icon.setAttribute("width", "16");
     icon.setAttribute("height", "16");
+
     const circlePath = document.createElementNS(SVG_NS, "path");
     circlePath.setAttribute("d", "M12 15a3 3 0 100-6 3 3 0 000 6z");
     circlePath.setAttribute("stroke", "currentColor");
     circlePath.setAttribute("stroke-width", "2");
     circlePath.setAttribute("stroke-linecap", "round");
     circlePath.setAttribute("stroke-linejoin", "round");
+
     const gearPath = document.createElementNS(SVG_NS, "path");
-    gearPath.setAttribute("d", "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z");
+    gearPath.setAttribute(
+        "d",
+        "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+    );
     gearPath.setAttribute("stroke", "currentColor");
     gearPath.setAttribute("stroke-width", "2");
     gearPath.setAttribute("stroke-linecap", "round");
     gearPath.setAttribute("stroke-linejoin", "round");
     icon.append(circlePath, gearPath);
+
     return icon;
 }
-function createToggleButton() {
+
+function createToggleButton(): HTMLButtonElement {
     const button = document.createElement("button");
     button.className = "switcher-toggle";
     button.id = "color-switcher-toggle";
     button.type = "button";
     button.dataset["tooltip"] = "Quick Colors";
     button.setAttribute("aria-label", "Open color switcher");
+
     const label = document.createElement("span");
     label.className = "switcher-label";
     label.textContent = "Colors";
     button.append(createPaletteIcon(), label);
+
     return button;
 }
-function createColorOption(preset, currentColor) {
+
+function createColorOption(
+    preset: ColorPreset,
+    currentColor: string
+): HTMLButtonElement {
     const button = document.createElement("button");
     button.className = "color-option";
     if (preset.color === currentColor) {
@@ -77,30 +117,37 @@ function createColorOption(preset, currentColor) {
     button.title = preset.name;
     button.style.background = preset.color;
     button.setAttribute("aria-label", `Switch to ${preset.name}`);
+
     const name = document.createElement("span");
     name.className = "color-name";
     name.textContent = preset.name;
+
     const check = document.createElement("span");
     check.className = "color-check";
     check.textContent = "✓";
     button.append(name, check);
+
     return button;
 }
-function createSwitcherDropdown(currentColor) {
+
+function createSwitcherDropdown(currentColor: string): HTMLDivElement {
     const dropdown = document.createElement("div");
     dropdown.className = "switcher-dropdown";
     dropdown.id = "color-switcher-dropdown";
+
     const header = document.createElement("div");
     header.className = "switcher-header";
     const title = document.createElement("span");
     title.className = "witty-title";
     title.textContent = "🎨 Pick Your Vibe";
     header.append(title);
+
     const grid = document.createElement("div");
     grid.className = "color-grid";
     for (const preset of COLOR_PRESETS) {
         grid.append(createColorOption(preset, currentColor));
     }
+
     const footer = document.createElement("div");
     footer.className = "switcher-footer";
     const settingsButton = document.createElement("button");
@@ -108,55 +155,74 @@ function createSwitcherDropdown(currentColor) {
     settingsButton.id = "open-full-settings";
     settingsButton.type = "button";
     settingsButton.title = "Advanced color settings";
-    settingsButton.append(createSettingsIcon(), document.createTextNode("More Options"));
+    settingsButton.append(
+        createSettingsIcon(),
+        document.createTextNode("More Options")
+    );
     footer.append(settingsButton);
+
     dropdown.append(header, grid, footer);
+
     return dropdown;
 }
+
 /**
  * Initializes the quick color switcher
  */
-export function initQuickColorSwitcher() {
+export function initQuickColorSwitcher(): void {
     // Check if already initialized
     if (document.getElementById(SWITCHER_ID)) {
         return;
     }
+
     // Create and inject the switcher
     const switcher = createSwitcherElement();
     document.body.append(switcher);
+
     // Inject styles
     injectSwitcherStyles();
+
     // Setup event listeners
     setupSwitcherListeners(switcher);
 }
+
 /**
  * Updates the active color in the switcher
  *
  * @param color - The new active color
  */
-export function updateSwitcherActiveColor(color) {
+export function updateSwitcherActiveColor(color: string): void {
     const switcher = document.getElementById(SWITCHER_ID);
-    if (!switcher)
-        return;
-    const colorOptions = switcher.querySelectorAll(".color-option");
+    if (!switcher) return;
+
+    const colorOptions =
+        switcher.querySelectorAll<HTMLButtonElement>(".color-option");
     for (const option of colorOptions) {
         option.classList.toggle("active", option.dataset["color"] === color);
     }
 }
-function createSwitcherElement() {
-    const switcher = document.createElement("div");
+
+function createSwitcherElement(): QuickColorSwitcherElement {
+    const switcher = document.createElement(
+        "div"
+    ) as QuickColorSwitcherElement;
     switcher.id = SWITCHER_ID;
     switcher.className = "quick-color-switcher";
+
     const currentTheme = loadTheme();
     const effectiveTheme = getEffectiveTheme(currentTheme);
     const currentColor = getEffectiveAccentColor(effectiveTheme);
+
     switcher.append(createToggleButton(), createSwitcherDropdown(currentColor));
+
     return switcher;
 }
-function injectSwitcherStyles() {
+
+function injectSwitcherStyles(): void {
     if (document.getElementById("quick-color-switcher-styles")) {
         return;
     }
+
     const style = document.createElement("style");
     style.id = "quick-color-switcher-styles";
     style.textContent = `
@@ -368,35 +434,48 @@ function injectSwitcherStyles() {
 			}
 		}
 	`;
+
     document.head.append(style);
 }
-function setupSwitcherListeners(switcher) {
+
+function setupSwitcherListeners(switcher: QuickColorSwitcherElement): void {
     switcher.__ffvQuickColorSwitcherState?.listenerController.abort();
     if (switcher.__ffvQuickColorSwitcherState?.closeTimer) {
         clearTimeout(switcher.__ffvQuickColorSwitcherState.closeTimer);
     }
+
     const listenerController = new AbortController();
-    const state = {
+    const state: QuickColorSwitcherState = {
         closeTimer: null,
         listenerController,
     };
     switcher.__ffvQuickColorSwitcherState = state;
-    const toggle = switcher.querySelector("#color-switcher-toggle");
-    const dropdown = switcher.querySelector("#color-switcher-dropdown");
-    const colorOptions = switcher.querySelectorAll(".color-option");
-    const settingsBtn = switcher.querySelector("#open-full-settings");
+
+    const toggle = switcher.querySelector<HTMLButtonElement>(
+        "#color-switcher-toggle"
+    );
+    const dropdown = switcher.querySelector<HTMLElement>(
+        "#color-switcher-dropdown"
+    );
+    const colorOptions =
+        switcher.querySelectorAll<HTMLButtonElement>(".color-option");
+    const settingsBtn =
+        switcher.querySelector<HTMLButtonElement>("#open-full-settings");
+
     if (toggle) {
         toggle.addEventListener("click", (e) => {
             e.stopPropagation();
             dropdown?.classList.toggle("open");
         }, { signal: listenerController.signal });
     }
+
     // Close dropdown when clicking outside
     document.addEventListener("click", (e) => {
         if (e.target instanceof Node && !switcher.contains(e.target)) {
             dropdown?.classList.remove("open");
         }
     }, { signal: listenerController.signal });
+
     // Color option click
     for (const option of colorOptions) {
         option.addEventListener("click", () => {
@@ -405,11 +484,13 @@ function setupSwitcherListeners(switcher) {
                 const currentTheme = loadTheme();
                 const effectiveTheme = getEffectiveTheme(currentTheme);
                 setAccentColor(color, effectiveTheme);
+
                 // Update active state
                 for (const opt of colorOptions) {
                     opt.classList.remove("active");
                 }
                 option.classList.add("active");
+
                 // Close dropdown after short delay
                 if (state.closeTimer) {
                     clearTimeout(state.closeTimer);
@@ -421,6 +502,7 @@ function setupSwitcherListeners(switcher) {
             }
         }, { signal: listenerController.signal });
     }
+
     // Open full settings modal
     if (settingsBtn) {
         settingsBtn.addEventListener("click", () => {
@@ -428,7 +510,8 @@ function setupSwitcherListeners(switcher) {
         }, { signal: listenerController.signal });
     }
 }
-async function openSettingsModal(dropdown) {
+
+async function openSettingsModal(dropdown: HTMLElement | null): Promise<void> {
     dropdown?.classList.remove("open");
     const { showSettingsModal } = await import("./settingsModal.js");
     await showSettingsModal();

@@ -162,6 +162,7 @@
         "utils/ui/mainUiGlobals.ts",
         "utils/ui/components/LoadingOverlay.ts",
         "utils/ui/initStartup.ts",
+        "utils/ui/quickColorSwitcher.ts",
         "utils/ui/unifiedControlBar.ts",
         "utils/ui/icons/iconFactory.ts",
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
