@@ -538,11 +538,12 @@ export function __setTestDeps(overrides) {
  * @typedef {Object} ChartJSInstance
  *
  * @property {HTMLCanvasElement} canvas - Chart canvas element
+ * @property {{ type?: string }} config - Chart configuration
  * @property {Object} data - Chart data object
  * @property {Object} options - Chart options object
- * @property {Function} toBase64Image - Function to export chart as base64 image
- * @property {Function} update - Function to update chart
- * @property {Function} destroy - Function to destroy chart
+ * @property {(type?: string, quality?: number, backgroundColor?: string) => string} toBase64Image - Function to export chart as base64 image
+ * @property {() => void} update - Function to update chart
+ * @property {() => void} destroy - Function to destroy chart
  */
 
 /**
@@ -924,11 +925,9 @@ export const exportUtils = {
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
-                canvas = document.createElement("canvas"),
-                /** @type {any} */
-                chartAny = /** @type {any} */ (chart);
-            canvas.width = chartAny.canvas.width;
-            canvas.height = chartAny.canvas.height;
+                canvas = document.createElement("canvas");
+            canvas.width = chart.canvas.width;
+            canvas.height = chart.canvas.height;
             const ctx = canvas.getContext("2d");
             if (!ctx) {
                 throw new Error("Failed to get 2D context");
@@ -944,7 +943,7 @@ export const exportUtils = {
             }
 
             if (ctx) {
-                ctx.drawImage(chartAny.canvas, 0, 0);
+                ctx.drawImage(chart.canvas, 0, 0);
             }
 
             const pngDataUrl = canvas.toDataURL("image/png", 1);
@@ -1034,11 +1033,9 @@ export const exportUtils = {
                     }
                 }
 
-                /** @type {any} */
-                const chartAny = /** @type {any} */ (chart);
                 if (tempCtx) {
                     tempCtx.drawImage(
-                        chartAny.canvas,
+                        chart.canvas,
                         0,
                         0,
                         chartWidth,
@@ -1137,11 +1134,9 @@ export const exportUtils = {
                 }
 
                 // Draw chart on temp canvas
-                /** @type {any} */
-                const chartAny = /** @type {any} */ (chart);
                 if (tempCtx) {
                     tempCtx.drawImage(
-                        chartAny.canvas,
+                        chart.canvas,
                         0,
                         0,
                         chartWidth,
@@ -1504,14 +1499,16 @@ export const exportUtils = {
         return overlay;
     },
 
+    /**
+     * @param {ChartJSInstance} chart - Chart.js instance
+     * @param {string} filename - Download filename
+     */
     async downloadChartAsPNG(chart, filename = "chart.png") {
         try {
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 link = document.createElement("a");
             link.download = filename;
-            /** @type {any} */
-            const chartAny = /** @type {any} */ (chart);
-            link.href = chartAny.toBase64Image("image/png", 1, backgroundColor);
+            link.href = chart.toBase64Image("image/png", 1, backgroundColor);
             document.body.append(link);
             link.click();
             link.remove();
@@ -2156,7 +2153,7 @@ export const exportUtils = {
     /**
      * Validates a Chart.js instance
      *
-     * @param {ChartJSInstance} chart - Chart.js instance to validate
+     * @param {ChartJSInstance | null | undefined} chart - Chart.js instance to validate
      *
      * @returns {boolean} True if chart is valid, false otherwise
      */
@@ -2166,17 +2163,16 @@ export const exportUtils = {
             return false;
         }
 
-        /** @type {any} */
-        const chartAny = /** @type {any} */ (chart);
-        if (!chartAny.canvas) {
+        const { canvas } = chart;
+        if (!canvas) {
             console.warn("[exportUtils] Chart canvas is not available");
             return false;
         }
 
-        if (!chartAny.canvas.width || !chartAny.canvas.height) {
+        if (!canvas.width || !canvas.height) {
             console.warn("[exportUtils] Chart canvas has invalid dimensions:", {
-                height: chartAny.canvas.height,
-                width: chartAny.canvas.width,
+                height: canvas.height,
+                width: canvas.width,
             });
             return false;
         }
