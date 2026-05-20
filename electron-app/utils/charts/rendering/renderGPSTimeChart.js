@@ -5,12 +5,44 @@ import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 /**
+ * @typedef {Object} GPSTimeDatum
+ *
+ * @property {number | null | undefined} [positionLat]
+ * @property {number | null | undefined} [positionLong]
+ * @property {Date | number | string | null | undefined} [timestamp]
+ */
+/**
+ * @typedef {Object} GPSTimePoint
+ *
+ * @property {number} elapsedSeconds
+ * @property {number} pointIndex
+ * @property {Date | number | string} timestamp
+ * @property {number} x
+ * @property {number} y
+ */
+/**
+ * @typedef {Object} GPSTimeThemeConfig
+ *
+ * @property {Record<string, string>} colors
+ */
+/**
+ * @typedef {Object} GPSTimeTooltipContext
+ *
+ * @property {number} datasetIndex
+ * @property {GPSTimePoint} raw
+ */
+/**
+ * @typedef {Object} GPSTimeRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ */
+/**
  * Renders a chart showing GPS position (latitude and longitude) plotted against
  * time. This allows users to correlate specific timestamps with exact GPS
  * locations, making it easy to identify where events like top speed occurred.
  *
  * @param {HTMLElement} container - Container element for the chart
- * @param {any[]} data - Array of record messages with position and timestamp
+ * @param {GPSTimeDatum[]} data - Array of record messages with position and timestamp
  *   data
  * @param {{
  *     maxPoints: number | "all";
@@ -31,7 +63,10 @@ export function renderGPSTimeChart(container, data, options) {
         const isDebugLoggingEnabled =
             isTestEnvironment ||
             (isDevEnvironment &&
-                Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts));
+                Boolean(
+                    /** @type {GPSTimeRuntimeGlobal} */ (globalThis)
+                        .__FFV_debugCharts
+                ));
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTimeChart called");
         }
@@ -69,8 +104,9 @@ export function renderGPSTimeChart(container, data, options) {
             return;
         }
 
-        /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = /** @type {GPSTimeThemeConfig} */ (
+            getThemeConfig()
+        );
 
         // Find the first valid timestamp to use as reference time
         const firstTimestamp = safeData.find((row) => row.timestamp)?.timestamp;
@@ -84,7 +120,9 @@ export function renderGPSTimeChart(container, data, options) {
         const startTime = new Date(firstTimestamp).getTime();
 
         // Convert GPS positions and timestamps to chart data
+        /** @type {GPSTimePoint[]} */
         let latitudeData = [],
+            /** @type {GPSTimePoint[]} */
             longitudeData = [];
         for (const [index, row] of safeData.entries()) {
             if (
@@ -239,7 +277,7 @@ export function renderGPSTimeChart(container, data, options) {
                         borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
-                            /** @param {any} context */
+                            /** @param {GPSTimeTooltipContext} context */
                             label(context) {
                                 const point = context.raw,
                                     isLatitude = context.datasetIndex === 0,
@@ -253,7 +291,7 @@ export function renderGPSTimeChart(container, data, options) {
                                     `Point: ${point.pointIndex}`,
                                 ];
                             },
-                            /** @param {any[]} tooltipItems */
+                            /** @param {GPSTimeTooltipContext[]} tooltipItems */
                             title(tooltipItems) {
                                 if (tooltipItems.length > 0) {
                                     const point = tooltipItems[0].raw;
@@ -312,7 +350,7 @@ export function renderGPSTimeChart(container, data, options) {
                             display: options.showGrid !== false,
                         },
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 return formatElapsedTime(value);
                             },
@@ -333,7 +371,7 @@ export function renderGPSTimeChart(container, data, options) {
                         },
                         position: "left",
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 return `${value.toFixed(5)}°`;
                             },
@@ -354,7 +392,7 @@ export function renderGPSTimeChart(container, data, options) {
                         },
                         position: "right",
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 return `${value.toFixed(5)}°`;
                             },
