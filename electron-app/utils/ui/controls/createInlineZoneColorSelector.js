@@ -726,7 +726,9 @@ function createColorSchemeSelector(
  */
 function createResetButton(field, zoneType, zoneData, onReset) {
     const button = document.createElement("button");
-    button.innerHTML = "↻ Reset";
+    button.type = "button";
+    button.textContent = "↻ Reset";
+    button.setAttribute("aria-label", "Reset all zone colors to defaults");
     button.title = "Reset all zone colors to defaults";
     button.style.cssText = `
         padding: 6px 12px;
