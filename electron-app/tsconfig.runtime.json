@@ -175,6 +175,7 @@
         "utils/ui/controls/enableTabButtons.ts",
         "utils/ui/controls/enableTabButtonsDebug.ts",
         "utils/ui/controls/enableTabButtonsHelpers.ts",
+        "utils/ui/controls/removeExitFullscreenOverlay.ts",
         "utils/ui/controls/createInlineZoneColorSelector.ts",
         "utils/ui/controls/createHRZoneControls.ts",
         "utils/ui/controls/createPowerZoneControls.ts",
