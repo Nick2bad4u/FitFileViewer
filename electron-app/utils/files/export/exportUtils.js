@@ -935,12 +935,9 @@ export const exportUtils = {
                 );
             }
         } catch (error) {
-            console.error(
-                "Error copying chart to clipboard:",
-                /** @type {any} */ (error)
-            );
+            console.error("Error copying chart to clipboard:", error);
             __deps.showNotification(
-                `Failed to copy chart to clipboard: ${/** @type {any} */ (error).message}`,
+                `Failed to copy chart to clipboard: ${getErrorMessage(error)}`,
                 "error"
             );
         }
@@ -1144,10 +1141,7 @@ export const exportUtils = {
 
             __deps.showNotification("Combined charts exported", "success");
         } catch (error) {
-            console.error(
-                "Error creating combined charts image:",
-                /** @type {any} */ (error)
-            );
+            console.error("Error creating combined charts image:", error);
             __deps.showNotification("Failed to create combined image", "error");
         }
     },
@@ -2427,7 +2421,7 @@ body {
                         );
                     } catch (imgurError) {
                         if (
-                            /** @type {any} */ (imgurError).message.includes(
+                            getErrorMessage(imgurError).includes(
                                 "Imgur client ID not configured"
                             )
                         ) {
@@ -2553,7 +2547,7 @@ body {
                         );
                     } catch (imgurError) {
                         if (
-                            /** @type {any} */ (imgurError).message.includes(
+                            getErrorMessage(imgurError).includes(
                                 "Imgur client ID not configured"
                             )
                         ) {
@@ -2637,11 +2631,9 @@ body {
                         "Error sharing single chart to Gyazo:",
                         error
                     );
-                    if (
-                        /** @type {any} */ (error).message.includes(
-                            "Gyazo access token not configured"
-                        )
-                    ) {
+                    if (getErrorMessage(error).includes(
+                        "Gyazo access token not configured"
+                    )) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
@@ -2751,11 +2743,9 @@ body {
                         "Error sharing combined charts to Gyazo:",
                         error
                     );
-                    if (
-                        /** @type {any} */ (error).message.includes(
-                            "Gyazo access token not configured"
-                        )
-                    ) {
+                    if (getErrorMessage(error).includes(
+                        "Gyazo access token not configured"
+                    )) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
