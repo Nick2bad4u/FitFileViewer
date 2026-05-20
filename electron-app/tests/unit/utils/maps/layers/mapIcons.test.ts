@@ -4,7 +4,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 function setLeafletMock(impl?: { icon: (opts: any) => any }) {
     if (impl) {
         // @ts-ignore define
-        (globalThis as any).L = { icon: impl.icon } as any;
+        (globalThis as any).L = {
+            divIcon: vi.fn((opts: any) => ({ ...opts, _type: "divIcon" })),
+            icon: impl.icon,
+        } as any;
     } else {
         // @ts-ignore delete
         delete (globalThis as any).L;
@@ -30,14 +33,14 @@ describe("mapIcons", () => {
         setLeafletMock(undefined);
         const { createStartIcon } = await loadModule();
         const icon = createStartIcon();
-        expect(icon).toEqual({});
+        expect(icon).toStrictEqual({});
     });
 
     it("createEndIcon returns shim object when L missing", async () => {
         setLeafletMock(undefined);
         const { createEndIcon } = await loadModule();
         const icon = createEndIcon();
-        expect(icon).toEqual({});
+        expect(icon).toStrictEqual({});
     });
 
     it("createStartIcon calls L.icon with start asset", async () => {
@@ -50,9 +53,9 @@ describe("mapIcons", () => {
         expect(iconSpy).toHaveBeenCalledTimes(1);
         const args = iconSpy.mock.calls[0][0];
         expect(args.iconUrl).toContain("assets/map-icons/start-icon.png");
-        expect(args.iconAnchor).toEqual([16, 32]);
-        expect(args.iconSize).toEqual([32, 32]);
-        expect(args.popupAnchor).toEqual([0, -32]);
+        expect(args.iconAnchor).toStrictEqual([16, 32]);
+        expect(args.iconSize).toStrictEqual([32, 32]);
+        expect(args.popupAnchor).toStrictEqual([0, -32]);
 
         // Ensure returned icon is what L.icon produced
         expect(icon).toHaveProperty("_type", "icon");
@@ -68,9 +71,9 @@ describe("mapIcons", () => {
         expect(iconSpy).toHaveBeenCalledTimes(1);
         const args = iconSpy.mock.calls[0][0];
         expect(args.iconUrl).toContain("assets/map-icons/end-icon.png");
-        expect(args.iconAnchor).toEqual([16, 32]);
-        expect(args.iconSize).toEqual([32, 32]);
-        expect(args.popupAnchor).toEqual([0, -32]);
+        expect(args.iconAnchor).toStrictEqual([16, 32]);
+        expect(args.iconSize).toStrictEqual([32, 32]);
+        expect(args.popupAnchor).toStrictEqual([0, -32]);
 
         expect(icon).toHaveProperty("_type", "icon");
     });

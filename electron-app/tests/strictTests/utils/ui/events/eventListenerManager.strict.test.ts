@@ -6,28 +6,25 @@ import {
 } from "../../../../../utils/ui/events/eventListenerManager.js";
 
 describe("eventListenerManager.strict branches", () => {
-    it("warns if removeEventListener throws during cleanup", () => {
+    it("warns if aborting an event listener throws during cleanup", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const el = document.createElement("div");
-        const originalRemove = el.removeEventListener.bind(el);
-        // Force removeEventListener to throw
-        // @ts-ignore
-        el.removeEventListener = (() => {
-            throw new Error("remove fail");
-        }) as any;
+        const abortSpy = vi
+            .spyOn(AbortController.prototype, "abort")
+            .mockImplementationOnce(() => {
+                throw new Error("abort fail");
+            });
 
-        const cleanup = addEventListenerWithCleanup(
-            el as any,
-            "click",
-            () => {}
-        );
+        const cleanup = addEventListenerWithCleanup(el, "click", () => {});
+
         expect(getListenerCount()).toBe(1);
-        // Should not throw; should warn
         expect(() => cleanup()).not.toThrow();
-        expect(warn).toHaveBeenCalled();
-        // restore
-        // @ts-ignore
-        el.removeEventListener = originalRemove;
+        expect(warn).toHaveBeenCalledWith(
+            "[EventListenerManager] Error removing event listener:",
+            expect.any(Error)
+        );
+
+        abortSpy.mockRestore();
         cleanupEventListeners();
     });
 });

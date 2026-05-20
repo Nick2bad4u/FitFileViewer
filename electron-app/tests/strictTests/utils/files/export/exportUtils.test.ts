@@ -104,6 +104,22 @@ function installJSZipMock() {
     return FakeZip;
 }
 
+function createPrintWindowMock() {
+    const printDocument = document.implementation.createHTMLDocument("");
+
+    return {
+        close: vi.fn(),
+        document: printDocument,
+        focus: vi.fn(),
+        opener: {} as unknown,
+        print: vi.fn(),
+        setTimeout: vi.fn((callback: () => void) => {
+            callback();
+            return 1;
+        }),
+    } as unknown as Window;
+}
+
 describe("exportUtils core flows", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -441,12 +457,7 @@ describe("exportUtils core flows", () => {
         const notify = reg.get("/utils/ui/notifications/showNotification.js")
             .showNotification as any;
 
-        const fakeWin = {
-            document: { write: vi.fn(), close: vi.fn() },
-            print: vi.fn(),
-            focus: vi.fn(),
-            close: vi.fn(),
-        } as any;
+        const fakeWin = createPrintWindowMock();
         const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWin);
 
         const chart: any = { canvas: { width: 300, height: 150 } };
@@ -464,12 +475,7 @@ describe("exportUtils core flows", () => {
         const notify = reg.get("/utils/ui/notifications/showNotification.js")
             .showNotification as any;
 
-        const fakeWin = {
-            document: { write: vi.fn(), close: vi.fn() },
-            print: vi.fn(),
-            focus: vi.fn(),
-            close: vi.fn(),
-        } as any;
+        const fakeWin = createPrintWindowMock();
         vi.spyOn(window, "open").mockReturnValue(fakeWin);
 
         const chartA: any = {

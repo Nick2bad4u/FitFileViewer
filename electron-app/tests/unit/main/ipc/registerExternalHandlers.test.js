@@ -99,20 +99,6 @@ describe("registerExternalHandlers", () => {
             shellOpenExternalHandler = shellCall[1];
         });
 
-        it("should open a valid HTTP URL successfully", async () => {
-            const result = await shellOpenExternalHandler(
-                {},
-                "http://example.com"
-            );
-
-            expect(mockShellRef).toHaveBeenCalled();
-            expect(mockShell.openExternal).toHaveBeenCalledWith(
-                "http://example.com"
-            );
-            expect(result).toBe(true);
-            expect(mockLogWithContext).not.toHaveBeenCalled();
-        });
-
         it("should open a valid HTTPS URL successfully", async () => {
             const result = await shellOpenExternalHandler(
                 {},
@@ -122,6 +108,20 @@ describe("registerExternalHandlers", () => {
             expect(mockShellRef).toHaveBeenCalled();
             expect(mockShell.openExternal).toHaveBeenCalledWith(
                 "https://example.com"
+            );
+            expect(result).toBe(true);
+            expect(mockLogWithContext).not.toHaveBeenCalled();
+        });
+
+        it("should open a valid mailto URL successfully", async () => {
+            const result = await shellOpenExternalHandler(
+                {},
+                "mailto:test@example.com"
+            );
+
+            expect(mockShellRef).toHaveBeenCalled();
+            expect(mockShell.openExternal).toHaveBeenCalledWith(
+                "mailto:test@example.com"
             );
             expect(result).toBe(true);
             expect(mockLogWithContext).not.toHaveBeenCalled();
@@ -165,33 +165,48 @@ describe("registerExternalHandlers", () => {
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
-        it("should throw error for non-HTTP/HTTPS URL (ftp://)", async () => {
+        it("should throw error for disallowed HTTP URL", async () => {
             await expect(
-                shellOpenExternalHandler({}, "ftp://example.com")
-            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
+                shellOpenExternalHandler({}, "http://example.com")
+            ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
             expect(mockLogWithContext).toHaveBeenCalledWith(
                 "error",
                 "Error in shell:openExternal:",
                 {
-                    error: "Only HTTP and HTTPS URLs are allowed",
+                    error: "Only HTTPS and mailto URLs are allowed",
                 }
             );
         });
 
-        it("should throw error for non-HTTP/HTTPS URL (file://)", async () => {
+        it("should throw error for disallowed URL (ftp://)", async () => {
+            await expect(
+                shellOpenExternalHandler({}, "ftp://example.com")
+            ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
+
+            expect(mockShell.openExternal).not.toHaveBeenCalled();
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Error in shell:openExternal:",
+                {
+                    error: "Only HTTPS and mailto URLs are allowed",
+                }
+            );
+        });
+
+        it("should throw error for disallowed URL (file://)", async () => {
             await expect(
                 shellOpenExternalHandler({}, "file:///etc/passwd")
-            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
+            ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
-        it("should throw error for non-HTTP/HTTPS URL (javascript://)", async () => {
+        it("should throw error for disallowed URL (javascript://)", async () => {
             await expect(
                 shellOpenExternalHandler({}, "javascript:alert('xss')")
-            ).rejects.toThrow("Only HTTP and HTTPS URLs are allowed");
+            ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });

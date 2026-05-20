@@ -165,11 +165,13 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             expect(addSpy).toHaveBeenCalledWith(
                 "themechange",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
             expect(addSpy).toHaveBeenCalledWith(
                 "mapThemeChanged",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
         });
 
@@ -235,20 +237,18 @@ describe("updateMapTheme - comprehensive coverage", () => {
     });
 
     describe("Cleanup Handling", () => {
-        it("should remove event listeners on beforeunload", () => {
-            const removeSpy = vi.spyOn(document, "removeEventListener");
+        it("should abort event listeners on beforeunload", () => {
+            mockGetMapThemeInverted.mockReturnValue(true);
+            const { tilePane } = setupLeafletDom();
 
             installUpdateMapThemeListeners();
             window.dispatchEvent(new Event("beforeunload"));
 
-            expect(removeSpy).toHaveBeenCalledWith(
-                "themechange",
-                expect.any(Function)
-            );
-            expect(removeSpy).toHaveBeenCalledWith(
-                "mapThemeChanged",
-                expect.any(Function)
-            );
+            consoleLogSpy.mockClear();
+            document.dispatchEvent(new Event("themechange"));
+
+            expect(tilePane.style.filter).toBe("");
+            expect(consoleLogSpy).not.toHaveBeenCalled();
         });
 
         it("should handle cleanup when no listeners exist", () => {

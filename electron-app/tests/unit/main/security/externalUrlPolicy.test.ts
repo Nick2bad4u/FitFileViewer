@@ -3,21 +3,23 @@ import { describe, expect, it } from "vitest";
 import { validateExternalUrl } from "../../../../main/security/externalUrlPolicy.js";
 
 describe("externalUrlPolicy.validateExternalUrl", () => {
-    it("allows http/https URLs", () => {
+    it("allows https and mailto URLs", () => {
         expect(validateExternalUrl("https://example.com")).toBe(
             "https://example.com"
         );
-        expect(
-            validateExternalUrl("http://localhost:3000/gyazo/callback")
-        ).toBe("http://localhost:3000/gyazo/callback");
+        expect(validateExternalUrl("mailto:test@example.com")).toBe(
+            "mailto:test@example.com"
+        );
     });
 
-    it("rejects non-http(s) schemes", () => {
+    it("rejects disallowed schemes", () => {
+        expect(() =>
+            validateExternalUrl("http://localhost:3000/gyazo/callback")
+        ).toThrow("Only HTTPS and mailto URLs are allowed");
         expect(() =>
             validateExternalUrl("file:///C:/Windows/System32/calc.exe")
         ).toThrow();
         expect(() => validateExternalUrl("javascript:alert(1)")).toThrow();
-        expect(() => validateExternalUrl("mailto:test@example.com")).toThrow();
     });
 
     it("rejects credentials in URLs", () => {
