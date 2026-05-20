@@ -53,13 +53,14 @@ declare namespace utils {
     export { updateTabVisibility };
 }
 export namespace FitFileViewerUtils {
+    export type UtilityFunction = (...args: unknown[]) => unknown;
     export function cleanup(): void;
     export function getAvailableUtils(): string[];
-    export function getUtil(name: string): Function | null;
+    export function getUtil(name: string): UtilityFunction | null;
     export function isUtilAvailable(name: string): boolean;
     import namespace = NAMESPACE;
     export { namespace };
-    export function safeExecute(utilName: string, ...args: any[]): any;
+    export function safeExecute(utilName: string, ...args: unknown[]): unknown;
     export { utils };
     export function validateAllUtils(): ValidationResults;
     export const version: string;

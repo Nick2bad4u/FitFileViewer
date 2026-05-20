@@ -21,7 +21,8 @@
 
 import { globalUtilities } from "./utils/legacy/globalUtilityRegistry.js";
 
-/** @typedef {(...args: any[]) => any} UtilityFunction */
+/** @typedef {(...args: unknown[]) => unknown} UtilityFunction */
+/** @typedef {{ getAppVersion: () => Promise<string> }} VersionElectronAPI */
 
 /**
  * @typedef {Object} ConstantsType
@@ -56,6 +57,19 @@ let versionLoadPromise = null;
 /** @type {number | undefined} */
 let electronAPICheckTimerId;
 
+/**
+ * @returns {VersionElectronAPI | undefined}
+ */
+function getVersionElectronAPI() {
+    const api = /** @type {{ electronAPI?: Partial<VersionElectronAPI> }} */ (
+        globalThis
+    ).electronAPI;
+
+    return api && typeof api.getAppVersion === "function"
+        ? /** @type {VersionElectronAPI} */ (api)
+        : undefined;
+}
+
 // Function to get version from electronAPI (idempotent)
 async function loadVersionFromElectron() {
     if (versionLoadStarted) {
@@ -70,15 +84,9 @@ async function loadVersionFromElectron() {
 
     versionLoadPromise = (async () => {
         try {
-            if (
-                /** @type {any} */ (globalThis).electronAPI &&
-                typeof (
-                    /** @type {any} */ (globalThis).electronAPI.getAppVersion
-                ) === "function"
-            ) {
-                const version = await /** @type {any} */ (
-                    globalThis
-                ).electronAPI.getAppVersion();
+            const electronAPI = getVersionElectronAPI();
+            if (electronAPI) {
+                const version = await electronAPI.getAppVersion();
                 CONSTANTS.VERSION = version || "unknown";
                 logWithContext(
                     "info",
@@ -108,11 +116,7 @@ async function loadVersionFromElectron() {
 // Initialize version asynchronously when electronAPI becomes available
 if (globalThis.window !== undefined) {
     // Try immediately if electronAPI is already available
-    if (
-        /** @type {any} */ (globalThis).electronAPI &&
-        typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) ===
-            "function"
-    ) {
+    if (getVersionElectronAPI()) {
         // Fire and forget - don't need to await
         loadVersionFromElectron();
     } else {
@@ -123,12 +127,7 @@ if (globalThis.window !== undefined) {
                 electronAPICheckTimerId = undefined;
                 return;
             }
-            if (
-                /** @type {any} */ (globalThis).electronAPI &&
-                typeof (
-                    /** @type {any} */ (globalThis).electronAPI.getAppVersion
-                ) === "function"
-            ) {
+            if (getVersionElectronAPI()) {
                 // Fire and forget - don't need to await
                 loadVersionFromElectron();
             } else {
@@ -171,7 +170,7 @@ function logWithContext(level, message, context = {}) {
 /**
  * Validation functions
  *
- * @param {any} fn - Function to validate
+ * @param {unknown} fn - Function to validate
  * @param {string} name - Function name
  *
  * @returns {boolean} Is valid function
@@ -430,7 +429,7 @@ const FitFileViewerUtils = {
     /**
      * @param {string} name - Utility name
      *
-     * @returns {Function | null} The utility function or null
+     * @returns {UtilityFunction | null} The utility function or null
      */
     getUtil: (name) => {
         if (!FitFileViewerUtils.isUtilAvailable(name)) {
@@ -452,9 +451,9 @@ const FitFileViewerUtils = {
     // Safe utility execution
     /**
      * @param {string} utilName - Utility name
-     * @param {...any} args - Arguments to pass
+     * @param {...unknown} args - Arguments to pass
      *
-     * @returns {any} Result of utility execution
+     * @returns {unknown} Result of utility execution
      */
     safeExecute: (utilName, ...args) => {
         const util = FitFileViewerUtils.getUtil(utilName);
