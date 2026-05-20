@@ -3,6 +3,8 @@ const path = require("node:path");
 /**
  * Attempts to resolve Node's fs module while supporting test environments that
  * mock either "fs" or "node:fs".
+ *
+ * @type {typeof import("node:fs") | null}
  */
 const fs = (() => {
     try {
@@ -12,7 +14,7 @@ const fs = (() => {
             const fsName = "fs";
             return require(fsName);
         } catch {
-            return /** @type {any} */ (null);
+            return null;
         }
     }
 })();
@@ -21,7 +23,7 @@ const fs = (() => {
  * Lazily resolves the http module, preferring the classic specifier so tests
  * can stub it easily.
  *
- * @returns {any} Node http module or null when unavailable.
+ * @returns {typeof import("node:http") | null} Node http module or null when unavailable.
  */
 function httpRef() {
     try {
@@ -31,7 +33,7 @@ function httpRef() {
         try {
             return require("node:http");
         } catch {
-            return /** @type {any} */ (null);
+            return null;
         }
     }
 }
