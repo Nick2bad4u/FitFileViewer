@@ -3,261 +3,371 @@ import * as __StateMgr from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { extractTabNameFromButtonId } from "./tabIdUtils.js";
-let activeTabUnsubscribe = null;
-function canUseDocument(candidate) {
-    return (candidate !== null &&
+
+type StateUpdateOptions = {
+    readonly source: string;
+};
+
+type StateManagerAccess = {
+    getState: (path?: string) => unknown;
+    setState: (
+        path: string,
+        value: unknown,
+        options?: StateUpdateOptions
+    ) => void;
+    subscribe: (
+        path: string,
+        callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
+    ) => unknown;
+};
+
+type StateManagerCandidate = Partial<StateManagerAccess> & {
+    subscribeSingleton?: (
+        path: string,
+        key: string,
+        callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
+    ) => void;
+};
+
+type TabButtonLike = EventTarget & {
+    readonly classList: DOMTokenList;
+    readonly disabled?: boolean;
+    readonly getAttribute?: (qualifiedName: string) => string | null;
+    readonly id?: string;
+    readonly setAttribute?: (qualifiedName: string, value: string) => void;
+};
+
+type ButtonCollection = {
+    readonly length: number;
+    [Symbol.iterator](): IterableIterator<unknown>;
+};
+
+type EffectiveGlobals = typeof globalThis & {
+    __vitest_effective_document__?: Document;
+    __vitest_effective_stateManager__?: unknown;
+};
+
+let activeTabUnsubscribe: (() => void) | null = null;
+
+function canUseDocument(candidate: unknown): candidate is Document {
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "getElementById" in candidate &&
         typeof candidate.getElementById === "function" &&
         "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function");
+        typeof candidate.querySelectorAll === "function"
+    );
 }
-function getEffectiveGlobals() {
-    return globalThis;
+
+function getEffectiveGlobals(): EffectiveGlobals {
+    return globalThis as EffectiveGlobals;
 }
-function getWindowDocument() {
+
+function getWindowDocument(): Document | undefined {
     try {
         return typeof globalThis.window !== "undefined"
             ? globalThis.window.document
             : undefined;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
-function getGlobalDocument() {
+
+function getGlobalDocument(): Document | undefined {
     try {
         return typeof globalThis.document !== "undefined"
             ? globalThis.document
             : undefined;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
-function getEffectiveDocument() {
+
+function getEffectiveDocument(): Document | undefined {
     try {
         return getEffectiveGlobals().__vitest_effective_document__;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
-function getDoc() {
+
+function getDoc(): Document {
     const candidates = [
         getGlobalDocument(),
         getWindowDocument(),
         getGlobalDocument(),
         getEffectiveDocument(),
     ];
+
     for (const candidate of candidates) {
         if (canUseDocument(candidate)) {
             return candidate;
         }
     }
+
     return document;
 }
-function asStateManagerCandidate(value) {
+
+function asStateManagerCandidate(value: unknown): StateManagerCandidate {
     return value !== null && typeof value === "object"
-        ? value
+        ? (value as StateManagerCandidate)
         : {};
 }
-function getGetState(candidate) {
+
+function getGetState(
+    candidate: StateManagerCandidate
+): StateManagerAccess["getState"] | undefined {
     const value = candidate.getState;
+
     return typeof value === "function" ? value : undefined;
 }
-function getSetState(candidate) {
+
+function getSetState(
+    candidate: StateManagerCandidate
+): StateManagerAccess["setState"] | undefined {
     const value = candidate.setState;
+
     return typeof value === "function" ? value : undefined;
 }
-function getSubscribe(candidate) {
+
+function getSubscribe(
+    candidate: StateManagerCandidate
+): StateManagerAccess["subscribe"] | undefined {
     const value = candidate.subscribe;
+
     return typeof value === "function" ? value : undefined;
 }
-function getStateMgr() {
+
+function getStateMgr(): StateManagerAccess {
     try {
         const moduleStateManager = asStateManagerCandidate(__StateMgr);
         const getState = getGetState(moduleStateManager);
         const setState = getSetState(moduleStateManager);
         const subscribe = getSubscribe(moduleStateManager);
+
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
+
     try {
-        const effectiveStateManager = asStateManagerCandidate(getEffectiveGlobals().__vitest_effective_stateManager__);
+        const effectiveStateManager = asStateManagerCandidate(
+            getEffectiveGlobals().__vitest_effective_stateManager__
+        );
         const fallbackStateManager = asStateManagerCandidate(__StateMgr);
-        const getState = getGetState(effectiveStateManager) ??
+        const getState =
+            getGetState(effectiveStateManager) ??
             getGetState(fallbackStateManager);
-        const setState = getSetState(effectiveStateManager) ??
+        const setState =
+            getSetState(effectiveStateManager) ??
             getSetState(fallbackStateManager);
-        const subscribe = getSubscribe(effectiveStateManager) ??
+        const subscribe =
+            getSubscribe(effectiveStateManager) ??
             getSubscribe(fallbackStateManager);
+
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
+
     return {
         getState: __StateMgr.getState,
         setState: __StateMgr.setState,
         subscribe: __StateMgr.subscribe,
     };
 }
-function getSubscribeSingleton() {
+
+function getSubscribeSingleton():
+    | StateManagerCandidate["subscribeSingleton"]
+    | undefined {
     const candidate = asStateManagerCandidate(__StateMgr);
     const value = candidate.subscribeSingleton;
+
     return typeof value === "function" ? value : undefined;
 }
-function getButtonCollection(selector) {
-    return getDoc().querySelectorAll(selector);
+
+function getButtonCollection(selector: string): ButtonCollection {
+    return getDoc().querySelectorAll(selector) as unknown as ButtonCollection;
 }
-function isButtonLike(candidate) {
-    return (candidate !== null &&
+
+function isButtonLike(candidate: unknown): candidate is TabButtonLike {
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "classList" in candidate &&
         candidate.classList !== undefined &&
-        candidate.classList !== null);
+        candidate.classList !== null
+    );
 }
-function getButtonId(button) {
+
+function getButtonId(button: TabButtonLike): string {
     return typeof button.id === "string" ? button.id.trim() : "";
 }
-function isDisabledButton(button) {
-    const hasDisabledClass = button.classList?.contains?.("tab-disabled") === true;
-    return (button.disabled === true ||
+
+function isDisabledButton(button: TabButtonLike): boolean {
+    const hasDisabledClass =
+        button.classList?.contains?.("tab-disabled") === true;
+
+    return (
+        button.disabled === true ||
         button.getAttribute?.("aria-disabled") === "true" ||
-        hasDisabledClass);
+        hasDisabledClass
+    );
 }
-function removeActiveClass(element) {
+
+function removeActiveClass(element: unknown): void {
     if (isButtonLike(element)) {
         element.classList?.remove?.("active");
     }
 }
+
 /**
  * Get the currently active tab.
  *
  * @returns Currently active tab name.
  */
-export function getActiveTab() {
+export function getActiveTab(): string {
     const activeTab = getStateMgr().getState("ui.activeTab");
+
     return typeof activeTab === "string" && activeTab ? activeTab : "summary";
 }
+
 /**
  * Initialize active tab state management by wiring state subscription.
  */
-export function initializeActiveTabState() {
+export function initializeActiveTabState(): void {
     try {
-        const onActiveTabChange = (activeTab) => {
+        const onActiveTabChange = (activeTab: unknown) => {
             try {
                 if (typeof activeTab === "string") {
                     updateTabButtonsFromState(activeTab);
                 }
-            }
-            catch {
+            } catch {
                 /* Ignore */
             }
         };
+
         try {
             if (typeof activeTabUnsubscribe === "function") {
                 activeTabUnsubscribe();
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         activeTabUnsubscribe = null;
+
         const stateManager = getStateMgr();
         if (typeof stateManager.subscribe === "function") {
-            const maybeUnsub = stateManager.subscribe("ui.activeTab", onActiveTabChange);
+            const maybeUnsub = stateManager.subscribe(
+                "ui.activeTab",
+                onActiveTabChange
+            );
             activeTabUnsubscribe =
                 typeof maybeUnsub === "function"
-                    ? maybeUnsub
+                    ? (maybeUnsub as () => void)
                     : null;
-        }
-        else {
+        } else {
             const subscribeSingleton = getSubscribeSingleton();
             if (subscribeSingleton) {
-                subscribeSingleton("ui.activeTab", "ui:updateActiveTab:activeTab", onActiveTabChange);
-            }
-            else {
-                console.warn("[ActiveTab] No state subscription API available; active tab UI will not react to state");
+                subscribeSingleton(
+                    "ui.activeTab",
+                    "ui:updateActiveTab:activeTab",
+                    onActiveTabChange
+                );
+            } else {
+                console.warn(
+                    "[ActiveTab] No state subscription API available; active tab UI will not react to state"
+                );
             }
         }
+
         const tabButtons = getButtonCollection(".tab-button");
         if (!tabButtons || tabButtons.length === 0) {
-            console.warn("initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up.");
-        }
-        else {
+            console.warn(
+                "initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up."
+            );
+        } else {
             for (const candidate of tabButtons) {
                 if (!isButtonLike(candidate)) {
-                    console.warn("initializeActiveTabState: Invalid button element found:", candidate);
+                    console.warn(
+                        "initializeActiveTabState: Invalid button element found:",
+                        candidate
+                    );
                     continue;
                 }
+
                 const button = candidate;
-                const onClick = (event) => {
+                const onClick = (event: Event) => {
                     if (isDisabledButton(button)) {
                         try {
-                            console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`);
-                        }
-                        catch {
+                            console.log(
+                                `[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`
+                            );
+                        } catch {
                             /* Ignore errors */
                         }
                         try {
                             event.preventDefault();
                             event.stopPropagation();
-                        }
-                        catch {
+                        } catch {
                             /* Ignore errors */
                         }
                         return;
                     }
+
                     const buttonId = getButtonId(button);
                     if (!buttonId) {
                         return;
                     }
+
                     const tabName = extractTabNameFromButtonId(buttonId);
                     if (!tabName) {
                         return;
                     }
+
                     try {
                         getStateMgr().setState("ui.activeTab", tabName, {
                             source: "tabButtonClick",
                         });
-                    }
-                    catch (error) {
+                    } catch (error) {
                         try {
-                            console.warn("[ActiveTab] Failed to set state from button click:", error);
-                        }
-                        catch {
+                            console.warn(
+                                "[ActiveTab] Failed to set state from button click:",
+                                error
+                            );
+                        } catch {
                             /* Ignore errors */
                         }
                     }
                 };
+
                 addEventListenerWithCleanup(button, "click", onClick);
             }
         }
+
         console.log("[ActiveTab] State management initialized");
-    }
-    catch {
+    } catch {
         // Non-fatal in tests.
     }
 }
+
 /**
  * Update active tab efficiently.
  *
  * @param tabId - Tab button element ID.
  * @returns True when the active tab was updated.
  */
-export function updateActiveTab(tabId) {
+export function updateActiveTab(tabId: unknown): boolean {
     if (!tabId || typeof tabId !== "string") {
         console.warn("[updateActiveTab] Invalid tabId:", tabId);
         return false;
     }
+
     try {
         const currentActive = getDoc().querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
@@ -267,53 +377,66 @@ export function updateActiveTab(tabId) {
             });
             return true;
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
+
     const activeNow = getButtonCollection(".tab-button.active");
     if (activeNow && activeNow.length > 0) {
         if (activeNow.length === 1) {
             const [only] = activeNow;
             removeActiveClass(only);
-        }
-        else {
+        } else {
             for (const element of activeNow) {
                 removeActiveClass(element);
             }
         }
     }
-    const target = getElementByIdFlexible(getDoc(), tabId);
+
+    const target = getElementByIdFlexible(getDoc(), tabId) as unknown;
     if (isButtonLike(target)) {
         target.classList.add("active");
         const tabName = extractTabNameFromButtonId(tabId);
+
         getStateMgr().setState("ui.activeTab", tabName, {
             source: "updateActiveTab",
         });
         return true;
     }
-    console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
+
+    console.error(
+        `Element with ID "${tabId}" not found in the DOM or missing classList.`
+    );
     return false;
 }
+
 /**
  * Update tab button states based on current state.
  *
  * @param activeTab - Currently active tab name.
  */
-function updateTabButtonsFromState(activeTab) {
+function updateTabButtonsFromState(activeTab: string): void {
     const tabButtons = getButtonCollection(".tab-button");
+
     if (!tabButtons || tabButtons.length === 0) {
         console.warn("updateTabButtonsFromState: No tab buttons found in DOM.");
         return;
     }
+
     for (const candidate of tabButtons) {
         if (!isButtonLike(candidate)) {
-            console.warn("updateTabButtonsFromState: Invalid button element found:", candidate);
+            console.warn(
+                "updateTabButtonsFromState: Invalid button element found:",
+                candidate
+            );
             continue;
         }
+
         const tabName = extractTabNameFromButtonId(candidate.id ?? "");
         const isActive = tabName === activeTab;
+
         candidate.classList.toggle("active", isActive);
+
         if (candidate.setAttribute) {
             candidate.setAttribute("aria-selected", isActive.toString());
         }

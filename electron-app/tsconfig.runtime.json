@@ -154,6 +154,7 @@
         "utils/ui/tabs/tabStateManagerDoc.ts",
         "utils/ui/tabs/tabStateManagerHandlers.ts",
         "utils/ui/tabs/tabStateManagerSupport.ts",
+        "utils/ui/tabs/updateActiveTab.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
