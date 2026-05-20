@@ -5,6 +5,16 @@ function hasDebouncedRender(value) {
     return (isRecord(value) &&
         typeof value["debouncedRender"] === "function");
 }
+function hasChartAction(value) {
+    return (isRecord(value) &&
+        (typeof value["clearCharts"] === "function" ||
+            typeof value["completeRendering"] === "function" ||
+            typeof value["startRendering"] === "function"));
+}
+function hasUpdatePanelVisibility(value) {
+    return (isRecord(value) &&
+        typeof value["updatePanelVisibility"] === "function");
+}
 /**
  * Ensures Vitest/jsdom environments expose the process.nextTick shape expected
  * by renderer dependencies without spreading untyped global casts through the renderer.
@@ -60,4 +70,53 @@ export function getDebouncedChartStateManager() {
     return hasDebouncedRender(chartGlobal.chartStateManager)
         ? chartGlobal.chartStateManager
         : null;
+}
+/**
+ * Returns globally exposed chart actions when the legacy bridge is available.
+ */
+export function getGlobalChartActions() {
+    const chartGlobal = globalThis;
+    return hasChartAction(chartGlobal.chartActions)
+        ? chartGlobal.chartActions
+        : null;
+}
+/**
+ * Exposes chart actions for legacy event paths that still resolve them through globalThis.
+ */
+export function setGlobalChartActions(actions) {
+    const chartGlobal = globalThis;
+    chartGlobal.chartActions = actions;
+}
+/**
+ * Returns a globally exposed UI state manager when it can update panel visibility.
+ */
+export function getGlobalPanelVisibilityManager() {
+    const chartGlobal = globalThis;
+    return hasUpdatePanelVisibility(chartGlobal.uiStateManager)
+        ? chartGlobal.uiStateManager
+        : null;
+}
+/**
+ * Returns Chart.js instances from either the renderer global or window mirror.
+ */
+export function getGlobalChartInstances(fallbackInstances) {
+    const chartGlobal = globalThis;
+    const windowValue = chartGlobal.window;
+    const windowInstances = isRecord(windowValue)
+        ? windowValue["_chartjsInstances"]
+        : undefined;
+    const instances = chartGlobal._chartjsInstances ?? windowInstances ?? fallbackInstances;
+    return Array.isArray(instances) ? instances : [];
+}
+/**
+ * Calls the optional AppActions chart-render completion hook.
+ */
+export function notifyChartRenderComplete(appActions, chartCount) {
+    if (!isRecord(appActions)) {
+        return;
+    }
+    const notifier = appActions["notifyChartRenderComplete"];
+    if (typeof notifier === "function") {
+        notifier(chartCount);
+    }
 }

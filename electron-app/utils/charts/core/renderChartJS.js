@@ -81,10 +81,15 @@ import {
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
+    getGlobalChartActions,
+    getGlobalChartInstances,
+    getGlobalPanelVisibilityManager,
     isChartDebugEnabled,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
     isTestEnvironment,
+    notifyChartRenderComplete,
+    setGlobalChartActions,
 } from "./renderChartRuntimeHelpers.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
@@ -178,7 +183,7 @@ function getComputedStateManagerSafe() {
     } catch {
         /* ignore */
     }
-    return /** @type {any} */ (computedStateManager);
+    return computedStateManager;
 }
 
 function getConvertersSafe() {
@@ -212,31 +217,35 @@ function getFormatChartFieldsSafe() {
 // duplicate declarations removed
 
 function getHoverPluginsSafe() {
-    const g = /** @type {any} */ (globalThis);
     const result = {
         addChartHoverEffects,
         addHoverEffectsToExistingCharts,
         removeChartHoverEffects,
     };
-    if (g && typeof g.require === "function") {
-        try {
-            const m = g.require("../plugins/addChartHoverEffects.js");
-            if (m?.addChartHoverEffects)
-                result.addChartHoverEffects = m.addChartHoverEffects;
-            if (m?.addHoverEffectsToExistingCharts)
-                result.addHoverEffectsToExistingCharts =
-                    m.addHoverEffectsToExistingCharts;
-            if (m?.removeChartHoverEffects)
-                result.removeChartHoverEffects = m.removeChartHoverEffects;
-        } catch {
-            /* ignore */
+    try {
+        const m = getInjectedModule("../plugins/addChartHoverEffects.js");
+        const injectedAdd = getRecordFunction(m, "addChartHoverEffects");
+        const injectedAddExisting = getRecordFunction(
+            m,
+            "addHoverEffectsToExistingCharts"
+        );
+        const injectedRemove = getRecordFunction(m, "removeChartHoverEffects");
+        if (injectedAdd) {
+            result.addChartHoverEffects = injectedAdd;
         }
+        if (injectedAddExisting) {
+            result.addHoverEffectsToExistingCharts = injectedAddExisting;
+        }
+        if (injectedRemove) {
+            result.removeChartHoverEffects = injectedRemove;
+        }
+    } catch {
+        /* ignore */
     }
     return result;
 }
 
 function getRendererModulesSafe() {
-    const g = /** @type {any} */ (globalThis);
     const result = {
         createChartCanvas,
         createEnhancedChart,
@@ -247,66 +256,96 @@ function getRendererModulesSafe() {
         renderPerformanceAnalysisCharts,
         renderTimeInZoneCharts,
     };
-    if (g && typeof g.require === "function") {
-        try {
-            const m1 = g.require("../components/createChartCanvas.js");
-            if (m1?.createChartCanvas)
-                result.createChartCanvas = m1.createChartCanvas;
-        } catch {
-            /* ignore */
+    try {
+        const canvasModule = getInjectedModule(
+            "../components/createChartCanvas.js"
+        );
+        const injectedCanvas = getRecordFunction(
+            canvasModule,
+            "createChartCanvas"
+        );
+        if (injectedCanvas) {
+            result.createChartCanvas = injectedCanvas;
         }
-        try {
-            const m2 = g.require("../components/createEnhancedChart.js");
-            if (m2?.createEnhancedChart)
-                result.createEnhancedChart = m2.createEnhancedChart;
-        } catch {
-            /* ignore */
+
+        const enhancedChartModule = getInjectedModule(
+            "../components/createEnhancedChart.js"
+        );
+        const injectedEnhancedChart = getRecordFunction(
+            enhancedChartModule,
+            "createEnhancedChart"
+        );
+        if (injectedEnhancedChart) {
+            result.createEnhancedChart = injectedEnhancedChart;
         }
-        try {
-            const m3 = g.require("../rendering/renderEventMessagesChart.js");
-            if (m3?.renderEventMessagesChart)
-                result.renderEventMessagesChart = m3.renderEventMessagesChart;
-        } catch {
-            /* ignore */
+
+        const eventMessagesModule = getInjectedModule(
+            "../rendering/renderEventMessagesChart.js"
+        );
+        const injectedEventMessages = getRecordFunction(
+            eventMessagesModule,
+            "renderEventMessagesChart"
+        );
+        if (injectedEventMessages) {
+            result.renderEventMessagesChart = injectedEventMessages;
         }
-        try {
-            const m4 = g.require("../rendering/renderGPSTimeChart.js");
-            if (m4?.renderGPSTimeChart)
-                result.renderGPSTimeChart = m4.renderGPSTimeChart;
-        } catch {
-            /* ignore */
+
+        const gpsTimeModule = getInjectedModule(
+            "../rendering/renderGPSTimeChart.js"
+        );
+        const injectedGpsTime = getRecordFunction(
+            gpsTimeModule,
+            "renderGPSTimeChart"
+        );
+        if (injectedGpsTime) {
+            result.renderGPSTimeChart = injectedGpsTime;
         }
-        try {
-            const m5 = g.require("../rendering/renderGPSTrackChart.js");
-            if (m5?.renderGPSTrackChart)
-                result.renderGPSTrackChart = m5.renderGPSTrackChart;
-        } catch {
-            /* ignore */
+
+        const gpsTrackModule = getInjectedModule(
+            "../rendering/renderGPSTrackChart.js"
+        );
+        const injectedGpsTrack = getRecordFunction(
+            gpsTrackModule,
+            "renderGPSTrackChart"
+        );
+        if (injectedGpsTrack) {
+            result.renderGPSTrackChart = injectedGpsTrack;
         }
-        try {
-            const m6 = g.require("../rendering/renderLapZoneCharts.js");
-            if (m6?.renderLapZoneCharts)
-                result.renderLapZoneCharts = m6.renderLapZoneCharts;
-        } catch {
-            /* ignore */
+
+        const lapZoneModule = getInjectedModule(
+            "../rendering/renderLapZoneCharts.js"
+        );
+        const injectedLapZone = getRecordFunction(
+            lapZoneModule,
+            "renderLapZoneCharts"
+        );
+        if (injectedLapZone) {
+            result.renderLapZoneCharts = injectedLapZone;
         }
-        try {
-            const m7 = g.require(
-                "../rendering/renderPerformanceAnalysisCharts.js"
-            );
-            if (m7?.renderPerformanceAnalysisCharts)
-                result.renderPerformanceAnalysisCharts =
-                    m7.renderPerformanceAnalysisCharts;
-        } catch {
-            /* ignore */
+
+        const performanceModule = getInjectedModule(
+            "../rendering/renderPerformanceAnalysisCharts.js"
+        );
+        const injectedPerformance = getRecordFunction(
+            performanceModule,
+            "renderPerformanceAnalysisCharts"
+        );
+        if (injectedPerformance) {
+            result.renderPerformanceAnalysisCharts = injectedPerformance;
         }
-        try {
-            const m8 = g.require("../rendering/renderTimeInZoneCharts.js");
-            if (m8?.renderTimeInZoneCharts)
-                result.renderTimeInZoneCharts = m8.renderTimeInZoneCharts;
-        } catch {
-            /* ignore */
+
+        const timeInZoneModule = getInjectedModule(
+            "../rendering/renderTimeInZoneCharts.js"
+        );
+        const injectedTimeInZone = getRecordFunction(
+            timeInZoneModule,
+            "renderTimeInZoneCharts"
+        );
+        if (injectedTimeInZone) {
+            result.renderTimeInZoneCharts = injectedTimeInZone;
         }
+    } catch {
+        /* ignore */
     }
     return result;
 }
@@ -325,7 +364,7 @@ function getSettingsStateManagerSafe() {
     } catch {
         /* ignore */
     }
-    return /** @type {any} */ (settingsStateManager);
+    return settingsStateManager;
 }
 
 function getSetupZoneDataSafe() {
@@ -359,15 +398,18 @@ function getShowRenderNotificationSafe() {
 
 function getStateManagerSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require("../../state/core/stateManager.js");
-            if (mod && (mod.getState || mod.setState || mod.updateState)) {
+        const mod = getInjectedModule("../../state/core/stateManager.js");
+        if (mod && typeof mod === "object") {
+            const injectedGetState = getRecordFunction(mod, "getState");
+            const injectedSetState = getRecordFunction(mod, "setState");
+            const injectedSubscribe = getRecordFunction(mod, "subscribe");
+            const injectedUpdateState = getRecordFunction(mod, "updateState");
+            if (injectedGetState || injectedSetState || injectedUpdateState) {
                 return {
-                    getState: mod.getState || getState,
-                    setState: mod.setState || setState,
-                    subscribe: mod.subscribe || subscribe,
-                    updateState: mod.updateState || updateState,
+                    getState: injectedGetState || getState,
+                    setState: injectedSetState || setState,
+                    subscribe: injectedSubscribe || subscribe,
+                    updateState: injectedUpdateState || updateState,
                 };
             }
         }
@@ -380,23 +422,23 @@ function getStateManagerSafe() {
 // Safe accessor for a UIStateManager instance that might be provided by the app/tests
 function getUIStateManagerMaybe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        const ui = g && g.uiStateManager;
-        if (ui && typeof ui === "object") return ui;
+        const ui = getGlobalPanelVisibilityManager();
+        if (ui) return ui;
         // In test environments, a CommonJS-like require is injected; use it to avoid ESM side effects
-        if (g && typeof g.require === "function") {
-            try {
-                const mod = g.require("../../state/domain/uiStateManager.js");
-                const candidate =
-                    mod?.uiStateManager ||
-                    mod?.default?.uiStateManager ||
-                    mod?.default;
-                return candidate && typeof candidate === "object"
-                    ? candidate
-                    : null;
-            } catch {
-                /* ignore */
-            }
+        try {
+            const mod = getInjectedModule(
+                "../../state/domain/uiStateManager.js"
+            );
+            const defaultExport = getRecordValue(mod, "default");
+            const candidate =
+                getRecordValue(mod, "uiStateManager") ||
+                getRecordValue(defaultExport, "uiStateManager") ||
+                defaultExport;
+            return candidate && typeof candidate === "object"
+                ? candidate
+                : null;
+        } catch {
+            /* ignore */
         }
         return null;
     } catch {
@@ -1353,7 +1395,7 @@ function resolveRecordFieldKey(cache, recordMesgs, field) {
 // Helper to avoid TDZ when referencing chartActions in early execution paths
 function safeCompleteRendering(success) {
     try {
-        const maybe = /** @type {any} */ (globalThis).chartActions;
+        const maybe = getGlobalChartActions();
         if (maybe && typeof maybe.completeRendering === "function") {
             maybe.completeRendering(success);
         }
@@ -1607,39 +1649,37 @@ export const chartState = {
         let data = callGetState("globalData");
         if (data === undefined || data === null) {
             try {
-                const g = /** @type {any} */ (globalThis);
-                if (g && typeof g.require === "function") {
-                    // Try common ID variants used by module cache injection in tests
-                    const candidates = [
-                        "../../state/core/stateManager.js",
-                        "../../../state/core/stateManager.js",
-                        "../../../../utils/state/core/stateManager.js",
-                        "../../../../state/core/stateManager.js",
-                    ];
-                    for (const id of candidates) {
-                        try {
-                            const m = g.require(id);
-                            const getStateFn =
-                                m?.getState || m?.default?.getState;
-                            if (typeof getStateFn === "function") {
-                                const v = getStateFn("globalData");
-                                if (v !== undefined) {
-                                    data = v;
-                                    break;
-                                }
+                // Try common ID variants used by module cache injection in tests
+                const candidates = [
+                    "../../state/core/stateManager.js",
+                    "../../../state/core/stateManager.js",
+                    "../../../../utils/state/core/stateManager.js",
+                    "../../../../state/core/stateManager.js",
+                ];
+                for (const id of candidates) {
+                    try {
+                        const m = getInjectedModule(id);
+                        const defaultExport = getRecordValue(m, "default");
+                        const getStateFn =
+                            getRecordFunction(m, "getState") ||
+                            getRecordFunction(defaultExport, "getState");
+                        if (getStateFn) {
+                            const v = getStateFn("globalData");
+                            if (v !== undefined) {
+                                data = v;
+                                break;
                             }
-                        } catch {
-                            /* try next */
                         }
+                    } catch {
+                        /* try next */
                     }
                 }
             } catch {
                 /* ignore */
             }
         }
-        const g = /** @type {any} */ (globalThis);
         const hasModuleInjection = Boolean(
-            g && typeof g.require === "function"
+            getInjectedModule("../../state/core/stateManager.js")
         );
         // Tests expect null when the state value is truly undefined
         if (data === undefined) return null;
@@ -1764,9 +1804,7 @@ export const chartActions = {
             );
 
             // Notify other components of successful render
-            /** @type {any} */ (AppActions).notifyChartRenderComplete?.(
-                chartCount
-            );
+            notifyChartRenderComplete(AppActions, chartCount);
         }
     },
 
@@ -1835,10 +1873,9 @@ export const chartActions = {
             source: "chartActions.toggleControls",
         });
         const uiMgr = getUIStateManagerMaybe();
-        /** @type {any} */ (uiMgr)?.updatePanelVisibility?.(
-            "chart-controls",
-            newVisibility
-        );
+        if (uiMgr && typeof uiMgr.updatePanelVisibility === "function") {
+            uiMgr.updatePanelVisibility("chart-controls", newVisibility);
+        }
     },
 };
 
@@ -1849,7 +1886,7 @@ if (globalThis.window !== undefined) {
 
 // Expose chartActions globally after definition for safe reference in early error paths
 try {
-    /** @type {any} */ (globalThis).chartActions = chartActions;
+    setGlobalChartActions(chartActions);
 } catch {
     /* ignore */
 }
@@ -1928,21 +1965,7 @@ export async function exportChartsWithState(format = "png") {
     const isRendered = Boolean(getState("charts.isRendered"));
 
     // Robustly detect chart instances from either globalThis or window (some tests mutate one or the other)
-    const getInstances = () => {
-        try {
-            const g = /** @type {any} */ (globalThis);
-            const w = /** @type {any} */ (g.window);
-            const arr =
-                (g && g._chartjsInstances) ||
-                (w && w._chartjsInstances) ||
-                windowAny._chartjsInstances ||
-                [];
-            return Array.isArray(arr) ? arr : [];
-        } catch {
-            return [];
-        }
-    };
-    const instances = getInstances();
+    const instances = getGlobalChartInstances(windowAny._chartjsInstances);
 
     // Only treat as "no charts" when we have neither rendered state nor any instances
     if (!isRendered && instances.length === 0) {
@@ -2170,8 +2193,8 @@ export async function renderChartJS(targetContainer, options = {}) {
 
         // Start rendering process through state actions
         {
-            const ca = /** @type {any} */ (globalThis).chartActions;
-            if (ca && typeof ca.startRendering === "function") {
+            const ca = getGlobalChartActions();
+            if (ca?.startRendering) {
                 ca.startRendering();
             } else {
                 // Fallback state updates to indicate rendering state
@@ -2212,8 +2235,8 @@ export async function renderChartJS(targetContainer, options = {}) {
 
         // Clear existing charts using state action (with safe fallback)
         {
-            const ca = /** @type {any} */ (globalThis).chartActions;
-            if (ca && typeof ca.clearCharts === "function") {
+            const ca = getGlobalChartActions();
+            if (ca?.clearCharts) {
                 ca.clearCharts();
             } else {
                 // Local fallback clear
@@ -2504,14 +2527,14 @@ export async function renderChartJS(targetContainer, options = {}) {
         // Success reflects inner renderer outcome; do not force success when DOM errors occur
         const success = result === true;
         try {
-            const ca = /** @type {any} */ (globalThis).chartActions;
-            if (ca && typeof ca.completeRendering === "function") {
+            const ca = getGlobalChartActions();
+            if (ca?.completeRendering) {
                 ca.completeRendering(success, chartCount, renderTime);
             } else {
-                safeCompleteRendering(/** @type {any} */ (success));
+                safeCompleteRendering(success);
             }
         } catch {
-            safeCompleteRendering(/** @type {any} */ (success));
+            safeCompleteRendering(success);
         }
         // Hover effects are applied within renderChartsWithData (deferred). Avoid duplicate passes here.
         return success;
@@ -3226,18 +3249,20 @@ async function renderChartsWithData(
         getState("globalData").recordMesgs.length > 0
     );
     try {
-        const CE = /** @type {any} */ (globalThis).CustomEvent;
-        if (typeof CE === "function") {
-            const chartsRenderedEvent = new CE("chartsRendered", {
-                detail: {
-                    hasData: hasValidData,
-                    renderTime,
-                    settings: getState("charts.chartOptions"),
-                    timestamp: Date.now(),
-                    totalRendered: totalChartsRendered,
-                    visibleFields: visibleFieldCount,
-                },
-            });
+        if (typeof globalThis.CustomEvent === "function") {
+            const chartsRenderedEvent = new globalThis.CustomEvent(
+                "chartsRendered",
+                {
+                    detail: {
+                        hasData: hasValidData,
+                        renderTime,
+                        settings: getState("charts.chartOptions"),
+                        timestamp: Date.now(),
+                        totalRendered: totalChartsRendered,
+                        visibleFields: visibleFieldCount,
+                    },
+                }
+            );
             document.dispatchEvent(chartsRenderedEvent);
         }
     } catch {
