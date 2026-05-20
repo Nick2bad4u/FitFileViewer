@@ -95,6 +95,13 @@ const // Constants for better maintainability
      *     | { [key: string]: IpcSerializable }} IpcSerializable
      */
     /**
+     * @typedef {import("./shared/ipc").GenericInvokeChannel} GenericInvokeChannel
+     * @typedef {import("./shared/ipc").GenericSendChannel} GenericSendChannel
+     * @typedef {import("./shared/ipc").IpcRequestPayload} IpcRequestPayload
+     * @typedef {import("./shared/ipc").IpcResponsePayload} IpcResponsePayload
+     * @typedef {import("./shared/ipc").MainStateChange} MainStateChange
+     */
+    /**
      * @typedef {Object} ElectronAPI
      *
      * @property {(filePath: string) => Promise<boolean>} approveRecentFile
@@ -224,7 +231,7 @@ const // Constants for better maintainability
  *
  * @param {string} channel
  * @param {string} methodName
- * @param {(...args: any[]) => any | null} [transform]
+ * @param {(...args: IpcResponsePayload[]) => IpcResponsePayload | null} [transform]
  *
  * @returns {(callback: Function) => () => void}
  */
@@ -300,11 +307,11 @@ function removeIpcListener(channel, handler) {
  * Main-state subscription fanout. Keep a single ipcRenderer listener and
  * dispatch by change.path.
  *
- * @type {Map<string, Set<Function>>}
+ * @type {Map<string, Set<(change: MainStateChange) => void>>}
  */
 const mainStateCallbacksByPath = new Map();
 
-/** @type {((event: any, change: any) => void) | null} */
+/** @type {((event: object, change: MainStateChange) => void) | null} */
 let mainStateDispatcher = null;
 
 /**
@@ -313,7 +320,7 @@ let mainStateDispatcher = null;
  * @param {string} channel
  * @param {string} methodName
  *
- * @returns {(...args: any[]) => Promise<any>}
+ * @returns {(...args: IpcRequestPayload[]) => Promise<IpcResponsePayload>}
  */
 function createSafeInvokeHandler(channel, methodName) {
     return async (...args) => {
@@ -332,7 +339,7 @@ function createSafeInvokeHandler(channel, methodName) {
  * @param {string} channel
  * @param {string} methodName
  *
- * @returns {(...args: any[]) => void}
+ * @returns {(...args: IpcRequestPayload[]) => void}
  */
 function createSafeSendHandler(channel, methodName) {
     return (...args) => {
@@ -479,7 +486,9 @@ function validateRequiredNonEmptyString(value, paramName, methodName) {
 const IS_ELECTRON_RUNTIME =
     typeof process !== "undefined" &&
     Boolean(process?.versions) &&
-    typeof (/** @type {any} */ (process.versions).electron) === "string";
+    typeof (
+        /** @type {Record<string, string | undefined>} */ (process.versions)
+    ).electron === "string";
 
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
@@ -493,7 +502,8 @@ const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     !(
         typeof process !== "undefined" &&
         Boolean(process?.env) &&
-        /** @type {any} */ (process.env).FFV_ALLOW_GENERIC_IPC === "true"
+        /** @type {Record<string, string | undefined>} */ (process.env)
+            .FFV_ALLOW_GENERIC_IPC === "true"
     );
 
 /**
@@ -668,7 +678,7 @@ const electronAPI = {
             totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
             totalEvents: Object.keys(CONSTANTS.EVENTS).length,
         };
-        return /** @type {ChannelInfo} */ (/** @type {any} */ (info));
+        return /** @type {ChannelInfo} */ (info);
     },
 
     /**
@@ -853,10 +863,10 @@ const electronAPI = {
     /**
      * Expose ipcRenderer.invoke for direct use with error handling.
      *
-     * @param {string} channel - The IPC channel to invoke
-     * @param {...any} args - Arguments to send
+     * @param {GenericInvokeChannel} channel - The IPC channel to invoke
+     * @param {...IpcRequestPayload} args - Arguments to send
      *
-     * @returns {Promise<any>}
+     * @returns {Promise<IpcResponsePayload>}
      */
     invoke: async (channel, ...args) => {
         if (!validateChannelName(channel, "channel", "invoke")) {
@@ -1194,8 +1204,8 @@ const electronAPI = {
     /**
      * Send an IPC message to the main process.
      *
-     * @param {string} channel - The IPC channel to send on
-     * @param {...any} args - Arguments to send
+     * @param {GenericSendChannel} channel - The IPC channel to send on
+     * @param {...IpcRequestPayload} args - Arguments to send
      */
     send: (channel, ...args) => {
         if (!validateChannelName(channel, "channel", "send")) {
@@ -1273,8 +1283,8 @@ const electronAPI = {
      * @param {string} [path] - Optional path to a specific state property
      *   (e.g., 'loadedFitFilePath')
      *
-     * @returns {Promise<any>} The requested state value or entire state if no
-     *   path provided
+     * @returns {Promise<IpcSerializable>} The requested state value or entire
+     *   state if no path provided
      */
     getMainState: async (path) => {
         try {
@@ -1293,8 +1303,8 @@ const electronAPI = {
      *
      * @param {string} path - Path to the state property to set (e.g.,
      *   'loadedFitFilePath')
-     * @param {any} value - The value to set
-     * @param {Object} [options] - Optional metadata for the state change
+     * @param {IpcSerializable} value - The value to set
+     * @param {IpcSerializable} [options] - Optional metadata for the state change
      *
      * @returns {Promise<boolean>} True if successful, false if path is
      *   restricted
@@ -1428,7 +1438,7 @@ const electronAPI = {
      *
      * @param {string} operationId - The unique identifier for the operation
      *
-     * @returns {Promise<any>} The operation status object
+     * @returns {Promise<IpcSerializable | null>} The operation status object
      */
     getOperation: async (operationId) => {
         if (
@@ -1548,17 +1558,15 @@ try {
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
             const apiKeys = Object.keys(electronAPI),
+                /** @type {Record<string, unknown>} */
+                apiRecord = electronAPI,
                 /** @type {string[]} */
                 methods = apiKeys.filter(
-                    (key) =>
-                        typeof (/** @type {any} */ (electronAPI)[key]) ===
-                        "function"
+                    (key) => typeof apiRecord[key] === "function"
                 ),
                 /** @type {string[]} */
                 properties = apiKeys.filter(
-                    (key) =>
-                        typeof (/** @type {any} */ (electronAPI)[key]) !==
-                        "function"
+                    (key) => typeof apiRecord[key] !== "function"
                 );
             console.log("[preload.js] API Structure:", {
                 methods,
@@ -1644,6 +1652,12 @@ const BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__",
     BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for("ffv.preload.beforeExitListener");
 
 /**
+ * @typedef {Object} PreloadGlobalRegistry
+ *
+ * @property {WeakMap<NodeJS.Process, Function> | null | undefined} __ffv_preload_beforeExitRegistry__
+ */
+
+/**
  * Retrieve (or initialize) the global registry that tracks beforeExit listener
  * wrappers per process.
  *
@@ -1653,7 +1667,7 @@ function getProcessRegistry() {
     if (typeof globalThis === "undefined") {
         return null;
     }
-    const scope = /** @type {any} */ (globalThis);
+    const scope = /** @type {PreloadGlobalRegistry} */ (globalThis);
     if (!scope[BEFORE_EXIT_REGISTRY_KEY]) {
         try {
             scope[BEFORE_EXIT_REGISTRY_KEY] = new WeakMap();
