@@ -4,6 +4,31 @@
 
 import { MAP_FILTER_METRICS } from "../../../maps/filters/mapMetricFilter.js";
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createFilterIcon() {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.classList.add("icon");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("focusable", "false");
+
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", "M4 5h16l-6 7v6l-4 2v-8z");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "currentColor");
+    path.setAttribute("stroke-width", "1.6");
+    path.setAttribute("stroke-linejoin", "round");
+    icon.append(path);
+
+    return icon;
+}
+
 /**
  * Creates and wires the static DOM structure for the data point filter control.
  *
@@ -42,12 +67,9 @@ export function createFilterControlElements(instanceId) {
     toggleButton.id = `map-data-point-filter-toggle-${instanceId}`;
     toggleButton.setAttribute("aria-haspopup", "dialog");
     toggleButton.setAttribute("aria-expanded", "false");
-    toggleButton.innerHTML = `
-        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <path d="M4 5h16l-6 7v6l-4 2v-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-        </svg>
-        <span>Top Metrics</span>
-    `;
+    const toggleLabel = document.createElement("span");
+    toggleLabel.textContent = "Top Metrics";
+    toggleButton.append(createFilterIcon(), toggleLabel);
 
     const panel = document.createElement("div");
     panel.className = "data-point-filter-control__panel";
