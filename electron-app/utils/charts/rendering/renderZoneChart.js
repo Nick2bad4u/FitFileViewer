@@ -10,11 +10,87 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Helper function to render individual zone chart
 /**
+ * @typedef {import("../../types/sharedChartTypes.d.ts").ZoneData} ZoneData
+ */
+/**
+ * @typedef {Object} ZoneChartThemeColors
+ *
+ * @property {string} [shadowLight]
+ * @property {string[]} [zoneColors]
+ */
+/**
+ * @typedef {Object} ZoneChartThemeConfig
+ *
+ * @property {ZoneChartThemeColors} [colors]
+ */
+/**
+ * @typedef {Object} ZoneChartRuntimeGlobal
+ *
+ * @property {new (canvas: HTMLCanvasElement, config: object) => ZoneChartInstance} [Chart]
+ * @property {unknown} [__FFV_debugCharts]
+ * @property {unknown} [__FFV_debugChartsVerbose]
+ * @property {ZoneChartInstance[]} [_chartjsInstances]
+ */
+/**
+ * @typedef {Object} ZoneChartInstance
+ *
+ * @property {() => void} [update]
+ * @property {(datasetIndex: number) => ZoneChartDatasetMeta} [getDatasetMeta]
+ */
+/**
+ * @typedef {Object} ZoneChartDatasetMeta
+ *
+ * @property {{ hidden?: boolean }[]} data
+ */
+/**
+ * @typedef {Object} ZoneChartBaseDataset
+ *
+ * @property {string[]} backgroundColor
+ * @property {string} borderColor
+ * @property {number} borderWidth
+ * @property {number[]} data
+ */
+/**
+ * @typedef {Object} ZoneChartBarTooltipContext
+ *
+ * @property {{ y: number }} parsed
+ */
+/**
+ * @typedef {Object} ZoneChartLabelColorContext
+ *
+ * @property {{ backgroundColor: string[]; borderColor: string }} dataset
+ * @property {number} dataIndex
+ */
+/**
+ * @typedef {Object} ZoneChartDoughnutTooltipContext
+ *
+ * @property {{ backgroundColor: string[]; borderColor: string; data: number[] }} dataset
+ * @property {number} dataIndex
+ * @property {number} parsed
+ */
+/**
+ * @typedef {Object} ZoneChartLegendChart
+ *
+ * @property {{ datasets: [{ backgroundColor: string[]; data: number[] }]; labels: string[] }} data
+ * @property {(datasetIndex: number) => ZoneChartDatasetMeta} getDatasetMeta
+ * @property {() => void} update
+ */
+/**
+ * @typedef {Object} ZoneChartLegend
+ *
+ * @property {ZoneChartLegendChart} chart
+ */
+/**
+ * @typedef {Object} ZoneChartLegendItem
+ *
+ * @property {number} index
+ */
+/**
  * Render a zone chart (doughnut or bar)
  *
  * @param {HTMLElement} container
  * @param {string} title
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {ZoneData[]} zoneData
  * @param {string} chartId
  * @param {{ chartType?: string; showLegend?: boolean }} [options]
  *
@@ -27,15 +103,15 @@ export function renderZoneChart(
     chartId,
     options = {}
 ) {
+    const runtimeGlobal = /** @type {ZoneChartRuntimeGlobal} */ (globalThis);
     const isDevEnvironment =
         typeof process !== "undefined" &&
         process.env?.NODE_ENV === "development";
     const isDebugLoggingEnabled =
-        isDevEnvironment &&
-        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts);
     const isVerboseDebugLoggingEnabled =
         isDebugLoggingEnabled &&
-        Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
+        Boolean(runtimeGlobal.__FFV_debugChartsVerbose);
 
     if (!(container instanceof HTMLElement)) {
         console.warn("renderZoneChart: invalid container", container);
@@ -52,15 +128,14 @@ export function renderZoneChart(
         );
     }
 
-    /** @type {any} */
-    const // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
-        canvas = /** @type {HTMLCanvasElement} */ (
+    // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
+    const canvas = /** @type {HTMLCanvasElement} */ (
             createChartCanvas(chartId, 0)
         ),
         // Determine chart type from options or default to doughnut
         chartType = options.chartType || "doughnut",
         currentTheme = detectCurrentTheme(),
-        themeConfig = getThemeConfig();
+        themeConfig = /** @type {ZoneChartThemeConfig} */ (getThemeConfig());
 
     // Apply theme-aware canvas styling (background handled by plugin)
     canvas.style.borderRadius = "12px";
@@ -72,7 +147,7 @@ export function renderZoneChart(
     let colors = themeConfig?.colors?.zoneColors || []; // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
     if (zoneData.length > 0 && zoneData[0] && zoneData[0].color) {
         // Use colors from the zone data objects
-        colors = zoneData.map((zone) => zone.color);
+        colors = /** @type {string[]} */ (zoneData.map((zone) => zone.color));
     } else {
         // Fall back to getting saved colors by zone type
         const zoneType = getZoneTypeFromField(chartId);
@@ -95,15 +170,15 @@ export function renderZoneChart(
             config
         );
     }
-    const ChartCtor = /** @type {any} */ (globalThis.Chart),
+    const ChartCtor = runtimeGlobal.Chart,
         chart = ChartCtor ? new ChartCtor(canvas, config) : null;
-    if (chart && Array.isArray(globalThis._chartjsInstances)) {
+    if (chart && Array.isArray(runtimeGlobal._chartjsInstances)) {
         if (isDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] Zone chart created successfully for ${title}`
             );
         }
-        globalThis._chartjsInstances.push(chart);
+        runtimeGlobal._chartjsInstances.push(chart);
     } else {
         console.error(`[ChartJS] Failed to create zone chart for ${title}`);
     }
@@ -113,20 +188,12 @@ export function renderZoneChart(
  * Creates bar chart configuration
  */
 /**
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {ZoneData[]} zoneData
  * @param {string[]} colors
  * @param {string} title
  * @param {{ showLegend?: boolean }} _options
  * @param {string} currentTheme
- * @param {any} baseDataset
- */
-/**
- * @param {any[]} zoneData
- * @param {any[]} colors
- * @param {string} title
- * @param {{ showLegend?: boolean }} _options
- * @param {string} currentTheme
- * @param {any} baseDataset
+ * @param {ZoneChartBaseDataset} baseDataset
  */
 function createBarChartConfig(
     zoneData,
@@ -199,13 +266,13 @@ function createBarChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        /** @param {any} context */
+                        /** @param {ZoneChartBarTooltipContext} context */
                         label(context) {
                             const value = context.parsed.y,
                                 timeFormatted = formatTime(value, true);
                             return `Time: ${timeFormatted}`;
                         },
-                        /** @param {any} context */
+                        /** @param {ZoneChartLabelColorContext} context */
                         labelColor(context) {
                             return {
                                 backgroundColor:
@@ -261,7 +328,7 @@ function createBarChartConfig(
                         lineWidth: 1,
                     },
                     ticks: {
-                        /** @param {any} value */
+                        /** @param {number} value */
                         callback(value) {
                             return formatTime(value, true);
                         },
@@ -291,8 +358,8 @@ function createBarChartConfig(
  * Creates chart configuration based on chart type
  *
  * @param {string} chartType - "doughnut" or "bar"
- * @param {any[]} zoneData - Zone data array
- * @param {any[]} colors - Colors array
+ * @param {ZoneData[]} zoneData - Zone data array
+ * @param {string[]} colors - Colors array
  * @param {string} title - Chart title
  * @param {Object} options - Chart options
  * @param {string} currentTheme - Current theme
@@ -301,7 +368,7 @@ function createBarChartConfig(
  */
 /**
  * @param {string} chartType
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {ZoneData[]} zoneData
  * @param {string[]} colors
  * @param {string} title
  * @param {{ showLegend?: boolean }} options
@@ -346,12 +413,12 @@ function createChartConfig(
  * Creates doughnut chart configuration
  */
 /**
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {ZoneData[]} zoneData
  * @param {string[]} colors
  * @param {string} title
  * @param {{ showLegend?: boolean }} options
  * @param {string} currentTheme
- * @param {any} baseDataset
+ * @param {ZoneChartBaseDataset} baseDataset
  */
 function createDoughnutChartConfig(
     zoneData,
@@ -425,7 +492,7 @@ function createDoughnutChartConfig(
                             size: 14,
                             weight: "600",
                         },
-                        /** @param {any} chartInstance */
+                        /** @param {ZoneChartLegendChart} chartInstance */
                         generateLabels(chartInstance) {
                             const { data } = chartInstance;
                             if (
@@ -484,9 +551,9 @@ function createDoughnutChartConfig(
                         usePointStyle: true,
                     },
                     /**
-                     * @param {any} _event
-                     * @param {any} legendItem
-                     * @param {any} legend
+                     * @param {unknown} _event
+                     * @param {ZoneChartLegendItem} legendItem
+                     * @param {ZoneChartLegend} legend
                      */
                     onClick(_event, legendItem, legend) {
                         // Get the chart instance and dataset meta
@@ -520,7 +587,7 @@ function createDoughnutChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        /** @param {any} context */
+                        /** @param {ZoneChartDoughnutTooltipContext} context */
                         label(context) {
                             const total = context.dataset.data.reduce(
                                     (
@@ -540,7 +607,7 @@ function createDoughnutChartConfig(
                                 `Percentage: ${percentage}%`,
                             ];
                         },
-                        /** @param {any} context */
+                        /** @param {ZoneChartLabelColorContext} context */
                         labelColor(context) {
                             return {
                                 backgroundColor:
