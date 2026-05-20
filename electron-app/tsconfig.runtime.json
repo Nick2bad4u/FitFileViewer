@@ -202,6 +202,7 @@
         "utils/ui/controls/createInlineZoneColorSelector.ts",
         "utils/ui/controls/createHRZoneControls.ts",
         "utils/ui/controls/createPowerZoneControls.ts",
+        "utils/ui/controls/createPowerZoneControlsSimple.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
