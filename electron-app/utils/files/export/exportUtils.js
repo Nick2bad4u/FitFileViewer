@@ -191,6 +191,67 @@ function getSecureRandomGlobal() {
 }
 
 /**
+ * @param {Window} printWindow
+ */
+function detachPrintWindowOpener(printWindow) {
+    try {
+        printWindow.opener = null;
+    } catch {
+        /* ignore */
+    }
+}
+
+/**
+ * @param {Window} printWindow
+ * @param {string} title
+ * @param {string} styles
+ *
+ * @returns {Document}
+ */
+function preparePrintDocument(printWindow, title, styles) {
+    detachPrintWindowOpener(printWindow);
+
+    const { document: printDocument } = printWindow;
+    printDocument.title = title;
+    printDocument.head.replaceChildren();
+    printDocument.body.replaceChildren();
+
+    const styleElement = printDocument.createElement("style");
+    styleElement.textContent = styles;
+    printDocument.head.append(styleElement);
+
+    return printDocument;
+}
+
+/**
+ * @param {Window} printWindow
+ */
+function printAndCloseWindow(printWindow) {
+    try {
+        printWindow.focus();
+        printWindow.print();
+    } finally {
+        printWindow.setTimeout(() => printWindow.close(), 50);
+    }
+}
+
+/**
+ * @param {Window} printWindow
+ * @param {HTMLImageElement} imageElement
+ */
+function printWhenImageReady(printWindow, imageElement) {
+    const printAndClose = () => printAndCloseWindow(printWindow);
+
+    if (imageElement.complete) {
+        printWindow.setTimeout(printAndClose, 0);
+        return;
+    }
+
+    imageElement.addEventListener("load", printAndClose, { once: true });
+    imageElement.addEventListener("error", printAndClose, { once: true });
+}
+
+/**
  * @param {unknown} error
  *
  * @returns {boolean}
@@ -2062,57 +2123,36 @@ export const exportUtils = {
             }
             const imgData = canvas.toDataURL("image/png", 1);
 
-            // Defense-in-depth: data URLs should be safe, but keep HTML attribute context safe.
-            const safeImgData = escapeHtml(imgData);
-
             // Print window HTML should never include unescaped/unvalidated dynamic strings.
             const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
 
             if (printWindow) {
-                try {
-                    // Defense-in-depth: prevent the popup from getting a reference to the opener.
-                    // Some Electron/Chromium builds still keep opener even with noopener.
-                    // @ts-ignore
-                    printWindow.opener = null;
-                } catch {
-                    /* ignore */
-                }
-                printWindow.document.write(`
-				<html>
-					<head>
-						<title>Chart Print</title>
-						<style>
-                        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: ${bgSafe === "transparent" ? "#ffffff" : bgSafe}; }
-							img { max-width: 100%; max-height: 100%; }
-						</style>
-                        <script>
-                            // Trigger printing only after the image has loaded.
-                            window.addEventListener('load', () => {
-                                const img = document.getElementById('ffv-print-img');
-                                const doPrint = () => {
-                                    try { window.focus(); window.print(); } finally { setTimeout(() => window.close(), 50); }
-                                };
-                                if (img && img.complete) {
-                                    doPrint();
-                                } else if (img) {
-                                    img.addEventListener('load', doPrint, { once: true });
-                                } else {
-                                    doPrint();
-                                }
-                            });
-                        </script>
-					</head>
-					<body>
-                        <img id="ffv-print-img" src="${safeImgData}" alt="Chart" />
-					</body>
-				</html>
-			`);
+                const printDocument = preparePrintDocument(
+                    printWindow,
+                    "Chart Print",
+                    `
+body {
+    align-items: center;
+    background: ${bgSafe === "transparent" ? "#ffffff" : bgSafe};
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    min-height: 100vh;
+}
 
+img {
+    max-height: 100%;
+    max-width: 100%;
+}
+`
+                );
+                const imageElement = printDocument.createElement("img");
+                imageElement.alt = "Chart";
+                imageElement.id = "ffv-print-img";
+                imageElement.src = imgData;
+                printDocument.body.append(imageElement);
                 printWindow.document.close();
-            }
-
-            if (printWindow) {
-                printWindow.focus();
+                printWhenImageReady(printWindow, imageElement);
             }
 
             showNotification("Chart sent to printer", "success");
@@ -2141,54 +2181,52 @@ export const exportUtils = {
             const bodyText =
                 bgSafe.toLowerCase() === "#1a1a1a" ? "#ffffff" : "#000000";
 
-            if (printWindow) {
-                try {
-                    // @ts-ignore
-                    printWindow.opener = null;
-                } catch {
-                    /* ignore */
-                }
-            }
+            const printDocument = printWindow
+                ? preparePrintDocument(
+                      printWindow,
+                      "Charts Print",
+                      `
+body {
+    background: ${bodyBg};
+    color: ${bodyText};
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
 
-            let htmlContent = `
-				<html>
-					<head>
-						<title>Charts Print</title>
-						<style>
-							body {
-								margin: 20px;
-								font-family: Arial, sans-serif;
-                            background: ${bodyBg};
-                            color: ${bodyText};
-							}
-							.chart {
-								page-break-inside: avoid;
-								margin-bottom: 30px;
-								text-align: center;
-							}
-							.chart img {
-								max-width: 100%;
-								height: auto;
-							}
-							.chart h3 {
-								margin: 0 0 10px 0;
-                            color: inherit;
-							}
-							@media print {
-								.chart { page-break-after: always; }
-								.chart:last-child { page-break-after: avoid; }
-							}
-						</style>
-                        <script>
-                            // Print once the document is ready.
-                            window.addEventListener('load', () => {
-                                try { window.focus(); window.print(); } finally { setTimeout(() => window.close(), 50); }
-                            });
-                        </script>
-					</head>
-					<body>
-						<h1>FIT File Charts</h1>
-			`;
+.chart {
+    margin-bottom: 30px;
+    page-break-inside: avoid;
+    text-align: center;
+}
+
+.chart img {
+    height: auto;
+    max-width: 100%;
+}
+
+.chart h3 {
+    color: inherit;
+    margin: 0 0 10px;
+}
+
+@media print {
+    .chart {
+        page-break-after: always;
+    }
+
+    .chart:last-child {
+        page-break-after: avoid;
+    }
+}
+`
+                  )
+                : null;
+
+            if (printDocument) {
+                const titleElement = printDocument.createElement("h1");
+                titleElement.textContent = "FIT File Charts";
+                printDocument.body.append(titleElement);
+            }
 
             for (const [index, chart] of charts.entries()) {
                 const // Create canvas with theme background
@@ -2213,26 +2251,27 @@ export const exportUtils = {
                 }
                 const imgData = canvas.toDataURL("image/png", 1);
 
-                const safeFieldName = escapeHtml(String(fieldName));
-                const safeImgData = escapeHtml(imgData);
+                if (printDocument) {
+                    const chartElement = printDocument.createElement("div"),
+                        headingElement = printDocument.createElement("h3"),
+                        imageElement = printDocument.createElement("img"),
+                        fieldLabel = String(fieldName);
 
-                htmlContent += `
-					<div class="chart">
-						<h3>${safeFieldName}</h3>
-                        <img src="${safeImgData}" alt="${safeFieldName} Chart" />
-					</div>
-				`;
+                    chartElement.className = "chart";
+                    headingElement.textContent = fieldLabel;
+                    imageElement.alt = `${fieldLabel} Chart`;
+                    imageElement.src = imgData;
+                    chartElement.append(headingElement, imageElement);
+                    printDocument.body.append(chartElement);
+                }
             }
 
-            htmlContent += "</body></html>";
-
             if (printWindow) {
-                printWindow.document.write(htmlContent);
                 printWindow.document.close();
-            }
-
-            if (printWindow) {
-                printWindow.focus();
+                printWindow.setTimeout(
+                    () => printAndCloseWindow(printWindow),
+                    0
+                );
             }
 
             showNotification("Charts sent to printer", "success");
