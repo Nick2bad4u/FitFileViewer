@@ -22,8 +22,6 @@ export class CancellationToken {
     }
 
     constructor() {
-        /** @type {boolean} */
-
         /** @type {(() => void)[]} */
         this._callbacks = [];
     }
@@ -177,7 +175,7 @@ export async function delay(ms, token) {
 /**
  * Check if an error is a cancellation error
  *
- * @param {any} error - Error to check
+ * @param {unknown} error - Error to check
  *
  * @returns {boolean}
  */
