@@ -163,6 +163,7 @@
         "utils/ui/setupExternalLinkHandlers.ts",
         "utils/ui/browser/initFitBrowserFeatureGate.ts",
         "utils/ui/links/externalLinkHandlers.ts",
+        "utils/ui/modals/ensureAboutModal.ts",
         "utils/ui/notifications/showRenderNotification.ts",
         "utils/ui/notifications/showNotification.ts",
         "utils/ui/notifications/showUpdateNotification.ts",
