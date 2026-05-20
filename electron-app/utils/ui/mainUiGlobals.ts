@@ -1,17 +1,48 @@
 /**
  * Legacy global bindings and compatibility helpers for the renderer UI.
  */
+
 import { convertArrayBufferToBase64 } from "../formatting/converters/convertArrayBufferToBase64.js";
 import { getState, setState } from "../state/core/stateManager.js";
-function getLegacyRendererGlobal() {
-    return globalThis;
+
+type ShowFitData = (fitData: unknown, filePath: string) => void;
+type RenderChartJS = (
+    data: unknown,
+    filePath: string,
+    options?: unknown
+) => void;
+
+type LegacyRendererGlobal = typeof globalThis & {
+    cleanupEventListeners?: () => void;
+    renderChartJS?: RenderChartJS;
+    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => Promise<void>;
+    showFitData?: ShowFitData;
+};
+
+type RegisterLegacyGlobalsDependencies = {
+    cleanupEventListeners: () => void;
+    constants: {
+        DOM_IDS: { ALT_FIT_IFRAME: string };
+        IFRAME_PATHS: { ALT_FIT: string };
+    };
+    renderChartJS: RenderChartJS;
+    showFitData: ShowFitData;
+    validateElement: (id: string) => HTMLElement | null;
+};
+
+function getLegacyRendererGlobal(): LegacyRendererGlobal {
+    return globalThis as LegacyRendererGlobal;
 }
+
 /**
  * Define window.globalData to bridge legacy code to state-managed data.
  */
-export function defineGlobalDataProperty() {
+export function defineGlobalDataProperty(): void {
     try {
-        const existing = Object.getOwnPropertyDescriptor(globalThis, "globalData");
+        const existing = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "globalData"
+        );
         if (!existing || existing.configurable) {
             Object.defineProperty(globalThis, "globalData", {
                 configurable: true,
@@ -19,7 +50,7 @@ export function defineGlobalDataProperty() {
                 get() {
                     return getState("globalData");
                 },
-                set(value) {
+                set(value: unknown) {
                     setState("globalData", value, {
                         silent: false,
                         source: "main-ui.js",
@@ -27,20 +58,28 @@ export function defineGlobalDataProperty() {
                 },
             });
         }
-    }
-    catch {
+    } catch {
         /* Ignore redefinition issues */
     }
 }
+
 /**
  * Register legacy globals expected by older renderers/scripts.
  */
-export function registerLegacyGlobals({ showFitData, renderChartJS, cleanupEventListeners, validateElement, constants, }) {
+export function registerLegacyGlobals({
+    showFitData,
+    renderChartJS,
+    cleanupEventListeners,
+    validateElement,
+    constants,
+}: RegisterLegacyGlobalsDependencies): void {
     const legacyGlobal = getLegacyRendererGlobal();
+
     // Expose essential functions to window for backward compatibility
     legacyGlobal.showFitData = showFitData;
     legacyGlobal.renderChartJS = renderChartJS;
     legacyGlobal.cleanupEventListeners = cleanupEventListeners;
+
     // Enhanced iframe communication with better error handling
     legacyGlobal.sendFitFileToAltFitReader = async (arrayBuffer) => {
         const iframe = validateElement(constants.DOM_IDS.ALT_FIT_IFRAME);
@@ -48,10 +87,12 @@ export function registerLegacyGlobals({ showFitData, renderChartJS, cleanupEvent
             console.warn("Alt FIT iframe not found");
             return;
         }
+
         if (!(iframe instanceof HTMLIFrameElement)) {
             console.warn("Alt FIT iframe target is not an iframe");
             return;
         }
+
         // If iframe is not loaded yet, wait for it to load before posting message
         const postToIframe = () => {
             try {
@@ -59,27 +100,29 @@ export function registerLegacyGlobals({ showFitData, renderChartJS, cleanupEvent
                     const base64 = convertArrayBufferToBase64(arrayBuffer);
                     const targetOrigin = globalThis.location.origin;
                     /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron loads the Alt FIT iframe from the same app origin; location.origin is the strict same-origin target for the current runtime. */
-                    iframe.contentWindow.postMessage({ base64, type: "fit-file" }, targetOrigin);
+                    iframe.contentWindow.postMessage(
+                        { base64, type: "fit-file" },
+                        targetOrigin
+                    );
                     /* eslint-enable sdl/no-postmessage-without-origin-allowlist */
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("Error posting message to iframe:", error);
             }
         };
-        if (!iframe.src ||
-            !iframe.src.includes(constants.IFRAME_PATHS.ALT_FIT)) {
+        if (
+            !iframe.src ||
+            !iframe.src.includes(constants.IFRAME_PATHS.ALT_FIT)
+        ) {
             const abortController = new AbortController();
             iframe.src = constants.IFRAME_PATHS.ALT_FIT;
             iframe.addEventListener("load", postToIframe, {
                 once: true,
                 signal: abortController.signal,
             });
-        }
-        else if (iframe.contentWindow && iframe.src) {
+        } else if (iframe.contentWindow && iframe.src) {
             postToIframe();
-        }
-        else {
+        } else {
             const abortController = new AbortController();
             iframe.addEventListener("load", postToIframe, {
                 once: true,
