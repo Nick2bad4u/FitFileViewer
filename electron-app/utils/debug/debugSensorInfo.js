@@ -27,21 +27,81 @@ import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
 
 /**
+ * @typedef {Record<string, unknown> & {
+ *     source?: string;
+ * }} SensorEntry
+ * @typedef {Record<string, unknown>} FitGlobalData
+ * @typedef {{ globalData?: unknown }} RendererGlobalData
+ * @typedef {{
+ *     actualManufacturer?: unknown;
+ *     index?: number;
+ *     product?: unknown;
+ * }} SensorIssue
+ * @typedef {{
+ *     manufacturerIssues: SensorIssue[];
+ *     productIssues: SensorIssue[];
+ *     summary: Record<string, unknown>;
+ *     totalSensors: number;
+ * }} SensorAnalysis
+ */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+function isRecord(value) {
+    return Boolean(value) && typeof value === "object";
+}
+
+/**
+ * @returns {FitGlobalData | null}
+ */
+function getGlobalData() {
+    const { globalData } = /** @type {RendererGlobalData} */ (globalThis);
+    return isRecord(globalData) ? globalData : null;
+}
+
+/**
+ * @param {FitGlobalData} data
+ * @param {string} key
+ *
+ * @returns {unknown[]}
+ */
+function getArrayValue(data, key) {
+    const value = data[key];
+    return Array.isArray(value) ? value : [];
+}
+
+/**
+ * @param {unknown} value
+ * @param {string} source
+ *
+ * @returns {SensorEntry}
+ */
+function withSource(value, source) {
+    return {
+        ...(isRecord(value) ? value : {}),
+        source,
+    };
+}
+
+/**
  * Quick data availability check
  */
 export function checkDataAvailability() {
-    console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`window.globalData exists: ${Boolean(globalThis.globalData)}`);
-    console.log(`window.globalData type: ${typeof globalThis.globalData}`);
+    const data = getGlobalData();
 
-    if (globalThis.globalData) {
-        console.log(`Keys count: ${Object.keys(globalThis.globalData).length}`);
-        console.log(
-            `Available keys: ${Object.keys(globalThis.globalData).join(", ")}`
-        );
+    console.log("🔍 DATA AVAILABILITY CHECK:");
+    console.log(`window.globalData exists: ${Boolean(data)}`);
+    console.log(`window.globalData type: ${typeof data}`);
+
+    if (data) {
+        console.log(`Keys count: ${Object.keys(data).length}`);
+        console.log(`Available keys: ${Object.keys(data).join(", ")}`);
 
         // Check specifically for sensor-related data
-        const sensorKeys = Object.keys(globalThis.globalData).filter(
+        const sensorKeys = Object.keys(data).filter(
             (key) =>
                 key.includes("device") ||
                 key.includes("session") ||
@@ -53,7 +113,7 @@ export function checkDataAvailability() {
         );
     }
 
-    return globalThis.globalData;
+    return data;
 }
 
 /**
@@ -62,120 +122,100 @@ export function checkDataAvailability() {
  * @returns {Object | null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo() {
-    if (
-        !globalThis.globalData ||
-        Object.keys(globalThis.globalData).length === 0
-    ) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
     }
 
-    const data = globalThis.globalData;
     console.log("🔍 SENSOR INFORMATION DEBUG");
     console.log("=".repeat(50));
     // Look for sensor data in different locations
+    /** @type {SensorEntry[]} */
     const sensors = [];
 
     // Check deviceInfoMesgs (actual FIT file structure)
-    if (data.deviceInfoMesgs) {
-        console.log(
-            `📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`
-        );
+    const deviceInfoMesgs = getArrayValue(data, "deviceInfoMesgs");
+    if (deviceInfoMesgs.length > 0) {
+        console.log(`📱 Found ${deviceInfoMesgs.length} deviceInfoMesgs entries`);
         sensors.push(
-            ...data.deviceInfoMesgs.map(
-                /** @param {any} device */ (device) => ({
-                    ...device,
-                    source: "deviceInfoMesgs",
-                })
+            ...deviceInfoMesgs.map((device) =>
+                withSource(device, "deviceInfoMesgs")
             )
         );
     }
 
     // Check deviceSettingsMesgs
-    if (data.deviceSettingsMesgs) {
+    const deviceSettingsMesgs = getArrayValue(data, "deviceSettingsMesgs");
+    if (deviceSettingsMesgs.length > 0) {
         console.log(
-            `⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`
+            `⚙️  Found ${deviceSettingsMesgs.length} deviceSettingsMesgs entries`
         );
         sensors.push(
-            ...data.deviceSettingsMesgs.map(
-                /** @param {any} device */ (device) => ({
-                    ...device,
-                    source: "deviceSettingsMesgs",
-                })
+            ...deviceSettingsMesgs.map((device) =>
+                withSource(device, "deviceSettingsMesgs")
             )
         );
     }
 
     // Check legacy device_info format (for backward compatibility)
-    if (data.device_info) {
-        console.log(`📱 Found ${data.device_info.length} device_info entries`);
+    const deviceInfo = getArrayValue(data, "device_info");
+    if (deviceInfo.length > 0) {
+        console.log(`📱 Found ${deviceInfo.length} device_info entries`);
         sensors.push(
-            ...data.device_info.map(
-                /** @param {any} device */ (device) => ({
-                    ...device,
-                    source: "device_info",
-                })
-            )
+            ...deviceInfo.map((device) => withSource(device, "device_info"))
         );
     }
 
     // Check sessionMesgs messages for sensor info
-    if (data.sessionMesgs && data.sessionMesgs.length > 0) {
-        const [session] = data.sessionMesgs;
+    const sessionMesgs = getArrayValue(data, "sessionMesgs");
+    if (sessionMesgs.length > 0) {
+        const session = withSource(sessionMesgs[0], "sessionMesgs");
         console.log("📊 Session data available");
         if (
             session.manufacturer ||
             session.manufacturerId ||
             session.manufacturer_id
         ) {
-            sensors.push({
-                ...session,
-                source: "sessionMesgs",
-            });
+            sensors.push(session);
         }
     }
 
     // Check legacy session format
-    if (data.session && data.session.length > 0) {
-        const [session] = data.session;
+    const sessions = getArrayValue(data, "session");
+    if (sessions.length > 0) {
+        const session = withSource(sessions[0], "session");
         console.log("📊 Legacy session data available");
         if (session.manufacturer || session.manufacturer_id) {
-            sensors.push({
-                ...session,
-                source: "session",
-            });
+            sensors.push(session);
         }
     }
 
     // Check fileIdMesgs for creator info
-    if (data.fileIdMesgs && data.fileIdMesgs.length > 0) {
-        const [fileId] = data.fileIdMesgs;
+    const fileIdMesgs = getArrayValue(data, "fileIdMesgs");
+    if (fileIdMesgs.length > 0) {
+        const fileId = withSource(fileIdMesgs[0], "fileIdMesgs");
         console.log("📄 File ID data available");
         if (
             fileId.manufacturer ||
             fileId.manufacturerId ||
             fileId.manufacturer_id
         ) {
-            sensors.push({
-                ...fileId,
-                source: "fileIdMesgs",
-            });
+            sensors.push(fileId);
         }
     }
 
     // Check legacy file_id format
-    if (data.file_id && data.file_id.length > 0) {
-        const [fileId] = data.file_id;
+    const fileIds = getArrayValue(data, "file_id");
+    if (fileIds.length > 0) {
+        const fileId = withSource(fileIds[0], "file_id");
         console.log("📄 Legacy file ID data available");
         if (fileId.manufacturer || fileId.manufacturer_id) {
-            sensors.push({
-                ...fileId,
-                source: "file_id",
-            });
+            sensors.push(fileId);
         }
     }
 
-    // Check for any other sensor-related data
+    // Check for additional sensor-related data.
     const sensorKeys = Object.keys(data).filter(
         (key) =>
             key.includes("sensor") ||
@@ -197,9 +237,10 @@ export function debugSensorInfo() {
     console.log(`\n🎯 ANALYZING ${sensors.length} SENSOR ENTRIES:`);
     console.log("-".repeat(50));
 
+    /** @type {SensorAnalysis} */
     const analysis = {
-        manufacturerIssues: /** @type {any[]} */ ([]),
-        productIssues: /** @type {any[]} */ ([]),
+        manufacturerIssues: [],
+        productIssues: [],
         summary: {},
         totalSensors: sensors.length,
     };
@@ -287,15 +328,12 @@ export function debugSensorInfo() {
  * Show all available data keys for debugging
  */
 export function showDataKeys() {
-    if (
-        !globalThis.globalData ||
-        Object.keys(globalThis.globalData).length === 0
-    ) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
 
-    const data = globalThis.globalData;
     console.log("🗂️  AVAILABLE DATA KEYS:");
     for (const key of Object.keys(data)) {
         const count = Array.isArray(data[key]) ? data[key].length : 1;
@@ -309,55 +347,52 @@ export function showDataKeys() {
  * Quick command to show just the sensor names
  */
 export function showSensorNames() {
-    if (
-        !globalThis.globalData ||
-        Object.keys(globalThis.globalData).length === 0
-    ) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
 
-    const data = globalThis.globalData,
-        sensors = [];
+    /** @type {SensorEntry[]} */
+    const sensors = [];
     // Collect all potential sensors
-    if (data.deviceInfoMesgs) {
+    const deviceInfoMesgs = getArrayValue(data, "deviceInfoMesgs");
+    if (deviceInfoMesgs.length > 0) {
         sensors.push(
-            ...data.deviceInfoMesgs.map(
-                /** @param {any} d */ (d) => ({
-                    ...d,
-                    source: "deviceInfoMesgs",
-                })
+            ...deviceInfoMesgs.map((device) =>
+                withSource(device, "deviceInfoMesgs")
             )
         );
     }
-    if (data.deviceSettingsMesgs) {
+    const deviceSettingsMesgs = getArrayValue(data, "deviceSettingsMesgs");
+    if (deviceSettingsMesgs.length > 0) {
         sensors.push(
-            ...data.deviceSettingsMesgs.map(
-                /** @param {any} d */ (d) => ({
-                    ...d,
-                    source: "deviceSettingsMesgs",
-                })
+            ...deviceSettingsMesgs.map((device) =>
+                withSource(device, "deviceSettingsMesgs")
             )
         );
     }
-    if (data.device_info) {
+    const deviceInfo = getArrayValue(data, "device_info");
+    if (deviceInfo.length > 0) {
         sensors.push(
-            ...data.device_info.map(
-                /** @param {any} d */ (d) => ({ ...d, source: "device_info" })
-            )
+            ...deviceInfo.map((device) => withSource(device, "device_info"))
         );
     }
-    if (data.sessionMesgs && data.sessionMesgs[0]) {
-        sensors.push({ ...data.sessionMesgs[0], source: "sessionMesgs" });
+    const sessionMesgs = getArrayValue(data, "sessionMesgs");
+    if (sessionMesgs[0]) {
+        sensors.push(withSource(sessionMesgs[0], "sessionMesgs"));
     }
-    if (data.session && data.session[0]) {
-        sensors.push({ ...data.session[0], source: "session" });
+    const sessions = getArrayValue(data, "session");
+    if (sessions[0]) {
+        sensors.push(withSource(sessions[0], "session"));
     }
-    if (data.fileIdMesgs && data.fileIdMesgs[0]) {
-        sensors.push({ ...data.fileIdMesgs[0], source: "fileIdMesgs" });
+    const fileIdMesgs = getArrayValue(data, "fileIdMesgs");
+    if (fileIdMesgs[0]) {
+        sensors.push(withSource(fileIdMesgs[0], "fileIdMesgs"));
     }
-    if (data.file_id && data.file_id[0]) {
-        sensors.push({ ...data.file_id[0], source: "file_id" });
+    const fileIds = getArrayValue(data, "file_id");
+    if (fileIds[0]) {
+        sensors.push(withSource(fileIds[0], "file_id"));
     }
 
     console.log("🏷️  SENSOR NAMES:");
