@@ -1,6 +1,32 @@
 import { MAP_FILTER_METRICS } from "../../../maps/filters/mapMetricFilter.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
-function createFilterIcon() {
+
+/** Static DOM elements used by the data point filter control controller. */
+export interface FilterControlElements {
+    applyButton: HTMLButtonElement;
+    container: HTMLDivElement;
+    ids: {
+        modeRadioName: string;
+    };
+    metricSelect: HTMLSelectElement;
+    panel: HTMLDivElement;
+    percentGroup: HTMLDivElement;
+    percentInput: HTMLInputElement;
+    rangeGroup: HTMLDivElement;
+    rangeOption: HTMLLabelElement;
+    rangeRadio: HTMLInputElement;
+    rangeSliderMax: HTMLInputElement;
+    rangeSliderMin: HTMLInputElement;
+    rangeValueDisplay: HTMLDivElement;
+    resetButton: HTMLButtonElement;
+    summary: HTMLParagraphElement;
+    toggleButton: HTMLButtonElement;
+    topPercentOption: HTMLLabelElement;
+    topPercentRadio: HTMLInputElement;
+}
+
+function createFilterIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
@@ -8,6 +34,7 @@ function createFilterIcon() {
     icon.setAttribute("height", "18");
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
+
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", "M4 5h16l-6 7v6l-4 2v-8z");
     path.setAttribute("fill", "none");
@@ -15,12 +42,17 @@ function createFilterIcon() {
     path.setAttribute("stroke-width", "1.6");
     path.setAttribute("stroke-linejoin", "round");
     icon.append(path);
+
     return icon;
 }
+
 /** Creates and wires the static DOM structure for the data point filter control. */
-export function createFilterControlElements(instanceId) {
+export function createFilterControlElements(
+    instanceId: number
+): FilterControlElements {
     const container = document.createElement("div");
     container.className = "data-point-filter-control";
+
     const toggleButton = document.createElement("button");
     toggleButton.type = "button";
     toggleButton.className = "map-action-btn data-point-filter-control__toggle";
@@ -30,6 +62,7 @@ export function createFilterControlElements(instanceId) {
     const toggleLabel = document.createElement("span");
     toggleLabel.textContent = "Top Metrics";
     toggleButton.append(createFilterIcon(), toggleLabel);
+
     const panel = document.createElement("div");
     panel.className = "data-point-filter-control__panel";
     panel.setAttribute("role", "dialog");
@@ -39,14 +72,17 @@ export function createFilterControlElements(instanceId) {
     const panelId = `map-data-point-filter-panel-${instanceId}`;
     panel.id = panelId;
     toggleButton.setAttribute("aria-controls", panelId);
+
     const metricSelectId = `map-filter-metric-${instanceId}`;
     const percentInputId = `map-filter-percent-${instanceId}`;
     const rangeMinSliderId = `map-filter-range-min-${instanceId}`;
     const rangeMaxSliderId = `map-filter-range-max-${instanceId}`;
     const modeRadioName = `map-filter-mode-${instanceId}`;
+
     const metricLabel = document.createElement("label");
     metricLabel.textContent = "Metric";
     metricLabel.htmlFor = metricSelectId;
+
     const metricSelect = document.createElement("select");
     metricSelect.id = metricSelectId;
     metricSelect.className = "data-point-filter-control__select";
@@ -56,22 +92,27 @@ export function createFilterControlElements(instanceId) {
         option.textContent = metric.label;
         metricSelect.append(option);
     }
+
     const metricGroup = document.createElement("div");
     metricGroup.className = "data-point-filter-control__group";
     metricGroup.append(metricLabel, metricSelect);
+
     const modeGroup = document.createElement("div");
     modeGroup.className =
         "data-point-filter-control__group data-point-filter-control__group--mode";
+
     const modeLegend = document.createElement("span");
     modeLegend.className = "data-point-filter-control__mode-label";
     modeLegend.textContent = "Filter type";
     modeGroup.append(modeLegend);
+
     const topPercentRadio = document.createElement("input");
     topPercentRadio.type = "radio";
     topPercentRadio.name = modeRadioName;
     topPercentRadio.value = "topPercent";
     topPercentRadio.className = "data-point-filter-control__mode-radio";
     topPercentRadio.id = `map-filter-mode-top-${instanceId}`;
+
     const topPercentOption = document.createElement("label");
     topPercentOption.className = "data-point-filter-control__mode-option";
     topPercentOption.htmlFor = topPercentRadio.id;
@@ -80,12 +121,14 @@ export function createFilterControlElements(instanceId) {
     topPercentLabelText.textContent = "Top %";
     topPercentOption.append(topPercentRadio, topPercentLabelText);
     modeGroup.append(topPercentOption);
+
     const rangeRadio = document.createElement("input");
     rangeRadio.type = "radio";
     rangeRadio.name = modeRadioName;
     rangeRadio.value = "valueRange";
     rangeRadio.className = "data-point-filter-control__mode-radio";
     rangeRadio.id = `map-filter-mode-range-${instanceId}`;
+
     const rangeOption = document.createElement("label");
     rangeOption.className = "data-point-filter-control__mode-option";
     rangeOption.htmlFor = rangeRadio.id;
@@ -94,9 +137,11 @@ export function createFilterControlElements(instanceId) {
     rangeLabelText.textContent = "Value range";
     rangeOption.append(rangeRadio, rangeLabelText);
     modeGroup.append(rangeOption);
+
     const percentLabel = document.createElement("label");
     percentLabel.textContent = "Top %";
     percentLabel.htmlFor = percentInputId;
+
     const percentInput = document.createElement("input");
     percentInput.type = "number";
     percentInput.min = "1";
@@ -105,44 +150,70 @@ export function createFilterControlElements(instanceId) {
     percentInput.id = percentInputId;
     percentInput.className = "data-point-filter-control__input";
     percentInput.value = "10";
+
     const percentGroup = document.createElement("div");
     percentGroup.className =
         "data-point-filter-control__group data-point-filter-control__percent";
     percentGroup.append(percentLabel, percentInput);
+
     const rangeGroup = document.createElement("div");
     rangeGroup.className =
         "data-point-filter-control__group data-point-filter-control__range";
+
     const rangeLabel = document.createElement("span");
     rangeLabel.className = "data-point-filter-control__range-label";
     rangeLabel.textContent = "Value range";
+
     const rangeSliderMin = document.createElement("input");
     rangeSliderMin.type = "range";
     rangeSliderMin.id = rangeMinSliderId;
     rangeSliderMin.className = "data-point-filter-control__range-slider";
+
     const rangeSliderMax = document.createElement("input");
     rangeSliderMax.type = "range";
     rangeSliderMax.id = rangeMaxSliderId;
     rangeSliderMax.className = "data-point-filter-control__range-slider";
+
     const rangeValueDisplay = document.createElement("div");
     rangeValueDisplay.className = "data-point-filter-control__range-values";
     rangeValueDisplay.textContent = "Range unavailable";
-    rangeGroup.append(rangeLabel, rangeSliderMin, rangeSliderMax, rangeValueDisplay);
+
+    rangeGroup.append(
+        rangeLabel,
+        rangeSliderMin,
+        rangeSliderMax,
+        rangeValueDisplay
+    );
+
     const summary = document.createElement("p");
     summary.className = "data-point-filter-control__summary";
     summary.textContent = "Highlight the most intense sections of your ride.";
+
     const actions = document.createElement("div");
     actions.className = "data-point-filter-control__actions";
+
     const applyButton = document.createElement("button");
     applyButton.type = "button";
     applyButton.className = "data-point-filter-control__apply";
     applyButton.textContent = "Apply";
+
     const resetButton = document.createElement("button");
     resetButton.type = "button";
     resetButton.className = "data-point-filter-control__reset";
     resetButton.textContent = "Clear";
+
     actions.append(applyButton, resetButton);
-    panel.append(metricGroup, modeGroup, percentGroup, rangeGroup, summary, actions);
+    panel.append(
+        metricGroup,
+        modeGroup,
+        percentGroup,
+        rangeGroup,
+        summary,
+        actions
+    );
+
     container.append(toggleButton);
+
     return {
         container,
         panel,
