@@ -1,6 +1,66 @@
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 /**
+ * @typedef {object} LegacyFullscreenDocument
+ * @property {Element | null | undefined} [mozFullScreenElement]
+ * @property {Element | null | undefined} [msFullscreenElement]
+ * @property {Element | null | undefined} [webkitFullscreenElement]
+ */
+/** @typedef {{ resize: () => void }} ResizableChart */
+/** @typedef {{ getChart?: (canvas: HTMLCanvasElement) => unknown }} ChartRegistry */
+/** @typedef {HTMLCanvasElement & { __chartjs?: unknown }} LegacyChartCanvas */
+/**
+ * @typedef {typeof globalThis & {
+ *     Chart?: ChartRegistry;
+ *     ChartUpdater?: { updateCharts?: (reason: string) => void };
+ *     renderChart?: () => void;
+ *     renderChartJS?: () => void | Promise<boolean>;
+ * }} ChartResizeGlobal
+ */
+
+/**
+ * @returns {ChartResizeGlobal}
+ */
+function getChartResizeGlobal() {
+    return /** @type {ChartResizeGlobal} */ (globalThis);
+}
+
+/**
+ * @returns {Element | null}
+ */
+function getFullscreenElement() {
+    const doc = /** @type {Document & LegacyFullscreenDocument} */ (document);
+    return (
+        document.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement ||
+        null
+    );
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is ResizableChart}
+ */
+function isResizableChart(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return typeof candidate.resize === "function";
+}
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @returns {unknown}
+ */
+function getLegacyCanvasChart(canvas) {
+    return /** @type {LegacyChartCanvas} */ (canvas).__chartjs;
+}
+
+/**
  * Registers the window resize listener for chart redraws.
  *
  * @param {{ cleanupCallbacks: (() => void)[] }} params
@@ -12,13 +72,7 @@ export function registerChartResizeListener({ cleanupCallbacks }) {
     const handleWindowResize = () => {
         const chartTab = querySelectorByIdFlexible(document, "#tab_chart");
         const chartJsTab = querySelectorByIdFlexible(document, "#tab_chartjs");
-        const doc = /** @type {any} */ (document);
-        const fullscreenElement =
-            document.fullscreenElement ||
-            doc.webkitFullscreenElement ||
-            doc.mozFullScreenElement ||
-            doc.msFullscreenElement ||
-            null;
+        const fullscreenElement = getFullscreenElement();
 
         if (
             chartTab?.classList.contains("active") ||
@@ -37,17 +91,18 @@ export function registerChartResizeListener({ cleanupCallbacks }) {
             }
 
             chartRenderTimeout = setTimeout(() => {
+                const chartGlobal = getChartResizeGlobal();
                 // Use modern chart state management for resize handling
                 if (
-                    globalThis.ChartUpdater &&
-                    globalThis.ChartUpdater.updateCharts
+                    chartGlobal.ChartUpdater &&
+                    chartGlobal.ChartUpdater.updateCharts
                 ) {
-                    globalThis.ChartUpdater.updateCharts("window-resize");
-                } else if (globalThis.renderChartJS) {
-                    globalThis.renderChartJS();
-                } else if (/** @type {any} */ (globalThis).renderChart) {
-                    // Legacy fallback (cast window to any for legacy property)
-                    /** @type {any} */ (globalThis).renderChart();
+                    chartGlobal.ChartUpdater.updateCharts("window-resize");
+                } else if (chartGlobal.renderChartJS) {
+                    chartGlobal.renderChartJS();
+                } else if (chartGlobal.renderChart) {
+                    // Legacy fallback for older renderer bundles.
+                    chartGlobal.renderChart();
                 }
             }, 200);
         }
@@ -85,12 +140,12 @@ function resizeExistingCharts() {
             if (!(canvas instanceof HTMLCanvasElement)) {
                 continue;
             }
-            const chartRef = /** @type {any} */ (globalThis).Chart;
+            const chartRef = getChartResizeGlobal().Chart;
             const chart =
                 chartRef && typeof chartRef.getChart === "function"
                     ? chartRef.getChart(canvas)
-                    : /** @type {any} */ (canvas).__chartjs;
-            if (chart && typeof chart.resize === "function") {
+                    : getLegacyCanvasChart(canvas);
+            if (isResizableChart(chart)) {
                 chart.resize();
             }
         }
