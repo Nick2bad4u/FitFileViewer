@@ -94,6 +94,7 @@
         "utils/logging/logWithLevel.ts",
         "utils/logging/rendererLogger.ts",
         "utils/logging/index.ts",
+        "utils/debug/lastAnimLog.ts",
         "utils/errors/errorHandling.ts",
         "utils/errors/index.ts",
         "utils/app/async/cancellationToken.ts",

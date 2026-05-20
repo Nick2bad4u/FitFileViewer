@@ -1,18 +1,27 @@
 /**
  * Throttled animation logging utilities for renderer development debugging.
  */
+
+type RendererGlobal = typeof globalThis & {
+    __renderer_dev?: unknown;
+    window?: unknown;
+};
+
 /**
  * Checks whether renderer animation debug logging should be enabled.
  *
  * @returns True when development logging is enabled.
  */
-function isDevelopmentMode() {
-    const globalScope = globalThis;
-    return ((globalScope.window !== undefined &&
-        Boolean(globalScope.__renderer_dev)) ||
+function isDevelopmentMode(): boolean {
+    const globalScope = globalThis as RendererGlobal;
+    return (
+        (globalScope.window !== undefined &&
+            Boolean(globalScope.__renderer_dev)) ||
         (typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "development"));
+            process.env["NODE_ENV"] === "development")
+    );
 }
+
 /**
  * Logs animation progress messages to the console at most once every 500ms to
  * prevent log flooding. Intended for development/debug logging
@@ -27,11 +36,13 @@ function isDevelopmentMode() {
 export const throttledAnimLog = (() => {
     let lastAnimLogTimestamp = 0;
     const THROTTLE_INTERVAL_MS = 500;
-    return function throttledAnimationLog(message) {
+
+    return function throttledAnimationLog(message: string): void {
         // Skip logging in production or if console is not available
         if (typeof console === "undefined" || !console.log) {
             return;
         }
+
         if (!isDevelopmentMode()) {
             return;
         }
@@ -41,13 +52,13 @@ export const throttledAnimLog = (() => {
                 console.log(`[AnimDebug] ${message}`);
                 lastAnimLogTimestamp = now;
             }
-        }
-        catch {
+        } catch {
             // Silently fail if logging encounters an error
             // Don't use console.error to avoid potential recursion
         }
     };
 })();
+
 /**
  * Alternative logging function for critical animation events that should always
  * be logged even if throttling is active. Use sparingly to avoid console
@@ -55,21 +66,22 @@ export const throttledAnimLog = (() => {
  *
  * @param message - The critical message to log immediately.
  */
-export const criticalAnimLog = (message) => {
+export const criticalAnimLog = (message: string): void => {
     // Skip logging in production or if console is not available
     if (typeof console === "undefined" || !console.log) {
         return;
     }
+
     if (!isDevelopmentMode()) {
         return;
     }
     try {
         console.log(`[AnimCritical] ${message}`);
-    }
-    catch {
+    } catch {
         // Silently fail if logging encounters an error
     }
 };
+
 /**
  * Performance-aware animation logger that includes timing information.
  *
@@ -79,25 +91,32 @@ export const criticalAnimLog = (message) => {
 export const perfAnimLog = (() => {
     let lastPerfLogTimestamp = 0;
     const THROTTLE_INTERVAL_MS = 1000; // Less frequent for performance logs
-    return function performanceAnimationLog(message, startTime) {
+
+    return function performanceAnimationLog(
+        message: string,
+        startTime?: number
+    ): void {
         // Skip logging in production or if console is not available
         if (typeof console === "undefined" || !console.log) {
             return;
         }
+
         if (!isDevelopmentMode()) {
             return;
         }
+
         try {
             const now = performance.now();
             if (now - lastPerfLogTimestamp > THROTTLE_INTERVAL_MS) {
                 const duration = startTime
                     ? ` (${(now - startTime).toFixed(2)}ms)`
                     : "";
-                console.log(`[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`);
+                console.log(
+                    `[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`
+                );
                 lastPerfLogTimestamp = now;
             }
-        }
-        catch {
+        } catch {
             // Silently fail if logging encounters an error
         }
     };
