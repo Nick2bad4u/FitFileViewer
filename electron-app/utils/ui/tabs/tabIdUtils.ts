@@ -4,7 +4,19 @@
  * Consolidates tab button/content ID parsing to reduce duplicate logic and keep
  * tab naming conventions consistent across UI modules.
  */
+
 import { buildIdVariants } from "../dom/elementIdUtils.js";
+
+/** Tab configuration shape used by tab ID resolution. */
+export type TabIdConfig = {
+    id?: string;
+};
+
+/** Options for extracting tab names from button IDs. */
+export type ExtractTabNameOptions = {
+    knownTabNames?: readonly string[];
+};
+
 const DEFAULT_TAB_NAMES = [
     "altfit",
     "browser",
@@ -14,28 +26,31 @@ const DEFAULT_TAB_NAMES = [
     "map",
     "summary",
     "zwift",
-];
+] as const;
+
 /**
  * Normalize a tab name for matching.
  *
  * @param rawName - Tab name candidate.
  * @returns Normalized tab name.
  */
-export function normalizeTabName(rawName) {
+export function normalizeTabName(rawName: string): string {
     return String(rawName)
         .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
         .toLowerCase();
 }
+
 /**
  * Normalize a tab name derived from content IDs, mapping chartjs to chart.
  *
  * @param rawName - Content-derived tab name candidate.
  * @returns Normalized content tab name.
  */
-export function normalizeContentTabName(rawName) {
+export function normalizeContentTabName(rawName: string): string {
     const normalized = normalizeTabName(rawName);
     return normalized === "chartjs" ? "chart" : normalized;
 }
+
 /**
  * Extract tab name from a button ID for state updates.
  *
@@ -43,9 +58,13 @@ export function normalizeContentTabName(rawName) {
  * @param options - Optional known tab names for guarded underscore parsing.
  * @returns Extracted tab name, or the original ID when it cannot be mapped.
  */
-export function extractTabNameFromButtonId(tabId, options = {}) {
+export function extractTabNameFromButtonId(
+    tabId: string,
+    options: ExtractTabNameOptions = {}
+): string {
     const knownTabNames = options.knownTabNames ?? DEFAULT_TAB_NAMES;
-    const patterns = [
+
+    const patterns: RegExp[] = [
         /^tab_(.+)$/,
         /^(.+)_tab$/,
         /^tab-(.+)$/,
@@ -55,6 +74,7 @@ export function extractTabNameFromButtonId(tabId, options = {}) {
         /^btn-(.+)$/,
         /^(.+)-btn$/,
     ];
+
     for (const pattern of patterns) {
         const match = tabId.match(pattern);
         if (match) {
@@ -67,8 +87,10 @@ export function extractTabNameFromButtonId(tabId, options = {}) {
             return rawName;
         }
     }
+
     return tabId;
 }
+
 /**
  * Resolve a tab name from a button ID using tab config entries when available.
  *
@@ -76,22 +98,28 @@ export function extractTabNameFromButtonId(tabId, options = {}) {
  * @param tabConfigMap - Known tab configuration map.
  * @returns Resolved tab name, or null when no match exists.
  */
-export function resolveTabNameFromButtonId(buttonId, tabConfigMap) {
+export function resolveTabNameFromButtonId(
+    buttonId: unknown,
+    tabConfigMap: null | Record<string, TabIdConfig> | undefined
+): null | string {
     if (!buttonId || typeof buttonId !== "string") {
         return null;
     }
+
     const variants = buildIdVariants(buttonId);
     for (const [tabName, config] of Object.entries(tabConfigMap ?? {})) {
         if (config.id && variants.includes(config.id)) {
             return tabName;
         }
     }
+
     const patterns = [
         /^tab[-_]?(.+)$/i,
         /^(.+?)[-_]?tab$/i,
         /^btn[-_]?(.+)$/i,
         /^(.+?)[-_]?btn$/i,
     ];
+
     for (const pattern of patterns) {
         const match = buttonId.match(pattern);
         if (match?.[1]) {
@@ -101,19 +129,25 @@ export function resolveTabNameFromButtonId(buttonId, tabConfigMap) {
             }
         }
     }
+
     return null;
 }
+
 /**
  * Extract tab name from a content element ID.
  *
  * @param contentId - Content element ID.
  * @returns Extracted tab name, or null when no pattern matches.
  */
-export function extractTabNameFromContentId(contentId) {
+export function extractTabNameFromContentId(contentId: unknown): null | string {
     if (!contentId || typeof contentId !== "string") {
-        console.warn("extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:", contentId);
+        console.warn(
+            "extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:",
+            contentId
+        );
         return null;
     }
+
     const patterns = [
         /^content_(.+)$/,
         /^content-(.+)$/,
@@ -121,22 +155,25 @@ export function extractTabNameFromContentId(contentId) {
         /^(.+)_content$/,
         /^(.+)-content$/,
     ];
+
     for (const pattern of patterns) {
         const match = contentId.match(pattern);
         if (match?.[1]) {
             return normalizeContentTabName(match[1]);
         }
     }
+
     return null;
 }
+
 /**
  * Get content ID from tab name.
  *
  * @param tabName - Tab name.
  * @returns Content element ID.
  */
-export function getContentIdFromTabName(tabName) {
-    const tabToContentMap = {
+export function getContentIdFromTabName(tabName: string): string {
+    const tabToContentMap: Record<string, string> = {
         altfit: "content_altfit",
         browser: "content_browser",
         chart: "content_chartjs",
@@ -146,7 +183,9 @@ export function getContentIdFromTabName(tabName) {
         summary: "content_summary",
         zwift: "content_zwift",
     };
+
     return tabToContentMap[tabName] ?? `content_${tabName}`;
 }
+
 /** Default tab names known by the legacy tab UI. */
 export const DEFAULT_TAB_NAMES_LIST = [...DEFAULT_TAB_NAMES];
