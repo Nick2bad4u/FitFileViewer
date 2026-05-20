@@ -1,113 +1,57 @@
-export * from "./debugChartFormatting.js";
-export * from "./debugSensorInfo.js";
-export * from "./lastAnimLog.js";
-export * from "./stateDevTools.js";
-declare const _default: {
-    cleanupStateDevTools(): void;
-    initializeStateDevTools(enableInProduction?: boolean): void;
-    measureStateOperation(
-        operationName: string,
-        operation: Function
-    ): Promise<any>;
-    withPerformanceMonitoring(name: string, fn: Function): Function;
-    performanceMonitor: {
-        metrics: stateDevTools.PerformanceMetrics;
-        timers: Map<any, any>;
-        intervalId: NodeJS.Timeout | null;
-        isEnabled: boolean;
-        disable(): void;
-        enable(): void;
-        endTimer(operationId: string): number | undefined;
-        getMetrics(): PerformanceMetrics & {
-            isEnabled: boolean;
-            timestamp: number;
-        };
-        getReport(): string;
-        recordError(error: Error, context: string): void;
-        recordMemoryUsage(): void;
-        recordSlowOperation(operationId: string, duration: number): void;
-        resetMetrics(): void;
-        startTimer(operationId: string): void;
-        subscribeToStateChanges(): void;
-    };
-    debugUtilities: {
-        isDebugMode: boolean;
-        logLevel: string;
-        checkForUndefined(
-            obj: any,
-            path: string,
-            validation: ValidationResult
-        ): void;
-        compareSnapshots(
-            snapshot1: StateSnapshot,
-            snapshot2: StateSnapshot
-        ): SnapshotComparison;
-        createSnapshot(): StateSnapshot;
-        disableDebugMode(): void;
-        enableDebugMode(): void;
-        findSlowSubscribers(): Array<any>;
-        logCurrentState(): void;
-        validateState(): Object;
-        validateStateStructure(state: any, validation: ValidationResult): void;
-    };
-    throttledAnimLog: (message: any) => void;
-    criticalAnimLog: (message: string) => void;
-    perfAnimLog: (message: any, startTime: any) => void;
-    checkDataAvailability(): any;
-    debugSensorInfo(): Object | null;
-    showDataKeys(): void;
-    showSensorNames(): void;
-    testManufacturerId(manufacturerId: number | string): {
-        formatted: string;
-        id: number;
-        resolved: string;
-    };
-    testProductId(
-        manufacturerId: number | string,
-        productId: number | string
-    ): {
-        formattedProduct: string;
-        manufacturerId: number;
-        manufacturerName: string;
-        productId: number;
-        resolvedProduct: string;
-    };
-    testFaveroCase(): {
-        actual: string;
-        expected: string;
-        success: boolean;
-    };
-    testFaveroStringCase(): {
-        actual: string;
-        expected: string;
-        success: boolean;
-    };
-    testNewFormatting(): (
-        | {
-              name: string;
-              sensor: {
-                  manufacturer: number;
-                  product: number;
-                  garminProduct?: never;
-              };
-          }
-        | {
-              name: string;
-              sensor: {
-                  manufacturer: string;
-                  product: string;
-                  garminProduct?: never;
-              };
-          }
-        | {
-              name: string;
-              sensor: {
-                  garminProduct: string;
-                  manufacturer?: never;
-                  product?: never;
-              };
-          }
-    )[];
-};
-export default _default;
+/* eslint-disable no-barrel-files/no-barrel-files -- Mirrors the debug barrel module's public declaration surface. */
+
+import * as debugChartFormatting from "./debugChartFormatting.js";
+import * as debugSensorInfo from "./debugSensorInfo.js";
+import * as lastAnimationLog from "./lastAnimLog.js";
 import * as stateDevTools from "./stateDevTools.js";
+export {
+    testFaveroCase,
+    testFaveroStringCase,
+    testNewFormatting,
+} from "./debugChartFormatting.js";
+export type {
+    SensorAnalysis,
+    SensorEntry,
+    SensorIssue,
+} from "./debugSensorInfo.js";
+export {
+    checkDataAvailability,
+    debugSensorInfo,
+    showDataKeys,
+    showSensorNames,
+    testManufacturerId,
+    testProductId,
+} from "./debugSensorInfo.js";
+export {
+    criticalAnimLog,
+    perfAnimLog,
+    throttledAnimLog,
+} from "./lastAnimLog.js";
+export type {
+    ErrorRecord,
+    MemoryUsageRecord,
+    PerformanceMetrics,
+    SlowOperationRecord,
+    SnapshotComparison,
+    SnapshotDiffStateChange,
+    StateSnapshot,
+    ValidationResult,
+} from "./stateDevTools.js";
+export {
+    cleanupStateDevTools,
+    debugUtilities,
+    initializeStateDevTools,
+    measureStateOperation,
+    performanceMonitor,
+    withPerformanceMonitoring,
+} from "./stateDevTools.js";
+
+/** Combined debug helper exports. */
+declare const debugHelpers: typeof debugChartFormatting &
+    typeof debugSensorInfo &
+    typeof lastAnimationLog &
+    typeof stateDevTools;
+
+export default debugHelpers;
+
+/* eslint-enable no-barrel-files/no-barrel-files */

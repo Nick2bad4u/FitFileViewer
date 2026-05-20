@@ -1,3 +1,8 @@
-export function throttledAnimLog(message: any): void;
+/** Log animation progress at a throttled cadence in development mode. */
+export function throttledAnimLog(message: string): void;
+
+/** Log critical animation events immediately in development mode. */
 export function criticalAnimLog(message: string): void;
-export function perfAnimLog(message: any, startTime: any): void;
+
+/** Log animation timing information at a throttled cadence. */
+export function perfAnimLog(message: string, startTime?: number): void;
