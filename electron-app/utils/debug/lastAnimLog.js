@@ -11,6 +11,23 @@
  */
 
 /**
+ * @typedef {{ __renderer_dev?: unknown; window?: unknown }} RendererGlobal
+ */
+
+/**
+ * @returns {boolean}
+ */
+function isDevelopmentMode() {
+    const globalScope = /** @type {RendererGlobal} */ (globalThis);
+    return (
+        (globalScope.window !== undefined &&
+            Boolean(globalScope.__renderer_dev)) ||
+        (typeof process !== "undefined" &&
+            process?.env?.NODE_ENV === "development")
+    );
+}
+
+/**
  * Logs animation progress messages to the console at most once every 500ms to
  * prevent log flooding. Intended for development/debug logging
  * only—automatically disabled in production builds.
@@ -44,20 +61,14 @@ export const throttledAnimLog = (() => {
     let lastAnimLogTimestamp = 0;
     const THROTTLE_INTERVAL_MS = 500;
 
-    /** @param {any} message */
+    /** @param {string} message */
     return function (message) {
         // Skip logging in production or if console is not available
         if (typeof console === "undefined" || !console.log) {
             return;
         }
 
-        // Additional development mode check
-        const isDevelopment =
-            (globalThis.window !== undefined &&
-                /** @type {any} */ (globalThis).__renderer_dev) ||
-            process?.env?.NODE_ENV === "development";
-
-        if (!isDevelopment) {
+        if (!isDevelopmentMode()) {
             return;
         }
         try {
@@ -96,12 +107,7 @@ export const criticalAnimLog = (message) => {
         return;
     }
 
-    const isDevelopment =
-        (globalThis.window !== undefined &&
-            /** @type {any} */ (globalThis).__renderer_dev) ||
-        process?.env?.NODE_ENV === "development";
-
-    if (!isDevelopment) {
+    if (!isDevelopmentMode()) {
         return;
     }
     try {
@@ -134,8 +140,8 @@ export const perfAnimLog = (() => {
     const THROTTLE_INTERVAL_MS = 1000; // Less frequent for performance logs
 
     /**
-     * @param {any} message
-     * @param {any} startTime
+     * @param {string} message
+     * @param {number} [startTime]
      */
     return function (message, startTime) {
         // Skip logging in production or if console is not available
@@ -143,12 +149,7 @@ export const perfAnimLog = (() => {
             return;
         }
 
-        const isDevelopment =
-            (globalThis.window !== undefined &&
-                /** @type {any} */ (globalThis).__renderer_dev) ||
-            process?.env?.NODE_ENV === "development";
-
-        if (!isDevelopment) {
+        if (!isDevelopmentMode()) {
             return;
         }
 
