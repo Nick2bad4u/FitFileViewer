@@ -201,6 +201,109 @@
         el.removeAttribute("style");
     }
 
+    /**
+     * @param {string} tagName
+     * @param {string} className
+     * @param {string} text
+     *
+     * @returns {HTMLElement}
+     */
+    function createTextElement(tagName, className, text) {
+        const element = document.createElement(tagName);
+        if (className) {
+            element.className = className;
+        }
+        element.textContent = text;
+
+        return element;
+    }
+
+    /**
+     * @param {string} className
+     * @param {string} text
+     *
+     * @returns {HTMLAnchorElement}
+     */
+    function createTaskLink(className, text) {
+        const link = document.createElement("a");
+        link.href = "#";
+        link.className = className;
+        link.textContent = text;
+
+        return link;
+    }
+
+    /**
+     * @param {HTMLAnchorElement} link
+     *
+     * @returns {HTMLLIElement}
+     */
+    function createTaskItem(link) {
+        const item = document.createElement("li");
+        item.append(link);
+
+        return item;
+    }
+
+    /**
+     * @param {string} heading
+     * @param {string} value
+     *
+     * @returns {HTMLElement}
+     */
+    function createResultGroup(heading, value) {
+        const group = document.createElement("div");
+        group.className = "group";
+
+        const paragraph = document.createElement("p");
+        const label = createTextElement("span", "heading", heading);
+        paragraph.append(label, document.createTextNode(` ${value}`));
+        group.append(paragraph);
+
+        return group;
+    }
+
+    /**
+     * @param {number[]} segmentMeters
+     * @param {"meters" | "miles"} primaryUnit
+     * @param {"meters" | "miles" | null | undefined} secondaryUnit
+     * @param {string} decPoint
+     * @param {string} thousandsSep
+     *
+     * @returns {HTMLElement}
+     */
+    function createSegmentsGroup(
+        segmentMeters,
+        primaryUnit,
+        secondaryUnit,
+        decPoint,
+        thousandsSep
+    ) {
+        const group = document.createElement("div");
+        group.className = "group";
+
+        const paragraph = document.createElement("p");
+        paragraph.append(createTextElement("span", "heading", "Segments"));
+
+        const list = document.createElement("ol");
+        list.className = "segments";
+        segmentMeters.forEach((meters, index) => {
+            const item = document.createElement("li");
+            item.textContent = `Segment ${index + 1}: ${formatDistanceDual(
+                meters,
+                primaryUnit,
+                secondaryUnit,
+                decPoint,
+                thousandsSep
+            )}`;
+            list.append(item);
+        });
+
+        group.append(paragraph, list);
+
+        return group;
+    }
+
     L.Control.Measure = L.Control.extend({
         options: DEFAULTS,
 
@@ -257,8 +360,17 @@
                 "startprompt js-startprompt",
                 interaction
             ));
-            startPrompt.innerHTML =
-                '<h3>Measure distances and areas</h3><ul class="tasks"><li><a href="#" class="js-start start">Create a new measurement</a></li></ul>';
+            const startTasks = document.createElement("ul");
+            startTasks.className = "tasks";
+            startTasks.append(
+                createTaskItem(
+                    createTaskLink("js-start start", "Create a new measurement")
+                )
+            );
+            startPrompt.append(
+                createTextElement("h3", "", "Measure distances and areas"),
+                startTasks
+            );
 
             // Measuring prompt
             const measuringPrompt = (this.$measuringPrompt = L.DomUtil.create(
@@ -266,8 +378,27 @@
                 "js-measuringprompt",
                 interaction
             ));
-            measuringPrompt.innerHTML =
-                '<h3>Measure distances and areas</h3><p class="js-starthelp">Start creating a measurement by adding points to the map</p><div class="js-results results"></div><ul class="js-measuretasks tasks"><li><a href="#" class="js-cancel cancel">Cancel</a></li><li><a href="#" class="js-finish finish">Finish measurement</a></li></ul>';
+            const startHelp = createTextElement(
+                "p",
+                "js-starthelp",
+                "Start creating a measurement by adding points to the map"
+            );
+            const results = document.createElement("div");
+            results.className = "js-results results";
+            const measureTasks = document.createElement("ul");
+            measureTasks.className = "js-measuretasks tasks";
+            measureTasks.append(
+                createTaskItem(createTaskLink("js-cancel cancel", "Cancel")),
+                createTaskItem(
+                    createTaskLink("js-finish finish", "Finish measurement")
+                )
+            );
+            measuringPrompt.append(
+                createTextElement("h3", "", "Measure distances and areas"),
+                startHelp,
+                results,
+                measureTasks
+            );
 
             // Cache elements
             this.$results = /** @type {HTMLElement} */ (
@@ -857,40 +988,33 @@
 
             const hasArea = latlngs.length >= 3;
 
-            const segmentsHtml =
+            /** @type {HTMLElement[]} */
+            const resultGroups = [
+                createResultGroup("Points", String(latlngs.length)),
+                createResultGroup("Path distance", primaryLength),
+            ];
+
+            const segmentMeters =
                 Array.isArray(this._segmentMeters) &&
                 this._segmentMeters.length > 0
-                    ? `
-                    <div class="group">
-                        <p><span class="heading">Segments</span></p>
-                        <ol class="segments">
-                            ${this._segmentMeters
-                                .map(
-                                    (m, idx) =>
-                                        `<li>Segment ${idx + 1}: ${formatDistanceDual(
-                                            m,
-                                            primaryUnit,
-                                            secondaryUnit,
-                                            this.options.decPoint,
-                                            this.options.thousandsSep
-                                        )}</li>`
-                                )
-                                .join("")}
-                        </ol>
-                    </div>
-                `
-                    : "";
+                    ? /** @type {number[]} */ (this._segmentMeters)
+                    : [];
+            if (segmentMeters.length > 0) {
+                resultGroups.push(
+                    createSegmentsGroup(
+                        segmentMeters,
+                        primaryUnit,
+                        secondaryUnit,
+                        this.options.decPoint,
+                        this.options.thousandsSep
+                    )
+                );
+            }
+            if (hasArea) {
+                resultGroups.push(createResultGroup("Area", primaryArea));
+            }
 
-            this.$results.innerHTML = `
-                <div class="group">
-                    <p><span class="heading">Points</span> ${latlngs.length}</p>
-                </div>
-                <div class="group">
-                    <p><span class="heading">Path distance</span> ${primaryLength}</p>
-                </div>
-                ${segmentsHtml}
-                ${hasArea ? `<div class="group"><p><span class="heading">Area</span> ${primaryArea}</p></div>` : ""}
-            `;
+            this.$results.replaceChildren(...resultGroups);
 
             if (this.$startHelp) {
                 if (latlngs.length === 0) {
@@ -933,11 +1057,17 @@
                 this.options.thousandsSep
             );
 
-            wrap.innerHTML = `
-                <h3>${areaSqMeters > 0 ? "Area measurement" : "Linear measurement"}</h3>
-                <p>${length}</p>
-                ${areaSqMeters > 0 ? `<p>${area}</p>` : ""}
-            `;
+            wrap.append(
+                createTextElement(
+                    "h3",
+                    "",
+                    areaSqMeters > 0 ? "Area measurement" : "Linear measurement"
+                ),
+                createTextElement("p", "", length)
+            );
+            if (areaSqMeters > 0) {
+                wrap.append(createTextElement("p", "", area));
+            }
 
             return wrap;
         },
