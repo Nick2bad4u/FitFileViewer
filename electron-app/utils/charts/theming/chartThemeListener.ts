@@ -1,4 +1,5 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
+import type { FitDecodeResult } from "../../../shared/fit";
 
 interface ChartUpdateAdapter {
     updateAll(reason: string): void;
@@ -11,7 +12,7 @@ interface ThemeChangeDetail {
 interface LegacyChartWindow extends Window {
     ChartUpdater?: unknown;
     chartUpdater?: unknown;
-    globalData?: unknown;
+    globalData?: FitDecodeResult | null;
 }
 
 type ThemeChangeHandler = ((event: Event) => void) & {

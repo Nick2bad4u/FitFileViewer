@@ -1,8 +1,10 @@
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/method-signature-style, @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-object-types, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type {
     FitDecodeResult,
     FitMessages,
 } from "./shared/fit";
+import type * as Leaflet from "leaflet";
+import type screenfull from "screenfull";
 import type {
     ChannelInfo,
     GenericInvokeChannel,
@@ -152,8 +154,7 @@ interface ElectronAPI {
 
 declare global {
     /** Canonical document reference provided by the Vitest setup harness */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var __vitest_effective_document__: any | undefined;
+    var __vitest_effective_document__: Document | undefined;
 
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
@@ -163,59 +164,59 @@ declare global {
         };
 
         // --- Data / state objects ---
-        globalData?: any;
-        AppState?: any;
-        __appState?: any;
-        chartStateManager?: any;
-        tabStateManager?: any;
-        chartControlsState?: any;
-        rendererUtils?: any;
-        loadedFitFiles?: any[];
+        globalData?: FitDecodeResult | null;
+        AppState?: unknown;
+        __appState?: unknown;
+        chartStateManager?: unknown;
+        tabStateManager?: unknown;
+        chartControlsState?: unknown;
+        rendererUtils?: Record<string, unknown>;
+        loadedFitFiles?: FitDecodeResult[];
 
         // --- Zone / chart related data ---
         heartRateZones?: ZoneInfo[];
         powerZones?: ZoneInfo[];
-        _chartjsInstances?: any[];
-        ChartUpdater?: any;
-        chartUpdater?: any;
-        Chart?: any;
+        _chartjsInstances?: unknown[];
+        ChartUpdater?: unknown;
+        chartUpdater?: unknown;
+        Chart?: unknown;
 
         // --- UI helpers & rendering functions (legacy; slated for removal) ---
-        showFitData?: (data: any, fileName?: string) => void;
-        renderChartJS?: (...args: any[]) => void;
-        renderMap?: (...args: any[]) => void;
-        renderSummary?: (...args: any[]) => void;
-        createTables?: (...args: any[]) => void;
+        showFitData?: (data: FitDecodeResult, fileName?: string) => void;
+        renderChartJS?: (...args: unknown[]) => void;
+        renderMap?: (...args: unknown[]) => void;
+        renderSummary?: (...args: unknown[]) => void;
+        createTables?: (...args: unknown[]) => void;
 
         // --- Notification & modals ---
         showNotification?: (
             message: string,
             type?: string,
             duration?: number,
-            options?: any
+            options?: unknown
         ) => Promise<void>;
         showKeyboardShortcutsModal?: () => void;
         closeKeyboardShortcutsModal?: () => void;
-        aboutModalDevHelpers?: any;
+        aboutModalDevHelpers?: unknown;
 
         // --- Zone color / controls utilities ---
         updateInlineZoneColorSelectors?: (root?: HTMLElement) => void;
         clearZoneColorData?: (field: string, zoneCount: number) => void;
         resetAllSettings?: () => void;
         updateMapTheme?: () => void;
-        _mapThemeListener?: any;
+        _mapThemeListener?: EventListener;
 
         // --- Tab button / UI state debugging helpers ---
         setTabButtonsEnabled?: (enabled: boolean) => void;
         areTabButtonsEnabled?: () => boolean;
-        debugTabButtons?: (...args: any[]) => void;
+        debugTabButtons?: (...args: unknown[]) => void;
         forceEnableTabButtons?: () => void;
         testTabButtonClicks?: () => void;
-        debugTabState?: (...args: any[]) => void;
+        debugTabState?: (...args: unknown[]) => void;
         forceFixTabButtons?: () => void;
 
         // --- Drag & drop / misc ---
-        dragDropHandler?: any;
+        dragDropHandler?: unknown;
         injectMenu?: (
             theme?: string | null,
             fitFilePath?: string | null
@@ -226,16 +227,15 @@ declare global {
         // --- Internal flags / timeouts ---
         __DEVELOPMENT__?: boolean;
         __state_debug?: boolean;
-        __persistenceTimeout?: any;
+        __persistenceTimeout?: ReturnType<typeof setTimeout>;
 
         // --- External libs exposed globally ---
-        screenfull?: any;
+        screenfull?: typeof screenfull;
 
         // --- Map / markers ---
         mapMarkerCount?: number;
         /** Leaflet global (present when Leaflet library loaded) */
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        L?: any;
+        L?: typeof Leaflet;
     }
 
     /**
@@ -244,15 +244,11 @@ declare global {
      * on Window/Node globals so assignments like `global.L = ...` in Vitest
      * setup and `window.L` in the renderer type-check without TS2339 errors.
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var L: any; // direct global variable access
-
-    // eslint-disable-next-line @typescript-eslint/no-namespace
+    var L: typeof Leaflet; // direct global variable access
     namespace NodeJS {
         interface Global {
             // for test / Node environments
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            L?: any;
+            L?: typeof Leaflet;
         }
     }
 }
@@ -273,3 +269,4 @@ export interface ZoneInfo {
 }
 
 export {};
+/* eslint-enable @typescript-eslint/method-signature-style, @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-object-types, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
