@@ -1,22 +1,37 @@
 import { attachExternalLinkHandlers } from "./links/externalLinkHandlers.js";
 import { showNotification } from "./notifications/showNotification.js";
+
+type CleanupFunction = () => void;
+
+type SetupExternalLinkHandlersOptions = {
+    readonly cleanupExternalLinkHandlers: CleanupFunction | null;
+    readonly setCleanup: (cleanup: CleanupFunction | null) => void;
+};
+
 /**
  * Initialize external link handlers and store a cleanup callback.
  *
  * @param options - Current cleanup state and setter.
  */
-export function setupExternalLinkHandlers({ cleanupExternalLinkHandlers, setCleanup, }) {
+export function setupExternalLinkHandlers({
+    cleanupExternalLinkHandlers,
+    setCleanup,
+}: SetupExternalLinkHandlersOptions): void {
     try {
         cleanupExternalLinkHandlers?.();
-    }
-    catch {
+    } catch {
         // Ignore stale cleanup failures during renderer reinitialization.
     }
+
     const cleanup = attachExternalLinkHandlers({
         onOpenExternalError: () => {
-            void showNotification("Failed to open link in your browser.", "error");
+            void showNotification(
+                "Failed to open link in your browser.",
+                "error"
+            );
         },
         root: document,
     });
+
     setCleanup(cleanup);
 }
