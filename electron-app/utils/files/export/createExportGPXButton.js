@@ -7,6 +7,54 @@ import {
     resolveTrackNameFromLoadedFiles,
 } from "./gpxExport.js";
 
+/** @typedef {import("../../state/domain/fitFileState.js").FitFileRecord} FitFileRecord */
+/**
+ * @typedef {typeof globalThis & {
+ *     globalData?: { recordMesgs?: Partial<FitFileRecord>[] };
+ *     loadedFitFiles?: { filePath?: string; displayName?: string; name?: string }[];
+ * }} GpxExportGlobal
+ */
+
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+/**
+ * @returns {GpxExportGlobal}
+ */
+function getGpxExportGlobal() {
+    return /** @type {GpxExportGlobal} */ (globalThis);
+}
+
+/**
+ * @param {string} primary
+ *
+ * @returns {SVGSVGElement}
+ */
+function createExportIcon(primary) {
+    const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+    svg.classList.add("icon");
+    svg.setAttribute("viewBox", "0 0 20 20");
+    svg.setAttribute("width", "18");
+    svg.setAttribute("height", "18");
+
+    const path = document.createElementNS(SVG_NAMESPACE, "path");
+    path.setAttribute("d", "M10 2v12M10 14l-4-4m4 4l4-4");
+    path.setAttribute("stroke", primary);
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("fill", "none");
+    svg.append(path);
+
+    const rect = document.createElementNS(SVG_NAMESPACE, "rect");
+    rect.setAttribute("x", "4");
+    rect.setAttribute("y", "16");
+    rect.setAttribute("width", "12");
+    rect.setAttribute("height", "2");
+    rect.setAttribute("rx", "1");
+    rect.setAttribute("fill", primary);
+    svg.append(rect);
+
+    return svg;
+}
+
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
  * The button uses the current theme colors and exports the track from
@@ -19,10 +67,12 @@ export function createExportGPXButton() {
     exportBtn.className = "map-action-btn";
     const themeColors = getThemeColors();
     const primary = sanitizeCssColorToken(themeColors.primary, "#3b82f6");
-    exportBtn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${primary}"/></svg> <span>Export GPX</span>`;
+    const label = document.createElement("span");
+    label.textContent = "Export GPX";
+    exportBtn.append(createExportIcon(primary), label);
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
-        const windowCtx = /** @type {any} */ (globalThis);
+        const windowCtx = getGpxExportGlobal();
         const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
             ? windowCtx.globalData.recordMesgs
             : null;
