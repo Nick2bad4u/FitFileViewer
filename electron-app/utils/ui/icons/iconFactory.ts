@@ -4,8 +4,58 @@
  * Icons are intentionally stroke-based and currentColor-driven so they inherit
  * existing theme colors without bespoke CSS.
  */
+
+/** Known icon names supported by the legacy icon factory. */
+export type AppIconName =
+    | "activity"
+    | "arrowLeft"
+    | "arrowRight"
+    | "bike"
+    | "calendar"
+    | "calendarRange"
+    | "calendarWeek"
+    | "circleHelp"
+    | "circleX"
+    | "database"
+    | "file"
+    | "folder"
+    | "folderOpen"
+    | "gauge"
+    | "hash"
+    | "history"
+    | "map"
+    | "route"
+    | "ruler"
+    | "settings"
+    | "table"
+    | "target"
+    | "timer";
+
+/** Options accepted by the legacy icon SVG factory. */
+export type AppIconSvgOptions = {
+    readonly className?: string;
+    readonly size?: number;
+    readonly strokeWidth?: number;
+    readonly title?: string;
+};
+
 const SVG_NS = "http://www.w3.org/2000/svg";
-const ICON_NODE_SPECS = {
+
+type AppIconNodeTag =
+    | "circle"
+    | "ellipse"
+    | "line"
+    | "path"
+    | "polygon"
+    | "polyline"
+    | "rect";
+
+type AppIconNodeSpec = {
+    readonly attrs: Readonly<Record<string, string>>;
+    readonly tag: AppIconNodeTag;
+};
+
+const ICON_NODE_SPECS: Record<AppIconName, readonly AppIconNodeSpec[]> = {
     activity: [
         {
             attrs: { points: "22 12 18 12 15 21 9 3 6 12 2 12" },
@@ -141,33 +191,48 @@ const ICON_NODE_SPECS = {
         { attrs: { d: "m14 3 1 2" }, tag: "path" },
     ],
 };
-function createSvgChild(spec) {
+
+function createSvgChild(spec: AppIconNodeSpec): SVGElement {
     const element = document.createElementNS(SVG_NS, spec.tag);
     for (const [name, value] of Object.entries(spec.attrs)) {
         element.setAttribute(name, value);
     }
     return element;
 }
-function escapeSvgText(value) {
+
+function escapeSvgText(value: string): string {
     return value
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;");
 }
-function escapeSvgAttribute(value) {
+
+function escapeSvgAttribute(value: string): string {
     return escapeSvgText(value).replaceAll('"', "&quot;");
 }
-function serializeSvgChild(spec) {
+
+function serializeSvgChild(spec: AppIconNodeSpec): string {
     const attributes = Object.entries(spec.attrs)
-        .map(([name, value]) => `${name}="${escapeSvgAttribute(String(value))}"`)
+        .map(
+            ([name, value]) =>
+                `${name}="${escapeSvgAttribute(String(value))}"`
+        )
         .join(" ");
+
     return `<${spec.tag} ${attributes}></${spec.tag}>`;
 }
-function toBoundedNumber(value, fallback, bounds = {}) {
-    const n = typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
+function toBoundedNumber(
+    value: unknown,
+    fallback: number,
+    bounds: { readonly max?: number; readonly min?: number } = {}
+): number {
+    const n =
+        typeof value === "number" && Number.isFinite(value) ? value : fallback;
     const { max = Number.POSITIVE_INFINITY, min = 0 } = bounds;
     return Math.min(Math.max(n, min), max);
 }
+
 /**
  * Build an inline SVG string for a known app icon.
  *
@@ -175,23 +240,30 @@ function toBoundedNumber(value, fallback, bounds = {}) {
  * @param options - SVG sizing, class, stroke, and title options.
  * @returns Serialized SVG markup.
  */
-export function getAppIconSvg(name, options = {}) {
-    const className = typeof options.className === "string" &&
+export function getAppIconSvg(
+    name: AppIconName,
+    options: AppIconSvgOptions = {}
+): string {
+    const className =
+        typeof options.className === "string" &&
         options.className.trim().length > 0
-        ? ` class="${escapeSvgAttribute(options.className.trim())}"`
-        : "";
+            ? ` class="${escapeSvgAttribute(options.className.trim())}"`
+            : "";
     const size = toBoundedNumber(options.size, 16, { min: 10, max: 48 });
     const strokeWidth = toBoundedNumber(options.strokeWidth, 2, {
         min: 1,
         max: 3,
     });
-    const title = typeof options.title === "string" && options.title.trim().length > 0
-        ? `<title>${escapeSvgText(options.title)}</title>`
-        : "";
+    const title =
+        typeof options.title === "string" && options.title.trim().length > 0
+            ? `<title>${escapeSvgText(options.title)}</title>`
+            : "";
+
     const iconSpecs = ICON_NODE_SPECS[name] || ICON_NODE_SPECS.target;
     const iconMarkup = iconSpecs.map((spec) => serializeSvgChild(spec)).join("");
     return `<svg${className} xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${title}${iconMarkup}</svg>`;
 }
+
 /**
  * Build an inline SVG element for a known app icon.
  *
@@ -199,15 +271,21 @@ export function getAppIconSvg(name, options = {}) {
  * @param options - SVG sizing, class, stroke, and title options.
  * @returns SVG element instance.
  */
-export function createAppIconElement(name, options = {}) {
+export function createAppIconElement(
+    name: AppIconName,
+    options: AppIconSvgOptions = {}
+): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     const size = toBoundedNumber(options.size, 16, { min: 10, max: 48 });
     const strokeWidth = toBoundedNumber(options.strokeWidth, 2, {
         min: 1,
         max: 3,
     });
-    if (typeof options.className === "string" &&
-        options.className.trim().length > 0) {
+
+    if (
+        typeof options.className === "string" &&
+        options.className.trim().length > 0
+    ) {
         icon.classList.add(...options.className.trim().split(/\s+/u));
     }
     icon.setAttribute("xmlns", SVG_NS);
@@ -221,14 +299,17 @@ export function createAppIconElement(name, options = {}) {
     icon.setAttribute("stroke-linejoin", "round");
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
+
     if (typeof options.title === "string" && options.title.trim().length > 0) {
         const title = document.createElementNS(SVG_NS, "title");
         title.textContent = options.title;
         icon.append(title);
     }
+
     const iconSpecs = ICON_NODE_SPECS[name] || ICON_NODE_SPECS.target;
     for (const spec of iconSpecs) {
         icon.append(createSvgChild(spec));
     }
+
     return icon;
 }
