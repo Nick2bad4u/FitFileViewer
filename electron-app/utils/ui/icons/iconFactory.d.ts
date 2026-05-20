@@ -40,3 +40,8 @@ export function getAppIconSvg(
     name: AppIconName,
     options?: AppIconSvgOptions
 ): string;
+
+export function createAppIconElement(
+    name: AppIconName,
+    options?: AppIconSvgOptions
+): SVGSVGElement;

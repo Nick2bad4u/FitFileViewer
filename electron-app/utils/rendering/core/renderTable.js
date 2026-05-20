@@ -1,5 +1,5 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
-import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
+import { createAppIconElement } from "../../ui/icons/iconFactory.js";
 
 /**
  * @typedef {Record<string, unknown>} TableRow
@@ -265,11 +265,13 @@ export function renderTable(container, title, table, index) {
 function applyIconLabel(container, iconName, text, iconClass, textClass) {
     const icon = document.createElement("span");
     icon.className = iconClass;
-    icon.innerHTML = getAppIconSvg(iconName, {
-        className: `${iconClass}-svg`,
-        size: 13,
-        strokeWidth: 2,
-    });
+    icon.append(
+        createAppIconElement(iconName, {
+            className: `${iconClass}-svg`,
+            size: 13,
+            strokeWidth: 2,
+        })
+    );
 
     const label = document.createElement("span");
     label.className = textClass;
@@ -285,11 +287,13 @@ function applyIconLabel(container, iconName, text, iconClass, textClass) {
 function decorateSectionHeaderTitle(container, title) {
     const icon = document.createElement("i");
     icon.className = "table-header-title__icon";
-    icon.innerHTML = getAppIconSvg(resolveTableSectionIconName(title), {
-        className: "table-header-title__icon-svg",
-        size: 13,
-        strokeWidth: 2,
-    });
+    icon.append(
+        createAppIconElement(resolveTableSectionIconName(title), {
+            className: "table-header-title__icon-svg",
+            size: 13,
+            strokeWidth: 2,
+        })
+    );
 
     const label = document.createElement("strong");
     label.className = "table-header-title__text";

@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
+import { createAppIconElement } from "../../ui/icons/iconFactory.js";
 
 /**
  * @typedef {Object} LapMesg
@@ -95,11 +95,13 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     const createControlIcon = (iconName, size = 16) => {
         const icon = document.createElement("span");
         icon.className = "icon";
-        icon.innerHTML = getAppIconSvg(iconName, {
-            className: "lap-control-icon",
-            size,
-            strokeWidth: 2,
-        });
+        icon.append(
+            createAppIconElement(iconName, {
+                className: "lap-control-icon",
+                size,
+                strokeWidth: 2,
+            })
+        );
         return icon;
     };
 
