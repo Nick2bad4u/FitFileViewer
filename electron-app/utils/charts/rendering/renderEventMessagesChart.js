@@ -9,18 +9,94 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 // Event messages chart renderer
 /**
+ * @typedef {Object} EventMessagesChartOptions
+ *
+ * @property {boolean} [showLegend]
+ * @property {boolean} [showTitle]
+ * @property {boolean} [showGrid]
+ * @property {Record<string, unknown>} [zoomPluginConfig]
+ */
+/**
+ * @typedef {Object} EventMessageRecord
+ *
+ * @property {unknown} [event]
+ * @property {unknown} [eventType]
+ * @property {unknown} [message]
+ * @property {unknown} [time]
+ * @property {unknown} [timestamp]
+ */
+/**
+ * @typedef {Object} EventChartPoint
+ *
+ * @property {string} event
+ * @property {number} x
+ * @property {number} y
+ */
+/**
+ * @typedef {Object} EventTooltipContext
+ *
+ * @property {{ event?: unknown }} [raw]
+ */
+/**
+ * @typedef {Object} EventMessagesThemeConfig
+ *
+ * @property {Record<string, string>} [colors]
+ */
+/**
+ * @typedef {Object} EventMessagesRuntimeGlobal
+ *
+ * @property {{ eventMesgs?: unknown } | undefined} [globalData]
+ */
+
+const chartGlobal = /** @type {EventMessagesRuntimeGlobal} */ (globalThis);
+
+/**
+ * @param {EventMessageRecord} event
+ *
+ * @returns {string}
+ */
+function getEventLabel(event) {
+    for (const value of [event.event, event.message, event.eventType]) {
+        if (typeof value === "string" && value.length > 0) {
+            return value;
+        }
+    }
+    return "Event";
+}
+
+/**
+ * @param {unknown} timestamp
+ *
+ * @returns {number | null}
+ */
+function getTimestampSeconds(timestamp) {
+    if (timestamp instanceof Date) {
+        return timestamp.getTime() / 1000;
+    }
+    if (typeof timestamp === "number") {
+        return timestamp > 1_000_000_000_000 ? timestamp / 1000 : timestamp;
+    }
+    return null;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {number}
+ */
+function toFiniteNumber(value) {
+    const numericValue = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+/**
  * @param {HTMLElement} container
- * @param {{
- *     showLegend?: boolean;
- *     showTitle?: boolean;
- *     showGrid?: boolean;
- *     zoomPluginConfig?: any;
- * }} options
+ * @param {EventMessagesChartOptions} options
  * @param {Date | number} startTime
  */
 export function renderEventMessagesChart(container, options, startTime) {
     try {
-        const eventMesgs = globalThis.globalData?.eventMesgs;
+        const eventMesgs = chartGlobal.globalData?.eventMesgs;
         if (
             !eventMesgs ||
             !Array.isArray(eventMesgs) ||
@@ -30,7 +106,6 @@ export function renderEventMessagesChart(container, options, startTime) {
         }
 
         // Get theme configuration and user-preferred event color (if set)
-        /** @type {any} */
         const canvas = /** @type {HTMLCanvasElement} */ (
                 createChartCanvas("events", 0)
             ),
@@ -41,7 +116,9 @@ export function renderEventMessagesChart(container, options, startTime) {
                 typeof rawColor === "string" && rawColor.length > 0
                     ? rawColor
                     : "#9c27b0",
-            themeConfig = getThemeConfig(),
+            themeConfig = /** @type {EventMessagesThemeConfig} */ (
+                getThemeConfig()
+            ),
             defaultThemeColors = {
                 backgroundAlt: "#ffffff",
                 chartBackground: "#ffffff",
@@ -63,49 +140,21 @@ export function renderEventMessagesChart(container, options, startTime) {
 
         container.append(canvas);
         // Prepare event data with relative timestamps
+        /** @type {EventChartPoint[]} */
         const eventData = eventMesgs.map((event) => {
-                let timestamp = event.timestamp || event.time || 0;
+                const eventRecord = /** @type {EventMessageRecord} */ (event);
+                let timestamp = eventRecord.timestamp || eventRecord.time || 0;
 
                 // Convert to relative seconds from start time
                 if (timestamp && startTime) {
-                    let eventTimestamp, startTimestamp;
-
-                    // Handle different timestamp formats
-                    if (timestamp instanceof Date) {
-                        eventTimestamp = timestamp.getTime() / 1000; // Convert to seconds
-                    } else if (typeof timestamp === "number") {
-                        // Check if timestamp is in milliseconds or seconds
-                        eventTimestamp =
-                            timestamp > 1_000_000_000_000
-                                ? timestamp / 1000
-                                : timestamp;
-                    } else {
+                    const eventTimestamp = getTimestampSeconds(timestamp),
+                        startTimestamp = getTimestampSeconds(startTime);
+                    if (
+                        eventTimestamp === null ||
+                        startTimestamp === null
+                    ) {
                         return {
-                            event:
-                                event.event ||
-                                event.message ||
-                                event.eventType ||
-                                "Event",
-                            x: 0,
-                            y: 1,
-                        };
-                    }
-
-                    if (startTime instanceof Date) {
-                        startTimestamp = startTime.getTime() / 1000; // Convert to seconds
-                    } else if (typeof startTime === "number") {
-                        // Check if startTime is in milliseconds or seconds
-                        startTimestamp =
-                            startTime > 1_000_000_000_000
-                                ? startTime / 1000
-                                : startTime;
-                    } else {
-                        return {
-                            event:
-                                event.event ||
-                                event.message ||
-                                event.eventType ||
-                                "Event",
+                            event: getEventLabel(eventRecord),
                             x: 0,
                             y: 1,
                         };
@@ -116,12 +165,8 @@ export function renderEventMessagesChart(container, options, startTime) {
                 }
 
                 return {
-                    event:
-                        event.event ||
-                        event.message ||
-                        event.eventType ||
-                        "Event",
-                    x: timestamp,
+                    event: getEventLabel(eventRecord),
+                    x: toFiniteNumber(timestamp),
                     y: 1, // Events are just markers
                 };
             }),
@@ -168,10 +213,13 @@ export function renderEventMessagesChart(container, options, startTime) {
                                 defaultThemeColors.chartBorder,
                             borderWidth: 1,
                             callbacks: {
-                                /** @param {any} context */
+                                /** @param {EventTooltipContext} context */
                                 label(context) {
                                     const point = context.raw;
-                                    return point.event || "Event";
+                                    return typeof point?.event === "string" &&
+                                        point.event.length > 0
+                                        ? point.event
+                                        : "Event";
                                 },
                             },
                             titleColor:
@@ -189,9 +237,12 @@ export function renderEventMessagesChart(container, options, startTime) {
                                 display: options.showGrid,
                             },
                             ticks: {
-                                /** @param {any} value */
+                                /** @param {number | string} value */
                                 callback(value) {
-                                    return formatTime(value, true);
+                                    return formatTime(
+                                        toFiniteNumber(value),
+                                        true
+                                    );
                                 },
                                 color:
                                     themeColors.text || defaultThemeColors.text,
@@ -213,9 +264,12 @@ export function renderEventMessagesChart(container, options, startTime) {
                                 display: false,
                             },
                             ticks: {
-                                /** @param {any} value */
+                                /** @param {number | string} value */
                                 callback(value) {
-                                    return formatTime(value, true);
+                                    return formatTime(
+                                        toFiniteNumber(value),
+                                        true
+                                    );
                                 },
                                 color:
                                     themeColors.text || defaultThemeColors.text,
