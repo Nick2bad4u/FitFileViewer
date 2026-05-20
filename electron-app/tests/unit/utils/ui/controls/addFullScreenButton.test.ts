@@ -1,197 +1,337 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+type AddFullScreenButtonModule = typeof import("../../../../../utils/ui/controls/addFullScreenButton.js");
+
+type ScreenfullChangeHandler = (event: Event) => void;
 
 type ScreenfullMock = {
+    exit: ReturnType<typeof vi.fn<() => Promise<void> | void>>;
     isEnabled: boolean;
     isFullscreen: boolean;
-    request: ReturnType<typeof vi.fn>;
-    exit: ReturnType<typeof vi.fn>;
-    on: ReturnType<typeof vi.fn>;
+    on: ReturnType<
+        typeof vi.fn<
+            (
+                event: "change" | "error",
+                handler: ScreenfullChangeHandler
+            ) => void
+        >
+    >;
+    request: ReturnType<typeof vi.fn<() => Promise<void> | void>>;
 };
 
-const getActiveTabContentMock = vi.fn();
-const addOverlayMock = vi.fn();
-const removeOverlayMock = vi.fn();
+type TestElectronAPI = {
+    setFullScreen: ReturnType<typeof vi.fn<(flag: boolean) => void>>;
+};
 
-vi.mock(
-    "../../../../../utils/rendering/helpers/getActiveTabContent.js",
-    () => ({
-        getActiveTabContent: getActiveTabContentMock,
-    })
-);
+type FullscreenTestGlobal = typeof globalThis & {
+    __ffvFullscreenKeydownHandler?: EventListener | null;
+    __ffvNativeFullscreenChangeHandler?: EventListener | null;
+    electronAPI?: TestElectronAPI;
+    screenfull?: ScreenfullMock;
+};
 
-vi.mock("../../../../../utils/ui/controls/addExitFullscreenOverlay.js", () => ({
-    addExitFullscreenOverlay: addOverlayMock,
+const controlMocks = vi.hoisted(() => ({
+    addExitFullscreenOverlay: vi.fn<(content: HTMLElement) => void>(),
+    getActiveTabContent: vi.fn<() => HTMLElement | null>(),
+    removeExitFullscreenOverlay: vi.fn<(content: HTMLElement) => void>(),
 }));
 
 vi.mock(
-    "../../../../../utils/ui/controls/removeExitFullscreenOverlay.js",
+    import("../../../../../utils/rendering/helpers/getActiveTabContent.js"),
     () => ({
-        removeExitFullscreenOverlay: removeOverlayMock,
+        getActiveTabContent: controlMocks.getActiveTabContent,
     })
 );
 
-const setReadyState = (state: DocumentReadyState) => {
-    Object.defineProperty(document, "readyState", {
-        configurable: true,
-        get: () => state,
-    });
-};
+vi.mock(
+    import("../../../../../utils/ui/controls/addExitFullscreenOverlay.js"),
+    () => ({
+        addExitFullscreenOverlay: controlMocks.addExitFullscreenOverlay,
+    })
+);
+
+vi.mock(
+    import("../../../../../utils/ui/controls/removeExitFullscreenOverlay.js"),
+    () => ({
+        removeExitFullscreenOverlay:
+            controlMocks.removeExitFullscreenOverlay,
+    })
+);
 
 describe("addFullScreenButton", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        document.body.innerHTML = "";
-        document.body.style.overflow = "";
-        delete (document as any).exitFullscreen;
-        delete (document as any).webkitExitFullscreen;
-        delete (document as any).mozCancelFullScreen;
-        delete (document as any).msExitFullscreen;
-        (document.documentElement as any).requestFullscreen = undefined;
-        (document.documentElement as any).webkitRequestFullscreen = undefined;
-        (document.documentElement as any).mozRequestFullScreen = undefined;
-        (document.documentElement as any).msRequestFullscreen = undefined;
-        getActiveTabContentMock.mockReset();
-        setReadyState("complete");
-        delete (globalThis as any).electronAPI;
-    });
-
-    afterEach(() => {
-        delete (globalThis as any).screenfull;
-        vi.resetModules();
-    });
-
-    const loadModule = async () => {
-        return await import("../../../../../utils/ui/controls/addFullScreenButton.js");
-    };
-
     it("creates fallback fullscreen button when screenfull is unavailable", async () => {
-        delete (globalThis as any).screenfull;
-        getActiveTabContentMock.mockReturnValue(null);
-        const requestFullscreen = vi.fn();
-        (document.documentElement as any).requestFullscreen = requestFullscreen;
+        expect.assertions(5);
 
-        const module = await loadModule();
-        module.addFullScreenButton();
+        resetTestState();
+        controlMocks.getActiveTabContent.mockReturnValue(null);
+        const requestFullscreen = vi.fn<() => void>();
+        defineDocumentElementMethod("requestFullscreen", requestFullscreen);
 
-        const button = document.getElementById("global-fullscreen-btn");
-        expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(button?.classList.contains("fullscreen-btn")).toBe(true);
+        try {
+            expect(
+                document.querySelectorAll("#global-fullscreen-btn")
+            ).not.toHaveLength(1);
 
-        (button as HTMLButtonElement).click();
-        expect(requestFullscreen).toHaveBeenCalledTimes(1);
+            const module = await loadModule();
+            module.addFullScreenButton();
+
+            const button = getRequiredFullscreenButton();
+
+            expect(button).toBeInstanceOf(HTMLButtonElement);
+            expect([...button.classList]).toContain("fullscreen-btn");
+            expect(button.dataset["tooltip"]).toBe("Fullscreen (F11)");
+
+            button.click();
+
+            expect(requestFullscreen).toHaveBeenCalledOnce();
+        } finally {
+            cleanupTestState();
+        }
     });
 
     it("uses Electron fullscreen IPC when available and updates overlay state", async () => {
-        const storedHandlers: Array<() => void> = [];
-        const screenfullMock: ScreenfullMock = {
-            isEnabled: true,
-            isFullscreen: false,
-            request: vi.fn(),
-            exit: vi.fn(),
-            on: vi.fn((event: string, handler: () => void) => {
-                if (event === "change") {
-                    storedHandlers.push(handler);
-                }
-            }),
-        };
-        (globalThis as any).screenfull = screenfullMock;
+        expect.assertions(10);
+
+        resetTestState();
+        const storedHandlers: ScreenfullChangeHandler[] = [];
+        const screenfullMock = createScreenfullMock(storedHandlers);
+        getTestGlobal().screenfull = screenfullMock;
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
         document.body.append(activeContent);
-        getActiveTabContentMock.mockReturnValue(activeContent);
+        controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
-        const setFullScreen = vi.fn();
-        (globalThis as any).electronAPI = { setFullScreen };
+        const setFullScreen = vi.fn<(flag: boolean) => void>();
+        getTestGlobal().electronAPI = { setFullScreen };
 
-        const module = await loadModule();
-        module.addFullScreenButton();
+        try {
+            const module = await loadModule();
+            module.addFullScreenButton();
 
-        const button = document.getElementById("global-fullscreen-btn");
-        expect(button).toBeInstanceOf(HTMLButtonElement);
+            const button = getRequiredFullscreenButton();
 
-        (button as HTMLButtonElement).click();
-        expect(setFullScreen).toHaveBeenCalledWith(true);
+            expect(button).toBeInstanceOf(HTMLButtonElement);
 
-        screenfullMock.isFullscreen = true;
-        (button as HTMLButtonElement).click();
-        expect(setFullScreen).toHaveBeenCalledWith(false);
+            button.click();
 
-        module.setupFullscreenListeners();
-        expect(screenfullMock.on).toHaveBeenCalledWith(
-            "change",
-            expect.any(Function)
-        );
+            expect(setFullScreen).toHaveBeenCalledWith(true);
 
-        const [changeHandler] = storedHandlers;
-        expect(changeHandler).toBeTypeOf("function");
+            screenfullMock.isFullscreen = true;
+            button.click();
 
-        screenfullMock.isFullscreen = true;
-        changeHandler();
-        expect(addOverlayMock).toHaveBeenCalledWith(activeContent);
-        expect(button?.title).toBe("Exit Full Screen (F11)");
-        expect(button?.querySelector(".fullscreen-icon")?.innerHTML).toContain(
-            "Exit Fullscreen"
-        );
+            expect(setFullScreen).toHaveBeenCalledWith(false);
 
-        screenfullMock.isFullscreen = false;
-        changeHandler();
-        expect(button?.title).toBe("Toggle Full Screen (F11)");
+            module.setupFullscreenListeners();
+
+            expect(screenfullMock.on).toHaveBeenCalledWith(
+                "change",
+                expect.any(Function)
+            );
+            expect(storedHandlers).toHaveLength(1);
+
+            const [changeHandler] = storedHandlers;
+
+            screenfullMock.isFullscreen = true;
+            changeHandler(new Event("change"));
+
+            expect(controlMocks.addExitFullscreenOverlay).toHaveBeenCalledWith(
+                activeContent
+            );
+            expect(button.title).toBe("Exit Full Screen (F11)");
+            expect(
+                button.querySelector(".fullscreen-icon")?.innerHTML
+            ).toContain("Exit Fullscreen");
+
+            screenfullMock.isFullscreen = false;
+            changeHandler(new Event("change"));
+
+            expect(button.title).toBe("Toggle Full Screen (F11)");
+            expect(
+                controlMocks.removeExitFullscreenOverlay
+            ).toHaveBeenCalledWith(activeContent);
+        } finally {
+            cleanupTestState();
+        }
     });
 
     it("handles F11 keyboard shortcut with IPC and native fallback", async () => {
-        const storedHandlers: Array<() => void> = [];
-        const screenfullMock: ScreenfullMock = {
-            isEnabled: true,
-            isFullscreen: false,
-            request: vi.fn(),
-            exit: vi.fn(),
-            on: vi.fn((event: string, handler: () => void) => {
-                if (event === "change") {
-                    storedHandlers.push(handler);
-                }
-            }),
-        };
-        (globalThis as any).screenfull = screenfullMock;
+        expect.assertions(7);
+
+        resetTestState();
+        const storedHandlers: ScreenfullChangeHandler[] = [];
+        const screenfullMock = createScreenfullMock(storedHandlers);
+        getTestGlobal().screenfull = screenfullMock;
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-map";
         document.body.append(activeContent);
-        getActiveTabContentMock.mockReturnValue(activeContent);
+        controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
-        const setFullScreen = vi.fn();
-        (globalThis as any).electronAPI = { setFullScreen };
+        const setFullScreen = vi.fn<(flag: boolean) => void>();
+        getTestGlobal().electronAPI = { setFullScreen };
 
-        const module = await loadModule();
-        module.setupFullscreenListeners();
+        try {
+            const module = await loadModule();
+            module.setupFullscreenListeners();
 
-        const keydown = new KeyboardEvent("keydown", {
-            key: "F11",
-            bubbles: true,
-        });
-        globalThis.dispatchEvent(keydown);
-        expect(setFullScreen).toHaveBeenCalledWith(true);
+            const button = getRequiredFullscreenButton();
 
-        screenfullMock.isFullscreen = true;
-        globalThis.dispatchEvent(
-            new KeyboardEvent("keydown", { key: "F11", bubbles: true })
-        );
-        expect(setFullScreen).toHaveBeenCalledWith(false);
+            expect(button).toBeInstanceOf(HTMLButtonElement);
 
-        // Switch to native fallback scenario
-        delete (globalThis as any).screenfull;
-        delete (globalThis as any).electronAPI;
-        vi.resetModules();
-        document.body.innerHTML = "";
-        const nativeRequest = vi.fn();
-        (document.documentElement as any).requestFullscreen = nativeRequest;
-        getActiveTabContentMock.mockReturnValue(null);
+            globalThis.dispatchEvent(createF11Event());
 
-        const fallbackModule = await loadModule();
-        fallbackModule.setupFullscreenListeners();
-        globalThis.dispatchEvent(
-            new KeyboardEvent("keydown", { key: "F11", bubbles: true })
-        );
-        expect(nativeRequest).toHaveBeenCalledTimes(1);
+            expect(setFullScreen).toHaveBeenCalledWith(true);
+            expect(button.title).toBe("Exit Full Screen (F11)");
+
+            globalThis.dispatchEvent(createF11Event());
+
+            expect(setFullScreen).toHaveBeenCalledWith(false);
+            expect(button.title).toBe("Toggle Full Screen (F11)");
+
+            resetTestState();
+            const nativeRequest = vi.fn<() => void>();
+            defineDocumentElementMethod("requestFullscreen", nativeRequest);
+            controlMocks.getActiveTabContent.mockReturnValue(null);
+
+            const fallbackModule = await loadModule();
+            fallbackModule.setupFullscreenListeners();
+
+            const fallbackButton = getRequiredFullscreenButton();
+
+            expect([...fallbackButton.classList]).toContain("fullscreen-btn");
+
+            globalThis.dispatchEvent(createF11Event());
+
+            expect(nativeRequest).toHaveBeenCalledOnce();
+        } finally {
+            cleanupTestState();
+        }
     });
 });
+
+async function loadModule(): Promise<AddFullScreenButtonModule> {
+    return import("../../../../../utils/ui/controls/addFullScreenButton.js");
+}
+
+function cleanupStoredEventHandlers(): void {
+    const testGlobal = getTestGlobal();
+    if (testGlobal.__ffvFullscreenKeydownHandler) {
+        globalThis.removeEventListener(
+            "keydown",
+            testGlobal.__ffvFullscreenKeydownHandler
+        );
+    }
+
+    if (testGlobal.__ffvNativeFullscreenChangeHandler) {
+        for (const eventName of [
+            "fullscreenchange",
+            "webkitfullscreenchange",
+            "mozfullscreenchange",
+            "MSFullscreenChange",
+        ]) {
+            document.removeEventListener(
+                eventName,
+                testGlobal.__ffvNativeFullscreenChangeHandler
+            );
+        }
+    }
+
+    Reflect.deleteProperty(testGlobal, "__ffvFullscreenKeydownHandler");
+    Reflect.deleteProperty(testGlobal, "__ffvNativeFullscreenChangeHandler");
+}
+
+function cleanupTestState(): void {
+    cleanupStoredEventHandlers();
+    Reflect.deleteProperty(getTestGlobal(), "screenfull");
+    Reflect.deleteProperty(getTestGlobal(), "electronAPI");
+    document.body.innerHTML = "";
+    document.body.style.overflow = "";
+    vi.resetModules();
+}
+
+function createF11Event(): KeyboardEvent {
+    return new KeyboardEvent("keydown", {
+        bubbles: true,
+        key: "F11",
+    });
+}
+
+function createScreenfullMock(
+    storedHandlers: ScreenfullChangeHandler[]
+): ScreenfullMock {
+    return {
+        exit: vi.fn<() => void>(),
+        isEnabled: true,
+        isFullscreen: false,
+        on: vi.fn<
+            (
+                event: "change" | "error",
+                handler: ScreenfullChangeHandler
+            ) => void
+        >((event, handler) => {
+            if (event === "change") {
+                storedHandlers.push(handler);
+            }
+        }),
+        request: vi.fn<() => void>(),
+    };
+}
+
+function defineDocumentElementMethod(name: string, value: unknown): void {
+    Object.defineProperty(document.documentElement, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function getRequiredFullscreenButton(): HTMLButtonElement {
+    const button = document.getElementById("global-fullscreen-btn");
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new TypeError("Expected fullscreen button to be mounted.");
+    }
+
+    return button;
+}
+
+function getTestGlobal(): FullscreenTestGlobal {
+    return globalThis as FullscreenTestGlobal;
+}
+
+function resetDocumentFullscreenMethods(): void {
+    for (const property of [
+        "exitFullscreen",
+        "webkitExitFullscreen",
+        "mozCancelFullScreen",
+        "msExitFullscreen",
+    ]) {
+        Reflect.deleteProperty(document, property);
+    }
+
+    for (const property of [
+        "requestFullscreen",
+        "webkitRequestFullscreen",
+        "mozRequestFullScreen",
+        "msRequestFullscreen",
+    ]) {
+        Reflect.deleteProperty(document.documentElement, property);
+    }
+}
+
+function resetReadyState(): void {
+    Object.defineProperty(document, "readyState", {
+        configurable: true,
+        get: () => "complete" satisfies DocumentReadyState,
+    });
+}
+
+function resetTestState(): void {
+    cleanupTestState();
+    vi.clearAllMocks();
+    controlMocks.addExitFullscreenOverlay.mockReset();
+    controlMocks.getActiveTabContent.mockReset();
+    controlMocks.removeExitFullscreenOverlay.mockReset();
+    resetDocumentFullscreenMethods();
+    resetReadyState();
+}

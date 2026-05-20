@@ -188,6 +188,7 @@
         "utils/ui/controls/enableTabButtons.ts",
         "utils/ui/controls/enableTabButtonsDebug.ts",
         "utils/ui/controls/enableTabButtonsHelpers.ts",
+        "utils/ui/controls/addFullScreenButton.ts",
         "utils/ui/controls/addExitFullscreenOverlay.ts",
         "utils/ui/controls/removeExitFullscreenOverlay.ts",
         "utils/ui/controls/createAddFitFileToMapButton.ts",
