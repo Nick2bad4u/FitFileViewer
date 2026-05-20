@@ -18,32 +18,68 @@
 const { approveFilePath } = require("../security/fileAccessPolicy");
 
 /**
- * @typedef {object} RegisterBrowserHandlersOptions
+ * @typedef {import("electron").OpenDialogOptions} OpenDialogOptions
+ * @typedef {import("electron").OpenDialogReturnValue} OpenDialogReturnValue
  *
- * @property {(channel: string, handler: Function) => void} registerIpcHandle
- * @property {() => any} dialogRef
- * @property {{
- *     join: Function;
- *     resolve: Function;
+ * @typedef {{ showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue> }} DialogApi
+ *
+ * @typedef {{ isDirectory: () => boolean }} StatLike
+ *
+ * @typedef {{
+ *     name?: unknown;
+ *     isDirectory?: () => boolean;
+ *     isFile?: () => boolean;
+ * }} DirentLike
+ *
+ * @typedef {{
+ *     promises?: {
+ *         readdir?: (
+ *             folder: string,
+ *             options: { withFileTypes: true }
+ *         ) => Promise<DirentLike[]>;
+ *         stat?: (path: string) => Promise<StatLike>;
+ *     };
+ * }} FsApi
+ *
+ * @typedef {{
+ *     isAbsolute: (path: string) => boolean;
+ *     resolve: (...paths: string[]) => string;
  *     sep: string;
- *     isAbsolute: Function;
- * }} path
- * @property {{
- *     promises?: { readdir?: Function; stat?: Function };
- *     constants?: any;
- * }} fs
- * @property {{ SETTINGS_CONFIG_NAME: string }} CONSTANTS
- * @property {(
+ * }} PathApi
+ *
+ * @typedef {{
+ *     SETTINGS_CONFIG_NAME: string;
+ * }} BrowserConstants
+ *
+ * @typedef {boolean | string | null} BrowserConfValue
+ *
+ * @typedef {{
+ *     get: (key: string, fallback?: BrowserConfValue) => BrowserConfValue;
+ *     set: (key: string, value: boolean | string) => void;
+ * }} BrowserConfStore
+ *
+ * @typedef {{ Conf: new (options: { name: string }) => BrowserConfStore }} BrowserConfModule
+ *
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} logWithContext
- * @property {{
- *     Conf: new (...args: any[]) => {
- *         get: (key: string, fallback?: any) => any;
- *         set: (key: string, value: any) => void;
- *     };
- * }} [confModule]
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {object} RegisterBrowserHandlersOptions
+ *
+ * @property {RegisterIpcHandle} registerIpcHandle
+ * @property {() => DialogApi | null | undefined} dialogRef
+ * @property {PathApi} path
+ * @property {FsApi} fs
+ * @property {BrowserConstants} CONSTANTS
+ * @property {LogWithContext} [logWithContext]
+ * @property {BrowserConfModule} [confModule]
  */
 
 const CONF_KEY_ENABLED = "fitBrowser.enabled";
@@ -51,8 +87,17 @@ const CONF_KEY_ROOT_FOLDER = "fitBrowser.rootFolder";
 const CONF_KEY_ROOT_FOLDER_MODE = "fitBrowser.rootFolderMode";
 
 /**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
  * @param {unknown} value
- * @param {{ isAbsolute: (p: string) => boolean }} path
+ * @param {Pick<PathApi, "isAbsolute">} path
  *
  * @returns {string | null}
  */
@@ -79,10 +124,7 @@ function registerBrowserHandlers({
     }
 
     /**
-     * @returns {{
-     *     get: (key: string, fallback?: any) => any;
-     *     set: (key: string, value: any) => void;
-     * } | null}
+     * @returns {BrowserConfStore | null}
      */
     const tryGetConf = () => {
         try {
@@ -93,7 +135,7 @@ function registerBrowserHandlers({
                 "warn",
                 "Failed to initialize electron-conf for fitBrowser",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
             return null;
@@ -135,7 +177,7 @@ function registerBrowserHandlers({
                 "warn",
                 "Failed to persist fitBrowser root folder",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
         }
@@ -155,7 +197,7 @@ function registerBrowserHandlers({
                 "warn",
                 "Failed to persist fitBrowser root folder mode",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
         }
@@ -174,7 +216,7 @@ function registerBrowserHandlers({
                 "warn",
                 "Failed to persist fitBrowser enabled flag",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
         }
@@ -323,7 +365,7 @@ function registerBrowserHandlers({
                             "warn",
                             "Failed to approve FIT file for browser",
                             {
-                                error: /** @type {Error} */ (error)?.message,
+                                error: getErrorMessage(error),
                                 filePath: childAbs,
                             }
                         );
@@ -349,7 +391,7 @@ function registerBrowserHandlers({
             return { entries: out.slice(0, 500), relPath: baseRel, root };
         } catch (error) {
             logWithContext?.("warn", "Failed to list fitBrowser folder", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
                 relPath,
                 root,
             });
@@ -361,7 +403,7 @@ function registerBrowserHandlers({
 /**
  * @param {string} root
  * @param {string} rel
- * @param {{ resolve: (...parts: string[]) => string; sep: string }} path
+ * @param {Pick<PathApi, "resolve" | "sep">} path
  *
  * @returns {string | null}
  */
