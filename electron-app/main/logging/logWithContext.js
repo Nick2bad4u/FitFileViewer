@@ -3,7 +3,7 @@
  * easier debugging. The implementation mirrors the behaviour that previously
  * lived in main.js so existing log expectations in tests remain unchanged.
  *
- * @param {"info" | "warn" | "error" | string} level - Console method to invoke.
+ * @param {string} level - Console method to invoke.
  * @param {string} message - Message to log.
  * @param {Record<string, unknown>} [context={}] - Optional context payload
  *   serialized to JSON. Default is `{}`
@@ -20,10 +20,10 @@ function logWithContext(level, message, context = {}) {
      *
      * @param {string} lvl
      *
-     * @returns {(msg: string, ...args: any[]) => void}
+     * @returns {(msg: string, ...args: unknown[]) => void}
      */
     const getConsoleMethod = (lvl) => {
-        const m = /** @type {any} */ (console)[lvl];
+        const m = /** @type {Record<string, unknown>} */ (console)[lvl];
         return typeof m === "function"
             ? m.bind(console)
             : console.log.bind(console);
@@ -70,7 +70,7 @@ function logWithContext(level, message, context = {}) {
         /** @type {WeakSet<object>} */
         const seen = new WeakSet();
 
-        /** @type {(this: any, key: string, value: any) => any} */
+        /** @type {(this: unknown, key: string, value: unknown) => unknown} */
         const replacer = (key, value) => {
             try {
                 if (key && shouldRedactKey(key)) return "[REDACTED]";
