@@ -1,209 +1,176 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-const mockApplyEstimatedPowerToRecords = vi.fn();
-const mockHasPowerData = vi.fn();
-const mockOpenModal = vi.fn();
+import type { PowerEstimationSettings } from "../../../../../utils/data/processing/estimateCyclingPower.js";
 
-type FitMesgValue = number | string | boolean | Date | null | undefined;
-type FitMesg = Record<string, FitMesgValue>;
-
-type Settings = {
-    enabled: boolean;
-    riderWeightKg: number;
-    bikeWeightKg: number;
-    crr: number;
-    cda: number;
-    drivetrainEfficiency: number;
-    windSpeedMps: number;
-    gradeWindowMeters: number;
-    maxPowerW: number;
-};
-
-type ApplyArgs = {
-    recordMesgs: Array<FitMesg>;
-    sessionMesgs?: Array<FitMesg>;
-    settings: Settings;
-};
-
-type ModalArgs = {
-    hasRealPower: boolean;
-    onApply: (s: Settings) => void;
-};
-
-vi.mock("../../../../../utils/data/processing/estimateCyclingPower.js", () => ({
-    applyEstimatedPowerToRecords: (args: ApplyArgs) =>
-        mockApplyEstimatedPowerToRecords(args),
-    hasPowerData: (args: Array<FitMesg>) => mockHasPowerData(args),
+const mocks = vi.hoisted(() => ({
+    applyEstimatedPowerToRecords: vi.fn<
+        (params: {
+            recordMesgs: Record<string, unknown>[];
+            sessionMesgs?: Record<string, unknown>[];
+            settings: PowerEstimationSettings;
+        }) => unknown
+    >(),
+    hasPowerData: vi.fn<(records: Record<string, unknown>[]) => boolean>(),
+    openPowerEstimationSettingsModal: vi.fn<
+        (params: {
+            hasRealPower: boolean;
+            onApply: (settings: PowerEstimationSettings) => void;
+        }) => void
+    >(),
 }));
 
 vi.mock(
-    "../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js",
+    import("../../../../../utils/data/processing/estimateCyclingPower.js"),
     () => ({
-        openPowerEstimationSettingsModal: (args: ModalArgs) =>
-            mockOpenModal(args),
+        applyEstimatedPowerToRecords: mocks.applyEstimatedPowerToRecords,
+        hasPowerData: mocks.hasPowerData,
     })
 );
 
-describe("createPowerEstimationButton.js", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        document.body.innerHTML = "";
-    });
+vi.mock(
+    import(
+        "../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js"
+    ),
+    () => ({
+        openPowerEstimationSettingsModal:
+            mocks.openPowerEstimationSettingsModal,
+    })
+);
 
-    it("should render the button and open modal on click", async () => {
-        const { createPowerEstimationButton } =
-            await import("../../../../../utils/ui/controls/createPowerEstimationButton.js");
+import { createPowerEstimationButton } from "../../../../../utils/ui/controls/createPowerEstimationButton.js";
 
-        mockHasPowerData.mockReturnValue(false);
+const SETTINGS = {
+    bikeWeightKg: 9,
+    cda: 0.32,
+    crr: 0.005,
+    drivetrainEfficiency: 0.97,
+    enabled: true,
+    gradeWindowMeters: 25,
+    maxPowerW: 1200,
+    riderWeightKg: 75,
+    windSpeedMps: 0,
+} as const satisfies PowerEstimationSettings;
 
-        const getData = () => ({
-            recordMesgs: [],
-            sessionMesgs: [],
-            loadedFitFiles: [],
+function resetMocks(): void {
+    vi.clearAllMocks();
+    document.body.replaceChildren();
+    mocks.hasPowerData.mockReturnValue(false);
+}
+
+function getModalApplyCallback(): (settings: PowerEstimationSettings) => void {
+    const firstCall = mocks.openPowerEstimationSettingsModal.mock.calls[0];
+    if (!firstCall) {
+        throw new Error("Settings modal was not opened");
+    }
+
+    return firstCall[0].onApply;
+}
+
+describe(createPowerEstimationButton, () => {
+    it("creates the expected map action button", () => {
+        expect.assertions(4);
+
+        resetMocks();
+
+        const button = createPowerEstimationButton({
+            getData: () => null,
+            onAfterApply: vi.fn<() => void>(),
         });
-        const onAfterApply = vi.fn();
 
-        const btn = createPowerEstimationButton({ getData, onAfterApply });
-        document.body.append(btn);
-
-        expect(btn.textContent).toBe("⚡ Est Power");
-
-        btn.click();
-
-        expect(mockHasPowerData).toHaveBeenCalledWith([]);
-        expect(mockOpenModal).toHaveBeenCalledTimes(1);
-
-        const call = mockOpenModal.mock.calls[0][0] as ModalArgs;
-
-        expect(call.hasRealPower).toBe(false);
-        expect(typeof call.onApply).toBe("function");
+        expect(button.type).toBe("button");
+        expect(button.className).toBe("map-action-btn");
+        expect(button.title).toBe("Estimated power settings");
+        expect(button.textContent).toBe("⚡ Est Power");
     });
 
-    it("should apply estimation to active + overlay records and call onAfterApply", async () => {
-        const { createPowerEstimationButton } =
-            await import("../../../../../utils/ui/controls/createPowerEstimationButton.js");
+    it("opens the settings modal with the current real-power state", () => {
+        expect.assertions(3);
 
-        mockHasPowerData.mockReturnValue(false);
+        resetMocks();
+        const records = [{ power: 220 }];
+        mocks.hasPowerData.mockReturnValue(true);
 
-        const activeRecords: Array<FitMesg> = [{}, {}];
-        const overlayRecords1: Array<FitMesg> = [{}];
-        const overlayRecords2: Array<FitMesg> = [{}];
+        const button = createPowerEstimationButton({
+            getData: () => ({ recordMesgs: records }),
+            onAfterApply: vi.fn<() => void>(),
+        });
 
-        const getData = () => ({
-            recordMesgs: activeRecords,
-            sessionMesgs: [{ sport: "cycling" }],
-            loadedFitFiles: [
-                {
-                    data: {
-                        recordMesgs: overlayRecords1,
-                        sessionMesgs: [{ sport: "cycling" }],
+        button.click();
+
+        expect(mocks.hasPowerData).toHaveBeenCalledExactlyOnceWith(records);
+        expect(mocks.openPowerEstimationSettingsModal).toHaveBeenCalledOnce();
+        expect(
+            String(
+                mocks.openPowerEstimationSettingsModal.mock.calls[0]?.[0]
+                    .hasRealPower
+            )
+        ).toBe("true");
+    });
+
+    it("applies settings to the active file and each overlay once", () => {
+        expect.assertions(6);
+
+        resetMocks();
+        const activeRecords = [{ enhanced_speed: 8 }];
+        const activeSession = [{ sport: "cycling" }];
+        const overlayRecords = [{ enhanced_speed: 9 }];
+        const overlaySession = [{ sport: "cycling" }];
+        const duplicateOverlay = { recordMesgs: activeRecords };
+        const onAfterApply = vi.fn<() => void>();
+
+        const button = createPowerEstimationButton({
+            getData: () => ({
+                loadedFitFiles: [
+                    {
+                        data: {
+                            recordMesgs: overlayRecords,
+                            sessionMesgs: overlaySession,
+                        },
                     },
-                },
-                { data: { recordMesgs: overlayRecords2 } },
-                // Duplicate array should not re-apply
-                { data: { recordMesgs: activeRecords } },
-            ],
+                    { data: duplicateOverlay },
+                    { data: { recordMesgs: [] } },
+                ],
+                recordMesgs: activeRecords,
+                sessionMesgs: activeSession,
+            }),
+            onAfterApply,
         });
 
-        const onAfterApply = vi.fn();
+        button.click();
+        getModalApplyCallback()(SETTINGS);
 
-        // When modal opens, immediately invoke onApply with settings
-        mockOpenModal.mockImplementation((args: ModalArgs) => {
-            const a = args;
-            a.onApply({
-                enabled: true,
-                riderWeightKg: 75,
-                bikeWeightKg: 10,
-                crr: 0.004,
-                cda: 0.32,
-                drivetrainEfficiency: 0.97,
-                windSpeedMps: 0,
-                gradeWindowMeters: 35,
-                maxPowerW: 2000,
-            });
+        expect(button.textContent).toBe("⚡ Est Power");
+        expect(mocks.applyEstimatedPowerToRecords).toHaveBeenCalledTimes(2);
+        expect(mocks.applyEstimatedPowerToRecords).toHaveBeenNthCalledWith(1, {
+            recordMesgs: activeRecords,
+            sessionMesgs: activeSession,
+            settings: SETTINGS,
         });
-
-        const btn = createPowerEstimationButton({ getData, onAfterApply });
-        document.body.append(btn);
-        btn.click();
-
-        // Should apply to active + two overlays = 3 unique arrays
-        expect(mockApplyEstimatedPowerToRecords).toHaveBeenCalledTimes(3);
-
-        // Ensure at least one call used the active record array
-        const arg0 = mockApplyEstimatedPowerToRecords.mock
-            .calls[0][0] as ApplyArgs;
-        expect(arg0.settings.maxPowerW).toBe(2000);
-
-        expect(onAfterApply).toHaveBeenCalledTimes(1);
+        expect(mocks.applyEstimatedPowerToRecords).toHaveBeenNthCalledWith(2, {
+            recordMesgs: overlayRecords,
+            sessionMesgs: overlaySession,
+            settings: SETTINGS,
+        });
+        expect(onAfterApply).toHaveBeenCalledOnce();
+        expect(mocks.openPowerEstimationSettingsModal).toHaveBeenCalledOnce();
     });
 
-    it("should pass hasRealPower=true to modal when power exists", async () => {
-        const { createPowerEstimationButton } =
-            await import("../../../../../utils/ui/controls/createPowerEstimationButton.js");
+    it("still runs the completion callback when no records are present", () => {
+        expect.assertions(3);
 
-        mockHasPowerData.mockReturnValue(true);
+        resetMocks();
+        const onAfterApply = vi.fn<() => void>();
 
-        const getData = () => ({
-            recordMesgs: [{ power: 200 }],
-            sessionMesgs: [],
-            loadedFitFiles: [],
+        const button = createPowerEstimationButton({
+            getData: () => null,
+            onAfterApply,
         });
 
-        const btn = createPowerEstimationButton({
-            getData,
-            onAfterApply: vi.fn(),
-        });
-        document.body.append(btn);
+        button.click();
+        getModalApplyCallback()(SETTINGS);
 
-        btn.click();
-
-        const call = mockOpenModal.mock.calls[0][0] as ModalArgs;
-        expect(call.hasRealPower).toBe(true);
-    });
-
-    it("should be resilient to null/malformed getData and empty record arrays", async () => {
-        const { createPowerEstimationButton } =
-            await import("../../../../../utils/ui/controls/createPowerEstimationButton.js");
-
-        mockHasPowerData.mockReturnValue(false);
-
-        // When modal opens, immediately invoke onApply.
-        mockOpenModal.mockImplementation((args: ModalArgs) => {
-            args.onApply({
-                enabled: true,
-                riderWeightKg: 75,
-                bikeWeightKg: 10,
-                crr: 0.004,
-                cda: 0.32,
-                drivetrainEfficiency: 0.97,
-                windSpeedMps: 0,
-                gradeWindowMeters: 35,
-                maxPowerW: 2000,
-            });
-        });
-
-        let callCount = 0;
-        const getData = () => {
-            callCount += 1;
-            // First call (click): missing props exercises Array.isArray false branches.
-            if (callCount === 1) return {};
-
-            // Second call (apply): empty arrays exercise applyTo early return.
-            return {
-                recordMesgs: [],
-                loadedFitFiles: [{ data: {} }],
-            };
-        };
-
-        const onAfterApply = vi.fn();
-        const btn = createPowerEstimationButton({ getData, onAfterApply });
-        document.body.append(btn);
-
-        btn.click();
-
-        // applyTo should early-return on empty arrays and never call the estimator
-        expect(mockApplyEstimatedPowerToRecords).not.toHaveBeenCalled();
-        expect(onAfterApply).toHaveBeenCalledTimes(1);
+        expect(button.className).toBe("map-action-btn");
+        expect(mocks.applyEstimatedPowerToRecords).not.toHaveBeenCalled();
+        expect(onAfterApply).toHaveBeenCalledOnce();
     });
 });

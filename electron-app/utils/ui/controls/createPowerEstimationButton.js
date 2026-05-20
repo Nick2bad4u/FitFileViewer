@@ -1,95 +1,53 @@
-import {
-    applyEstimatedPowerToRecords,
-    hasPowerData,
-} from "../../data/processing/estimateCyclingPower.js";
+import { applyEstimatedPowerToRecords, hasPowerData, } from "../../data/processing/estimateCyclingPower.js";
 import { openPowerEstimationSettingsModal } from "../modals/openPowerEstimationSettingsModal.js";
-
-/**
- * @param {{
- *     getData: () => {
- *         recordMesgs?: Record<string, unknown>[];
- *         sessionMesgs?: Record<string, unknown>[];
- *         loadedFitFiles?: {
- *             data?: {
- *                 recordMesgs?: Record<string, unknown>[];
- *                 sessionMesgs?: Record<string, unknown>[];
- *             };
- *         }[];
- *     } | null;
- *     onAfterApply: () => void;
- * }} params
- *
- * @returns {HTMLButtonElement}
- */
-export function createPowerEstimationButton({ getData, onAfterApply }) {
+/** Creates the map toolbar button that opens estimated-power settings. */
+export function createPowerEstimationButton({ getData, onAfterApply, }) {
     const btn = document.createElement("button");
+    const listenerController = new AbortController();
     btn.type = "button";
     btn.className = "map-action-btn";
     btn.title = "Estimated power settings";
     btn.textContent = "⚡ Est Power";
-
     btn.addEventListener("click", () => {
         const data = getData();
-        const recordMesgs = Array.isArray(data?.recordMesgs)
-            ? data.recordMesgs
-            : [];
+        const recordMesgs = getRecordMessages(data);
         const hasRealPower = hasPowerData(recordMesgs);
-
         openPowerEstimationSettingsModal({
             hasRealPower,
             onApply: (settings) => {
-                const currentData = getData();
-                /** @type {Set<unknown>} */
-                const seen = new Set();
-
-                /**
-                 * @param {Record<string, unknown>[]} recs
-                 * @param {Record<string, unknown>[] | undefined} sessionMesgs
-                 */
-                const applyTo = (recs, sessionMesgs) => {
-                    if (recs.length === 0) return;
-                    if (seen.has(recs)) return;
-                    seen.add(recs);
-                    applyEstimatedPowerToRecords({
-                        recordMesgs: recs,
-                        sessionMesgs,
-                        settings,
-                    });
-                };
-
-                // Apply to the active file's records (if any)
-                {
-                    const recs = Array.isArray(currentData?.recordMesgs)
-                        ? currentData.recordMesgs
-                        : [];
-                    const sessionMesgs = Array.isArray(
-                        currentData?.sessionMesgs
-                    )
-                        ? currentData.sessionMesgs
-                        : undefined;
-                    applyTo(recs, sessionMesgs);
-                }
-
-                // Also apply to any overlay files currently shown on the map.
-                // This ensures tooltips update consistently when the user changes estimation parameters.
-                if (Array.isArray(currentData?.loadedFitFiles)) {
-                    for (const fitFile of currentData.loadedFitFiles) {
-                        const recs = Array.isArray(fitFile?.data?.recordMesgs)
-                            ? fitFile.data.recordMesgs
-                            : [];
-                        const sessionMesgs = Array.isArray(
-                            fitFile?.data?.sessionMesgs
-                        )
-                            ? fitFile.data.sessionMesgs
-                            : undefined;
-                        applyTo(recs, sessionMesgs);
-                    }
-                }
-
-                onAfterApply();
+                applyPowerEstimationToCurrentData(getData(), settings, onAfterApply);
             },
         });
-    });
-
+    }, { signal: listenerController.signal });
     return btn;
+}
+function applyPowerEstimationToCurrentData(currentData, settings, onAfterApply) {
+    const seen = new Set();
+    applyToRecordSet(seen, getRecordMessages(currentData), getSessionMessages(currentData), settings);
+    for (const fitFile of getLoadedFitFiles(currentData)) {
+        applyToRecordSet(seen, getRecordMessages(fitFile.data ?? null), getSessionMessages(fitFile.data ?? null), settings);
+    }
+    onAfterApply();
+}
+function applyToRecordSet(seen, recordMesgs, sessionMesgs, settings) {
+    if (recordMesgs.length === 0 || seen.has(recordMesgs)) {
+        return;
+    }
+    seen.add(recordMesgs);
+    applyEstimatedPowerToRecords(sessionMesgs === undefined
+        ? { recordMesgs, settings }
+        : {
+            recordMesgs,
+            sessionMesgs,
+            settings,
+        });
+}
+function getLoadedFitFiles(data) {
+    return Array.isArray(data?.loadedFitFiles) ? data.loadedFitFiles : [];
+}
+function getRecordMessages(data) {
+    return Array.isArray(data?.recordMesgs) ? data.recordMesgs : [];
+}
+function getSessionMessages(data) {
+    return Array.isArray(data?.sessionMesgs) ? data.sessionMesgs : undefined;
 }
