@@ -10,12 +10,23 @@ const {
 const { validateWindow } = require("../window/windowValidation");
 
 /**
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
+ * @typedef {{
+ *     cleanupEventHandlers: () => void;
+ *     getAppState: () => unknown;
+ *     logState: () => void;
+ *     rebuildMenu: (theme?: string | null, filePath?: string | null) => void;
+ * }} DevHelpers
+ */
+
+/**
  * Attaches debugging helpers to the global object for development builds.
  * Mirroring the legacy behaviour keeps the devtools workflow untouched while
  * allowing the logic to live outside main.js.
  */
 function exposeDevHelpers() {
-    /** @type {any} */ (globalThis).devHelpers = {
+    /** @type {DevHelpers} */
+    const devHelpers = {
         cleanupEventHandlers,
         getAppState: () => mainProcessState.data,
         logState: () => {
@@ -26,16 +37,28 @@ function exposeDevHelpers() {
             });
         },
         rebuildMenu: (theme, filePath) => {
-            const win = browserWindowRef().getFocusedWindow();
+            const BrowserWindow = browserWindowRef();
+            const win =
+                BrowserWindow &&
+                typeof BrowserWindow.getFocusedWindow === "function"
+                    ? BrowserWindow.getFocusedWindow()
+                    : null;
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */ (win),
+                    /** @type {MainWindowLike} */ (win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
             }
         },
     };
+
+    Object.defineProperty(globalThis, "devHelpers", {
+        configurable: true,
+        enumerable: false,
+        value: devHelpers,
+        writable: true,
+    });
 
     logWithContext("info", "Development helpers exposed on global.devHelpers");
 }
