@@ -1,20 +1,49 @@
 /**
- * Registers IPC handlers for managing recent FIT files.
+ * @typedef {import("electron").BrowserWindow} BrowserWindow
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {(filePath: string) => void} options.addRecentFile
- * @param {() => string[]} options.loadRecentFiles
- * @param {() => any} options.browserWindowRef
- * @param {any} options.mainWindow
- * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
- * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
- * @param {(key: string) => any} options.getAppState
- * @param {(
+ * @typedef {{ getFocusedWindow?: () => BrowserWindow | null }} BrowserWindowApi
+ *
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     addRecentFile: (filePath: string) => void;
+ *     loadRecentFiles: () => string[];
+ *     browserWindowRef: () => BrowserWindowApi | null | undefined;
+ *     mainWindow?: BrowserWindow | null;
+ *     getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
+ *     safeCreateAppMenu: (
+ *         win: BrowserWindow,
+ *         theme: string,
+ *         loadedFitFilePath?: string | null
+ *     ) => void;
+ *     getAppState: (key: "loadedFitFilePath") => string | null | undefined;
+ *     logWithContext?: LogWithContext;
+ * }} RegisterRecentFileHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Registers IPC handlers for managing recent FIT files.
+ *
+ * @param {RegisterRecentFileHandlersOptions} options
  */
 function registerRecentFileHandlers({
     registerIpcHandle,
@@ -36,7 +65,10 @@ function registerRecentFileHandlers({
      * to legacy behavior.
      *
      * @type {null | {
-     *     approveFilePath: (path: unknown, options?: { source?: string }) => string;
+     *     approveFilePath: (
+     *         path: unknown,
+     *         options?: { source?: string }
+     *     ) => string;
      *     isApprovedFilePath: (path: unknown) => boolean;
      *     isValidFitFilePathCandidate?: (path: unknown) => path is string;
      * }}
@@ -99,15 +131,13 @@ function registerRecentFileHandlers({
 
     registerIpcHandle("recentFiles:get", async () => {
         try {
-            const list = sanitizeRecentFilesList(loadRecentFiles());
-
             // Important: This handler is intentionally side-effect free.
             // Do NOT seed file read approvals here, otherwise a compromised renderer can
             // escalate immediately into reading *all* persisted recent paths.
-            return list;
+            return sanitizeRecentFilesList(loadRecentFiles());
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:get:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -160,7 +190,7 @@ function registerRecentFileHandlers({
                     "warn",
                     "Rejected recentFiles:approve due to policy validation",
                     {
-                        error: /** @type {Error} */ (policyError)?.message,
+                        error: getErrorMessage(policyError),
                         filePath: trimmed,
                     }
                 );
@@ -168,7 +198,7 @@ function registerRecentFileHandlers({
             }
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:approve:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -188,9 +218,9 @@ function registerRecentFileHandlers({
             }
 
             // Security boundary:
-            // recentFiles:get seeds approved file paths for file:read. If we allowed adding
-            // arbitrary paths here (especially when the policy module is missing), a compromised
-            // renderer could escalate into arbitrary local file reads.
+            // file:read only accepts paths approved by trusted main-process flows.
+            // If we allowed arbitrary renderer paths here, a compromised renderer
+            // could turn the recent list into a path-confusion surface.
             if (!fileAccessPolicy) {
                 logWithContext?.(
                     "warn",
@@ -229,7 +259,7 @@ function registerRecentFileHandlers({
                     "warn",
                     "Failed to refresh menu after recent file add",
                     {
-                        error: /** @type {Error} */ (menuError)?.message,
+                        error: getErrorMessage(menuError),
                     }
                 );
             }
@@ -237,7 +267,7 @@ function registerRecentFileHandlers({
             return sanitizeRecentFilesList(loadRecentFiles());
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:add:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -247,8 +277,10 @@ function registerRecentFileHandlers({
 /**
  * Resolves a BrowserWindow instance suitable for menu updates.
  *
- * @param {() => any} browserWindowRef
- * @param {any} fallback
+ * @param {() => BrowserWindowApi | null | undefined} browserWindowRef
+ * @param {BrowserWindow | null | undefined} fallback
+ *
+ * @returns {BrowserWindow | null}
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {

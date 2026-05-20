@@ -1,47 +1,44 @@
-/**
- * Registers IPC handlers for managing recent FIT files.
- *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {(filePath: string) => void} options.addRecentFile
- * @param {() => string[]} options.loadRecentFiles
- * @param {() => any} options.browserWindowRef
- * @param {any} options.mainWindow
- * @param {(win: any) => Promise<string>} options.getThemeFromRenderer
- * @param {(win: any, theme: string, loadedFitFilePath?: string) => void} options.safeCreateAppMenu
- * @param {(key: string) => any} options.getAppState
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- */
-export function registerRecentFileHandlers({
-    registerIpcHandle,
-    addRecentFile,
-    loadRecentFiles,
-    browserWindowRef,
-    mainWindow,
-    getThemeFromRenderer,
-    safeCreateAppMenu,
-    getAppState,
-    logWithContext,
-}: {
-    registerIpcHandle: (channel: string, handler: Function) => void;
+import type { BrowserWindow } from "electron";
+
+export interface BrowserWindowApi {
+    getFocusedWindow?: () => BrowserWindow | null;
+}
+
+export type RegisterRecentFileIpcHandler = (
+    event: unknown,
+    ...args: unknown[]
+) => unknown;
+
+export type RegisterRecentFileIpcHandle = (
+    channel: string,
+    handler: RegisterRecentFileIpcHandler
+) => void;
+
+export type LogWithContext = (
+    level: "error" | "warn" | "info",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+export interface RegisterRecentFileHandlersOptions {
+    registerIpcHandle: RegisterRecentFileIpcHandle;
     addRecentFile: (filePath: string) => void;
     loadRecentFiles: () => string[];
-    browserWindowRef: () => any;
-    mainWindow: any;
-    getThemeFromRenderer: (win: any) => Promise<string>;
+    browserWindowRef: () => BrowserWindowApi | null | undefined;
+    mainWindow?: BrowserWindow | null;
+    getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
     safeCreateAppMenu: (
-        win: any,
+        win: BrowserWindow,
         theme: string,
-        loadedFitFilePath?: string
+        loadedFitFilePath?: string | null
     ) => void;
-    getAppState: (key: string) => any;
-    logWithContext: (
-        level: "error" | "warn" | "info",
-        message: string,
-        context?: Record<string, any>
-    ) => void;
-}): void;
+    getAppState: (key: "loadedFitFilePath") => string | null | undefined;
+    logWithContext?: LogWithContext;
+}
+
+/**
+ * Registers IPC handlers for managing recent FIT files.
+ */
+export function registerRecentFileHandlers(
+    options: RegisterRecentFileHandlersOptions
+): void;
