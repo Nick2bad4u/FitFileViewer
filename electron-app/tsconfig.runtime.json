@@ -147,6 +147,7 @@
         "utils/ui/tabs/setupTabButton.ts",
         "utils/ui/tabs/tabIdUtils.ts",
         "utils/ui/tabs/tabStateManagerConfig.ts",
+        "utils/ui/tabs/tabStateManagerDoc.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
