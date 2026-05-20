@@ -1,15 +1,30 @@
 import { isHTMLElement } from "../../dom/index.js";
 import { getState } from "../../state/core/stateManager.js";
-import { getTabButtonIdentity, isOpenFileButton, safeComputedStyle, safeQueryTabButtons, } from "./enableTabButtonsHelpers.js";
-const testClickRegistrations = new Set();
+import {
+    getTabButtonIdentity,
+    isOpenFileButton,
+    safeComputedStyle,
+    safeQueryTabButtons,
+} from "./enableTabButtonsHelpers.js";
+
+type TestClickRegistration = {
+    readonly abortController: AbortController;
+    readonly button: HTMLElement;
+    readonly handler: (event: MouseEvent) => void;
+    readonly timer: ReturnType<typeof setTimeout>;
+};
+
+const testClickRegistrations = new Set<TestClickRegistration>();
+
 /**
  * Debug function to manually test and fix tab button states.
  *
  * @throws TypeError when computed styles are unavailable in the active DOM.
  */
-export function debugTabButtons() {
+export function debugTabButtons(): void {
     console.log("[TabButtons] === DEBUG TAB BUTTONS ===");
     const tabButtons = safeQueryTabButtons();
+
     for (const element of tabButtons) {
         if (!isHTMLElement(element)) {
             continue;
@@ -20,13 +35,17 @@ export function debugTabButtons() {
             console.log(`[TabButtons] SKIPPING open file button: ${buttonId}`);
             continue;
         }
+
         // Explicitly surface missing or throwing getComputedStyle in tests.
-        if (globalThis.window === undefined ||
-            typeof globalThis.getComputedStyle !== "function") {
+        if (
+            globalThis.window === undefined ||
+            typeof globalThis.getComputedStyle !== "function"
+        ) {
             throw new TypeError("getComputedStyle not available");
         }
         globalThis.getComputedStyle(button);
-        const buttonElement = button;
+
+        const buttonElement = button as HTMLButtonElement;
         console.log(`[TabButtons] Button ${buttonId}:`, {
             computedCursor: safeComputedStyle(button, "cursor"),
             computedOpacity: safeComputedStyle(button, "opacity"),
@@ -39,9 +58,11 @@ export function debugTabButtons() {
             pointerEvents: button.style.pointerEvents,
         });
     }
+
     const globalData = getState("globalData");
     const isLoading = getState("isLoading");
     const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+
     console.log("[TabButtons] Current state:", {
         globalDataKeys: isRecord(globalData) ? Object.keys(globalData) : null,
         hasGlobalData: Boolean(globalData),
@@ -49,10 +70,11 @@ export function debugTabButtons() {
         tabButtonsEnabled,
     });
 }
+
 /**
  * Debug function to check current tab states.
  */
-export function debugTabState() {
+export function debugTabState(): void {
     console.log("[TabButtons] === CURRENT TAB STATE ===");
     try {
         const activeTab = getState("ui.activeTab");
@@ -63,25 +85,28 @@ export function debugTabState() {
             hasGlobalData: Boolean(globalData),
             tabButtonsEnabled,
         });
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
+
     for (const element of safeQueryTabButtons()) {
         if (!isHTMLElement(element)) {
             continue;
         }
+
         const button = element;
         const ariaSelected = button.getAttribute("aria-selected");
-        const buttonId = button.id ||
+        const buttonId =
+            button.id ||
             (typeof button.getAttribute === "function"
                 ? button.getAttribute("id")
                 : "") ||
             button.textContent?.trim() ||
             "";
-        const buttonElement = button;
+        const buttonElement = button as HTMLButtonElement;
         const computedStyle = safeComputedStyle(button, "cursor");
         const currentPointerEvents = safeComputedStyle(button, "pointerEvents");
+
         console.log(`[TabButtons] Tab ${buttonId}:`, {
             ariaSelected,
             classList: Array.from(button.classList),
@@ -92,60 +117,75 @@ export function debugTabState() {
         });
     }
 }
+
 /**
  * Test function to manually check if tab buttons can receive click events.
  */
-export function testTabButtonClicks() {
+export function testTabButtonClicks(): void {
     console.log("[TabButtons] === TESTING TAB BUTTON CLICKS ===");
     clearPendingTestClickTimers();
+
     for (const element of safeQueryTabButtons()) {
         if (!isHTMLElement(element)) {
             continue;
         }
+
         const button = element;
         const { id: buttonId } = getTabButtonIdentity(button);
         if (isOpenFileButton(button)) {
             continue;
         }
-        const testHandler = (event) => {
-            console.log(`[TabButtons] TEST CLICK DETECTED on ${buttonId}!`, event);
+
+        const testHandler = (event: MouseEvent) => {
+            console.log(
+                `[TabButtons] TEST CLICK DETECTED on ${buttonId}!`,
+                event
+            );
             try {
                 console.log(`Clicked on ${buttonId}!`);
-            }
-            catch {
+            } catch {
                 /* Ignore errors */
             }
         };
+
         const abortController = new AbortController();
         button.addEventListener("click", testHandler, {
             signal: abortController.signal,
         });
+
         console.log(`[TabButtons] Added test handler to: ${buttonId}`);
-        const registration = {
+
+        const registration: TestClickRegistration = {
             abortController,
             button,
             handler: testHandler,
             timer: setTimeout(() => {
                 testClickRegistrations.delete(registration);
                 removeTestClickRegistration(registration);
-                console.log(`[TabButtons] Removed test handler from: ${buttonId}`);
+                console.log(
+                    `[TabButtons] Removed test handler from: ${buttonId}`
+                );
             }, 30_000),
         };
         testClickRegistrations.add(registration);
     }
+
     console.log("[TabButtons] Test handlers added. Try clicking buttons now!");
 }
-function clearPendingTestClickTimers() {
+
+function clearPendingTestClickTimers(): void {
     for (const registration of testClickRegistrations) {
         clearTimeout(registration.timer);
         removeTestClickRegistration(registration);
     }
     testClickRegistrations.clear();
 }
-function removeTestClickRegistration(registration) {
+
+function removeTestClickRegistration(registration: TestClickRegistration): void {
     registration.abortController.abort();
     registration.button.removeEventListener("click", registration.handler);
 }
-function isRecord(value) {
+
+function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
