@@ -4,6 +4,50 @@ import { showNotification } from "../notifications/showNotification.js";
  * @typedef {ReturnType<typeof getThemeColors>} ThemeColors
  */
 /**
+ * @typedef {typeof globalThis & {
+ *     mapMarkerCount?: number;
+ *     updateShownFilesList?: () => void;
+ * }} MarkerCountGlobal
+ */
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @param {ThemeColors} themeColors
+ *
+ * @returns {SVGSVGElement}
+ */
+function createMarkerCountIcon(themeColors) {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.classList.add("icon");
+    icon.setAttribute("viewBox", "0 0 20 20");
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("focusable", "false");
+
+    const bars = [
+        { height: "7", x: "1.5", y: "8" },
+        { height: "11", x: "5", y: "5" },
+        { height: "14", x: "8.5", y: "2.5" },
+        { height: "5", x: "12", y: "11" },
+    ];
+    for (const { height, x, y } of bars) {
+        const rect = document.createElementNS(SVG_NS, "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", "2");
+        rect.setAttribute("height", height);
+        rect.setAttribute("rx", "1");
+        rect.setAttribute("fill", themeColors.surface);
+        rect.setAttribute("stroke", themeColors.primary);
+        rect.setAttribute("stroke-width", "1.5");
+        icon.append(rect);
+    }
+
+    return icon;
+}
+
+/**
  * Creates a marker count selector for controlling data point density on the map
  *
  * @param {Function} onChange - Callback function when marker count changes
@@ -38,15 +82,9 @@ export function createMarkerCountSelector(onChange) {
 
         /** @type {HTMLLabelElement} */
         const label = document.createElement("label");
-        label.innerHTML = `
-        <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <rect x="1.5" y="8" width="2" height="7" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="5" y="5" width="2" height="11" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="8.5" y="2.5" width="2" height="14" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="12" y="11" width="2" height="5" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-        </svg>
-        <span>Data Points:</span>
-        `;
+        const labelText = document.createElement("span");
+        labelText.textContent = "Data Points:";
+        label.append(createMarkerCountIcon(themeColors), labelText);
         label.setAttribute("for", "marker-count-select");
         label.className = "marker-count-label";
 
@@ -86,7 +124,7 @@ export function createMarkerCountSelector(onChange) {
         ];
         /** @type {string} */
         let initial;
-        /** @type {any} */
+        /** @type {MarkerCountGlobal} */
         const g = globalThis, // Legacy global usage wrapper
             current = g.mapMarkerCount;
         if (typeof current !== "number") {
