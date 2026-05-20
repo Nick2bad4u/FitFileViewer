@@ -1,23 +1,52 @@
 /**
- * Registers IPC handlers that expose platform and application metadata.
+ * @typedef {{ getVersion?: () => string; getAppPath?: () => string }} AppInfoProvider
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.appRef
- * @param {{ readFileSync?: Function }} options.fs
- * @param {{ join: Function }} options.path
- * @param {{ DEFAULT_THEME: string; SETTINGS_CONFIG_NAME: string }} options.CONSTANTS
- * @param {(
+ * @typedef {{ readFileSync?: (path: string) => Buffer | string }} FileReader
+ *
+ * @typedef {{ join: (...paths: string[]) => string }} PathJoiner
+ *
+ * @typedef {{ DEFAULT_THEME: string; SETTINGS_CONFIG_NAME: string }} InfoConstants
+ *
+ * @typedef {{ get: (key: string, fallback: unknown) => unknown }} ConfStore
+ *
+ * @typedef {new (options: { name: string }) => ConfStore} ConfConstructor
+ *
+ * @typedef {{ Conf: ConfConstructor }} ElectronConfModule
+ *
+ * @typedef {(event: unknown, ...args: unknown[]) => Promise<unknown>} InfoIpcHandler
+ *
+ * @typedef {(channel: string, handler: InfoIpcHandler) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- * @param {{
- *     Conf: new (...args: any[]) => {
- *         get: (key: string, fallback?: any) => any;
- *     };
- * }} [options.confModule]
- *   Optional injected electron-conf module for testing
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     appRef: () => AppInfoProvider | null | undefined;
+ *     fs: FileReader;
+ *     path: PathJoiner;
+ *     CONSTANTS: InfoConstants;
+ *     logWithContext?: LogWithContext;
+ *     confModule?: ElectronConfModule;
+ * }} RegisterInfoHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Registers IPC handlers that expose platform and application metadata.
+ *
+ * @param {RegisterInfoHandlersOptions} options
  */
 function registerInfoHandlers({
     registerIpcHandle,
@@ -50,7 +79,9 @@ function registerInfoHandlers({
      */
     const safeConfGet = (key, fallback, normalize) => {
         try {
-            const { Conf } = confModule ?? require("electron-conf");
+            /** @type {ElectronConfModule} */
+            const configModule = confModule ?? require("electron-conf");
+            const { Conf } = configModule;
             const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             const value = conf.get(key, fallback);
             return normalize(value);
@@ -59,7 +90,7 @@ function registerInfoHandlers({
                 "warn",
                 `Failed to read persisted setting: ${key}`,
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
             return normalize(fallback);
@@ -90,6 +121,7 @@ function registerInfoHandlers({
         return "map";
     };
 
+    /** @type {Record<string, InfoIpcHandler>} */
     const handlers = {
         getAppVersion: async () => {
             const app = appRef();
@@ -120,7 +152,7 @@ function registerInfoHandlers({
                     "error",
                     "Failed to read license from package.json:",
                     {
-                        error: /** @type {Error} */ (error)?.message,
+                        error: getErrorMessage(error),
                     }
                 );
                 return "Unknown";
@@ -140,12 +172,10 @@ function registerInfoHandlers({
     for (const [channel, handler] of Object.entries(handlers)) {
         registerIpcHandle(channel, async (...args) => {
             try {
-                return await /** @type {(event: any, ...rest: any[]) => Promise<any>} */ (
-                    handler
-                )(...args);
+                return await handler(...args);
             } catch (error) {
                 logWithContext?.("error", `Error in ${channel}:`, {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 });
                 throw error;
             }

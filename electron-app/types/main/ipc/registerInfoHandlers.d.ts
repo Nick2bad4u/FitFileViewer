@@ -1,55 +1,58 @@
+export interface AppInfoProvider {
+    getVersion?: () => string;
+    getAppPath?: () => string;
+}
+
+export interface FileReader {
+    readFileSync?: (path: string) => Buffer | string;
+}
+
+export interface PathJoiner {
+    join: (...paths: string[]) => string;
+}
+
+export interface InfoConstants {
+    DEFAULT_THEME: string;
+    SETTINGS_CONFIG_NAME: string;
+}
+
+export interface ConfStore {
+    get: (key: string, fallback: unknown) => unknown;
+}
+
+export type ConfConstructor = new (options: { name: string }) => ConfStore;
+
+export interface ElectronConfModule {
+    Conf: ConfConstructor;
+}
+
+export type InfoIpcHandler = (
+    event: unknown,
+    ...args: unknown[]
+) => Promise<unknown>;
+
+export type RegisterInfoIpcHandle = (
+    channel: string,
+    handler: InfoIpcHandler
+) => void;
+
+export type LogWithContext = (
+    level: "error" | "warn" | "info",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+export interface RegisterInfoHandlersOptions {
+    registerIpcHandle: RegisterInfoIpcHandle;
+    appRef: () => AppInfoProvider | null | undefined;
+    fs: FileReader;
+    path: PathJoiner;
+    CONSTANTS: InfoConstants;
+    logWithContext?: LogWithContext;
+    confModule?: ElectronConfModule;
+}
+
 /**
  * Registers IPC handlers that expose platform and application metadata.
- *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.appRef
- * @param {{ readFileSync?: Function }} options.fs
- * @param {{ join: Function }} options.path
- * @param {{ DEFAULT_THEME: string; SETTINGS_CONFIG_NAME: string }} options.CONSTANTS
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
- * @param {{
- *     Conf: new (...args: any[]) => {
- *         get: (key: string, fallback?: any) => any;
- *     };
- * }} [options.confModule]
- *   Optional injected electron-conf module for testing
  */
-export function registerInfoHandlers({
-    registerIpcHandle,
-    appRef,
-    fs,
-    path,
-    CONSTANTS,
-    logWithContext,
-    confModule,
-}: {
-    registerIpcHandle: (channel: string, handler: Function) => void;
-    appRef: () => any;
-    fs: {
-        readFileSync?: Function;
-    };
-    path: {
-        join: Function;
-    };
-    CONSTANTS: {
-        DEFAULT_THEME: string;
-        SETTINGS_CONFIG_NAME: string;
-    };
-    logWithContext: (
-        level: "error" | "warn" | "info",
-        message: string,
-        context?: Record<string, any>
-    ) => void;
-    confModule?:
-        | {
-              Conf: new (...args: any[]) => {
-                  get: (key: string, fallback?: any) => any;
-              };
-          }
-        | undefined;
-}): void;
+export function registerInfoHandlers(options: RegisterInfoHandlersOptions): void;
