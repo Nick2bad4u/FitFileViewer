@@ -707,12 +707,14 @@ function resetUIControlsToDefaults(wrapper) {
 
         // Reset all color pickers to default colors
         const colorPickers = queryAll('input[type="color"]', wrapper);
+        const defaultFieldColors = /** @type {FieldColorMap} */ (fieldColors);
         for (const picker of colorPickers) {
             const fieldName = picker.id
                 .replace("field-color-", "")
                 .replace("chartjs-", "");
-            if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
+            const defaultColor = defaultFieldColors[fieldName];
+            if (defaultColor) {
+                setValue(picker, defaultColor);
             }
         }
         if (colorPickers.length > 0) {
@@ -729,10 +731,9 @@ function resetUIControlsToDefaults(wrapper) {
 
         console.log(`${LOG_PREFIX} UI controls reset to defaults completed`);
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error resetting UI controls:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
@@ -761,10 +762,9 @@ function updateCustomControlsFromReset(wrapper) {
             );
         }
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.error(
             `${LOG_PREFIX} Error updating custom controls from reset:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
@@ -773,35 +773,36 @@ function updateCustomControlsFromReset(wrapper) {
  * Updates range slider visual styling
  *
  * @param {Element} control - Range input element
- * @param {Object} option - Chart option configuration
+ * @param {ChartOptionConfig} option - Chart option configuration
  * @param {number} value - Current value
  */
 function updateRangeSliderStyling(control, option, value) {
     try {
-        const themeConfig = getThemeConfig(),
-            /** @type {any} */
-            theme = themeConfig || {},
-            accentColor =
-                theme.colors?.accent || "var(--color-accent, #3b82f6)",
-            borderLight =
-                theme.colors?.borderLight || "var(--color-border, #e5e7eb)",
-            /** @type {any} */
-            optRange = option || {},
-            max = optRange && optRange.max != null ? optRange.max : 1,
-            min = optRange && optRange.min != null ? optRange.min : 0,
-            percentage = Math.max(
-                0,
-                Math.min(100, ((value - min) / (max - min)) * 100)
-            );
+        const themeConfig = getThemeConfig();
+        const colors =
+            typeof themeConfig?.colors === "object" &&
+            themeConfig.colors !== null
+                ? /** @type {{ accent?: string; borderLight?: string }} */ (
+                      themeConfig.colors
+                  )
+                : {};
+        const accentColor =
+            colors.accent || "var(--color-accent, #3b82f6)";
+        const borderLight =
+            colors.borderLight || "var(--color-border, #e5e7eb)";
+        const max = typeof option.max === "number" ? option.max : 1;
+        const min = typeof option.min === "number" ? option.min : 0;
+        const range = max - min;
+        const rawPercentage = range === 0 ? 0 : ((value - min) / range) * 100;
+        const percentage = Math.max(0, Math.min(100, rawPercentage));
 
         if (isHTMLElement(control)) {
             control.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${percentage}%, ${borderLight} ${percentage}%, ${borderLight} 100%)`;
         }
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.warn(
             `${LOG_PREFIX} Error updating range slider styling:`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
@@ -810,8 +811,8 @@ function updateRangeSliderStyling(control, option, value) {
  * Updates UI control to match setting value
  *
  * @param {Element} control - DOM control element
- * @param {Object} option - Chart option configuration
- * @param {any} value - Value to set
+ * @param {ChartOptionConfig} option - Chart option configuration
+ * @param {unknown} value - Value to set
  */
 function updateUIControl(control, option, value) {
     if (!isHTMLElement(control)) {
@@ -819,26 +820,16 @@ function updateUIControl(control, option, value) {
     }
 
     try {
-        /** @type {ChartOptionConfig} */
-        // @ts-ignore
-        const opt = option;
-        switch (opt.type) {
+        switch (option.type) {
             case "range": {
-                /** @type {HTMLElement | null} */
-                let sliderEl =
-                    "type" in control && control.type === "range"
+                let sliderEl = isInputElement(control) && control.type === "range"
                         ? control
                         : control.querySelector("input[type='range']");
                 if (!sliderEl) {
-                    sliderEl = query(`#chartjs-${opt.id}-slider`);
+                    sliderEl = query(`#chartjs-${option.id}-slider`);
                 }
-                if (
-                    sliderEl &&
-                    "type" in sliderEl &&
-                    sliderEl.type === "range"
-                ) {
-                    // @ts-ignore value exists
-                    sliderEl.value = value;
+                if (isInputElement(sliderEl) && sliderEl.type === "range") {
+                    sliderEl.value = String(value);
 
                     const valueDisplay =
                         sliderEl.parentElement?.querySelector("span");
@@ -850,29 +841,33 @@ function updateUIControl(control, option, value) {
                     }
 
                     // Update range slider visual styling
-                    // @ts-ignore sliderEl is range input
-                    updateRangeSliderStyling(sliderEl, opt, value);
+                    const numericValue = Number(value);
+                    if (Number.isFinite(numericValue)) {
+                        updateRangeSliderStyling(
+                            sliderEl,
+                            option,
+                            numericValue
+                        );
+                    }
                     console.log(
-                        `${LOG_PREFIX} Updated range ${opt.id} to: ${value}`
+                        `${LOG_PREFIX} Updated range ${option.id} to: ${value}`
                     );
                 }
                 break;
             }
 
             case "select": {
-                /** @type {HTMLElement | null} */
                 let selectEl =
-                    control.tagName === "SELECT"
+                    isSelectElement(control)
                         ? control
                         : control.querySelector("select");
                 if (!selectEl) {
-                    selectEl = query(`#chartjs-${opt.id}-dropdown`);
+                    selectEl = query(`#chartjs-${option.id}-dropdown`);
                 }
-                if (selectEl && selectEl.tagName === "SELECT") {
-                    // @ts-ignore value exists
-                    selectEl.value = value;
+                if (isSelectElement(selectEl)) {
+                    selectEl.value = String(value);
                     console.log(
-                        `${LOG_PREFIX} Updated select ${opt.id} to: ${value}`
+                        `${LOG_PREFIX} Updated select ${option.id} to: ${value}`
                     );
                 }
                 break;
@@ -880,8 +875,7 @@ function updateUIControl(control, option, value) {
 
             case "toggle": {
                 // Handle both regular checkbox toggles and custom toggle controls
-                if ("type" in control && control.type === "checkbox") {
-                    // @ts-ignore guarded
+                if (isInputElement(control) && control.type === "checkbox") {
                     control.checked = Boolean(value);
                 } else if (isResettable(control)) {
                     // For custom toggle controls, use their update method
@@ -899,10 +893,9 @@ function updateUIControl(control, option, value) {
             }
         }
     } catch (error) {
-        const err = /** @type {any} */ (error);
         console.warn(
             `${LOG_PREFIX} Error updating UI control for`,
-            err?.message || err
+            getErrorMessage(error)
         );
     }
 }
