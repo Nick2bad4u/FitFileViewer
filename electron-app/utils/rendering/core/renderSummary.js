@@ -1,5 +1,4 @@
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
-import { getAppIconSvg } from "../../ui/icons/iconFactory.js";
 import {
     getGlobalStorageKey,
     getStorageKey,
@@ -8,6 +7,41 @@ import {
     renderTable,
 } from "../helpers/renderSummaryHelpers.js";
 import { showColModal } from "../helpers/summaryColModal.js";
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createSettingsIcon() {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.classList.add("summary-gear-btn__icon");
+    icon.setAttribute("xmlns", SVG_NS);
+    icon.setAttribute("width", "22");
+    icon.setAttribute("height", "22");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("stroke", "currentColor");
+    icon.setAttribute("stroke-width", "2");
+    icon.setAttribute("stroke-linecap", "round");
+    icon.setAttribute("stroke-linejoin", "round");
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("focusable", "false");
+
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", "12");
+    circle.setAttribute("cy", "12");
+    circle.setAttribute("r", "3");
+
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute(
+        "d",
+        "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.14.31.22.65.22 1v.09A1.65 1.65 0 0 0 21 12c0 .35-.08.69-.22 1z"
+    );
+    icon.append(circle, path);
+
+    return icon;
+}
 
 /**
  * @typedef {import("../helpers/renderSummaryHelpers.js").FitSummaryData} FitSummaryData
@@ -41,7 +75,7 @@ export function renderSummary(data) {
     if (!container) {
         return;
     } // Guard: container missing
-    container.innerHTML = "";
+    container.replaceChildren();
 
     // Build superset of keys from session, lap, record messages for column selection.
     /** @type {Set<string>} */
@@ -74,11 +108,7 @@ export function renderSummary(data) {
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";
     gearBtn.title = "Select columns";
-    gearBtn.innerHTML = getAppIconSvg("settings", {
-        className: "summary-gear-btn__icon",
-        size: 22,
-        strokeWidth: 2,
-    });
+    gearBtn.append(createSettingsIcon());
     gearBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         showColModal({
