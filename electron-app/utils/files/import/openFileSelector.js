@@ -3,6 +3,36 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadOverlayFiles } from "./loadOverlayFiles.js";
 
 /**
+ * @typedef {{
+ *     openOverlayDialog?: () => Promise<string[]>;
+ *     readFile?: (filePath: string) => Promise<ArrayBuffer>;
+ * }} FileSelectorElectronAPI
+ */
+/**
+ * @typedef {{
+ *     arrayBuffer: () => Promise<ArrayBuffer>;
+ *     name: string;
+ *     originalPath: string;
+ *     path: string;
+ * }} NativeFileFacade
+ */
+/**
+ * @typedef {HTMLInputElement & {
+ *     __files?: ArrayLike<File>;
+ *     selectedFiles?: ArrayLike<File>;
+ * }} FileSelectorInput
+ */
+/**
+ * @typedef {(files: Array<File | NativeFileFacade>) => Promise<void> | void} OverlayFilesLoader
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     electronAPI?: FileSelectorElectronAPI;
+ *     loadOverlayFiles?: OverlayFilesLoader;
+ * }} FileSelectorGlobal
+ */
+
+/**
  * File selector configuration
  *
  * @readonly
@@ -37,7 +67,7 @@ const PROCESSED_INPUTS = new WeakSet();
  * @returns {void}
  */
 export async function openFileSelector() {
-    const { electronAPI } = /** @type {any} */ (globalThis);
+    const { electronAPI } = getFileSelectorGlobal();
 
     if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
         try {
@@ -92,6 +122,13 @@ export async function openFileSelector() {
 }
 
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
+
+/**
+ * @returns {FileSelectorGlobal}
+ */
+function getFileSelectorGlobal() {
+    return /** @type {FileSelectorGlobal} */ (globalThis);
+}
 
 /**
  * Creates and configures the file input element
@@ -175,7 +212,7 @@ function createNativeFileFacade(filePath) {
     const name = getFileNameFromPath(filePath);
     return {
         arrayBuffer: async () => {
-            const api = /** @type {any} */ (globalThis).electronAPI;
+            const { electronAPI: api } = getFileSelectorGlobal();
             if (!api || typeof api.readFile !== "function") {
                 throw new Error("readFile bridge unavailable");
             }
@@ -203,30 +240,10 @@ function getFileNameFromPath(filePath) {
 async function handleFilesFromInput(input) {
     /** @type {File[]} */
     const merged = [];
-    const nativeList = /** @type {any} */ (input).files;
-    if (
-        nativeList &&
-        typeof nativeList.length === "number" &&
-        nativeList.length > 0
-    ) {
-        merged.push(...nativeList);
-    }
-    const selected = /** @type {any} */ (input).selectedFiles;
-    if (
-        selected &&
-        typeof selected.length === "number" &&
-        selected.length > 0
-    ) {
-        merged.push(...selected);
-    }
-    const injected = /** @type {any} */ (input).__files;
-    if (
-        injected &&
-        typeof injected.length === "number" &&
-        injected.length > 0
-    ) {
-        merged.push(...injected);
-    }
+    const fileSelectorInput = /** @type {FileSelectorInput} */ (input);
+    appendFileSource(merged, fileSelectorInput.files);
+    appendFileSource(merged, fileSelectorInput.selectedFiles);
+    appendFileSource(merged, fileSelectorInput.__files);
 
     // Deduplicate while preserving insertion order — tests may populate multiple sources
     const unique = [];
@@ -250,14 +267,35 @@ async function handleFilesFromInput(input) {
         `${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`
     );
     // Support test-time injection via window.loadOverlayFiles
-    const injectedLoader =
-        /** @type {any} */ (globalThis)?.loadOverlayFiles ??
-        /** @type {any} */ (globalThis)?.loadOverlayFiles;
-    const loader =
-        typeof injectedLoader === "function"
-            ? injectedLoader
-            : loadOverlayFiles;
+    const loader = resolveOverlayFilesLoader();
     await loader(fileArray);
+}
+
+/**
+ * @param {File[]} target
+ * @param {ArrayLike<File> | null | undefined} source
+ */
+function appendFileSource(target, source) {
+    if (!source || typeof source.length !== "number" || source.length <= 0) {
+        return;
+    }
+
+    for (let index = 0; index < source.length; index++) {
+        const file = source[index];
+        if (file instanceof File) {
+            target.push(file);
+        }
+    }
+}
+
+/**
+ * @returns {OverlayFilesLoader}
+ */
+function resolveOverlayFilesLoader() {
+    const { loadOverlayFiles: injectedLoader } = getFileSelectorGlobal();
+    return typeof injectedLoader === "function"
+        ? injectedLoader
+        : loadOverlayFiles;
 }
 
 function setupFileInputHandler(input) {
