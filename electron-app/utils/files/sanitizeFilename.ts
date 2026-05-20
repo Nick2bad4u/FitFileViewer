@@ -82,8 +82,8 @@ export function buildDownloadFilename(
 }
 
 /**
- * Normalises file extensions by removing leading dots/whitespace and any
- * characters that are not alphanumeric, dashes or underscores. Extensions are
+ * Normalises file extensions by removing leading dots/whitespace and characters
+ * that are not alphanumeric, dashes or underscores. Extensions are
  * lower-cased for consistency.
  */
 export function sanitizeFileExtension(
