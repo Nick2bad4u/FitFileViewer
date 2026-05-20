@@ -10,12 +10,17 @@
  * @since 1.0.0
  */
 
+/** @typedef {"version" | "electron" | "node" | "chrome" | "platform" | "author" | "license"} SystemInfoField */
+/** @typedef {Partial<Record<SystemInfoField, unknown>>} SystemInfoRecord */
+/** @typedef {{ isValid: boolean; missingFields?: SystemInfoField[] }} SystemInfoValidation */
+
 // DOM selectors and constants
 const DOM_SELECTORS = {
         SYSTEM_INFO_VALUE: ".system-info-value",
     },
     EXPECTED_INFO_FIELDS = 7,
     // System info field mapping (order matters - must match DOM structure)
+    /** @type {readonly SystemInfoField[]} */
     INFO_FIELD_ORDER = [
         "version",
         "electron",
@@ -68,6 +73,18 @@ export function clearSystemInfoCache() {
 }
 
 /**
+ * Gets a system info field value by its known field name.
+ *
+ * @param {SystemInfoRecord} info - System information object
+ * @param {SystemInfoField} fieldName - Known system information field
+ *
+ * @returns {unknown} Field value
+ */
+function getSystemInfoField(info, fieldName) {
+    return info[fieldName];
+}
+
+/**
  * Updates the system information display in the UI
  *
  * Takes a system information object and updates the corresponding DOM elements
@@ -85,14 +102,7 @@ export function clearSystemInfoCache() {
  *         license: "MIT",
  *     });
  *
- * @param {Object} info - System information object
- * @param {string} [info.version] - Application version
- * @param {string} [info.electron] - Electron version
- * @param {string} [info.node] - Node.js version
- * @param {string} [info.chrome] - Chrome version
- * @param {string} [info.platform] - Platform name
- * @param {string} [info.author] - Application author
- * @param {string} [info.license] - Application license
+ * @param {unknown} info - System information object
  *
  * @returns {boolean} True if update was successful, false otherwise
  */
@@ -113,9 +123,10 @@ export function updateSystemInfo(info) {
         }
 
         // Update each field in the defined order
+        const systemInfo = /** @type {SystemInfoRecord} */ (info);
         for (const [index, fieldName] of INFO_FIELD_ORDER.entries()) {
             if (index < systemInfoItems.length) {
-                const value = /** @type {any} */ (info)[fieldName];
+                const value = getSystemInfoField(systemInfo, fieldName);
                 updateSystemInfoField(
                     /** @type {Element} */ (systemInfoItems[index]),
                     value,
@@ -168,7 +179,7 @@ function initializeSystemInfoCache() {
  * Updates individual system info field in DOM
  *
  * @param {Element} element - DOM element to update
- * @param {string} value - Value to set
+ * @param {unknown} value - Value to set
  * @param {string} fieldName - Name of field for logging
  */
 function updateSystemInfoField(element, value, fieldName) {
@@ -180,7 +191,7 @@ function updateSystemInfoField(element, value, fieldName) {
     }
 
     try {
-        element.textContent = value || "";
+        element.textContent = value ? String(value) : "";
     } catch (error) {
         console.error(
             `${LOG_PREFIX} Error updating field ${fieldName}:`,
@@ -192,19 +203,20 @@ function updateSystemInfoField(element, value, fieldName) {
 /**
  * Validates system info object structure
  *
- * @param {Object} info - System information object to validate
+ * @param {unknown} info - System information object to validate
  *
- * @returns {{ isValid: boolean; missingFields?: string[] }} Validation result
+ * @returns {SystemInfoValidation} Validation result
  */
 function validateSystemInfo(info) {
     if (!info || typeof info !== "object") {
         return { isValid: false, missingFields: INFO_FIELD_ORDER };
     }
 
+    const systemInfo = /** @type {SystemInfoRecord} */ (info);
     const missingFields = INFO_FIELD_ORDER.filter(
         (field) =>
-            /** @type {any} */ (info)[field] === undefined ||
-            /** @type {any} */ (info)[field] === null
+            getSystemInfoField(systemInfo, field) === undefined ||
+            getSystemInfoField(systemInfo, field) === null
     );
 
     if (missingFields.length > 0) {
