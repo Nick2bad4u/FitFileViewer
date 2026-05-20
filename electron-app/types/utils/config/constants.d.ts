@@ -5,12 +5,12 @@
  *     getConfig("UI_CONSTANTS.DEFAULT_THEME"); // returns 'dark'
  *     getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // returns 1609.344
  *
- * @param {string} path - Dot-notation path to configuration value
- * @param {any} [defaultValue] - Default value if not found
+ * @param path - Dot-notation path to configuration value
+ * @param defaultValue - Default value if not found
  *
- * @returns {any} Configuration value
+ * @returns Configuration value
  */
-export function getConfig(path: string, defaultValue?: any): any;
+export function getConfig(path: string, defaultValue?: unknown): unknown;
 /**
  * Initialize configuration system
  */
@@ -18,9 +18,15 @@ export function initializeConfig(): void;
 /**
  * Validate configuration integrity
  *
- * @returns {Object} Validation results
+ * @returns Validation results
  */
-export function validateConfig(): Object;
+export function validateConfig(): ConfigValidationResult;
+/** Validation result returned by {@link validateConfig}. */
+export type ConfigValidationResult = {
+    errors: string[];
+    isValid: boolean;
+    warnings: string[];
+};
 export namespace CONVERSION_FACTORS {
     let DECIMAL_PLACES: number;
     let DECIMAL_PLACES_PRECISE: number;

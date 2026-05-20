@@ -1,20 +1,14 @@
 /**
- * Typed logging helper to avoid dynamic console[level] index signature errors
- * Provides consistent formatting and optional context object.
+ * Logs a message with a FitFileViewer prefix and optional context.
  *
- * @typedef {"log" | "info" | "warn" | "error"} LogLevel
- *
- * @param {LogLevel} level
- * @param {string} message
- * @param {Record<string, any>} [context]
+ * @param level - Console level. Unknown strings fall back to `console.log`.
+ * @param message - Message to log.
+ * @param context - Optional plain object context.
  */
 export function logWithLevel(
-    level: LogLevel,
+    level: LogLevel | string,
     message: string,
-    context?: Record<string, any>
+    context?: null | Record<string, unknown>
 ): void;
-/**
- * Typed logging helper to avoid dynamic console[level] index signature errors
- * Provides consistent formatting and optional context object.
- */
+/** Console levels supported by the structured logger. */
 export type LogLevel = "log" | "info" | "warn" | "error";
