@@ -11,6 +11,61 @@ import {
 } from "./mainUiDomUtils.js";
 import { showNotification } from "./notifications/showNotification.js";
 
+/**
+ * @typedef {{ error?: unknown }} FitDecodeResult
+ * @typedef {File & { path?: string }} DroppedFile
+ * @typedef {{
+ *     decodeFitFile?: (buffer: ArrayBuffer) => Promise<FitDecodeResult>;
+ * }} ElectronApiLike
+ * @typedef {{
+ *     electronAPI?: ElectronApiLike;
+ *     enableDragAndDrop?: unknown;
+ *     sendFitFileToAltFitReader?: (buffer: ArrayBuffer) => void;
+ * }} DragDropGlobal
+ * @typedef {{
+ *     endTimer?: (id: string) => void;
+ *     isEnabled?: boolean | (() => boolean);
+ *     startTimer?: (id: string) => void;
+ * }} PerformanceMonitorLike
+ */
+
+/**
+ * @returns {DragDropGlobal}
+ */
+function getDragDropGlobal() {
+    return /** @type {DragDropGlobal} */ (globalThis);
+}
+
+/**
+ * @returns {PerformanceMonitorLike}
+ */
+function getPerformanceMonitor() {
+    return /** @type {PerformanceMonitorLike} */ (performanceMonitor ?? {});
+}
+
+/**
+ * @param {PerformanceMonitorLike} monitor
+ *
+ * @returns {boolean}
+ */
+function isPerformanceMonitorEnabled(monitor) {
+    return typeof monitor.isEnabled === "function"
+        ? monitor.isEnabled()
+        : Boolean(monitor.isEnabled);
+}
+
+/**
+ * @param {File} file
+ *
+ * @returns {string}
+ */
+function getDroppedFilePath(file) {
+    const { path } = /** @type {DroppedFile} */ (file);
+    return typeof path === "string" && path.trim().length > 0
+        ? path
+        : file.name;
+}
+
 // Enhanced Drag and Drop UI and Global Handling with State Management
 export class DragDropHandler {
     /** @type {number} */
@@ -61,18 +116,9 @@ export class DragDropHandler {
     async processDroppedFile(file) {
         const operationId = `process_dropped_file_${Date.now()}`,
             // Start performance monitoring
-            /**
-             * @type {{
-             *     isEnabled?: () => boolean;
-             *     startTimer?: (id: string) => void;
-             *     endTimer?: (id: string) => void;
-             * }}
-             */
-            pm = /** @type {any} */ (performanceMonitor) || {};
+            pm = getPerformanceMonitor();
         if (
-            (typeof pm.isEnabled === "function"
-                ? pm.isEnabled()
-                : Boolean(pm.isEnabled)) &&
+            isPerformanceMonitorEnabled(pm) &&
             typeof pm.startTimer === "function"
         ) {
             pm.startTimer(operationId);
@@ -85,13 +131,7 @@ export class DragDropHandler {
             return;
         }
 
-        const filePath =
-            typeof (/** @type {File & { path?: string }} */ (file).path) ===
-                "string" &&
-            /** @type {File & { path?: string }} */ (file).path.trim().length >
-                0
-                ? /** @type {File & { path?: string }} */ (file).path
-                : file.name;
+        const filePath = getDroppedFilePath(file);
 
         try {
             // Update loading state
@@ -115,11 +155,12 @@ export class DragDropHandler {
             }
 
             const fitData =
-                await globalThis.electronAPI.decodeFitFile(arrayBuffer);
+                await getDragDropGlobal().electronAPI?.decodeFitFile?.(
+                    arrayBuffer
+                );
             if (fitData && !fitData.error) {
                 showFitData(fitData, filePath);
-                // @ts-ignore ensured above
-                globalThis.sendFitFileToAltFitReader(arrayBuffer);
+                getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
                 showNotification(
                     `File "${file.name}" loaded successfully`,
                     "success"
@@ -130,7 +171,7 @@ export class DragDropHandler {
                 // Handle error in state manager
                 if (fitFileStateManager) {
                     fitFileStateManager.handleFileLoadingError(
-                        new Error(fitData.error || "Unknown error")
+                        new Error(String(fitData?.error || "Unknown error"))
                     );
                 }
             }
@@ -155,11 +196,9 @@ export class DragDropHandler {
             AppActions.setFileOpening(false);
 
             // End performance monitoring
-            const pm2 = /** @type {any} */ (performanceMonitor) || {};
+            const pm2 = getPerformanceMonitor();
             if (
-                (typeof pm2.isEnabled === "function"
-                    ? pm2.isEnabled()
-                    : Boolean(pm2.isEnabled)) &&
+                isPerformanceMonitorEnabled(pm2) &&
                 typeof pm2.endTimer === "function"
             ) {
                 pm2.endTimer(operationId);
@@ -171,8 +210,9 @@ export class DragDropHandler {
     readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.addEventListener("load", (event) => {
-                resolve(/** @type {any} */ (event).target?.result || null);
+            reader.addEventListener("load", () => {
+                const { result } = reader;
+                resolve(result instanceof ArrayBuffer ? result : null);
             });
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
@@ -227,11 +267,10 @@ export class DragDropHandler {
         addEventListenerWithCleanup(
             globalThis,
             "dragover",
-            (/** @type {Event} */ e) => {
+            (/** @type {DragEvent} */ e) => {
                 e.preventDefault();
-                const de = /** @type {any} */ (e);
-                if (de.dataTransfer) {
-                    de.dataTransfer.dropEffect = "copy";
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = "copy";
                 }
                 if (this.dragOverScheduled) {
                     return;
@@ -247,17 +286,16 @@ export class DragDropHandler {
         addEventListenerWithCleanup(
             globalThis,
             "drop",
-            async (/** @type {Event} */ e) => {
+            async (/** @type {DragEvent} */ e) => {
                 this.dragCounter = 0;
                 this.syncDragCounter(0, "DragDropHandler.drop");
                 this.dragOverScheduled = false;
                 this.hideDropOverlay();
                 e.preventDefault();
-                const de = /** @type {any} */ (e);
                 if (
-                    !de.dataTransfer ||
-                    !de.dataTransfer.files ||
-                    de.dataTransfer.files.length === 0
+                    !e.dataTransfer ||
+                    !e.dataTransfer.files ||
+                    e.dataTransfer.files.length === 0
                 ) {
                     const message =
                         "No valid files detected. Please drop a .fit file.";
@@ -265,7 +303,7 @@ export class DragDropHandler {
                     return;
                 }
 
-                const [first] = de.dataTransfer.files;
+                const [first] = e.dataTransfer.files;
                 if (first) {
                     await this.processDroppedFile(first);
                 }
@@ -273,7 +311,7 @@ export class DragDropHandler {
         );
 
         // Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
-        if (/** @type {any} */ (globalThis).enableDragAndDrop) {
+        if (getDragDropGlobal().enableDragAndDrop) {
             this.setupIframeEventListeners();
         }
     }
