@@ -1,0 +1,25 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": false,
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "ES2024"
+    },
+    "exclude": [
+        "docusaurus/**",
+        "electron-app/**",
+        "node_modules/**"
+    ],
+    "include": [
+        "*.js",
+        "*.mjs",
+        ".github/**/*.js",
+        "utils/**/*.js"
+    ]
+}

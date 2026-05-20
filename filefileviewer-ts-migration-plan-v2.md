@@ -2,7 +2,6 @@
 description: FitFileViewer Behavior-Preserving TypeScript Migration Goal v2
 ---
 
-
 # FitFileViewer TypeScript Migration and Modernization Goal
 
 ## Summary
@@ -10,6 +9,7 @@ description: FitFileViewer Behavior-Preserving TypeScript Migration Goal v2
 Migrate `C:\Repos\FitFileViewer` to a first-class TypeScript codebase through small, reviewable, validated increments. The goal is not blind behavior preservation; the goal is a **correct, maintainable, strongly typed, modernized application that still works properly as an Electron app for real users**.
 
 Behavior may change when necessary to:
+
 - fix bugs
 - remove unsafe or obsolete patterns
 - simplify architecture
@@ -41,7 +41,7 @@ The standard is **working software with a high-quality codebase**, not line-for-
 
 ## Migration Strategy
 
-Work incrementally in small, coherent slices. Each slice should leave the repository in a better state than before.
+Work incrementally in small, coherent slices. Each slice should leave the repository in a better state than before. Feel free to use subagents if you think they will be beneficial for managing the complexity of the migration, but ensure that all work is well-coordinated and integrated into a cohesive whole. If you need to create a document to keep track of the migration and your actual steps, feel free to do so, but ensure that the document is well-organized and communicates the migration plan, progress, and current state.
 
 Preferred migration order:
 
@@ -125,6 +125,7 @@ If a legacy behavior is ambiguous, inconsistent, or harmful, prefer the technica
 ## Engineering Standards
 
 ### TypeScript
+
 - Use strict TypeScript.
 - Prefer precise domain models over generic utility types.
 - Avoid `any`, `unknown`, `null`, and `undefined` where a better model is possible.
@@ -132,6 +133,7 @@ If a legacy behavior is ambiguous, inconsistent, or harmful, prefer the technica
 - Do not hide type problems behind casts unless there is a documented boundary reason.
 
 ### Architecture
+
 - Favor explicit boundaries between:
   - parser/domain logic
   - renderer UI logic
@@ -140,20 +142,27 @@ If a legacy behavior is ambiguous, inconsistent, or harmful, prefer the technica
 - Keep side effects localized.
 - Separate pure transformation logic from I/O and UI orchestration.
 - Prefer composable utilities over large god modules.
+- Avoid global mutable state and implicit cross-module contracts.
+- Use modern module syntax and Vite-compatible patterns.
+- Normalize imports and module structure for clarity and maintainability.
 
 ### Dependencies
+
 - Import dependencies through supported public entry points only.
 - Do not depend on internal package files unless absolutely necessary and documented.
 - Remove brittle dependency-path hacks.
 - Wrap poorly typed third-party libraries behind local typed adapters when needed.
+- Avoid dynamic runtime imports of dependencies in favor of static imports or Vite-managed assets.
 
 ### Electron Safety
+
 - Keep preload minimal and secure.
 - Expose only necessary APIs.
 - Type all IPC channels, request payloads, and responses.
 - Avoid accidental renderer access to privileged Node/Electron APIs.
 
 ### Testing
+
 - Add or improve tests where migration risk is high.
 - Focus especially on:
   - FIT parsing
@@ -161,14 +170,20 @@ If a legacy behavior is ambiguous, inconsistent, or harmful, prefer the technica
   - state transitions
   - IPC contract behavior
   - file open workflows
+  - Electron lifecycle events
+  - critical UI interactions
+  - cross-process data flow
+  - runtime dependency loading behavior
 - Use unit, integration, and end-to-end tests where they provide real confidence.
 - Add property-based tests for critical pure logic if valuable.
+- Avoid over-testing trivial getters/setters or implementation details that provide little confidence.
 
 ---
 
 ## Validation Workflow
 
 ### At the start
+
 - Capture baseline status for:
   - install
   - lint
@@ -179,6 +194,7 @@ If a legacy behavior is ambiguous, inconsistent, or harmful, prefer the technica
 - Record existing failures separately from new regressions.
 
 ### For each migration slice
+
 Before each local commit:
 
 - run the narrowest relevant tests
@@ -191,6 +207,7 @@ When a slice touches broad/shared infrastructure, also run:
 - `npm --prefix electron-app run typecheck`
 
 ### Final confidence gate
+
 Run all of the following:
 
 - full lint
@@ -246,4 +263,3 @@ The migration is successful when:
 - runtime dependency loading is clean and maintainable
 - legacy unsafe patterns have been removed or sharply isolated
 - the resulting architecture is easier to understand, extend, and debug
-

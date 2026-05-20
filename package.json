@@ -1,25 +1,54 @@
 {
-  "name": "fitfileviewer-root",
-  "private": true,
-  "scripts": {
-    "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
-    "lint:electron-app": "cd electron-app && npm run lint",
-    "lint:docusaurus": "cd docusaurus && npm run lint",
-    "lint:docusaurus:content": "cd docusaurus && npm run lint:content",
-    "lint:fix": "npm run lint",
-    "lint:root": "cd electron-app && npm exec eslint -- --cache --cache-strategy content --cache-location .cache/.eslintcache-root --fix .. --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
-    "lint:root:check": "cd electron-app && npm exec eslint -- --cache --cache-strategy content --cache-location .cache/.eslintcache-root .. --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\""
-  },
-  "devDependencies": {
-    "eslint-config-nick2bad4u": "^1.1.0",
-    "prettier": "^3.8.3",
-    "prettier-config-nick2bad4u": "^1.0.13",
-    "remark": "^15.0.1",
-    "remark-cli": "^12.0.1",
-    "remark-config-nick2bad4u": "^1.0.2",
-    "secretlint": "^13.0.2",
-    "secretlint-config-nick2bad4u": "^1.0.5",
-    "stylelint": "^17.11.1",
-    "stylelint-config-nick2bad4u": "^1.0.12"
-  }
+    "name": "fitfileviewer-root",
+    "private": true,
+    "description": "Root workspace tooling for FitFileViewer.",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com>",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://github.com/Nick2bad4u"
+        }
+    ],
+    "main": "package.json",
+    "scripts": {
+        "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
+        "lint:docusaurus": "cd docusaurus && npm run lint",
+        "lint:docusaurus:content": "cd docusaurus && npm run lint:content",
+        "lint:electron-app": "cd electron-app && npm run lint",
+        "lint:fix": "npm run lint",
+        "lint:root": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root --fix . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
+        "lint:root:check": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\""
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "eslint-config-nick2bad4u": "^1.1.0",
+        "prettier": "^3.8.3",
+        "prettier-config-nick2bad4u": "^1.0.13",
+        "remark": "^15.0.1",
+        "remark-cli": "^12.0.1",
+        "remark-config-nick2bad4u": "^1.0.2",
+        "secretlint": "^13.0.2",
+        "secretlint-config-nick2bad4u": "^1.0.5",
+        "stylelint": "^17.11.1",
+        "stylelint-config-nick2bad4u": "^1.0.12"
+    },
+    "peerDependencies": {},
+    "packageManager": "npm@11.14.1",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0"
+    },
+    "devEngines": {
+        "packageManager": {
+            "name": "npm",
+            "version": ">=7.0.0",
+            "onFail": "warn"
+        },
+        "runtime": {
+            "name": "node",
+            "onFail": "warn",
+            "version": ">=16.0.0"
+        }
+    }
 }
