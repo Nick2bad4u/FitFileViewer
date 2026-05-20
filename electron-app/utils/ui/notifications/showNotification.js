@@ -84,7 +84,7 @@ export function __testResetNotifications() {
         el.style.display = "none";
         el.onclick = null;
         el.style.cursor = "default";
-        el.innerHTML = "";
+        el.replaceChildren();
     }
 }
 
@@ -196,7 +196,7 @@ export async function showNotification(
  */
 async function buildNotificationContent(element, notification) {
     // Clear previous content
-    element.innerHTML = "";
+    element.replaceChildren();
 
     // Set accessibility attributes
     element.setAttribute("role", "alert");
@@ -276,7 +276,9 @@ async function buildNotificationContent(element, notification) {
     // Add close button for persistent notifications
     if (!notification.duration) {
         const closeButton = document.createElement("button");
-        closeButton.innerHTML = "×";
+        closeButton.type = "button";
+        closeButton.textContent = "×";
+        closeButton.setAttribute("aria-label", "Close notification");
         closeButton.className = "notification-close";
         closeButton.style.cssText = `
 			background: none;
@@ -319,7 +321,7 @@ async function buildNotificationContent(element, notification) {
  */
 async function displayNotification(notification) {
     /** @type {NotificationElement | null} */
-    const notificationElement = /** @type {any} */ (
+    const notificationElement = /** @type {NotificationElement | null} */ (
         document.querySelector("#notification")
     );
     if (!notificationElement) {
