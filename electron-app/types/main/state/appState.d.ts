@@ -1,3 +1,23 @@
+import type { MainProcessStateData } from "../../utils/state/integration/mainProcessStateManager";
+
+export type StateUpdateOptions = Record<string, unknown>;
+export interface FitParserSettingsConf {
+    get(key: string): unknown;
+    set(key: string, value: unknown): void;
+}
+export interface MainProcessStateLike {
+    data?: MainProcessStateData;
+    cleanupEventHandlers(): void;
+    get(statePath: string): unknown;
+    set(
+        statePath: string,
+        value: unknown,
+        options?: StateUpdateOptions
+    ): void;
+}
+
+export const mainProcessState: MainProcessStateLike;
+
 /**
  * Clears all event handlers registered within the main process state (used by
  * dev helpers/tests).
@@ -10,29 +30,27 @@ export function cleanupEventHandlers(): void;
  * @param {string} statePath - Dot-notation state path (e.g.
  *   "fitFile.lastResult").
  *
- * @returns {any} Stored state value.
+ * @returns {unknown} Stored state value.
  */
-export function getAppState(statePath: string): any;
-import { mainProcessState } from "../../utils/state/integration/mainProcessStateManager";
+export function getAppState(statePath: string): unknown;
 /**
  * Lazily resolves the configuration store used for fit parser decoder settings.
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
  *
- * @returns {any} Electron-conf instance or null when unavailable.
+ * @returns {FitParserSettingsConf | null} Electron-conf instance or null when unavailable.
  */
-export function resolveFitParserSettingsConf(): any;
+export function resolveFitParserSettingsConf(): FitParserSettingsConf | null;
 /**
  * Persists a value into main process state.
  *
  * @param {string} statePath - Dot-notation path to update.
- * @param {any} value - Value to persist.
- * @param {Record<string, any>} [options={}] - Additional metadata forwarded to
+ * @param {unknown} value - Value to persist.
+ * @param {StateUpdateOptions} [options={}] - Additional metadata forwarded to
  *   the state manager. Default is `{}`
  */
 export function setAppState(
     statePath: string,
-    value: any,
-    options?: Record<string, any>
+    value: unknown,
+    options?: StateUpdateOptions
 ): void;
-export { mainProcessState };

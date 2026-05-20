@@ -1,9 +1,24 @@
+/**
+ * @typedef {{ get: (key: string) => unknown; set: (key: string, value: unknown) => void }} FitParserSettingsConf
+ * @typedef {Record<string, unknown>} StateUpdateOptions
+ * @typedef {{
+ *     cleanupEventHandlers: () => void;
+ *     get: (statePath: string) => unknown;
+ *     set: (
+ *         statePath: string,
+ *         value: unknown,
+ *         options?: StateUpdateOptions
+ *     ) => void;
+ * }} MainProcessStateLike
+ */
+
+/** @type {{ mainProcessState: MainProcessStateLike }} */
 const {
     mainProcessState,
 } = require("../../utils/state/integration/mainProcessStateManager");
 const { CONSTANTS } = require("../constants");
 
-/** @type {any} */
+/** @type {FitParserSettingsConf | null | undefined} */
 let fitParserSettingsConf;
 
 /**
@@ -21,7 +36,7 @@ function cleanupEventHandlers() {
  * @param {string} statePath - Dot-notation state path (e.g.
  *   "fitFile.lastResult").
  *
- * @returns {any} Stored state value.
+ * @returns {unknown} Stored state value.
  */
 function getAppState(statePath) {
     return mainProcessState.get(statePath);
@@ -32,7 +47,7 @@ function getAppState(statePath) {
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
  *
- * @returns {any} Electron-conf instance or null when unavailable.
+ * @returns {FitParserSettingsConf | null} Electron-conf instance or null when unavailable.
  */
 function resolveFitParserSettingsConf() {
     if (fitParserSettingsConf !== undefined) {
@@ -55,12 +70,12 @@ function resolveFitParserSettingsConf() {
  * Persists a value into main process state.
  *
  * @param {string} statePath - Dot-notation path to update.
- * @param {any} value - Value to persist.
- * @param {Record<string, any>} [options={}] - Additional metadata forwarded to
+ * @param {unknown} value - Value to persist.
+ * @param {StateUpdateOptions} [options={}] - Additional metadata forwarded to
  *   the state manager. Default is `{}`
  */
 function setAppState(statePath, value, options = {}) {
-    return mainProcessState.set(statePath, value, options);
+    mainProcessState.set(statePath, value, options);
 }
 
 module.exports = {
