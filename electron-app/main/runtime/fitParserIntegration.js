@@ -4,6 +4,22 @@ const {
     resolveFitParserSettingsConf,
 } = require("../state/appState");
 
+/**
+ * @typedef {import("../../shared/fit").DecoderOptions} DecoderOptions
+ *
+ * @typedef {import("../../shared/fit").FitFileLoadedPayload} FitFileLoadedPayload
+ *
+ * @typedef {import("../../shared/fit").FitMessages} FitMessages
+ *
+ * @typedef {import("../../types/fitParser").FitParserStateManagers} FitParserStateManagers
+ *
+ * @typedef {{
+ *     initializeStateManagement?: (
+ *         stateManagers?: FitParserStateManagers
+ *     ) => void;
+ * }} FitParserModule
+ */
+
 const FIT_PARSER_OPERATION_ID = "fitFile:decode";
 /** @type {Promise<void> | null} */
 let fitParserStateIntegrationPromise = null;
@@ -11,7 +27,7 @@ let fitParserStateIntegrationPromise = null;
 if (
     typeof process !== "undefined" &&
     process.env &&
-    /** @type {any} */ (process.env).NODE_ENV === "test" &&
+    process.env.NODE_ENV === "test" &&
     typeof globalThis !== "undefined"
 ) {
     Object.defineProperty(
@@ -27,6 +43,39 @@ if (
 }
 
 /**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : "Unknown error";
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is FitParserStateManagers}
+ */
+function isFitParserStateManagers(value) {
+    return Boolean(value && typeof value === "object");
+}
+
+/**
+ * @returns {FitParserStateManagers | null}
+ */
+function getFitParserStateAdaptersOverride() {
+    if (typeof globalThis === "undefined") {
+        return null;
+    }
+
+    const candidate =
+        /** @type {{ __fitParserStateAdaptersOverride?: unknown }} */ (
+            globalThis
+        ).__fitParserStateAdaptersOverride;
+    return isFitParserStateManagers(candidate) ? candidate : null;
+}
+
+/**
  * Builds the adapter collection consumed by the fit parser's state integration
  * layer.
  *
@@ -34,8 +83,8 @@ if (
  *     fitFileStateManager: {
  *         updateLoadingProgress(progress: number): void;
  *         handleFileLoadingError(error: Error): void;
- *         handleFileLoaded(payload: any): void;
- *         getRecordCount(messages: any): number;
+ *         handleFileLoaded(payload: FitFileLoadedPayload): void;
+ *         getRecordCount(messages: FitMessages): number;
  *     };
  *     performanceMonitor: {
  *         isEnabled: boolean;
@@ -44,8 +93,14 @@ if (
  *         getOperationTime(id: string): number | null;
  *     };
  *     settingsStateManager: {
- *         getCategory(category: string): any;
- *         updateCategory(category: string, value: any, options?: Record<string, unknown>): void;
+ *         getCategory(
+ *             category: string
+ *         ): Partial<DecoderOptions> | null | undefined;
+ *         updateCategory(
+ *             category: string,
+ *             value: Partial<DecoderOptions>,
+ *             options?: Record<string, unknown>
+ *         ): void;
  *     };
  * }}
  *   Adapter contract wired to mainProcessState.
@@ -75,7 +130,7 @@ function createFitParserStateAdapters() {
                 "warn",
                 "Unable to start fit parser operation tracking",
                 {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 }
             );
         }
@@ -96,7 +151,7 @@ function createFitParserStateAdapters() {
                 });
             } catch (error) {
                 logWithContext("warn", "Failed to update fit parser progress", {
-                    error: /** @type {Error} */ (error)?.message,
+                    error: getErrorMessage(error),
                 });
             }
         },
@@ -107,7 +162,7 @@ function createFitParserStateAdapters() {
                 mainProcessState.failOperation(FIT_PARSER_OPERATION_ID, error);
             } catch (failError) {
                 logWithContext("warn", "Failed to record fit parser error", {
-                    error: /** @type {Error} */ (failError)?.message,
+                    error: getErrorMessage(failError),
                 });
             }
         },
@@ -127,7 +182,7 @@ function createFitParserStateAdapters() {
                     "warn",
                     "Failed to mark fit parser operation complete",
                     {
-                        error: /** @type {Error} */ (completeError)?.message,
+                        error: getErrorMessage(completeError),
                     }
                 );
             }
@@ -146,7 +201,7 @@ function createFitParserStateAdapters() {
                     "warn",
                     "Failed to persist fit parser metadata to state",
                     {
-                        error: /** @type {Error} */ (stateError)?.message,
+                        error: getErrorMessage(stateError),
                     }
                 );
             }
@@ -156,9 +211,7 @@ function createFitParserStateAdapters() {
                 return 0;
             }
 
-            const recordCandidates =
-                /** @type {any} */ (messages).recordMesgs ||
-                /** @type {any} */ (messages).records;
+            const recordCandidates = messages.recordMesgs ?? messages.records;
 
             if (Array.isArray(recordCandidates)) {
                 return recordCandidates.length;
@@ -219,7 +272,7 @@ function createFitParserStateAdapters() {
                     "Failed to update settings in main process state",
                     {
                         category,
-                        error: /** @type {Error} */ (error)?.message,
+                        error: getErrorMessage(error),
                     }
                 );
             }
@@ -234,8 +287,7 @@ function createFitParserStateAdapters() {
                             "warn",
                             "Failed to persist decoder settings to configuration store",
                             {
-                                error: /** @type {Error} */ (confError)
-                                    ?.message,
+                                error: getErrorMessage(confError),
                             }
                         );
                     }
@@ -306,7 +358,9 @@ async function ensureFitParserStateIntegration() {
 
     fitParserStateIntegrationPromise = (async () => {
         try {
-            const fitParser = require("../../fitParser");
+            const fitParser = /** @type {FitParserModule} */ (
+                require("../../fitParser")
+            );
             if (
                 !fitParser ||
                 typeof fitParser.initializeStateManagement !== "function"
@@ -314,27 +368,15 @@ async function ensureFitParserStateIntegration() {
                 return;
             }
 
-            /**
-             * @type {{
-             *     fitFileStateManager?: any;
-             *     settingsStateManager?: any;
-             *     performanceMonitor?: any;
-             * } | null}
-             */
-            const override =
-                typeof globalThis !== "undefined" &&
-                /** @type {any} */ (globalThis).__fitParserStateAdaptersOverride
-                    ? /** @type {any} */ (globalThis)
-                          .__fitParserStateAdaptersOverride
-                    : null;
-
-            const adapters = override || createFitParserStateAdapters();
+            const adapters =
+                getFitParserStateAdaptersOverride() ??
+                createFitParserStateAdapters();
             fitParser.initializeStateManagement(adapters);
 
             logWithContext("info", "Fit parser state management initialized");
         } catch (error) {
             logWithContext("warn", "Skipping fit parser state integration", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
         }
     })();
