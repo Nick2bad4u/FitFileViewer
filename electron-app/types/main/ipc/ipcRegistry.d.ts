@@ -1,34 +1,24 @@
 export type IpcHandleRegistryEntry = {
     ipcMain: unknown;
-    handler: (...args: any[]) => any;
+    handler: (...args: unknown[]) => unknown;
 };
 export type IpcListenerRegistryEntry = {
     ipcMain: unknown;
-    listener: (...args: any[]) => any;
+    listener: (...args: unknown[]) => unknown;
 };
 /**
- * Registers an IPC handler ensuring any previous handler is safely removed
+ * Registers an IPC handler ensuring the previous handler is safely removed
  * first.
- *
- * @template {(...args: any[]) => any} T
- *
- * @param {string} channel - IPC channel name.
- * @param {T} handler - Handler to register.
  */
-export function registerIpcHandle<T extends (...args: any[]) => any>(
+export function registerIpcHandle<T extends (...args: unknown[]) => unknown>(
     channel: string,
     handler: T
 ): void;
 /**
  * Registers an IPC event listener, guaranteeing previous listeners are removed
  * to avoid duplicates.
- *
- * @template {(...args: any[]) => any} T
- *
- * @param {string} channel - IPC channel to listen on.
- * @param {T} listener - Listener to register.
  */
-export function registerIpcListener<T extends (...args: any[]) => any>(
+export function registerIpcListener<T extends (...args: unknown[]) => unknown>(
     channel: string,
     listener: T
 ): void;

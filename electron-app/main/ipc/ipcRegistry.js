@@ -1,11 +1,11 @@
 const { ipcMainRef } = require("../runtime/electronAccess");
 
 /**
- * @typedef {{ ipcMain: unknown; handler: (...args: any[]) => any }} IpcHandleRegistryEntry
+ * @typedef {{ ipcMain: unknown; handler: (...args: unknown[]) => unknown }} IpcHandleRegistryEntry
  */
 
 /**
- * @typedef {{ ipcMain: unknown; listener: (...args: any[]) => any }} IpcListenerRegistryEntry
+ * @typedef {{ ipcMain: unknown; listener: (...args: unknown[]) => unknown }} IpcListenerRegistryEntry
  */
 
 /** @type {Map<string, IpcHandleRegistryEntry>} */
@@ -14,10 +14,10 @@ const IPC_HANDLE_REGISTRY = new Map();
 const IPC_EVENT_LISTENER_REGISTRY = new Map();
 
 /**
- * Registers an IPC handler ensuring any previous handler is safely removed
+ * Registers an IPC handler ensuring the previous handler is safely removed
  * first.
  *
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  *
  * @param {string} channel - IPC channel name.
  * @param {T} handler - Handler to register.
@@ -73,7 +73,7 @@ function registerIpcHandle(channel, handler) {
  * Registers an IPC event listener, guaranteeing previous listeners are removed
  * to avoid duplicates.
  *
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  *
  * @param {string} channel - IPC channel to listen on.
  * @param {T} listener - Listener to register.
