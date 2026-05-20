@@ -10,11 +10,10 @@
  */
 
 import pLimitCompat from "../../async/pLimitCompat.js";
-import { escapeHtml } from "../../dom/index.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
-import { getAppIconSvg } from "../icons/iconFactory.js";
+import { createAppIconElement } from "../icons/iconFactory.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -63,6 +62,14 @@ const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
  */
 
 /**
+ * @typedef {object} SportBadge
+ *
+ * @property {string} emoji
+ * @property {string} key
+ * @property {string} label
+ */
+
+/**
  * Render (or refresh) the Browser tab UI.
  */
 export async function renderFileBrowserTab() {
@@ -74,41 +81,7 @@ export async function renderFileBrowserTab() {
     // One-time UI scaffolding.
     if (!container.dataset.ffvBrowserInitialized) {
         container.dataset.ffvBrowserInitialized = "true";
-        container.innerHTML = `
-            <div class="file-browser">
-                    <div class="file-browser__notice" role="note">
-                        Experimental feature — folder scanning and calendar may change.
-                    </div>
-                    <div class="file-browser__header">
-                        <div class="file-browser__controls">
-                            <button type="button" class="file-browser__btn" id="fit-browser-pick-folder">
-                                ${getAppIconSvg("folderOpen", { className: "file-browser__btn-icon", size: 16 })}
-                                <span class="file-browser__btn-label">Choose Folder</span>
-                            </button>
-                            <div class="file-browser__segmented" role="tablist" aria-label="Browser view">
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-files" role="tab" aria-selected="true">
-                                    ${getAppIconSvg("file", { className: "file-browser__seg-icon", size: 14 })}
-                                    <span class="file-browser__seg-label">Files</span>
-                                </button>
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-library" role="tab" aria-selected="false">
-                                    ${getAppIconSvg("database", { className: "file-browser__seg-icon", size: 14 })}
-                                    <span class="file-browser__seg-label">Library</span>
-                                </button>
-                                <button type="button" class="file-browser__seg-btn" id="fit-browser-view-calendar" role="tab" aria-selected="false">
-                                    ${getAppIconSvg("calendar", { className: "file-browser__seg-icon", size: 14 })}
-                                    <span class="file-browser__seg-label">Calendar</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="file-browser__path" id="fit-browser-current-path"></div>
-                    </div>
-                    <div class="file-browser__body">
-                        <div class="file-browser__list" id="fit-browser-list" role="list"></div>
-                        <div class="file-browser__library" id="fit-browser-library" hidden></div>
-                        <div class="file-browser__calendar" id="fit-browser-calendar" hidden></div>
-                    </div>
-            </div>
-        `;
+        container.replaceChildren(createFileBrowserScaffold());
 
         const pickBtn = document.getElementById("fit-browser-pick-folder");
         if (pickBtn) {
@@ -149,6 +122,171 @@ export async function renderFileBrowserTab() {
     }
 
     await refreshActiveView();
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createFileBrowserScaffold() {
+    const root = document.createElement("div");
+    root.className = "file-browser";
+
+    const notice = document.createElement("div");
+    notice.className = "file-browser__notice";
+    notice.setAttribute("role", "note");
+    notice.textContent =
+        "Experimental feature — folder scanning and calendar may change.";
+
+    const header = document.createElement("div");
+    header.className = "file-browser__header";
+
+    const controls = document.createElement("div");
+    controls.className = "file-browser__controls";
+    controls.append(createPickFolderButton(), createViewSegmentedControl());
+
+    const currentPath = document.createElement("div");
+    currentPath.className = "file-browser__path";
+    currentPath.id = "fit-browser-current-path";
+
+    header.append(controls, currentPath);
+
+    const body = document.createElement("div");
+    body.className = "file-browser__body";
+
+    const list = document.createElement("div");
+    list.className = "file-browser__list";
+    list.id = "fit-browser-list";
+    list.setAttribute("role", "list");
+
+    const library = document.createElement("div");
+    library.className = "file-browser__library";
+    library.id = "fit-browser-library";
+    library.hidden = true;
+
+    const calendar = document.createElement("div");
+    calendar.className = "file-browser__calendar";
+    calendar.id = "fit-browser-calendar";
+    calendar.hidden = true;
+
+    body.append(list, library, calendar);
+    root.append(notice, header, body);
+
+    return root;
+}
+
+/**
+ * @returns {HTMLButtonElement}
+ */
+function createPickFolderButton() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "file-browser__btn";
+    button.id = "fit-browser-pick-folder";
+    appendIconLabel(
+        button,
+        "folderOpen",
+        "file-browser__btn-icon",
+        "Choose Folder",
+        "file-browser__btn-label",
+        16
+    );
+
+    return button;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createViewSegmentedControl() {
+    const segmented = document.createElement("div");
+    segmented.className = "file-browser__segmented";
+    segmented.setAttribute("role", "tablist");
+    segmented.setAttribute("aria-label", "Browser view");
+    segmented.append(
+        createViewSegmentButton("fit-browser-view-files", "file", "Files", true),
+        createViewSegmentButton(
+            "fit-browser-view-library",
+            "database",
+            "Library",
+            false
+        ),
+        createViewSegmentButton(
+            "fit-browser-view-calendar",
+            "calendar",
+            "Calendar",
+            false
+        )
+    );
+
+    return segmented;
+}
+
+/**
+ * @param {string} id
+ * @param {import("../icons/iconFactory.js").AppIconName} iconName
+ * @param {string} label
+ * @param {boolean} selected
+ *
+ * @returns {HTMLButtonElement}
+ */
+function createViewSegmentButton(id, iconName, label, selected) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "file-browser__seg-btn";
+    button.id = id;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__seg-icon",
+        label,
+        "file-browser__seg-label",
+        14
+    );
+
+    return button;
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {import("../icons/iconFactory.js").AppIconName} iconName
+ * @param {string} iconClass
+ * @param {string} labelText
+ * @param {string} labelClass
+ * @param {number} size
+ */
+function appendIconLabel(
+    target,
+    iconName,
+    iconClass,
+    labelText,
+    labelClass,
+    size
+) {
+    const label = document.createElement("span");
+    if (labelClass) {
+        label.className = labelClass;
+    }
+    label.textContent = labelText;
+    target.append(
+        createAppIconElement(iconName, { className: iconClass, size }),
+        label
+    );
+}
+
+/**
+ * @param {string} text
+ * @param {string} [className]
+ *
+ * @returns {HTMLElement}
+ */
+function createEmptyMessage(text, className = "file-browser__empty") {
+    const empty = document.createElement("div");
+    empty.className = className;
+    empty.textContent = text;
+
+    return empty;
 }
 
 /**
@@ -890,7 +1028,7 @@ async function refreshListing() {
         typeof api.listFitBrowserFolder !== "function"
     ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
-        listEl.textContent = "";
+        listEl.replaceChildren();
         return;
     }
 
@@ -902,16 +1040,16 @@ async function refreshListing() {
 
     if (!root) {
         pathEl.textContent = "No folder selected";
-        listEl.innerHTML =
-            '<div class="file-browser__empty">Choose a folder to browse .fit files.</div>';
+        listEl.replaceChildren(
+            createEmptyMessage("Choose a folder to browse .fit files.")
+        );
         return;
     }
 
     const responseRaw = await api.listFitBrowserFolder(rel);
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
-        listEl.innerHTML =
-            '<div class="file-browser__empty">Unable to list folder.</div>';
+        listEl.replaceChildren(createEmptyMessage("Unable to list folder."));
         return;
     }
 
@@ -923,13 +1061,10 @@ async function refreshListing() {
         : root;
     pathEl.textContent = displayPath;
 
-    listEl.innerHTML = "";
+    listEl.replaceChildren();
 
     if (relPath) {
-        const up = document.createElement("button");
-        up.type = "button";
-        up.className = "file-browser__item file-browser__item--dir";
-        up.innerHTML = `${getAppIconSvg("arrowLeft", { className: "file-browser__item-icon", size: 14 })}<span class="file-browser__item-label">..</span>`;
+        const up = createBrowserItemButton("dir", "arrowLeft", "..");
         up.addEventListener("click", async () => {
             setState(TAB_STATE_PATH_REL, parentRelPath(relPath), {
                 source: "fileBrowser.up",
@@ -940,20 +1075,14 @@ async function refreshListing() {
     }
 
     if (entries.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "file-browser__empty";
-        empty.textContent = "No .fit files found in this folder.";
-        listEl.append(empty);
+        listEl.append(createEmptyMessage("No .fit files found in this folder."));
         return;
     }
 
     for (const entry of entries) {
         const { kind, name, relPath: entryRelPath, fullPath } = entry;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `file-browser__item ${kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"}`;
         const iconName = kind === "dir" ? "folder" : "file";
-        btn.innerHTML = `${getAppIconSvg(iconName, { className: "file-browser__item-icon", size: 14 })}<span class="file-browser__item-label">${escapeHtml(name)}</span>`;
+        const btn = createBrowserItemButton(kind, iconName, name);
 
         if (kind === "dir") {
             btn.addEventListener("click", async () => {
@@ -973,6 +1102,31 @@ async function refreshListing() {
 }
 
 /**
+ * @param {"dir" | "file"} kind
+ * @param {import("../icons/iconFactory.js").AppIconName} iconName
+ * @param {string} label
+ *
+ * @returns {HTMLButtonElement}
+ */
+function createBrowserItemButton(kind, iconName, label) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `file-browser__item ${
+        kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"
+    }`;
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__item-icon",
+        label,
+        "file-browser__item-label",
+        14
+    );
+
+    return button;
+}
+
+/**
  * @param {string} root
  * @param {{ items: FitLibraryItem[]; scannedAt: number } | null} payload
  */
@@ -989,10 +1143,15 @@ function renderCalendarResults(root, payload) {
         if (titleEl) {
             titleEl.textContent = "Calendar";
         }
-        gridEl.innerHTML =
-            '<div class="file-browser__empty">No scan results yet. Click “Scan folder”.</div>';
-        panelEl.innerHTML =
-            '<div class="file-calendar__panelEmpty">No activities to display.</div>';
+        gridEl.replaceChildren(
+            createEmptyMessage('No scan results yet. Click "Scan folder".')
+        );
+        panelEl.replaceChildren(
+            createEmptyMessage(
+                "No activities to display.",
+                "file-calendar__panelEmpty"
+            )
+        );
         return;
     }
 
@@ -1000,50 +1159,6 @@ function renderCalendarResults(root, payload) {
     const unitFactor = prefs.unit === "mi" ? 1 / 1609.344 : 1 / 1000;
     const unitLabel = prefs.unit;
     const fmt = (meters) => (meters * unitFactor).toFixed(1);
-
-    /**
-     * @param {number} count
-     *
-     * @returns {string}
-     */
-    const formatActivityLabel = (count) =>
-        `${count} ${count === 1 ? "activity" : "activities"}`;
-
-    /**
-     * @param {string | undefined} sport
-     *
-     * @returns {{ key: string; label: string; emoji: string }}
-     */
-    const getSportBadge = (sport) => {
-        const raw = typeof sport === "string" ? sport.trim() : "";
-        const s = raw.toLowerCase();
-
-        if (
-            s.includes("cycling") ||
-            s.includes("bike") ||
-            s.includes("biking")
-        ) {
-            return { key: "cycling", label: "Cycling", emoji: "🚴" };
-        }
-        if (s.includes("run")) {
-            return { key: "running", label: "Running", emoji: "🏃" };
-        }
-        if (s.includes("walk")) {
-            return { key: "walking", label: "Walking", emoji: "🚶" };
-        }
-        if (s.includes("swim")) {
-            return { key: "swimming", label: "Swimming", emoji: "🏊" };
-        }
-        if (s.includes("hike")) {
-            return { key: "hiking", label: "Hiking", emoji: "🥾" };
-        }
-        if (s.includes("row")) {
-            return { key: "rowing", label: "Rowing", emoji: "🚣" };
-        }
-
-        // Unknown/other.
-        return { key: "other", label: raw || "Activity", emoji: "🏁" };
-    };
 
     const state = getCalendarState();
     const { monthStart, selectedDayKey } = state;
@@ -1079,10 +1194,13 @@ function renderCalendarResults(root, payload) {
 
     const todayKey = formatLocalDayKey(new Date());
 
-    /** @type {string[]} */
-    const parts = [];
+    /** @type {HTMLElement[]} */
+    const gridItems = [];
     for (const wd of weekdayLabels) {
-        parts.push(`<div class="file-calendar__weekday">${wd}</div>`);
+        const weekday = document.createElement("div");
+        weekday.className = "file-calendar__weekday";
+        weekday.textContent = wd;
+        gridItems.push(weekday);
     }
 
     for (let i = 0; i < 42; i++) {
@@ -1099,154 +1217,310 @@ function renderCalendarResults(root, payload) {
             0
         );
 
-        const classes = ["file-calendar__day"];
-        if (!inMonth) classes.push("file-calendar__day--outside");
-        if (isToday) classes.push("file-calendar__day--today");
-        if (isSelected) classes.push("file-calendar__day--selected");
-        if (dayItems.length > 0)
-            classes.push("file-calendar__day--hasActivities");
-        if (dayItems.length > 1) classes.push("file-calendar__day--multi");
-
-        let meta = "";
-        if (dayItems.length > 0) {
-            /** @type {Map<string, { key: string; label: string; emoji: string; count: number }>} */
-            const bySport = new Map();
-            for (const it of dayItems) {
-                const badge = getSportBadge(it.sport);
-                const existing = bySport.get(badge.key);
-                if (existing) {
-                    existing.count += 1;
-                } else {
-                    bySport.set(badge.key, { ...badge, count: 1 });
-                }
-            }
-
-            const badges = [...bySport.values()].sort(
-                (a, b) => b.count - a.count
-            );
-            const badgeMax = 3;
-            const shown = badges.slice(0, badgeMax);
-            const remainder = Math.max(0, badges.length - shown.length);
-
-            const iconRow =
-                shown.length > 0
-                    ? `
-                        <div class="file-calendar__dayIcons" aria-hidden="true">
-                            ${shown
-                                .map(
-                                    (b) =>
-                                        `<span class="file-calendar__dayIcon" data-sport="${b.key}" data-count="${b.count}">${b.emoji}</span>`
-                                )
-                                .join("")}
-                            ${remainder > 0 ? `<span class="file-calendar__dayIconMore">+${remainder}</span>` : ""}
-                        </div>
-                    `
-                    : "";
-
-            meta = `
-                <div class="file-calendar__dayDistance">${fmt(dayDistance)} ${unitLabel}</div>
-                <div class="file-calendar__dayCount">${formatActivityLabel(dayItems.length)}</div>
-                ${iconRow}
-            `;
-        }
-
-        parts.push(`
-            <button type="button" class="${classes.join(" ")}" data-day="${dayKey}">
-                <div class="file-calendar__dayNumber">${day.getDate()}</div>
-                <div class="file-calendar__dayMeta">${meta}</div>
-            </button>
-        `);
-    }
-
-    gridEl.innerHTML = parts.join("\n");
-
-    for (const btn of gridEl.querySelectorAll(".file-calendar__day")) {
-        btn.addEventListener("click", () => {
-            const { day: dayKeyRaw } = /** @type {DOMStringMap} */ (
-                btn.dataset
-            );
-            const dayKey = dayKeyRaw || "";
-            if (!dayKey) return;
+        const button = createCalendarDayButton({
+            day,
+            dayDistance,
+            dayItems,
+            dayKey,
+            inMonth,
+            isSelected,
+            isToday,
+            unitLabel,
+            formatDistance: fmt,
+        });
+        button.addEventListener("click", () => {
             const next = { ...getCalendarState(), selectedDayKey: dayKey };
             persistCalendarState(next);
             renderCalendarResults(root, payload);
         });
+        gridItems.push(button);
     }
 
-    // Tooltips for calendar days and sport icons.
-    for (const btn of gridEl.querySelectorAll(".file-calendar__day")) {
-        if (!(btn instanceof HTMLElement)) continue;
-        const dayKey = btn.dataset.day || "";
-        if (!dayKey) continue;
-
-        const dayItems = itemsByDay.get(dayKey) ?? [];
-        if (dayItems.length === 0) {
-            btn.dataset.tooltip = dayKey;
-            continue;
-        }
-
-        const dayDistance = dayItems.reduce(
-            (acc, it) => acc + it.totalDistanceM,
-            0
-        );
-        btn.dataset.tooltip = `${dayKey} • ${fmt(dayDistance)} ${unitLabel} • ${formatActivityLabel(dayItems.length)}`;
-    }
-
-    for (const icon of gridEl.querySelectorAll(".file-calendar__dayIcon")) {
-        if (!(icon instanceof HTMLElement)) continue;
-        const { sport: sportKey = "", count: countRaw = "0" } = icon.dataset;
-        const count = Number(countRaw);
-        const label = escapeHtml(getSportBadge(sportKey).label);
-        const countLabel = count > 0 ? ` (${count})` : "";
-        icon.dataset.tooltip = `${label}${countLabel}`;
-    }
+    gridEl.replaceChildren(...gridItems);
 
     // Selected-day panel
     const selectedItems = itemsByDay.get(selectedDayKey) ?? [];
     if (selectedItems.length === 0) {
-        const safeDayKey = escapeHtml(selectedDayKey);
-        panelEl.innerHTML = `<div class="file-calendar__panelTitle">${safeDayKey}</div><div class="file-calendar__panelEmpty">No activities.</div>`;
+        panelEl.replaceChildren(
+            createCalendarPanelTitle(selectedDayKey),
+            createEmptyMessage("No activities.", "file-calendar__panelEmpty")
+        );
         return;
     }
 
-    const rows = selectedItems
-        .slice()
-        .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
-        .map((it) => {
-            const when = it.startTime.toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-            const dist = fmt(it.totalDistanceM);
-            const sport = it.sport ? ` — ${escapeHtml(it.sport)}` : "";
-            const badge = getSportBadge(it.sport);
-            const safeBadgeLabel = escapeHtml(badge.label);
-            const safeFileName = escapeHtml(it.fileName);
-            return `
-                <button type="button" class="file-library__row" data-fullpath="${encodeURIComponent(it.fullPath)}">
-                    <span class="file-library__rowMain">
-                        <span class="file-calendar__rowIcon" data-tooltip="${safeBadgeLabel}" aria-hidden="true">${badge.emoji}</span>
-                        ${safeFileName}
-                    </span>
-                    <span class="file-library__rowMeta">${when} • ${dist} ${unitLabel}${sport}</span>
-                </button>
-            `;
-        })
-        .join("\n");
+    const rows = createLibraryRows(
+        selectedItems
+            .slice()
+            .sort((a, b) => b.startTime.getTime() - a.startTime.getTime()),
+        unitLabel,
+        fmt,
+        { includeSportBadge: true, useTimeOnly: true }
+    );
+    panelEl.replaceChildren(createCalendarPanelTitle(selectedDayKey), rows);
+}
 
-    const safeDayKey = escapeHtml(selectedDayKey);
-    panelEl.innerHTML = `<div class="file-calendar__panelTitle">${safeDayKey}</div><div class="file-library__rows">${rows}</div>`;
+/**
+ * @param {object} options
+ * @param {Date} options.day
+ * @param {number} options.dayDistance
+ * @param {FitLibraryItem[]} options.dayItems
+ * @param {string} options.dayKey
+ * @param {(meters: number) => string} options.formatDistance
+ * @param {boolean} options.inMonth
+ * @param {boolean} options.isSelected
+ * @param {boolean} options.isToday
+ * @param {DistanceUnit} options.unitLabel
+ *
+ * @returns {HTMLButtonElement}
+ */
+function createCalendarDayButton({
+    day,
+    dayDistance,
+    dayItems,
+    dayKey,
+    formatDistance,
+    inMonth,
+    isSelected,
+    isToday,
+    unitLabel,
+}) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "file-calendar__day";
+    button.dataset.day = dayKey;
 
-    for (const btn of panelEl.querySelectorAll(".file-library__row")) {
-        btn.addEventListener("click", async () => {
-            const { fullpath: encodedRaw } = /** @type {DOMStringMap} */ (
-                btn.dataset
-            );
-            const encoded = encodedRaw || "";
-            const fullPath = decodeURIComponent(encoded);
-            await openBrowserFile(fullPath);
-        });
+    if (!inMonth) button.classList.add("file-calendar__day--outside");
+    if (isToday) button.classList.add("file-calendar__day--today");
+    if (isSelected) button.classList.add("file-calendar__day--selected");
+    if (dayItems.length > 0) {
+        button.classList.add("file-calendar__day--hasActivities");
+        button.dataset.tooltip = `${dayKey} • ${formatDistance(dayDistance)} ${unitLabel} • ${formatActivityLabel(dayItems.length)}`;
+    } else {
+        button.dataset.tooltip = dayKey;
     }
+    if (dayItems.length > 1) button.classList.add("file-calendar__day--multi");
+
+    const dayNumber = document.createElement("div");
+    dayNumber.className = "file-calendar__dayNumber";
+    dayNumber.textContent = String(day.getDate());
+
+    const dayMeta = document.createElement("div");
+    dayMeta.className = "file-calendar__dayMeta";
+    if (dayItems.length > 0) {
+        const distance = document.createElement("div");
+        distance.className = "file-calendar__dayDistance";
+        distance.textContent = `${formatDistance(dayDistance)} ${unitLabel}`;
+
+        const count = document.createElement("div");
+        count.className = "file-calendar__dayCount";
+        count.textContent = formatActivityLabel(dayItems.length);
+
+        dayMeta.append(distance, count, createCalendarDayIconRow(dayItems));
+    }
+
+    button.append(dayNumber, dayMeta);
+
+    return button;
+}
+
+/**
+ * @param {FitLibraryItem[]} items
+ *
+ * @returns {HTMLElement}
+ */
+function createCalendarDayIconRow(items) {
+    const iconRow = document.createElement("div");
+    iconRow.className = "file-calendar__dayIcons";
+    iconRow.setAttribute("aria-hidden", "true");
+
+    const badges = createSportBadgeCounts(items);
+    const shown = badges.slice(0, 3);
+    const remainder = Math.max(0, badges.length - shown.length);
+
+    for (const badge of shown) {
+        const icon = document.createElement("span");
+        icon.className = "file-calendar__dayIcon";
+        icon.dataset.sport = badge.key;
+        icon.dataset.count = String(badge.count);
+        icon.dataset.tooltip =
+            badge.count > 0 ? `${badge.label} (${badge.count})` : badge.label;
+        icon.textContent = badge.emoji;
+        iconRow.append(icon);
+    }
+
+    if (remainder > 0) {
+        const more = document.createElement("span");
+        more.className = "file-calendar__dayIconMore";
+        more.textContent = `+${remainder}`;
+        iconRow.append(more);
+    }
+
+    return iconRow;
+}
+
+/**
+ * @param {FitLibraryItem[]} items
+ *
+ * @returns {(SportBadge & { count: number })[]}
+ */
+function createSportBadgeCounts(items) {
+    /** @type {Map<string, SportBadge & { count: number }>} */
+    const bySport = new Map();
+    for (const item of items) {
+        const badge = getSportBadge(item.sport);
+        const existing = bySport.get(badge.key);
+        if (existing) {
+            existing.count += 1;
+        } else {
+            bySport.set(badge.key, { ...badge, count: 1 });
+        }
+    }
+
+    return [...bySport.values()].sort((a, b) => b.count - a.count);
+}
+
+/**
+ * @param {string} dayKey
+ *
+ * @returns {HTMLElement}
+ */
+function createCalendarPanelTitle(dayKey) {
+    const title = document.createElement("div");
+    title.className = "file-calendar__panelTitle";
+    title.textContent = dayKey;
+
+    return title;
+}
+
+/**
+ * @param {number} count
+ *
+ * @returns {string}
+ */
+function formatActivityLabel(count) {
+    return `${count} ${count === 1 ? "activity" : "activities"}`;
+}
+
+/**
+ * @param {string | undefined} sport
+ *
+ * @returns {SportBadge}
+ */
+function getSportBadge(sport) {
+    const raw = typeof sport === "string" ? sport.trim() : "";
+    const sportLower = raw.toLowerCase();
+
+    if (
+        sportLower.includes("cycling") ||
+        sportLower.includes("bike") ||
+        sportLower.includes("biking")
+    ) {
+        return { emoji: "🚴", key: "cycling", label: "Cycling" };
+    }
+    if (sportLower.includes("run")) {
+        return { emoji: "🏃", key: "running", label: "Running" };
+    }
+    if (sportLower.includes("walk")) {
+        return { emoji: "🚶", key: "walking", label: "Walking" };
+    }
+    if (sportLower.includes("swim")) {
+        return { emoji: "🏊", key: "swimming", label: "Swimming" };
+    }
+    if (sportLower.includes("hike")) {
+        return { emoji: "🥾", key: "hiking", label: "Hiking" };
+    }
+    if (sportLower.includes("row")) {
+        return { emoji: "🚣", key: "rowing", label: "Rowing" };
+    }
+
+    return { emoji: "🏁", key: "other", label: raw || "Activity" };
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createCalendarScaffold() {
+    const calendar = document.createElement("div");
+    calendar.className = "file-calendar";
+
+    const header = document.createElement("div");
+    header.className = "file-calendar__header";
+
+    const title = document.createElement("div");
+    title.className = "file-calendar__title";
+    title.id = "fit-calendar-title";
+
+    const nav = document.createElement("div");
+    nav.className = "file-calendar__nav";
+    nav.append(
+        createBrowserActionButton({
+            id: "fit-calendar-prev",
+            iconName: "arrowLeft",
+            label: "Prev",
+            tooltip: "Previous month",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-today",
+            iconName: "calendar",
+            label: "Today",
+            tooltip: "Jump to today",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-next",
+            iconName: "arrowRight",
+            label: "Next",
+            tooltip: "Next month",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-scan",
+            iconName: "database",
+            label: "Scan folder",
+            tooltip: "Scan folder for activities",
+        })
+    );
+
+    header.append(title, nav);
+
+    const grid = document.createElement("div");
+    grid.className = "file-calendar__grid";
+    grid.id = "fit-calendar-grid";
+
+    const panel = document.createElement("div");
+    panel.className = "file-calendar__panel";
+    panel.id = "fit-calendar-panel";
+
+    calendar.append(header, grid, panel);
+
+    return calendar;
+}
+
+/**
+ * @param {object} options
+ * @param {string} options.id
+ * @param {import("../icons/iconFactory.js").AppIconName} options.iconName
+ * @param {string} options.label
+ * @param {string} [options.tooltip]
+ *
+ * @returns {HTMLButtonElement}
+ */
+function createBrowserActionButton({ id, iconName, label, tooltip }) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "file-browser__btn";
+    button.id = id;
+    if (tooltip) {
+        button.dataset.tooltip = tooltip;
+    }
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__btn-icon",
+        label,
+        "",
+        14
+    );
+
+    return button;
 }
 
 /**
@@ -1265,15 +1539,18 @@ async function renderCalendarView() {
 
     if (!api || typeof api.getFitBrowserFolder !== "function") {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
-        calendarEl.textContent = "";
+        delete calendarEl.dataset.ffvCalendarInitialized;
+        calendarEl.replaceChildren();
         return;
     }
 
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
-        calendarEl.innerHTML =
-            '<div class="file-browser__empty">Choose a folder to view the calendar.</div>';
+        delete calendarEl.dataset.ffvCalendarInitialized;
+        calendarEl.replaceChildren(
+            createEmptyMessage("Choose a folder to view the calendar.")
+        );
         return;
     }
 
@@ -1282,21 +1559,7 @@ async function renderCalendarView() {
 
     if (!calendarEl.dataset.ffvCalendarInitialized) {
         calendarEl.dataset.ffvCalendarInitialized = "true";
-        calendarEl.innerHTML = `
-            <div class="file-calendar">
-                <div class="file-calendar__header">
-                    <div class="file-calendar__title" id="fit-calendar-title"></div>
-                    <div class="file-calendar__nav">
-                        <button type="button" class="file-browser__btn" id="fit-calendar-prev" data-tooltip="Previous month">${getAppIconSvg("arrowLeft", { className: "file-browser__btn-icon", size: 14 })}<span>Prev</span></button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-today" data-tooltip="Jump to today">${getAppIconSvg("calendar", { className: "file-browser__btn-icon", size: 14 })}<span>Today</span></button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-next" data-tooltip="Next month">${getAppIconSvg("arrowRight", { className: "file-browser__btn-icon", size: 14 })}<span>Next</span></button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-scan" data-tooltip="Scan folder for activities">${getAppIconSvg("database", { className: "file-browser__btn-icon", size: 14 })}<span>Scan folder</span></button>
-                    </div>
-                </div>
-                <div class="file-calendar__grid" id="fit-calendar-grid"></div>
-                <div class="file-calendar__panel" id="fit-calendar-panel"></div>
-            </div>
-        `;
+        calendarEl.replaceChildren(createCalendarScaffold());
 
         const prevBtn = document.getElementById("fit-calendar-prev");
         const nextBtn = document.getElementById("fit-calendar-next");
@@ -1347,6 +1610,220 @@ async function renderCalendarView() {
 }
 
 /**
+ * @param {import("../icons/iconFactory.js").AppIconName} iconName
+ * @param {string} label
+ * @param {string} value
+ *
+ * @returns {HTMLElement}
+ */
+function createLibraryCard(iconName, label, value) {
+    const card = document.createElement("div");
+    card.className = "file-library__card";
+
+    const cardLabel = document.createElement("div");
+    cardLabel.className = "file-library__cardLabel";
+    appendIconLabel(
+        cardLabel,
+        iconName,
+        "file-library__cardIcon",
+        label,
+        "",
+        13
+    );
+
+    const cardValue = document.createElement("div");
+    cardValue.className = "file-library__cardValue";
+    cardValue.textContent = value;
+
+    card.append(cardLabel, cardValue);
+
+    return card;
+}
+
+/**
+ * @param {FitLibraryItem[]} items
+ * @param {DistanceUnit} unitLabel
+ * @param {(meters: number) => string} formatDistance
+ * @param {{ includeSportBadge: boolean; useTimeOnly: boolean }} options
+ *
+ * @returns {HTMLElement}
+ */
+function createLibraryRows(items, unitLabel, formatDistance, options) {
+    const rows = document.createElement("div");
+    rows.className = "file-library__rows";
+
+    for (const item of items) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "file-library__row";
+        row.dataset.fullpath = item.fullPath;
+        row.addEventListener("click", async () => {
+            await openBrowserFile(item.fullPath);
+        });
+
+        const main = document.createElement("span");
+        main.className = "file-library__rowMain";
+
+        if (options.includeSportBadge) {
+            const badge = getSportBadge(item.sport);
+            const icon = document.createElement("span");
+            icon.className = "file-calendar__rowIcon";
+            icon.dataset.tooltip = badge.label;
+            icon.setAttribute("aria-hidden", "true");
+            icon.textContent = badge.emoji;
+            main.append(icon, document.createTextNode(` ${item.fileName}`));
+        } else {
+            const fileName = document.createElement("span");
+            fileName.textContent = item.fileName;
+            main.append(
+                createAppIconElement("file", {
+                    className: "file-library__rowIcon",
+                    size: 13,
+                }),
+                fileName
+            );
+        }
+
+        const when = options.useTimeOnly
+            ? item.startTime.toLocaleTimeString(undefined, {
+                  hour: "2-digit",
+                  minute: "2-digit",
+              })
+            : item.startTime.toLocaleString();
+        const sport = item.sport ? ` — ${item.sport}` : "";
+        const meta = document.createElement("span");
+        meta.className = "file-library__rowMeta";
+        meta.textContent = `${when} • ${formatDistance(item.totalDistanceM)} ${unitLabel}${sport}`;
+
+        row.append(main, meta);
+        rows.append(row);
+    }
+
+    return rows;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createLibraryScaffold() {
+    const library = document.createElement("div");
+    library.className = "file-library";
+
+    const header = document.createElement("div");
+    header.className = "file-library__header";
+
+    const title = document.createElement("div");
+    title.className = "file-library__title";
+    appendIconLabel(
+        title,
+        "folder",
+        "file-library__titleIcon",
+        "Folder Summary",
+        "",
+        16
+    );
+
+    const controls = document.createElement("div");
+    controls.className = "file-library__controls";
+    controls.append(
+        createLibraryDaysControl(),
+        createLibraryUnitControl(),
+        createBrowserActionButton({
+            id: "fit-library-scan",
+            iconName: "database",
+            label: "Scan folder",
+        })
+    );
+
+    header.append(title, controls);
+
+    const status = document.createElement("div");
+    status.className = "file-library__status";
+    status.id = "fit-library-status";
+
+    const cards = document.createElement("div");
+    cards.className = "file-library__grid";
+    cards.id = "fit-library-cards";
+
+    const activities = document.createElement("div");
+    activities.className = "file-library__list";
+    activities.id = "fit-library-activities";
+
+    library.append(header, status, cards, activities);
+
+    return library;
+}
+
+/**
+ * @returns {HTMLLabelElement}
+ */
+function createLibraryDaysControl() {
+    const label = document.createElement("label");
+    label.className = "file-library__control";
+
+    const intro = document.createElement("span");
+    intro.className = "file-library__controlLabel";
+    appendIconLabel(
+        intro,
+        "history",
+        "file-library__controlIcon",
+        "Last",
+        "",
+        12
+    );
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "1";
+    input.max = "3650";
+    input.step = "1";
+    input.className = "file-library__daysInput";
+    input.id = "fit-library-days";
+
+    const suffix = document.createElement("span");
+    suffix.className = "file-library__controlLabel";
+    suffix.textContent = "days";
+
+    label.append(intro, input, suffix);
+
+    return label;
+}
+
+/**
+ * @returns {HTMLLabelElement}
+ */
+function createLibraryUnitControl() {
+    const label = document.createElement("label");
+    label.className = "file-library__control";
+
+    const intro = document.createElement("span");
+    intro.className = "file-library__controlLabel";
+    appendIconLabel(
+        intro,
+        "ruler",
+        "file-library__controlIcon",
+        "Units",
+        "",
+        12
+    );
+
+    const select = document.createElement("select");
+    select.className = "file-library__unitSelect";
+    select.id = "fit-library-unit";
+
+    for (const value of ["km", "mi"]) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.append(option);
+    }
+
+    label.append(intro, select);
+
+    return label;
+}
+
+/**
  * @param {string} root
  * @param {{ items: FitLibraryItem[]; scannedAt: number }} payload
  */
@@ -1372,24 +1849,24 @@ function renderLibraryResults(root, payload) {
         const lastDaysVal = fmt(totals.lastDaysDistanceM);
         const weekVal = fmt(totals.weekDistanceM);
         const monthVal = fmt(totals.monthDistanceM);
-        cardsEl.innerHTML = `
-            <div class="file-library__card">
-                <div class="file-library__cardLabel">${getAppIconSvg("file", { className: "file-library__cardIcon", size: 13 })}<span>Files</span></div>
-                <div class="file-library__cardValue">${payload.items.length}</div>
-            </div>
-            <div class="file-library__card">
-                <div class="file-library__cardLabel">${getAppIconSvg("history", { className: "file-library__cardIcon", size: 13 })}<span>Last ${prefs.lastDays} days</span></div>
-                <div class="file-library__cardValue">${lastDaysVal} ${unitLabel}</div>
-            </div>
-            <div class="file-library__card">
-                <div class="file-library__cardLabel">${getAppIconSvg("calendarWeek", { className: "file-library__cardIcon", size: 13 })}<span>This week</span></div>
-                <div class="file-library__cardValue">${weekVal} ${unitLabel}</div>
-            </div>
-            <div class="file-library__card">
-                <div class="file-library__cardLabel">${getAppIconSvg("calendarRange", { className: "file-library__cardIcon", size: 13 })}<span>This month</span></div>
-                <div class="file-library__cardValue">${monthVal} ${unitLabel}</div>
-            </div>
-        `;
+        cardsEl.replaceChildren(
+            createLibraryCard("file", "Files", String(payload.items.length)),
+            createLibraryCard(
+                "history",
+                `Last ${prefs.lastDays} days`,
+                `${lastDaysVal} ${unitLabel}`
+            ),
+            createLibraryCard(
+                "calendarWeek",
+                "This week",
+                `${weekVal} ${unitLabel}`
+            ),
+            createLibraryCard(
+                "calendarRange",
+                "This month",
+                `${monthVal} ${unitLabel}`
+            )
+        );
     }
 
     if (listEl) {
@@ -1397,34 +1874,16 @@ function renderLibraryResults(root, payload) {
             ? payload.items.slice(0, 50)
             : [];
         if (items.length === 0) {
-            listEl.innerHTML =
-                '<div class="file-browser__empty">No activities decoded.</div>';
+            listEl.replaceChildren(createEmptyMessage("No activities decoded."));
             return;
         }
 
-        const rows = items
-            .map((it) => {
-                const date = it.startTime.toLocaleString();
-                const dist = fmt(it.totalDistanceM);
-                const safeSport = it.sport ? ` — ${escapeHtml(it.sport)}` : "";
-                const safeFileName = escapeHtml(it.fileName);
-                return `
-                    <button type="button" class="file-library__row" data-fullpath="${encodeURIComponent(it.fullPath)}">
-                        <span class="file-library__rowMain">${getAppIconSvg("file", { className: "file-library__rowIcon", size: 13 })}<span>${safeFileName}</span></span>
-                        <span class="file-library__rowMeta">${date} • ${dist} ${unitLabel}${safeSport}</span>
-                    </button>
-                `;
+        listEl.replaceChildren(
+            createLibraryRows(items, unitLabel, fmt, {
+                includeSportBadge: false,
+                useTimeOnly: false,
             })
-            .join("\n");
-
-        listEl.innerHTML = `<div class="file-library__rows">${rows}</div>`;
-        for (const btn of listEl.querySelectorAll(".file-library__row")) {
-            btn.addEventListener("click", async () => {
-                const encoded = btn.dataset.fullpath || "";
-                const fullPath = decodeURIComponent(encoded);
-                await openBrowserFile(fullPath);
-            });
-        }
+        );
     }
 }
 
@@ -1446,53 +1905,25 @@ async function renderLibraryView() {
         typeof api.listFitBrowserFolder !== "function"
     ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
-        libraryEl.innerHTML = "";
+        delete libraryEl.dataset.ffvLibraryInitialized;
+        libraryEl.replaceChildren();
         return;
     }
 
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
-        libraryEl.innerHTML =
-            '<div class="file-browser__empty">Choose a folder to build a library summary.</div>';
+        delete libraryEl.dataset.ffvLibraryInitialized;
+        libraryEl.replaceChildren(
+            createEmptyMessage("Choose a folder to build a library summary.")
+        );
         return;
     }
 
     // One-time scaffold.
     if (!libraryEl.dataset.ffvLibraryInitialized) {
         libraryEl.dataset.ffvLibraryInitialized = "true";
-        libraryEl.innerHTML = `
-            <div class="file-library">
-                <div class="file-library__header">
-                    <div class="file-library__title">${getAppIconSvg("folder", { className: "file-library__titleIcon", size: 16 })}<span>Folder Summary</span></div>
-                    <div class="file-library__controls">
-                        <label class="file-library__control">
-                            <span class="file-library__controlLabel">${getAppIconSvg("history", { className: "file-library__controlIcon", size: 12 })}<span>Last</span></span>
-                            <input
-                                type="number"
-                                min="1"
-                                max="3650"
-                                step="1"
-                                class="file-library__daysInput"
-                                id="fit-library-days"
-                            />
-                            <span class="file-library__controlLabel">days</span>
-                        </label>
-                        <label class="file-library__control">
-                            <span class="file-library__controlLabel">${getAppIconSvg("ruler", { className: "file-library__controlIcon", size: 12 })}<span>Units</span></span>
-                            <select class="file-library__unitSelect" id="fit-library-unit">
-                                <option value="km">km</option>
-                                <option value="mi">mi</option>
-                            </select>
-                        </label>
-                        <button type="button" class="file-browser__btn" id="fit-library-scan">${getAppIconSvg("database", { className: "file-browser__btn-icon", size: 14 })}<span>Scan folder</span></button>
-                    </div>
-                </div>
-                <div class="file-library__status" id="fit-library-status"></div>
-                <div class="file-library__grid" id="fit-library-cards"></div>
-                <div class="file-library__list" id="fit-library-activities"></div>
-            </div>
-        `;
+        libraryEl.replaceChildren(createLibraryScaffold());
 
         const scanBtn = document.getElementById("fit-library-scan");
         scanBtn?.addEventListener("click", async () => {
