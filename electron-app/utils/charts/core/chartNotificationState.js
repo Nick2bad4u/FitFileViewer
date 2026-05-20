@@ -1,60 +1,49 @@
-// Centralized chart notification state and helpers
-// Extracted to break circular dependencies between renderChartJS and showRenderNotification
-
 import { updateState } from "../../state/core/stateManager.js";
-
-// Track previous render state for notification logic
-export const previousChartState = {
+const emptyPreviousChartState = {
     chartCount: 0,
     fieldsRendered: [],
     lastRenderTimestamp: 0,
 };
-
 /**
- * Resets the chart state tracking - call when loading a new FIT file This
- * ensures notifications are shown for the first render of a new file
+ * Shared mutable notification state used by chart rendering and notification
+ * helpers.
+ */
+export const previousChartState = {
+    ...emptyPreviousChartState,
+    fieldsRendered: [...emptyPreviousChartState.fieldsRendered],
+};
+/**
+ * Reset chart notification tracking for a newly loaded FIT file.
  */
 export function resetChartNotificationState() {
-    previousChartState.chartCount = 0;
-    previousChartState.fieldsRendered = [];
-    previousChartState.lastRenderTimestamp = 0;
-
-    // Reset state-managed notification tracking using updateState
-    updateState(
-        "charts.previousState",
-        {
-            chartCount: 0,
-            timestamp: 0,
-            visibleFields: 0,
-        },
-        { silent: false, source: "resetChartNotificationState" }
-    );
-
+    previousChartState.chartCount = emptyPreviousChartState.chartCount;
+    previousChartState.fieldsRendered = [
+        ...emptyPreviousChartState.fieldsRendered,
+    ];
+    previousChartState.lastRenderTimestamp =
+        emptyPreviousChartState.lastRenderTimestamp;
+    updateState("charts.previousState", {
+        chartCount: 0,
+        timestamp: 0,
+        visibleFields: 0,
+    }, { silent: false, source: "resetChartNotificationState" });
     console.log("[ChartJS] Chart notification state reset for new file");
 }
-
 /**
- * Updates the previous chart state tracking
+ * Update the previous chart-render state after a render pass.
  *
- * @param {number} chartCount - Current chart count
- * @param {number} visibleFields - Current visible field count
- * @param {number} timestamp - Current timestamp
+ * @param chartCount - Current chart count.
+ * @param visibleFields - Current visible field count.
+ * @param timestamp - Current render timestamp.
  */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
+    const normalizedVisibleFields = Math.max(0, Number.isFinite(visibleFields) ? Math.trunc(visibleFields) : 0);
     previousChartState.chartCount = chartCount;
-    previousChartState.fieldsRendered = /** @type {any} */ (
-        Array.from({ length: visibleFields }, () => true)
-    );
+    previousChartState.fieldsRendered = Array.from({ length: normalizedVisibleFields }, () => true);
     previousChartState.lastRenderTimestamp = timestamp;
-
-    // Update state for other components using updateState
-    updateState(
-        "charts.previousState",
-        {
-            chartCount,
-            timestamp,
-            visibleFields,
-        },
-        { silent: false, source: "updatePreviousChartState" }
-    );
+    updateState("charts.previousState", {
+        chartCount,
+        timestamp,
+        visibleFields,
+    }, { silent: false, source: "updatePreviousChartState" });
 }

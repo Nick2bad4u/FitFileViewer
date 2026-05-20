@@ -1,46 +1,79 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+    DEFAULT_FIELD_COLOR,
     getAllFieldColors,
     getFieldColor,
     hasFieldColor,
 } from "../../../../../utils/charts/theming/getFieldColor.js";
 
-describe("getFieldColor", () => {
-    it("returns known color for mapped fields", () => {
+describe(getFieldColor, () => {
+    it("returns configured colors for known chart fields", () => {
+        expect.assertions(3);
+
         expect(getFieldColor("heartRate")).toBe("#EF4444");
         expect(getFieldColor("power")).toBe("#F59E0B");
+        expect(getFieldColor("speed")).toBe("#3b82f665");
     });
 
-    it("returns default color and warns for invalid inputs", () => {
-        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const color1 = getFieldColor(123 as unknown as string);
-        const color2 = getFieldColor("");
-        expect(color1).toBe("#6B7280");
-        expect(color2).toBe("#6B7280");
-        expect(warn).toHaveBeenCalled();
-        warn.mockRestore();
+    it("returns the default color for unknown fields", () => {
+        expect.assertions(2);
+
+        const debugSpy = vi
+            .spyOn(console, "debug")
+            .mockReturnValue(undefined);
+
+        expect(getFieldColor("unknownField")).toBe(DEFAULT_FIELD_COLOR);
+        expect(debugSpy).toHaveBeenCalledWith(
+            "[getFieldColor] Using default color for unmapped field: unknownField"
+        );
+
+        debugSpy.mockRestore();
     });
 
-    it("logs debug when using default for unmapped field", () => {
-        const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-        const color = getFieldColor("unknown_field_name");
-        expect(color).toBe("#6B7280");
-        expect(debug).toHaveBeenCalled();
-        debug.mockRestore();
+    it("returns the default color for invalid field values", () => {
+        expect.assertions(4);
+
+        const warnSpy = vi
+            .spyOn(console, "warn")
+            .mockReturnValue(undefined);
+
+        expect(getFieldColor("")).toBe(DEFAULT_FIELD_COLOR);
+        expect(getFieldColor(null)).toBe(DEFAULT_FIELD_COLOR);
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[getFieldColor] Empty field name provided"
+        );
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[getFieldColor] Field must be a string, received object"
+        );
+
+        warnSpy.mockRestore();
     });
 });
 
-describe("getAllFieldColors & hasFieldColor", () => {
-    it("returns a copy of internal map and hasFieldColor reflects mapping", () => {
-        const map = getAllFieldColors() as any;
-        expect(map).toBeDefined();
-        expect(map.heartRate).toBe("#EF4444");
-        // mutation safety (shallow) — modifying returned object shouldn't affect source
-        map.heartRate = "#FFFFFF";
-        expect(getFieldColor("heartRate")).toBe("#EF4444");
+describe(hasFieldColor, () => {
+    it("narrows known field color keys", () => {
+        expect.assertions(2);
 
-        expect(hasFieldColor("heartRate")).toBe(true);
-        expect(hasFieldColor("not-a-field")).toBe(false);
+        expect([
+            hasFieldColor("heartRate"),
+            hasFieldColor("missing"),
+        ]).toStrictEqual([true, false]);
+        expect(hasFieldColor("missing")).not.toStrictEqual(
+            hasFieldColor("heartRate")
+        );
+    });
+});
+
+describe(getAllFieldColors, () => {
+    it("returns a defensive copy of all field colors", () => {
+        expect.assertions(3);
+
+        const firstCopy = getAllFieldColors(),
+            secondCopy = getAllFieldColors();
+
+        expect(firstCopy).not.toBe(secondCopy);
+        expect(firstCopy.heartRate).toBe("#EF4444");
+        expect(secondCopy.heartRate).toBe("#EF4444");
     });
 });

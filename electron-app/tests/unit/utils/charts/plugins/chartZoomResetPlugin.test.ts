@@ -1,324 +1,389 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
 
-// Mock dependencies
-vi.mock("../../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
+import type {
+    ZoomResetButtonBounds,
+    ZoomResetChart,
+    ZoomResetPlugin,
+} from "../../../../../utils/charts/plugins/chartZoomResetPlugin.js";
+import type { showNotification as showNotificationFn } from "../../../../../utils/ui/notifications/showNotification.js";
 
-vi.mock("../../../../../utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn().mockReturnValue({
+vi.mock(
+    import("../../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: vi
+            .fn<typeof showNotificationFn>()
+            .mockResolvedValue(undefined),
+    })
+);
+
+vi.mock(import("../../../../../utils/theming/core/theme.js"), () => ({
+    getThemeConfig: vi.fn<() => {
+        colors: Record<string, string>;
+        isDark: boolean;
+        isLight: boolean;
+        theme: string;
+    }>(() => ({
         colors: {
             accent: "#667eea",
             textPrimary: "#ffffff",
         },
-    }),
+        isDark: false,
+        isLight: true,
+        theme: "light",
+    })),
 }));
 
-describe("chartZoomResetPlugin", () => {
-    let plugin: any;
-    let mockChart: any;
-    let mockCtx: any;
-    let mockCanvas: any;
+type VoidMock = Mock<() => void>;
 
-    beforeEach(async () => {
-        // Import the module under test
-        const module =
-            await import("../../../../../utils/charts/plugins/chartZoomResetPlugin.js");
-        plugin = module.chartZoomResetPlugin;
+interface MockCanvasContext {
+    beginPath: VoidMock;
+    closePath: VoidMock;
+    fill: VoidMock;
+    fillStyle: string;
+    fillText: Mock<(text: string, x: number, y: number) => void>;
+    font: string;
+    globalAlpha: number;
+    lineTo: Mock<(x: number, y: number) => void>;
+    lineWidth: number;
+    moveTo: Mock<(x: number, y: number) => void>;
+    quadraticCurveTo: Mock<
+        (cpx: number, cpy: number, x: number, y: number) => void
+    >;
+    rect: Mock<(x: number, y: number, width: number, height: number) => void>;
+    restore: VoidMock;
+    roundRect?: Mock<
+        (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            radius: number
+        ) => void
+    >;
+    save: VoidMock;
+    stroke: VoidMock;
+    strokeStyle: string;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+}
 
-        // Mock canvas and context
-        mockCtx = {
-            save: vi.fn(),
-            restore: vi.fn(),
-            beginPath: vi.fn(),
-            fill: vi.fn(),
-            stroke: vi.fn(),
-            fillText: vi.fn(),
-            roundRect: vi.fn(),
-            rect: vi.fn(),
-        };
+interface MockChartParts {
+    canvas: HTMLCanvasElement;
+    chart: ZoomResetChart;
+    ctx: MockCanvasContext;
+}
 
-        mockCanvas = {
-            width: 400,
-            height: 300,
-            getBoundingClientRect: vi.fn().mockReturnValue({
-                left: 0,
-                top: 0,
-                width: 400,
-                height: 300,
-            }),
-        };
+function createMockContext(): MockCanvasContext {
+    return {
+        beginPath: vi.fn<() => void>(),
+        closePath: vi.fn<() => void>(),
+        fill: vi.fn<() => void>(),
+        fillStyle: "",
+        fillText: vi.fn<(text: string, x: number, y: number) => void>(),
+        font: "",
+        globalAlpha: 1,
+        lineTo: vi.fn<(x: number, y: number) => void>(),
+        lineWidth: 0,
+        moveTo: vi.fn<(x: number, y: number) => void>(),
+        quadraticCurveTo:
+            vi.fn<(cpx: number, cpy: number, x: number, y: number) => void>(),
+        rect: vi.fn<
+            (x: number, y: number, width: number, height: number) => void
+        >(),
+        restore: vi.fn<() => void>(),
+        roundRect: vi.fn<
+            (
+                x: number,
+                y: number,
+                width: number,
+                height: number,
+                radius: number
+            ) => void
+        >(),
+        save: vi.fn<() => void>(),
+        stroke: vi.fn<() => void>(),
+        strokeStyle: "",
+        textAlign: "start",
+        textBaseline: "alphabetic",
+    };
+}
 
-        // Create mock chart
-        mockChart = {
-            canvas: mockCanvas,
-            ctx: mockCtx,
-            isZoomedOrPanned: vi.fn().mockReturnValue(true),
-            resetZoom: vi.fn(),
+function createMockChart(zoomed = true): MockChartParts {
+    const canvas = document.createElement("canvas"),
+        ctx = createMockContext(),
+        chart: ZoomResetChart = {
             _zoomResetBtnBounds: null,
+            canvas,
+            ctx: ctx as unknown as CanvasRenderingContext2D,
+            isZoomedOrPanned: vi.fn<() => boolean>().mockReturnValue(zoomed),
+            resetZoom: vi.fn<() => void>(),
         };
+
+    canvas.width = 400;
+    canvas.height = 300;
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+        bottom: 300,
+        height: 300,
+        left: 0,
+        right: 400,
+        top: 0,
+        width: 400,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
     });
 
-    afterEach(() => {
-        vi.restoreAllMocks();
+    return { canvas, chart, ctx };
+}
+
+function createClickEvent(bounds: ZoomResetButtonBounds): {
+    event: {
+        native: {
+            clientX: number;
+            clientY: number;
+            preventDefault: VoidMock;
+            stopPropagation: VoidMock;
+        };
+        type: "click";
+    };
+} {
+    return {
+        event: {
+            native: {
+                clientX: bounds.x + bounds.w / 2,
+                clientY: bounds.y + bounds.h / 2,
+                preventDefault: vi.fn<() => void>(),
+                stopPropagation: vi.fn<() => void>(),
+            },
+            type: "click",
+        },
+    };
+}
+
+async function loadPlugin(): Promise<{
+    chartZoomResetPlugin: ZoomResetPlugin;
+    installRoundRectPolyfill: () => void;
+    showNotification: Mock<typeof showNotificationFn>;
+}> {
+    const notificationModule = await import(
+            "../../../../../utils/ui/notifications/showNotification.js"
+        ),
+        pluginModule = await import(
+            "../../../../../utils/charts/plugins/chartZoomResetPlugin.js"
+        ),
+        showNotification = vi.mocked(notificationModule.showNotification);
+
+    showNotification.mockClear();
+
+    return {
+        chartZoomResetPlugin: pluginModule.chartZoomResetPlugin,
+        installRoundRectPolyfill: pluginModule.installRoundRectPolyfill,
+        showNotification,
+    };
+}
+
+function restoreCanvasRenderingContext2D(
+    original: typeof CanvasRenderingContext2D | undefined
+): void {
+    if (original) {
+        Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
+            configurable: true,
+            value: original,
+            writable: true,
+        });
+        return;
+    }
+
+    Reflect.deleteProperty(globalThis, "CanvasRenderingContext2D");
+}
+
+describe("chartZoomResetPlugin.afterDraw", () => {
+    it("does not draw when the chart is not zoomed or panned", async () => {
+        expect.assertions(2);
+
+        const { chartZoomResetPlugin } = await loadPlugin(),
+            { chart, ctx } = createMockChart(false);
+
+        chartZoomResetPlugin.afterDraw(chart);
+
+        expect(ctx.save).not.toHaveBeenCalled();
+        expect(chart._zoomResetBtnBounds).toBeNull();
     });
 
-    describe("afterDraw", () => {
-        it("should not draw button when chart is not zoomed or panned", () => {
-            mockChart.isZoomedOrPanned = vi.fn().mockReturnValue(false);
-            plugin.afterDraw(mockChart);
-            expect(mockCtx.save).not.toHaveBeenCalled();
-        });
+    it("draws the reset button and stores click bounds", async () => {
+        expect.assertions(4);
 
-        it("should draw button when chart is zoomed", () => {
-            plugin.afterDraw(mockChart);
-            expect(mockCtx.save).toHaveBeenCalled();
-            expect(mockCtx.fillText).toHaveBeenCalledWith(
-                "🔄 Reset Zoom",
-                expect.any(Number),
-                expect.any(Number)
-            );
-            expect(mockChart._zoomResetBtnBounds).toBeTruthy();
-        });
+        const { chartZoomResetPlugin } = await loadPlugin(),
+            { chart, ctx } = createMockChart();
 
-        it("should use roundRect if available", () => {
-            mockCtx.roundRect = vi.fn();
-            plugin.afterDraw(mockChart);
-            expect(mockCtx.roundRect).toHaveBeenCalled();
-            expect(mockCtx.rect).not.toHaveBeenCalled();
-        });
+        chartZoomResetPlugin.afterDraw(chart);
 
-        it("should fallback to rect if roundRect is not available", () => {
-            mockCtx.roundRect = undefined;
-            plugin.afterDraw(mockChart);
-            expect(mockCtx.rect).toHaveBeenCalled();
-        });
-
-        it("should handle errors gracefully", () => {
-            mockChart.ctx = null;
-            expect(() => plugin.afterDraw(mockChart)).not.toThrow();
-        });
-    });
-
-    describe("afterEvent", () => {
-        it("should do nothing when chart is not zoomed", () => {
-            mockChart.isZoomedOrPanned = vi.fn().mockReturnValue(false);
-            plugin.afterEvent(mockChart, { event: { type: "click" } });
-            expect(mockChart.resetZoom).not.toHaveBeenCalled();
-        });
-
-        it("should do nothing when event is not a click or touchend", () => {
-            plugin.afterEvent(mockChart, {
-                event: { type: "mousemove", native: {} },
-            });
-            expect(mockChart.resetZoom).not.toHaveBeenCalled();
-        });
-
-        it("should reset zoom when button is clicked", () => {
-            // Setup the button bounds
-            plugin.afterDraw(mockChart);
-            const bounds = mockChart._zoomResetBtnBounds;
-            const clickX = bounds.x + bounds.w / 2;
-            const clickY = bounds.y + bounds.h / 2;
-
-            // Mock click event
-            const mockEvent = {
-                event: {
-                    type: "click",
-                    native: {
-                        clientX: clickX,
-                        clientY: clickY,
-                        stopPropagation: vi.fn(),
-                        preventDefault: vi.fn(),
-                    },
-                },
-            };
-
-            plugin.afterEvent(mockChart, mockEvent);
-            expect(mockEvent.event.native.stopPropagation).toHaveBeenCalled();
-            expect(mockEvent.event.native.preventDefault).toHaveBeenCalled();
-            expect(mockChart.resetZoom).toHaveBeenCalled();
-        });
-
-        it("should not reset zoom when click is outside button", () => {
-            // Setup the button bounds
-            plugin.afterDraw(mockChart);
-            const bounds = mockChart._zoomResetBtnBounds;
-
-            // Mock click event outside button
-            const mockEvent = {
-                event: {
-                    type: "click",
-                    native: {
-                        clientX: bounds.x - 10,
-                        clientY: bounds.y - 10,
-                        stopPropagation: vi.fn(),
-                        preventDefault: vi.fn(),
-                    },
-                },
-            };
-
-            plugin.afterEvent(mockChart, mockEvent);
-            expect(mockChart.resetZoom).not.toHaveBeenCalled();
-        });
-
-        it("should handle touchend events", () => {
-            // Setup the button bounds
-            plugin.afterDraw(mockChart);
-            const bounds = mockChart._zoomResetBtnBounds;
-            const touchX = bounds.x + bounds.w / 2;
-            const touchY = bounds.y + bounds.h / 2;
-
-            // Mock touchend event
-            const mockEvent = {
-                event: {
-                    type: "touchend",
-                    native: {
-                        clientX: touchX,
-                        clientY: touchY,
-                        stopPropagation: vi.fn(),
-                        preventDefault: vi.fn(),
-                    },
-                },
-            };
-
-            plugin.afterEvent(mockChart, mockEvent);
-            expect(mockChart.resetZoom).toHaveBeenCalled();
-        });
-
-        it("should handle errors gracefully", () => {
-            mockChart._zoomResetBtnBounds = null;
-            const mockEvent = {
-                event: {
-                    type: "click",
-                    native: {
-                        clientX: 50,
-                        clientY: 50,
-                    },
-                },
-            };
-            expect(() => plugin.afterEvent(mockChart, mockEvent)).not.toThrow();
+        expect(ctx.save).toHaveBeenCalledOnce();
+        expect(ctx.roundRect).toHaveBeenCalledWith(288, 12, 100, 30, 8);
+        expect(ctx.fillText).toHaveBeenCalledWith("🔄 Reset Zoom", 338, 27);
+        expect(chart._zoomResetBtnBounds).toStrictEqual({
+            h: 30,
+            w: 100,
+            x: 288,
+            y: 12,
         });
     });
 
-    describe("roundRect polyfill", () => {
-        it("should test the roundRect polyfill", async () => {
-            // Save the original CanvasRenderingContext2D if it exists
-            const originalCanvasRenderingContext2D =
-                global.CanvasRenderingContext2D;
+    it("falls back to rect when roundRect is unavailable", async () => {
+        expect.assertions(3);
 
-            // Create a mock context without roundRect
-            const mockContext = {
-                beginPath: vi.fn(),
-                moveTo: vi.fn(),
-                lineTo: vi.fn(),
-                quadraticCurveTo: vi.fn(),
-                closePath: vi.fn(),
-            };
+        const { chartZoomResetPlugin } = await loadPlugin(),
+            { chart, ctx } = createMockChart();
+        delete ctx.roundRect;
 
-            try {
-                // Define the prototype for testing
-                const mockProto = {} as any;
+        chartZoomResetPlugin.afterDraw(chart);
 
-                // Set global CanvasRenderingContext2D
-                global.CanvasRenderingContext2D = {
-                    prototype: mockProto,
-                } as any;
+        expect(ctx.rect).toHaveBeenCalledWith(288, 12, 100, 30);
+        expect(ctx.fillText).toHaveBeenCalledWith("🔄 Reset Zoom", 338, 27);
+        expect(chart._zoomResetBtnBounds).toStrictEqual({
+            h: 30,
+            w: 100,
+            x: 288,
+            y: 12,
+        });
+    });
+});
 
-                // Re-import the module to trigger polyfill
-                vi.resetModules();
-                await import("../../../../../utils/charts/plugins/chartZoomResetPlugin.js");
+describe("chartZoomResetPlugin.afterEvent", () => {
+    it("ignores non-zoomed charts and non-reset events", async () => {
+        expect.assertions(4);
 
-                // Add the roundRect function manually for testing purposes
-                if (!mockProto.roundRect) {
-                    mockProto.roundRect = function (
-                        x: number,
-                        y: number,
-                        width: number,
-                        height: number,
-                        radius: any
-                    ) {
-                        let r;
-                        if (typeof radius === "number") {
-                            r = {
-                                tl: radius,
-                                tr: radius,
-                                br: radius,
-                                bl: radius,
-                            };
-                        } else if (radius && typeof radius === "object") {
-                            const o = radius;
-                            r = {
-                                tl: o.tl || 0,
-                                tr: o.tr || 0,
-                                br: o.br || 0,
-                                bl: o.bl || 0,
-                            };
-                        } else {
-                            r = { tl: 5, tr: 5, br: 5, bl: 5 };
-                        }
-                        this.beginPath();
-                        this.moveTo(x + r.tl, y);
-                        this.lineTo(x + width - r.tr, y);
-                        this.quadraticCurveTo(
-                            x + width,
-                            y,
-                            x + width,
-                            y + r.tr
-                        );
-                        this.lineTo(x + width, y + height - r.br);
-                        this.quadraticCurveTo(
-                            x + width,
-                            y + height,
-                            x + width - r.br,
-                            y + height
-                        );
-                        this.lineTo(x + r.bl, y + height);
-                        this.quadraticCurveTo(
-                            x,
-                            y + height,
-                            x,
-                            y + height - r.bl
-                        );
-                        this.lineTo(x, y + r.tl);
-                        this.quadraticCurveTo(x, y, x + r.tl, y);
-                        this.closePath();
-                        return this;
-                    };
-                }
+        const { chartZoomResetPlugin, showNotification } = await loadPlugin(),
+            nonZoomed = createMockChart(false),
+            mouseMove = createMockChart();
 
-                // Test the polyfill works
-                expect(typeof mockProto.roundRect).toBe("function");
+        chartZoomResetPlugin.afterEvent(nonZoomed.chart, {
+            event: {
+                native: { clientX: 10, clientY: 10 },
+                type: "click",
+            },
+        });
+        mouseMove.chart._zoomResetBtnBounds = { h: 30, w: 100, x: 288, y: 12 };
+        chartZoomResetPlugin.afterEvent(mouseMove.chart, {
+            event: {
+                native: { clientX: 338, clientY: 27 },
+                type: "mousemove",
+            },
+        });
 
-                // Call the polyfill and check results
-                const result = mockProto.roundRect.call(
-                    mockContext,
+        expect(nonZoomed.chart.resetZoom).not.toHaveBeenCalled();
+        expect(mouseMove.chart.resetZoom).not.toHaveBeenCalled();
+        expect(showNotification).not.toHaveBeenCalled();
+        expect(mouseMove.chart._zoomResetBtnBounds).toStrictEqual({
+            h: 30,
+            w: 100,
+            x: 288,
+            y: 12,
+        });
+    });
+
+    it("resets zoom and shows a success notification when the button is clicked", async () => {
+        expect.assertions(5);
+
+        const { chartZoomResetPlugin, showNotification } = await loadPlugin(),
+            { chart } = createMockChart();
+        chartZoomResetPlugin.afterDraw(chart);
+
+        const bounds = chart._zoomResetBtnBounds;
+
+        expect(bounds).toStrictEqual({ h: 30, w: 100, x: 288, y: 12 });
+
+        const clickEvent = createClickEvent(bounds);
+
+        chartZoomResetPlugin.afterEvent(chart, clickEvent);
+
+        expect(clickEvent.event.native.stopPropagation).toHaveBeenCalledOnce();
+        expect(clickEvent.event.native.preventDefault).toHaveBeenCalledOnce();
+        expect(chart.resetZoom).toHaveBeenCalledOnce();
+        expect(showNotification).toHaveBeenCalledWith(
+            "Chart zoom reset",
+            "success"
+        );
+    });
+
+    it("does not reset zoom when the click is outside the button", async () => {
+        expect.assertions(3);
+
+        const { chartZoomResetPlugin, showNotification } = await loadPlugin(),
+            { chart } = createMockChart();
+        chartZoomResetPlugin.afterDraw(chart);
+
+        chartZoomResetPlugin.afterEvent(chart, {
+            event: {
+                native: {
+                    clientX: 20,
+                    clientY: 20,
+                    preventDefault: vi.fn<() => void>(),
+                    stopPropagation: vi.fn<() => void>(),
+                },
+                type: "click",
+            },
+        });
+
+        expect(chart._zoomResetBtnBounds).toStrictEqual({
+            h: 30,
+            w: 100,
+            x: 288,
+            y: 12,
+        });
+        expect(chart.resetZoom).not.toHaveBeenCalled();
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+});
+
+describe("installRoundRectPolyfill", () => {
+    it("installs a chainable canvas roundRect polyfill", async () => {
+        expect.assertions(5);
+
+        const { installRoundRectPolyfill } = await loadPlugin();
+        const savedCtor = Reflect.get(globalThis, "CanvasRenderingContext2D") as
+                | typeof CanvasRenderingContext2D
+                | undefined,
+            mockProto: Partial<CanvasRenderingContext2D> = {};
+
+        expect(mockProto).not.toHaveProperty("roundRect");
+
+        Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
+            configurable: true,
+            value: { prototype: mockProto },
+            writable: true,
+        });
+
+        try {
+            installRoundRectPolyfill();
+
+            const roundRect = mockProto.roundRect;
+
+            expect(roundRect).toBeTypeOf("function");
+
+            if (typeof roundRect !== "function") {
+                throw new TypeError("roundRect polyfill was not installed");
+            }
+
+            const mockContext = createMockContext(),
+                result = roundRect.call(
+                    mockContext as unknown as CanvasRenderingContext2D,
                     10,
                     20,
                     100,
                     50,
                     5
                 );
-                expect(mockContext.beginPath).toHaveBeenCalled();
-                expect(mockContext.moveTo).toHaveBeenCalled();
-                expect(mockContext.lineTo).toHaveBeenCalled();
-                expect(mockContext.quadraticCurveTo).toHaveBeenCalled();
-                expect(mockContext.closePath).toHaveBeenCalled();
-                expect(result).toBe(mockContext);
 
-                // Test with object radius
-                mockProto.roundRect.call(mockContext, 10, 20, 100, 50, {
-                    tl: 5,
-                    tr: 10,
-                    br: 15,
-                    bl: 20,
-                });
-                expect(mockContext.beginPath).toHaveBeenCalledTimes(2);
-            } finally {
-                // Restore original object if it existed
-                global.CanvasRenderingContext2D =
-                    originalCanvasRenderingContext2D;
-            }
-        });
+            expect(
+                [mockContext.beginPath, mockContext.closePath].map(
+                    (mockFn) => mockFn.mock.calls.length
+                )
+            ).toStrictEqual([1, 1]);
+            expect(mockContext.moveTo).toHaveBeenCalledWith(15, 20);
+            expect(result).toBe(mockContext);
+        } finally {
+            restoreCanvasRenderingContext2D(savedCtor);
+        }
     });
 });

@@ -1,64 +1,47 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
-import {
-    convertDistanceUnits,
-    DISTANCE_UNITS,
-} from "../converters/convertDistanceUnits.js";
-import {
-    convertTemperatureUnits,
-    TEMPERATURE_UNITS,
-} from "../converters/convertTemperatureUnits.js";
+import { convertDistanceUnits, DISTANCE_UNITS, } from "../converters/convertDistanceUnits.js";
+import { convertTemperatureUnits, TEMPERATURE_UNITS, } from "../converters/convertTemperatureUnits.js";
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
-
+const DISTANCE_FIELDS = new Set([
+    "distance",
+    "altitude",
+    "enhancedAltitude",
+]);
 /**
- * Formats tooltip with units based on user preferences
- *
- * @param {number} value - Raw value
- * @param {string} field - Field name
- *
- * @returns {string} Formatted tooltip text
+ * Formats a tooltip value with units based on user preferences.
  */
 export function formatTooltipWithUnits(value, field) {
-    // Distance fields - show both metric and imperial
-    if (
-        field === "distance" ||
-        field === "altitude" ||
-        field === "enhancedAltitude"
-    ) {
-        const distanceUnitsSetting = getChartSetting("distanceUnits");
-        const distanceUnits = Object.values(DISTANCE_UNITS).includes(
-            distanceUnitsSetting
-        )
-            ? distanceUnitsSetting
-            : DISTANCE_UNITS.KILOMETERS;
-        const km = convertDistanceUnits(value, "kilometers");
-        const miles = convertDistanceUnits(value, "miles");
-
-        if (distanceUnits === "miles" || distanceUnits === "feet") {
+    if (DISTANCE_FIELDS.has(field)) {
+        const distanceUnits = resolveDistanceUnits(getChartSetting("distanceUnits"));
+        const km = convertDistanceUnits(value, DISTANCE_UNITS.KILOMETERS);
+        const miles = convertDistanceUnits(value, DISTANCE_UNITS.MILES);
+        if (distanceUnits === DISTANCE_UNITS.MILES ||
+            distanceUnits === DISTANCE_UNITS.FEET) {
             return `${miles.toFixed(2)} mi (${km.toFixed(2)} km)`;
         }
         return `${km.toFixed(2)} km (${miles.toFixed(2)} mi)`;
     }
-
-    // Temperature fields - show both scales
     if (field === "temperature") {
-        const temperatureUnitsSetting = getChartSetting("temperatureUnits");
-        const temperatureUnits = Object.values(TEMPERATURE_UNITS).includes(
-            temperatureUnitsSetting
-        )
-            ? temperatureUnitsSetting
-            : TEMPERATURE_UNITS.CELSIUS;
-        const celsius = value; // Assuming input is Celsius
-        const fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
-
-        if (temperatureUnits === "fahrenheit") {
+        const temperatureUnits = resolveTemperatureUnits(getChartSetting("temperatureUnits"));
+        const celsius = value;
+        const fahrenheit = convertTemperatureUnits(celsius, TEMPERATURE_UNITS.FAHRENHEIT);
+        if (temperatureUnits === TEMPERATURE_UNITS.FAHRENHEIT) {
             return `${fahrenheit.toFixed(1)}°F (${celsius.toFixed(1)}°C)`;
         }
         return `${celsius.toFixed(1)}°C (${fahrenheit.toFixed(1)}°F)`;
     }
-
-    // Default formatting for other fields (including speed)
     const convertedValue = convertValueToUserUnits(value, field);
     const unitSymbol = getUnitSymbol(field);
     return `${convertedValue.toFixed(2)}${unitSymbol ? ` ${unitSymbol}` : ""}`;
+}
+function resolveDistanceUnits(value) {
+    return Object.values(DISTANCE_UNITS).includes(value)
+        ? value
+        : DISTANCE_UNITS.KILOMETERS;
+}
+function resolveTemperatureUnits(value) {
+    return Object.values(TEMPERATURE_UNITS).includes(value)
+        ? value
+        : TEMPERATURE_UNITS.CELSIUS;
 }

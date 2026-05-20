@@ -31,7 +31,7 @@ import { loadSharedConfiguration } from "../../app/initialization/loadSharedConf
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { setupZoneData } from "../../data/processing/setupZoneData.js";
-import { sanitizeCssColorToken } from "../../dom/index.js";
+import { clearElement, sanitizeCssColorToken } from "../../dom/index.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import {
     fieldLabels,
@@ -63,207 +63,30 @@ import {
     resolveChartContainer,
 } from "../dom/chartDomUtils.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
-
-const FALLBACK_ZONE_COLORS = [
-    "#808080",
-    "#3b82f665",
-    "#10B981",
-    "#F59E0B",
-    "#EF4444",
-    "#FF6600",
-    "#FF00FF",
-    "#00FFFF",
-    "#FF1493",
-    "#FF4500",
-    "#FFD700",
-    "#32CD32",
-    "#8A2BE2",
-    "#000000",
-];
-const FALLBACK_HEART_RATE_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
-const FALLBACK_POWER_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
-const FALLBACK_THEME_COLORS = {
-    background: "#f8fafc",
-    backgroundAlt: "#ffffff",
-    border: "#e5e7eb",
-    borderLight: "rgba(0, 0, 0, 0.05)",
-    chartBackground: "#ffffff",
-    chartBorder: "#dddddd",
-    chartGrid: "rgba(0,0,0,0.1)",
-    chartSurface: "#ffffff",
-    error: "#ef4444",
-    info: "#3b82f665",
-    primary: "#3b82f6",
-    primaryAlpha: "rgba(59, 130, 246, 0.2)",
-    primaryShadow: "rgba(59, 130, 246, 0.30)",
-    primaryShadowHeavy: "rgba(59, 130, 246, 0.50)",
-    primaryShadowLight: "rgba(59, 130, 246, 0.10)",
-    shadow: "rgba(0, 0, 0, 0.15)",
-    shadowHeavy: "rgba(0, 0, 0, 0.25)",
-    shadowLight: "rgba(0, 0, 0, 0.05)",
-    shadowMedium: "rgba(0, 0, 0, 0.15)",
-    success: "#10b981",
-    surface: "#f8f9fa",
-    surfaceSecondary: "#e9ecef",
-    text: "#1e293b",
-    textPrimary: "#0f172a",
-    textSecondary: "#6b7280",
-    warning: "#f59e0b",
-    accent: "#3b82f665",
-    accentHover: "#3b82f633",
-    zoneColors: FALLBACK_ZONE_COLORS,
-    heartRateZoneColors: FALLBACK_HEART_RATE_ZONE_COLORS,
-    powerZoneColors: FALLBACK_POWER_ZONE_COLORS,
-};
-
-// Safe theme config loader to avoid TDZ from circular imports during SSR/tests
-/**
- * @returns {Promise<ThemeConfig>}
- */
-async function getThemeConfigSafe() {
-    let themeConfig;
-    try {
-        // Prefer dynamic ESM import first so test spies (vi.mock) are observed
-        const mod = await import("../../theming/core/theme.js");
-        if (!themeConfig && mod && typeof mod.getThemeConfig === "function") {
-            themeConfig = /** @type {any} */ (mod.getThemeConfig());
-        }
-        // If a global shim was provided by tests, use it next
-        const g = /** @type {any} */ (globalThis);
-        if (!themeConfig && g && typeof g.getThemeConfig === "function") {
-            themeConfig = g.getThemeConfig();
-        }
-        // Try module cache injection path used by tests as a final fallback
-        if (!themeConfig && g && typeof g.require === "function") {
-            try {
-                const reqMod = g.require("../../theming/core/theme.js");
-                const fn =
-                    reqMod?.getThemeConfig ||
-                    reqMod?.default?.getThemeConfig ||
-                    reqMod?.default;
-                if (typeof fn === "function") {
-                    themeConfig = /** @type {any} */ (fn());
-                }
-            } catch {
-                // ignore and fall through
-            }
-        }
-    } catch (error) {
-        console.warn("[ChartJS] getThemeConfigSafe() fallback:", error);
-    }
-
-    return normalizeThemeConfig(themeConfig);
-}
-
-/**
- * Normalizes a theme config object to ensure required color keys exist.
- *
- * @param {any} rawConfig
- *
- * @returns {ThemeConfig}
- */
-function normalizeThemeConfig(rawConfig) {
-    const normalized =
-        rawConfig && typeof rawConfig === "object" ? { ...rawConfig } : {};
-    const providedColors =
-        rawConfig &&
-        typeof rawConfig === "object" &&
-        rawConfig.colors &&
-        typeof rawConfig.colors === "object"
-            ? rawConfig.colors
-            : {};
-    const mergedColors = {
-        ...FALLBACK_THEME_COLORS,
-        ...providedColors,
-    };
-
-    if (
-        !Array.isArray(mergedColors.zoneColors) ||
-        mergedColors.zoneColors.length === 0
-    ) {
-        mergedColors.zoneColors = [...FALLBACK_ZONE_COLORS];
-    }
-    if (
-        !Array.isArray(mergedColors.heartRateZoneColors) ||
-        mergedColors.heartRateZoneColors.length === 0
-    ) {
-        mergedColors.heartRateZoneColors = [...FALLBACK_HEART_RATE_ZONE_COLORS];
-    }
-    if (
-        !Array.isArray(mergedColors.powerZoneColors) ||
-        mergedColors.powerZoneColors.length === 0
-    ) {
-        mergedColors.powerZoneColors = [...FALLBACK_POWER_ZONE_COLORS];
-    }
-
-    normalized.colors = mergedColors;
-
-    if (typeof normalized.isDark !== "boolean") {
-        normalized.isDark = false;
-    }
-    if (typeof normalized.isLight !== "boolean") {
-        normalized.isLight = !normalized.isDark;
-    }
-    if (typeof normalized.theme !== "string") {
-        normalized.theme = normalized.isDark ? "dark" : "light";
-    }
-
-    return /** @type {ThemeConfig} */ (normalized);
-}
-// Safe, lazy notification caller to break potential import init cycles under SSR
-async function notify(message, type = "info", _duration = null, _options = {}) {
-    try {
-        // Allow background work to suppress noisy notifications.
-        // This is important for cache pre-warming / silent background operations.
-        const suppress =
-            (typeof _options === "object" &&
-                _options &&
-                "silent" in _options &&
-                _options.silent === true) ||
-            /** @type {any} */ (globalThis).__FFV_suppressNotifications ===
-                true;
-        if (suppress) {
-            return;
-        }
-
-        // Prefer an injected global (used by tests) if available
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.showNotification === "function") {
-            // Tests expect exactly (message, type)
-            return await g.showNotification(message, /** @type {any} */ (type));
-        }
-
-        // Try module cache injection path used by tests
-        if (g && typeof g.require === "function") {
-            try {
-                const reqMod = g.require(
-                    "../../ui/notifications/showNotification.js"
-                );
-                const fn =
-                    reqMod?.showNotification ||
-                    reqMod?.default?.showNotification ||
-                    reqMod?.default;
-                if (typeof fn === "function") {
-                    return await fn(message, /** @type {any} */ (type));
-                }
-            } catch {
-                // ignore and fall through to dynamic import
-            }
-        }
-
-        // Dynamically import to avoid static ESM cycles
-        const mod = await import("../../ui/notifications/showNotification.js");
-        if (mod && typeof mod.showNotification === "function") {
-            await mod.showNotification(message, /** @type {any} */ (type));
-        } else {
-            console.warn(
-                "[ChartJS] Notification module missing showNotification export"
-            );
-        }
-    } catch (error) {
-        console.warn("[ChartJS] notify() fallback failed:", error);
-    }
-}
+import {
+    isElement,
+    renderNoDataMessage,
+    safeAppend,
+} from "./renderChartDomHelpers.js";
+import {
+    getInjectedModule,
+    getRecordFunction,
+    getRecordValue,
+} from "./renderChartModuleHelpers.js";
+import {
+    getNotificationSuppressed,
+    notify,
+    setNotificationSuppressed,
+} from "./renderChartNotificationHelpers.js";
+import {
+    ensureProcessNextTick,
+    getDebouncedChartStateManager,
+    isChartDebugEnabled,
+    isDevelopmentEnvironment,
+    isLoadingStateSuppressed,
+    isTestEnvironment,
+} from "./renderChartRuntimeHelpers.js";
+import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createEnhancedChart } from "../components/createEnhancedChart.js";
 // moved up to satisfy import order lint rule
@@ -293,19 +116,7 @@ const DATA_SIGNATURE_SOURCES = [
     { settingKey: "temperatureUnits", storageKey: "chartjs_temperatureUnits" },
 ];
 
-// Test environment safety: ensure globalThis.process and process.nextTick exist (Vitest/jsdom)
-(() => {
-    try {
-        const g = /** @type {any} */ (globalThis);
-        if (!g.process) g.process = {};
-        if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) =>
-                Promise.resolve().then(() => cb(...args));
-        }
-    } catch {
-        // ignore
-    }
-})();
+ensureProcessNextTick();
 
 // State helpers that invoke both safe module-injected functions and direct imports so test spies always see calls
 function callGetState(path) {
@@ -354,16 +165,16 @@ function callUpdateState(path, value, options) {
 // Safe accessors that prefer test-injected modules via globalThis.require (alphabetical order)
 function getComputedStateManagerSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require("../../state/core/computedStateManager.js");
-            const nested =
-                mod?.computedStateManager ||
-                mod?.default?.computedStateManager ||
-                mod?.default;
-            if (nested && typeof nested === "object") return nested;
-            if (mod && typeof mod.invalidateComputed === "function") return mod;
-        }
+        const mod = getInjectedModule(
+            "../../state/core/computedStateManager.js"
+        );
+        const defaultExport = getRecordValue(mod, "default");
+        const nested =
+            getRecordValue(mod, "computedStateManager") ||
+            getRecordValue(defaultExport, "computedStateManager") ||
+            defaultExport;
+        if (nested && typeof nested === "object") return nested;
+        if (getRecordFunction(mod, "invalidateComputed")) return mod;
     } catch {
         /* ignore */
     }
@@ -372,14 +183,11 @@ function getComputedStateManagerSafe() {
 
 function getConvertersSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require(
-                "../../formatting/converters/convertValueToUserUnits.js"
-            );
-            if (mod && typeof mod.convertValueToUserUnits === "function")
-                return mod.convertValueToUserUnits;
-        }
+        const mod = getInjectedModule(
+            "../../formatting/converters/convertValueToUserUnits.js"
+        );
+        const convert = getRecordFunction(mod, "convertValueToUserUnits");
+        if (convert) return convert;
     } catch {
         /* ignore */
     }
@@ -388,15 +196,14 @@ function getConvertersSafe() {
 
 function getFormatChartFieldsSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require(
-                "../../formatting/display/formatChartFields.js"
-            );
-            const fields =
-                mod?.formatChartFields || mod?.default?.formatChartFields;
-            return Array.isArray(fields) ? fields : formatChartFields;
-        }
+        const mod = getInjectedModule(
+            "../../formatting/display/formatChartFields.js"
+        );
+        const defaultExport = getRecordValue(mod, "default");
+        const fields =
+            getRecordValue(mod, "formatChartFields") ||
+            getRecordValue(defaultExport, "formatChartFields");
+        return Array.isArray(fields) ? fields : formatChartFields;
     } catch {
         /* ignore */
     }
@@ -506,14 +313,15 @@ function getRendererModulesSafe() {
 
 function getSettingsStateManagerSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require("../../state/domain/settingsStateManager.js");
-            if (mod && typeof mod.getChartSettings === "function") return mod;
-            const nested =
-                mod?.settingsStateManager || mod?.default?.settingsStateManager;
-            if (nested && typeof nested === "object") return nested;
-        }
+        const mod = getInjectedModule(
+            "../../state/domain/settingsStateManager.js"
+        );
+        if (getRecordFunction(mod, "getChartSettings")) return mod;
+        const defaultExport = getRecordValue(mod, "default");
+        const nested =
+            getRecordValue(mod, "settingsStateManager") ||
+            getRecordValue(defaultExport, "settingsStateManager");
+        if (nested && typeof nested === "object") return nested;
     } catch {
         /* ignore */
     }
@@ -522,12 +330,9 @@ function getSettingsStateManagerSafe() {
 
 function getSetupZoneDataSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require("../../data/processing/setupZoneData.js");
-            if (mod && typeof mod.setupZoneData === "function")
-                return mod.setupZoneData;
-        }
+        const mod = getInjectedModule("../../data/processing/setupZoneData.js");
+        const setup = getRecordFunction(mod, "setupZoneData");
+        if (setup) return setup;
     } catch {
         /* ignore */
     }
@@ -539,14 +344,11 @@ function getSetupZoneDataSafe() {
 
 function getShowRenderNotificationSafe() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.require === "function") {
-            const mod = g.require(
-                "../../ui/notifications/showRenderNotification.js"
-            );
-            if (mod && typeof mod.showRenderNotification === "function")
-                return mod.showRenderNotification;
-        }
+        const mod = getInjectedModule(
+            "../../ui/notifications/showRenderNotification.js"
+        );
+        const show = getRecordFunction(mod, "showRenderNotification");
+        if (show) return show;
     } catch {
         /* ignore */
     }
@@ -682,11 +484,7 @@ export const chartSettingsManager = {
      */
     getFieldVisibility(field) {
         const settingsApi = resolveChartSettingsApi();
-        const visibility = settingsApi.getChartFieldVisibility(
-            field,
-            "visible"
-        );
-        return visibility;
+        return settingsApi.getChartFieldVisibility(field, "visible");
     },
 
     /**
@@ -762,9 +560,7 @@ export const chartSettingsManager = {
         }
 
         // Trigger re-render if needed
-        // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
         if (chartState.isRendered) {
-            // eslint-disable-next-line no-use-before-define -- chartActions is declared later in this module but accessed lazily at runtime
             chartActions.requestRerender(
                 `Field ${field} visibility changed to ${visibility}`
             );
@@ -806,9 +602,7 @@ export const chartSettingsManager = {
         }
 
         // Trigger chart re-render if charts are currently displayed
-        // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
         if (chartState.isRendered) {
-            // eslint-disable-next-line no-use-before-define -- chartActions is declared later in this module but accessed lazily at runtime
             chartActions.requestRerender("Settings updated");
         }
     },
@@ -857,52 +651,12 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
         renderChartJS(/** @type {HTMLElement} */ (container)).catch((error) => {
             console.warn("[ChartJS] Direct re-render failed", error);
         });
-    } else if (
-        typeof process !== "undefined" &&
-        process.env?.NODE_ENV === "development"
-    ) {
+    } else if (isDevelopmentEnvironment()) {
         console.log(
             `[ChartJS] Skipping direct re-render (${reason}) - no container or no data`
         );
     }
 }, RENDER_DEBOUNCE_MS);
-
-// Safe DOM element detector that works in SSR/jsdom where Element/Node may be undefined
-function isElement(maybe) {
-    return (
-        Boolean(maybe) &&
-        typeof maybe === "object" &&
-        "nodeType" in /** @type {any} */ (maybe) &&
-        /** @type {any} */ (maybe).nodeType === 1
-    );
-}
-
-// Safe append utility for environments where Element.append may be missing (e.g., jsdom mocks)
-function safeAppend(parent, child) {
-    try {
-        if (
-            parent &&
-            typeof (/** @type {any} */ (parent).append) === "function"
-        ) {
-            /** @type {any} */ (parent).append(child);
-        } else if (parent && parent.insertBefore && parent.firstChild) {
-            parent.insertBefore(child, parent.firstChild);
-        }
-    } catch (error) {
-        console.warn("[ChartJS] safeAppend fallback used:", error);
-        // Final best-effort attempt using append only (prefer append over appendChild)
-        if (
-            parent &&
-            typeof (/** @type {any} */ (parent).append) === "function"
-        ) {
-            try {
-                /** @type {any} */ (parent).append(child);
-            } catch {
-                /* ignore */
-            }
-        }
-    }
-}
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
 const DECIMATION_THRESHOLD = 2500;
@@ -931,10 +685,7 @@ export function getChartSeriesCacheStats() {
 }
 
 export function invalidateChartRenderCache(reason = "manual") {
-    if (
-        typeof process !== "undefined" &&
-        process.env?.NODE_ENV === "development"
-    ) {
+    if (isDevelopmentEnvironment()) {
         console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
     }
     fieldSeriesCache = new WeakMap();
@@ -1007,9 +758,8 @@ export async function prewarmChartRenderCaches({
     }
 
     // Pre-warming should not produce user notifications.
-    const prevSuppress = /** @type {any} */ (globalThis)
-        .__FFV_suppressNotifications;
-    /** @type {any} */ (globalThis).__FFV_suppressNotifications = true;
+    const prevSuppress = getNotificationSuppressed();
+    setNotificationSuppressed(true);
 
     try {
         const settings = /** @type {any} */ (
@@ -1100,10 +850,7 @@ export async function prewarmChartRenderCaches({
             MAX_FIELDS_TO_PREWARM
         );
 
-        if (
-            typeof process !== "undefined" &&
-            process.env?.NODE_ENV === "development"
-        ) {
+        if (isDevelopmentEnvironment()) {
             console.log(
                 `${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`
             );
@@ -1136,17 +883,13 @@ export async function prewarmChartRenderCaches({
             if (yieldEvery > 0 && processedFields % yieldEvery === 0) {
                 // Yield to the event loop so we don't freeze the UI while pre-warming.
                 // (Still best-effort; the inner per-field scan is synchronous.)
-                // eslint-disable-next-line no-await-in-loop -- intentional cooperative yield during prewarm.
                 await new Promise((resolve) => {
                     setTimeout(resolve, 0);
                 });
             }
         }
 
-        if (
-            typeof process !== "undefined" &&
-            process.env?.NODE_ENV === "development"
-        ) {
+        if (isDevelopmentEnvironment()) {
             console.log(
                 `${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`
             );
@@ -1157,8 +900,7 @@ export async function prewarmChartRenderCaches({
         console.warn(`${CACHE_LOG_PREFIX} prewarm failed (${reason})`, error);
         return { processedFields: 0, skipped: false };
     } finally {
-        /** @type {any} */ (globalThis).__FFV_suppressNotifications =
-            prevSuppress;
+        setNotificationSuppressed(prevSuppress);
     }
 }
 
@@ -1798,15 +1540,10 @@ if (!windowAny._fitFileViewerChartListener) {
                     );
 
                     // Prefer chartStateManager if available
-                    if (
-                        typeof (
-                            /** @type {any} */ (globalThis).chartStateManager
-                                ?.debouncedRender
-                        ) === "function"
-                    ) {
-                        /** @type {any} */ (
-                            globalThis
-                        ).chartStateManager.debouncedRender(reason);
+                    const chartStateManager =
+                        getDebouncedChartStateManager();
+                    if (chartStateManager) {
+                        chartStateManager.debouncedRender(reason);
                         return;
                     }
 
@@ -2010,10 +1747,7 @@ export const chartActions = {
         );
 
         // Background renders (preload) must not hijack the global loading indicator.
-        const suppressLoading = Boolean(
-            /** @type {any} */ (globalThis).__FFV_suppressLoadingState
-        );
-        if (!suppressLoading) {
+        if (!isLoadingStateSuppressed()) {
             callSetState("isLoading", false, {
                 silent: false,
                 source: "chartActions.completeRendering",
@@ -2046,9 +1780,9 @@ export const chartActions = {
 
         // Prefer the centralized ChartStateManager when available.
         // This prevents duplicate renders from multiple subsystems.
-        const csm = /** @type {any} */ (globalThis).chartStateManager;
-        if (csm && typeof csm.debouncedRender === "function") {
-            csm.debouncedRender(reason);
+        const chartStateManager = getDebouncedChartStateManager();
+        if (chartStateManager) {
+            chartStateManager.debouncedRender(reason);
             return;
         }
 
@@ -2083,10 +1817,7 @@ export const chartActions = {
             source: "chartActions.startRendering",
         });
         // Background renders (preload) must not hijack the global loading indicator.
-        const suppressLoading = Boolean(
-            /** @type {any} */ (globalThis).__FFV_suppressLoadingState
-        );
-        if (!suppressLoading) {
+        if (!isLoadingStateSuppressed()) {
             callSetState("isLoading", true, {
                 silent: false,
                 source: "chartActions.startRendering",
@@ -2413,9 +2144,7 @@ export async function renderChartJS(targetContainer, options = {}) {
     } = options && typeof options === "object" ? options : {};
 
     // Early exit if chart tab is not active to prevent unnecessary rendering (except in tests)
-    const isTestEnvironment =
-        typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-    if (!isTestEnvironment && !allowInactiveTab) {
+    if (!isTestEnvironment() && !allowInactiveTab) {
         const { getState: getStateEarly } = getStateManagerSafe();
         const activeTab = getStateEarly("ui.activeTab");
         if (activeTab !== "chart" && activeTab !== "chartjs") {
@@ -2450,10 +2179,7 @@ export async function renderChartJS(targetContainer, options = {}) {
                     silent: false,
                     source: "renderChartJS.start",
                 });
-                const suppressLoading = Boolean(
-                    /** @type {any} */ (globalThis).__FFV_suppressLoadingState
-                );
-                if (!suppressLoading) {
+                if (!isLoadingStateSuppressed()) {
                     callSetState("isLoading", true, {
                         silent: false,
                         source: "renderChartJS.start",
@@ -2598,24 +2324,7 @@ export async function renderChartJS(targetContainer, options = {}) {
                 );
             }
             if (container) {
-                let themeConfig = await getThemeConfigSafe();
-                if (!themeConfig || typeof themeConfig !== "object") {
-                    themeConfig = /** @type {any} */ ({ colors: {} });
-                }
-                if (!(/** @type {any} */ (themeConfig).colors)) {
-                    /** @type {any} */ (themeConfig).colors = {
-                        text: "#1e293b",
-                        textPrimary: "#0f172a",
-                        backgroundAlt: "#ffffff",
-                        border: "#e5e7eb",
-                        error: "#ef4444",
-                    };
-                }
-
-                const { colors } =
-                    /** @type {{ colors: Record<string, string> }} */ (
-                        themeConfig
-                    );
+                const { colors } = await getThemeConfigSafe();
                 const {
                     backgroundAlt: colorsBackgroundAlt,
                     border: colorsBorder,
@@ -2715,7 +2424,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         // Ensure renderer modules are referenced in tests to satisfy integration spies, even if the
         // internal renderer short-circuits later. These are no-ops in production and mocked in tests.
         try {
-            if (/** @type {any} */ (process.env).NODE_ENV === "test") {
+            if (isTestEnvironment()) {
                 const modules = getRendererModulesSafe();
                 const tmp = document.createElement("div");
                 try {
@@ -2830,22 +2539,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         }
 
         if (container) {
-            let themeConfig = await getThemeConfigSafe();
-            if (!themeConfig || typeof themeConfig !== "object") {
-                themeConfig = /** @type {any} */ ({ colors: {} });
-            }
-            if (!(/** @type {any} */ (themeConfig).colors)) {
-                /** @type {any} */ (themeConfig).colors = {
-                    text: "#1e293b",
-                    textPrimary: "#0f172a",
-                    backgroundAlt: "#ffffff",
-                    border: "#e5e7eb",
-                    error: "#ef4444",
-                };
-            }
-
-            const { colors } =
-                /** @type {{ colors: Record<string, string> }} */ (themeConfig);
+            const { colors } = await getThemeConfigSafe();
             const {
                 backgroundAlt: colorsBackgroundAlt,
                 border: colorsBorder,
@@ -2860,11 +2554,7 @@ export async function renderChartJS(targetContainer, options = {}) {
             const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
             const safeError = sanitizeCssColorToken(colorsError, "#ef4444");
 
-            if (typeof container.replaceChildren === "function") {
-                container.replaceChildren();
-            } else {
-                container.innerHTML = "";
-            }
+            clearElement(container);
 
             const wrapper = document.createElement("div");
             wrapper.className = "chart-error";
@@ -2957,15 +2647,9 @@ async function renderChartsWithData(
     startTime,
     options = {}
 ) {
-    // Check if in test environment
-    const isTestEnvironment =
-        typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-    const isDevEnvironment =
-        typeof process !== "undefined" &&
-        process.env?.NODE_ENV === "development";
+    const isTestRuntime = isTestEnvironment();
     const isDebugLoggingEnabled =
-        isDevEnvironment &&
-        Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+        isDevelopmentEnvironment() && isChartDebugEnabled();
     const { skipControls = false, skipTabAbort = false } =
         options && typeof options === "object" ? options : {};
 
@@ -3043,7 +2727,7 @@ async function renderChartsWithData(
 
     // Clear existing charts and remove any hover effects
     removeChartHoverEffectsSafe(chartContainer);
-    chartContainer.innerHTML = "";
+    clearElement(chartContainer);
 
     // Add user and device info box
     createUserDeviceInfoBox(chartContainer);
@@ -3095,6 +2779,14 @@ async function renderChartsWithData(
     );
 
     // Prepare zoom plugin config
+    const zoomDragBackgroundColor = sanitizeCssColorToken(
+        themeConfig.colors.primaryAlpha,
+        "rgba(59, 130, 246, 0.2)"
+    );
+    const zoomDragBorderColor = sanitizeCssColorToken(
+        themeConfig.colors.primary,
+        "rgba(59, 130, 246, 0.8)"
+    );
     const // Get theme from options or fallback to system
         currentTheme = detectCurrentTheme(),
         zoomPluginConfig = {
@@ -3111,12 +2803,8 @@ async function renderChartsWithData(
             },
             zoom: {
                 drag: {
-                    backgroundColor:
-                        /** @type {any} */ (themeConfig).colors.primaryAlpha ||
-                        "rgba(59, 130, 246, 0.2)",
-                    borderColor:
-                        /** @type {any} */ (themeConfig).colors.primary ||
-                        "rgba(59, 130, 246, 0.8)",
+                    backgroundColor: zoomDragBackgroundColor,
+                    borderColor: zoomDragBorderColor,
                     borderWidth: 2,
                     enabled: true,
                     modifierKey: "shift", // Require shift key for drag selection
@@ -3201,7 +2889,7 @@ async function renderChartsWithData(
 
     for (const field of fieldsToRender) {
         // Check if still on chart tab before each chart creation (skip in tests)
-        if (!isTestEnvironment && !skipTabAbort) {
+        if (!isTestRuntime && !skipTabAbort) {
             const currentTab = gs_rcwd("ui.activeTab");
             if (currentTab !== "chart" && currentTab !== "chartjs") {
                 console.log(
@@ -3388,11 +3076,15 @@ async function renderChartsWithData(
 
     // Handle no charts case
     if (totalChartsRendered === 0 && visibleFieldCount === 0) {
-        chartContainer.innerHTML =
-            '<div class="no-data-message">No visible metrics selected. Enable metrics in the "Visible Metrics" section above.</div>';
+        renderNoDataMessage(
+            chartContainer,
+            'No visible metrics selected. Enable metrics in the "Visible Metrics" section above.'
+        );
     } else if (totalChartsRendered === 0) {
-        chartContainer.innerHTML =
-            '<div class="no-data-message">No suitable numeric data available for selected chart type.</div>';
+        renderNoDataMessage(
+            chartContainer,
+            "No suitable numeric data available for selected chart type."
+        );
     }
 
     // Performance logging with state updates using updateState
@@ -3428,7 +3120,7 @@ async function renderChartsWithData(
         // Check if chart tab is still active before showing notification (skip in tests)
         const activeTab = gs_rcwd("ui.activeTab");
         const isChartTabActive =
-            isTestEnvironment ||
+            isTestRuntime ||
             activeTab === "chart" ||
             activeTab === "chartjs";
 
@@ -3445,7 +3137,7 @@ async function renderChartsWithData(
                 // Double-check tab is still active (skip in tests)
                 const currentTab = gs_rcwd("ui.activeTab");
                 if (
-                    isTestEnvironment ||
+                    isTestRuntime ||
                     currentTab === "chart" ||
                     currentTab === "chartjs"
                 ) {
@@ -3494,7 +3186,7 @@ async function renderChartsWithData(
             }
 
             // Integration tests expect the dev-helper to be callable.
-            if (isTestEnvironment) {
+            if (isTestRuntime) {
                 try {
                     addHoverEffectsToExistingChartsSafe?.();
                 } catch {
@@ -3503,7 +3195,7 @@ async function renderChartsWithData(
             }
         };
 
-        if (isTestEnvironment) {
+        if (isTestRuntime) {
             await applyHoverEffects();
         } else {
             setTimeout(() => {

@@ -164,8 +164,7 @@ describe("createChartStatusIndicator", () => {
 
         const indicator = createChartStatusIndicator();
         const icon = indicator.querySelector(".status-icon");
-        // Note: logic sets ✅ icon even when 0/0, but text is overwritten below
-        expect(icon?.textContent).toBe("✅");
+        expect(icon?.textContent).toBe("❌");
 
         const statusText =
             /** @type {HTMLElement | null} */ indicator.querySelector(

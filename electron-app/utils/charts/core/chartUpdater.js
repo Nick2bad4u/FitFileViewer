@@ -1,175 +1,124 @@
-/**
- * Provides a consistent way to trigger chart re-renders across all modules
- *
- * @version 1.0.0
- *
- * @file Chart Update Utility - Unified interface for triggering chart updates
- *
- * @author FitFileViewer Development Team
- */
-
 import { chartStateManager } from "./chartStateManager.js";
 import { renderChartJS } from "./renderChartJS.js";
-
+const chartGlobal = globalThis;
 /**
- * Get status information about the chart update system
+ * Get status information about the chart update system.
  *
- * @returns {Object}
+ * @returns Current chart update system status.
  */
 export function getChartUpdateSystemStatus() {
     return {
         chartStateManager: Boolean(chartStateManager),
-        globalRenderChartJS: typeof globalThis.renderChartJS === "function",
+        globalRenderChartJS: typeof chartGlobal.renderChartJS === "function",
         modernSystemAvailable: isModernChartSystemAvailable(),
         renderChartJSAvailable: typeof renderChartJS === "function",
         timestamp: new Date().toISOString(),
     };
 }
-
 /**
- * Check if chart state manager is available and properly initialized
+ * Check if chart state manager is available and initialized.
  *
- * @returns {boolean}
+ * @returns Whether the modern chart state manager can accept render requests.
  */
 export function isModernChartSystemAvailable() {
-    return (
-        chartStateManager &&
+    return (Boolean(chartStateManager) &&
         typeof chartStateManager.debouncedRender === "function" &&
-        typeof chartStateManager.isInitialized === "function" &&
-        chartStateManager.isInitialized
-    );
+        chartStateManager.isInitialized === true);
 }
-
 /**
- * Unified interface for triggering chart updates
+ * Unified interface for triggering chart updates.
  *
- * @param {string} reason - Reason for the chart update (for logging)
- * @param {HTMLElement} [container] - Optional container element
- *
- * @returns {Promise<boolean>}
+ * @param reason - Reason for the chart update.
+ * @param container - Optional chart container element.
+ * @returns Whether the update request was accepted or rendered.
+ * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateCharts(reason, container) {
     try {
         console.log(`[ChartUpdate] Triggering chart update: ${reason}`);
-
-        // Use modern state management if available
-        if (
-            chartStateManager &&
-            typeof chartStateManager.debouncedRender === "function"
-        ) {
-            await chartStateManager.debouncedRender(reason);
+        if (chartStateManager &&
+            typeof chartStateManager.debouncedRender === "function") {
+            chartStateManager.debouncedRender(reason);
             return true;
         }
-
-        // Fallback to direct renderChartJS call for compatibility
-        console.warn(
-            "[ChartUpdate] chartStateManager not available, using fallback"
-        );
-
+        console.warn("[ChartUpdate] chartStateManager not available, using fallback");
         return await renderChartJS(container);
-    } catch (error) {
-        console.error(
-            `[ChartUpdate] Error updating charts for reason "${reason}":`,
-            error
-        );
+    }
+    catch (error) {
+        console.error(`[ChartUpdate] Error updating charts for reason "${reason}":`, error);
         throw error;
     }
 }
-
 /**
- * Handle data changes with proper chart updates
+ * Handle data changes with proper chart updates.
  *
- * @param {Object} newData - New data object
- *
- * @returns {Promise<boolean>}
+ * @param newData - New data object.
+ * @returns Whether the update request was accepted.
  */
 export async function updateChartsForDataChange(newData) {
     const reason = `Data change: ${newData ? "new data loaded" : "data cleared"}`;
     return await updateCharts(reason);
 }
-
 /**
- * Handle setting changes with debounced chart updates
+ * Handle setting changes with debounced chart updates.
  *
- * @param {string} settingName - Name of the setting that changed
- * @param {any} newValue - New value of the setting
- * @param {HTMLElement} [container] - Optional container element
- *
- * @returns {Promise<boolean>}
+ * @param settingName - Name of the changed setting.
+ * @param newValue - New setting value.
+ * @param container - Optional chart container element.
+ * @returns Whether the update request was accepted.
  */
-export async function updateChartsForSettingChange(
-    settingName,
-    newValue,
-    container
-) {
-    const reason = `Setting change: ${settingName} = ${newValue}`;
+export async function updateChartsForSettingChange(settingName, newValue, container) {
+    const reason = `Setting change: ${settingName} = ${String(newValue)}`;
     return await updateCharts(reason, container);
 }
-
 /**
- * Handle tab activation with proper chart updates
+ * Handle tab activation with proper chart updates.
  *
- * @returns {Promise<boolean>}
+ * @returns Whether the update request was accepted.
  */
 export async function updateChartsForTabActivation() {
-    const reason = "Chart tab activated";
-    return await updateCharts(reason);
+    return await updateCharts("Chart tab activated");
 }
-
 /**
- * Handle theme changes with proper chart updates
+ * Handle theme changes with proper chart updates.
  *
- * @param {string} newTheme - The new theme name
- *
- * @returns {Promise<boolean>}
+ * @param newTheme - The new theme name.
+ * @returns Whether the update request was accepted or rendered.
+ * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateChartsForThemeChange(newTheme) {
     try {
         console.log(`[ChartUpdate] Handling theme change to: ${newTheme}`);
-
-        if (
-            chartStateManager &&
-            typeof chartStateManager.handleThemeChange === "function"
-        ) {
-            await chartStateManager.handleThemeChange(newTheme);
+        if (chartStateManager &&
+            typeof chartStateManager.handleThemeChange === "function") {
+            chartStateManager.handleThemeChange(newTheme);
             return true;
         }
-
-        // Fallback: destroy and re-render charts
-        console.warn(
-            "[ChartUpdate] chartStateManager not available for theme change, using fallback"
-        );
-
-        if (
-            globalThis._chartjsInstances &&
-            globalThis._chartjsInstances.length > 0
-        ) {
-            for (const chart of globalThis._chartjsInstances) {
-                if (chart && typeof chart.destroy === "function") {
+        console.warn("[ChartUpdate] chartStateManager not available for theme change, using fallback");
+        if (Array.isArray(chartGlobal._chartjsInstances) &&
+            chartGlobal._chartjsInstances.length > 0) {
+            for (const chart of chartGlobal._chartjsInstances) {
+                if (typeof chart.destroy === "function") {
                     try {
                         chart.destroy();
-                    } catch (error) {
-                        console.warn(
-                            "[ChartUpdate] Error destroying chart:",
-                            error
-                        );
+                    }
+                    catch (error) {
+                        console.warn("[ChartUpdate] Error destroying chart:", error);
                     }
                 }
             }
-            globalThis._chartjsInstances = [];
+            chartGlobal._chartjsInstances = [];
         }
-
         return await renderChartJS();
-    } catch (error) {
-        console.error(
-            `[ChartUpdate] Error updating charts for theme change to "${newTheme}":`,
-            error
-        );
+    }
+    catch (error) {
+        console.error(`[ChartUpdate] Error updating charts for theme change to "${newTheme}":`, error);
         throw error;
     }
 }
-
-// Export a simplified interface for common use cases
+/**
+ * Convenience API for common chart update triggers.
+ */
 export const ChartUpdater = {
     dataChange: updateChartsForDataChange,
     getStatus: getChartUpdateSystemStatus,
@@ -179,11 +128,8 @@ export const ChartUpdater = {
     themeChange: updateChartsForThemeChange,
     update: updateCharts,
 };
-
-// Expose globally for debugging and legacy compatibility
 if (globalThis.window !== undefined) {
-    globalThis.ChartUpdater = ChartUpdater;
-    globalThis.chartUpdater = ChartUpdater; // Lowercase alias for consistency
+    chartGlobal.ChartUpdater = ChartUpdater;
+    chartGlobal.chartUpdater = ChartUpdater;
 }
-
 export default ChartUpdater;

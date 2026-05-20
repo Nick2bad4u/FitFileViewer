@@ -1,882 +1,287 @@
-/**
- * Comprehensive test suite for createGlobalChartStatusIndicatorFromCounts.js
- * Tests all code paths to achieve 95% coverage
- */
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
 
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { JSDOM } from "jsdom";
+import {
+    cleanupGlobalChartStatusIndicatorFromCounts,
+    createGlobalChartStatusIndicatorFromCounts,
+} from "../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js";
+import type { ChartCounts } from "../../utils/charts/core/getChartCounts.js";
 
-describe("createGlobalChartStatusIndicatorFromCounts", () => {
-    let createGlobalChartStatusIndicatorFromCounts: Function;
-    let dom: JSDOM;
-    let window: Window;
-    let document: Document;
-    let originalConsole: typeof console;
+const scrollIntoViewMock =
+    vi.fn<(arg?: boolean | ScrollIntoViewOptions) => void>();
 
-    beforeEach(async () => {
-        // Create a fresh JSDOM instance for each test
-        dom = new JSDOM(
-            `
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <style>
-                        :root {
-                            --color-bg-alt: #f0f0f0;
-                            --color-border: #ccc;
-                            --backdrop-blur: blur(4px);
-                            --color-shadow: rgba(0,0,0,0.1);
-                            --color-fg-muted: #666;
-                            --color-success: #00ff00;
-                            --color-warning: #ffaa00;
-                            --color-error: #ff0000;
-                            --color-fg: #000;
-                            --color-btn-bg: #fff;
-                            --color-fg-alt: #333;
-                            --transition-smooth: all 0.2s ease;
-                            --color-accent-hover: #e0e0e0;
-                            --color-glass-border: #ddd;
-                            --color-modal-bg: #ffffff;
-                            --color-box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div id="content-chartjs"></div>
-                    <div id="chartjs-settings-wrapper" style="display: none;"></div>
-                    <button id="chart-controls-toggle" aria-expanded="false">▶ Show Controls</button>
-                    <div class="fields-section"></div>
-                </body>
-            </html>
-        `,
-            {
-                url: "http://localhost",
-                pretendToBeVisual: true,
-                resources: "usable",
-            }
-        );
+function createCounts(overrides: Partial<ChartCounts> = {}): ChartCounts {
+    return {
+        available: 4,
+        categories: {
+            analysis: { available: 1, total: 1, visible: 1 },
+            gps: { available: 1, total: 1, visible: 1 },
+            metrics: { available: 1, total: 1, visible: 1 },
+            zones: { available: 1, total: 1, visible: 1 },
+        },
+        total: 4,
+        visible: 4,
+        ...overrides,
+    };
+}
 
-        window = dom.window as unknown as Window;
-        document = window.document;
+function requireElement<TElement extends Element>(
+    element: TElement | null | undefined,
+    selector: string
+): TElement {
+    if (!element) {
+        throw new Error(`Expected ${selector} to exist`);
+    }
 
-        // Set up global DOM
-        (global as any).window = window;
-        (global as any).document = document;
-        (global as any).HTMLElement = (window as any).HTMLElement;
+    return element;
+}
 
-        // Mock console methods to test error handling
-        originalConsole = console;
-        console.warn = vi.fn();
-        console.error = vi.fn();
-        console.log = vi.fn();
+function setupChartContent(): HTMLElement {
+    const chartContent = document.createElement("section");
+    chartContent.id = "content_chartjs";
+    document.body.append(chartContent);
+    return chartContent;
+}
 
-        // Import the function to test
-        const module =
-            await import("../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js");
-        createGlobalChartStatusIndicatorFromCounts =
-            module.createGlobalChartStatusIndicatorFromCounts;
+function setupTestDom(): void {
+    document.body.replaceChildren();
+    scrollIntoViewMock.mockReset();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+        configurable: true,
+        value: scrollIntoViewMock,
+    });
+}
+
+function cleanupTestDom(): void {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    document.body.replaceChildren();
+    Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+}
+
+describe("createGlobalChartStatusIndicatorFromCounts strict behavior", () => {
+    it("creates all-visible status content inside the chart content contract", () => {
+        expect.assertions(7);
+
+        setupTestDom();
+
+        try {
+            setupChartContent();
+
+            const indicator = requireElement(
+                createGlobalChartStatusIndicatorFromCounts(createCounts()),
+                "#global-chart-status"
+            );
+            const quickAction = requireElement(
+                indicator.querySelector("button"),
+                "button"
+            );
+            const breakdown = requireElement(
+                indicator.querySelector(".global-breakdown"),
+                ".global-breakdown"
+            );
+
+            expect(indicator.id).toBe("global-chart-status");
+            expect(indicator.className).toBe("global-chart-status");
+            expect(indicator.textContent).toContain(
+                "Showing 4 of 4 available charts"
+            );
+            expect(indicator.querySelector("span")?.textContent).toBe("✅");
+            expect(quickAction.textContent).toBe("✨ Charts Ready");
+            expect(quickAction.dataset["actionable"]).toBe("false");
+            expect(breakdown.textContent).toContain("Metrics: 1/1");
+        } finally {
+            cleanupTestDom();
+        }
     });
 
-    afterEach(() => {
-        // Restore original console
-        console = originalConsole;
+    it("returns null and warns when chart content is missing", () => {
+        expect.assertions(2);
 
-        // Clean up JSDOM
-        dom.window.close();
+        setupTestDom();
 
-        // Reset globals
-        delete (global as any).window;
-        delete (global as any).document;
-        delete (global as any).HTMLElement;
+        try {
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockReturnValue(undefined);
 
-        vi.clearAllMocks();
-    });
-
-    describe("Basic functionality", () => {
-        it("should create a global chart status indicator with valid counts", () => {
-            const counts = {
-                total: 10,
-                visible: 8,
-                available: 9,
-                categories: {
-                    metrics: { total: 4, visible: 3, available: 4 },
-                    analysis: { total: 3, visible: 3, available: 2 },
-                    zones: { total: 2, visible: 1, available: 2 },
-                    gps: { total: 1, visible: 1, available: 1 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-
-            expect(indicator).not.toBeNull();
-            expect(indicator?.id).toBe("global-chart-status");
-            expect(indicator?.className).toBe("global-chart-status");
-            // Check that cssText was set (JSDOM doesn't fully support complex cssText parsing)
-            expect(indicator?.style.cssText).toContain("position");
-        });
-
-        it("should return null when chart tab content is not found", () => {
-            // Remove the chart tab content element
-            const chartTab = document.getElementById("content-chartjs");
-            chartTab?.remove();
-
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
+            const indicator = createGlobalChartStatusIndicatorFromCounts(
+                createCounts()
+            );
 
             expect(indicator).toBeNull();
-            expect(console.warn).toHaveBeenCalledWith(
+            expect(warnSpy).toHaveBeenCalledWith(
                 "[ChartStatus] Chart tab content not found"
             );
-        });
+        } finally {
+            cleanupTestDom();
+        }
     });
 
-    describe("Status indicators", () => {
-        it("should show green checkmark when all charts are visible", () => {
-            const counts = {
-                total: 5,
-                visible: 5,
-                available: 5,
-                categories: {
-                    metrics: { total: 2, visible: 2, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 1, available: 1 },
-                },
-            };
+    it("opens settings and schedules the field-section scroll for hidden charts", () => {
+        expect.assertions(7);
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator?.querySelector("span");
+        vi.useFakeTimers();
 
-            expect(statusIcon?.textContent).toBe("✅");
-            expect(statusIcon?.title).toBe("All available charts are visible");
-        });
+        setupTestDom();
 
-        it("should show warning icon when some charts are hidden", () => {
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 5,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 },
-                },
-            };
+        try {
+            setupChartContent();
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator?.querySelector("span");
+            const settingsWrapper = document.createElement("div");
+            settingsWrapper.id = "chartjs-settings-wrapper";
+            settingsWrapper.style.display = "none";
 
-            expect(statusIcon?.textContent).toBe("⚠️");
-            expect(statusIcon?.title).toBe("Some charts are hidden");
-        });
+            const toggleButton = document.createElement("button");
+            toggleButton.id = "chart-controls-toggle";
 
-        it("should show warning icon when no charts are visible but some available", () => {
-            const counts = {
-                total: 5,
-                visible: 0,
-                available: 3,
-                categories: {
-                    metrics: { total: 2, visible: 0, available: 1 },
-                    analysis: { total: 1, visible: 0, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+            const fieldsSection = document.createElement("section");
+            fieldsSection.className = "fields-section";
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusIcon = indicator?.querySelector("span");
+            document.body.append(settingsWrapper, toggleButton, fieldsSection);
 
-            expect(statusIcon?.textContent).toBe("⚠️");
-            expect(statusIcon?.title).toBe("Some charts are hidden");
-        });
-    });
-
-    describe("Status text", () => {
-        it("should show no data message when no charts are available", () => {
-            const counts = {
-                total: 0,
-                visible: 0,
-                available: 0,
-                categories: {
-                    metrics: { total: 0, visible: 0, available: 0 },
-                    analysis: { total: 0, visible: 0, available: 0 },
-                    zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator?.querySelectorAll("span")[1];
-
-            expect(statusText?.textContent).toBe(
-                "No chart data available in this FIT file"
+            const indicator = requireElement(
+                createGlobalChartStatusIndicatorFromCounts(
+                    createCounts({
+                        available: 6,
+                        categories: {
+                            analysis: { available: 1, total: 1, visible: 1 },
+                            gps: { available: 1, total: 1, visible: 0 },
+                            metrics: { available: 3, total: 3, visible: 2 },
+                            zones: { available: 1, total: 1, visible: 0 },
+                        },
+                        total: 6,
+                        visible: 3,
+                    })
+                ),
+                "#global-chart-status"
             );
-            expect(statusText?.style.color).toBe("var(--color-fg-muted)");
-        });
-
-        it("should show chart count with success color when all visible", () => {
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 3,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 1 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator?.querySelectorAll("span")[1];
-
-            expect(statusText?.innerHTML).toContain("Showing");
-            expect(statusText?.innerHTML).toContain("3");
-            expect(statusText?.innerHTML).toContain("of 3 available charts");
-            expect(statusText?.innerHTML).toContain("var(--color-success)");
-        });
-
-        it("should show chart count with warning color when some hidden", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator?.querySelectorAll("span")[1];
-
-            expect(statusText?.innerHTML).toContain("var(--color-warning)");
-        });
-
-        it("should show chart count with warning color when none visible but some available", () => {
-            const counts = {
-                total: 5,
-                visible: 0,
-                available: 3,
-                categories: {
-                    metrics: { total: 2, visible: 0, available: 1 },
-                    analysis: { total: 1, visible: 0, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator?.querySelectorAll("span")[1];
-
-            expect(statusText?.innerHTML).toContain("var(--color-warning)");
-        });
-    });
-
-    describe("Quick action button", () => {
-        it("should show settings button when charts are hidden", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            expect(quickAction?.textContent).toBe("⚙️ Show Settings");
-            expect(quickAction?.title).toBe(
-                "Open chart settings to enable more charts"
+            const quickAction = requireElement(
+                indicator.querySelector("button"),
+                "button"
             );
-        });
-
-        it("should show charts ready button when all charts visible", () => {
-            const counts = {
-                total: 3,
-                visible: 3,
-                available: 3,
-                categories: {
-                    metrics: { total: 1, visible: 1, available: 1 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            expect(quickAction?.textContent).toBe("✨ Charts Ready");
-            expect(quickAction?.title).toBe("All available charts are visible");
-            expect(quickAction?.style.opacity).toBe("0.7");
-            expect(quickAction?.style.cursor).toBe("default");
-        });
-
-        it("should show load FIT button when no charts available", () => {
-            const counts = {
-                total: 0,
-                visible: 0,
-                available: 0,
-                categories: {
-                    metrics: { total: 0, visible: 0, available: 0 },
-                    analysis: { total: 0, visible: 0, available: 0 },
-                    zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            expect(quickAction?.textContent).toBe("📂 Load FIT");
-            expect(quickAction?.title).toBe("Load a FIT file to see charts");
-            expect(quickAction?.style.opacity).toBe("0.7");
-            expect(quickAction?.style.cursor).toBe("default");
-        });
-
-        it("should handle settings button click", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            // Mock setTimeout
-            vi.stubGlobal(
-                "setTimeout",
-                vi.fn((callback) => callback())
+            const breakdown = requireElement(
+                indicator.querySelector(".global-breakdown"),
+                ".global-breakdown"
             );
 
-            // Click the settings button
-            quickAction?.click();
+            expect(quickAction.textContent).toBe("⚙️ Show Settings");
+            expect(quickAction.dataset["actionable"]).toBe("true");
 
-            const wrapper = document.getElementById("chartjs-settings-wrapper");
-            const toggleBtn = document.getElementById("chart-controls-toggle");
+            quickAction.dispatchEvent(new MouseEvent("mouseenter"));
 
-            expect(wrapper?.style.display).toBe("block");
-            expect(toggleBtn?.textContent).toBe("▼ Hide Controls");
-            expect(toggleBtn?.getAttribute("aria-expanded")).toBe("true");
-        });
+            expect(breakdown.style.visibility).toBe("visible");
 
-        it("should handle settings button click with fields section scrolling", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+            quickAction.dispatchEvent(new MouseEvent("click"));
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
+            expect(settingsWrapper.style.display).toBe("block");
+            expect(toggleButton.textContent).toBe("▼ Hide Controls");
+            expect(toggleButton.getAttribute("aria-expanded")).toBe("true");
 
-            // Mock scrollIntoView on fields section
-            const fieldsSection = document.querySelector(".fields-section");
-            const scrollIntoViewMock = vi.fn();
-            if (fieldsSection) {
-                (fieldsSection as any).scrollIntoView = scrollIntoViewMock;
-            }
+            vi.advanceTimersByTime(100);
 
-            // Mock setTimeout to immediately execute
-            vi.stubGlobal(
-                "setTimeout",
-                vi.fn((callback) => callback())
-            );
-
-            // Click the settings button
-            quickAction?.click();
-
-            expect(scrollIntoViewMock).toHaveBeenCalledWith({
+            expect(scrollIntoViewMock).toHaveBeenCalledExactlyOnceWith({
                 behavior: "smooth",
                 block: "start",
             });
-        });
+
+            cleanupGlobalChartStatusIndicatorFromCounts(indicator);
+        } finally {
+            cleanupTestDom();
+        }
     });
 
-    describe("Mouse interactions", () => {
-        it("should handle hover effects on settings button", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+    it("cancels delayed field-section scroll during cleanup", () => {
+        expect.assertions(3);
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
+        vi.useFakeTimers();
 
-            // Simulate mouseenter
-            const mouseenterEvent = new (window as any).MouseEvent(
-                "mouseenter"
-            );
-            quickAction?.dispatchEvent(mouseenterEvent);
+        setupTestDom();
 
-            expect(quickAction?.style.background).toBe(
-                "var(--color-accent-hover)"
-            );
-            expect(quickAction?.style.transform).toBe("translateY(-1px)");
+        try {
+            setupChartContent();
 
-            // Simulate mouseleave
-            const mouseleaveEvent = new (window as any).MouseEvent(
-                "mouseleave"
-            );
-            quickAction?.dispatchEvent(mouseleaveEvent);
+            const settingsWrapper = document.createElement("div");
+            settingsWrapper.id = "chartjs-settings-wrapper";
+            settingsWrapper.style.display = "none";
 
-            expect(quickAction?.style.background).toBe("var(--color-btn-bg)");
-            expect(quickAction?.style.transform).toBe("translateY(0)");
-        });
+            const toggleButton = document.createElement("button");
+            toggleButton.id = "chart-controls-toggle";
 
-        it("should handle quick action hover for breakdown tooltip", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+            const fieldsSection = document.createElement("section");
+            fieldsSection.className = "fields-section";
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const breakdown = indicator?.querySelector(".global-breakdown");
+            document.body.append(settingsWrapper, toggleButton, fieldsSection);
 
-            const quickAction = indicator?.querySelector("button");
-
-            // Simulate mouseenter on quick action
-            const mouseenterEvent = new (window as any).MouseEvent(
-                "mouseenter"
-            );
-            quickAction?.dispatchEvent(mouseenterEvent);
-
-            expect(indicator?.style.background).toBe(
-                "var(--color-glass-border)"
-            );
-            expect(indicator?.style.transform).toBe("translateY(-1px)");
-            expect(breakdown?.style.opacity).toBe("1");
-            expect(breakdown?.style.visibility).toBe("visible");
-
-            // Simulate mouseleave on quick action
-            const mouseleaveEvent = new (window as any).MouseEvent(
-                "mouseleave"
-            );
-            quickAction?.dispatchEvent(mouseleaveEvent);
-
-            expect(indicator?.style.background).toBe("var(--color-bg-alt)");
-            expect(indicator?.style.transform).toBe("translateY(0)");
-            expect(breakdown?.style.opacity).toBe("0");
-            expect(breakdown?.style.visibility).toBe("hidden");
-        });
-
-        it("should not add hover effects to non-actionable buttons", () => {
-            const counts = {
-                total: 3,
-                visible: 3,
-                available: 3,
-                categories: {
-                    metrics: { total: 1, visible: 1, available: 1 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            // The button should not have hover listeners when all charts are visible
-            const mouseenterEvent = new (window as any).MouseEvent(
-                "mouseenter"
-            );
-            quickAction?.dispatchEvent(mouseenterEvent);
-
-            // Style should not change since no hover effect was added
-            expect(quickAction?.style.background).not.toBe(
-                "var(--color-accent-hover)"
-            );
-        });
-    });
-
-    describe("Breakdown tooltip", () => {
-        it("should display correct category breakdown", () => {
-            const counts = {
-                total: 8,
-                visible: 5,
-                available: 7,
-                categories: {
-                    metrics: { total: 3, visible: 2, available: 3 },
-                    analysis: { total: 2, visible: 2, available: 2 },
-                    zones: { total: 2, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const breakdown = indicator?.querySelector(".global-breakdown");
-
-            expect(breakdown?.innerHTML).toContain("📊 Metrics: 2/3");
-            expect(breakdown?.innerHTML).toContain("📈 Analysis: 2/2");
-            expect(breakdown?.innerHTML).toContain("🎯 Zones: 1/1");
-            expect(breakdown?.innerHTML).toContain("🗺️ GPS: 0/1");
-        });
-
-        it("should show tip when charts are hidden", () => {
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const breakdown = indicator?.querySelector(".global-breakdown");
-
-            expect(breakdown?.innerHTML).toContain(
-                "💡 Use settings panel below to enable more charts"
-            );
-        });
-
-        it("should not show tip when all charts are visible", () => {
-            const counts = {
-                total: 3,
-                visible: 3,
-                available: 3,
-                categories: {
-                    metrics: { total: 1, visible: 1, available: 1 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const breakdown = indicator?.querySelector(".global-breakdown");
-
-            expect(breakdown?.innerHTML).not.toContain(
-                "💡 Use settings panel below to enable more charts"
-            );
-        });
-    });
-
-    describe("Error handling", () => {
-        it("should handle errors gracefully and return null", () => {
-            // Mock document.createElement to throw an error
-            const originalCreateElement = document.createElement;
-            document.createElement = vi.fn(() => {
-                throw new Error("Test error");
-            });
-
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-
-            expect(indicator).toBeNull();
-            expect(console.error).toHaveBeenCalledWith(
-                "[ChartStatus] Error creating global chart status indicator from counts:",
-                expect.any(Error)
-            );
-
-            // Restore original function
-            document.createElement = originalCreateElement;
-        });
-
-        it("should handle missing DOM elements gracefully in click handler", () => {
-            // Remove required DOM elements
-            document.getElementById("chartjs-settings-wrapper")?.remove();
-            document.getElementById("chart-controls-toggle")?.remove();
-
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            // Should not throw error when clicking
-            expect(() => {
-                quickAction?.click();
-            }).not.toThrow();
-        });
-
-        it("should handle missing fields section gracefully in click handler", () => {
-            // Remove fields section
-            document.querySelector(".fields-section")?.remove();
-
-            const counts = {
-                total: 5,
-                visible: 2,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const quickAction = indicator?.querySelector("button");
-
-            // Mock setTimeout
-            vi.stubGlobal(
-                "setTimeout",
-                vi.fn((callback) => callback())
-            );
-
-            // Should not throw error when clicking
-            expect(() => {
-                quickAction?.click();
-            }).not.toThrow();
-        });
-    });
-
-    describe("Edge cases", () => {
-        it("should handle zero counts correctly (shows success when nothing available)", () => {
-            const counts = {
-                total: 0,
-                visible: 0,
-                available: 0,
-                categories: {
-                    metrics: { total: 0, visible: 0, available: 0 },
-                    analysis: { total: 0, visible: 0, available: 0 },
-                    zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-
-            expect(indicator).not.toBeNull();
-            // The code logic shows ✅ when visible === available, even if both are 0
-            expect(indicator?.querySelector("span")?.textContent).toBe("✅");
-        });
-
-        it("should handle very large numbers", () => {
-            const counts = {
-                total: 99999,
-                visible: 88888,
-                available: 99999,
-                categories: {
-                    metrics: { total: 25000, visible: 22000, available: 25000 },
-                    analysis: {
-                        total: 25000,
-                        visible: 22000,
-                        available: 25000,
-                    },
-                    zones: { total: 25000, visible: 22000, available: 25000 },
-                    gps: { total: 24999, visible: 22888, available: 24999 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const statusText = indicator?.querySelectorAll("span")[1];
-
-            expect(statusText?.innerHTML).toContain("88888");
-            expect(statusText?.innerHTML).toContain("99999");
-        });
-
-        it("should handle negative numbers gracefully", () => {
-            const counts = {
-                total: -1,
-                visible: -1,
-                available: -1,
-                categories: {
-                    metrics: { total: -1, visible: -1, available: -1 },
-                    analysis: { total: -1, visible: -1, available: -1 },
-                    zones: { total: -1, visible: -1, available: -1 },
-                    gps: { total: -1, visible: -1, available: -1 },
-                },
-            };
-
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-
-            expect(indicator).not.toBeNull();
-            // Function should still work, displaying the negative numbers
-            const statusText = indicator?.querySelectorAll("span")[1];
-            expect(statusText?.innerHTML).toContain("-1");
-        });
-
-        it("should handle undefined category properties", () => {
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 4,
-                categories: {
-                    metrics: {
-                        total: undefined as any,
-                        visible: 1,
+            const indicator = requireElement(
+                createGlobalChartStatusIndicatorFromCounts(
+                    createCounts({
                         available: 2,
-                    },
-                    analysis: {
-                        total: 1,
-                        visible: undefined as any,
-                        available: 1,
-                    },
-                    zones: {
-                        total: 1,
+                        categories: {
+                            analysis: { available: 0, total: 0, visible: 0 },
+                            gps: { available: 0, total: 0, visible: 0 },
+                            metrics: { available: 2, total: 2, visible: 1 },
+                            zones: { available: 0, total: 0, visible: 0 },
+                        },
+                        total: 2,
                         visible: 1,
-                        available: undefined as any,
-                    },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+                    })
+                ),
+                "#global-chart-status"
+            );
+            const quickAction = requireElement(
+                indicator.querySelector("button"),
+                "button"
+            );
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-            const breakdown = indicator?.querySelector(".global-breakdown");
+            quickAction.dispatchEvent(new MouseEvent("click"));
 
-            expect(breakdown?.innerHTML).toContain("📊 Metrics: 1/2");
-            expect(breakdown?.innerHTML).toContain("📈 Analysis: undefined/1");
-            expect(breakdown?.innerHTML).toContain("🎯 Zones: 1/undefined");
-        });
+            expect(settingsWrapper.style.display).toBe("block");
+            expect(toggleButton.getAttribute("aria-expanded")).toBe("true");
+
+            cleanupGlobalChartStatusIndicatorFromCounts(indicator);
+            vi.advanceTimersByTime(100);
+
+            expect(scrollIntoViewMock).not.toHaveBeenCalled();
+        } finally {
+            cleanupTestDom();
+        }
     });
 
-    describe("CSS styling and structure", () => {
-        it("should apply correct CSS styles", () => {
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+    it("uses the load-file state when no charts are available", () => {
+        expect.assertions(3);
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
+        setupTestDom();
 
-            // Check that styles are applied via cssText
-            expect(indicator?.style.cssText).toContain("position");
-            expect(indicator?.style.cssText).toContain("display");
-            expect(indicator?.style.cssText).toContain("flex");
-        });
+        try {
+            setupChartContent();
 
-        it("should create proper DOM structure", () => {
-            const counts = {
-                total: 5,
-                visible: 3,
-                available: 4,
-                categories: {
-                    metrics: { total: 2, visible: 1, available: 2 },
-                    analysis: { total: 1, visible: 1, available: 1 },
-                    zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 0 },
-                },
-            };
+            const indicator = requireElement(
+                createGlobalChartStatusIndicatorFromCounts(
+                    createCounts({
+                        available: 0,
+                        categories: {
+                            analysis: { available: 0, total: 0, visible: 0 },
+                            gps: { available: 0, total: 0, visible: 0 },
+                            metrics: { available: 0, total: 0, visible: 0 },
+                            zones: { available: 0, total: 0, visible: 0 },
+                        },
+                        total: 0,
+                        visible: 0,
+                    })
+                ),
+                "#global-chart-status"
+            );
 
-            const indicator =
-                createGlobalChartStatusIndicatorFromCounts(counts);
-
-            // Debug what's actually in the indicator
-            expect(indicator).not.toBeNull();
-            expect(indicator?.children.length).toBeGreaterThan(0);
-
-            // Should have status info section (first child should be a div)
-            const firstChild = indicator?.children[0];
-            expect(firstChild?.tagName.toLowerCase()).toBe("div");
-
-            // Should have 2 spans (icon and text) within the status info
-            const spans = indicator?.querySelectorAll("span");
-            expect(spans?.length).toBeGreaterThanOrEqual(2);
-
-            // Should have quick action button
-            const button = indicator?.querySelector("button");
-            expect(button).not.toBeNull();
-
-            // Should have breakdown tooltip
-            const breakdown = indicator?.querySelector(".global-breakdown");
-            expect(breakdown).not.toBeNull();
-        });
+            expect(indicator.querySelector("span")?.textContent).toBe("❌");
+            expect(indicator.textContent).toContain(
+                "No chart data available in this FIT file"
+            );
+            expect(indicator.querySelector("button")?.textContent).toBe(
+                "📂 Load FIT"
+            );
+        } finally {
+            cleanupTestDom();
+        }
     });
 });

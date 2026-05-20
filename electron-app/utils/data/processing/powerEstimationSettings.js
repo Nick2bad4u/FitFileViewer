@@ -1,65 +1,63 @@
 /**
- * @file Persistence + defaults for estimated cycling power settings.
+ * Persistence and defaults for estimated cycling power settings.
  */
-
-import {
-    getPowerEstimationSetting,
-    setPowerEstimationSetting,
-} from "../../state/domain/settingsStateManager.js";
-
+import { getPowerEstimationSetting, setPowerEstimationSetting, } from "../../state/domain/settingsStateManager.js";
+const DEFAULT_POWER_ESTIMATION_SETTINGS = {
+    bikeWeightKg: 10,
+    cda: 0.32,
+    crr: 0.004,
+    drivetrainEfficiency: 0.97,
+    enabled: true,
+    gradeWindowMeters: 35,
+    maxPowerW: 2000,
+    riderWeightKg: 75,
+    windSpeedMps: 0,
+};
+const NUMERIC_SETTING_KEYS = [
+    "bikeWeightKg",
+    "cda",
+    "crr",
+    "drivetrainEfficiency",
+    "gradeWindowMeters",
+    "maxPowerW",
+    "riderWeightKg",
+    "windSpeedMps",
+];
 /**
- * @typedef {object} PowerEstimationSettings
+ * Reads the current estimated power settings with defaults for invalid values.
  *
- * @property {boolean} enabled
- * @property {number} riderWeightKg
- * @property {number} bikeWeightKg
- * @property {number} crr
- * @property {number} cda
- * @property {number} drivetrainEfficiency
- * @property {number} windSpeedMps
- * @property {number} gradeWindowMeters
- * @property {number} maxPowerW
- */
-
-/**
- * @returns {PowerEstimationSettings}
+ * @returns The normalized estimated power settings.
  */
 export function getPowerEstimationSettings() {
     const enabledRaw = getPowerEstimationSetting("enabled");
-
-    /**
-     * @param {string} key
-     * @param {number} fallback
-     */
-    const getNum = (key, fallback) => {
-        const v = getPowerEstimationSetting(key);
-        return typeof v === "number" && Number.isFinite(v) ? v : fallback;
-    };
-
-    return {
+    const settings = {
+        ...DEFAULT_POWER_ESTIMATION_SETTINGS,
         enabled: enabledRaw !== false,
-        riderWeightKg: getNum("riderWeightKg", 75),
-        bikeWeightKg: getNum("bikeWeightKg", 10),
-        crr: getNum("crr", 0.004),
-        cda: getNum("cda", 0.32),
-        drivetrainEfficiency: getNum("drivetrainEfficiency", 0.97),
-        windSpeedMps: getNum("windSpeedMps", 0),
-        gradeWindowMeters: getNum("gradeWindowMeters", 35),
-        maxPowerW: getNum("maxPowerW", 2000),
     };
+    for (const key of NUMERIC_SETTING_KEYS) {
+        settings[key] = getFiniteNumberSetting(key, DEFAULT_POWER_ESTIMATION_SETTINGS[key]);
+    }
+    return settings;
 }
-
 /**
- * @param {PowerEstimationSettings} s
+ * Persists all estimated power settings.
+ *
+ * @param settings - Settings to store for later calculations.
  */
-export function setPowerEstimationSettings(s) {
-    setPowerEstimationSetting("enabled", s.enabled);
-    setPowerEstimationSetting("riderWeightKg", s.riderWeightKg);
-    setPowerEstimationSetting("bikeWeightKg", s.bikeWeightKg);
-    setPowerEstimationSetting("crr", s.crr);
-    setPowerEstimationSetting("cda", s.cda);
-    setPowerEstimationSetting("drivetrainEfficiency", s.drivetrainEfficiency);
-    setPowerEstimationSetting("windSpeedMps", s.windSpeedMps);
-    setPowerEstimationSetting("gradeWindowMeters", s.gradeWindowMeters);
-    setPowerEstimationSetting("maxPowerW", s.maxPowerW);
+export function setPowerEstimationSettings(settings) {
+    setPowerEstimationSetting("enabled", settings.enabled);
+    setPowerEstimationSetting("riderWeightKg", settings.riderWeightKg);
+    setPowerEstimationSetting("bikeWeightKg", settings.bikeWeightKg);
+    setPowerEstimationSetting("crr", settings.crr);
+    setPowerEstimationSetting("cda", settings.cda);
+    setPowerEstimationSetting("drivetrainEfficiency", settings.drivetrainEfficiency);
+    setPowerEstimationSetting("windSpeedMps", settings.windSpeedMps);
+    setPowerEstimationSetting("gradeWindowMeters", settings.gradeWindowMeters);
+    setPowerEstimationSetting("maxPowerW", settings.maxPowerW);
+}
+function getFiniteNumberSetting(key, fallback) {
+    const value = getPowerEstimationSetting(key);
+    return typeof value === "number" && Number.isFinite(value)
+        ? value
+        : fallback;
 }

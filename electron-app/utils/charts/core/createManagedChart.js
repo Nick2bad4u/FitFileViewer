@@ -1,32 +1,20 @@
-// Centralized helper for creating and registering Chart.js instances
-// Ensures all charts participate in the shared _chartjsInstances lifecycle.
-
+const chartGlobal = globalThis;
 /**
- * Create a managed Chart.js instance and register it globally.
+ * Create a Chart.js instance and register it in the shared lifecycle registry.
  *
- * Callers are responsible for error handling and logging so that messages can
- * remain contextual to the specific chart utility.
- *
- * @param {HTMLCanvasElement} canvas - Canvas element to render into.
- * @param {any} config - Chart.js configuration object.
- *
- * @returns {any} The created Chart instance, or null if Chart is undefined.
+ * @param canvas - Canvas element to render into.
+ * @param config - Chart.js configuration object.
+ * @returns The created chart instance, or null when Chart.js is not loaded.
  */
 export function createManagedChart(canvas, config) {
-    const ChartCtor = /** @type {any} */ (globalThis).Chart;
-    if (!ChartCtor) {
-        // In non-browser/unit-test environments, Chart may be undefined
+    const ChartCtor = chartGlobal.Chart;
+    if (typeof ChartCtor !== "function") {
         return null;
     }
-
     const chart = new ChartCtor(canvas, config);
-
-    if (chart) {
-        if (!Array.isArray(/** @type {any} */ (globalThis)._chartjsInstances)) {
-            /** @type {any} */ (globalThis)._chartjsInstances = [];
-        }
-        /** @type {any} */ (globalThis)._chartjsInstances.push(chart);
+    if (!Array.isArray(chartGlobal._chartjsInstances)) {
+        chartGlobal._chartjsInstances = [];
     }
-
+    chartGlobal._chartjsInstances.push(chart);
     return chart;
 }

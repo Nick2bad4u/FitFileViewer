@@ -1,343 +1,401 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
 
-// Hoisted references to control the mock across dynamic imports
-const { mockedChartStateManager } = /** @type {any} */ vi.hoisted(() => ({
-    mockedChartStateManager: { handleThemeChange: vi.fn() },
+type ThemeChangeHandler = (theme?: string) => void;
+type UpdateAllHandler = (reason: string) => void;
+
+interface TestWindow extends Window {
+    ChartUpdater?: { updateAll: ReturnType<typeof vi.fn<UpdateAllHandler>> };
+    chartUpdater?: { updateAll: ReturnType<typeof vi.fn<UpdateAllHandler>> };
+    globalData?: Record<string, never>;
+}
+
+const { mockedChartStateManager } = vi.hoisted(() => ({
+    mockedChartStateManager: {
+        handleThemeChange: vi.fn<ThemeChangeHandler>(),
+    },
 }));
 
-// Default mock: chartStateManager present
-vi.mock("../../../../../utils/charts/core/chartStateManager.js", () => ({
+vi.mock(import("../../../../../utils/charts/core/chartStateManager.js"), () => ({
     chartStateManager: mockedChartStateManager,
 }));
 
-/**
- * Helper to dynamically import the module under test fresh each time
- */
-async function importModule() {
-    return await import("../../../../../utils/charts/theming/chartThemeListener.js");
+async function importModule(): Promise<
+    typeof import("../../../../../utils/charts/theming/chartThemeListener.js")
+> {
+    return await import(
+        "../../../../../utils/charts/theming/chartThemeListener.js"
+    );
+}
+
+function testWindow(): TestWindow {
+    return window as TestWindow;
+}
+
+function resetDocumentBody(): void {
+    const freshBody = document.createElement("body");
+    document.documentElement.replaceChild(freshBody, document.body);
+}
+
+function resetGlobals(): void {
+    const currentWindow = testWindow();
+
+    delete currentWindow.ChartUpdater;
+    delete currentWindow.chartUpdater;
+    delete currentWindow.globalData;
+}
+
+function buildSettingsDOM(): HTMLElement {
+    const settings = document.createElement("div");
+    settings.id = "settings";
+
+    const slider1 = document.createElement("input");
+    slider1.type = "range";
+    slider1.min = "0";
+    slider1.max = "100";
+    slider1.value = "25";
+
+    const slider2 = document.createElement("input");
+    slider2.type = "range";
+    slider2.min = "5";
+    slider2.max = "5";
+    slider2.value = "5";
+
+    const toggleOn = document.createElement("div");
+    toggleOn.className = "toggle-switch";
+    const thumbOn = document.createElement("div");
+    thumbOn.className = "toggle-thumb";
+    thumbOn.style.left = "26px";
+    toggleOn.append(thumbOn);
+
+    const statusOn = document.createElement("span");
+    statusOn.textContent = "On";
+
+    const toggleOff = document.createElement("div");
+    toggleOff.className = "toggle-switch";
+    const thumbOff = document.createElement("div");
+    thumbOff.className = "toggle-thumb";
+    thumbOff.style.left = "0px";
+    toggleOff.append(thumbOff);
+
+    const statusOff = document.createElement("span");
+    statusOff.textContent = "Off";
+
+    settings.append(
+        slider1,
+        slider2,
+        toggleOn,
+        statusOn,
+        toggleOff,
+        statusOff
+    );
+    document.body.append(settings);
+
+    return settings;
+}
+
+function expectSettingsThemeApplied(settings: HTMLElement): void {
+    const sliderBackgrounds = Array.from(
+        settings.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+        (slider) => slider.style.background
+    );
+    const toggleBackgrounds = Array.from(
+        settings.querySelectorAll<HTMLElement>(".toggle-switch"),
+        (toggle) => toggle.style.background
+    );
+    const statusColors = Array.from(
+        settings.querySelectorAll<HTMLElement>(".toggle-switch + span"),
+        (status) => status.style.color
+    );
+
+    expect(sliderBackgrounds).toHaveLength(2);
+    expect(sliderBackgrounds[0]).toContain("25%");
+    expect(sliderBackgrounds[1]).toContain("0%");
+    expect(toggleBackgrounds).toStrictEqual([
+        "var(--color-success)",
+        "var(--color-border)",
+    ]);
+    expect(statusColors).toStrictEqual([
+        "var(--color-success)",
+        "var(--color-fg)",
+    ]);
+}
+
+async function runWithCleanEnvironment(
+    testBody: () => Promise<void> | void
+): Promise<void> {
+    resetDocumentBody();
+    resetGlobals();
+    mockedChartStateManager.handleThemeChange.mockReset();
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+    vi.spyOn(console, "log").mockReturnValue(undefined);
+    vi.spyOn(console, "warn").mockReturnValue(undefined);
+
+    try {
+        await testBody();
+    } finally {
+        vi.resetModules();
+        vi.restoreAllMocks();
+        vi.useRealTimers();
+    }
 }
 
 describe("chartThemeListener", () => {
-    /** @type {any} */ let origWarn;
-    /** @type {any} */ let origLog;
+    it("sets up listener, debounces chart updates, and updates settings UI", async () => {
+        expect.assertions(8);
 
-    beforeEach(() => {
-        // Replace body to drop any lingering event listeners from previous tests
-        const freshBody = document.createElement("body");
-        document.documentElement.replaceChild(freshBody, document.body);
-        // Reset mock state
-        mockedChartStateManager.handleThemeChange.mockReset();
-        // Clean globals
-        // @ts-ignore
-        delete window.ChartUpdater;
-        // @ts-ignore
-        delete window.chartUpdater;
-        // @ts-ignore
-        delete window.globalData;
-        origWarn = console.warn;
-        origLog = console.log;
-        console.warn = vi.fn();
-        console.log = vi.fn();
-    });
+        await runWithCleanEnvironment(async () => {
+            const { setupChartThemeListener } = await importModule();
+            const chartsContainer = document.createElement("div");
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
 
-    afterEach(() => {
-        console.warn = /** @type {any} */ origWarn;
-        console.log = /** @type {any} */ origLog;
-        vi.resetModules();
-        vi.useRealTimers();
-    });
+            vi.useFakeTimers();
+            setupChartThemeListener(chartsContainer, settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
 
-    function buildSettingsDOM() {
-        const settings = document.createElement("div");
-        settings.id = "settings";
+            expect(
+                mockedChartStateManager.handleThemeChange
+            ).not.toHaveBeenCalled();
 
-        // sliders
-        const slider1 = document.createElement("input");
-        slider1.type = "range";
-        slider1.min = "0";
-        slider1.max = "100";
-        slider1.value = "25";
-        const slider2 = document.createElement("input");
-        slider2.type = "range";
-        slider2.min = "5";
-        slider2.max = "5"; // percentage should fall back to 0
-        slider2.value = "5";
+            vi.advanceTimersByTime(160);
 
-        // toggles
-        const toggleOn = document.createElement("div");
-        toggleOn.className = "toggle-switch";
-        const thumbOn = document.createElement("div");
-        thumbOn.className = "toggle-thumb";
-        thumbOn.style.left = "26px"; // considered ON
-        toggleOn.appendChild(thumbOn);
-        const statusOn = document.createElement("span");
-        statusOn.textContent = "On";
+            expect(
+                mockedChartStateManager.handleThemeChange
+            ).toHaveBeenCalledWith("dark");
 
-        const toggleOff = document.createElement("div");
-        toggleOff.className = "toggle-switch";
-        const thumbOff = document.createElement("div");
-        thumbOff.className = "toggle-thumb";
-        thumbOff.style.left = "0px"; // OFF
-        toggleOff.appendChild(thumbOff);
-        const statusOff = document.createElement("span");
-        statusOff.textContent = "Off";
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
 
-        settings.append(
-            slider1,
-            slider2,
-            toggleOn,
-            statusOn,
-            toggleOff,
-            statusOff
-        );
-        document.body.appendChild(settings);
-        return settings;
-    }
-
-    it("sets up listener, debounces, updates charts via chartStateManager, and updates settings UI", async () => {
-        const { setupChartThemeListener } = await importModule();
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-
-        // globalData existence gates chart update
-        // @ts-ignore
-        window.globalData = {};
-
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-
-        const evt = new CustomEvent("themechange", {
-            detail: { theme: "dark" },
+            expectSettingsThemeApplied(settings);
         });
-        document.body.dispatchEvent(evt);
-
-        // Should debounce and then call handleThemeChange
-        expect(
-            mockedChartStateManager.handleThemeChange
-        ).not.toHaveBeenCalled();
-        vi.advanceTimersByTime(160);
-        expect(mockedChartStateManager.handleThemeChange).toHaveBeenCalledTimes(
-            1
-        );
-
-        // Settings UI should be updated
-        const sliders = settings.querySelectorAll('input[type="range"]');
-        expect(sliders.length).toBe(2);
-        const s1 = /** @type {HTMLInputElement} */ sliders[0];
-        expect(s1.style.background).toContain("25%");
-        const s2 = /** @type {HTMLInputElement} */ sliders[1];
-        expect(s2.style.background).toContain("0%");
-
-        const toggles = settings.querySelectorAll(".toggle-switch");
-        // First toggle (ON) picks success color, second stays border
-        const t1 = /** @type {HTMLElement} */ toggles[0];
-        const t2 = /** @type {HTMLElement} */ toggles[1];
-        expect(t1.style.background).toBe("var(--color-success)");
-        expect(t2.style.background).toBe("var(--color-border)");
-
-        const statuses = settings.querySelectorAll(".toggle-switch + span");
-        expect(/** @type {HTMLElement} */ statuses[0].style.color).toBe(
-            "var(--color-success)"
-        );
-        expect(/** @type {HTMLElement} */ statuses[1].style.color).toBe(
-            "var(--color-fg)"
-        );
     });
 
-    it("does nothing chart-wise when globalData undefined", async () => {
-        const { setupChartThemeListener } = await importModule();
-        const settings = buildSettingsDOM();
-        const chartsContainer = document.createElement("div");
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(
-            new CustomEvent("themechange", { detail: { theme: "light" } })
-        );
-        vi.advanceTimersByTime(200);
-        expect(
-            mockedChartStateManager.handleThemeChange
-        ).not.toHaveBeenCalled();
+    it("does not update charts when global data is unavailable", async () => {
+        expect.assertions(7);
+
+        await runWithCleanEnvironment(async () => {
+            const { setupChartThemeListener } = await importModule();
+            const chartsContainer = document.createElement("div");
+            const settings = buildSettingsDOM();
+
+            vi.useFakeTimers();
+            setupChartThemeListener(chartsContainer, settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "light" } })
+            );
+            vi.advanceTimersByTime(200);
+
+            expect(
+                mockedChartStateManager.handleThemeChange
+            ).not.toHaveBeenCalled();
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
-    it("falls back to window.ChartUpdater when chartStateManager unavailable", async () => {
-        vi.resetModules();
-        // Remock chartStateManager to null for this import cycle
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const { setupChartThemeListener } = await importModule();
+    it("falls back to ChartUpdater when chartStateManager is unavailable", async () => {
+        expect.assertions(7);
 
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-        // @ts-ignore
-        window.globalData = {};
-        const updateAll = vi.fn();
-        // @ts-ignore
-        window.ChartUpdater = { updateAll };
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
 
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(
-            new CustomEvent("themechange", { detail: { theme: "dark" } })
-        );
-        vi.advanceTimersByTime(200);
-        expect(updateAll).toHaveBeenCalledWith("Theme change");
+            const { setupChartThemeListener } = await importModule();
+            const settings = buildSettingsDOM();
+            const updateAll = vi.fn<UpdateAllHandler>();
+            testWindow().globalData = {};
+            testWindow().ChartUpdater = { updateAll };
+
+            vi.useFakeTimers();
+            setupChartThemeListener(document.createElement("div"), settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            vi.advanceTimersByTime(200);
+
+            expect(updateAll).toHaveBeenCalledWith("Theme change");
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
-    it("falls back to window.chartUpdater when both chartStateManager and ChartUpdater unavailable", async () => {
-        vi.resetModules();
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const { setupChartThemeListener } = await importModule();
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-        // @ts-ignore
-        window.globalData = {};
-        const updateAll = vi.fn();
-        // @ts-ignore
-        window.chartUpdater = { updateAll };
+    it("falls back to chartUpdater when ChartUpdater is unavailable", async () => {
+        expect.assertions(7);
 
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(
-            new CustomEvent("themechange", { detail: { theme: "dark" } })
-        );
-        vi.advanceTimersByTime(200);
-        expect(updateAll).toHaveBeenCalledWith("Theme change");
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+
+            const { setupChartThemeListener } = await importModule();
+            const settings = buildSettingsDOM();
+            const updateAll = vi.fn<UpdateAllHandler>();
+            testWindow().globalData = {};
+            testWindow().chartUpdater = { updateAll };
+
+            vi.useFakeTimers();
+            setupChartThemeListener(document.createElement("div"), settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            vi.advanceTimersByTime(200);
+
+            expect(updateAll).toHaveBeenCalledWith("Theme change");
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
     it("warns when no chart update mechanism is available", async () => {
-        vi.resetModules();
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const warnSpy = vi.spyOn(console, "warn");
-        const { setupChartThemeListener } = await importModule();
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-        // @ts-ignore
-        window.globalData = {};
+        expect.assertions(7);
 
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-        document.body.dispatchEvent(
-            new CustomEvent("themechange", { detail: { theme: "dark" } })
-        );
-        vi.advanceTimersByTime(200);
-        expect(warnSpy).toHaveBeenCalledWith(
-            "[ChartThemeListener] No chart update mechanism available"
-        );
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+
+            const { setupChartThemeListener } = await importModule();
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
+
+            vi.useFakeTimers();
+            setupChartThemeListener(document.createElement("div"), settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            vi.advanceTimersByTime(200);
+
+            expect(console.warn).toHaveBeenCalledWith(
+                "[ChartThemeListener] No chart update mechanism available"
+            );
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
-    it("removeChartThemeListener detaches handler", async () => {
-        const { setupChartThemeListener, removeChartThemeListener } =
-            await importModule();
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-        // @ts-ignore
-        window.globalData = {};
+    it("removes the active theme listener", async () => {
+        expect.assertions(2);
 
-        vi.useFakeTimers();
-        setupChartThemeListener(chartsContainer, settings);
-        removeChartThemeListener();
-        document.body.dispatchEvent(
-            new CustomEvent("themechange", { detail: { theme: "dark" } })
-        );
-        vi.advanceTimersByTime(200);
-        expect(
-            mockedChartStateManager.handleThemeChange
-        ).not.toHaveBeenCalled();
+        await runWithCleanEnvironment(async () => {
+            const { removeChartThemeListener, setupChartThemeListener } =
+                await importModule();
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
+
+            vi.useFakeTimers();
+            setupChartThemeListener(document.createElement("div"), settings);
+            removeChartThemeListener();
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            vi.advanceTimersByTime(200);
+
+            expect(
+                mockedChartStateManager.handleThemeChange
+            ).not.toHaveBeenCalled();
+            expect(
+                settings.querySelector<HTMLInputElement>('input[type="range"]')
+                    ?.style.background
+            ).toBe("");
+        });
     });
 
-    it("forceUpdateChartTheme triggers updates immediately and updates settings UI", async () => {
-        // For this test, explicitly exercise the fallback path to ensure an update occurs
-        vi.resetModules();
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const { forceUpdateChartTheme } = await importModule();
-        const chartsContainer = document.createElement("div");
-        const settings = buildSettingsDOM();
-        // @ts-ignore
-        window.globalData = {};
-        const updateAll = vi.fn();
-        // @ts-ignore
-        window.ChartUpdater = { updateAll };
+    it("force updates charts immediately and updates settings UI", async () => {
+        expect.assertions(7);
 
-        forceUpdateChartTheme(chartsContainer, settings);
-        expect(updateAll).toHaveBeenCalledWith("Force theme update");
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
 
-        // Settings UI should be updated as well
-        const sliders = settings.querySelectorAll('input[type="range"]');
-        expect(
-            /** @type {HTMLInputElement} */ sliders[0].style.background
-        ).toContain("25%");
-        const toggles = settings.querySelectorAll(".toggle-switch");
-        expect(/** @type {HTMLElement} */ toggles[0].style.background).toBe(
-            "var(--color-success)"
-        );
+            const { forceUpdateChartTheme } = await importModule();
+            const updateAll = vi.fn<UpdateAllHandler>();
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
+            testWindow().ChartUpdater = { updateAll };
+
+            forceUpdateChartTheme(document.createElement("div"), settings);
+
+            expect(updateAll).toHaveBeenCalledWith("Force theme update");
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
-    it("forceUpdateChartTheme falls back to window.chartUpdater when ChartUpdater is unavailable", async () => {
-        vi.resetModules();
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const { forceUpdateChartTheme } = await importModule();
-        const chartsContainer = document.createElement("div");
-        // @ts-ignore
-        window.globalData = {};
-        const updateAll = vi.fn();
-        // @ts-ignore
-        window.chartUpdater = { updateAll };
-        forceUpdateChartTheme(chartsContainer, /** @type {any} */ null);
-        expect(updateAll).toHaveBeenCalledWith("Force theme update");
+    it("force update falls back to chartUpdater", async () => {
+        expect.assertions(8);
+
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+
+            const { forceUpdateChartTheme } = await importModule();
+            const updateAll = vi.fn<UpdateAllHandler>();
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
+            testWindow().chartUpdater = { updateAll };
+
+            expect(() =>
+                forceUpdateChartTheme(document.createElement("div"), settings)
+            ).not.toThrow();
+
+            expect(updateAll).toHaveBeenCalledWith("Force theme update");
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 
-    it("forceUpdateChartTheme warns when no chart update mechanism is available", async () => {
-        vi.resetModules();
-        vi.doMock(
-            "../../../../../utils/charts/core/chartStateManager.js",
-            () => ({ chartStateManager: null })
-        );
-        const { forceUpdateChartTheme } = await importModule();
-        const chartsContainer = document.createElement("div");
-        // @ts-ignore
-        window.globalData = {};
-        const warnSpy = vi.spyOn(console, "warn");
-        // Ensure no global updaters exist
-        // @ts-ignore
-        delete window.ChartUpdater;
-        // @ts-ignore
-        delete window.chartUpdater;
-        forceUpdateChartTheme(chartsContainer, /** @type {any} */ null);
-        expect(warnSpy).toHaveBeenCalledWith(
-            "[ChartThemeListener] No chart update mechanism available for force update"
-        );
-    });
+    it("force update warns when no chart update mechanism is available", async () => {
+        expect.assertions(8);
 
-    it("forceUpdateChartTheme handles errors in settings update gracefully (logs error)", async () => {
-        const { forceUpdateChartTheme } = await importModule();
-        const chartsContainer = document.createElement("div");
-        // @ts-ignore
-        window.globalData = {};
-        const errorSpy = vi.spyOn(console, "error");
-        // Pass a non-HTMLElement truthy object as settings to trigger catch in updateSettingsPanelTheme
-        // @ts-ignore
-        const bogusSettings = {};
-        forceUpdateChartTheme(
-            chartsContainer,
-            /** @type {any} */ bogusSettings
-        );
-        expect(errorSpy).toHaveBeenCalled();
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+
+            const { forceUpdateChartTheme } = await importModule();
+            const settings = buildSettingsDOM();
+            testWindow().globalData = {};
+
+            expect(() =>
+                forceUpdateChartTheme(document.createElement("div"), settings)
+            ).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalledWith(
+                "[ChartThemeListener] No chart update mechanism available for force update"
+            );
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
     });
 });

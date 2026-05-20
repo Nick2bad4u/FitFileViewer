@@ -1,248 +1,193 @@
-/**
- * Provides a clean interface for chart tab functionality without hacky
- * implementations
- *
- * @version 3.0.0
- *
- * @file Chart Tab Integration - Clean integration between chart state and tab
- *   management
- *
- * @author FitFileViewer Development Team
- */
-
 import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
-
 /**
- * Chart Tab Integration - manages the interaction between chart rendering and
- * tab system
+ * Coordinates chart rendering state with the application tab system.
  */
-class ChartTabIntegration {
+export class ChartTabIntegration {
     isInitialized = false;
-
-    constructor() {
-        // Don't auto-initialize - let setupWindow() control initialization timing
-    }
-
     /**
-     * Check if charts should be rendered and do so if needed
+     * Check whether loaded data and the active tab require chart rendering.
      */
     checkAndRenderCharts() {
-        const globalData = getState("globalData");
-
-        if (!globalData || !globalData.recordMesgs) {
-            console.log(
-                "[ChartTabIntegration] No data available for chart rendering"
-            );
+        const globalData = getGlobalFitData();
+        if (!hasRecordMessages(globalData)) {
+            console.log("[ChartTabIntegration] No data available for chart rendering");
             return;
         }
-
         if (this.isChartTabActive()) {
-            console.log(
-                "[ChartTabIntegration] Chart tab is active, requesting render"
-            );
-            chartStateManager.debouncedRender(
-                "Integration check after file load"
-            );
-        } else {
-            console.log(
-                "[ChartTabIntegration] Chart tab not active, skipping render"
-            );
+            console.log("[ChartTabIntegration] Chart tab is active, requesting render");
+            chartStateManager.debouncedRender("Integration check after file load");
+        }
+        else {
+            console.log("[ChartTabIntegration] Chart tab not active, skipping render");
         }
     }
-
     /**
-     * Cleanup method for compatibility
+     * Cleanup compatibility alias.
      */
     cleanup() {
         this.destroy();
     }
-
     /**
-     * Clean up integration
+     * Clean up integration state.
      */
     destroy() {
         this.isInitialized = false;
         console.log("[ChartTabIntegration] Destroyed");
     }
-
     /**
-     * Disable the chart tab
+     * Disable the chart tab button when no FIT data is loaded.
      */
     disableChartTab() {
         const chartTabButton = this.getChartTabButton();
-        if (chartTabButton) {
-            /** @type {any} */ (chartTabButton).disabled = true;
-            chartTabButton.classList.add("disabled");
-            chartTabButton.style.opacity = "0.5";
+        if (!chartTabButton) {
+            return;
         }
+        chartTabButton.disabled = true;
+        chartTabButton.classList.add("disabled");
+        chartTabButton.style.opacity = "0.5";
     }
-
     /**
-     * Enable the chart tab
+     * Enable the chart tab button when FIT data is loaded.
      */
     enableChartTab() {
         const chartTabButton = this.getChartTabButton();
-        if (chartTabButton) {
-            /** @type {any} */ (chartTabButton).disabled = false;
-            chartTabButton.classList.remove("disabled");
-            chartTabButton.style.opacity = "1";
+        if (!chartTabButton) {
+            return;
         }
+        chartTabButton.disabled = false;
+        chartTabButton.classList.remove("disabled");
+        chartTabButton.style.opacity = "1";
     }
-
     /**
-     * Get the chart tab button element
-     *
-     * @returns {HTMLElement | null} Chart tab button or null if not found
+     * Get the chart tab button element.
      */
     getChartTabButton() {
-        return (
-            document.querySelector("#tab_chartjs") ||
-            document.querySelector("#tab_chart") ||
-            document.querySelector('[data-tab="chart"]')
-        );
+        return asDisableableTabButton(document.querySelector("#tab_chartjs") ??
+            document.querySelector("#tab_chart") ??
+            document.querySelector('[data-tab="chart"]'));
     }
-
     /**
-     * Get integration status information
-     *
-     * @returns {Object} Status information
+     * Get integration status information.
      */
     getStatus() {
         return {
             chartState: chartStateManager.getChartInfo(),
             chartTabActive: this.isChartTabActive(),
-            hasData: Boolean(getState("globalData")?.recordMesgs),
+            hasData: hasRecordMessages(getGlobalFitData()),
             isInitialized: this.isInitialized,
             tabState: tabStateManager.getActiveTabInfo(),
         };
     }
-
     /**
-     * Handle new data being loaded
+     * Handle new FIT data being loaded or cleared.
      *
-     * @param {Object} newData - The new global data
+     * @param newData - The new global FIT data payload.
      */
     handleDataChange(newData) {
-        console.log(
-            "[ChartTabIntegration] Data changed, updating availability"
-        );
-
-        if (newData && /** @type {any} */ (newData).recordMesgs) {
-            // Enable chart tab
+        console.log("[ChartTabIntegration] Data changed, updating availability");
+        if (hasRecordMessages(asFitGlobalData(newData))) {
             this.enableChartTab();
-
-            // If chart tab is active, render charts
             if (this.isChartTabActive()) {
-                chartStateManager.debouncedRender(
-                    "New data loaded via integration"
-                );
+                chartStateManager.debouncedRender("New data loaded via integration");
             }
-        } else {
-            // Disable chart tab and clear charts
+        }
+        else {
             this.disableChartTab();
             chartStateManager.clearChartState();
         }
     }
-
     /**
-     * Initialize the chart tab integration
+     * Initialize the chart tab integration.
      */
     initialize() {
         if (this.isInitialized) {
             console.warn("[ChartTabIntegration] Already initialized");
             return;
         }
-
         this.setupIntegration();
         this.isInitialized = true;
-
         console.log("[ChartTabIntegration] Initialized successfully");
     }
-
     /**
-     * Check if chart tab is currently active
-     *
-     * @returns {boolean} True if chart tab is active
+     * Check if the chart tab is currently active.
      */
     isChartTabActive() {
         const activeTab = getState("ui.activeTab");
         return activeTab === "chartjs" || activeTab === "chart";
     }
-
     /**
-     * Force chart refresh (for external calls)
+     * Force chart refresh for external callers.
      *
-     * @param {string} reason - Reason for the refresh
+     * @param reason - Reason for the refresh.
      */
     refreshCharts(reason = "Manual refresh") {
-        const globalData = getState("globalData");
-
-        if (!globalData || !globalData.recordMesgs) {
-            showNotification(
-                "No data available for chart rendering",
-                "warning"
-            );
+        const globalData = getGlobalFitData();
+        if (!hasRecordMessages(globalData)) {
+            void showNotification("No data available for chart rendering", "warning");
             return false;
         }
-
         chartStateManager.forceRender(reason);
         return true;
     }
-
     /**
-     * Set up integration between chart and tab systems
+     * Set up integration between chart and tab systems.
      */
     setupIntegration() {
-        // Subscribe to file loading events to trigger chart updates
-        subscribe(
-            "globalData",
-            (/** @type {any} */ newData, /** @type {any} */ oldData) => {
-                if (newData !== oldData) {
-                    this.handleDataChange(newData);
-                }
+        subscribe("globalData", (newData, oldData) => {
+            if (newData !== oldData) {
+                this.handleDataChange(newData);
             }
-        );
-
-        // Subscribe to file loading state
-        subscribe("app.isOpeningFile", (/** @type {any} */ isOpening) => {
-            if (!isOpening) {
-                // File finished loading, check if we need to render charts
+        });
+        subscribe("app.isOpeningFile", (isOpening) => {
+            if (isOpening !== true) {
                 this.checkAndRenderCharts();
             }
         });
-
-        // Expose methods for external calls (backward compatibility)
-        /** @type {any} */ (globalThis).chartTabIntegration = this;
+        const chartGlobal = globalThis;
+        chartGlobal.chartTabIntegration = this;
     }
     /**
-     * Switch to chart tab
-     *
-     * @returns {boolean} True if switch was successful
+     * Switch to the chart tab when FIT data is available.
      */
     switchToChartTab() {
-        const globalData = getState("globalData");
-
-        if (!globalData || !globalData.recordMesgs) {
-            showNotification("Please load a FIT file first", "info");
+        const globalData = getGlobalFitData();
+        if (!hasRecordMessages(globalData)) {
+            void showNotification("Please load a FIT file first", "info");
             return false;
         }
-
-        return (
-            tabStateManager.switchToTab("chartjs") ||
-            tabStateManager.switchToTab("chart")
-        );
+        return (tabStateManager.switchToTab("chartjs") ||
+            tabStateManager.switchToTab("chart"));
     }
 }
-
-// Create and export singleton instance
-export const chartTabIntegration = new ChartTabIntegration();
-
-// Expose for debugging
-if (globalThis.window !== undefined) {
-    /** @type {any} */ (globalThis).chartTabIntegration = chartTabIntegration;
+function asDisableableTabButton(element) {
+    return element instanceof HTMLElement
+        ? element
+        : null;
 }
-
+function asFitGlobalData(value) {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    return isRecord(value) ? value : undefined;
+}
+function getGlobalFitData() {
+    return asFitGlobalData(getState("globalData")) ?? undefined;
+}
+function hasRecordMessages(globalData) {
+    return Array.isArray(globalData?.recordMesgs);
+}
+function isRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+/**
+ * Singleton chart tab integration used by the legacy UI bootstrap.
+ */
+export const chartTabIntegration = new ChartTabIntegration();
+const chartGlobal = globalThis;
+if (chartGlobal.window !== undefined) {
+    chartGlobal.chartTabIntegration = chartTabIntegration;
+}
 export default chartTabIntegration;

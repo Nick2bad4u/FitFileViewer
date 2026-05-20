@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { subscribeToChartSettings } from "../../../../../utils/state/domain/settingsStateManager.js";
 import { JSDOM } from "jsdom";
 
 // Mock dependencies
@@ -17,6 +16,7 @@ vi.mock(
 vi.mock(
     "../../../../../utils/charts/components/createChartStatusIndicatorFromCounts.js",
     () => ({
+        cleanupChartStatusIndicatorFromCounts: vi.fn(),
         createChartStatusIndicatorFromCounts: vi.fn().mockImplementation(() => {
             const element = document.createElement("div");
             element.id = "mock-chart-status-indicator-from-counts";
@@ -39,6 +39,7 @@ vi.mock(
 vi.mock(
     "../../../../../utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js",
     () => ({
+        cleanupGlobalChartStatusIndicatorFromCounts: vi.fn(),
         createGlobalChartStatusIndicatorFromCounts: vi
             .fn()
             .mockImplementation(() => {
@@ -323,17 +324,22 @@ describe("chartStatusIndicator.js", () => {
             // Assert that event listeners were added
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "fieldToggleChanged",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "chartsRendered",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
 
             // Assert that global indicator was created
-            const { createGlobalChartStatusIndicator } =
-                await import("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js");
-            expect(createGlobalChartStatusIndicator).toHaveBeenCalled();
+            const globalIndicatorModule = await import(
+                "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js"
+            );
+            expect(
+                vi.mocked(globalIndicatorModule.createGlobalChartStatusIndicator)
+            ).toHaveBeenCalled();
 
             // Verify globalData property was modified
             expect(
@@ -364,7 +370,12 @@ describe("chartStatusIndicator.js", () => {
             // Check that the event listeners were registered
             expect(fieldToggleHandlerCall).toBeTruthy();
             expect(chartsRenderedHandlerCall).toBeTruthy();
-            expect(vi.mocked(subscribeToChartSettings)).toHaveBeenCalled();
+            const settingsStateManager = await import(
+                "../../../../../utils/state/domain/settingsStateManager.js"
+            );
+            expect(
+                vi.mocked(settingsStateManager.subscribeToChartSettings)
+            ).toHaveBeenCalled();
 
             // Test that the event handlers can be called without errors
             if (fieldToggleHandlerCall) {

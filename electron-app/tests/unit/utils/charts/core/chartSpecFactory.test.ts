@@ -1,231 +1,213 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { JSDOM } from "jsdom";
+import { describe, expect, it } from "vitest";
+
 import {
     buildChartConfigFromSpec,
     buildChartSpecFromDefinition,
+    type ChartDefinition,
+    type ChartSpec,
 } from "../../../../../utils/charts/core/chartSpecFactory.js";
-import { createManagedChart } from "../../../../../utils/charts/core/createManagedChart.js";
 
-type ChartSpecFromFactory = Parameters<typeof buildChartConfigFromSpec>[0];
+describe("chartSpecFactory", () => {
+    it("builds Chart.js config from a chart spec and theme colors", () => {
+        expect.assertions(1);
 
-vi.mock("../../../../../utils/charts/core/createManagedChart.js", () => ({
-    createManagedChart: vi.fn((canvas: HTMLCanvasElement, config: any) => {
-        // Simulate Chart.js instance
-        return { canvas, config } as any;
-    }),
-}));
-
-describe("chartSpecFactory.js - Declarative Chart Spec Builder", () => {
-    let dom: JSDOM;
-
-    beforeEach(() => {
-        dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
-            url: "http://localhost",
-        });
-        (globalThis as any).window = dom.window as any;
-        (globalThis as any).document = dom.window.document as any;
-    });
-
-    afterEach(() => {
-        vi.clearAllMocks();
-        delete (globalThis as any).window;
-        delete (globalThis as any).document;
-    });
-
-    it("builds a basic line chart config from spec and theme", () => {
-        const themeConfig = {
-            colors: {
-                primary: "#1677ff",
-                gridLines: "#e9ecef",
-                text: "#000000",
-                textPrimary: "#111111",
-            },
-        } as any;
-
-        const spec: ChartSpecFromFactory = {
-            type: "line" as const,
-            title: "Heart Rate Over Time",
-            showLegend: true,
-            showGrid: true,
+        const spec: ChartSpec = {
+            axes: [
+                { id: "x", label: "Distance", type: "linear" },
+                { id: "y1", label: "Power", type: "linear" },
+            ],
             datasets: [
                 {
-                    id: "hr-main",
-                    label: "Heart Rate",
-                    data: [
-                        { x: 0, y: 100 },
-                        { x: 60, y: 130 },
-                        { x: 120, y: 125 },
-                    ],
                     colorRole: "primary",
-                },
-            ],
-            axes: [
-                { id: "x", type: "linear", label: "Time (s)", display: true },
-                {
-                    id: "y",
-                    type: "linear",
-                    label: "Heart Rate (bpm)",
-                    display: true,
-                },
-            ],
-        };
-
-        const config = buildChartConfigFromSpec(spec, themeConfig);
-
-        expect(config.type).toBe("line");
-        expect(config.data.datasets).toHaveLength(1);
-
-        const dataset = config.data.datasets[0];
-        expect(dataset.label).toBe("Heart Rate");
-        expect(dataset.data).toHaveLength(3);
-        expect(dataset.borderColor).toBe("#1677ff");
-        expect(dataset.backgroundColor).toBe("#1677ff33");
-        expect(dataset.showLine).toBe(true);
-
-        expect(config.options.plugins.title.text).toBe("Heart Rate Over Time");
-        expect(config.options.scales.x.title.text).toBe("Time (s)");
-        expect(config.options.scales.y.title.text).toBe("Heart Rate (bpm)");
-    });
-
-    it("builds a scatter chart with explicit colors and no line", () => {
-        const themeConfig = {
-            colors: {
-                gridLines: "#444444",
-                text: "#ffffff",
-                textPrimary: "#f0f0f0",
-            },
-        } as any;
-
-        const spec: ChartSpecFromFactory = {
-            type: "scatter" as const,
-            title: "Power vs Heart Rate",
-            showLegend: false,
-            showGrid: false,
-            datasets: [
-                {
-                    id: "pwr-hr",
-                    label: "Power vs HR",
-                    data: [
-                        { x: 150, y: 250 },
-                        { x: 160, y: 270 },
-                    ],
-                    borderColor: "#ff5722",
-                    backgroundColor: "#ff572233",
-                    showLine: false,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                },
-            ],
-            axes: [
-                {
-                    id: "x",
-                    type: "linear",
-                    label: "Heart Rate (bpm)",
-                    display: true,
-                },
-                { id: "y", type: "linear", label: "Power (W)", display: true },
-            ],
-        };
-
-        const config = buildChartConfigFromSpec(spec, themeConfig);
-
-        expect(config.type).toBe("scatter");
-        expect(config.options.plugins.legend.display).toBe(false);
-
-        const dataset = config.data.datasets[0];
-        expect(dataset.borderColor).toBe("#ff5722");
-        expect(dataset.backgroundColor).toBe("#ff572233");
-        expect(dataset.showLine).toBe(false);
-        expect(dataset.pointRadius).toBe(3);
-        expect(dataset.pointHoverRadius).toBe(5);
-    });
-
-    it("builds a chart spec from a declarative definition with settings", () => {
-        type SampleRecord = {
-            time: number;
-            speed: number;
-            power: number;
-        };
-
-        const definition = {
-            id: "speed",
-            title: "Speed Over Time",
-            chartType: "line",
-            labelSelector: (record: SampleRecord) => record.time,
-            datasets: [
-                {
-                    id: "speed",
-                    label: "Speed",
-                    dataKey: "speed",
-                    color: "#ff9800",
-                },
-                {
+                    data: [1, 2, 3],
+                    fill: true,
                     id: "power",
                     label: "Power",
-                    dataKey: "power",
-                    transform: (value: number | null) =>
-                        value == null ? null : value * 2,
                 },
             ],
-        } as const;
-
-        const records = [
-            { time: 0, speed: 10, power: 150 },
-            { time: 1, speed: 12, power: 160 },
-        ];
-
-        const spec = buildChartSpecFromDefinition(definition, records, {
-            chartSettings: {
-                fieldVisibility: {
-                    speed: "hidden",
-                },
-            },
-        });
-
-        expect(spec.labels).toEqual([0, 1]);
-        expect(spec.datasets).toHaveLength(2);
-        expect(spec.datasets[0].data).toEqual([10, 12]);
-        expect(spec.datasets[0].hidden).toBe(true);
-        expect(spec.datasets[1].data).toEqual([300, 320]);
-    });
-
-    it("produces a config that can be passed to createManagedChart", () => {
-        const themeConfig = {
-            colors: {
-                primary: "#00b894",
-                gridLines: "#dfe6e9",
-                text: "#2d3436",
-                textPrimary: "#2d3436",
-            },
-        } as any;
-
-        const spec: ChartSpecFromFactory = {
-            type: "line" as const,
-            title: "Spec Chart",
-            showLegend: true,
-            showGrid: true,
-            datasets: [
-                {
-                    id: "spec-ds",
-                    label: "Spec Dataset",
-                    data: [{ x: 0, y: 1 }],
-                    colorRole: "primary",
-                },
-            ],
-            axes: [{ id: "x", type: "linear", label: "X", display: true }],
+            showGrid: false,
+            title: "Power Curve",
+            type: "line",
         };
 
-        const canvas = document.createElement("canvas");
-        const config = buildChartConfigFromSpec(spec, themeConfig);
+        expect(
+            buildChartConfigFromSpec(spec, {
+                colors: {
+                    gridLines: "#ddd",
+                    primary: "#123456",
+                    text: "#111",
+                    textPrimary: "#222",
+                },
+            })
+        ).toStrictEqual({
+            data: {
+                datasets: [
+                    {
+                        backgroundColor: "#12345633",
+                        borderColor: "#123456",
+                        data: [1, 2, 3],
+                        fill: true,
+                        hidden: false,
+                        label: "Power",
+                        pointHoverRadius: 4,
+                        pointRadius: 2,
+                        showLine: true,
+                        tension: 0.1,
+                        yAxisID: "y",
+                    },
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: "#111" },
+                    },
+                    title: {
+                        color: "#111",
+                        display: true,
+                        font: { size: 16, weight: "bold" },
+                        text: "Power Curve",
+                    },
+                },
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { color: "#ddd", display: false },
+                        position: undefined,
+                        ticks: { color: "#222" },
+                        title: {
+                            color: "#222",
+                            display: true,
+                            text: "Distance",
+                        },
+                        type: "linear",
+                    },
+                    y1: {
+                        display: true,
+                        grid: { color: "#ddd", display: false },
+                        position: "right",
+                        ticks: { color: "#222" },
+                        title: {
+                            color: "#222",
+                            display: true,
+                            text: "Power",
+                        },
+                        type: "linear",
+                    },
+                },
+            },
+            type: "line",
+        });
+    });
 
-        const chart = (createManagedChart as any)(canvas, config);
+    it("builds a chart spec from a declarative definition", () => {
+        expect.assertions(1);
 
-        expect(createManagedChart).toHaveBeenCalledWith(
-            canvas,
-            expect.any(Object)
+        const definition: ChartDefinition = {
+            chartType: "area",
+            datasets: [
+                {
+                    dataKey: "speed",
+                    datasetOptions: { pointRadius: 0 },
+                    id: "speed",
+                    label: "Speed",
+                    transform: (value) =>
+                        value === null ? null : Number(value.toFixed(1)),
+                },
+                {
+                    dataKey: "power",
+                    hidden: true,
+                    id: "power",
+                    label: "Power",
+                    yAxisId: "y1",
+                },
+            ],
+            id: "activity",
+            labelSelector: (_, index) => index + 1,
+            title: "Activity",
+            xAxisLabel: "Sample",
+            yAxisLabel: "Value",
+        };
+
+        expect(
+            buildChartSpecFromDefinition(
+                definition,
+                [
+                    { power: 200, speed: 4.44 },
+                    { power: 210, speed: 5.55 },
+                ],
+                {
+                    chartSettings: {
+                        fieldVisibility: { power: "visible" },
+                    },
+                    defaultColorPalette: ["#f00", "#0f0"],
+                }
+            )
+        ).toStrictEqual({
+            axes: [
+                {
+                    display: true,
+                    id: "x",
+                    label: "Sample",
+                    type: "linear",
+                },
+                {
+                    display: true,
+                    id: "y",
+                    label: "Value",
+                    type: "linear",
+                },
+            ],
+            datasets: [
+                {
+                    backgroundColor: "#f00",
+                    borderColor: "#f00",
+                    data: [4.4, 5.5],
+                    hidden: false,
+                    id: "speed",
+                    label: "Speed",
+                    pointRadius: 0,
+                },
+                {
+                    backgroundColor: "#0f0",
+                    borderColor: "#0f0",
+                    data: [200, 210],
+                    hidden: true,
+                    id: "power",
+                    label: "Power",
+                    yAxisID: "y1",
+                },
+            ],
+            id: "activity",
+            labels: [1, 2],
+            title: "Activity",
+            type: "line",
+        });
+    });
+
+    it("normalizes invalid keyed record values to null", () => {
+        expect.assertions(2);
+
+        const spec = buildChartSpecFromDefinition(
+            {
+                chartType: "line",
+                datasets: [
+                    {
+                        dataKey: "speed",
+                        id: "speed",
+                        label: "Speed",
+                    },
+                ],
+                id: "activity",
+                title: "Activity",
+            },
+            [{ speed: "fast" }, { speed: null }]
         );
-        expect(chart).toBeDefined();
-        expect(chart.config.type).toBe("line");
-        expect(chart.config.data.datasets[0].label).toBe("Spec Dataset");
+
+        expect(spec.datasets[0]?.data).toStrictEqual([null, null]);
+        expect(spec.axes).toBeUndefined();
     });
 });

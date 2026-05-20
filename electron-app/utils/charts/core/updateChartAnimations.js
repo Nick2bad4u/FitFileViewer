@@ -1,79 +1,53 @@
-/**
- * @file Chart animation configuration utility for FitFileViewer
- *
- *   Updates chart animation configurations based on chart type with smooth easing
- *   and progress tracking. Supports line, bar, and doughnut chart types with
- *   type-specific animation settings.
- *
- * @author FitFileViewer Team
- *
- * @since 1.0.0
- */
-
 import { throttledAnimLog } from "../../debug/lastAnimLog.js";
-
-// Animation configuration constants
 const ANIMATION_CONFIG = {
-        DURATION: {
-            COLORS: 1000,
-            DEFAULT: 1200,
-            TENSION: 1500,
-        },
-        EASING: {
-            COLORS: "easeOutQuart",
-            DEFAULT: "easeInOutQuart",
-            TENSION: "easeOutQuart",
-        },
-        LINE_TENSION: {
-            FROM: 0,
-            TO: 0.4,
-        },
+    DURATION: {
+        COLORS: 1000,
+        DEFAULT: 1200,
+        TENSION: 1500,
     },
-    CHART_TYPES = {
-        BAR: "bar",
-        DOUGHNUT: "doughnut",
-        LINE: "line",
+    EASING: {
+        COLORS: "easeOutQuart",
+        DEFAULT: "easeInOutQuart",
+        TENSION: "easeOutQuart",
     },
-    LOG_PREFIX = "[ChartAnimations]";
-
+    LINE_TENSION: {
+        FROM: 0,
+        TO: 0.4,
+    },
+};
+const CHART_TYPES = {
+    BAR: "bar",
+    DOUGHNUT: "doughnut",
+    LINE: "line",
+};
+const LOG_PREFIX = "[ChartAnimations]";
+function isChartLike(chart) {
+    return Boolean(chart) && typeof chart === "object";
+}
+function hasOptions(chart) {
+    return Boolean(chart.options) && typeof chart.options === "object";
+}
 /**
- * Updates animation configurations for Chart.js charts
+ * Updates animation configurations for Chart.js charts.
  *
- * Configures smooth animations with progress tracking and type-specific
- * animation settings. Returns the modified chart instance.
- *
- * @param {Object} chart - Chart.js chart instance to configure
- * @param {string} type - Chart type identifier for logging
- *
- * @returns {Object | null} Modified chart instance or null if invalid input
+ * @param chart - Chart.js chart instance to configure.
+ * @param type - Chart type identifier for logging.
+ * @returns Modified chart instance, or null when the chart input is invalid.
  */
-export function updateChartAnimations(
-    /** @type {any} */ chart,
-    /** @type {string} */ type
-) {
+export function updateChartAnimations(chart, type) {
     try {
-        // Validate inputs
-        if (!chart || typeof chart !== "object") {
+        if (!isChartLike(chart)) {
             console.warn(`${LOG_PREFIX} Invalid chart instance provided`);
             return null;
         }
-
-        if (!chart.options || typeof chart.options !== "object") {
+        if (!hasOptions(chart)) {
             console.warn(`${LOG_PREFIX} Chart instance missing options object`);
             return null;
         }
-
-        if (!type || typeof type !== "string") {
+        if (typeof type !== "string" || type.length === 0) {
             console.warn(`${LOG_PREFIX} Invalid chart type provided:`, type);
             return chart;
         }
-
-        // Initialize animation configuration if missing
-        if (!chart.options.animation) {
-            chart.options.animation = {};
-        }
-
-        // Configure base animation settings
         chart.options.animation = {
             ...chart.options.animation,
             duration: ANIMATION_CONFIG.DURATION.DEFAULT,
@@ -81,39 +55,23 @@ export function updateChartAnimations(
             onComplete: createCompletionCallback(type),
             onProgress: createProgressCallback(type),
         };
-
-        // Configure type-specific animations
         const chartType = chart.config?.type;
-        if (chartType) {
+        if (typeof chartType === "string" && chartType.length > 0) {
             configureTypeSpecificAnimations(chart, chartType);
-        } else {
+        }
+        else {
             console.warn(`${LOG_PREFIX} Chart config missing type property`);
         }
-
-        console.log(
-            `${LOG_PREFIX} Animation configuration updated for ${type} chart`
-        );
+        console.log(`${LOG_PREFIX} Animation configuration updated for ${type} chart`);
         return chart;
-    } catch (error) {
+    }
+    catch (error) {
         console.error(`${LOG_PREFIX} Error updating chart animations:`, error);
-        return chart; // Return original chart to avoid breaking functionality
+        return isChartLike(chart) ? chart : null;
     }
 }
-
-/**
- * Configures type-specific animations for a chart
- *
- * @param {Object} chart - Chart.js chart instance
- * @param {string} chartType - Type of chart (line, bar, doughnut)
- */
-function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
-    if (!chart.options || typeof chart.options !== "object") {
-        return;
-    }
-    if (!chart.options.animations) {
-        chart.options.animations = {};
-    }
-
+function configureTypeSpecificAnimations(chart, chartType) {
+    chart.options.animations ??= {};
     switch (chartType) {
         case CHART_TYPES.BAR: {
             chart.options.animations.colors = {
@@ -122,13 +80,11 @@ function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
             };
             break;
         }
-
         case CHART_TYPES.DOUGHNUT: {
             chart.options.animations.animateRotate = true;
             chart.options.animations.animateScale = true;
             break;
         }
-
         case CHART_TYPES.LINE: {
             chart.options.animations.tension = {
                 duration: ANIMATION_CONFIG.DURATION.TENSION,
@@ -138,48 +94,24 @@ function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
             };
             break;
         }
-
         default: {
-            // No specific animations for other chart types
             break;
         }
     }
 }
-
-/**
- * Creates completion callback for chart animations
- *
- * @param {string} type - Chart type for logging
- *
- * @returns {Function} Completion callback function
- */
 function createCompletionCallback(type) {
-    return function () {
+    return () => {
         console.log(`[ChartJS] ${type} chart animation complete`);
     };
 }
-
-/**
- * Creates progress callback for chart animations
- *
- * @param {string} type - Chart type for logging
- *
- * @returns {Function} Progress callback function
- */
 function createProgressCallback(type) {
-    return function (/** @type {any} */ context) {
-        if (
-            context &&
-            context.currentStep !== undefined &&
-            context.numSteps !== undefined &&
-            context.numSteps > 0
-        ) {
-            const percentage = Math.round(
-                (100 * context.currentStep) / context.numSteps
-            );
-            throttledAnimLog(
-                `[ChartJS] ${type} chart animation: ${percentage}%`
-            );
+    return (context) => {
+        if (typeof context.currentStep !== "number" ||
+            typeof context.numSteps !== "number" ||
+            context.numSteps <= 0) {
+            return;
         }
+        const percentage = Math.round((100 * context.currentStep) / context.numSteps);
+        throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
     };
 }

@@ -14,6 +14,20 @@ vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
 
 import { createGlobalChartStatusIndicator } from "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js";
 
+function createMockChartCounts(available: number, visible: number) {
+    return {
+        available,
+        categories: {
+            analysis: { available: 0, total: 0, visible: 0 },
+            gps: { available: 0, total: 0, visible: 0 },
+            metrics: { available, total: available, visible },
+            zones: { available: 0, total: 0, visible: 0 },
+        },
+        total: available,
+        visible,
+    };
+}
+
 describe("createGlobalChartStatusIndicator", () => {
     /** @type {HTMLDivElement} */
     let root;
@@ -40,7 +54,7 @@ describe("createGlobalChartStatusIndicator", () => {
 
         // Defaults: all visible
         mockGetChartCounts.mockReset();
-        mockGetChartCounts.mockReturnValue({ available: 3, visible: 3 });
+        mockGetChartCounts.mockReturnValue(createMockChartCounts(3, 3));
 
         // Silence logs
         origLog = console.log;
@@ -73,7 +87,7 @@ describe("createGlobalChartStatusIndicator", () => {
     });
 
     it("creates indicator for all-visible charts with 'Charts Ready' quick action", () => {
-        mockGetChartCounts.mockReturnValue({ available: 4, visible: 4 });
+        mockGetChartCounts.mockReturnValue(createMockChartCounts(4, 4));
         const indicator = createGlobalChartStatusIndicator();
         expect(indicator).toBeTruthy();
 
@@ -99,7 +113,7 @@ describe("createGlobalChartStatusIndicator", () => {
         toggleBtn.id = "chart-controls-toggle";
         root.append(settingsWrapper, toggleBtn);
 
-        mockGetChartCounts.mockReturnValue({ available: 6, visible: 3 });
+        mockGetChartCounts.mockReturnValue(createMockChartCounts(6, 3));
         const indicator = createGlobalChartStatusIndicator();
         const quickAction = indicator?.querySelector("button");
         expect(quickAction?.textContent).toContain("Show Settings");
@@ -113,7 +127,7 @@ describe("createGlobalChartStatusIndicator", () => {
     });
 
     it("creates indicator for no charts with 'Load FIT' quick action", () => {
-        mockGetChartCounts.mockReturnValue({ available: 0, visible: 0 });
+        mockGetChartCounts.mockReturnValue(createMockChartCounts(0, 0));
         const indicator = createGlobalChartStatusIndicator();
         const statusText = indicator?.querySelectorAll("span")[1];
         expect(statusText?.textContent).toContain("No chart data available");

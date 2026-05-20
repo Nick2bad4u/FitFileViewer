@@ -1,58 +1,125 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-// Mock theme config provider
-vi.mock("../../../../../utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(() => ({
-        colors: {
-            accentColor: "#123456",
-            bgPrimary: "#ffffff",
-            textPrimary: "#000000",
-            customKey: "#abcabc",
-        },
-        name: "unit-test-theme",
-    })),
+import type { getThemeConfig } from "../../../../../utils/theming/core/theme.js";
+
+const getThemeConfigMock = vi.hoisted(() => vi.fn<typeof getThemeConfig>());
+
+vi.mock(import("../../../../../utils/theming/core/theme.js"), () => ({
+    getThemeConfig: getThemeConfigMock,
 }));
 
-describe("getThemeColors and getThemeColor", () => {
-    beforeEach(() => {
-        vi.resetModules();
-    });
+import {
+    FALLBACK_THEME_COLORS,
+    getThemeColor,
+    getThemeColors,
+} from "../../../../../utils/charts/theming/getThemeColors.js";
 
-    it("returns full colors object and safe copy", async () => {
-        const { getThemeColors } =
-            await import("../../../../../utils/charts/theming/getThemeColors.js");
-        const colors = getThemeColors();
-        expect(colors).toBeDefined();
-        expect(colors.accentColor).toBe("#123456");
-        // Should be a copy, not the original object
-        colors.accentColor = "#654321";
-        const colors2 = getThemeColors();
-        expect(colors2.accentColor).toBe("#123456");
-    });
+describe(getThemeColors, () => {
+    it("returns a defensive copy of the current theme color map", () => {
+        expect.assertions(4);
 
-    it("getThemeColor returns key or fallback and validates inputs", async () => {
-        const { getThemeColor } =
-            await import("../../../../../utils/charts/theming/getThemeColors.js");
-        expect(getThemeColor("accentColor", "#fallback")).toBe("#123456");
-        expect(getThemeColor("doesNotExist", "#fallback")).toBe("#fallback");
-        // Invalid key -> fallback
-        expect(getThemeColor("" as any, "#f")).toBe("#f");
-    });
-
-    it("falls back when theme config throws", async () => {
-        vi.doMock("../../../../../utils/theming/core/theme.js", () => ({
-            getThemeConfig: () => {
-                throw new Error("boom");
+        getThemeConfigMock.mockReturnValue({
+            colors: {
+                accent: "#123456",
+                heartRateZoneColors: ["#111111", "#222222"],
             },
-        }));
-        const { getThemeColors, getThemeColor } =
-            await import("../../../../../utils/charts/theming/getThemeColors.js");
-        const colors = getThemeColors();
-        expect(colors).toMatchObject({
-            accentColor: expect.any(String),
-            bgPrimary: expect.any(String),
-            textPrimary: expect.any(String),
+            isDark: true,
+            isLight: false,
+            theme: "dark",
         });
-        expect(getThemeColor("customKey", "#fallback")).toBe("#fallback");
+
+        const colors = getThemeColors();
+
+        expect(colors).toStrictEqual({
+            accent: "#123456",
+            heartRateZoneColors: ["#111111", "#222222"],
+        });
+        expect(colors).not.toBe(getThemeConfigMock.mock.results[0]?.value);
+        expect(colors.accent).toBe("#123456");
+        expect(colors.heartRateZoneColors).toStrictEqual([
+            "#111111",
+            "#222222",
+        ]);
+    });
+
+    it("uses fallback colors when the theme config is invalid", () => {
+        expect.assertions(2);
+
+        getThemeConfigMock.mockReturnValue(
+            null as unknown as ReturnType<typeof getThemeConfig>
+        );
+        const warnSpy = vi
+            .spyOn(console, "warn")
+            .mockReturnValue(undefined);
+
+        expect(getThemeColors()).toStrictEqual(FALLBACK_THEME_COLORS);
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[getThemeColors] Invalid theme configuration"
+        );
+
+        warnSpy.mockRestore();
+    });
+
+    it("uses fallback colors when theme loading throws", () => {
+        expect.assertions(2);
+
+        const failure = new Error("theme failed");
+        getThemeConfigMock.mockImplementation(() => {
+            throw failure;
+        });
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockReturnValue(undefined);
+
+        expect(getThemeColors()).toStrictEqual(FALLBACK_THEME_COLORS);
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[getThemeColors] Failed to access theme colors:",
+            failure
+        );
+
+        errorSpy.mockRestore();
+    });
+});
+
+describe(getThemeColor, () => {
+    it("returns string color values by key", () => {
+        expect.assertions(1);
+
+        getThemeConfigMock.mockReturnValue({
+            colors: { accent: "#abcdef" },
+            isDark: false,
+            isLight: true,
+            theme: "light",
+        });
+
+        expect(getThemeColor("accent", "#000000")).toBe("#abcdef");
+    });
+
+    it("does not return array color values through the string-color helper", () => {
+        expect.assertions(1);
+
+        getThemeConfigMock.mockReturnValue({
+            colors: { zoneColors: ["#111111", "#222222"] },
+            isDark: false,
+            isLight: true,
+            theme: "light",
+        });
+
+        expect(getThemeColor("zoneColors", "#000000")).toBe("#000000");
+    });
+
+    it("uses fallback colors for invalid keys", () => {
+        expect.assertions(2);
+
+        const warnSpy = vi
+            .spyOn(console, "warn")
+            .mockReturnValue(undefined);
+
+        expect(getThemeColor("", "#fedcba")).toBe("#fedcba");
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[getThemeColor] Invalid color key: "
+        );
+
+        warnSpy.mockRestore();
     });
 });

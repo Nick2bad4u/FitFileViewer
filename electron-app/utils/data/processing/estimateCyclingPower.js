@@ -1,375 +1,254 @@
 /**
- * @file Physics-based "virtual power" estimation for cycling activities.
+ * Physics-based virtual power estimation for cycling activities.
  *
- *   This is intentionally a pragmatic model, not an attempt to perfectly match a
- *   power meter. It estimates crank power from:
- *
- *   - Gravity (grade)
- *   - Rolling resistance
- *   - Aerodynamic drag
- *   - Inertial acceleration
+ * This is intentionally a pragmatic model, not an attempt to perfectly match a
+ * power meter. It estimates crank power from gravity, rolling resistance,
+ * aerodynamic drag, and inertial acceleration.
  */
-
 const EARTH_RADIUS_M = 6_371_000;
 const SEMICIRCLE_TO_DEG = 180 / 2 ** 31;
 const GRAVITY = 9.806_65;
-
 /**
- * @typedef {object} PowerEstimationSettings
+ * Estimate power per record and attach it to each record as `estimatedPower`.
  *
- * @property {boolean} enabled
- * @property {number} riderWeightKg
- * @property {number} bikeWeightKg
- * @property {number} crr
- * @property {number} cda
- * @property {number} drivetrainEfficiency
- * @property {number} windSpeedMps
- * @property {number} gradeWindowMeters
- * @property {number} maxPowerW
+ * @param params - Records, optional session metadata, and estimation settings.
+ *
+ * @returns Estimated power values and whether they were applied.
  */
-
-/**
- * @typedef {object} PowerEstimationResult
- *
- * @property {number[]} estimatedPowerW
- * @property {boolean} applied
- */
-
-/**
- * Estimate power (W) per record and attach it to each record as
- * `estimatedPower`.
- *
- * @param {{
- *     recordMesgs: Record<string, unknown>[];
- *     sessionMesgs?: Record<string, unknown>[];
- *     settings: PowerEstimationSettings;
- * }} params
- *
- * @returns {PowerEstimationResult}
- */
-export function applyEstimatedPowerToRecords({
-    recordMesgs,
-    sessionMesgs,
-    settings,
-}) {
+export function applyEstimatedPowerToRecords({ recordMesgs, sessionMesgs, settings, }) {
     const s = normalizePowerEstimationSettings(settings);
     if (!s.enabled) {
         return { applied: false, estimatedPowerW: [] };
     }
-
     if (!Array.isArray(recordMesgs) || recordMesgs.length === 0) {
         return { applied: false, estimatedPowerW: [] };
     }
-
     if (hasPowerData(recordMesgs)) {
-        // Don't overwrite real power.
         return { applied: false, estimatedPowerW: [] };
     }
-    // If sport is known and not cycling, skip estimation.
-    // (FIT sport strings are typically "cycling", "running", etc. after parsing.)
-    try {
-        const session0 = Array.isArray(sessionMesgs)
-            ? /** @type {any} */ (sessionMesgs)[0]
-            : null;
-        const sport =
-            typeof session0?.sport === "string"
-                ? session0.sport.toLowerCase()
-                : "";
-        if (sport && !sport.includes("cycl") && !sport.includes("bike")) {
-            return { applied: false, estimatedPowerW: [] };
-        }
-    } catch {
-        /* ignore */
+    const sport = getSessionSport(sessionMesgs);
+    if (sport && !sport.includes("cycl") && !sport.includes("bike")) {
+        return { applied: false, estimatedPowerW: [] };
     }
-
     const massKg = s.riderWeightKg + s.bikeWeightKg;
-
-    /** @type {number[]} */
     const tSec = [];
-    /** @type {number[]} */
     const vMps = [];
-    /** @type {number[]} */
     const altM = [];
-    /** @type {number[]} */
     const distM = [];
-
     let lastDist = 0;
     let lastLat = null;
     let lastLon = null;
     let lastTimeSec = null;
-
-    for (const r of recordMesgs) {
-        const anyR = /** @type {any} */ (r);
-
-        const ts = toDateOrNull(anyR.timestamp);
-        const t = ts
+    for (const record of recordMesgs) {
+        const ts = toDateOrNull(record["timestamp"]);
+        const rawTime = ts
             ? ts.getTime() / 1000
-            : toFiniteNumberOrNull(anyR.timestamp);
-        const timeSec = typeof t === "number" && Number.isFinite(t) ? t : null;
-
-        // Prefer enhanced speed if present.
-        const speed =
-            toFiniteNumberOrNull(anyR.enhanced_speed) ??
-            toFiniteNumberOrNull(anyR.speed) ??
+            : toFiniteNumberOrNull(record["timestamp"]);
+        const timeSec = typeof rawTime === "number" && Number.isFinite(rawTime)
+            ? rawTime
+            : null;
+        const speed = toFiniteNumberOrNull(record["enhanced_speed"]) ??
+            toFiniteNumberOrNull(record["speed"]) ??
             0;
-
-        const altitude =
-            toFiniteNumberOrNull(anyR.enhanced_altitude) ??
-            toFiniteNumberOrNull(anyR.altitude) ??
+        const altitude = toFiniteNumberOrNull(record["enhanced_altitude"]) ??
+            toFiniteNumberOrNull(record["altitude"]) ??
             0;
-
-        // Distance is often cumulative meters.
-        const d = toFiniteNumberOrNull(anyR.distance);
-
-        let cumulative = lastDist;
-        if (d !== null && d >= 0) {
-            cumulative = Math.max(lastDist, d);
-        } else {
-            // Fall back: integrate along GPS if we can, otherwise integrate speed.
-            const lat = toDegreesOrNull(anyR.position_lat ?? anyR.positionLat);
-            const lon = toDegreesOrNull(
-                anyR.position_long ?? anyR.positionLong
-            );
-
-            if (
-                lat !== null &&
-                lon !== null &&
-                lastLat !== null &&
-                lastLon !== null
-            ) {
-                cumulative =
-                    lastDist + haversineDistanceM(lastLat, lastLon, lat, lon);
-            } else if (
-                lastTimeSec !== null &&
-                timeSec !== null &&
-                timeSec > lastTimeSec
-            ) {
-                cumulative = lastDist + speed * (timeSec - lastTimeSec);
-            }
-
-            if (lat !== null && lon !== null) {
-                lastLat = lat;
-                lastLon = lon;
-            }
+        const cumulative = resolveCumulativeDistance({
+            lastDist,
+            lastLat,
+            lastLon,
+            lastTimeSec,
+            record,
+            speed,
+            timeSec,
+        });
+        const lat = toDegreesOrNull(record["position_lat"] ?? record["positionLat"]);
+        const lon = toDegreesOrNull(record["position_long"] ?? record["positionLong"]);
+        if (lat !== null && lon !== null) {
+            lastLat = lat;
+            lastLon = lon;
         }
-
         if (timeSec !== null) {
             lastTimeSec = timeSec;
         }
-
         lastDist = cumulative;
-
-        tSec.push(timeSec ?? (tSec.length > 0 ? tSec.at(-1) : 0));
+        tSec.push(timeSec ?? previousNumber(tSec));
         vMps.push(Math.max(0, speed));
         altM.push(altitude);
         distM.push(cumulative);
     }
-
-    // Grade computed via distance window to reduce noise.
-    const gradeWindowM = s.gradeWindowMeters;
-    /** @type {number[]} */
-    const grade = Array.from({ length: recordMesgs.length }, () => 0);
-    let j = 0;
-    for (let i = 0; i < recordMesgs.length; i++) {
-        while (j < i && distM[i] - distM[j] > gradeWindowM) {
-            j++;
-        }
-        const k = Math.max(0, j - 1);
-        const ds = distM[i] - distM[k];
-        if (ds > 1) {
-            const g = (altM[i] - altM[k]) / ds;
-            grade[i] = Math.max(-0.3, Math.min(0.3, g));
-        }
-    }
-
-    // Acceleration (simple) with clamping.
-    /** @type {number[]} */
-    const accel = Array.from({ length: recordMesgs.length }, () => 0);
-    for (let i = 1; i < recordMesgs.length; i++) {
-        const dt = Math.max(0.001, tSec[i] - tSec[i - 1]);
-        const dv = vMps[i] - vMps[i - 1];
-        const a = dv / dt;
-        accel[i] = Math.max(-3, Math.min(3, a));
-    }
-
-    /** @type {number[]} */
+    const grade = calculateGrade(distM, altM, s.gradeWindowMeters);
+    const accel = calculateAcceleration(tSec, vMps);
     const estimated = [];
-
     for (const [i, rec] of recordMesgs.entries()) {
-        const v = vMps[i];
-        const theta = Math.atan(grade[i]);
-        const rho = airDensityFromAltitude(altM[i]);
+        const v = vMps[i] ?? 0;
+        const theta = Math.atan(grade[i] ?? 0);
+        const rho = airDensityFromAltitude(altM[i] ?? 0);
         const vRel = Math.max(0, v + s.windSpeedMps);
-
         const fGrav = massKg * GRAVITY * Math.sin(theta);
         const fRoll = s.crr * massKg * GRAVITY * Math.cos(theta);
         const fAero = 0.5 * rho * s.cda * vRel * vRel;
-        const fAccel = massKg * accel[i];
-
+        const fAccel = massKg * (accel[i] ?? 0);
         const pWheel = (fGrav + fRoll + fAero + fAccel) * v;
         const pCrank = pWheel / s.drivetrainEfficiency;
-
         const p = Math.max(0, Math.min(s.maxPowerW, pCrank));
         estimated.push(p);
-
-        // Attach to record for tooltip/map usage.
-        /** @type {any} */ (rec).estimatedPower = p;
+        rec["estimatedPower"] = p;
     }
-
     return { applied: true, estimatedPowerW: estimated };
 }
-
 /**
- * Determine if the activity already has real power data.
+ * Determines whether an activity already has real power data.
  *
- * @param {Record<string, unknown>[]} recordMesgs
+ * @param recordMesgs - FIT record messages.
  *
- * @returns {boolean}
+ * @returns `true` when a positive real power value is present.
  */
 export function hasPowerData(recordMesgs) {
-    for (const r of recordMesgs) {
-        const p = toFiniteNumberOrNull(/** @type {any} */ (r).power);
-        if (p !== null && p > 0) {
+    for (const record of recordMesgs) {
+        const power = toFiniteNumberOrNull(record["power"]);
+        if (power !== null && power > 0) {
             return true;
         }
-        const ep = toFiniteNumberOrNull(/** @type {any} */ (r).enhanced_power);
-        if (ep !== null && ep > 0) {
+        const enhancedPower = toFiniteNumberOrNull(record["enhanced_power"]);
+        if (enhancedPower !== null && enhancedPower > 0) {
             return true;
         }
     }
     return false;
 }
-
-/**
- * Very simple air density estimate as a function of altitude.
- *
- * @param {number} altitudeM
- *
- * @returns {number}
- */
+function getSessionSport(sessionMesgs) {
+    const session0 = Array.isArray(sessionMesgs) ? sessionMesgs[0] : undefined;
+    const sport = session0?.["sport"];
+    return typeof sport === "string" ? sport.toLowerCase() : "";
+}
+function resolveCumulativeDistance({ lastDist, lastLat, lastLon, lastTimeSec, record, speed, timeSec, }) {
+    const distance = toFiniteNumberOrNull(record["distance"]);
+    if (distance !== null && distance >= 0) {
+        return Math.max(lastDist, distance);
+    }
+    const lat = toDegreesOrNull(record["position_lat"] ?? record["positionLat"]);
+    const lon = toDegreesOrNull(record["position_long"] ?? record["positionLong"]);
+    if (lat !== null && lon !== null && lastLat !== null && lastLon !== null) {
+        return lastDist + haversineDistanceM(lastLat, lastLon, lat, lon);
+    }
+    if (lastTimeSec !== null && timeSec !== null && timeSec > lastTimeSec) {
+        return lastDist + speed * (timeSec - lastTimeSec);
+    }
+    return lastDist;
+}
+function calculateGrade(distM, altM, gradeWindowM) {
+    const grade = Array.from({ length: distM.length }, () => 0);
+    let j = 0;
+    for (let i = 0; i < distM.length; i += 1) {
+        const currentDistance = distM[i] ?? 0;
+        while (j < i && currentDistance - (distM[j] ?? 0) > gradeWindowM) {
+            j += 1;
+        }
+        const k = Math.max(0, j - 1);
+        const previousDistance = distM[k] ?? 0;
+        const ds = currentDistance - previousDistance;
+        if (ds > 1) {
+            const g = ((altM[i] ?? 0) - (altM[k] ?? 0)) / ds;
+            grade[i] = Math.max(-0.3, Math.min(0.3, g));
+        }
+    }
+    return grade;
+}
+function calculateAcceleration(tSec, vMps) {
+    const accel = Array.from({ length: tSec.length }, () => 0);
+    for (let i = 1; i < tSec.length; i += 1) {
+        const dt = Math.max(0.001, (tSec[i] ?? 0) - (tSec[i - 1] ?? 0));
+        const dv = (vMps[i] ?? 0) - (vMps[i - 1] ?? 0);
+        const a = dv / dt;
+        accel[i] = Math.max(-3, Math.min(3, a));
+    }
+    return accel;
+}
 function airDensityFromAltitude(altitudeM) {
-    // Scale height approximation.
     const rho0 = 1.225;
-    const rho =
-        rho0 * Math.exp(-Math.max(-500, Math.min(9000, altitudeM)) / 8500);
+    const rho = rho0 * Math.exp(-Math.max(-500, Math.min(9000, altitudeM)) / 8500);
     return Math.max(0.5, Math.min(1.3, rho));
 }
-
-/**
- * @param {number} lat1
- * @param {number} lon1
- * @param {number} lat2
- * @param {number} lon2
- *
- * @returns {number}
- */
 function haversineDistanceM(lat1, lon1, lat2, lon2) {
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) ** 2 +
+    const a = Math.sin(dLat / 2) ** 2 +
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return EARTH_RADIUS_M * c;
 }
-
-/**
- * @param {PowerEstimationSettings} s
- *
- * @returns {PowerEstimationSettings}
- */
-function normalizePowerEstimationSettings(s) {
+function normalizePowerEstimationSettings(settings) {
     return {
-        enabled: s.enabled === true,
-        riderWeightKg:
-            Number.isFinite(s.riderWeightKg) && s.riderWeightKg > 20
-                ? s.riderWeightKg
-                : 75,
-        bikeWeightKg:
-            Number.isFinite(s.bikeWeightKg) && s.bikeWeightKg > 0
-                ? s.bikeWeightKg
-                : 10,
-        crr: Number.isFinite(s.crr) && s.crr > 0 ? s.crr : 0.004,
-        cda: Number.isFinite(s.cda) && s.cda > 0 ? s.cda : 0.32,
-        drivetrainEfficiency:
-            Number.isFinite(s.drivetrainEfficiency) &&
-            s.drivetrainEfficiency > 0 &&
-            s.drivetrainEfficiency <= 1
-                ? s.drivetrainEfficiency
-                : 0.97,
-        windSpeedMps: Number.isFinite(s.windSpeedMps) ? s.windSpeedMps : 0,
-        gradeWindowMeters:
-            Number.isFinite(s.gradeWindowMeters) && s.gradeWindowMeters >= 5
-                ? s.gradeWindowMeters
-                : 35,
-        maxPowerW:
-            Number.isFinite(s.maxPowerW) && s.maxPowerW > 100
-                ? s.maxPowerW
-                : 2000,
+        bikeWeightKg: Number.isFinite(settings.bikeWeightKg) && settings.bikeWeightKg > 0
+            ? settings.bikeWeightKg
+            : 10,
+        cda: Number.isFinite(settings.cda) && settings.cda > 0
+            ? settings.cda
+            : 0.32,
+        crr: Number.isFinite(settings.crr) && settings.crr > 0
+            ? settings.crr
+            : 0.004,
+        drivetrainEfficiency: Number.isFinite(settings.drivetrainEfficiency) &&
+            settings.drivetrainEfficiency > 0 &&
+            settings.drivetrainEfficiency <= 1
+            ? settings.drivetrainEfficiency
+            : 0.97,
+        enabled: settings.enabled === true,
+        gradeWindowMeters: Number.isFinite(settings.gradeWindowMeters) &&
+            settings.gradeWindowMeters >= 5
+            ? settings.gradeWindowMeters
+            : 35,
+        maxPowerW: Number.isFinite(settings.maxPowerW) && settings.maxPowerW > 100
+            ? settings.maxPowerW
+            : 2000,
+        riderWeightKg: Number.isFinite(settings.riderWeightKg) &&
+            settings.riderWeightKg > 20
+            ? settings.riderWeightKg
+            : 75,
+        windSpeedMps: Number.isFinite(settings.windSpeedMps)
+            ? settings.windSpeedMps
+            : 0,
     };
 }
-
-/**
- * @param {unknown} value
- *
- * @returns {Date | null}
- */
 function toDateOrNull(value) {
     if (value instanceof Date && Number.isFinite(value.getTime())) {
         return value;
     }
     if (typeof value === "string") {
-        const d = new Date(value);
-        return Number.isFinite(d.getTime()) ? d : null;
+        const date = new Date(value);
+        return Number.isFinite(date.getTime()) ? date : null;
     }
     if (typeof value === "number" && Number.isFinite(value)) {
-        // FIT timestamps can be seconds or ms depending on normalization.
         const ms = value > 10_000_000_000 ? value : value * 1000;
-        const d = new Date(ms);
-        return Number.isFinite(d.getTime()) ? d : null;
+        const date = new Date(ms);
+        return Number.isFinite(date.getTime()) ? date : null;
     }
     return null;
 }
-
-/**
- * @param {unknown} raw
- *
- * @returns {number | null}
- */
 function toDegreesOrNull(raw) {
     const n = toFiniteNumberOrNull(raw);
     if (n === null) {
         return null;
     }
-
-    // Heuristic: Garmin FIT positions are often stored as signed 32-bit semicircles.
-    // If the magnitude is way outside degrees range, treat as semicircles.
     if (Math.abs(n) > 180) {
         return n * SEMICIRCLE_TO_DEG;
     }
-
     return n;
 }
-
-/**
- * @param {unknown} v
- *
- * @returns {number | null}
- */
-function toFiniteNumberOrNull(v) {
-    if (typeof v === "number" && Number.isFinite(v)) {
-        return v;
+function toFiniteNumberOrNull(value) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return value;
     }
-    if (typeof v === "string") {
-        const n = Number(v);
+    if (typeof value === "string") {
+        const n = Number(value);
         return Number.isFinite(n) ? n : null;
     }
     return null;
 }
-
-/**
- * @param {number} deg
- */
 function toRad(deg) {
     return (deg * Math.PI) / 180;
+}
+function previousNumber(values) {
+    return values.length > 0 ? (values.at(-1) ?? 0) : 0;
 }

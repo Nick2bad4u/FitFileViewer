@@ -1,100 +1,61 @@
-import { getThemeConfig } from "../../theming/core/theme.js";
-
-/**
- * Theme color management constants
- *
- * @readonly
- */
-const THEME_COLOR_CONFIG = {
-    ERROR_MESSAGES: {
-        INVALID_THEME_CONFIG: "Invalid theme configuration",
-        THEME_ACCESS_ERROR: "Failed to access theme colors:",
-    },
-    FALLBACK_COLORS: {
-        accentColor: "#3b82f6",
-        bgPrimary: "#ffffff",
-        textPrimary: "#000000",
-    },
+import { getThemeConfig, } from "../../theming/core/theme.js";
+const ERROR_MESSAGES = {
+    INVALID_THEME_CONFIG: "Invalid theme configuration",
+    THEME_ACCESS_ERROR: "Failed to access theme colors:",
 };
-
 /**
- * Gets a specific theme color by key with fallback
+ * Fallback colors used when the theme core is unavailable or returns an invalid
+ * color map.
+ */
+export const FALLBACK_THEME_COLORS = {
+    accentColor: "#3b82f6",
+    bgPrimary: "#ffffff",
+    textPrimary: "#000000",
+};
+function hasThemeColors(value) {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+    const colors = value.colors;
+    return colors !== null && typeof colors === "object";
+}
+/**
+ * Get a specific string theme color by key.
  *
- * @example
- *     // Get specific color with fallback
- *     const bgColor = getThemeColor("bgPrimary", "#ffffff");
- *
- * @param {string} colorKey - The color key to retrieve
- * @param {string} [fallback] - Fallback color if key not found
- *
- * @returns {string} The color value or fallback
+ * @param colorKey - Color key to retrieve.
+ * @param fallback - Fallback color when the key is invalid or missing.
+ * @returns Theme color value or fallback.
  */
 export function getThemeColor(colorKey, fallback = "#000000") {
     if (typeof colorKey !== "string" || !colorKey.trim()) {
         console.warn(`[getThemeColor] Invalid color key: ${colorKey}`);
         return fallback;
     }
-
     try {
-        const colors = getThemeColors();
-        return colors[colorKey] || fallback;
-    } catch (error) {
-        console.error(
-            `[getThemeColor] Error getting color '${colorKey}':`,
-            error
-        );
+        const color = getThemeColors()[colorKey];
+        return typeof color === "string" && color ? color : fallback;
+    }
+    catch (error) {
+        console.error(`[getThemeColor] Error getting color '${colorKey}':`, error);
         return fallback;
     }
 }
-
 /**
- * Returns an object containing all theme color keys as defined in the theme
- * system
+ * Get all current theme colors.
  *
- * The returned object structure matches `getThemeConfig().colors` and includes
- * all available theme color variables. Provides safe access with fallback
- * colors in case of theme system errors.
- *
- * @example
- *     // Get all current theme colors
- *     const colors = getThemeColors();
- *     const backgroundColor = colors.bgPrimary;
- *     const textColor = colors.textPrimary;
- *
- * @returns {Object<string, string>} Theme colors object with all theme color
- *   keys
- *
- * @throws {Error} If theme system is not available or corrupted
+ * @returns Copy of the theme color map, or fallback colors when unavailable.
  */
 export function getThemeColors() {
     try {
-        const themeConfig = /** @type {any} */ (getThemeConfig());
-
-        // Validate theme configuration
-        if (!themeConfig || typeof themeConfig !== "object") {
-            console.warn(
-                `[getThemeColors] ${THEME_COLOR_CONFIG.ERROR_MESSAGES.INVALID_THEME_CONFIG}`
-            );
-            return { ...THEME_COLOR_CONFIG.FALLBACK_COLORS };
+        const themeConfig = getThemeConfig();
+        if (!hasThemeColors(themeConfig)) {
+            console.warn(`[getThemeColors] ${ERROR_MESSAGES.INVALID_THEME_CONFIG}`);
+            return { ...FALLBACK_THEME_COLORS };
         }
-
-        // Validate colors object exists
-        if (!themeConfig.colors || typeof themeConfig.colors !== "object") {
-            console.warn(
-                "[getThemeColors] Theme colors not found, using fallback"
-            );
-            return { ...THEME_COLOR_CONFIG.FALLBACK_COLORS };
-        }
-
-        // Return copy of theme colors to prevent mutation
         return { ...themeConfig.colors };
-    } catch (error) {
-        console.error(
-            `[getThemeColors] ${THEME_COLOR_CONFIG.ERROR_MESSAGES.THEME_ACCESS_ERROR}`,
-            error
-        );
-
-        // Return fallback colors on error
-        return { ...THEME_COLOR_CONFIG.FALLBACK_COLORS };
+    }
+    catch (error) {
+        console.error(`[getThemeColors] ${ERROR_MESSAGES.THEME_ACCESS_ERROR}`, error);
+        return { ...FALLBACK_THEME_COLORS };
     }
 }
