@@ -1,19 +1,51 @@
 /**
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").AppStateValue} AppStateValue
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").AutoUpdaterLike} AutoUpdaterLike
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").BrowserWindowApi} BrowserWindowApi
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").BrowserWindowConstructor} BrowserWindowConstructor
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").LogWithContext} LogWithContext
+ * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
+ *
+ * @typedef {{
+ *     browserWindowRef: () => BrowserWindowApi | BrowserWindowConstructor | null | undefined;
+ *     getAppState: (key: string) => AppStateValue;
+ *     setAppState: (key: string, value: AppStateValue) => void;
+ *     safeCreateAppMenu: (
+ *         win: MainWindowLike,
+ *         theme: string,
+ *         loadedPath?: string | null
+ *     ) => void;
+ *     CONSTANTS: { DEFAULT_THEME: string };
+ *     getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
+ *     sendToRenderer: (
+ *         win: MainWindowLike,
+ *         channel: string,
+ *         ...args: unknown[]
+ *     ) => void;
+ *     resolveAutoUpdater: () => Promise<AutoUpdaterLike>;
+ *     setupAutoUpdater: (
+ *         mainWindow: MainWindowLike,
+ *         autoUpdater: AutoUpdaterLike
+ *     ) => void;
+ *     logWithContext: LogWithContext;
+ * }} InitializeMainWindowOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
  * Create or reuse the main application window and wire core lifecycle handlers.
  *
- * @param {Object} options
- * @param {Function} options.browserWindowRef
- * @param {Function} options.getAppState
- * @param {Function} options.setAppState
- * @param {Function} options.safeCreateAppMenu
- * @param {any} options.CONSTANTS
- * @param {Function} options.getThemeFromRenderer
- * @param {Function} options.sendToRenderer
- * @param {Function} options.resolveAutoUpdater
- * @param {Function} options.setupAutoUpdater
- * @param {Function} options.logWithContext
+ * @param {InitializeMainWindowOptions} options
  *
- * @returns {Promise<any>}
+ * @returns {Promise<MainWindowLike>}
  */
 async function initializeMainWindow({
     browserWindowRef,
@@ -45,9 +77,11 @@ async function initializeMainWindow({
     const BW = browserWindowRef();
     const isConstructor = typeof BW === "function";
 
+    /** @type {MainWindowLike | undefined} */
     let mainWindow;
     if (process.env.NODE_ENV === "test" || !isConstructor) {
         try {
+            /** @type {MainWindowLike[] | undefined} */
             let list;
             try {
                 const { BrowserWindow: __tBW } = require("electron");
@@ -125,7 +159,7 @@ async function initializeMainWindow({
                     setAppState("autoUpdaterInitialized", true);
                 } catch (error) {
                     logWithContext("error", "Failed to setup auto-updater:", {
-                        error: /** @type {Error} */ (error).message,
+                        error: getErrorMessage(error),
                     });
                 }
             }
@@ -146,7 +180,7 @@ async function initializeMainWindow({
                     "warn",
                     "Failed to get theme from renderer, using fallback",
                     {
-                        error: /** @type {Error} */ (error).message,
+                        error: getErrorMessage(error),
                     }
                 );
                 safeCreateAppMenu(

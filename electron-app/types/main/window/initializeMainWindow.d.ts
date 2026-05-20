@@ -1,40 +1,45 @@
+import type {
+    AppStateValue,
+    AutoUpdaterLike,
+    BrowserWindowApi,
+    BrowserWindowConstructor,
+    LogWithContext,
+    MainWindowLike,
+} from "./bootstrapMainWindow";
+
+export interface InitializeMainWindowOptions {
+    browserWindowRef: () =>
+        | BrowserWindowApi
+        | BrowserWindowConstructor
+        | null
+        | undefined;
+    getAppState: (key: string) => AppStateValue;
+    setAppState: (key: string, value: AppStateValue) => void;
+    safeCreateAppMenu: (
+        win: MainWindowLike,
+        theme: string,
+        loadedPath?: string | null
+    ) => void;
+    CONSTANTS: {
+        DEFAULT_THEME: string;
+    };
+    getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
+    sendToRenderer: (
+        win: MainWindowLike,
+        channel: string,
+        ...args: unknown[]
+    ) => void;
+    resolveAutoUpdater: () => Promise<AutoUpdaterLike>;
+    setupAutoUpdater: (
+        mainWindow: MainWindowLike,
+        autoUpdater: AutoUpdaterLike
+    ) => void;
+    logWithContext: LogWithContext;
+}
+
 /**
  * Create or reuse the main application window and wire core lifecycle handlers.
- *
- * @param {Object} options
- * @param {Function} options.browserWindowRef
- * @param {Function} options.getAppState
- * @param {Function} options.setAppState
- * @param {Function} options.safeCreateAppMenu
- * @param {any} options.CONSTANTS
- * @param {Function} options.getThemeFromRenderer
- * @param {Function} options.sendToRenderer
- * @param {Function} options.resolveAutoUpdater
- * @param {Function} options.setupAutoUpdater
- * @param {Function} options.logWithContext
- *
- * @returns {Promise<any>}
  */
-export function initializeMainWindow({
-    browserWindowRef,
-    getAppState,
-    setAppState,
-    safeCreateAppMenu,
-    CONSTANTS,
-    getThemeFromRenderer,
-    sendToRenderer,
-    resolveAutoUpdater,
-    setupAutoUpdater,
-    logWithContext,
-}: {
-    browserWindowRef: Function;
-    getAppState: Function;
-    setAppState: Function;
-    safeCreateAppMenu: Function;
-    CONSTANTS: any;
-    getThemeFromRenderer: Function;
-    sendToRenderer: Function;
-    resolveAutoUpdater: Function;
-    setupAutoUpdater: Function;
-    logWithContext: Function;
-}): Promise<any>;
+export function initializeMainWindow(
+    options: InitializeMainWindowOptions
+): Promise<MainWindowLike>;
