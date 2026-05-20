@@ -317,7 +317,7 @@ describe("main-ui.js core flows", () => {
         // Accept actual converter output under instrumentation
         expect(postMessage).toHaveBeenCalledWith(
             { type: "fit-file", base64: expect.any(String) },
-            "*"
+            window.location.origin
         );
     });
 

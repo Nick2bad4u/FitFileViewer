@@ -6,6 +6,24 @@ import { convertArrayBufferToBase64 } from "../formatting/converters/convertArra
 import { getState, setState } from "../state/core/stateManager.js";
 
 /**
+ * @typedef {(fitData: unknown, filePath: string) => void} ShowFitData
+ * @typedef {(data: unknown, filePath: string, options?: unknown) => void} RenderChartJS
+ * @typedef {typeof globalThis & {
+ *     cleanupEventListeners?: () => void;
+ *     renderChartJS?: RenderChartJS;
+ *     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => Promise<void>;
+ *     showFitData?: ShowFitData;
+ * }} LegacyRendererGlobal
+ */
+
+/**
+ * @returns {LegacyRendererGlobal}
+ */
+function getLegacyRendererGlobal() {
+    return /** @type {LegacyRendererGlobal} */ (globalThis);
+}
+
+/**
  * Define window.globalData to bridge legacy code to state-managed data.
  */
 export function defineGlobalDataProperty() {
@@ -38,8 +56,8 @@ export function defineGlobalDataProperty() {
  * Register legacy globals expected by older renderers/scripts.
  *
  * @param {{
- *     showFitData: (fitData: any, filePath: string) => void;
- *     renderChartJS: (data: any, filePath: string, options?: any) => void;
+ *     showFitData: ShowFitData;
+ *     renderChartJS: RenderChartJS;
  *     cleanupEventListeners: () => void;
  *     validateElement: (id: string) => HTMLElement | null;
  *     constants: {
@@ -55,19 +73,15 @@ export function registerLegacyGlobals({
     validateElement,
     constants,
 }) {
+    const legacyGlobal = getLegacyRendererGlobal();
+
     // Expose essential functions to window for backward compatibility
-    // @ts-ignore augmenting window for legacy globals
-    globalThis.showFitData = showFitData;
-    // @ts-ignore legacy compatibility
-    globalThis.renderChartJS = renderChartJS;
-    // @ts-ignore
-    globalThis.cleanupEventListeners = cleanupEventListeners;
+    legacyGlobal.showFitData = showFitData;
+    legacyGlobal.renderChartJS = renderChartJS;
+    legacyGlobal.cleanupEventListeners = cleanupEventListeners;
 
     // Enhanced iframe communication with better error handling
-    // @ts-ignore legacy global
-    globalThis.sendFitFileToAltFitReader = async function (
-        arrayBuffer
-    ) /** @type {ArrayBuffer} */ {
+    legacyGlobal.sendFitFileToAltFitReader = async (arrayBuffer) => {
         const iframe = validateElement(constants.DOM_IDS.ALT_FIT_IFRAME);
         if (!iframe) {
             console.warn("Alt FIT iframe not found");
@@ -80,9 +94,11 @@ export function registerLegacyGlobals({
                 try {
                     if (frame.contentWindow) {
                         const base64 = convertArrayBufferToBase64(arrayBuffer);
+                        const targetOrigin = globalThis.location.origin;
                         frame.contentWindow.postMessage(
                             { base64, type: "fit-file" },
-                            "*"
+                            // eslint-disable-next-line sdl/no-postmessage-without-origin-allowlist -- Electron loads the Alt FIT iframe from the same app origin; location.origin is the strict same-origin target for the current runtime.
+                            targetOrigin
                         );
                     }
                 } catch (error) {
