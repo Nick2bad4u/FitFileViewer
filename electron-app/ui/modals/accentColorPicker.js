@@ -354,46 +354,7 @@ function createModal() {
     const modal = document.createElement("div");
     modal.id = "accent-color-modal";
     modal.className = "accent-picker-modal";
-
-    modal.innerHTML = `
-		<div class="accent-picker-content">
-			<div class="accent-picker-header">
-				<h2>Customize Accent Color</h2>
-				<button class="close-btn" id="accent-picker-close">&times;</button>
-			</div>
-
-			<div class="accent-picker-body">
-				<div class="current-theme-info">
-					<strong>Current Theme:</strong> <span id="current-theme-name"></span>
-				</div>
-
-				<div class="color-preview-section">
-					<div class="preview-label">Current Accent Color:</div>
-					<div class="color-preview" id="accent-color-preview"></div>
-					<div class="preview-hex" id="accent-color-hex"></div>
-				</div>
-
-				<div class="preset-colors-section">
-					<div class="section-title">Preset Colors</div>
-					<div class="preset-colors" id="preset-colors"></div>
-				</div>
-
-				<div class="custom-color-section">
-					<div class="section-title">Custom Color</div>
-					<div class="custom-color-input">
-						<label for="custom-color-picker">Pick a color:</label>
-						<input type="color" id="custom-color-picker" />
-						<input type="text" id="custom-color-text" placeholder="#3b82f6" maxlength="7" />
-					</div>
-				</div>
-			</div>
-
-			<div class="accent-picker-footer">
-				<button class="btn-reset" id="accent-color-reset">Reset to Default</button>
-				<button class="btn-apply" id="accent-color-apply">Apply</button>
-			</div>
-		</div>
-	`;
+    modal.append(createModalContent());
 
     // Add styles
     addModalStyles();
@@ -405,6 +366,211 @@ function createModal() {
 }
 
 /**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createModalContent() {
+    const content = document.createElement("div");
+    content.className = "accent-picker-content";
+    content.append(createModalHeader(), createModalBody(), createModalFooter());
+
+    return content;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createModalHeader() {
+    const header = document.createElement("div");
+    header.className = "accent-picker-header";
+
+    const title = document.createElement("h2");
+    title.textContent = "Customize Accent Color";
+
+    const close = document.createElement("button");
+    close.className = "close-btn";
+    close.id = "accent-picker-close";
+    close.type = "button";
+    close.textContent = "×";
+
+    header.append(title, close);
+
+    return header;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createModalBody() {
+    const body = document.createElement("div");
+    body.className = "accent-picker-body";
+    body.append(
+        createCurrentThemeSection(),
+        createColorPreviewSection(),
+        createPresetColorSection(),
+        createCustomColorSection()
+    );
+
+    return body;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createCurrentThemeSection() {
+    const section = document.createElement("div");
+    section.className = "current-theme-info";
+
+    const label = document.createElement("strong");
+    label.textContent = "Current Theme:";
+
+    const themeName = document.createElement("span");
+    themeName.id = "current-theme-name";
+
+    section.append(label, document.createTextNode(" "), themeName);
+
+    return section;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createColorPreviewSection() {
+    const section = document.createElement("div");
+    section.className = "color-preview-section";
+
+    const label = document.createElement("div");
+    label.className = "preview-label";
+    label.textContent = "Current Accent Color:";
+
+    const preview = document.createElement("div");
+    preview.className = "color-preview";
+    preview.id = "accent-color-preview";
+
+    const hex = document.createElement("div");
+    hex.className = "preview-hex";
+    hex.id = "accent-color-hex";
+
+    section.append(label, preview, hex);
+
+    return section;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createPresetColorSection() {
+    const section = document.createElement("div");
+    section.className = "preset-colors-section";
+    section.append(
+        createSectionTitle("Preset Colors"),
+        createEmptyContainer("preset-colors", "preset-colors")
+    );
+
+    return section;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createCustomColorSection() {
+    const section = document.createElement("div");
+    section.className = "custom-color-section";
+
+    const inputRow = document.createElement("div");
+    inputRow.className = "custom-color-input";
+
+    const label = document.createElement("label");
+    label.htmlFor = "custom-color-picker";
+    label.textContent = "Pick a color:";
+
+    const picker = document.createElement("input");
+    picker.type = "color";
+    picker.id = "custom-color-picker";
+
+    const text = document.createElement("input");
+    text.type = "text";
+    text.id = "custom-color-text";
+    text.placeholder = "#3b82f6";
+    text.maxLength = 7;
+
+    inputRow.append(label, picker, text);
+    section.append(createSectionTitle("Custom Color"), inputRow);
+
+    return section;
+}
+
+/**
+ * @private
+ *
+ * @returns {HTMLElement}
+ */
+function createModalFooter() {
+    const footer = document.createElement("div");
+    footer.className = "accent-picker-footer";
+
+    const reset = document.createElement("button");
+    reset.className = "btn-reset";
+    reset.id = "accent-color-reset";
+    reset.type = "button";
+    reset.textContent = "Reset to Default";
+
+    const apply = document.createElement("button");
+    apply.className = "btn-apply";
+    apply.id = "accent-color-apply";
+    apply.type = "button";
+    apply.textContent = "Apply";
+
+    footer.append(reset, apply);
+
+    return footer;
+}
+
+/**
+ * @private
+ *
+ * @param {string} text
+ *
+ * @returns {HTMLElement}
+ */
+function createSectionTitle(text) {
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.textContent = text;
+
+    return title;
+}
+
+/**
+ * @private
+ *
+ * @param {string} className
+ * @param {string} id
+ *
+ * @returns {HTMLElement}
+ */
+function createEmptyContainer(className, id) {
+    const container = document.createElement("div");
+    container.className = className;
+    container.id = id;
+
+    return container;
+}
+
+/**
  * Renders the preset color buttons
  *
  * @private
@@ -413,11 +579,17 @@ function createModal() {
  */
 function renderPresetColors(modal) {
     const container = modal.querySelector("#preset-colors");
-    container.innerHTML = "";
+    if (!(container instanceof HTMLElement)) {
+        return;
+    }
+
+    container.replaceChildren();
 
     for (const preset of PRESET_COLORS) {
         const button = document.createElement("button");
+        button.type = "button";
         button.className = "preset-color";
+        button.dataset.hex = preset.hex;
         button.style.backgroundColor = preset.hex;
         button.title = preset.name;
         button.addEventListener("click", () => {
@@ -425,29 +597,6 @@ function renderPresetColors(modal) {
         });
         container.append(button);
     }
-}
-
-/**
- * Converts RGB color to hex
- *
- * @private
- *
- * @param {string} rgb - RGB color string
- *
- * @returns {string} Hex color
- */
-function rgbToHex(rgb) {
-    if (rgb.startsWith("#")) {
-        return rgb.toLowerCase();
-    }
-    const match = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(rgb);
-    if (!match) {
-        return rgb;
-    }
-    const r = Number.parseInt(match[1], 10);
-    const g = Number.parseInt(match[2], 10);
-    const b = Number.parseInt(match[3], 10);
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 /**
@@ -465,7 +614,7 @@ function setupEventListeners(modal) {
     const customText = modal.querySelector("#custom-color-text");
 
     // Close button
-    closeBtn.addEventListener("click", () => {
+    closeBtn?.addEventListener("click", () => {
         modal.style.display = "none";
     });
 
@@ -477,7 +626,7 @@ function setupEventListeners(modal) {
     });
 
     // Reset button
-    resetBtn.addEventListener("click", () => {
+    resetBtn?.addEventListener("click", () => {
         const currentTheme = loadTheme();
         const theme = getEffectiveTheme(currentTheme);
         resetAccentColor(theme);
@@ -485,25 +634,30 @@ function setupEventListeners(modal) {
     });
 
     // Apply button
-    applyBtn.addEventListener("click", () => {
+    applyBtn?.addEventListener("click", () => {
         modal.style.display = "none";
     });
 
     // Custom color picker
-    customPicker.addEventListener("input", (event) => {
-        const color = event.target.value;
-        customText.value = color;
-        applyColor(color);
-    });
-
-    // Custom color text input
-    customText.addEventListener("input", (event) => {
-        const color = event.target.value;
-        if (/^#[\dA-Fa-f]{6}$/.test(color)) {
-            customPicker.value = color;
+    if (
+        customPicker instanceof HTMLInputElement &&
+        customText instanceof HTMLInputElement
+    ) {
+        customPicker.addEventListener("input", () => {
+            const { value: color } = customPicker;
+            customText.value = color;
             applyColor(color);
-        }
-    });
+        });
+
+        // Custom color text input
+        customText.addEventListener("input", () => {
+            const { value: color } = customText;
+            if (/^#[\dA-Fa-f]{6}$/.test(color)) {
+                customPicker.value = color;
+                applyColor(color);
+            }
+        });
+    }
 
     // Render preset colors
     renderPresetColors(modal);
@@ -519,6 +673,7 @@ function updatePreview() {
     const theme = getEffectiveTheme(currentTheme);
     const color = getEffectiveAccentColor(theme);
     const defaultColor = getDefaultAccentColor(theme);
+    const normalizedColor = color.toLowerCase();
 
     // Update theme name
     const themeName = document.getElementById("current-theme-name");
@@ -554,7 +709,8 @@ function updatePreview() {
     for (const button of presetButtons) {
         button.classList.toggle(
             "selected",
-            button.style.backgroundColor === rgbToHex(color)
+            button instanceof HTMLElement &&
+                button.dataset.hex === normalizedColor
         );
     }
 
