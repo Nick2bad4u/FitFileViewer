@@ -168,7 +168,9 @@ export function openZoneColorPicker(field) {
 					`;
 
         const closeButton = document.createElement("button");
-        closeButton.innerHTML = "✕";
+        closeButton.type = "button";
+        closeButton.textContent = "✕";
+        closeButton.setAttribute("aria-label", "Close zone color picker");
         closeButton.style.cssText = `
 						background: rgba(255, 255, 255, 0.1);
 						border: none;
