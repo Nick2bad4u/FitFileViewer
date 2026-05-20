@@ -33,18 +33,17 @@ const NATIVE_FULLSCREEN_EVENTS = [
     "mozfullscreenchange",
     "MSFullscreenChange",
 ];
+const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
 
 const getElectronAPI = () =>
     /** @type {{ setFullScreen?: (flag: boolean) => void } | undefined} */ (
         /** @type {any} */ (globalThis).electronAPI
     );
-const getScreenfullInstance = () => {
-    const { screenfull } = /** @type {any} */ (globalThis);
-    return /** @type {import("screenfull").Screenfull | undefined} */ (
-        screenfull
+const getScreenfullInstance = () =>
+    /** @type {import("screenfull").Screenfull | undefined} */ (
+        /** @type {{ screenfull?: unknown }} */ (globalThis).screenfull
     );
-};
 const getStoredHandler = (key) =>
     /** @type {(event: any) => void | null | undefined} */ (
         /** @type {any} */ (globalThis)[key]
@@ -129,7 +128,7 @@ export function addFullScreenButton() {
             btn.setAttribute("role", "button");
             btn.setAttribute("tabindex", "0");
             btn.style.pointerEvents = "auto";
-            btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
+            btn.append(createFullscreenIconWrapper("enter"));
             btn.addEventListener("click", () => nativeToggleFullscreen());
             wrapper.append(btn);
             document.body.append(wrapper);
@@ -150,7 +149,7 @@ export function addFullScreenButton() {
         btn.setAttribute("role", "button");
         btn.setAttribute("tabindex", "0");
         btn.style.pointerEvents = "auto";
-        btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
+        btn.append(createFullscreenIconWrapper("enter"));
         btn.addEventListener("click", handleFullscreenToggle);
         wrapper.append(btn);
         document.body.append(wrapper);
@@ -304,40 +303,85 @@ export function setupFullscreenListeners() {
     }
 }
 /**
+ * Creates the icon wrapper used by the fullscreen button.
+ *
+ * @private
+ *
+ * @param {"enter" | "exit"} state
+ *
+ * @returns {HTMLSpanElement}
+ */
+function createFullscreenIconWrapper(state) {
+    const icon = document.createElement("span");
+    icon.className = "fullscreen-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.append(
+        state === "enter" ? createEnterFullscreenIcon() : createExitFullscreenIcon()
+    );
+
+    return icon;
+}
+
+/**
  * Creates SVG icon for fullscreen enter state
  *
  * @private
  *
- * @returns {string} SVG markup for enter fullscreen icon
+ * @returns {SVGSVGElement} SVG for enter fullscreen icon
  */
 function createEnterFullscreenIcon() {
-    return `
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
-            <title>Enter Fullscreen</title>
-            <path d="M5 9V5H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 5H23V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M23 19V23H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 23H5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
+    return createFullscreenSvg("Enter Fullscreen", [
+        "M5 9V5H9",
+        "M19 5H23V9",
+        "M23 19V23H19",
+        "M9 23H5V19",
+    ]);
 }
 /**
  * Creates SVG icon for fullscreen exit state
  *
  * @private
  *
- * @returns {string} SVG markup for exit fullscreen icon
+ * @returns {SVGSVGElement} SVG for exit fullscreen icon
  */
 function createExitFullscreenIcon() {
-    return `
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
-            <title>Exit Fullscreen</title>
-            <path d="M9 5V9H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M23 9V5H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 23V19H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M5 19V23H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
+    return createFullscreenSvg("Exit Fullscreen", [
+        "M9 5V9H5",
+        "M23 9V5H19",
+        "M19 23V19H23",
+        "M5 19V23H9",
+    ]);
+}
+
+/**
+ * @param {string} titleText
+ * @param {string[]} paths
+ *
+ * @returns {SVGSVGElement}
+ */
+function createFullscreenSvg(titleText, paths) {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.classList.add("inline-svg");
+    svg.setAttribute("width", "28");
+    svg.setAttribute("height", "28");
+    svg.setAttribute("viewBox", "0 0 28 28");
+    svg.setAttribute("fill", "none");
+
+    const title = document.createElementNS(SVG_NS, "title");
+    title.textContent = titleText;
+    svg.append(title);
+
+    for (const d of paths) {
+        const path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "currentColor");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+        svg.append(path);
+    }
+
+    return svg;
 }
 /**
  * Handles DOM content loaded initialization
@@ -643,11 +687,11 @@ function updateButtonState(button, isFullscreen) {
         if (isFullscreen) {
             button.title = "Exit Full Screen (F11)";
             button.setAttribute("aria-label", "Exit full screen mode");
-            icon.innerHTML = createExitFullscreenIcon();
+            icon.replaceChildren(createExitFullscreenIcon());
         } else {
             button.title = "Toggle Full Screen (F11)";
             button.setAttribute("aria-label", "Enter full screen mode");
-            icon.innerHTML = createEnterFullscreenIcon();
+            icon.replaceChildren(createEnterFullscreenIcon());
         }
     } catch (error) {
         logWithContext(
