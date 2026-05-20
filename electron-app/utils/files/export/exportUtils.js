@@ -141,6 +141,19 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
  * @typedef {typeof globalThis & {
  *     crypto?: Pick<Crypto, "getRandomValues">;
  * }} SecureRandomGlobal
+ * @typedef {{ base64?: boolean }} ExportZipFileOptions
+ * @typedef {{
+ *     file: (
+ *         name: string,
+ *         data: string | Blob,
+ *         options?: ExportZipFileOptions
+ *     ) => ExportZipLike;
+ *     generateAsync: (options: { type: "blob" }) => Promise<Blob>;
+ * }} ExportZipLike
+ * @typedef {new () => ExportZipLike} ExportZipConstructor
+ * @typedef {typeof globalThis & {
+ *     JSZip?: ExportZipConstructor;
+ * }} ExportZipGlobal
  */
 
 /**
@@ -232,6 +245,17 @@ function generateOAuthState() {
  */
 function getSecureRandomGlobal() {
     return /** @type {SecureRandomGlobal} */ (globalThis);
+}
+
+/**
+ * @returns {ExportZipConstructor}
+ */
+function getExportZipConstructor() {
+    const { JSZip } = /** @type {ExportZipGlobal} */ (globalThis);
+    if (JSZip === undefined) {
+        throw new TypeError("JSZip library not loaded");
+    }
+    return JSZip;
 }
 
 /**
@@ -538,7 +562,7 @@ export function __setTestDeps(overrides) {
  * @property {Object} _chartjsInstances - Chart.js instances array
  * @property {Function} showNotification - Notification function
  * @property {Object} electronAPI - Electron API object
- * @property {any} JSZip - JSZip constructor
+ * @property {ExportZipConstructor} [JSZip] - JSZip constructor
  */
 
 /**
@@ -554,7 +578,7 @@ export const exportUtils = {
     /**
      * Helper method to add combined CSV data to ZIP
      *
-     * @param {any} zip - JSZip instance
+     * @param {ExportZipLike} zip - JSZip instance
      * @param {any[]} charts - Array of Chart.js instances
      */
     async addCombinedCSVToZip(zip, charts) {
@@ -1564,19 +1588,16 @@ export const exportUtils = {
     /**
      * Exports all charts and data as a ZIP file
      *
-     * @param {any[]} charts - Array of Chart.js instances
+     * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
     async exportAllAsZip(charts) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
             }
-            if (/** @type {any} */ (globalThis).JSZip === undefined) {
-                throw new TypeError("JSZip library not loaded");
-            }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                zip = new /** @type {any} */ (globalThis).JSZip(); // JSZip is loaded globally via script tag
+                zip = new (getExportZipConstructor())(); // JSZip is loaded globally via script tag
 
             // Add individual chart images
             for (const [i, chart] of charts.entries()) {
