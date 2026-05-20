@@ -160,6 +160,7 @@
         "utils/ui/mainUiDomUtils.ts",
         "utils/ui/mainUiGlobals.ts",
         "utils/ui/components/LoadingOverlay.ts",
+        "utils/ui/initStartup.ts",
         "utils/ui/icons/iconFactory.ts",
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
         "utils/ui/setupExternalLinkHandlers.ts",
