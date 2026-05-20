@@ -3,13 +3,28 @@
 
 /**
  * @typedef {{
- *     addTo?: Function;
- *     setZIndex?: Function;
- *     on?: Function;
- *     remove?: Function;
+ *     addTo?: (map: unknown) => unknown;
+ *     on?: (eventName: string, listener: (...args: unknown[]) => void) => unknown;
+ *     remove?: () => unknown;
+ *     setZIndex?: (zIndex: number) => unknown;
  * }} LeafletLayer
  */
-/** @typedef {{ tileLayer: Function; maplibreGL?: Function }} LeafletMinimal */
+/** @typedef {(urlTemplate: string, options?: Record<string, unknown>) => LeafletLayer} LeafletTileLayerFactory */
+/** @typedef {(options: Record<string, unknown>) => LeafletLayer} MapLibreLayerFactory */
+/** @typedef {{ tileLayer: LeafletTileLayerFactory; maplibreGL?: MapLibreLayerFactory }} LeafletMinimal */
+
+/**
+ * @param {unknown} value
+ * @returns {value is LeafletMinimal}
+ */
+function isLeafletMinimal(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return typeof candidate.tileLayer === "function";
+}
 
 /**
  * Resolve the Leaflet global if present, else return a shim with minimal API
@@ -18,10 +33,11 @@
  * @returns {LeafletMinimal}
  */
 function getLeaflet() {
-    const g = /** @type {any} */ (globalThis);
-    if (g && g.L && g.L.tileLayer) {
-        return g.L;
+    const leaflet = /** @type {{ L?: unknown }} */ (globalThis).L;
+    if (isLeafletMinimal(leaflet)) {
+        return leaflet;
     }
+
     return {
         maplibreGL: () => ({}),
         tileLayer: () => ({}),
