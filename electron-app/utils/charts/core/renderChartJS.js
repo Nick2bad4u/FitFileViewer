@@ -551,7 +551,7 @@ export const chartSettingsManager = {
 
         const resolved =
             settings && typeof settings === "object" ? settings : {};
-        const rawMaxpoints = /** @type {any} */ (resolved).maxpoints;
+        const rawMaxpoints = getRecordValue(resolved, "maxpoints");
         const normalizedMaxpoints =
             rawMaxpoints === "all"
                 ? "all"
@@ -659,10 +659,10 @@ export const chartSettingsManager = {
  * @returns {Function} Debounced function
  */
 function debounce(func, wait) {
-    /** @type {any} */
+    /** @type {ReturnType<typeof setTimeout> | null} */
     let timeout = null;
     // Use arrow function to avoid 'this' context issues
-    return (/** @type {any[]} */ ...args) => {
+    return (...args) => {
         if (timeout) {
             clearTimeout(timeout);
         }
@@ -793,8 +793,10 @@ export async function prewarmChartRenderCaches({
     // If charts are already rendered or rendering, pre-warming is unnecessary.
     const chartsState = gs("charts");
     if (chartsState && typeof chartsState === "object") {
-        const cs = /** @type {any} */ (chartsState);
-        if (cs.isRendered === true || cs.isRendering === true) {
+        if (
+            getRecordValue(chartsState, "isRendered") === true ||
+            getRecordValue(chartsState, "isRendering") === true
+        ) {
             return { processedFields: 0, skipped: true };
         }
     }
@@ -804,9 +806,7 @@ export async function prewarmChartRenderCaches({
     setNotificationSuppressed(true);
 
     try {
-        const settings = /** @type {any} */ (
-            chartSettingsManager.getSettings()
-        );
+        const settings = chartSettingsManager.getSettings();
         const normalizedMaxPoints = normalizeMaxPointsValue(
             settings?.maxpoints
         );
@@ -838,8 +838,7 @@ export async function prewarmChartRenderCaches({
                     .filter((key) => key !== "timestamp")
                     .filter(
                         (key) =>
-                            typeof (/** @type {any} */ (sample)[key]) ===
-                            "number"
+                            typeof getRecordValue(sample, key) === "number"
                     );
             } catch {
                 /* ignore */
@@ -1060,8 +1059,8 @@ function ensureFieldSeriesCache(recordMesgs) {
             readKeys: new Map(),
         };
         fieldSeriesCache.set(recordMesgs, cache);
-    } else if (!(/** @type {any} */ (cache.readKeys instanceof Map))) {
-        /** @type {any} */ (cache).readKeys = new Map();
+    } else if (!(cache.readKeys instanceof Map)) {
+        cache.readKeys = new Map();
     }
     return cache;
 }
@@ -1142,7 +1141,7 @@ function getFieldSeriesEntry(
         for (const row of recordMesgs) {
             const raw =
                 row && typeof row === "object"
-                    ? /** @type {any} */ (row)[readKey]
+                    ? getRecordValue(row, readKey)
                     : null;
             let numeric = Number(raw);
             if (!Number.isFinite(numeric)) {
@@ -1217,7 +1216,7 @@ function getLabelsForRecords(recordMesgs, startTime) {
             "timestamp" in row &&
             row.timestamp != null
         ) {
-            const { timestamp: rawTimestamp } = /** @type {any} */ (row);
+            const rawTimestamp = getRecordValue(row, "timestamp");
             let timestamp = rawTimestamp;
             if (rawTimestamp instanceof Date) {
                 timestamp = rawTimestamp.getTime() / 1000;
@@ -1371,12 +1370,11 @@ function resolveRecordFieldKey(cache, recordMesgs, field) {
         if (!row || typeof row !== "object") {
             continue;
         }
-        const anyRow = /** @type {any} */ (row);
-        if (field in anyRow) {
+        if (field in row) {
             resolved = field;
             break;
         }
-        if (snake in anyRow) {
+        if (snake in row) {
             resolved = snake;
             break;
         }
@@ -2073,7 +2071,7 @@ export function initializeChartStateManagement() {
     );
 
     // Set up computed state dependencies
-    /** @type {any} */ (computedStateManager).define?.("charts.hasData", () => {
+    getComputedStateManagerSafe().define?.("charts.hasData", () => {
         const data = getState("globalData");
         return (
             data &&
@@ -2083,12 +2081,12 @@ export function initializeChartStateManagement() {
         );
     });
 
-    /** @type {any} */ (computedStateManager).define?.(
+    getComputedStateManagerSafe().define?.(
         "charts.renderableFieldCount",
         () => chartState.renderableFields.length
     );
 
-    /** @type {any} */ (computedStateManager).define?.(
+    getComputedStateManagerSafe().define?.(
         "charts.summary",
         () => ({
             chartCount: getState("charts.renderedCount") || 0,
@@ -2102,18 +2100,18 @@ export function initializeChartStateManagement() {
     // Set up state middleware for chart operations (only if not already registered)
     if (!middlewareManager.middleware?.has?.("chart-render")) {
         middlewareManager.register("chart-render", {
-            afterSet: (/** @type {any} */ context) => {
+            afterSet: (context) => {
                 console.log(
                     "[ChartJS] Chart render action completed:",
                     context
                 );
                 return context;
             },
-            beforeSet: (/** @type {any} */ context) => {
+            beforeSet: (context) => {
                 console.log("[ChartJS] Starting chart render action:", context);
                 return context;
             },
-            onError: (/** @type {any} */ context) => {
+            onError: (context) => {
                 console.error("[ChartJS] Chart render action failed:", context);
                 Promise.resolve().then(() =>
                     notify("Chart rendering failed", "error")
@@ -2410,13 +2408,12 @@ export async function renderChartJS(targetContainer, options = {}) {
         let activityStartTime = null;
         if (recordMesgs && recordMesgs.length > 0) {
             for (const rec of recordMesgs) {
-                if (
-                    rec &&
-                    typeof rec === "object" &&
-                    "timestamp" in /** @type {any} */ (rec) &&
-                    /** @type {any} */ (rec).timestamp != null
-                ) {
-                    activityStartTime = /** @type {any} */ (rec).timestamp;
+                const recordTimestamp =
+                    rec && typeof rec === "object"
+                        ? getRecordValue(rec, "timestamp")
+                        : null;
+                if (recordTimestamp != null) {
+                    activityStartTime = recordTimestamp;
                     break;
                 }
             }
@@ -2619,10 +2616,10 @@ export async function renderChartJS(targetContainer, options = {}) {
             pre.style.overflowX = "auto";
             pre.style.border = `1px solid var(--color-border, ${safeBorder})`;
 
-            const errAny = /** @type {any} */ (error);
-            pre.textContent = String(
-                errAny?.stack || errAny?.message || errAny
-            );
+            pre.textContent =
+                error instanceof Error
+                    ? (error.stack ?? error.message)
+                    : String(error);
 
             safeAppend(details, summary);
             safeAppend(details, pre);
@@ -2756,8 +2753,7 @@ async function renderChartsWithData(
     createUserDeviceInfoBox(chartContainer);
 
     // Get current settings through enhanced state management
-    /** @type {ChartSettings} */
-    const settings = /** @type {any} */ (chartSettingsManager.getSettings()),
+    const settings = chartSettingsManager.getSettings(),
         {
             animation: animationStyle = "normal",
             chartType = "line",
@@ -2867,17 +2863,16 @@ async function renderChartsWithData(
                 : {};
             fieldsToRender = Object.keys(sample)
                 .filter((key) => key !== "timestamp")
-                .filter(
-                    (key) =>
-                        typeof (/** @type {any} */ (sample)[key]) === "number"
-                );
+                .filter((key) => typeof getRecordValue(sample, key) === "number");
             if (!fieldsToRender.length) {
                 fieldsToRender = [
                     "speed",
                     "elevation",
                     "heart_rate",
                     "power",
-                ].filter((field) => field in /** @type {any} */ (sample));
+                ].filter(
+                    (field) => sample && typeof sample === "object" && field in sample
+                );
             }
         } catch {
             // ignore and proceed with empty, which will show no-data messages later
@@ -3346,15 +3341,23 @@ export const chartPerformanceMonitor = {
             return {};
         }
 
-        const durations = history.map(
-                (/** @type {any} */ record) => record.duration
-            ),
-            avgDuration =
-                durations.reduce(
-                    (/** @type {any} */ sum, /** @type {any} */ duration) =>
-                        sum + duration,
-                    0
-                ) / durations.length,
+        const durations = history
+            .map((record) => Number(getRecordValue(record, "duration")))
+            .filter((duration) => Number.isFinite(duration));
+        if (durations.length === 0) {
+            return {
+                averageDuration: 0,
+                lastOperation: history.at(-1),
+                maxDuration: 0,
+                minDuration: 0,
+                recentOperations: history.slice(-10),
+                totalOperations: history.length,
+            };
+        }
+
+        const avgDuration =
+                durations.reduce((sum, duration) => sum + duration, 0) /
+                durations.length,
             maxDuration = Math.max(...durations),
             minDuration = Math.min(...durations);
 
@@ -3409,11 +3412,10 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) =>
-                    /** @type {any} */ (computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) =>
-                    /** @type {any} */ (computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */ (computedStateManager).list?.(),
+                get: (key) => getComputedStateManagerSafe().get?.(key),
+                invalidate: (key) =>
+                    getComputedStateManagerSafe().invalidate?.(key),
+                list: () => getComputedStateManagerSafe().list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({
@@ -3429,10 +3431,9 @@ if (globalThis.window !== undefined) {
 
             // Field visibility management
             fieldVisibility: {
-                get: (/** @type {any} */ field) =>
-                    chartSettingsManager.getFieldVisibility(field),
+                get: (field) => chartSettingsManager.getFieldVisibility(field),
                 getAll: () => {
-                    /** @type {any} */
+                    /** @type {Record<string, string>} */
                     const result = {};
                     if (Array.isArray(formatChartFields)) {
                         for (const field of formatChartFields) {
@@ -3443,8 +3444,8 @@ if (globalThis.window !== undefined) {
                     return result;
                 },
                 set: (
-                    /** @type {any} */ field,
-                    /** @type {any} */ visibility
+                    field,
+                    visibility
                 ) => chartSettingsManager.setFieldVisibility(field, visibility),
             },
             // Chart instance management
@@ -3459,7 +3460,7 @@ if (globalThis.window !== undefined) {
 
             getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
             // State debugging and manipulation
-            getState: (/** @type {any} */ path) => getState(path),
+            getState: (path) => getState(path),
 
             // State history and debugging
             getStateHistory: () => getState("__stateHistory") || [],
@@ -3474,13 +3475,12 @@ if (globalThis.window !== undefined) {
             // State reset and initialization
             resetNotificationState: resetChartNotificationState,
 
-            setState: (/** @type {any} */ path, /** @type {any} */ value) =>
+            setState: (path, value) =>
                 setState(path, value, { silent: false, source: "dev-tools" }),
 
             settings: chartSettingsManager,
 
-            subscribe: (/** @type {any} */ path, /** @type {any} */ callback) =>
-                subscribe(path, callback),
+            subscribe: (path, callback) => subscribe(path, callback),
 
             // Debounce testing utility
             testDebounce: (delay = 1000) => {
