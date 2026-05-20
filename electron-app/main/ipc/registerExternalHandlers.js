@@ -2,6 +2,44 @@ const { z } = require("zod");
 
 const { validateExternalUrl } = require("../security/externalUrlPolicy");
 
+/**
+ * @typedef {{ openExternal: (url: string) => Promise<void> }} ExternalShell
+ *
+ * @typedef {{ success: boolean; message: string; port?: number }} GyazoServerStartResult
+ *
+ * @typedef {{ success: boolean; message: string }} GyazoServerStopResult
+ *
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
+ *     level: "error" | "warn" | "info",
+ *     message: string,
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     shellRef?: () => ExternalShell | null | undefined;
+ *     startGyazoOAuthServer?: (
+ *         port?: number
+ *     ) => Promise<GyazoServerStartResult>;
+ *     stopGyazoOAuthServer?: () => Promise<GyazoServerStopResult>;
+ *     logWithContext?: LogWithContext;
+ * }} RegisterExternalHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
 // Security: restrict the callback server to non-privileged ports.
 // Allow 0 so the OS can choose an ephemeral port.
 const gyazoPortSchema = z.coerce
@@ -15,16 +53,7 @@ const gyazoPortSchema = z.coerce
  * Registers IPC handlers for external integrations (shell and Gyazo server
  * control).
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.shellRef
- * @param {(port?: number) => Promise<any>} options.startGyazoOAuthServer
- * @param {() => Promise<any>} options.stopGyazoOAuthServer
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
+ * @param {RegisterExternalHandlersOptions} options
  */
 function registerExternalHandlers({
     registerIpcHandle,
@@ -46,11 +75,12 @@ function registerExternalHandlers({
                 throw new Error("shell.openExternal unavailable");
             }
 
+            // eslint-disable-next-line sdl/no-electron-untrusted-open-external -- validateExternalUrl allows only https/mailto URLs without credentials.
             await shell.openExternal(validatedUrl);
             return true;
         } catch (error) {
             logWithContext?.("error", "Error in shell:openExternal:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -70,7 +100,7 @@ function registerExternalHandlers({
             return await startGyazoOAuthServer(parsed.data);
         } catch (error) {
             logWithContext?.("error", "Error in gyazo:server:start:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }
@@ -85,7 +115,7 @@ function registerExternalHandlers({
             return await stopGyazoOAuthServer();
         } catch (error) {
             logWithContext?.("error", "Error in gyazo:server:stop:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
             });
             throw error;
         }

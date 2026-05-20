@@ -1,7 +1,7 @@
 /**
  * @file External URL validation policy.
  *
- *   Centralizes main-process validation for any renderer-requested external
+ *   Centralizes main-process validation for renderer-requested external
  *   navigation. Keeping this policy in one place prevents security drift
  *   between different IPC modules.
  */
@@ -11,7 +11,7 @@
  *
  * Security properties:
  *
- * - Only allow http/https protocols.
+ * - Only allow https and mailto protocols.
  * - Reject embedded credentials.
  * - Reject non-string, empty, or malformed inputs.
  *
@@ -48,7 +48,7 @@ function validateExternalUrl(url) {
         }
     }
 
-    // Require any whitespace to be percent-encoded.
+    // Require whitespace to be percent-encoded.
     if (/\s/u.test(trimmed)) {
         throw new TypeError("Invalid URL provided");
     }
@@ -60,8 +60,8 @@ function validateExternalUrl(url) {
         throw new TypeError("Invalid URL provided");
     }
 
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-        throw new Error("Only HTTP and HTTPS URLs are allowed");
+    if (parsed.protocol !== "https:" && parsed.protocol !== "mailto:") {
+        throw new Error("Only HTTPS and mailto URLs are allowed");
     }
 
     if (parsed.username || parsed.password) {

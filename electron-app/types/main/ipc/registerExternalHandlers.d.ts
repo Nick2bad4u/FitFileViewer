@@ -1,32 +1,48 @@
+export interface ExternalShell {
+    openExternal: (url: string) => Promise<void>;
+}
+
+export interface GyazoServerStartResult {
+    success: boolean;
+    message: string;
+    port?: number;
+}
+
+export interface GyazoServerStopResult {
+    success: boolean;
+    message: string;
+}
+
+export type RegisterExternalIpcHandler = (
+    event: unknown,
+    ...args: unknown[]
+) => unknown;
+
+export type RegisterExternalIpcHandle = (
+    channel: string,
+    handler: RegisterExternalIpcHandler
+) => void;
+
+export type LogWithContext = (
+    level: "error" | "warn" | "info",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+export interface RegisterExternalHandlersOptions {
+    registerIpcHandle: RegisterExternalIpcHandle;
+    shellRef?: () => ExternalShell | null | undefined;
+    startGyazoOAuthServer?: (
+        port?: number
+    ) => Promise<GyazoServerStartResult>;
+    stopGyazoOAuthServer?: () => Promise<GyazoServerStopResult>;
+    logWithContext?: LogWithContext;
+}
+
 /**
  * Registers IPC handlers for external integrations (shell and Gyazo server
  * control).
- *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {() => any} options.shellRef
- * @param {(port?: number) => Promise<any>} options.startGyazoOAuthServer
- * @param {() => Promise<any>} options.stopGyazoOAuthServer
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
  */
-export function registerExternalHandlers({
-    registerIpcHandle,
-    shellRef,
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-    logWithContext,
-}: {
-    registerIpcHandle: (channel: string, handler: Function) => void;
-    shellRef: () => any;
-    startGyazoOAuthServer: (port?: number) => Promise<any>;
-    stopGyazoOAuthServer: () => Promise<any>;
-    logWithContext: (
-        level: "error" | "warn" | "info",
-        message: string,
-        context?: Record<string, any>
-    ) => void;
-}): void;
+export function registerExternalHandlers(
+    options: RegisterExternalHandlersOptions
+): void;
