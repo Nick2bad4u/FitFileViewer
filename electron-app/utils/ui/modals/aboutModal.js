@@ -451,8 +451,7 @@ function hideAboutModal() {
  * @returns {DocumentFragment}
  */
 function sanitizeAboutBodyHtml(html) {
-    const template = document.createElement("template");
-    template.innerHTML = html;
+    const fragment = parseAboutBodyHtml(html);
 
     /** @type {Set<string>} */
     const blockedTags = new Set([
@@ -465,7 +464,7 @@ function sanitizeAboutBodyHtml(html) {
     ]);
 
     const walker = document.createTreeWalker(
-        template.content,
+        fragment,
         NodeFilter.SHOW_ELEMENT
     );
     /** @type {Element[]} */
@@ -491,11 +490,10 @@ function sanitizeAboutBodyHtml(html) {
             if (name === "href" || name === "src") {
                 const trimmed = value.trim();
                 const lower = trimmed.toLowerCase();
-                const isHttp =
-                    lower.startsWith("http://") || lower.startsWith("https://");
+                const isHttps = lower.startsWith("https://");
                 const isMailto = lower.startsWith("mailto:");
 
-                if (!isHttp && !isMailto) {
+                if (!isHttps && !isMailto) {
                     el.removeAttribute(attr.name);
                 }
 
@@ -511,14 +509,12 @@ function sanitizeAboutBodyHtml(html) {
             }
         }
 
-        // Force http(s) links to be treated as external links handled by the modal.
+        // Force safe external links to be handled by the modal.
         if (el.tagName === "A") {
             const href = el.getAttribute("href");
             if (
                 href &&
-                (href.startsWith("http://") ||
-                    href.startsWith("https://") ||
-                    href.startsWith("mailto:"))
+                (href.startsWith("https://") || href.startsWith("mailto:"))
             ) {
                 el.dataset.externalLink = "";
                 el.setAttribute("rel", "noopener noreferrer");
@@ -530,7 +526,25 @@ function sanitizeAboutBodyHtml(html) {
         node.remove();
     }
 
-    return template.content;
+    return fragment;
+}
+
+/**
+ * Parse the supplied body fragment before the allowlist cleanup runs.
+ *
+ * @param {string} html
+ *
+ * @returns {DocumentFragment}
+ */
+function parseAboutBodyHtml(html) {
+    // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Sanitization happens immediately in sanitizeAboutBodyHtml before callers receive the fragment.
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    const fragment = document.createDocumentFragment();
+    for (const child of Array.from(parsed.body.childNodes)) {
+        fragment.append(child);
+    }
+
+    return fragment;
 }
 
 /**
