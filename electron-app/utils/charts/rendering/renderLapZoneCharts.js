@@ -29,7 +29,11 @@ import { renderLapZoneChart } from "./renderLapZoneChart.js";
 /**
  * @typedef {Object} LapZoneChartsOptions
  *
+ * @property {boolean} [showGrid]
+ * @property {boolean} [showLegend]
+ * @property {boolean} [showTitle]
  * @property {LapZoneVisibility} [visibilitySettings]
+ * @property {Record<string, unknown>} [zoomPluginConfig]
  */
 
 // Lap zone charts renderer - renders 4 different lap zone visualizations

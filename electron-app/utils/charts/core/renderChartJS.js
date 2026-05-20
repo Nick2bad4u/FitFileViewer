@@ -1024,7 +1024,7 @@ function createChartPoints(labels, values) {
 }
 
 function createDataSettingsSignature(settings = {}) {
-    /** @type {Record<string, any>} */
+    /** @type {Record<string, unknown>} */
     const signature = {};
     for (const { settingKey, storageKey } of DATA_SIGNATURE_SOURCES) {
         const value = readSettingOrStorageValue(
@@ -2464,7 +2464,7 @@ export async function renderChartJS(targetContainer, options = {}) {
                 try {
                     modules.renderLapZoneCharts?.(
                         tmp,
-                        /** @type {any} */ ({ visibilitySettings: {} })
+                        { visibilitySettings: {} }
                     );
                 } catch {
                     /* ignore */
@@ -2495,7 +2495,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         let result = false;
         try {
             result = await renderChartsWithData(
-                /** @type {any} */ (targetContainer),
+                targetContainer,
                 recordMesgs,
                 activityStartTime,
                 {
@@ -2653,7 +2653,8 @@ export async function renderChartJS(targetContainer, options = {}) {
  * @private
  */
 /**
- * @param {HTMLElement} targetContainer - Container element for charts
+ * @param {Element | string} targetContainer - Container element or selector
+ *   for charts
  * @param {Object[]} recordMesgs - FIT file record messages
  * @param {number | Date | null} startTime - Activity start time used for label
  *   generation
@@ -2963,7 +2964,7 @@ async function renderChartsWithData(
 
         const chart = createEnhancedChartSafe(
             canvas,
-            /** @type {any} */ ({
+            {
                 animationStyle: effectiveAnimationStyle,
                 axisRanges,
                 chartData: limitedPoints,
@@ -2989,7 +2990,7 @@ async function renderChartsWithData(
                 timeUnits,
                 distanceUnits,
                 temperatureUnits,
-            })
+            }
         );
         if (chart) {
             chartGlobal._chartjsInstances.push(chart);
@@ -3045,14 +3046,13 @@ async function renderChartsWithData(
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneChartsSafe(
             chartContainer,
-            /** @type {any} */ ({
-                // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
+            {
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
                 showTitle: boolSettings.showTitle,
                 visibilitySettings: lapZoneVisibility,
                 zoomPluginConfig,
-            })
+            }
         );
     } // Render GPS track chart if position data is available
     renderGPSTrackChartSafe(chartContainer, data, {
