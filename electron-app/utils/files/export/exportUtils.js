@@ -129,6 +129,15 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
 );
 
 /**
+ * @typedef {{
+ *     getItem?: (key: string) => string | null;
+ *     removeItem?: (key: string) => void;
+ *     setItem?: (key: string, value: string) => void;
+ * }} ExportStorageLike
+ * @typedef {() => ExportStorageLike | null} ExportStorageProvider
+ */
+
+/**
  * @typedef {typeof globalThis & {
  *     crypto?: Pick<Crypto, "getRandomValues">;
  * }} SecureRandomGlobal
@@ -475,12 +484,12 @@ function validateImgurEndpointUrl(url, allowedHosts) {
  * @type {{
  *     showNotification: typeof __realShowNotification;
  *     detectCurrentTheme: typeof __realDetectCurrentTheme;
- *     getStorage: () => any;
+ *     getStorage: ExportStorageProvider;
  * }}
  */
 let __deps = {
     detectCurrentTheme,
-    getStorage: () => /** @type {any} */ (globalThis).localStorage,
+    getStorage: () => globalThis.localStorage ?? null,
     showNotification,
 };
 
