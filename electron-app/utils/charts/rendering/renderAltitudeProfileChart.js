@@ -10,8 +10,35 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Altitude profile with gradient visualization
 /**
+ * @typedef {Object} AltitudeProfileDatum
+ *
+ * @property {number | null | undefined} [altitude]
+ * @property {number | null | undefined} [enhancedAltitude]
+ */
+/**
+ * @typedef {Object} AltitudeProfilePoint
+ *
+ * @property {number | undefined} x
+ * @property {number} y
+ */
+/**
+ * @typedef {Object} AltitudeProfileThemeConfig
+ *
+ * @property {Record<string, string>} [colors]
+ */
+/**
+ * @typedef {Object} AltitudeProfileTooltipContext
+ *
+ * @property {{ y: number }} parsed
+ */
+/**
+ * @typedef {Object} AltitudeProfileTooltipTitleContext
+ *
+ * @property {{ x: number }} parsed
+ */
+/**
  * @param {HTMLElement} container
- * @param {any[]} data
+ * @param {AltitudeProfileDatum[]} data
  * @param {number[]} labels
  * @param {{
  *     maxPoints: number | "all";
@@ -63,14 +90,16 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
         // Determine theme
         const currentTheme =
             theme && theme !== "auto" ? theme : detectCurrentTheme();
-        /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = /** @type {AltitudeProfileThemeConfig} */ (
+            getThemeConfig()
+        );
         const { colors } = themeConfig || {};
         const isDark = currentTheme === "dark";
         const textColor = isDark ? "#fff" : "#000000";
         const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
         const bgColor = isDark ? "#181c24" : "#ffffff";
 
+        /** @type {AltitudeProfilePoint[]} */
         let chartData = data
             .map(({ altitude, enhancedAltitude }, index) => {
                 const preferredAltitude = enhancedAltitude ?? altitude;
@@ -183,11 +212,13 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         borderColor: isDark ? "#555" : "#cccccc",
                         borderWidth: 1,
                         callbacks: {
-                            /** @param {any} context */
+                            /** @param {AltitudeProfileTooltipContext} context */
                             label(context) {
                                 return `Altitude: ${context.parsed.y.toFixed(1)} ${altUnit}`;
                             },
-                            /** @param {any[]} context */
+                            /**
+                             * @param {AltitudeProfileTooltipTitleContext[]} context
+                             */
                             title(context) {
                                 const val = context[0].parsed.x;
                                 const converted = convertTimeUnits(
@@ -248,7 +279,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             display: showGrid,
                         },
                         ticks: {
-                            /** @param {any} value */
+                            /** @param {number} value */
                             callback(value) {
                                 const converted = convertTimeUnits(
                                     value,
