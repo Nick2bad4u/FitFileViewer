@@ -21,6 +21,8 @@
 
 import { globalUtilities } from "./utils/legacy/globalUtilityRegistry.js";
 
+/** @typedef {(...args: any[]) => any} UtilityFunction */
+
 /**
  * @typedef {Object} ConstantsType
  *
@@ -154,13 +156,15 @@ if (globalThis.window !== undefined) {
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
         logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
+    const logger =
+        /** @type {Record<string, (...args: unknown[]) => void>} */ (console)[
+            level
+        ] ?? console.log.bind(console);
 
     if (context && Object.keys(context).length > 0) {
-        // @ts-expect-error - Dynamic console method access
-        console[level](logMessage, context);
+        logger(logMessage, context);
     } else {
-        // @ts-expect-error - Dynamic console method access
-        console[level](logMessage);
+        logger(logMessage);
     }
 }
 
@@ -183,7 +187,23 @@ function validateFunction(fn, name) {
 }
 
 // List of utilities to expose globally with enhanced metadata
-const utils = globalUtilities;
+const utils = /** @type {Record<string, UtilityFunction>} */ (globalUtilities);
+
+/**
+ * @returns {Record<string, unknown>}
+ */
+function getGlobalWindowRecord() {
+    return /** @type {Record<string, unknown>} */ (window);
+}
+
+/**
+ * @param {string} name
+ *
+ * @returns {boolean}
+ */
+function hasUtility(name) {
+    return Object.prototype.hasOwnProperty.call(utils, name);
+}
 
 /**
  * @typedef {Object} AttachmentResult
@@ -214,6 +234,7 @@ const utils = globalUtilities;
 
 // Enhanced global attachment with validation and error handling
 function attachUtilitiesToWindow() {
+    const globalWindow = getGlobalWindowRecord();
     /** @type {AttachmentResults} */
     const attachmentResults = {
         collisions: [],
@@ -247,11 +268,10 @@ function attachUtilitiesToWindow() {
             }
 
             // Check for namespace collisions and handle intelligently
-            // @ts-expect-error - Dynamic window property access
-            if (window[key] && window[key] !== undefined) {
+            const existingValue = globalWindow[key];
+            if (existingValue !== undefined && existingValue !== null) {
                 // If the same function is already attached, skip it silently
-                // @ts-expect-error - Dynamic window property access
-                if (window[key] === fn) {
+                if (existingValue === fn) {
                     attachmentResults.successful.push(
                         `${key} (already attached)`
                     );
@@ -259,23 +279,21 @@ function attachUtilitiesToWindow() {
                 }
 
                 // If both are functions, check if they're functionally equivalent
-                // @ts-expect-error - Dynamic window property access
                 if (
-                    typeof window[key] === "function" &&
+                    typeof existingValue === "function" &&
                     typeof fn === "function"
                 ) {
                     // Functions with same name are likely the same, just re-exported
-                    // @ts-expect-error - Dynamic window property access
                     if (
-                        window[key].name === fn.name &&
-                        (window[key].name === key || window[key].name === "")
+                        existingValue.name === fn.name &&
+                        (existingValue.name === key ||
+                            existingValue.name === "")
                     ) {
                         attachmentResults.successful.push(`${key} (updated)`);
                     } else {
                         // Only log if the functions are genuinely different
-                        // @ts-expect-error - Dynamic window property access
                         const isDifferent =
-                            window[key].toString() !== fn.toString();
+                            existingValue.toString() !== fn.toString();
                         if (isDifferent) {
                             logWithContext(
                                 "info",
@@ -288,8 +306,7 @@ function attachUtilitiesToWindow() {
                         attachmentResults.collisions.push({
                             name: key,
                             newType: typeof fn,
-                            // @ts-expect-error - Dynamic window property access
-                            previousType: typeof window[key],
+                            previousType: typeof existingValue,
                             resolved: true,
                             serious: false,
                         });
@@ -300,8 +317,7 @@ function attachUtilitiesToWindow() {
                         "warn",
                         `Type collision detected for: ${key}`,
                         {
-                            // @ts-expect-error - Dynamic window property access
-                            existing: typeof window[key],
+                            existing: typeof existingValue,
                             new: typeof fn,
                             overwriting: true,
                         }
@@ -309,8 +325,7 @@ function attachUtilitiesToWindow() {
                     attachmentResults.collisions.push({
                         name: key,
                         newType: typeof fn,
-                        // @ts-expect-error - Dynamic window property access
-                        previousType: typeof window[key],
+                        previousType: typeof existingValue,
                         resolved: false,
                         serious: true,
                     });
@@ -319,8 +334,7 @@ function attachUtilitiesToWindow() {
 
             // Attach to window with error handling
             try {
-                // @ts-expect-error - Dynamic window property assignment
-                window[key] = fn;
+                globalWindow[key] = fn;
                 attachmentResults.successful.push(key);
             } catch (error) {
                 const errorMessage =
@@ -396,10 +410,10 @@ function attachUtilitiesToWindow() {
 const FitFileViewerUtils = {
     // Cleanup function
     cleanup: () => {
+        const globalWindow = getGlobalWindowRecord();
         for (const key of Object.keys(utils)) {
             try {
-                // @ts-expect-error - Dynamic window property deletion
-                delete window[key];
+                delete globalWindow[key];
             } catch (error) {
                 const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
@@ -423,8 +437,7 @@ const FitFileViewerUtils = {
             logWithContext("error", `Utility not available: ${name}`);
             return null;
         }
-        // @ts-expect-error - Dynamic utils property access
-        return utils[name];
+        return utils[name] ?? null;
     },
 
     /**
@@ -433,8 +446,7 @@ const FitFileViewerUtils = {
      * @returns {boolean} Is utility available
      */
     isUtilAvailable: (name) =>
-        // @ts-expect-error - Dynamic utils property access
-        Object.hasOwn(utils, name) && validateFunction(utils[name], name),
+        hasUtility(name) && validateFunction(utils[name], name),
 
     namespace: CONSTANTS.NAMESPACE,
     // Safe utility execution
@@ -496,8 +508,8 @@ setTimeout(() => {
 }, 0);
 
 // Expose the utils namespace for advanced usage
-// @ts-expect-error - FitFileViewerUtils assigned to window
-globalThis.FitFileViewerUtils = FitFileViewerUtils;
+/** @type {Record<string, unknown>} */ (globalThis).FitFileViewerUtils =
+    FitFileViewerUtils;
 
 // Development mode enhancements
 const isDevelopment =
@@ -509,8 +521,7 @@ const isDevelopment =
         globalThis.location.protocol === "file:");
 if (isDevelopment) {
     // Expose additional development helpers
-    // @ts-expect-error - devUtilsHelpers assigned to window
-    globalThis.devUtilsHelpers = {
+    /** @type {Record<string, unknown>} */ (globalThis).devUtilsHelpers = {
         cleanup: FitFileViewerUtils.cleanup,
         getAttachmentResults: () => attachmentResults,
         logLevel: "debug",
