@@ -177,6 +177,7 @@
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
+        "utils/files/import/getOverlayFileName.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",
         "utils/dom/escapeHtml.ts",
