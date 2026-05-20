@@ -1,26 +1,38 @@
 /**
- * Creates a separate heart rate zone controls section that extracts existing HR
+ * Creates a separate power zone controls section that extracts existing power
  * zone controls.
  */
+
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
+
 /**
- * Creates the heart rate zone controls section by extracting existing controls.
+ * Current visibility state for power zone charts.
+ */
+export type PowerZoneVisibilitySettings = {
+    readonly doughnutVisible: boolean;
+    readonly lapIndividualVisible: boolean;
+    readonly lapStackedVisible: boolean;
+};
+
+/**
+ * Creates the power zone controls section by extracting existing controls.
  *
  * @param parentContainer - Parent container to append controls to.
- * @returns The created heart rate zone controls section.
+ * @returns The created power zone controls section.
  */
-export function createHRZoneControls(parentContainer) {
-    // Check if HR zone controls already exist
-    const existingControls = document.querySelector("#hr-zone-controls");
+export function createPowerZoneControls(parentContainer: HTMLElement): HTMLElement {
+    // Check if power zone controls already exist
+    const existingControls = document.querySelector("#power-zone-controls");
     if (existingControls instanceof HTMLElement) {
         return existingControls;
     }
+
     // Create main container
-    const hrZoneSection = document.createElement("div");
-    hrZoneSection.id = "hr-zone-controls";
-    hrZoneSection.className = "hr-zone-controls-section";
-    hrZoneSection.style.cssText = `
+    const powerZoneSection = document.createElement("div");
+    powerZoneSection.id = "power-zone-controls";
+    powerZoneSection.className = "power-zone-controls-section";
+    powerZoneSection.style.cssText = `
         background: var(--color-glass);
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
@@ -30,9 +42,10 @@ export function createHRZoneControls(parentContainer) {
         box-shadow: var(--color-box-shadow-light);
         transition: var(--transition-smooth);
     `;
+
     // Create header
     const header = document.createElement("div");
-    header.className = "hr-zone-header";
+    header.className = "power-zone-header";
     header.style.cssText = `
         display: flex;
         justify-content: space-between;
@@ -42,7 +55,7 @@ export function createHRZoneControls(parentContainer) {
         padding-bottom: 12px;
     `;
     const title = document.createElement("h3");
-    title.textContent = "❤️ Heart Rate Zone Charts";
+    title.textContent = "⚡ Power Zone Charts";
     title.style.cssText = `
         margin: 0;
         color: var(--color-fg-alt);
@@ -52,11 +65,12 @@ export function createHRZoneControls(parentContainer) {
         align-items: center;
         gap: 8px;
     `;
+
     // Create collapse toggle button
     const collapseBtn = document.createElement("button");
-    collapseBtn.className = "hr-zone-collapse-btn";
+    collapseBtn.className = "power-zone-collapse-btn";
     collapseBtn.textContent = "▼";
-    collapseBtn.setAttribute("aria-label", "Toggle heart rate zone controls");
+    collapseBtn.setAttribute("aria-label", "Toggle power zone controls");
     collapseBtn.style.cssText = `
         background: none;
         border: none;
@@ -67,34 +81,42 @@ export function createHRZoneControls(parentContainer) {
         border-radius: 4px;
         transition: var(--transition-smooth);
     `;
+
     header.append(title);
     header.append(collapseBtn);
+
     // Create content container that will hold the moved controls
     const content = document.createElement("div");
-    content.className = "hr-zone-content";
-    content.id = "hr-zone-content";
+    content.className = "power-zone-content";
+    content.id = "power-zone-content";
     content.style.cssText = `
         transition: var(--transition-smooth);
         overflow: hidden;
     `;
+
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("hr-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
+
     const listenerController = new AbortController();
     collapseBtn.addEventListener("click", () => {
         isCollapsed = !isCollapsed;
-        localStorage.setItem("hr-zone-controls-collapsed", isCollapsed.toString());
+        localStorage.setItem(
+            "power-zone-controls-collapsed",
+            isCollapsed.toString()
+        );
         updateCollapseState();
     }, { signal: listenerController.signal });
-    function updateCollapseState() {
+
+    function updateCollapseState(): void {
         if (isCollapsed) {
             content.style.maxHeight = "0";
             content.style.opacity = "0";
             content.style.marginTop = "0";
             collapseBtn.textContent = "▶";
             collapseBtn.setAttribute("aria-expanded", "false");
-        }
-        else {
+        } else {
             content.style.maxHeight = "500px";
             content.style.opacity = "1";
             content.style.marginTop = "0";
@@ -102,63 +124,86 @@ export function createHRZoneControls(parentContainer) {
             collapseBtn.setAttribute("aria-expanded", "true");
         }
     }
+
     // Assemble the section
-    hrZoneSection.append(header);
-    hrZoneSection.append(content);
+    powerZoneSection.append(header);
+    powerZoneSection.append(content);
+
     // Add hover effects
-    hrZoneSection.addEventListener("mouseenter", () => {
-        hrZoneSection.style.borderColor = "var(--color-primary-alpha)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow)";
+    powerZoneSection.addEventListener("mouseenter", () => {
+        powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
+        powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
     }, { signal: listenerController.signal });
-    hrZoneSection.addEventListener("mouseleave", () => {
-        hrZoneSection.style.borderColor = "var(--color-border)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
+
+    powerZoneSection.addEventListener("mouseleave", () => {
+        powerZoneSection.style.borderColor = "var(--color-border)";
+        powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
     }, { signal: listenerController.signal });
-    parentContainer.append(hrZoneSection);
-    return hrZoneSection;
+
+    parentContainer.append(powerZoneSection);
+    return powerZoneSection;
 }
+
 /**
- * Gets current heart rate zone chart visibility settings.
+ * Gets current power zone chart visibility settings.
  *
- * @returns Visibility settings for HR zone charts.
+ * @returns Visibility settings for power zone charts.
  */
-export function getHRZoneVisibilitySettings() {
+export function getPowerZoneVisibilitySettings(): PowerZoneVisibilitySettings {
     return {
-        doughnutVisible: getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        lapIndividualVisible:
+            getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
+        lapStackedVisible:
+            getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
     };
 }
+
 /**
- * Moves existing heart rate zone controls to the dedicated HR zone section This
+ * Moves existing power zone controls to the dedicated power zone section This
  * should be called after the field toggles are created
  */
-export function moveHRZoneControlsToSection() {
-    const hrZoneContent = document.querySelector("#hr-zone-content");
-    if (!(hrZoneContent instanceof HTMLElement)) {
-        console.warn("[HRZoneControls] HR zone content container not found");
+export function movePowerZoneControlsToSection(): void {
+    const powerZoneContent = document.querySelector("#power-zone-content");
+    if (!(powerZoneContent instanceof HTMLElement)) {
+        console.warn(
+            "[PowerZoneControls] Power zone content container not found"
+        );
         return;
-    } // Find existing HR zone controls in the field toggles section
-    const hrZoneFields = [
-        "hr_zone_doughnut",
-        "hr_lap_zone_stacked",
-        "hr_lap_zone_individual",
-    ], movedControls = [];
-    for (const fieldName of hrZoneFields) {
+    }
+
+    const movedControls: string[] = [];
+
+    // Find existing power zone controls in the field toggles section
+    const powerZoneFields = [
+        "power_zone_doughnut",
+        "power_lap_zone_stacked",
+        "power_lap_zone_individual",
+    ];
+
+    for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID
         const toggle = document.getElementById(`field-toggle-${fieldName}`);
         if (toggle && toggle.parentElement) {
             const controlContainer = toggle.parentElement;
-            // Move the entire control container to the HR zone section
-            hrZoneContent.append(controlContainer);
+
+            // Move the entire control container to the power zone section
+            powerZoneContent.append(controlContainer);
             movedControls.push(fieldName);
-            console.log(`[HRZoneControls] Moved ${fieldName} control to HR zone section`);
+
+            console.log(
+                `[PowerZoneControls] Moved ${fieldName} control to power zone section`
+            );
         }
     }
     if (movedControls.length > 0) {
-        console.log(`[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`);
+        console.log(
+            `[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`
+        );
+
         // Add some spacing between the controls
-        const controls = Array.from(hrZoneContent.children);
+        const controls = Array.from(powerZoneContent.children);
         for (const [i, control] of controls.entries()) {
             if (i > 0) {
                 if (control instanceof HTMLElement) {
@@ -166,35 +211,38 @@ export function moveHRZoneControlsToSection() {
                 }
             }
         }
+
         // Add unified zone color picker button
-        addUnifiedHRZoneColorPicker(hrZoneContent);
+        addUnifiedPowerZoneColorPicker(powerZoneContent);
     }
 }
+
 /**
- * Updates HR zone controls visibility based on data availability.
+ * Updates power zone controls visibility based on data availability.
  *
- * @param hasData - Whether HR zone data is available.
+ * @param hasData - Whether power zone data is available.
  */
-export function updateHRZoneControlsVisibility(hasData) {
-    const controls = document.querySelector("#hr-zone-controls");
+export function updatePowerZoneControlsVisibility(hasData: boolean): void {
+    const controls = document.querySelector("#power-zone-controls");
     if (!(controls instanceof HTMLElement)) {
         return;
     }
+
     if (hasData) {
         controls.style.display = "block";
         controls.style.opacity = "1";
-    }
-    else {
+    } else {
         controls.style.display = "none";
         controls.style.opacity = "0.5";
     }
 }
+
 /**
- * Adds a unified color picker button for all HR zone charts.
+ * Adds a unified color picker button for all power zone charts.
  *
  * @param container - Container to add the button to.
  */
-function addUnifiedHRZoneColorPicker(container) {
+function addUnifiedPowerZoneColorPicker(container: HTMLElement): void {
     // Create separator
     const separator = document.createElement("div");
     separator.style.cssText = `
@@ -203,13 +251,15 @@ function addUnifiedHRZoneColorPicker(container) {
         margin: 16px 0 12px 0;
         opacity: 0.5;
     `;
+
     // Create inline zone color selector
     const colorSelectorContainer = document.createElement("div");
     colorSelectorContainer.style.cssText = `
         margin-top: 8px;
     `;
+
     // Create the inline selector
-    if (createInlineZoneColorSelector("hr_zone", colorSelectorContainer)) {
+    if (createInlineZoneColorSelector("power_zone", colorSelectorContainer)) {
         container.append(separator);
         container.append(colorSelectorContainer);
     }

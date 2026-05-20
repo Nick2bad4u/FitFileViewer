@@ -1,27 +1,21 @@
 /**
  * Creates a separate power zone controls section that extracts existing power
- * zone controls
- *
- * @file Dedicated power zone chart controls section
+ * zone controls.
  */
-
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
-
 /**
- * Creates the power zone controls section by extracting existing controls
+ * Creates the power zone controls section by extracting existing controls.
  *
- * @param {HTMLElement} parentContainer - Parent container to append controls to
- *
- * @returns {HTMLElement} The created power zone controls section
+ * @param parentContainer - Parent container to append controls to.
+ * @returns The created power zone controls section.
  */
 export function createPowerZoneControls(parentContainer) {
     // Check if power zone controls already exist
     const existingControls = document.querySelector("#power-zone-controls");
-    if (existingControls) {
+    if (existingControls instanceof HTMLElement) {
         return existingControls;
     }
-
     // Create main container
     const powerZoneSection = document.createElement("div");
     powerZoneSection.id = "power-zone-controls";
@@ -36,7 +30,6 @@ export function createPowerZoneControls(parentContainer) {
         box-shadow: var(--color-box-shadow-light);
         transition: var(--transition-smooth);
     `;
-
     // Create header
     const header = document.createElement("div");
     header.className = "power-zone-header";
@@ -59,7 +52,6 @@ export function createPowerZoneControls(parentContainer) {
         align-items: center;
         gap: 8px;
     `;
-
     // Create collapse toggle button
     const collapseBtn = document.createElement("button");
     collapseBtn.className = "power-zone-collapse-btn";
@@ -75,10 +67,8 @@ export function createPowerZoneControls(parentContainer) {
         border-radius: 4px;
         transition: var(--transition-smooth);
     `;
-
     header.append(title);
     header.append(collapseBtn);
-
     // Create content container that will hold the moved controls
     const content = document.createElement("div");
     content.className = "power-zone-content";
@@ -87,21 +77,15 @@ export function createPowerZoneControls(parentContainer) {
         transition: var(--transition-smooth);
         overflow: hidden;
     `;
-
     // Add collapse functionality
-    let isCollapsed =
-        localStorage.getItem("power-zone-controls-collapsed") === "true";
+    let isCollapsed = localStorage.getItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
-
+    const listenerController = new AbortController();
     collapseBtn.addEventListener("click", () => {
         isCollapsed = !isCollapsed;
-        localStorage.setItem(
-            "power-zone-controls-collapsed",
-            isCollapsed.toString()
-        );
+        localStorage.setItem("power-zone-controls-collapsed", isCollapsed.toString());
         updateCollapseState();
-    });
-
+    }, { signal: listenerController.signal });
     function updateCollapseState() {
         if (isCollapsed) {
             content.style.maxHeight = "0";
@@ -109,7 +93,8 @@ export function createPowerZoneControls(parentContainer) {
             content.style.marginTop = "0";
             collapseBtn.textContent = "▶";
             collapseBtn.setAttribute("aria-expanded", "false");
-        } else {
+        }
+        else {
             content.style.maxHeight = "500px";
             content.style.opacity = "1";
             content.style.marginTop = "0";
@@ -117,122 +102,99 @@ export function createPowerZoneControls(parentContainer) {
             collapseBtn.setAttribute("aria-expanded", "true");
         }
     }
-
     // Assemble the section
     powerZoneSection.append(header);
     powerZoneSection.append(content);
-
     // Add hover effects
     powerZoneSection.addEventListener("mouseenter", () => {
         powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
         powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
-    });
-
+    }, { signal: listenerController.signal });
     powerZoneSection.addEventListener("mouseleave", () => {
         powerZoneSection.style.borderColor = "var(--color-border)";
         powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
-    });
-
+    }, { signal: listenerController.signal });
     parentContainer.append(powerZoneSection);
     return powerZoneSection;
 }
-
 /**
- * Gets current power zone chart visibility settings
+ * Gets current power zone chart visibility settings.
  *
- * @returns {Object} Visibility settings for power zone charts
+ * @returns Visibility settings for power zone charts.
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible:
-            getChartFieldVisibility("power_zone_doughnut") !== "hidden",
-        lapIndividualVisible:
-            getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
-        lapStackedVisible:
-            getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
+        doughnutVisible: getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        lapIndividualVisible: getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
+        lapStackedVisible: getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
     };
 }
-
 /**
  * Moves existing power zone controls to the dedicated power zone section This
  * should be called after the field toggles are created
  */
 export function movePowerZoneControlsToSection() {
     const powerZoneContent = document.querySelector("#power-zone-content");
-    if (!powerZoneContent) {
-        console.warn(
-            "[PowerZoneControls] Power zone content container not found"
-        );
+    if (!(powerZoneContent instanceof HTMLElement)) {
+        console.warn("[PowerZoneControls] Power zone content container not found");
         return;
     }
-
-    /** @type {string[]} */
     const movedControls = [];
-
     // Find existing power zone controls in the field toggles section
     const powerZoneFields = [
         "power_zone_doughnut",
         "power_lap_zone_stacked",
         "power_lap_zone_individual",
     ];
-
     for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID
         const toggle = document.getElementById(`field-toggle-${fieldName}`);
         if (toggle && toggle.parentElement) {
             const controlContainer = toggle.parentElement;
-
             // Move the entire control container to the power zone section
             powerZoneContent.append(controlContainer);
             movedControls.push(fieldName);
-
-            console.log(
-                `[PowerZoneControls] Moved ${fieldName} control to power zone section`
-            );
+            console.log(`[PowerZoneControls] Moved ${fieldName} control to power zone section`);
         }
     }
     if (movedControls.length > 0) {
-        console.log(
-            `[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`
-        );
-
+        console.log(`[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`);
         // Add some spacing between the controls
         const controls = Array.from(powerZoneContent.children);
         for (const [i, control] of controls.entries()) {
             if (i > 0) {
-                /** @type {HTMLElement} */ (control).style.marginTop = "12px";
+                if (control instanceof HTMLElement) {
+                    control.style.marginTop = "12px";
+                }
             }
         }
-
         // Add unified zone color picker button
         addUnifiedPowerZoneColorPicker(powerZoneContent);
     }
 }
-
 /**
- * Updates power zone controls visibility based on data availability
+ * Updates power zone controls visibility based on data availability.
  *
- * @param {boolean} hasData - Whether power zone data is available
+ * @param hasData - Whether power zone data is available.
  */
 export function updatePowerZoneControlsVisibility(hasData) {
     const controls = document.querySelector("#power-zone-controls");
-    if (!controls) {
+    if (!(controls instanceof HTMLElement)) {
         return;
     }
-
     if (hasData) {
         controls.style.display = "block";
         controls.style.opacity = "1";
-    } else {
+    }
+    else {
         controls.style.display = "none";
         controls.style.opacity = "0.5";
     }
 }
-
 /**
- * Adds a unified color picker button for all power zone charts
+ * Adds a unified color picker button for all power zone charts.
  *
- * @param {HTMLElement} container - Container to add the button to
+ * @param container - Container to add the button to.
  */
 function addUnifiedPowerZoneColorPicker(container) {
     // Create separator
@@ -243,20 +205,13 @@ function addUnifiedPowerZoneColorPicker(container) {
         margin: 16px 0 12px 0;
         opacity: 0.5;
     `;
-
     // Create inline zone color selector
     const colorSelectorContainer = document.createElement("div");
     colorSelectorContainer.style.cssText = `
         margin-top: 8px;
     `;
-
     // Create the inline selector
-    const inlineSelector = createInlineZoneColorSelector(
-        "power_zone",
-        colorSelectorContainer
-    );
-
-    if (inlineSelector) {
+    if (createInlineZoneColorSelector("power_zone", colorSelectorContainer)) {
         container.append(separator);
         container.append(colorSelectorContainer);
     }
