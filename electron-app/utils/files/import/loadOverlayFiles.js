@@ -5,9 +5,44 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
 
 /**
+ * @typedef {{
+ *     cachedFilePath?: string;
+ *     fileName?: string;
+ *     recordMesgs?: unknown[];
+ *     [key: string]: unknown;
+ * }} OverlayFitData
+ */
+/**
+ * @typedef {{
+ *     arrayBuffer?: () => Promise<ArrayBuffer>;
+ *     name?: string;
+ *     originalPath?: string;
+ *     path?: string;
+ *     size?: number;
+ *     webkitRelativePath?: string;
+ * }} OverlayInputFile
+ */
+/**
+ * @typedef {{
+ *     data: OverlayFitData;
+ *     filePath: string;
+ *     originalPath: string | null;
+ *     sourceKey: string | null;
+ * }} LoadedFitFileEntry
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     globalData?: OverlayFitData | null;
+ *     loadedFitFiles?: LoadedFitFileEntry[];
+ *     renderMap?: () => void;
+ *     updateShownFilesList?: () => void;
+ * }} LoadOverlayGlobal
+ */
+
+/**
  * Loads FIT files as overlays.
  *
- * @param {File[]} files - Array of files to load
+ * @param {OverlayInputFile[]} files - Array of files to load
  *
  * @returns {Promise<void>} Resolves when all files have been processed
  */
@@ -20,13 +55,17 @@ export async function loadOverlayFiles(files) {
     const totalFiles = files.length;
     LoadingOverlay.show(`Loading 0 / ${totalFiles} files...`);
 
+    const appGlobal = getLoadOverlayGlobal();
+    /** @type {Set<string>} */
     const existingKeys = new Set();
     let stateDirty = ensureLoadedFitFilesInitialized(existingKeys);
-    const initialCount = Array.isArray(globalThis.loadedFitFiles)
-        ? globalThis.loadedFitFiles.length
+    const initialCount = Array.isArray(appGlobal.loadedFitFiles)
+        ? appGlobal.loadedFitFiles.length
         : 0;
 
+    /** @type {string[]} */
     const invalidFiles = [];
+    /** @type {string[]} */
     const duplicateFiles = [];
 
     // Concurrency:
@@ -35,8 +74,7 @@ export async function loadOverlayFiles(files) {
     // Keep a conservative default and scale modestly with hardware.
     const concurrency = (() => {
         try {
-            const hc = /** @type {any} */ (globalThis).navigator
-                ?.hardwareConcurrency;
+            const hc = globalThis.navigator?.hardwareConcurrency;
             if (typeof hc === "number" && Number.isFinite(hc) && hc > 0) {
                 return Math.max(1, Math.min(3, Math.floor(hc / 2)));
             }
@@ -58,7 +96,7 @@ export async function loadOverlayFiles(files) {
      * Keeping the async function creation out of the loop avoids eslint's
      * no-loop-func warning while still capturing shared progress counters.
      *
-     * @param {File} file
+     * @param {OverlayInputFile} file
      * @param {string} displayName
      * @param {string | null} uniqueKey
      *
@@ -73,14 +111,16 @@ export async function loadOverlayFiles(files) {
             );
 
             try {
-                const result = await loadSingleOverlayFile(file);
+                const result = await loadSingleOverlayFile(
+                    /** @type {File} */ (file)
+                );
                 if (result.success && result.data) {
                     const entry = createOverlayEntry(
                         file,
                         result.data,
                         uniqueKey
                     );
-                    globalThis.loadedFitFiles.push(entry);
+                    appGlobal.loadedFitFiles?.push(entry);
                     stateDirty = true;
                 } else {
                     invalidFiles.push(displayName);
@@ -146,11 +186,11 @@ export async function loadOverlayFiles(files) {
         const currentTabId = currentTabButton?.id;
 
         syncLoadedFitFilesState();
-        if (globalThis.renderMap) {
-            globalThis.renderMap();
+        if (typeof appGlobal.renderMap === "function") {
+            appGlobal.renderMap();
         }
-        if (/** @type {any} */ (globalThis).updateShownFilesList) {
-            /** @type {any} */ globalThis.updateShownFilesList();
+        if (typeof appGlobal.updateShownFilesList === "function") {
+            appGlobal.updateShownFilesList();
         }
 
         // Restore the original tab if it was changed
@@ -166,8 +206,8 @@ export async function loadOverlayFiles(files) {
         }
     }
 
-    const finalCount = Array.isArray(globalThis.loadedFitFiles)
-        ? globalThis.loadedFitFiles.length
+    const finalCount = Array.isArray(appGlobal.loadedFitFiles)
+        ? appGlobal.loadedFitFiles.length
         : 0;
     const newlyAdded = Math.max(0, finalCount - initialCount);
     const attempted = totalFiles - duplicateFiles.length;
@@ -197,8 +237,9 @@ export async function loadOverlayFiles(files) {
 
 function syncLoadedFitFilesState() {
     try {
-        const files = Array.isArray(globalThis.loadedFitFiles)
-            ? [...globalThis.loadedFitFiles]
+        const { loadedFitFiles } = getLoadOverlayGlobal();
+        const files = Array.isArray(loadedFitFiles)
+            ? [...loadedFitFiles]
             : [];
         setState("globalData.loadedFitFiles", files, {
             source: "loadOverlayFiles",
@@ -213,6 +254,20 @@ function syncLoadedFitFilesState() {
 
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
 
+/**
+ * @returns {LoadOverlayGlobal}
+ */
+function getLoadOverlayGlobal() {
+    return /** @type {LoadOverlayGlobal} */ (globalThis);
+}
+
+/**
+ * @param {OverlayInputFile} file
+ * @param {OverlayFitData} data
+ * @param {string | null} uniqueKey
+ *
+ * @returns {LoadedFitFileEntry}
+ */
 function createOverlayEntry(file, data, uniqueKey) {
     const originalPath =
         getFileOriginalPath(file) ||
@@ -240,8 +295,11 @@ function createOverlayEntry(file, data, uniqueKey) {
     };
 }
 
+/**
+ * @returns {LoadedFitFileEntry | null}
+ */
 function createPrimaryEntry() {
-    const baseData = /** @type {any} */ (globalThis).globalData;
+    const { globalData: baseData } = getLoadOverlayGlobal();
     if (!baseData) {
         return null;
     }
@@ -267,6 +325,11 @@ function createPrimaryEntry() {
     };
 }
 
+/**
+ * @param {LoadedFitFileEntry} entry
+ *
+ * @returns {string | null}
+ */
 function deriveEntryKey(entry) {
     if (entry.originalPath) {
         return `path:${normalizePath(entry.originalPath)}`;
@@ -277,24 +340,30 @@ function deriveEntryKey(entry) {
     return null;
 }
 
+/**
+ * @param {Set<string>} existingKeys
+ *
+ * @returns {boolean}
+ */
 function ensureLoadedFitFilesInitialized(existingKeys) {
+    const appGlobal = getLoadOverlayGlobal();
     let mutated = false;
 
     if (
-        !Array.isArray(globalThis.loadedFitFiles) ||
-        globalThis.loadedFitFiles.length === 0
+        !Array.isArray(appGlobal.loadedFitFiles) ||
+        appGlobal.loadedFitFiles.length === 0
     ) {
         const primaryEntry = createPrimaryEntry();
-        globalThis.loadedFitFiles = primaryEntry ? [primaryEntry] : [];
+        appGlobal.loadedFitFiles = primaryEntry ? [primaryEntry] : [];
         mutated = Boolean(primaryEntry);
     }
 
-    if (!Array.isArray(globalThis.loadedFitFiles)) {
-        globalThis.loadedFitFiles = [];
+    if (!Array.isArray(appGlobal.loadedFitFiles)) {
+        appGlobal.loadedFitFiles = [];
         return mutated;
     }
 
-    for (const entry of globalThis.loadedFitFiles) {
+    for (const entry of appGlobal.loadedFitFiles) {
         if (!entry || typeof entry !== "object") {
             continue;
         }
@@ -323,6 +392,11 @@ function ensureLoadedFitFilesInitialized(existingKeys) {
     return mutated;
 }
 
+/**
+ * @param {OverlayInputFile} file
+ *
+ * @returns {string}
+ */
 function getFileDisplayName(file) {
     if (file && typeof file.name === "string" && file.name.trim()) {
         return file.name;
@@ -334,6 +408,11 @@ function getFileDisplayName(file) {
     return "overlay.fit";
 }
 
+/**
+ * @param {string} filePath
+ *
+ * @returns {string}
+ */
 function getFileNameFromPath(filePath) {
     if (typeof filePath !== "string") {
         return "";
@@ -342,17 +421,19 @@ function getFileNameFromPath(filePath) {
     return segments.length ? segments.at(-1) || "" : filePath;
 }
 
+/**
+ * @param {OverlayInputFile} file
+ *
+ * @returns {string}
+ */
 function getFileOriginalPath(file) {
     if (!file || typeof file !== "object") {
         return "";
     }
-    const candidates = [
-        "originalPath",
-        "path",
-        "webkitRelativePath",
-    ];
+    /** @type {Array<keyof Pick<OverlayInputFile, "originalPath" | "path" | "webkitRelativePath">>} */
+    const candidates = ["originalPath", "path", "webkitRelativePath"];
     for (const prop of candidates) {
-        const value = /** @type {any} */ (file)[prop];
+        const value = file[prop];
         if (typeof value === "string" && value.trim()) {
             return value;
         }
@@ -360,6 +441,11 @@ function getFileOriginalPath(file) {
     return "";
 }
 
+/**
+ * @param {OverlayInputFile} file
+ *
+ * @returns {string | null}
+ */
 function getFileUniqueKey(file) {
     const originalPath = getFileOriginalPath(file);
     if (originalPath) {
@@ -371,6 +457,11 @@ function getFileUniqueKey(file) {
     return null;
 }
 
+/**
+ * @param {string} path
+ *
+ * @returns {string}
+ */
 function normalizePath(path) {
     return String(path).replaceAll(PATH_SEPARATOR_REGEX, "/").toLowerCase();
 }

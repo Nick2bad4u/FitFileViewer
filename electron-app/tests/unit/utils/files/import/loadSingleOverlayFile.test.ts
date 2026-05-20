@@ -7,6 +7,12 @@ type OverlayFitData = {
     recordMesgs?: unknown[];
 };
 
+type FileLike = File & {
+    arrayBuffer: () => Promise<ArrayBuffer>;
+    name: string;
+    size: number;
+};
+
 type TestElectronAPI = {
     decodeFitFile?: (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>;
 };
@@ -64,6 +70,77 @@ describe(loadSingleOverlayFile, () => {
 
             expect(result).toStrictEqual({
                 error: "Only .fit files can be loaded as overlays",
+                success: false,
+            });
+            expect(decodeFitFile).not.toHaveBeenCalled();
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
+    it("rejects missing decoder bridge after reading file data", async () => {
+        expect.assertions(1);
+
+        const file = new File([new Uint8Array([1])], "overlay.fit");
+
+        try {
+            const result = await loadSingleOverlayFile(file);
+
+            expect(result).toStrictEqual({
+                error: "No file data or decoder not available",
+                success: false,
+            });
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
+    it("rejects oversized overlay files before decoding", async () => {
+        expect.assertions(2);
+
+        const decodeFitFile = vi.fn<
+            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
+        >();
+        const file = {
+            arrayBuffer: async () => new ArrayBuffer(8),
+            name: "big.fit",
+            size: 101 * 1024 * 1024,
+        } as FileLike;
+
+        try {
+            appGlobal.electronAPI = { decodeFitFile };
+
+            const result = await loadSingleOverlayFile(file);
+
+            expect(result).toStrictEqual({
+                error: "File size exceeds 100MB limit",
+                success: false,
+            });
+            expect(decodeFitFile).not.toHaveBeenCalled();
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
+    it("rejects empty overlay buffers before decoding", async () => {
+        expect.assertions(2);
+
+        const decodeFitFile = vi.fn<
+            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
+        >();
+        const file = {
+            arrayBuffer: async () => new ArrayBuffer(0),
+            name: "empty.fit",
+            size: 1,
+        } as FileLike;
+
+        try {
+            appGlobal.electronAPI = { decodeFitFile };
+
+            const result = await loadSingleOverlayFile(file);
+
+            expect(result).toStrictEqual({
+                error: "Selected file appears to be empty",
                 success: false,
             });
             expect(decodeFitFile).not.toHaveBeenCalled();

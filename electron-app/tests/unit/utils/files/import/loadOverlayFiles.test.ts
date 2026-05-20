@@ -1,246 +1,230 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-// From tests/unit/utils/files/import -> utils/... requires going up 5 levels
-const SUT_MULTI = "../../../../../utils/files/import/loadOverlayFiles.js";
-const SUT_SINGLE = "../../../../../utils/files/import/loadSingleOverlayFile.js";
-const LOADING_OVERLAY_PATH =
-    "../../../../../utils/ui/components/LoadingOverlay.js";
-const SHOW_NOTIFICATION_PATH =
-    "../../../../../utils/ui/notifications/showNotification.js";
+type OverlayFitData = {
+    cachedFilePath?: string;
+    fileName?: string;
+    recordMesgs?: unknown[];
+    [key: string]: unknown;
+};
 
-describe("loadOverlayFiles - multi-file handling", () => {
-    beforeEach(() => {
-        // minimal window globals
-        (globalThis as any).window = Object.assign(globalThis.window || {}, {
-            loadedFitFiles: [],
-        });
+type OverlayInputFile = {
+    name?: string;
+    path?: string;
+};
 
-        vi.mock("../../../../../utils/ui/components/LoadingOverlay.js", () => ({
-            LoadingOverlay: { show: vi.fn(), hide: vi.fn() },
-        }));
-        vi.mock(
-            "../../../../../utils/ui/notifications/showNotification.js",
-            () => ({
-                showNotification: vi.fn(),
-            })
-        );
+type LoadedFitFileEntry = {
+    data: OverlayFitData;
+    filePath: string;
+    originalPath: string | null;
+    sourceKey: string | null;
+};
+
+type LoadOverlayTestGlobal = typeof globalThis & {
+    globalData?: OverlayFitData | null;
+    loadedFitFiles?: LoadedFitFileEntry[];
+    renderMap?: () => void;
+    updateShownFilesList?: () => void;
+};
+
+type LoadSingleOverlayResult = {
+    data?: OverlayFitData;
+    error?: string;
+    success: boolean;
+};
+
+type LimitTask = () => Promise<void>;
+
+type LimitFactory = (concurrency: number) => (task: LimitTask) => Promise<void>;
+
+const mocks = vi.hoisted(() => ({
+    loadingHide: vi.fn<() => void>(),
+    loadingShow: vi.fn<(message: string, detail?: string) => void>(),
+    loadSingleOverlayFile:
+        vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
+    pLimitCompat: vi.fn<LimitFactory>(
+        (_concurrency) => async (task) => task()
+    ),
+    setState: vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+}));
+
+vi.mock(import("../../../../../utils/async/pLimitCompat.js"), () => ({
+    default: mocks.pLimitCompat,
+}));
+
+vi.mock(import("../../../../../utils/state/core/stateManager.js"), () => ({
+    setState: mocks.setState,
+}));
+
+vi.mock(import("../../../../../utils/ui/components/LoadingOverlay.js"), () => ({
+    LoadingOverlay: {
+        hide: mocks.loadingHide,
+        show: mocks.loadingShow,
+    },
+}));
+
+vi.mock(
+    import("../../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
+);
+
+vi.mock(
+    import("../../../../../utils/files/import/loadSingleOverlayFile.js"),
+    () => ({
+        loadSingleOverlayFile: mocks.loadSingleOverlayFile,
+    })
+);
+
+const { loadOverlayFiles } = await import(
+    "../../../../../utils/files/import/loadOverlayFiles.js"
+);
+
+const appGlobal = globalThis as LoadOverlayTestGlobal;
+
+function cleanupGlobals() {
+    delete appGlobal.globalData;
+    delete appGlobal.loadedFitFiles;
+    delete appGlobal.renderMap;
+    delete appGlobal.updateShownFilesList;
+    document.body.replaceChildren();
+    vi.clearAllMocks();
+}
+
+describe(loadOverlayFiles, () => {
+    it("initializes primary data, appends loaded overlays, and syncs state", async () => {
+        expect.assertions(9);
+
+        const primaryData = {
+            cachedFilePath: String.raw`C:\rides\primary.fit`,
+            recordMesgs: [],
+        };
+        const overlayData = {
+            cachedFilePath: String.raw`C:\rides\overlay.fit`,
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        };
+        const file = {
+            name: "overlay.fit",
+            path: String.raw`C:\rides\overlay.fit`,
+        };
+        const renderMap = vi.fn<() => void>();
+        const updateShownFilesList = vi.fn<() => void>();
+
+        try {
+            appGlobal.globalData = primaryData;
+            appGlobal.renderMap = renderMap;
+            appGlobal.updateShownFilesList = updateShownFilesList;
+            mocks.loadSingleOverlayFile.mockResolvedValue({
+                data: overlayData,
+                success: true,
+            });
+
+            await loadOverlayFiles([file]);
+
+            expect(appGlobal.loadedFitFiles).toStrictEqual([
+                {
+                    data: primaryData,
+                    filePath: "primary.fit",
+                    originalPath: String.raw`C:\rides\primary.fit`,
+                    sourceKey: "path:c:/rides/primary.fit",
+                },
+                {
+                    data: overlayData,
+                    filePath: "overlay.fit",
+                    originalPath: String.raw`C:\rides\overlay.fit`,
+                    sourceKey: "path:c:/rides/overlay.fit",
+                },
+            ]);
+            expect(mocks.pLimitCompat.mock.calls[0]?.[0]).toBeGreaterThanOrEqual(
+                1
+            );
+            expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
+            expect(mocks.setState).toHaveBeenCalledWith(
+                "globalData.loadedFitFiles",
+                appGlobal.loadedFitFiles,
+                { source: "loadOverlayFiles" }
+            );
+            expect(renderMap).toHaveBeenCalledOnce();
+            expect(updateShownFilesList).toHaveBeenCalledOnce();
+            expect(mocks.loadingHide).toHaveBeenCalledOnce();
+            expect(mocks.showNotification).toHaveBeenCalledWith(
+                "Successfully loaded 1 files",
+                "success"
+            );
+            expect(overlayData.cachedFilePath).toBe(String.raw`C:\rides\overlay.fit`);
+        } finally {
+            cleanupGlobals();
+        }
     });
 
-    it("adds non-duplicate successful files and renders map once", async () => {
-        // mock single loader: succeed for both
-        const successData = {
-            recordMesgs: [{ positionLat: 1, positionLong: 1 }],
-        } as any;
-        vi.doMock(
-            "../../../../../utils/files/import/loadSingleOverlayFile.js",
-            () => ({
-                loadSingleOverlayFile: vi.fn(async (f: File) => ({
-                    success: true,
-                    data: { ...successData, cachedFilePath: f.name },
-                })),
-            })
-        );
+    it("skips duplicate overlay paths before decoding", async () => {
+        expect.assertions(5);
 
-        const mapSpy = vi.fn();
-        (globalThis as any).window.renderMap = mapSpy;
-        const updateShownFilesList = vi.fn();
-        (globalThis as any).window.updateShownFilesList = updateShownFilesList;
-
-        const { loadOverlayFiles } = await import(SUT_MULTI);
-        const f1 = new File([""], "A.fit");
-        const f2 = new File([""], "B.fit");
-        await loadOverlayFiles([f1, f2]);
-
-        expect(
-            ((globalThis as any).window.loadedFitFiles as any[]).length
-        ).toBe(2);
-        expect(mapSpy).toHaveBeenCalledTimes(1);
-        expect(updateShownFilesList).toHaveBeenCalledTimes(1);
-    });
-
-    it("skips duplicates and warns once", async () => {
-        const successData = {
-            recordMesgs: [{ positionLat: 1, positionLong: 1 }],
-        } as any;
-        vi.doMock(
-            "../../../../../utils/files/import/loadSingleOverlayFile.js",
-            () => ({
-                loadSingleOverlayFile: vi.fn(async () => ({
-                    success: true,
-                    data: successData,
-                })),
-            })
-        );
-        (globalThis as any).window.loadedFitFiles = [
-            { data: successData, filePath: "dup.fit" },
+        const existingData = {
+            cachedFilePath: String.raw`C:\rides\overlay.fit`,
+            recordMesgs: [],
+        };
+        const existingEntries = [
+            {
+                data: existingData,
+                filePath: "overlay.fit",
+                originalPath: String.raw`C:\rides\overlay.fit`,
+                sourceKey: "path:c:/rides/overlay.fit",
+            },
         ];
+        const file = {
+            name: "overlay.fit",
+            path: String.raw`C:\rides\overlay.fit`,
+        };
 
-        const { loadOverlayFiles } = await import(SUT_MULTI);
-        const f1 = new File([""], "dup.fit");
-        await loadOverlayFiles([f1]);
+        try {
+            appGlobal.loadedFitFiles = existingEntries;
 
-        const { showNotification } = await import(SHOW_NOTIFICATION_PATH);
-        expect(showNotification).toHaveBeenCalled();
+            await loadOverlayFiles([file]);
+
+            expect(appGlobal.loadedFitFiles).toStrictEqual(existingEntries);
+            expect(mocks.loadSingleOverlayFile).not.toHaveBeenCalled();
+            expect(mocks.setState).not.toHaveBeenCalled();
+            expect(mocks.loadingHide).toHaveBeenCalledOnce();
+            expect(mocks.showNotification).toHaveBeenCalledWith(
+                "overlay.fit already loaded. Skipping duplicate files.",
+                "info"
+            );
+        } finally {
+            cleanupGlobals();
+        }
     });
 
-    it("reports failures and still hides overlay", async () => {
-        vi.doMock(
-            "../../../../../utils/files/import/loadSingleOverlayFile.js",
-            () => ({
-                loadSingleOverlayFile: vi.fn(async () => ({
-                    success: false,
-                    error: "bad",
-                })),
-            })
-        );
+    it("reports failed overlays and still hides the loading overlay", async () => {
+        expect.assertions(5);
 
-        const { loadOverlayFiles } = await import(SUT_MULTI);
-        const f1 = new File([""], "bad.fit");
-        await loadOverlayFiles([f1]);
+        const file = {
+            name: "bad.fit",
+            path: String.raw`C:\rides\bad.fit`,
+        };
 
-        const { showNotification } = await import(SHOW_NOTIFICATION_PATH);
-        expect(showNotification).toHaveBeenCalled();
-        const { LoadingOverlay } = await import(LOADING_OVERLAY_PATH);
-        expect(LoadingOverlay.hide).toHaveBeenCalled();
-    });
-});
+        try {
+            mocks.loadSingleOverlayFile.mockResolvedValue({
+                error: "bad",
+                success: false,
+            });
 
-describe("loadSingleOverlayFile - decode and validation", () => {
-    beforeEach(() => {
-        vi.resetModules();
-        // Ensure we use the real implementation in this block
-        vi.unmock("../../../../../utils/files/import/loadSingleOverlayFile.js");
-    });
+            await loadOverlayFiles([file]);
 
-    function fileWithData(bytes = "data") {
-        return new File([bytes], "file.fit");
-    }
-
-    it("resolves error when no decoder available", async () => {
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            { electronAPI: undefined }
-        );
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-        const res = await loadSingleOverlayFile(fileWithData());
-        expect(res.success).toBe(false);
-    });
-
-    it("returns success on valid decode with positions", async () => {
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            {
-                electronAPI: {
-                    decodeFitFile: vi.fn(async () => ({
-                        recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-                    })),
-                },
-            }
-        );
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-        const res = await loadSingleOverlayFile(fileWithData());
-        expect(res.success).toBe(true);
-        expect((res.data as any)?.recordMesgs?.length).toBe(1);
-    });
-
-    it("returns error when decode yields no positions", async () => {
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            {
-                electronAPI: {
-                    decodeFitFile: vi.fn(async () => ({ recordMesgs: [{}] })),
-                },
-            }
-        );
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-        const res = await loadSingleOverlayFile(fileWithData());
-        expect(res.success).toBe(false);
-    });
-
-    it("rejects non-.fit filenames before decoding", async () => {
-        const decodeFitFile = vi.fn(async () => ({
-            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        }));
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            {
-                electronAPI: { decodeFitFile },
-            }
-        );
-
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-
-        const fake = {
-            name: "not-a-fit.txt",
-            size: 10,
-            arrayBuffer: async () => new ArrayBuffer(8),
-        } as unknown as File;
-        const res = await loadSingleOverlayFile(fake);
-        expect(res.success).toBe(false);
-        expect(decodeFitFile).not.toHaveBeenCalled();
-    });
-
-    it("rejects oversized files before decoding", async () => {
-        const decodeFitFile = vi.fn(async () => ({
-            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        }));
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            {
-                electronAPI: { decodeFitFile },
-            }
-        );
-
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-
-        const fake = {
-            name: "big.fit",
-            size: 101 * 1024 * 1024,
-            arrayBuffer: async () => new ArrayBuffer(8),
-        } as unknown as File;
-        const res = await loadSingleOverlayFile(fake);
-        expect(res.success).toBe(false);
-        expect(decodeFitFile).not.toHaveBeenCalled();
-    });
-
-    it("rejects empty buffers before decoding", async () => {
-        const decodeFitFile = vi.fn(async () => ({
-            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        }));
-        (globalThis as any).window = Object.assign(
-            (globalThis as any).window || {},
-            {
-                electronAPI: { decodeFitFile },
-            }
-        );
-
-        const { loadSingleOverlayFile } =
-            await vi.importActual<
-                typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")
-            >(SUT_SINGLE);
-
-        const fake = {
-            name: "empty.fit",
-            size: 0,
-            arrayBuffer: async () => new ArrayBuffer(0),
-        } as unknown as File;
-        const res = await loadSingleOverlayFile(fake);
-        expect(res.success).toBe(false);
-        expect(decodeFitFile).not.toHaveBeenCalled();
+            expect(appGlobal.loadedFitFiles).toStrictEqual([]);
+            expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
+            expect(mocks.loadingHide).toHaveBeenCalledOnce();
+            expect(mocks.showNotification).toHaveBeenCalledWith(
+                "Failed to load bad.fit: bad",
+                "error"
+            );
+            expect(mocks.showNotification).toHaveBeenCalledWith(
+                "Failed to load any of the 1 files.",
+                "error"
+            );
+        } finally {
+            cleanupGlobals();
+        }
     });
 });
