@@ -363,7 +363,12 @@ describe("mapMeasureTool.js", () => {
         // Verify that the divIcon was created with the exit button
         expect(global.L.divIcon).toHaveBeenCalled();
         const divIconCall = global.L.divIcon.mock.calls[0][0];
-        expect(divIconCall.html).toContain("measure-exit-btn");
+        expect(divIconCall.html).toBeInstanceOf(HTMLElement);
+        expect(
+            /** @type {HTMLElement} */ (divIconCall.html).querySelector(
+                ".measure-exit-btn"
+            )
+        ).toBeInstanceOf(HTMLButtonElement);
 
         // Reset mock before testing exit button functionality
         mockMap.removeLayer.mockClear();

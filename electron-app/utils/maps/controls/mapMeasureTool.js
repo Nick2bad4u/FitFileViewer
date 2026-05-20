@@ -3,6 +3,176 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * @param {string} primary
+ * @param {string} surface
+ *
+ * @returns {SVGSVGElement}
+ */
+function createMeasureIcon(primary, surface) {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.classList.add("icon");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("focusable", "false");
+
+    const line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("x1", "5");
+    line.setAttribute("y1", "19");
+    line.setAttribute("x2", "19");
+    line.setAttribute("y2", "5");
+    line.setAttribute("stroke", primary);
+    line.setAttribute("stroke-width", "2");
+    icon.append(line);
+
+    for (const [cx, cy] of [
+        ["5", "19"],
+        ["19", "5"],
+    ]) {
+        const circle = document.createElementNS(SVG_NS, "circle");
+        circle.setAttribute("cx", cx);
+        circle.setAttribute("cy", cy);
+        circle.setAttribute("r", "2.5");
+        circle.setAttribute("fill", surface);
+        circle.setAttribute("stroke", primary);
+        circle.setAttribute("stroke-width", "2");
+        icon.append(circle);
+    }
+
+    const text = document.createElementNS(SVG_NS, "text");
+    text.setAttribute("x", "12");
+    text.setAttribute("y", "15");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("font-size", "7");
+    text.setAttribute("fill", primary);
+    text.textContent = "↔";
+    icon.append(text);
+
+    return icon;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createCancelIcon() {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.classList.add("icon");
+    icon.setAttribute("viewBox", "0 0 20 20");
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", "10");
+    circle.setAttribute("cy", "10");
+    circle.setAttribute("r", "8");
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke", "#b71c1c");
+    circle.setAttribute("stroke-width", "2");
+    icon.append(circle);
+
+    for (const [x1, y1, x2, y2] of [
+        ["6", "6", "14", "14"],
+        ["14", "6", "6", "14"],
+    ]) {
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("stroke", "#b71c1c");
+        line.setAttribute("stroke-width", "2");
+        icon.append(line);
+    }
+
+    return icon;
+}
+
+/**
+ * @param {HTMLButtonElement} button
+ * @param {"cancel" | "measure"} state
+ * @param {{ primary: string; surface: string }} colors
+ */
+function setMeasureButtonContent(button, state, colors) {
+    const label = document.createElement("span");
+    label.textContent = state === "cancel" ? "Cancel" : "Measure";
+    button.replaceChildren(
+        state === "cancel"
+            ? createCancelIcon()
+            : createMeasureIcon(colors.primary, colors.surface),
+        label
+    );
+}
+
+/**
+ * @param {Document} doc
+ *
+ * @returns {HTMLButtonElement}
+ */
+function createExitButton(doc) {
+    const button = doc.createElement("button");
+    button.className = "measure-exit-btn";
+    button.type = "button";
+    button.title = "Remove measurement";
+    button.textContent = "×";
+
+    return button;
+}
+
+/**
+ * @param {Document} doc
+ * @param {string} value
+ * @param {string} unit
+ *
+ * @returns {HTMLDivElement}
+ */
+function createMeasureLabelLine(doc, value, unit) {
+    const line = doc.createElement("div");
+    line.className = "measure-label-line";
+
+    const valueEl = doc.createElement("span");
+    valueEl.className = "measure-label-value";
+    valueEl.textContent = value;
+
+    const unitEl = doc.createElement("span");
+    unitEl.className = "measure-label-unit";
+    unitEl.textContent = unit;
+
+    line.append(valueEl, doc.createTextNode(" "), unitEl);
+
+    return line;
+}
+
+/**
+ * @param {Document} doc
+ * @param {string} primaryValue
+ * @param {string} primaryUnit
+ * @param {string} secondaryValue
+ * @param {string} secondaryUnit
+ *
+ * @returns {HTMLDivElement}
+ */
+function createMeasureLabelContent(
+    doc,
+    primaryValue,
+    primaryUnit,
+    secondaryValue,
+    secondaryUnit
+) {
+    const content = doc.createElement("div");
+    content.className = "measure-label-content";
+    content.append(
+        createExitButton(doc),
+        createMeasureLabelLine(doc, primaryValue, primaryUnit),
+        createMeasureLabelLine(doc, secondaryValue, secondaryUnit)
+    );
+
+    return content;
+}
+
 /**
  * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
  * Creates a button in the provided controls container; when activated, the next
@@ -42,14 +212,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         /** @type {any} */ (themeColors).surface,
         "#ffffff"
     );
-    measureBtn.innerHTML = `
-        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <line x1="5" y1="19" x2="19" y2="5" stroke="${safePrimary}" stroke-width="2"/>
-            <circle cx="5" cy="19" r="2.5" fill="${safeSurface}" stroke="${safePrimary}" stroke-width="2"/>
-            <circle cx="19" cy="5" r="2.5" fill="${safeSurface}" stroke="${safePrimary}" stroke-width="2"/>
-            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${safePrimary}">↔</text>
-        </svg>
-        <span>Measure</span>`;
+    const buttonColors = { primary: safePrimary, surface: safeSurface };
+    setMeasureButtonContent(measureBtn, "measure", buttonColors);
     measureBtn.title =
         "Click, then click two points on the map to measure distance";
 
@@ -76,8 +240,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measuring = false;
         map.off("click", onMapClickMeasure);
         if (btn) {
-            btn.innerHTML =
-                '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="9" width="16" height="2" rx="1" fill="#1976d2"/><rect x="2" y="5" width="2" height="10" rx="1" fill="#1976d2"/><rect x="16" y="5" width="2" height="10" rx="1" fill="#1976d2"/></svg> <span>Measure</span>';
+            setMeasureButtonContent(btn, "measure", buttonColors);
             btn.title =
                 "Click, then click two points on the map to measure distance";
         }
@@ -102,10 +265,6 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     };
     document.addEventListener("keydown", g[escapeKey]);
-
-    function createExitButton() {
-        return `<button class="measure-exit-btn" title="Remove measurement">&times;</button>`;
-    }
 
     /**
      * Handle click on the measurement label (exit button).
@@ -155,7 +314,13 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             measureLabel = L.marker(mid, {
                 icon: L.divIcon({
                     className: "measure-label",
-                    html: `<div class="measure-label-content">${createExitButton()}<div class="measure-label-line"><span class="measure-label-value">${primaryValue}</span> <span class="measure-label-unit">${primaryUnit}</span></div><div class="measure-label-line"><span class="measure-label-value">${secondaryValue}</span> <span class="measure-label-unit">${secondaryUnit}</span></div></div>`,
+                    html: createMeasureLabelContent(
+                        document,
+                        primaryValue,
+                        primaryUnit,
+                        secondaryValue,
+                        secondaryUnit
+                    ),
                 }),
                 iconAnchor: [60, 19],
                 iconSize: [120, 38],
@@ -183,8 +348,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measuring = true;
         map.on("click", onMapClickMeasure);
         if (btn) {
-            btn.innerHTML =
-                '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="none" stroke="#b71c1c" stroke-width="2"/><line x1="6" y1="6" x2="14" y2="14" stroke="#b71c1c" stroke-width="2"/><line x1="14" y1="6" x2="6" y2="14" stroke="#b71c1c" stroke-width="2"/></svg> <span>Cancel</span>';
+            setMeasureButtonContent(btn, "cancel", buttonColors);
             btn.title = "Cancel measurement mode";
         }
     }
