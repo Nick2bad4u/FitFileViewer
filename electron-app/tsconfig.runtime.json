@@ -141,6 +141,7 @@
         "utils/theming/core/accentColor.ts",
         "utils/theming/core/setupTheme.ts",
         "utils/theming/specific/updateMapTheme.ts",
+        "utils/ui/events/eventListenerManager.ts",
         "utils/ui/notifications/showRenderNotification.ts",
         "utils/ui/notifications/showUpdateNotification.ts",
         "utils/ui/tabs/tabIdUtils.ts",
