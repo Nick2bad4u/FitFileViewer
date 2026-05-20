@@ -106,6 +106,7 @@
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
         "utils/maps/core/mapColors.ts",
+        "utils/maps/layers/mapIcons.ts",
         "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/app/initialization/getCurrentSettings.ts",
         "utils/app/initialization/loadSharedConfiguration.ts",

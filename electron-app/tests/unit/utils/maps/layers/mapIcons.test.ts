@@ -1,80 +1,59 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { IconOptions } from "leaflet";
 
-// Helper to define or delete global L
-function setLeafletMock(impl?: { icon: (opts: any) => any }) {
-    if (impl) {
-        // @ts-ignore define
-        (globalThis as any).L = {
-            divIcon: vi.fn((opts: any) => ({ ...opts, _type: "divIcon" })),
-            icon: impl.icon,
-        } as any;
-    } else {
-        // @ts-ignore delete
-        delete (globalThis as any).L;
-    }
-}
+import { describe, expect, it, vi } from "vitest";
 
-async function loadModule() {
-    // Ensure a fresh module instance so LRef is recomputed
-    vi.resetModules();
-    return await import("../../../../../utils/maps/layers/mapIcons.js");
-}
+describe("map marker icons", () => {
+    it("creates start and end icons through the Leaflet global", async () => {
+        expect.assertions(3);
 
-describe("mapIcons", () => {
-    beforeEach(() => {
-        vi.restoreAllMocks();
-        setLeafletMock();
-    });
-    afterEach(() => {
-        setLeafletMock();
-    });
+        const icon = vi.fn<(options: IconOptions) => { options: IconOptions }>(
+            (options) => ({ options })
+        );
 
-    it("createStartIcon returns shim object when L missing", async () => {
-        setLeafletMock(undefined);
-        const { createStartIcon } = await loadModule();
-        const icon = createStartIcon();
-        expect(icon).toStrictEqual({});
-    });
+        try {
+            vi.resetModules();
+            vi.stubGlobal("L", {
+                divIcon: vi.fn<() => Record<string, never>>(() => ({})),
+                icon,
+            });
 
-    it("createEndIcon returns shim object when L missing", async () => {
-        setLeafletMock(undefined);
-        const { createEndIcon } = await loadModule();
-        const icon = createEndIcon();
-        expect(icon).toStrictEqual({});
-    });
+            const { createEndIcon, createStartIcon } = await import(
+                "../../../../../utils/maps/layers/mapIcons.js"
+            );
 
-    it("createStartIcon calls L.icon with start asset", async () => {
-        const iconSpy = vi.fn((opts: any) => ({ ...opts, _type: "icon" }));
-        setLeafletMock({ icon: iconSpy });
-
-        const { createStartIcon } = await loadModule();
-        const icon = createStartIcon();
-
-        expect(iconSpy).toHaveBeenCalledTimes(1);
-        const args = iconSpy.mock.calls[0][0];
-        expect(args.iconUrl).toContain("assets/map-icons/start-icon.png");
-        expect(args.iconAnchor).toStrictEqual([16, 32]);
-        expect(args.iconSize).toStrictEqual([32, 32]);
-        expect(args.popupAnchor).toStrictEqual([0, -32]);
-
-        // Ensure returned icon is what L.icon produced
-        expect(icon).toHaveProperty("_type", "icon");
+            expect(createStartIcon()).toStrictEqual({
+                options: {
+                    iconAnchor: [16, 32],
+                    iconSize: [32, 32],
+                    iconUrl: "assets/map-icons/start-icon.png",
+                    popupAnchor: [0, -32],
+                },
+            });
+            expect(createEndIcon()).toStrictEqual({
+                options: {
+                    iconAnchor: [16, 32],
+                    iconSize: [32, 32],
+                    iconUrl: "assets/map-icons/end-icon.png",
+                    popupAnchor: [0, -32],
+                },
+            });
+            expect(icon).toHaveBeenCalledTimes(2);
+        } finally {
+            vi.unstubAllGlobals();
+            vi.resetModules();
+        }
     });
 
-    it("createEndIcon calls L.icon with end asset", async () => {
-        const iconSpy = vi.fn((opts: any) => ({ ...opts, _type: "icon" }));
-        setLeafletMock({ icon: iconSpy });
+    it("falls back to empty marker icons when Leaflet is missing", async () => {
+        expect.assertions(2);
 
-        const { createEndIcon } = await loadModule();
-        const icon = createEndIcon();
+        vi.resetModules();
+        vi.unstubAllGlobals();
+        const { createEndIcon, createStartIcon } = await import(
+            "../../../../../utils/maps/layers/mapIcons.js"
+        );
 
-        expect(iconSpy).toHaveBeenCalledTimes(1);
-        const args = iconSpy.mock.calls[0][0];
-        expect(args.iconUrl).toContain("assets/map-icons/end-icon.png");
-        expect(args.iconAnchor).toStrictEqual([16, 32]);
-        expect(args.iconSize).toStrictEqual([32, 32]);
-        expect(args.popupAnchor).toStrictEqual([0, -32]);
-
-        expect(icon).toHaveProperty("_type", "icon");
+        expect(createStartIcon()).toStrictEqual({});
+        expect(createEndIcon()).toStrictEqual({});
     });
 });
