@@ -132,8 +132,7 @@
         "vite/client",
         "vitest.config.ts",
         "vitest.shared.config.ts",
-        "tailwind.config.mjs",
-        "fitsdk.d.ts"
+        "tailwind.config.mjs"
     ],
     "typeAcquisition": {
         "enable": true

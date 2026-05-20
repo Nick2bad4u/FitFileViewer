@@ -31,7 +31,8 @@ const { Buffer } = require("node:buffer");
  * @typedef {import("./shared/fit").FitFileLoadedPayload} FitFileLoadedPayload
  * @typedef {import("./shared/fit").FitMessageRow} FitMessageRow
  * @typedef {import("./shared/fit").FitMessages} FitMessages
- * @typedef {import("./shared/fit").FitSdkReadResult} FitSdkReadResult
+ * @typedef {import("./shared/fitSdk").FitSdkModule} FitSdkModule
+ * @typedef {import("./shared/fitSdk").FitSdkReadResult} FitSdkReadResult
  */
 
 /**
@@ -93,31 +94,6 @@ const { Buffer } = require("node:buffer");
  *
  * @property {(key: string, defaultValue?: unknown) => unknown} get
  * @property {(key: string, value: unknown) => void} set
- */
-
-/**
- * @typedef {Object} FitSdkStream
- */
-
-/**
- * @typedef {Object} FitSdkStreamConstructor
- *
- * @property {(buffer: Buffer | Uint8Array) => FitSdkStream} fromBuffer
- */
-
-/**
- * @typedef {Object} FitSdkDecoder
- *
- * @property {() => boolean} checkIntegrity
- * @property {() => unknown} [getIntegrityErrors]
- * @property {(options?: Partial<DecoderOptions>) => FitSdkReadResult} read
- */
-
-/**
- * @typedef {Object} FitSdkModule
- *
- * @property {new (stream: FitSdkStream) => FitSdkDecoder} Decoder
- * @property {FitSdkStreamConstructor} Stream
  */
 
 // State management integration

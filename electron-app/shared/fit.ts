@@ -49,8 +49,3 @@ export interface DecoderOptionsValidationResult {
     isValid: boolean;
     validatedOptions: DecoderOptions;
 }
-
-export interface FitSdkReadResult {
-    errors?: FitFieldValue[];
-    messages: FitMessages;
-}

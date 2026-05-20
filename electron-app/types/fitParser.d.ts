@@ -1,5 +1,4 @@
 import type { Buffer } from "node:buffer";
-import type { Decoder, Stream } from "@garmin/fitsdk";
 import type {
     DecoderOptions,
     DecoderOptionsValidationResult,
@@ -9,6 +8,7 @@ import type {
     FitFileLoadedPayload,
     FitMessages,
 } from "../shared/fit";
+import type { FitSdkModule } from "../shared/fitSdk";
 
 export type {
     DecoderOptions,
@@ -58,11 +58,6 @@ export interface UnknownMessageMapping {
 }
 
 export type UnknownMessageMappings = Record<string, UnknownMessageMapping>;
-
-export interface FitSdkModule {
-    Decoder: typeof Decoder;
-    Stream: typeof Stream;
-}
 
 export interface FitParserStateManagers {
     settingsStateManager?: SettingsStateManager;
