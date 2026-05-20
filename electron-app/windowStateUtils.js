@@ -57,6 +57,9 @@ const fs = require("node:fs");
  *     error?: string;
  * }} validateSettings
  */
+/**
+ * @typedef {{ isDestroyed?: unknown }} MaybeDestroyableWindow
+ */
 const path = require("node:path");
 
 const { logWithContext } = require("./main/logging/logWithContext");
@@ -264,19 +267,17 @@ function sanitizeWindowState(state) {
         return { ...CONSTANTS.DEFAULTS.WINDOW };
     }
     const s = /** @type {WindowState} */ (state),
-        sanitized = {
+        sanitized = /** @type {WindowState} */ ({
             height: Math.max(s.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
             width: Math.max(s.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
-        };
+        });
     if (typeof s.x === "number") {
-        // @ts-ignore - augmenting
         sanitized.x = s.x;
     }
     if (typeof s.y === "number") {
-        // @ts-ignore
         sanitized.y = s.y;
     }
-    return /** @type {WindowState} */ (sanitized);
+    return sanitized;
 }
 
 /**
@@ -336,12 +337,21 @@ function saveWindowState(win) {
  * @returns {win is BrowserWindow}
  */
 function validateWindow(win) {
-    return (
-        Boolean(win) &&
-        typeof win === "object" &&
-        typeof (/** @type {any} */ (win).isDestroyed) === "function" &&
-        !(/** @type {any} */ (win).isDestroyed())
-    );
+    if (!win || typeof win !== "object") {
+        return false;
+    }
+
+    const { isDestroyed } = /** @type {MaybeDestroyableWindow} */ (win);
+    return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is () => boolean}
+ */
+function isBooleanCallback(value) {
+    return typeof value === "function";
 }
 
 // Enhanced validation functions
