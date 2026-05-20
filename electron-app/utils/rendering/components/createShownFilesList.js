@@ -354,7 +354,7 @@ export function createShownFilesList() {
         if (!ul) {
             return;
         }
-        ul.innerHTML = "";
+        ul.replaceChildren();
         let anyOverlays = false;
         // Remove main file clickable entry (undo previous change)
         // Only show overlays in the list
@@ -524,8 +524,11 @@ export function createShownFilesList() {
                             const tooltips = document.querySelectorAll(
                                 ".overlay-filename-tooltip"
                             );
-                            for (const t of tooltips)
-                                t.parentNode && t.parentNode.removeChild(t);
+                            for (const t of tooltips) {
+                                if (t.parentNode) {
+                                    t.parentNode.removeChild(t);
+                                }
+                            }
                         }, 10);
                     }
                 });
@@ -539,7 +542,7 @@ export function createShownFilesList() {
         }
     };
     // Hide initially if no overlays
-    if (!(globalThis.loadedFitFiles && globalThis.loadedFitFiles.length > 1)) {
+    if (!globalThis.loadedFitFiles || globalThis.loadedFitFiles.length <= 1) {
         container.style.display = "none";
     }
 

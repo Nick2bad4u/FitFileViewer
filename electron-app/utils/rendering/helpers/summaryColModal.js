@@ -26,9 +26,6 @@ import {
  */
 export function showColModal({
     allKeys,
-    // Kept for API compatibility; modal no longer needs to inspect data contents.
-    // eslint-disable-next-line no-unused-vars
-    data,
     renderTable: reRenderTable,
     setVisibleColumns,
     visibleColumns: initialVisibleColumns,
@@ -561,7 +558,7 @@ export function showColModal({
      * @returns {void}
      */
     function updateColList() {
-        colList.innerHTML = "";
+        colList.replaceChildren();
 
         if (filterText.length > 0) {
             displayedKeys = displayKeys.filter((k) =>

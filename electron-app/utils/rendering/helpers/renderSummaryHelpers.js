@@ -1,5 +1,3 @@
-/* eslint-disable max-lines -- Summary rendering + virtualization helpers are intentionally co-located pending modular refactor. */
-
 import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
@@ -220,7 +218,7 @@ export function renderTable({
         section.classList.add("summary-section");
         container.append(section);
     }
-    section.innerHTML = "";
+    section.replaceChildren();
     // Filter bar with gear button and filter dropdown side by side
     const filterBar = document.createElement("div");
     filterBar.className = "summary-filter-bar";
@@ -925,7 +923,7 @@ export function showColModal({
      * @returns {void}
      */
     function updateColList() {
-        colList.innerHTML = "";
+        colList.replaceChildren();
         // Always show label column as checked and disabled
         const checkbox = document.createElement("input"),
             label = document.createElement("label");

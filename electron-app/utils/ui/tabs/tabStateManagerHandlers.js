@@ -115,7 +115,7 @@ export async function handleDataTab(globalData) {
         bgContainer.childNodes.length > 0 &&
         visibleContainer
     ) {
-        visibleContainer.innerHTML = "";
+        visibleContainer.replaceChildren();
         while (bgContainer.firstChild) {
             visibleContainer.append(bgContainer.firstChild);
         }
