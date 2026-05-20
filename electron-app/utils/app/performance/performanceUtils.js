@@ -16,7 +16,7 @@
  * @param {number} [options.maxItems=100] - Maximum items to batch. Default is
  *   `100`
  *
- * @returns {(item: T) => void} Function to add items to batch
+ * @returns {(item: T) => void} Callable to add items to batch
  */
 export function batchOperations(callback, options = {}) {
     const { maxItems = 100, maxWait = 50 } = options;
@@ -59,11 +59,11 @@ export function cancelIdleCallback(id) {
 }
 
 /**
- * Debounce a function
+ * Debounce a callable
  *
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  *
- * @param {T} func - Function to debounce
+ * @param {T} func - Callable to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {Object} [options] - Options
  * @param {boolean} [options.leading=false] - Execute on leading edge. Default
@@ -155,9 +155,9 @@ export function debounce(func, wait, options = {}) {
     }
 
     /**
-     * @this {any}
+     * @this {unknown}
      *
-     * @param {...any} args
+     * @param {...unknown} args
      */
     function debounced(...args) {
         const time = Date.now();
@@ -179,27 +179,29 @@ export function debounce(func, wait, options = {}) {
     debounced.cancel = cancel;
     debounced.flush = flush;
 
-    return /** @type {any} */ (debounced);
+    return /** @type {T & { cancel: () => void; flush: () => unknown }} */ (
+        debounced
+    );
 }
 
 /**
- * Memoize a function
+ * Memoize a callable
  *
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  *
- * @param {T} func - Function to memoize
- * @param {(...args: any[]) => string} [keyGenerator] - Optional key generator
+ * @param {T} func - Callable to memoize
+ * @param {(...args: unknown[]) => string} [keyGenerator] - Optional key generator
  *
- * @returns {T & { cache: Map<string, any>; clear: () => void }} Memoized
+ * @returns {T & { cache: Map<string, unknown>; clear: () => void }} Memoized
  *   function
  */
 export function memoize(func, keyGenerator) {
     const cache = new Map();
 
     /**
-     * @this {any}
+     * @this {unknown}
      *
-     * @param {...any} args
+     * @param {...unknown} args
      */
     function memoized(...args) {
         const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
@@ -216,7 +218,9 @@ export function memoize(func, keyGenerator) {
     memoized.cache = cache;
     memoized.clear = () => cache.clear();
 
-    return /** @type {any} */ (memoized);
+    return /** @type {T & { cache: Map<string, unknown>; clear: () => void }} */ (
+        memoized
+    );
 }
 
 /**
@@ -249,7 +253,9 @@ export function optimizeEventHandler(handler, options = {}) {
     }
 
     // Add passive flag hint (actual passive flag is set when addEventListener is called)
-    /** @type {any} */ (optimizedHandler)._passive = passive;
+    /** @type {((event: T) => void) & { _passive?: boolean }} */ (
+        optimizedHandler
+    )._passive = passive;
 
     return optimizedHandler;
 }
@@ -274,11 +280,11 @@ export function requestIdleCallback(callback, options) {
 }
 
 /**
- * Throttle a function
+ * Throttle a callable
  *
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  *
- * @param {T} func - Function to throttle
+ * @param {T} func - Callable to throttle
  * @param {number} wait - Wait time in milliseconds
  *
  * @returns {T & { cancel: () => void }} Throttled function
