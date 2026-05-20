@@ -315,6 +315,43 @@ const GyazoConfigSchema = z
     })
     .strict();
 
+const GyazoTokenResponseSchema = z
+    .object({
+        access_token: z.string().min(1),
+    })
+    .passthrough();
+
+/**
+ * @typedef {{ code: string; state: string }} GyazoOAuthCallbackPayload
+ * @typedef {{ access_token: string } & Record<string, unknown>} GyazoTokenResponse
+ */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is GyazoOAuthCallbackPayload}
+ */
+function isGyazoOAuthCallbackPayload(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = /** @type {Record<string, unknown>} */ (value);
+    return (
+        typeof candidate.code === "string" &&
+        typeof candidate.state === "string"
+    );
+}
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
 /**
  * Validate a Gyazo endpoint URL.
  *
@@ -478,12 +515,12 @@ export function __setTestDeps(overrides) {
 /**
  * @typedef {Object} GyazoConfig
  *
- * @property {string} clientId - Gyazo client ID
- * @property {string} clientSecret - Gyazo client secret
- * @property {string} [redirectUri] - Gyazo redirect URI
- * @property {string} [tokenUrl] - Gyazo token URL
- * @property {string} [authUrl] - Gyazo auth URL
- * @property {string} [uploadUrl] - Gyazo upload URL
+ * @property {string | null} clientId - Gyazo client ID
+ * @property {string | null} clientSecret - Gyazo client secret
+ * @property {string} redirectUri - Gyazo redirect URI
+ * @property {string} tokenUrl - Gyazo token URL
+ * @property {string} authUrl - Gyazo auth URL
+ * @property {string} uploadUrl - Gyazo upload URL
  */
 
 /**
@@ -559,10 +596,7 @@ export const exportUtils = {
     async authenticateWithGyazo() {
         const config = exportUtils.getGyazoConfig();
 
-        if (
-            !(/** @type {any} */ (config).clientId) ||
-            !(/** @type {any} */ (config).clientSecret)
-        ) {
+        if (!config.clientId || !config.clientSecret) {
             exportUtils.showGyazoSetupGuide();
             throw new Error(
                 "Gyazo credentials not configured. Please complete the setup first."
@@ -649,20 +683,17 @@ export const exportUtils = {
                     ),
                     // Construct the authorization URL
                     authParams = new URLSearchParams({
-                        client_id: /** @type {any} */ (config).clientId,
+                        client_id: config.clientId,
                         redirect_uri: redirectUri,
                         response_type: "code",
                         state,
                     }),
                     authUrl = `${validateGyazoEndpointUrl(
-                        /** @type {any} */ (config).authUrl,
+                        config.authUrl,
                         new Set(["gyazo.com"])
                     )}?${authParams.toString()}`,
                     // Listen for the OAuth callback from the main process
-                    callbackHandler = async (
-                        /** @type {any} */ _event,
-                        /** @type {any} */ data
-                    ) => {
+                    callbackHandler = async (_event, data) => {
                         try {
                             // Ensure we only handle the callback once.
                             if (typeof unsubscribeRef.current === "function") {
@@ -670,8 +701,7 @@ export const exportUtils = {
                             }
 
                             if (
-                                !data ||
-                                typeof data !== "object" ||
+                                !isGyazoOAuthCallbackPayload(data) ||
                                 data.state !== state
                             ) {
                                 throw new Error(
@@ -684,12 +714,10 @@ export const exportUtils = {
                                 await exportUtils.exchangeGyazoCodeForToken(
                                     data.code,
                                     redirectUri
-                                );
+                            );
 
                             // Store the access token
-                            exportUtils.setGyazoAccessToken(
-                                /** @type {any} */ (tokenData).access_token
-                            );
+                            exportUtils.setGyazoAccessToken(tokenData.access_token);
 
                             // Update status in any open account manager modal
                             const accountManagerModal = document.querySelector(
@@ -703,9 +731,7 @@ export const exportUtils = {
                                 );
                             }
 
-                            resolve(
-                                /** @type {any} */ (tokenData).access_token
-                            );
+                            resolve(tokenData.access_token);
                         } catch (error) {
                             reject(error);
                         } finally {
@@ -1335,26 +1361,23 @@ export const exportUtils = {
                     const tokenData =
                         await exportUtils.exchangeGyazoCodeForToken(
                             code,
-                            /** @type {any} */ (exportUtils.getGyazoConfig())
-                                .redirectUri
+                            exportUtils.getGyazoConfig().redirectUri
                         );
-                    exportUtils.setGyazoAccessToken(
-                        /** @type {any} */ (tokenData).access_token
-                    );
+                    exportUtils.setGyazoAccessToken(tokenData.access_token);
 
                     overlay.remove();
                     showNotification(
                         "Gyazo authentication successful!",
                         "success"
                     );
-                    resolve(/** @type {any} */ (tokenData).access_token);
+                    resolve(tokenData.access_token);
                 } catch (error) {
                     console.error(
                         "Error completing Gyazo authentication:",
                         error
                     );
                     showNotification(
-                        `Authentication failed: ${/** @type {any} */ (error).message}`,
+                        `Authentication failed: ${getErrorMessage(error)}`,
                         "error"
                     );
                 }
@@ -1478,7 +1501,7 @@ export const exportUtils = {
      * @param {string} code - Authorization code
      * @param {string} redirectUri - Redirect URI used in OAuth flow
      *
-     * @returns {Promise<Object>} Token data with access_token
+     * @returns {Promise<GyazoTokenResponse>} Token data with access_token
      */
     async exchangeGyazoCodeForToken(code, redirectUri) {
         if (typeof code !== "string" || code.trim().length === 0) {
@@ -1487,13 +1510,17 @@ export const exportUtils = {
 
         const safeRedirectUri = validateGyazoRedirectUri(redirectUri);
         const config = exportUtils.getGyazoConfig();
+        if (!config.clientId || !config.clientSecret) {
+            throw new Error("Gyazo credentials not configured");
+        }
+
         const tokenUrl = validateGyazoEndpointUrl(
-            /** @type {any} */ (config).tokenUrl,
+            config.tokenUrl,
             new Set(["gyazo.com"])
         );
         const tokenParams = new URLSearchParams({
-            client_id: /** @type {any} */ (config).clientId,
-            client_secret: /** @type {any} */ (config).clientSecret,
+            client_id: config.clientId,
+            client_secret: config.clientSecret,
             code: code.trim(),
             grant_type: "authorization_code",
             redirect_uri: safeRedirectUri,
@@ -1515,9 +1542,11 @@ export const exportUtils = {
                 );
             }
 
-            const data = await response.json();
-            if (data.access_token) {
-                return data;
+            const parsed = GyazoTokenResponseSchema.safeParse(
+                await response.json()
+            );
+            if (parsed.success) {
+                return /** @type {GyazoTokenResponse} */ (parsed.data);
             }
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
@@ -1936,7 +1965,7 @@ export const exportUtils = {
      * OAuth/upload flows are excluded from coverage due to external auth,
      * clipboard, and network side effects that are brittle in jsdom.
      *
-     * @returns {Object} Gyazo configuration object
+     * @returns {GyazoConfig} Gyazo configuration object
      */
     getGyazoConfig() {
         // Provide default demo credentials for easier onboarding
@@ -2739,11 +2768,8 @@ body {
      */
     showGyazoAccountManager() {
         const /** @type {GyazoConfig} */
-            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
-            hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId &&
-                /** @type {GyazoConfig} */ (config).clientSecret
-            ),
+            config = exportUtils.getGyazoConfig(),
+            hasCredentials = Boolean(config.clientId && config.clientSecret),
             isAuthenticated = exportUtils.isGyazoAuthenticated(),
             // Create modal overlay
             overlay = document.createElement("div");
@@ -2992,12 +3018,12 @@ body {
         // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
         if (clientIdInput) {
             /** @type {HTMLInputElement} */ (clientIdInput).value = String(
-                /** @type {any} */ (config).clientId ?? ""
+                config.clientId ?? ""
             );
         }
         if (clientSecretInput) {
             /** @type {HTMLInputElement} */ (clientSecretInput).value = String(
-                /** @type {any} */ (config).clientSecret ?? ""
+                config.clientSecret ?? ""
             );
         }
 
@@ -3043,7 +3069,7 @@ body {
                     );
                 } catch (error) {
                     showNotification(
-                        `Failed to connect Gyazo account: ${/** @type {any} */ (error).message}`,
+                        `Failed to connect Gyazo account: ${getErrorMessage(error)}`,
                         "error"
                     );
                 }
@@ -3276,11 +3302,8 @@ body {
         const // Update auth status
             authStatus = modal.querySelector("#auth-status"),
             /** @type {GyazoConfig} */
-            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
-            hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId &&
-                /** @type {GyazoConfig} */ (config).clientSecret
-            ),
+            config = exportUtils.getGyazoConfig(),
+            hasCredentials = Boolean(config.clientId && config.clientSecret),
             isAuthenticated = exportUtils.isGyazoAuthenticated();
         if (authStatus) {
             /** @type {HTMLElement} */ (authStatus).style.background =
@@ -3340,7 +3363,7 @@ body {
                 accessToken = await exportUtils.authenticateWithGyazo();
             } catch (error) {
                 throw new Error(
-                    `Gyazo authentication required: ${/** @type {any} */ (error).message}`
+                    `Gyazo authentication required: ${getErrorMessage(error)}`
                 );
             }
         }
@@ -3356,7 +3379,7 @@ body {
             formData.append("imagedata", blob, "chart.png");
 
             const uploadUrl = validateGyazoEndpointUrl(
-                /** @type {any} */ (exportUtils.getGyazoConfig()).uploadUrl,
+                exportUtils.getGyazoConfig().uploadUrl,
                 new Set(["upload.gyazo.com"])
             );
 
@@ -3399,9 +3422,10 @@ body {
             console.error("Error uploading to Gyazo:", error);
 
             // If it's an authentication error, clear the stored token
+            const errorMessage = getErrorMessage(error);
             if (
-                /** @type {any} */ (error).message.includes("expired") ||
-                /** @type {any} */ (error).message.includes("unauthorized")
+                errorMessage.includes("expired") ||
+                errorMessage.includes("unauthorized")
             ) {
                 exportUtils.clearGyazoAccessToken();
             }
