@@ -10,7 +10,7 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Helper function to render individual zone chart
 /**
- * @typedef {import("../../types/sharedChartTypes.d.ts").ZoneData} ZoneData
+ * @typedef {import("../../types/sharedChartTypes.js").ZoneData} ZoneData
  */
 /**
  * @typedef {Object} ZoneChartThemeColors
