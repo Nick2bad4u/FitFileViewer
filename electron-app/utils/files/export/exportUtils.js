@@ -2741,195 +2741,218 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        modal.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
-            📸 Gyazo Settings
-            </h3>
+        const title = document.createElement("h3");
+        title.style.cssText =
+            "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
+        title.textContent = "📸 Gyazo Settings";
+        modal.append(title);
 
-            <!-- Status Section -->
-            <div style="margin-bottom: 20px; text-align: center;">
-            <div style="margin-bottom: 12px;">
-                <span id="auth-status" style="
-                display: inline-block;
-                padding: 4px 12px;
-                border-radius: 16px;
-                font-size: 12px;
-                font-weight: 600;
-                background: ${isAuthenticated ? "var(--color-success)" : "var(--color-error)"};
-                color: white;
-                ">
-                ${isAuthenticated ? "✅ Connected" : "❌ Not Connected"}
-                </span>
-            </div>
-            <div style="margin-bottom: 12px;">
-                <span id="creds-status" style="
-                display: inline-block;
-                padding: 4px 12px;
-                border-radius: 16px;
-                font-size: 12px;
-                font-weight: 600;
-                background: ${hasCredentials ? "var(--color-success)" : "var(--color-warning)"};
-                color: white;
-                ">
-                ${hasCredentials ? "🔑 Credentials Ready" : "🔑 Using Default Credentials"}
-                </span>
-            </div>
-            </div>
-
-            <!-- Simple Setup Instructions -->
-            <div style="margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--color-accent); font-size: 14px;">
-                🚀 Getting Started
-            </h4>
-            <p style="margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;">
-                Simply click the <strong>"Connect to Gyazo"</strong> button below and log in with your Gyazo account.
-                No additional setup required!
-            </p>
-            </div>
-
-            <!-- Advanced Options (Collapsible) -->
-            <details style="margin-bottom: 20px;">
-            <summary style="
-                color: var(--color-fg-alt);
-                font-size: 13px;
-                cursor: pointer;
-                padding: 8px 0;
-                border-bottom: 1px solid var(--color-border);
-            ">
-                🔧 Advanced: Use Custom Credentials
-            </summary>
-            <div style="margin-top: 16px; padding: 12px; background: var(--color-glass); border-radius: 8px;">
-                <p style="margin: 0 0 12px 0; color: var(--color-fg); font-size: 12px; line-height: 1.4;">
-                For advanced users who want to use their own Gyazo application:
-                </p>
-                <ol style="margin: 0 0 16px 0; padding-left: 20px; color: var(--color-fg); font-size: 12px; line-height: 1.4;">
-                <li>Create an app at <a href="https://gyazo.com/oauth/applications" data-external-link="true" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
-                <li>Use redirect URI: <code style="background: var(--color-glass); padding: 2px 4px; border-radius: 4px;">http://localhost:3000/gyazo/callback</code></li>
-                <li>Enter your credentials below</li>
-                </ol>
-
-                <div style="margin-bottom: 12px;">
-                <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
-                    Client ID:
-                </label>
-                     <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID" style="
-                    width: 100%;
-                    padding: 8px 10px;
-                    border-radius: 6px;
-                    border: 1px solid var(--color-border);
-                    background: var(--color-glass);
-                    color: var(--color-fg);
-                    font-size: 12px;
-                    box-sizing: border-box;
-                    font-family: monospace;
-                ">
-                </div>
-                <div style="margin-bottom: 12px;">
-                <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
-                    Client Secret:
-                </label>
-                <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret" style="
-                    width: 100%;
-                    padding: 8px 10px;
-                    border-radius: 6px;
-                    border: 1px solid var(--color-border);
-                    background: var(--color-glass);
-                    color: var(--color-fg);
-                    font-size: 12px;
-                    box-sizing: border-box;
-                    font-family: monospace;
-                ">
-                </div>
-                <button id="save-credentials" style="
-                width: 100%;
-                padding: 8px;
-                background: var(--color-accent);
-                border: none;
-                border-radius: 6px;
-                color: var(--color-fg-alt);
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-                ">
-                💾 Save Custom Credentials
-                </button>
-            </div>
-            </details>
-
-            <!-- Account Actions -->
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button id="gyazo-connect" style="
-                width: 100%;
-                padding: 12px;
-                background: var(--color-success);
-                border: none;
-                border-radius: 8px;
-                color: white;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-                display: ${isAuthenticated ? "none" : "block"};
-            ">
-                🔗 Connect to Gyazo
-            </button>
-
-            <button id="gyazo-disconnect" style="
-                width: 100%;
-                padding: 12px;
-                background: var(--color-error);
-                border: none;
-                border-radius: 8px;
-                color: white;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-                display: ${isAuthenticated ? "block" : "none"};
-            ">
-                🔌 Disconnect Account
-            </button>
-
-            <button id="clear-all-data" style="
-                width: 100%;
-                padding: 12px;
-                background: var(--color-warning);
-                border: none;
-                border-radius: 8px;
-                color: white;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-            ">
-                🗑️ Clear All Data
-            </button>
-
-            <button id="gyazo-close" style="
-                width: 100%;
-                padding: 12px;
-                background: var(--color-border-light);
-                border: 1px solid var(--color-border);
-                border-radius: 8px;
-                color: var(--color-fg-alt);
-                font-size: 14px;
-                cursor: pointer;
-                transition: var(--transition-smooth);
-            ">
-                Close
-            </button>
-            </div>
+        const statusSection = document.createElement("div"),
+            authStatusWrap = document.createElement("div"),
+            authStatus = document.createElement("span"),
+            credsStatusWrap = document.createElement("div"),
+            credsStatus = document.createElement("span");
+        statusSection.style.cssText = "margin-bottom: 20px; text-align: center;";
+        authStatusWrap.style.cssText = "margin-bottom: 12px;";
+        credsStatusWrap.style.cssText = "margin-bottom: 12px;";
+        authStatus.id = "auth-status";
+        authStatus.style.cssText = `
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background: ${isAuthenticated ? "var(--color-success)" : "var(--color-error)"};
+            color: white;
         `;
+        authStatus.textContent = isAuthenticated
+            ? "✅ Connected"
+            : "❌ Not Connected";
+        credsStatus.id = "creds-status";
+        credsStatus.style.cssText = `
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background: ${hasCredentials ? "var(--color-success)" : "var(--color-warning)"};
+            color: white;
+        `;
+        credsStatus.textContent = hasCredentials
+            ? "🔑 Credentials Ready"
+            : "🔑 Using Default Credentials";
+        authStatusWrap.append(authStatus);
+        credsStatusWrap.append(credsStatus);
+        statusSection.append(authStatusWrap, credsStatusWrap);
+        modal.append(statusSection);
 
-        // Event handlers
-        const clearDataBtn = modal.querySelector("#clear-all-data"),
-            clientIdInput = modal.querySelector("#gyazo-client-id"),
-            clientSecretInput = modal.querySelector("#gyazo-client-secret"),
-            closeBtn = modal.querySelector("#gyazo-close"),
-            connectBtn = modal.querySelector("#gyazo-connect"),
-            disconnectBtn = modal.querySelector("#gyazo-disconnect"),
-            saveCredsBtn = modal.querySelector("#save-credentials");
+        const gettingStarted = document.createElement("div"),
+            gettingStartedTitle = document.createElement("h4"),
+            gettingStartedCopy = document.createElement("p"),
+            connectStrong = document.createElement("strong");
+        gettingStarted.style.cssText =
+            "margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;";
+        gettingStartedTitle.style.cssText =
+            "margin: 0 0 12px 0; color: var(--color-accent); font-size: 14px;";
+        gettingStartedTitle.textContent = "🚀 Getting Started";
+        gettingStartedCopy.style.cssText =
+            "margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;";
+        connectStrong.textContent = '"Connect to Gyazo"';
+        gettingStartedCopy.append(
+            "Simply click the ",
+            connectStrong,
+            " button below and log in with your Gyazo account. No additional setup required!"
+        );
+        gettingStarted.append(gettingStartedTitle, gettingStartedCopy);
+        modal.append(gettingStarted);
+
+        const details = document.createElement("details"),
+            summary = document.createElement("summary"),
+            advancedPanel = document.createElement("div"),
+            advancedCopy = document.createElement("p"),
+            advancedSteps = document.createElement("ol"),
+            appStep = document.createElement("li"),
+            appLink = document.createElement("a"),
+            redirectStep = document.createElement("li"),
+            redirectCode = document.createElement("code"),
+            credentialsStep = document.createElement("li");
+        details.style.cssText = "margin-bottom: 20px;";
+        summary.style.cssText = `
+            color: var(--color-fg-alt);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--color-border);
+        `;
+        summary.textContent = "🔧 Advanced: Use Custom Credentials";
+        advancedPanel.style.cssText =
+            "margin-top: 16px; padding: 12px; background: var(--color-glass); border-radius: 8px;";
+        advancedCopy.style.cssText =
+            "margin: 0 0 12px 0; color: var(--color-fg); font-size: 12px; line-height: 1.4;";
+        advancedCopy.textContent =
+            "For advanced users who want to use their own Gyazo application:";
+        advancedSteps.style.cssText =
+            "margin: 0 0 16px 0; padding-left: 20px; color: var(--color-fg); font-size: 12px; line-height: 1.4;";
+        appLink.dataset.externalLink = "true";
+        appLink.href = "https://gyazo.com/oauth/applications";
+        appLink.style.cssText = "color: var(--color-accent);";
+        appLink.textContent = "Gyazo Developer Applications";
+        appStep.append("Create an app at ", appLink);
+        redirectCode.style.cssText =
+            "background: var(--color-glass); padding: 2px 4px; border-radius: 4px;";
+        redirectCode.textContent = "http://localhost:3000/gyazo/callback";
+        redirectStep.append("Use redirect URI: ", redirectCode);
+        credentialsStep.textContent = "Enter your credentials below";
+        advancedSteps.append(appStep, redirectStep, credentialsStep);
+
+        const clientIdField = document.createElement("div"),
+            clientIdLabel = document.createElement("label"),
+            clientIdInput = document.createElement("input"),
+            clientSecretField = document.createElement("div"),
+            clientSecretLabel = document.createElement("label"),
+            clientSecretInput = document.createElement("input"),
+            saveCredsBtn = document.createElement("button");
+        clientIdField.style.cssText = "margin-bottom: 12px;";
+        clientSecretField.style.cssText = "margin-bottom: 12px;";
+        clientIdLabel.style.cssText =
+            "display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;";
+        clientSecretLabel.style.cssText = clientIdLabel.style.cssText;
+        clientIdLabel.textContent = "Client ID:";
+        clientSecretLabel.textContent = "Client Secret:";
+        clientIdInput.id = "gyazo-client-id";
+        clientIdInput.placeholder = "Enter your Gyazo Client ID";
+        clientIdInput.type = "text";
+        clientSecretInput.id = "gyazo-client-secret";
+        clientSecretInput.placeholder = "Enter your Gyazo Client Secret";
+        clientSecretInput.type = "password";
+        for (const input of [clientIdInput, clientSecretInput]) {
+            input.style.cssText = `
+                width: 100%;
+                padding: 8px 10px;
+                border-radius: 6px;
+                border: 1px solid var(--color-border);
+                background: var(--color-glass);
+                color: var(--color-fg);
+                font-size: 12px;
+                box-sizing: border-box;
+                font-family: monospace;
+            `;
+        }
+        saveCredsBtn.id = "save-credentials";
+        saveCredsBtn.style.cssText = `
+            width: 100%;
+            padding: 8px;
+            background: var(--color-accent);
+            border: none;
+            border-radius: 6px;
+            color: var(--color-fg-alt);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        `;
+        saveCredsBtn.textContent = "💾 Save Custom Credentials";
+        clientIdField.append(clientIdLabel, clientIdInput);
+        clientSecretField.append(clientSecretLabel, clientSecretInput);
+        advancedPanel.append(
+            advancedCopy,
+            advancedSteps,
+            clientIdField,
+            clientSecretField,
+            saveCredsBtn
+        );
+        details.append(summary, advancedPanel);
+        modal.append(details);
+
+        const actionPanel = document.createElement("div"),
+            connectBtn = document.createElement("button"),
+            disconnectBtn = document.createElement("button"),
+            clearDataBtn = document.createElement("button"),
+            closeBtn = document.createElement("button");
+        actionPanel.style.cssText =
+            "display: flex; flex-direction: column; gap: 8px;";
+        connectBtn.id = "gyazo-connect";
+        disconnectBtn.id = "gyazo-disconnect";
+        clearDataBtn.id = "clear-all-data";
+        closeBtn.id = "gyazo-close";
+        for (const button of [
+            connectBtn,
+            disconnectBtn,
+            clearDataBtn,
+            closeBtn,
+        ]) {
+            button.style.cssText = `
+                width: 100%;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: var(--transition-smooth);
+            `;
+        }
+        connectBtn.style.background = "var(--color-success)";
+        connectBtn.style.border = "none";
+        connectBtn.style.color = "white";
+        connectBtn.style.display = isAuthenticated ? "none" : "block";
+        connectBtn.style.fontWeight = "600";
+        connectBtn.textContent = "🔗 Connect to Gyazo";
+        disconnectBtn.style.background = "var(--color-error)";
+        disconnectBtn.style.border = "none";
+        disconnectBtn.style.color = "white";
+        disconnectBtn.style.display = isAuthenticated ? "block" : "none";
+        disconnectBtn.style.fontWeight = "600";
+        disconnectBtn.textContent = "🔌 Disconnect Account";
+        clearDataBtn.style.background = "var(--color-warning)";
+        clearDataBtn.style.border = "none";
+        clearDataBtn.style.color = "white";
+        clearDataBtn.style.fontWeight = "600";
+        clearDataBtn.textContent = "🗑️ Clear All Data";
+        closeBtn.style.background = "var(--color-border-light)";
+        closeBtn.style.border = "1px solid var(--color-border)";
+        closeBtn.style.color = "var(--color-fg-alt)";
+        closeBtn.textContent = "Close";
+        actionPanel.append(connectBtn, disconnectBtn, clearDataBtn, closeBtn);
+        modal.append(actionPanel);
 
         // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
         if (clientIdInput) {
@@ -3008,7 +3031,6 @@ body {
                 // Using native confirm dialog for critical destructive action is acceptable in this Electron context
                 // and avoids building a full modal UI here.
                 if (
-                    // eslint-disable-next-line no-alert -- Electron renderer UI: native confirm is acceptable for destructive action
                     confirm(
                         "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
                     )
