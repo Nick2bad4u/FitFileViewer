@@ -1,69 +1,162 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../../../../utils/app/initialization/updateSystemInfo.js", () => ({
-    updateSystemInfo: vi.fn(),
-}));
-vi.mock("../../../../utils/logging/index.js", () => ({
-    logWithLevel: vi.fn(),
+type VersionInfoElectronAPI = {
+    getAppVersion?: () => Promise<string>;
+    getChromeVersion?: () => Promise<string>;
+    getElectronVersion?: () => Promise<string>;
+    getLicenseInfo?: () => Promise<string>;
+    getNodeVersion?: () => Promise<string>;
+    getPlatformInfo?: () => Promise<{ arch: string; platform: string }>;
+};
+
+type VersionInfoGlobal = typeof globalThis & {
+    electronAPI?: VersionInfoElectronAPI;
+};
+
+type LoadVersionInfoModule = typeof import("../../../../utils/app/initialization/loadVersionInfo.js");
+
+const h = vi.hoisted(() => ({
+    getErrorInfo:
+        vi.fn<
+            (error: unknown) => {
+                message: string;
+                stack?: string;
+            }
+        >((error) =>
+            error instanceof Error
+                ? { message: error.message, stack: error.stack }
+                : { message: String(error) }
+        ),
+    logWithLevel:
+        vi.fn<
+            (
+                level: string,
+                message: string,
+                context?: Record<string, unknown>
+            ) => void
+        >(),
+    updateSystemInfo: vi.fn<(info: unknown) => boolean>(() => true),
 }));
 
-const modPath = "../../../../utils/app/initialization/loadVersionInfo.js";
+vi.mock(import("../../../../utils/app/initialization/updateSystemInfo.js"), () => ({
+    updateSystemInfo: h.updateSystemInfo,
+}));
+
+vi.mock(import("../../../../utils/logging/index.js"), () => ({
+    getErrorInfo: h.getErrorInfo,
+    logWithLevel: h.logWithLevel,
+}));
+
+async function importLoadVersionInfoModule(): Promise<LoadVersionInfoModule> {
+    return import("../../../../utils/app/initialization/loadVersionInfo.js");
+}
+
+function setElectronAPI(electronAPI?: VersionInfoElectronAPI): void {
+    const versionInfoGlobal = globalThis as VersionInfoGlobal;
+
+    if (electronAPI) {
+        versionInfoGlobal.electronAPI = electronAPI;
+        return;
+    }
+
+    delete versionInfoGlobal.electronAPI;
+}
+
+function resetTestState(): void {
+    document.body.textContent = "";
+
+    const versionNumber = document.createElement("div");
+    versionNumber.id = "version-number";
+    document.body.append(versionNumber);
+
+    h.getErrorInfo.mockClear();
+    h.logWithLevel.mockClear();
+    h.updateSystemInfo.mockClear();
+    setElectronAPI();
+}
 
 describe("loadVersionInfo", () => {
-    beforeEach(() => {
-        document.body.innerHTML = `<div id="version-number"></div>`;
-        (window as any).electronAPI = undefined;
-        vi.resetModules();
-    });
-
     it("uses electronAPI when available and updates DOM", async () => {
-        (window as any).electronAPI = {
-            getAppVersion: vi.fn().mockResolvedValue("1.2.3"),
-            getElectronVersion: vi.fn().mockResolvedValue("38.1.0"),
-            getNodeVersion: vi.fn().mockResolvedValue("24.8.0"),
-            getChromeVersion: vi.fn().mockResolvedValue("128.0.0.0"),
+        expect.assertions(2);
+
+        resetTestState();
+        setElectronAPI({
+            getAppVersion: vi.fn<() => Promise<string>>().mockResolvedValue(
+                "1.2.3"
+            ),
+            getChromeVersion: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("128.0.0.0"),
+            getElectronVersion: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("38.1.0"),
+            getLicenseInfo: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("Unlicense"),
+            getNodeVersion: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("24.8.0"),
             getPlatformInfo: vi
-                .fn()
-                .mockResolvedValue({ platform: "win32", arch: "x64" }),
-            getLicenseInfo: vi.fn().mockResolvedValue("Unlicense"),
-        };
-        const { loadVersionInfo } = await import(modPath);
-        const { updateSystemInfo } =
-            await import("../../../../utils/app/initialization/updateSystemInfo.js");
+                .fn<() => Promise<{ arch: string; platform: string }>>()
+                .mockResolvedValue({ arch: "x64", platform: "win32" }),
+        });
+
+        const { loadVersionInfo } = await importLoadVersionInfoModule();
+
         await loadVersionInfo();
-        expect(document.getElementById("version-number")!.textContent).toBe(
+
+        expect(document.querySelector("#version-number")?.textContent).toBe(
             "1.2.3"
         );
-        expect((updateSystemInfo as any).mock.calls[0][0]).toMatchObject({
-            version: "1.2.3",
-            electron: "38.1.0",
-            node: "24.8.0",
-            chrome: "128.0.0.0",
-            platform: expect.stringContaining("win32"),
-            license: "Unlicense",
-        });
-    });
-
-    it("falls back when electronAPI missing and still updates", async () => {
-        (window as any).electronAPI = undefined;
-        const { loadVersionInfo } = await import(modPath);
-        const { updateSystemInfo } =
-            await import("../../../../utils/app/initialization/updateSystemInfo.js");
-        await loadVersionInfo();
-        expect((updateSystemInfo as any).mock.calls[0][0]).toHaveProperty(
-            "author"
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chrome: "128.0.0.0",
+                electron: "38.1.0",
+                license: "Unlicense",
+                node: "24.8.0",
+                platform: "win32 (x64)",
+                version: "1.2.3",
+            })
         );
     });
 
-    it("handles errors and applies fallback", async () => {
-        (window as any).electronAPI = {
-            getAppVersion: vi.fn().mockRejectedValue(new Error("boom")),
-        };
-        const { loadVersionInfo } = await import(modPath);
-        const { updateSystemInfo } =
-            await import("../../../../utils/app/initialization/updateSystemInfo.js");
+    it("falls back when electronAPI is missing and still updates", async () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const { loadVersionInfo } = await importLoadVersionInfoModule();
+
         await loadVersionInfo();
-        // updateSystemInfo called at least once, possibly twice (normal then fallback). ensure called
-        expect((updateSystemInfo as any).mock.calls.length).toBeGreaterThan(0);
+
+        expect(document.querySelector("#version-number")?.textContent).toBe("");
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                author: "Nick2bad4u",
+                license: "Unlicense",
+            })
+        );
+    });
+
+    it("keeps defaults when electronAPI version retrieval fails", async () => {
+        expect.assertions(2);
+
+        resetTestState();
+        setElectronAPI({
+            getAppVersion: vi
+                .fn<() => Promise<string>>()
+                .mockRejectedValue(new Error("boom")),
+        });
+
+        const { loadVersionInfo } = await importLoadVersionInfoModule();
+
+        await loadVersionInfo();
+
+        expect(document.querySelector("#version-number")?.textContent).toBe("");
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                version: "unknown",
+            })
+        );
     });
 });
