@@ -25,6 +25,111 @@ const CONSTANTS = {
     LOG_PREFIX: "[AboutModal]",
     MODAL_ANIMATION_DURATION: 300,
 };
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const FEATURE_ITEMS = [
+    {
+        color: "#4ade80",
+        description:
+            "View detailed FIT file data in interactive tables with sorting and filtering",
+        icon: "📊",
+        title: "Data Analysis",
+    },
+    {
+        color: "#60a5fa",
+        description:
+            "Interactive maps with route visualization, elevation profiles, and GPX export",
+        icon: "🗺️",
+        title: "GPS Mapping",
+    },
+    {
+        color: "#f472b6",
+        description:
+            "Advanced charts and graphs for analyzing performance trends",
+        icon: "📈",
+        title: "Performance Metrics",
+    },
+    {
+        color: "#34d399",
+        description: "Export data to CSV, GPX, and other formats for further analysis",
+        icon: "💾",
+        title: "Data Export",
+    },
+    {
+        color: "#fbbf24",
+        description:
+            "Repair corrupted FIT files for import into Garmin Connect, Strava, etc.",
+        icon: "🔧",
+        title: "File Recovery",
+    },
+    {
+        color: "#a78bfa",
+        description: "Native desktop application for Windows, macOS, and Linux",
+        icon: "⚡",
+        title: "Cross-Platform",
+    },
+];
+
+const SYSTEM_INFO_ITEMS = [
+    {
+        label: "Version",
+        valueClass: "version-highlight",
+        valueKey: "VERSION",
+    },
+    {
+        label: "Electron",
+        valueClass: "electron-highlight",
+        valueKey: "ELECTRON",
+    },
+    {
+        label: "Node.js",
+        valueClass: "node-highlight",
+        valueKey: "NODE",
+    },
+    {
+        label: "Chrome",
+        valueClass: "chrome-highlight",
+        valueKey: "CHROME",
+    },
+    {
+        label: "Platform",
+        valueClass: "platform-highlight",
+        valueKey: "PLATFORM",
+    },
+    {
+        label: "Author",
+        valueClass: "author-highlight",
+        valueKey: "AUTHOR",
+    },
+    {
+        label: "License",
+        valueClass: "license-highlight",
+        valueKey: "LICENSE",
+    },
+];
+
+const TECH_BADGES = [
+    {
+        href: "https://electronjs.org/",
+        icon: "⚡",
+        label: "Electron",
+    },
+    {
+        href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        icon: "📜",
+        label: "JavaScript",
+    },
+    {
+        href: "https://github.com/chartjs/Chart.js",
+        icon: "📊",
+        label: "Chart.js",
+    },
+    {
+        href: "https://github.com/Leaflet/Leaflet",
+        icon: "🗺️",
+        label: "Leaflet",
+    },
+];
 
 // Module state
 /** @type {HTMLElement | null} */
@@ -32,91 +137,318 @@ let lastFocusedElement = null;
 export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 
 /**
- * Creates the enhanced modal content with modern styling and branding Uses
- * dynamic loading values that will be replaced by loadVersionInfo()
+ * Creates the About modal content as DOM nodes.
  *
- * @returns {string} HTML content for the modal
+ * @returns {HTMLElement}
  */
-export function getAboutModalContent() {
-    return `
-		<div class="modal-backdrop">
-			<div class="modal-content">
-				<div class="modal-header">
-					<div class="modal-icon">
-						<img src="icons/favicon-96x96.png" alt="App Icon" class="app-icon" />
-					</div>
-					<button id="about-modal-close" class="modal-close" tabindex="0" aria-label="Close About dialog">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
-							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-                </div>
-                <div class="modal-body">
-                    <h1 class="modal-title">
-						<span class="title-gradient">Fit File Viewer</span>
-						<span class="version-badge">
-							<span class="version-prefix">v</span>
-							<span class="version-number" id="version-number">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
-						</span>
-					</h1>
-					<p class="modal-subtitle">Advanced FIT file analysis and visualization tool</p>
+export function createAboutModalContentElement() {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
 
-                    <div class="about-split">
-                        <section class="about-panel about-panel--features" aria-label="Key features">
-                            ${createFeaturesContent()}
-                        </section>
-                        <section class="about-panel about-panel--system" aria-label="System information">
-                            <div class="about-panel-header">
-                                <h3 class="features-title"><span>🧩</span> System Info</h3>
-                                <button
-                                    id="about-copy-system-info"
-                                    class="features-btn features-btn--compact"
-                                    type="button"
-                                    tabindex="0"
-                                    aria-label="Copy system information to clipboard"
-                                >
-                                    <span class="btn-icon">📋</span>
-                                    <span class="btn-text">Copy</span>
-                                </button>
-                            </div>
-                            <div class="system-info-section" id="info-toggle-section">
-                                ${createSystemInfoContent()}
-                            </div>
-                        </section>
-                    </div>
-					<div id="about-modal-body" class="modal-content-body"></div>
-					<div class="modal-footer">
-						<div class="tech-stack">
-							<a href="https://electronjs.org/" class="tech-badge-link" data-external-link>
-								<span class="tech-badge">
-									<span class="tech-icon">⚡</span>
-									<span>Electron</span>
-								</span>
-							</a>
-							<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" class="tech-badge-link" data-external-link>
-								<span class="tech-badge">
-									<span class="tech-icon">📜</span>
-									<span>JavaScript</span>
-								</span>
-							</a>
-							<a href="https://github.com/chartjs/Chart.js" class="tech-badge-link" data-external-link>
-								<span class="tech-badge">
-									<span class="tech-icon">📊</span>
-									<span>Chart.js</span>
-								</span>
-							</a>
-							<a href="https://github.com/Leaflet/Leaflet" class="tech-badge-link" data-external-link>
-								<span class="tech-badge">
-									<span class="tech-icon">🗺️</span>
-									<span>Leaflet</span>
-								</span>
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	`;
+    const content = document.createElement("div");
+    content.className = "modal-content";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const iconWrapper = document.createElement("div");
+    iconWrapper.className = "modal-icon";
+    const appIcon = document.createElement("img");
+    appIcon.src = "icons/favicon-96x96.png";
+    appIcon.alt = "App Icon";
+    appIcon.className = "app-icon";
+    iconWrapper.append(appIcon);
+
+    const closeButton = document.createElement("button");
+    closeButton.id = "about-modal-close";
+    closeButton.className = "modal-close";
+    closeButton.type = "button";
+    closeButton.tabIndex = 0;
+    closeButton.setAttribute("aria-label", "Close About dialog");
+    closeButton.append(createCloseIcon());
+
+    header.append(iconWrapper, closeButton);
+
+    const body = document.createElement("div");
+    body.className = "modal-body";
+    body.append(
+        createAboutTitle(),
+        createTextElement(
+            "p",
+            "modal-subtitle",
+            "Advanced FIT file analysis and visualization tool"
+        ),
+        createAboutSplit(),
+        createEmptyAboutBody(),
+        createAboutFooter()
+    );
+
+    content.append(header, body);
+    backdrop.append(content);
+
+    return backdrop;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createCloseIcon() {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("xmlns", SVG_NS);
+
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", "M18 6L6 18M6 6l12 12");
+    path.setAttribute("stroke", "currentColor");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    icon.append(path);
+
+    return icon;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createAboutTitle() {
+    const title = document.createElement("h1");
+    title.className = "modal-title";
+
+    title.append(
+        createTextElement("span", "title-gradient", "Fit File Viewer"),
+        createVersionBadge()
+    );
+
+    return title;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createVersionBadge() {
+    const badge = document.createElement("span");
+    badge.className = "version-badge";
+
+    const prefix = createTextElement("span", "version-prefix", "v");
+    const version = createTextElement(
+        "span",
+        "version-number",
+        CONSTANTS.DEFAULT_VALUES.VERSION
+    );
+    version.id = "version-number";
+    badge.append(prefix, version);
+
+    return badge;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createAboutSplit() {
+    const split = document.createElement("div");
+    split.className = "about-split";
+
+    const featuresPanel = document.createElement("section");
+    featuresPanel.className = "about-panel about-panel--features";
+    featuresPanel.setAttribute("aria-label", "Key features");
+    featuresPanel.append(createFeaturesElement());
+
+    const systemPanel = document.createElement("section");
+    systemPanel.className = "about-panel about-panel--system";
+    systemPanel.setAttribute("aria-label", "System information");
+    systemPanel.append(createSystemInfoPanelHeader(), createSystemInfoSection());
+
+    split.append(featuresPanel, systemPanel);
+
+    return split;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createFeaturesElement() {
+    const content = document.createElement("div");
+    content.className = "features-content";
+
+    const title = document.createElement("h3");
+    title.className = "features-title";
+    title.append(createTextElement("span", "", "✨"), " Key Features");
+
+    const list = document.createElement("ul");
+    list.className = "features-list";
+    for (const item of FEATURE_ITEMS) {
+        list.append(createFeatureItem(item));
+    }
+
+    content.append(title, list);
+
+    return content;
+}
+
+/**
+ * @param {{ color: string; description: string; icon: string; title: string }} item
+ *
+ * @returns {HTMLElement}
+ */
+function createFeatureItem(item) {
+    const listItem = document.createElement("li");
+    listItem.className = "features-item";
+
+    const icon = createTextElement("span", "features-icon", item.icon);
+    icon.style.color = item.color;
+
+    const content = document.createElement("div");
+    content.className = "features-content-item";
+    content.append(
+        createTextElement("h4", "features-item-title", item.title),
+        createTextElement("p", "features-item-description", item.description)
+    );
+
+    listItem.append(icon, content);
+
+    return listItem;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createSystemInfoPanelHeader() {
+    const header = document.createElement("div");
+    header.className = "about-panel-header";
+
+    const title = document.createElement("h3");
+    title.className = "features-title";
+    title.append(createTextElement("span", "", "🧩"), " System Info");
+
+    const button = document.createElement("button");
+    button.id = "about-copy-system-info";
+    button.className = "features-btn features-btn--compact";
+    button.type = "button";
+    button.tabIndex = 0;
+    button.setAttribute("aria-label", "Copy system information to clipboard");
+    button.append(
+        createTextElement("span", "btn-icon", "📋"),
+        createTextElement("span", "btn-text", "Copy")
+    );
+
+    header.append(title, button);
+
+    return header;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createSystemInfoSection() {
+    const section = document.createElement("div");
+    section.className = "system-info-section";
+    section.id = "info-toggle-section";
+    section.append(createSystemInfoGridElement());
+
+    return section;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createSystemInfoGridElement() {
+    const grid = document.createElement("div");
+    grid.className = "system-info-grid";
+    for (const item of SYSTEM_INFO_ITEMS) {
+        grid.append(createSystemInfoItem(item));
+    }
+
+    return grid;
+}
+
+/**
+ * @param {{ label: string; valueClass: string; valueKey: keyof typeof CONSTANTS.DEFAULT_VALUES }} item
+ *
+ * @returns {HTMLElement}
+ */
+function createSystemInfoItem(item) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "system-info-item";
+    wrapper.append(
+        createTextElement("span", "system-info-label", item.label),
+        createTextElement(
+            "span",
+            `system-info-value ${item.valueClass}`,
+            CONSTANTS.DEFAULT_VALUES[item.valueKey]
+        )
+    );
+
+    return wrapper;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createEmptyAboutBody() {
+    const body = document.createElement("div");
+    body.id = "about-modal-body";
+    body.className = "modal-content-body";
+
+    return body;
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function createAboutFooter() {
+    const footer = document.createElement("div");
+    footer.className = "modal-footer";
+
+    const stack = document.createElement("div");
+    stack.className = "tech-stack";
+    for (const badge of TECH_BADGES) {
+        stack.append(createTechBadgeLink(badge));
+    }
+    footer.append(stack);
+
+    return footer;
+}
+
+/**
+ * @param {{ href: string; icon: string; label: string }} badge
+ *
+ * @returns {HTMLAnchorElement}
+ */
+function createTechBadgeLink(badge) {
+    const link = document.createElement("a");
+    link.href = badge.href;
+    link.className = "tech-badge-link";
+    link.dataset.externalLink = "";
+
+    const wrapper = document.createElement("span");
+    wrapper.className = "tech-badge";
+    wrapper.append(
+        createTextElement("span", "tech-icon", badge.icon),
+        createTextElement("span", "", badge.label)
+    );
+    link.append(wrapper);
+
+    return link;
+}
+
+/**
+ * @template {keyof HTMLElementTagNameMap} T
+ * @param {T} tagName
+ * @param {string} className
+ * @param {string} text
+ *
+ * @returns {HTMLElementTagNameMap[T]}
+ */
+function createTextElement(tagName, className, text) {
+    const element = document.createElement(tagName);
+    if (className) {
+        element.className = className;
+    }
+    element.textContent = text;
+
+    return element;
 }
 
 /**
@@ -307,103 +639,6 @@ function buildSystemInfoClipboardText() {
     } catch {
         return "Fit File Viewer – System Info";
     }
-}
-
-/**
- * Creates and returns the features content HTML
- */
-function createFeaturesContent() {
-    return `
-		<div class="features-content">
-			<h3 class="features-title">
-				<span>✨</span> Key Features
-			</h3>
-			<ul class="features-list">
-				<li class="features-item">
-					<span class="features-icon" style="color: #4ade80;">📊</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">Data Analysis</h4>
-						<p class="features-item-description">View detailed FIT file data in interactive tables with sorting and filtering</p>
-					</div>
-				</li>
-				<li class="features-item">
-					<span class="features-icon" style="color: #60a5fa;">🗺️</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">GPS Mapping</h4>
-						<p class="features-item-description">Interactive maps with route visualization, elevation profiles, and GPX export</p>
-					</div>
-				</li>
-				<li class="features-item">
-					<span class="features-icon" style="color: #f472b6;">📈</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">Performance Metrics</h4>
-						<p class="features-item-description">Advanced charts and graphs for analyzing performance trends</p>
-					</div>
-				</li>
-				<li class="features-item">
-					<span class="features-icon" style="color: #34d399;">💾</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">Data Export</h4>
-						<p class="features-item-description">Export data to CSV, GPX, and other formats for further analysis</p>
-					</div>
-				</li>
-				<li class="features-item">
-					<span class="features-icon" style="color: #fbbf24;">🔧</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">File Recovery</h4>
-						<p class="features-item-description">Repair corrupted FIT files for import into Garmin Connect, Strava, etc.</p>
-					</div>
-				</li>
-				<li class="features-item">
-					<span class="features-icon" style="color: #a78bfa;">⚡</span>
-					<div class="features-content-item">
-						<h4 class="features-item-title">Cross-Platform</h4>
-						<p class="features-item-description">Native desktop application for Windows, macOS, and Linux</p>
-					</div>
-				</li>
-			</ul>
-		</div>
-	`;
-}
-
-/**
- * Creates and returns the system info content HTML with dynamic loading values
- *
- * @returns {string} HTML content for system information grid
- */
-function createSystemInfoContent() {
-    return `
-		<div class="system-info-grid">
-			<div class="system-info-item">
-				<span class="system-info-label">Version</span>
-				<span class="system-info-value version-highlight">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">Electron</span>
-				<span class="system-info-value electron-highlight">${CONSTANTS.DEFAULT_VALUES.ELECTRON}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">Node.js</span>
-				<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">Chrome</span>
-				<span class="system-info-value chrome-highlight">${CONSTANTS.DEFAULT_VALUES.CHROME}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">Platform</span>
-				<span class="system-info-value platform-highlight">${CONSTANTS.DEFAULT_VALUES.PLATFORM}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">Author</span>
-				<span class="system-info-value author-highlight">${CONSTANTS.DEFAULT_VALUES.AUTHOR}</span>
-			</div>
-			<div class="system-info-item">
-				<span class="system-info-label">License</span>
-				<span class="system-info-value license-highlight">${CONSTANTS.DEFAULT_VALUES.LICENSE}</span>
-			</div>
-		</div>
-	`;
 }
 
 /**

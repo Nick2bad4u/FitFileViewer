@@ -1,5 +1,5 @@
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
-import { getAboutModalContent, handleEscapeKey } from "./aboutModal.js";
+import { createAboutModalContentElement, handleEscapeKey } from "./aboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
 /**
@@ -15,7 +15,7 @@ export function ensureAboutModal() {
     modal.id = "about-modal";
     modal.className = "modal fancy-modal";
     modal.style.display = "none";
-    modal.innerHTML = getAboutModalContent();
+    modal.append(createAboutModalContentElement());
     document.body.append(modal);
 
     // Add global event listeners
