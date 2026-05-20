@@ -16,11 +16,17 @@ function hasUpdatePanelVisibility(value) {
         typeof value["updatePanelVisibility"] === "function");
 }
 /**
+ * Returns the renderer global through the local chart-runtime boundary.
+ */
+export function getMutableChartRuntimeGlobal() {
+    return globalThis;
+}
+/**
  * Ensures Vitest/jsdom environments expose the process.nextTick shape expected
  * by renderer dependencies without spreading untyped global casts through the renderer.
  */
 export function ensureProcessNextTick() {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     chartGlobal.process ??= {};
     if (typeof chartGlobal.process.nextTick === "function") {
         return;
@@ -54,19 +60,19 @@ export function isTestEnvironment() {
  * Reads the background-render loading suppression flag from the renderer global.
  */
 export function isLoadingStateSuppressed() {
-    return Boolean(globalThis.__FFV_suppressLoadingState);
+    return Boolean(getMutableChartRuntimeGlobal().__FFV_suppressLoadingState);
 }
 /**
  * Reads the chart debug flag from the renderer global.
  */
 export function isChartDebugEnabled() {
-    return Boolean(globalThis.__FFV_debugCharts);
+    return Boolean(getMutableChartRuntimeGlobal().__FFV_debugCharts);
 }
 /**
  * Returns the global chart state manager when it exposes debounced rendering.
  */
 export function getDebouncedChartStateManager() {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasDebouncedRender(chartGlobal.chartStateManager)
         ? chartGlobal.chartStateManager
         : null;
@@ -75,7 +81,7 @@ export function getDebouncedChartStateManager() {
  * Returns globally exposed chart actions when the legacy bridge is available.
  */
 export function getGlobalChartActions() {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasChartAction(chartGlobal.chartActions)
         ? chartGlobal.chartActions
         : null;
@@ -84,14 +90,14 @@ export function getGlobalChartActions() {
  * Exposes chart actions for legacy event paths that still resolve them through globalThis.
  */
 export function setGlobalChartActions(actions) {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     chartGlobal.chartActions = actions;
 }
 /**
  * Returns a globally exposed UI state manager when it can update panel visibility.
  */
 export function getGlobalPanelVisibilityManager() {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasUpdatePanelVisibility(chartGlobal.uiStateManager)
         ? chartGlobal.uiStateManager
         : null;
@@ -100,7 +106,7 @@ export function getGlobalPanelVisibilityManager() {
  * Returns Chart.js instances from either the renderer global or window mirror.
  */
 export function getGlobalChartInstances(fallbackInstances) {
-    const chartGlobal = globalThis;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     const windowValue = chartGlobal.window;
     const windowInstances = isRecord(windowValue)
         ? windowValue["_chartjsInstances"]

@@ -21,8 +21,8 @@
  *
  * Dependencies:
  *
- * - Chart.js library (windowAny.Chart)
- * - Chart.js zoom plugin (windowAny.ChartZoom)
+ * - Chart.js library (chartGlobal.Chart)
+ * - Chart.js zoom plugin (chartGlobal.ChartZoom)
  *
  * @file Enhanced Chart.js rendering utility with State Management Integration
  */
@@ -84,6 +84,7 @@ import {
     getGlobalChartActions,
     getGlobalChartInstances,
     getGlobalPanelVisibilityManager,
+    getMutableChartRuntimeGlobal,
     isChartDebugEnabled,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -1448,11 +1449,10 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
 }
 
 // Chart.js plugin registration
-/** @type {any} */
-const windowAny = globalThis;
+const chartGlobal = getMutableChartRuntimeGlobal();
 // In some tests, Chart is assigned after this module is imported. Define a setter to hook registration.
 try {
-    const g = /** @type {any} */ (globalThis);
+    const g = chartGlobal;
     if (g && !Object.getOwnPropertyDescriptor(g, "Chart")?.set) {
         let _Chart = g.Chart;
         // Track registration per Chart object to avoid duplicate registrations across tests
@@ -1531,19 +1531,19 @@ try {
     /* ignore */
 }
 try {
-    if (windowAny?.Chart?.register) {
-        if (windowAny.Chart.Zoom) {
-            windowAny.Chart.register(windowAny.Chart.Zoom);
+    if (chartGlobal?.Chart?.register) {
+        if (chartGlobal.Chart.Zoom) {
+            chartGlobal.Chart.register(chartGlobal.Chart.Zoom);
             console.log("[ChartJS] chartjs-plugin-zoom registered.");
-        } else if (windowAny.chartjsPluginZoom) {
-            windowAny.Chart.register(windowAny.chartjsPluginZoom);
+        } else if (chartGlobal.chartjsPluginZoom) {
+            chartGlobal.Chart.register(chartGlobal.chartjsPluginZoom);
             console.log(
-                "[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartjsPluginZoom)."
+                "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartjsPluginZoom)."
             );
-        } else if (windowAny.ChartZoom) {
-            windowAny.Chart.register(windowAny.ChartZoom);
+        } else if (chartGlobal.ChartZoom) {
+            chartGlobal.Chart.register(chartGlobal.ChartZoom);
             console.log(
-                "[ChartJS] chartjs-plugin-zoom registered (windowAny.ChartZoom)."
+                "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartZoom)."
             );
         }
     }
@@ -1552,8 +1552,8 @@ try {
 }
 
 // Enhanced state-aware file loading event listener
-if (!windowAny._fitFileViewerChartListener) {
-    windowAny._fitFileViewerChartListener = true;
+if (!chartGlobal._fitFileViewerChartListener) {
+    chartGlobal._fitFileViewerChartListener = true;
 
     // Subscribe to state changes for reactive chart updates instead of custom events
     // The chartStateManager already handles this, so we can simplify or remove this
@@ -1731,11 +1731,11 @@ export const chartActions = {
      */
     clearCharts() {
         // Destroy existing chart instances
-        if (windowAny._chartjsInstances) {
+        if (chartGlobal._chartjsInstances) {
             for (const [
                 index,
                 chart,
-            ] of windowAny._chartjsInstances.entries()) {
+            ] of chartGlobal._chartjsInstances.entries()) {
                 try {
                     if (chart && typeof chart.destroy === "function") {
                         chart.destroy();
@@ -1747,7 +1747,7 @@ export const chartActions = {
                     );
                 }
             }
-            windowAny._chartjsInstances = [];
+            chartGlobal._chartjsInstances = [];
         }
 
         // Reset chart state using updateState for efficiency
@@ -1891,7 +1891,7 @@ try {
 
 // Register shared chart plugins globally
 try {
-    const ChartRef = windowAny.Chart;
+    const ChartRef = chartGlobal.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
         ChartRef.registry &&
@@ -1963,7 +1963,7 @@ export async function exportChartsWithState(format = "png") {
     const isRendered = Boolean(getState("charts.isRendered"));
 
     // Robustly detect chart instances from either globalThis or window (some tests mutate one or the other)
-    const instances = getGlobalChartInstances(windowAny._chartjsInstances);
+    const instances = getGlobalChartInstances(chartGlobal._chartjsInstances);
 
     // Only treat as "no charts" when we have neither rendered state nor any instances
     if (!isRendered && instances.length === 0) {
@@ -2227,8 +2227,8 @@ export async function renderChartJS(targetContainer, options = {}) {
         const performanceStart = performance.now();
 
         // Initialize chart instances array
-        if (!windowAny._chartjsInstances) {
-            windowAny._chartjsInstances = [];
+        if (!chartGlobal._chartjsInstances) {
+            chartGlobal._chartjsInstances = [];
         }
 
         // Clear existing charts using state action (with safe fallback)
@@ -2238,11 +2238,11 @@ export async function renderChartJS(targetContainer, options = {}) {
                 ca.clearCharts();
             } else {
                 // Local fallback clear
-                if (windowAny._chartjsInstances) {
+                if (chartGlobal._chartjsInstances) {
                     for (const [
                         index,
                         chart,
-                    ] of windowAny._chartjsInstances.entries()) {
+                    ] of chartGlobal._chartjsInstances.entries()) {
                         try {
                             if (chart && typeof chart.destroy === "function")
                                 chart.destroy();
@@ -2254,7 +2254,7 @@ export async function renderChartJS(targetContainer, options = {}) {
                         }
                     }
                 }
-                windowAny._chartjsInstances = [];
+                chartGlobal._chartjsInstances = [];
                 callUpdateState(
                     "charts",
                     { chartData: null, isRendered: false, renderedCount: 0 },
@@ -2264,7 +2264,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         }
 
         // Validate Chart.js availability
-        if (windowAny.Chart === null || windowAny.Chart === false) {
+        if (chartGlobal.Chart === null || chartGlobal.Chart === false) {
             const error = "Chart.js library is not loaded or not available";
             console.error(`[ChartJS] ${error}`);
             await notify("Chart library not available", "error");
@@ -2518,8 +2518,8 @@ export async function renderChartJS(targetContainer, options = {}) {
         );
 
         // Complete rendering process through state actions
-        const chartCount = windowAny._chartjsInstances
-            ? windowAny._chartjsInstances.length
+        const chartCount = chartGlobal._chartjsInstances
+            ? chartGlobal._chartjsInstances.length
             : 0;
         // Success reflects inner renderer outcome; do not force success when DOM errors occur
         const success = result === true;
@@ -2992,7 +2992,7 @@ async function renderChartsWithData(
             })
         );
         if (chart) {
-            windowAny._chartjsInstances.push(chart);
+            chartGlobal._chartjsInstances.push(chart);
             // Register chart with resource manager for automatic cleanup
             resourceManager.registerChart(chart, { owner: "renderChartJS" });
         }
@@ -3088,8 +3088,8 @@ async function renderChartsWithData(
         zoomPluginConfig,
     });
     // Count total rendered charts by checking the _chartjsInstances array
-    const totalChartsRendered = windowAny._chartjsInstances
-        ? windowAny._chartjsInstances.length
+    const totalChartsRendered = chartGlobal._chartjsInstances
+        ? chartGlobal._chartjsInstances.length
         : 0;
 
     // Handle no charts case
@@ -3195,8 +3195,8 @@ async function renderChartsWithData(
     if (totalChartsRendered > 0) {
         const applyHoverEffects = async () => {
             try {
-                const hoverThemeConfig = windowAny.getThemeConfig
-                    ? windowAny.getThemeConfig()
+                const hoverThemeConfig = chartGlobal.getThemeConfig
+                    ? chartGlobal.getThemeConfig()
                     : await getThemeConfigSafe();
                 addChartHoverEffectsSafe(chartContainer, hoverThemeConfig);
             } catch {
@@ -3401,11 +3401,11 @@ export const chartPerformanceMonitor = {
 
 // Expose comprehensive state-aware development tools and functions to window
 if (globalThis.window !== undefined) {
-    windowAny.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
+    chartGlobal.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
 
     // Enhanced development tools with complete state integration
-    if (!windowAny.__chartjs_dev) {
-        windowAny.__chartjs_dev = {
+    if (!chartGlobal.__chartjs_dev) {
+        chartGlobal.__chartjs_dev = {
             // Actions and state management
             actions: chartActions,
             clearCharts: chartActions.clearCharts,
@@ -3419,7 +3419,7 @@ if (globalThis.window !== undefined) {
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({
-                chartInstances: windowAny._chartjsInstances?.length || 0,
+                chartInstances: chartGlobal._chartjsInstances?.length || 0,
                 charts: getState("charts"),
                 globalData: Boolean(getState("globalData")),
                 performance: getState("performance"),
@@ -3449,7 +3449,7 @@ if (globalThis.window !== undefined) {
                 ) => chartSettingsManager.setFieldVisibility(field, visibility),
             },
             // Chart instance management
-            getChartInstances: () => windowAny._chartjsInstances || [],
+            getChartInstances: () => chartGlobal._chartjsInstances || [],
             getChartSettings: () => chartSettingsManager.getSettings(),
 
             // Core state access
@@ -3501,11 +3501,11 @@ if (globalThis.window !== undefined) {
         };
 
         console.log(
-            "[ChartJS] Enhanced development tools available at windowAny.__chartjs_dev"
+            "[ChartJS] Enhanced development tools available at chartGlobal.__chartjs_dev"
         );
         console.log(
             "[ChartJS] Available commands:",
-            Object.keys(windowAny.__chartjs_dev)
+            Object.keys(chartGlobal.__chartjs_dev)
         );
     }
 }

@@ -8,9 +8,16 @@ interface ProcessShim {
 interface RenderChartRuntimeGlobal {
     __FFV_debugCharts?: unknown;
     __FFV_suppressLoadingState?: unknown;
+    __chartjs_dev?: unknown;
+    _fitFileViewerChartListener?: unknown;
     chartStateManager?: unknown;
     process?: ProcessShim;
     chartActions?: unknown;
+    chartjsPluginZoom?: unknown;
+    Chart?: unknown;
+    ChartZoom?: unknown;
+    addHoverEffectsToExistingCharts?: unknown;
+    getThemeConfig?: unknown;
     uiStateManager?: unknown;
     window?: unknown;
     _chartjsInstances?: unknown;
@@ -66,11 +73,18 @@ function hasUpdatePanelVisibility(
 }
 
 /**
+ * Returns the renderer global through the local chart-runtime boundary.
+ */
+export function getMutableChartRuntimeGlobal(): RenderChartRuntimeGlobal {
+    return globalThis as RenderChartRuntimeGlobal;
+}
+
+/**
  * Ensures Vitest/jsdom environments expose the process.nextTick shape expected
  * by renderer dependencies without spreading untyped global casts through the renderer.
  */
 export function ensureProcessNextTick(): void {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     chartGlobal.process ??= {};
 
     if (typeof chartGlobal.process.nextTick === "function") {
@@ -115,23 +129,21 @@ export function isTestEnvironment(): boolean {
  * Reads the background-render loading suppression flag from the renderer global.
  */
 export function isLoadingStateSuppressed(): boolean {
-    return Boolean(
-        (globalThis as RenderChartRuntimeGlobal).__FFV_suppressLoadingState
-    );
+    return Boolean(getMutableChartRuntimeGlobal().__FFV_suppressLoadingState);
 }
 
 /**
  * Reads the chart debug flag from the renderer global.
  */
 export function isChartDebugEnabled(): boolean {
-    return Boolean((globalThis as RenderChartRuntimeGlobal).__FFV_debugCharts);
+    return Boolean(getMutableChartRuntimeGlobal().__FFV_debugCharts);
 }
 
 /**
  * Returns the global chart state manager when it exposes debounced rendering.
  */
 export function getDebouncedChartStateManager(): DebouncedChartStateManager | null {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasDebouncedRender(chartGlobal.chartStateManager)
         ? chartGlobal.chartStateManager
         : null;
@@ -141,7 +153,7 @@ export function getDebouncedChartStateManager(): DebouncedChartStateManager | nu
  * Returns globally exposed chart actions when the legacy bridge is available.
  */
 export function getGlobalChartActions(): ChartActionsBridge | null {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasChartAction(chartGlobal.chartActions)
         ? chartGlobal.chartActions
         : null;
@@ -151,7 +163,7 @@ export function getGlobalChartActions(): ChartActionsBridge | null {
  * Exposes chart actions for legacy event paths that still resolve them through globalThis.
  */
 export function setGlobalChartActions(actions: unknown): void {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     chartGlobal.chartActions = actions;
 }
 
@@ -159,7 +171,7 @@ export function setGlobalChartActions(actions: unknown): void {
  * Returns a globally exposed UI state manager when it can update panel visibility.
  */
 export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     return hasUpdatePanelVisibility(chartGlobal.uiStateManager)
         ? chartGlobal.uiStateManager
         : null;
@@ -169,7 +181,7 @@ export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null 
  * Returns Chart.js instances from either the renderer global or window mirror.
  */
 export function getGlobalChartInstances(fallbackInstances: unknown): unknown[] {
-    const chartGlobal = globalThis as RenderChartRuntimeGlobal;
+    const chartGlobal = getMutableChartRuntimeGlobal();
     const windowValue = chartGlobal.window;
     const windowInstances = isRecord(windowValue)
         ? windowValue["_chartjsInstances"]
