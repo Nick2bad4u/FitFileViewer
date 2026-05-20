@@ -25,6 +25,25 @@ const FILE_OPEN_CONSTANTS = {
 
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
+/**
+ * @typedef {{ value?: boolean }} FileOpeningRef
+ * @typedef {{
+ *     isOpeningFileRef?: FileOpeningRef | null;
+ *     openFileBtn?: { disabled?: boolean } | null;
+ *     setLoading?: ((isLoading: boolean) => void) | null;
+ * }} FileOpenUiElements
+ * @typedef {typeof globalThis & {
+ *     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
+ * }} FileOpenRendererGlobal
+ */
+
+/**
+ * @returns {FileOpenRendererGlobal}
+ */
+function getFileOpenGlobal() {
+    return /** @type {FileOpenRendererGlobal} */ (globalThis);
+}
+
 const resolveFitFileStateManager = () => {
     const candidate = /** @type {unknown} */ (
         globalThis.__FFV_fitFileStateManager
@@ -222,10 +241,9 @@ async function handleOpenFile(
                 globalThis.showFitData(result?.data || result, filePathString);
             }
 
-            if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
-                /** @type {any} */ (globalThis).sendFitFileToAltFitReader(
-                    arrayBuffer
-                );
+            const { sendFitFileToAltFitReader } = getFileOpenGlobal();
+            if (typeof sendFitFileToAltFitReader === "function") {
+                sendFitFileToAltFitReader(arrayBuffer);
             }
         } catch (error) {
             const message =
@@ -326,14 +344,13 @@ function notifyFileLoadError(error) {
  *
  * @private
  *
- * @param {Object} uiElements - UI elements to update
+ * @param {FileOpenUiElements} uiElements - UI elements to update
  * @param {boolean} isLoading - Whether to show loading state
  * @param {boolean} isOpening - Whether file opening is in progress
  */
 function updateUIState(uiElements, isLoading, isOpening) {
     try {
-        const { isOpeningFileRef, openFileBtn, setLoading } =
-            /** @type {any} */ (uiElements);
+        const { isOpeningFileRef, openFileBtn, setLoading } = uiElements;
 
         if (openFileBtn) {
             openFileBtn.disabled = isLoading;
@@ -375,10 +392,12 @@ function validateElectronAPI() {
         return false;
     }
 
+    const electronAPI = /** @type {Record<string, unknown>} */ (
+        globalThis.electronAPI
+    );
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
         /** @param {string} method */ (method) =>
-            typeof (/** @type {any} */ (globalThis.electronAPI)[method]) !==
-            "function"
+            typeof electronAPI[method] !== "function"
     );
 
     if (missingMethods.length > 0) {
