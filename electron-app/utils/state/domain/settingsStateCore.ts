@@ -2,105 +2,140 @@
  * Settings State Manager Manages application settings with validation,
  * persistence, and change tracking
  */
+
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe } from "../core/stateManager.js";
-import { SETTINGS_SCHEMA, } from "./settingsStateSchema.js";
-const settingsSchema = SETTINGS_SCHEMA;
-function getSettingsCategories() {
-    return Object.keys(settingsSchema);
+import {
+    SETTINGS_SCHEMA,
+    type SettingCategory,
+    type SettingSchema,
+} from "./settingsStateSchema.js";
+
+type SettingsSchemaMap = Record<SettingCategory, SettingSchema>;
+
+interface ExportedSettings {
+    settings: Record<string, unknown>;
+    timestamp: number;
+    version: string;
 }
-function getDefaultObjectValue(defaultValue, key) {
+
+interface ResetSettingsOptions {
+    silent?: boolean;
+}
+
+const settingsSchema = SETTINGS_SCHEMA as SettingsSchemaMap;
+
+function getSettingsCategories(): SettingCategory[] {
+    return Object.keys(settingsSchema) as SettingCategory[];
+}
+
+function getDefaultObjectValue(defaultValue: unknown, key: string): unknown {
     return defaultValue &&
         typeof defaultValue === "object" &&
         !Array.isArray(defaultValue)
-        ? defaultValue[key]
+        ? (defaultValue as Record<string, unknown>)[key]
         : undefined;
 }
-function asRecord(value) {
+
+function asRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === "object" && !Array.isArray(value)
-        ? value
+        ? (value as Record<string, unknown>)
         : {};
 }
+
 /**
  * Settings State Manager Class
  */
 class SettingsStateManager {
-    initializePromise = null;
+    initializePromise: Promise<void> | null = null;
     initialized = false;
-    migrationVersion = "1.0.0";
-    storageSyncController;
-    subscribers = new Map();
+    private readonly migrationVersion = "1.0.0";
+    private storageSyncController: AbortController | undefined;
+    private readonly subscribers = new Map<string, Set<unknown>>();
+
     /**
      * Cleanup resources (currently minimal)
      */
-    cleanup() {
+    cleanup(): void {
         console.log("[SettingsState] Cleaning up settings state manager...");
         this.storageSyncController?.abort();
         this.storageSyncController = undefined;
         this.subscribers.clear();
         this.initialized = false;
     }
+
     /**
      * Export all settings and metadata
      *
      */
-    exportSettings() {
+    exportSettings(): ExportedSettings | null {
         try {
-            const settings = {};
+            const settings: Record<string, unknown> = {};
+
             for (const category of getSettingsCategories()) {
                 settings[category] = this.getSetting(category);
             }
+
             return {
                 settings,
                 timestamp: Date.now(),
                 version: this.migrationVersion,
             };
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[SettingsState] Error exporting settings:", error);
             return null;
         }
     }
+
     /**
      * Return all chart (chartjs_) settings as object
      *
      */
-    getChartSettings() {
-        const settings = {};
+    getChartSettings(): Record<string, unknown> {
+        const settings: Record<string, unknown> = {};
+
         // Get all chartjs_ prefixed settings
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && key.startsWith("chartjs_")) {
-                const settingKey = key.replace("chartjs_", ""), value = localStorage.getItem(key);
+                const settingKey = key.replace("chartjs_", ""),
+                    value = localStorage.getItem(key);
+
                 try {
                     settings[settingKey] =
                         value == null ? null : JSON.parse(value);
-                }
-                catch {
+                } catch {
                     settings[settingKey] = value;
                 }
             }
         }
+
         return settings;
     }
+
     /**
      * Get a setting (entire category or specific key for object categories)
      *
      *
      */
-    getSetting(category, key = null) {
+    getSetting(category: SettingCategory, key: null | string = null): unknown {
         const schema = settingsSchema[category];
         if (!schema) {
-            console.warn(`[SettingsState] Unknown setting category: ${category}`);
+            console.warn(
+                `[SettingsState] Unknown setting category: ${category}`
+            );
             return;
         }
+
         const storage = globalThis?.localStorage;
         if (!storage || typeof storage.getItem !== "function") {
             return schema.default;
         }
+
         try {
             if (schema.type === "object") {
                 const prefix = schema.key;
+
                 // PERFORMANCE CRITICAL:
                 // When a specific key is requested we must NOT iterate all of localStorage.
                 // This path is hit many thousands of times during chart conversions.
@@ -114,18 +149,20 @@ class SettingsStateManager {
                     }
                     try {
                         return JSON.parse(rawValue);
-                    }
-                    catch {
+                    } catch {
                         return rawValue;
                     }
                 }
+
                 // Whole-category read
-                const canIterate = typeof storage.length === "number" &&
+                const canIterate =
+                    typeof storage.length === "number" &&
                     typeof storage.key === "function";
                 if (!canIterate) {
                     return schema.default;
                 }
-                const settings = {};
+
+                const settings: Record<string, unknown> = {};
                 for (let i = 0; i < storage.length; i++) {
                     const storageKey = storage.key(i);
                     if (storageKey && storageKey.startsWith(prefix)) {
@@ -137,36 +174,43 @@ class SettingsStateManager {
                         }
                         try {
                             settings[settingKey] = JSON.parse(rawValue);
-                        }
-                        catch {
+                        } catch {
                             settings[settingKey] = rawValue;
                         }
                     }
                 }
+
                 return Object.keys(settings).length > 0
                     ? { ...asRecord(schema.default), ...settings }
                     : schema.default;
             }
+
             // Simple scalar settings
             const rawValue = storage.getItem(schema.key);
             if (rawValue == null) {
                 return schema.default;
             }
+
             if (schema.type === "boolean") {
                 return rawValue === "true";
             }
+
             if (schema.type === "number") {
                 const numeric = Number(rawValue);
                 return Number.isFinite(numeric) ? numeric : schema.default;
             }
+
             // string
             return rawValue;
-        }
-        catch (error) {
-            console.error(`[SettingsState] Error getting setting ${category}:`, error);
+        } catch (error) {
+            console.error(
+                `[SettingsState] Error getting setting ${category}:`,
+                error
+            );
             return schema.default;
         }
     }
+
     /**
      * Import settings from an exported payload.
      *
@@ -174,136 +218,187 @@ class SettingsStateManager {
      *
      *
      */
-    importSettings(settingsData) {
+    importSettings(settingsData: unknown): boolean {
         try {
             if (!settingsData || typeof settingsData !== "object") {
                 return false;
             }
-            const payload = settingsData;
+
+            const payload = settingsData as {
+                settings?: Record<string, unknown>;
+            };
             const nextSettings = payload.settings;
+
             if (!nextSettings || typeof nextSettings !== "object") {
                 return false;
             }
+
             let allOk = true;
+
             for (const [rawCategory, value] of Object.entries(nextSettings)) {
-                const category = rawCategory;
+                const category = rawCategory as SettingCategory;
                 if (!settingsSchema[category]) {
                     // Ignore unknown categories to allow forward-compatible imports.
                     continue;
                 }
+
                 const ok = this.setSetting(category, value);
                 if (!ok) {
                     allOk = false;
                 }
             }
+
             if (allOk) {
                 showNotification("Settings imported successfully", "success");
             }
+
             return allOk;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[SettingsState] Error importing settings:", error);
             return false;
         }
     }
+
     /**
      * Initialize the settings state manager
      */
-    async initialize() {
+    async initialize(): Promise<void> {
         if (this.initialized) {
             return;
         }
         if (this.initializePromise) {
             return this.initializePromise;
         }
+
         this.initializePromise = (async () => {
-            console.log("[SettingsState] Initializing settings state manager...");
+            console.log(
+                "[SettingsState] Initializing settings state manager..."
+            );
+
             try {
                 // Initialize settings state in the main state manager
-                setState("settings", {
-                    chart: this.getChartSettings(),
-                    export: this.getSetting("export"),
-                    isLoading: false,
-                    lastModified: Date.now(),
-                    mapTheme: this.getSetting("mapTheme"),
-                    migrationVersion: this.migrationVersion,
-                    theme: this.getSetting("theme"),
-                    ui: this.getSetting("ui"),
-                    units: this.getSetting("units"),
-                }, { source: "SettingsStateManager.initialize" });
+                setState(
+                    "settings",
+                    {
+                        chart: this.getChartSettings(),
+                        export: this.getSetting("export"),
+                        isLoading: false,
+                        lastModified: Date.now(),
+                        mapTheme: this.getSetting("mapTheme"),
+                        migrationVersion: this.migrationVersion,
+                        theme: this.getSetting("theme"),
+                        ui: this.getSetting("ui"),
+                        units: this.getSetting("units"),
+                    },
+                    { source: "SettingsStateManager.initialize" }
+                );
+
                 // Migrate old settings if needed
                 await this.migrateSettings();
+
                 // Set up settings synchronization with localStorage
                 this.setupLocalStorageSync();
+
                 this.initialized = true;
-                console.log("[SettingsState] Settings state manager initialized successfully");
-            }
-            catch (error) {
-                console.error("[SettingsState] Failed to initialize settings state manager:", error);
+                console.log(
+                    "[SettingsState] Settings state manager initialized successfully"
+                );
+            } catch (error) {
+                console.error(
+                    "[SettingsState] Failed to initialize settings state manager:",
+                    error
+                );
                 throw error;
-            }
-            finally {
+            } finally {
                 this.initializePromise = null;
             }
         })();
+
         return this.initializePromise;
     }
+
     /**
      * Initial legacy migration (idempotent)
      */
-    async migrateFromLegacy() {
+    async migrateFromLegacy(): Promise<void> {
         console.log("[SettingsState] Performing legacy settings migration...");
+
         // Migrate theme setting
         const oldTheme = localStorage.getItem("theme");
         if (oldTheme && !localStorage.getItem("ffv-theme")) {
             localStorage.setItem("ffv-theme", oldTheme);
             localStorage.removeItem("theme");
         }
+
         // No other legacy migrations needed currently
         // This method can be expanded for future migrations
     }
+
     /**
      * Perform migrations if required
      */
-    async migrateSettings() {
+    async migrateSettings(): Promise<void> {
         try {
-            const currentVersion = localStorage.getItem("settings_migration_version");
+            const currentVersion = localStorage.getItem(
+                "settings_migration_version"
+            );
+
             if (currentVersion === this.migrationVersion) {
-                console.log("[SettingsState] Settings already at current version");
+                console.log(
+                    "[SettingsState] Settings already at current version"
+                );
                 return;
             }
-            console.log("[SettingsState] Migrating settings to version", this.migrationVersion);
+
+            console.log(
+                "[SettingsState] Migrating settings to version",
+                this.migrationVersion
+            );
+
             // Perform migrations based on current version
             if (!currentVersion) {
                 // Initial migration - ensure all settings are properly structured
                 await this.migrateFromLegacy();
             }
+
             // Set migration version
-            localStorage.setItem("settings_migration_version", this.migrationVersion);
+            localStorage.setItem(
+                "settings_migration_version",
+                this.migrationVersion
+            );
             console.log("[SettingsState] Settings migration completed");
-        }
-        catch (error) {
-            console.error("[SettingsState] Error during settings migration:", error);
+        } catch (error) {
+            console.error(
+                "[SettingsState] Error during settings migration:",
+                error
+            );
         }
     }
+
     /**
      * Reset settings (single category or all)
      *
      *
      */
-    resetSettings(category = null, options = {}) {
+    resetSettings(
+        category: null | SettingCategory = null,
+        options: ResetSettingsOptions = {}
+    ): boolean {
         try {
             const { silent = false } = options || {};
             if (category) {
                 // Reset specific category
                 const schema = settingsSchema[category];
                 if (!schema) {
-                    console.warn(`[SettingsState] Unknown setting category: ${category}`);
+                    console.warn(
+                        `[SettingsState] Unknown setting category: ${category}`
+                    );
                     return false;
                 }
+
                 if (schema.type === "object") {
                     // Remove all keys with this prefix
-                    const keysToRemove = [];
+                    const keysToRemove: string[] = [];
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
                         if (key && key.startsWith(schema.key)) {
@@ -312,32 +407,36 @@ class SettingsStateManager {
                     }
                     for (const key of keysToRemove)
                         localStorage.removeItem(key);
-                }
-                else {
+                } else {
                     localStorage.removeItem(schema.key);
                 }
+
                 // Update state
                 setState(`settings.${category}`, schema.default, {
                     source: "SettingsStateManager.resetSettings",
                 });
-            }
-            else {
+            } else {
                 // Reset all settings
                 for (const cat of getSettingsCategories()) {
                     this.resetSettings(cat);
                 }
             }
+
             setState("settings.lastModified", Date.now(), {
                 source: "SettingsStateManager.resetSettings",
             });
+
             if (!silent) {
-                showNotification(category
-                    ? `${category} settings reset to defaults`
-                    : "All settings reset to defaults", "success");
+                showNotification(
+                    category
+                        ? `${category} settings reset to defaults`
+                        : "All settings reset to defaults",
+                    "success"
+                );
             }
+
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[SettingsState] Error resetting settings:", error);
             if (!options?.silent) {
                 showNotification("Failed to reset settings", "error");
@@ -345,81 +444,122 @@ class SettingsStateManager {
             return false;
         }
     }
+
     /**
      * Set a setting value (entire category or specific key for object
      * categories)
      *
      *
      */
-    setSetting(category, value, key = null) {
+    setSetting(
+        category: SettingCategory,
+        value: unknown,
+        key: null | string = null
+    ): boolean {
         const schema = settingsSchema[category];
         if (!schema) {
-            console.warn(`[SettingsState] Unknown setting category: ${category}`);
+            console.warn(
+                `[SettingsState] Unknown setting category: ${category}`
+            );
             return false;
         }
+
         try {
             // Validate the value
             if (!schema.validate(value)) {
-                console.error(`[SettingsState] Invalid value for setting ${category}:`, value);
+                console.error(
+                    `[SettingsState] Invalid value for setting ${category}:`,
+                    value
+                );
                 return false;
             }
+
             if (schema.type === "object" && key) {
                 // Set specific object property
                 const storageKey = schema.key + key;
                 // Preserve legacy behavior for string settings:
                 // historically these were stored as raw strings (e.g. "hidden"/"visible").
                 // Writing JSON strings would add quotes and break direct localStorage comparisons.
-                localStorage.setItem(storageKey, typeof value === "string" ? value : JSON.stringify(value));
+                localStorage.setItem(
+                    storageKey,
+                    typeof value === "string" ? value : JSON.stringify(value)
+                );
+
                 // Update state
-                const rootState = getState("settings"), currentSettings = rootState &&
-                    typeof rootState === "object" &&
-                    rootState[category] &&
-                    typeof rootState[category] === "object"
-                    ? rootState[category]
-                    : {};
+                const rootState = getState("settings") as
+                        | Record<string, unknown>
+                        | undefined,
+                    currentSettings =
+                        rootState &&
+                        typeof rootState === "object" &&
+                        rootState[category] &&
+                        typeof rootState[category] === "object"
+                            ? (rootState[category] as Record<string, unknown>)
+                            : {};
                 currentSettings[key] = value;
-                setState(`settings.${category}`, currentSettings, {
-                    source: "SettingsStateManager.setSetting",
-                });
-            }
-            else {
+                setState(
+                    `settings.${category}`,
+                    currentSettings,
+                    {
+                        source: "SettingsStateManager.setSetting",
+                    }
+                );
+            } else {
                 // Set entire setting
-                localStorage.setItem(schema.key, schema.type === "boolean"
-                    ? String(value)
-                    : JSON.stringify(value));
+                localStorage.setItem(
+                    schema.key,
+                    schema.type === "boolean"
+                        ? String(value)
+                        : JSON.stringify(value)
+                );
+
                 // Update state
                 setState(`settings.${category}`, value, {
                     source: "SettingsStateManager.setSetting",
                 });
             }
+
             // Update last modified timestamp
             setState("settings.lastModified", Date.now(), {
                 source: "SettingsStateManager.setSetting",
             });
+
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error(`[SettingsState] Error setting ${category}:`, error);
             return false;
         }
     }
+
     /**
      * Wire listeners for cross-tab storage changes
      */
-    setupLocalStorageSync() {
+    setupLocalStorageSync(): void {
         // Subscribe to settings changes and update localStorage
         subscribe("settings", () => {
             // This will be called whenever settings state changes
-            console.log("[SettingsState] Settings state changed, localStorage already updated");
+            console.log(
+                "[SettingsState] Settings state changed, localStorage already updated"
+            );
         });
+
         // Listen for localStorage changes from other tabs/windows
         this.storageSyncController?.abort();
         this.storageSyncController = new AbortController();
+
         globalThis.addEventListener("storage", (event) => {
             const k = event.key || ""; // Normalize for TS nullability
-            if (k &&
-                Object.values(settingsSchema).some((schema) => k.startsWith(schema.key))) {
-                console.log("[SettingsState] External localStorage change detected:", event.key);
+            if (
+                k &&
+                Object.values(settingsSchema).some((schema) =>
+                    k.startsWith(schema.key)
+                )
+            ) {
+                console.log(
+                    "[SettingsState] External localStorage change detected:",
+                    event.key
+                );
+
                 // Update state to reflect external changes
                 this.syncFromLocalStorage();
             }
@@ -428,7 +568,7 @@ class SettingsStateManager {
     /**
      * Sync state from localStorage after external changes
      */
-    syncFromLocalStorage() {
+    syncFromLocalStorage(): void {
         try {
             for (const category of getSettingsCategories()) {
                 const currentValue = this.getSetting(category);
@@ -436,15 +576,19 @@ class SettingsStateManager {
                     source: "SettingsStateManager.syncFromLocalStorage",
                 });
             }
+
             setState("settings.lastModified", Date.now(), {
                 source: "SettingsStateManager.syncFromLocalStorage",
             });
-        }
-        catch (error) {
-            console.error("[SettingsState] Error syncing from localStorage:", error);
+        } catch (error) {
+            console.error(
+                "[SettingsState] Error syncing from localStorage:",
+                error
+            );
         }
     }
 }
+
 /**
  * Global settings state manager singleton.
  */

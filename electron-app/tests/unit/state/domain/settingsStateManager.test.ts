@@ -434,7 +434,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 );
                 expect(globalThis.addEventListener).toHaveBeenCalledWith(
                     "storage",
-                    expect.any(Function)
+                    expect.any(Function),
+                    expect.objectContaining({
+                        signal: expect.any(AbortSignal),
+                    })
                 );
             });
         });
