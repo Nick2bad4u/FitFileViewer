@@ -22,6 +22,7 @@ import {
     THEME_MODES,
 } from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
+import { createAppIconElement } from "./icons/iconFactory.js";
 
 /**
  * Modal ID for the settings modal
@@ -32,6 +33,7 @@ const SETTINGS_MODAL_ID = "settings-modal";
  * Animation duration for modal transitions
  */
 const ANIMATION_DURATION = 300;
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 // ============================================================================
 // Public API (Exported Functions)
@@ -85,7 +87,7 @@ export async function showSettingsModal() {
         : getEffectiveAccentColor(effectiveTheme);
 
     // Set modal content
-    modal.innerHTML = createSettingsModalContent(safeTheme, safeAccent);
+    modal.replaceChildren(createSettingsModalContent(safeTheme, safeAccent));
 
     // Show modal with animation
     modal.style.display = "flex";
@@ -102,92 +104,281 @@ export async function showSettingsModal() {
 // ============================================================================
 
 /**
- * Creates the settings modal HTML content
+ * Creates the settings modal content.
  *
  * @param {string} currentTheme - Current theme mode
  * @param {string} currentAccent - Current accent color
  *
- * @returns {string} HTML content
+ * @returns {HTMLElement} The modal content root
  */
 function createSettingsModalContent(currentTheme, currentAccent) {
-    return `
-		<div class="modal-backdrop">
-			<div class="modal-content" style="max-width: 600px;">
-				<div class="modal-header">
-					<div class="modal-icon">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-							<path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</div>
-					<button id="settings-modal-close" class="modal-close" tabindex="0" aria-label="Close settings">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-				</div>
-				<div class="modal-body">
-					<h2 class="modal-title">Settings</h2>
-					<p class="modal-subtitle">Customize your FitFileViewer experience</p>
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
 
-					<div class="settings-section">
-						<h3 class="settings-section-title">🎨 Appearance</h3>
+    const content = document.createElement("div");
+    content.className = "modal-content";
+    content.style.maxWidth = "600px";
 
-						<!-- Theme Selection -->
-						<div class="setting-item">
-							<label for="theme-select" class="setting-label">Theme</label>
-							<select id="theme-select" class="setting-select">
-								<option value="${THEME_MODES.AUTO}" ${currentTheme === THEME_MODES.AUTO ? "selected" : ""}>Auto (Follow System)</option>
-								<option value="${THEME_MODES.DARK}" ${currentTheme === THEME_MODES.DARK ? "selected" : ""}>Dark</option>
-								<option value="${THEME_MODES.LIGHT}" ${currentTheme === THEME_MODES.LIGHT ? "selected" : ""}>Light</option>
-							</select>
-						</div>
+    const header = document.createElement("div");
+    header.className = "modal-header";
 
-						<!-- Accent Color Picker -->
-						<div class="setting-item">
-							<label for="accent-color-picker" class="setting-label">Accent Color</label>
-							<div class="accent-color-controls">
-								<input
-									type="color"
-									id="accent-color-picker"
-									class="accent-color-input"
-									value="${currentAccent}"
-									title="Choose accent color"
-								/>
-								<input
-									type="text"
-									id="accent-color-text"
-									class="accent-color-text-input"
-									value="${currentAccent}"
-									pattern="^#[0-9A-Fa-f]{6}$"
-									placeholder="#3b82f6"
-									maxlength="7"
-								/>
-								<button id="reset-accent-color" class="reset-btn" title="Reset to default">
-									<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-										<path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-										<path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-									</svg>
-								</button>
-							</div>
-							<div class="accent-color-preview">
-								<div class="preview-label">Preview:</div>
-								<div class="preview-samples">
-									<button class="preview-button">Button</button>
-									<div class="preview-chip">Chip</div>
-									<div class="preview-badge">Badge</div>
-								</div>
-							</div>
-						</div>
-					</div>
+    const iconWrapper = document.createElement("div");
+    iconWrapper.className = "modal-icon";
+    iconWrapper.append(createAppIconElement("settings", { size: 32 }));
 
-					<div class="settings-footer">
-						<button id="settings-close-btn" class="themed-btn">Close</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	`;
+    const closeButton = document.createElement("button");
+    closeButton.id = "settings-modal-close";
+    closeButton.className = "modal-close";
+    closeButton.type = "button";
+    closeButton.tabIndex = 0;
+    closeButton.setAttribute("aria-label", "Close settings");
+    closeButton.append(createCloseIcon());
+
+    header.append(iconWrapper, closeButton);
+
+    const body = document.createElement("div");
+    body.className = "modal-body";
+
+    const title = document.createElement("h2");
+    title.className = "modal-title";
+    title.textContent = "Settings";
+
+    const subtitle = document.createElement("p");
+    subtitle.className = "modal-subtitle";
+    subtitle.textContent = "Customize your FitFileViewer experience";
+
+    const settingsSection = document.createElement("div");
+    settingsSection.className = "settings-section";
+
+    const sectionTitle = document.createElement("h3");
+    sectionTitle.className = "settings-section-title";
+    sectionTitle.textContent = "🎨 Appearance";
+
+    settingsSection.append(
+        sectionTitle,
+        createThemeSetting(currentTheme),
+        createAccentSetting(currentAccent)
+    );
+
+    const footer = document.createElement("div");
+    footer.className = "settings-footer";
+    const footerCloseButton = document.createElement("button");
+    footerCloseButton.id = "settings-close-btn";
+    footerCloseButton.className = "themed-btn";
+    footerCloseButton.type = "button";
+    footerCloseButton.textContent = "Close";
+    footer.append(footerCloseButton);
+
+    body.append(title, subtitle, settingsSection, footer);
+    content.append(header, body);
+    backdrop.append(content);
+
+    return backdrop;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createCloseIcon() {
+    const icon = createSvgIcon();
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", "M18 6L6 18M6 6l12 12");
+    path.setAttribute("stroke", "currentColor");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    icon.append(path);
+
+    return icon;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createResetIcon() {
+    const icon = createSvgIcon();
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+
+    const firstPath = document.createElementNS(SVG_NS, "path");
+    firstPath.setAttribute("d", "M1 4v6h6M23 20v-6h-6");
+    const secondPath = document.createElementNS(SVG_NS, "path");
+    secondPath.setAttribute(
+        "d",
+        "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"
+    );
+
+    for (const path of [
+        firstPath,
+        secondPath,
+    ]) {
+        path.setAttribute("stroke", "currentColor");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+    }
+    icon.append(firstPath, secondPath);
+
+    return icon;
+}
+
+/**
+ * @returns {SVGSVGElement}
+ */
+function createSvgIcon() {
+    const icon = document.createElementNS(SVG_NS, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("xmlns", SVG_NS);
+    return icon;
+}
+
+/**
+ * @param {string} currentTheme
+ *
+ * @returns {HTMLElement}
+ */
+function createThemeSetting(currentTheme) {
+    const item = document.createElement("div");
+    item.className = "setting-item";
+
+    const label = document.createElement("label");
+    label.className = "setting-label";
+    label.htmlFor = "theme-select";
+    label.textContent = "Theme";
+
+    const select = document.createElement("select");
+    select.id = "theme-select";
+    select.className = "setting-select";
+    select.append(
+        createThemeOption(
+            THEME_MODES.AUTO,
+            "Auto (Follow System)",
+            currentTheme
+        ),
+        createThemeOption(THEME_MODES.DARK, "Dark", currentTheme),
+        createThemeOption(THEME_MODES.LIGHT, "Light", currentTheme)
+    );
+
+    item.append(label, select);
+
+    return item;
+}
+
+/**
+ * @param {string} value
+ * @param {string} label
+ * @param {string} currentTheme
+ *
+ * @returns {HTMLOptionElement}
+ */
+function createThemeOption(value, label, currentTheme) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.selected = currentTheme === value;
+    option.textContent = label;
+
+    return option;
+}
+
+/**
+ * @param {string} currentAccent
+ *
+ * @returns {HTMLElement}
+ */
+function createAccentSetting(currentAccent) {
+    const item = document.createElement("div");
+    item.className = "setting-item";
+
+    const label = document.createElement("label");
+    label.className = "setting-label";
+    label.htmlFor = "accent-color-picker";
+    label.textContent = "Accent Color";
+
+    const controls = document.createElement("div");
+    controls.className = "accent-color-controls";
+    controls.append(
+        createAccentColorInput(currentAccent),
+        createAccentTextInput(currentAccent),
+        createResetButton()
+    );
+
+    const preview = document.createElement("div");
+    preview.className = "accent-color-preview";
+
+    const previewLabel = document.createElement("div");
+    previewLabel.className = "preview-label";
+    previewLabel.textContent = "Preview:";
+
+    const previewSamples = document.createElement("div");
+    previewSamples.className = "preview-samples";
+
+    const previewButton = document.createElement("button");
+    previewButton.className = "preview-button";
+    previewButton.type = "button";
+    previewButton.textContent = "Button";
+
+    const previewChip = document.createElement("div");
+    previewChip.className = "preview-chip";
+    previewChip.textContent = "Chip";
+
+    const previewBadge = document.createElement("div");
+    previewBadge.className = "preview-badge";
+    previewBadge.textContent = "Badge";
+
+    previewSamples.append(previewButton, previewChip, previewBadge);
+    preview.append(previewLabel, previewSamples);
+    item.append(label, controls, preview);
+
+    return item;
+}
+
+/**
+ * @param {string} currentAccent
+ *
+ * @returns {HTMLInputElement}
+ */
+function createAccentColorInput(currentAccent) {
+    const input = document.createElement("input");
+    input.id = "accent-color-picker";
+    input.className = "accent-color-input";
+    input.type = "color";
+    input.value = currentAccent;
+    input.title = "Choose accent color";
+
+    return input;
+}
+
+/**
+ * @param {string} currentAccent
+ *
+ * @returns {HTMLInputElement}
+ */
+function createAccentTextInput(currentAccent) {
+    const input = document.createElement("input");
+    input.id = "accent-color-text";
+    input.className = "accent-color-text-input";
+    input.type = "text";
+    input.value = currentAccent;
+    input.pattern = "^#[0-9A-Fa-f]{6}$";
+    input.placeholder = "#3b82f6";
+    input.maxLength = 7;
+
+    return input;
+}
+
+/**
+ * @returns {HTMLButtonElement}
+ */
+function createResetButton() {
+    const button = document.createElement("button");
+    button.id = "reset-accent-color";
+    button.className = "reset-btn";
+    button.type = "button";
+    button.title = "Reset to default";
+    button.append(createResetIcon());
+
+    return button;
 }
 
 /**
