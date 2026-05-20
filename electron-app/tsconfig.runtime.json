@@ -149,6 +149,7 @@
         "utils/ui/tabs/tabStateManagerCharts.ts",
         "utils/ui/tabs/tabStateManagerConfig.ts",
         "utils/ui/tabs/tabStateManagerDoc.ts",
+        "utils/ui/tabs/tabStateManagerHandlers.ts",
         "utils/ui/tabs/tabStateManagerSupport.ts",
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
