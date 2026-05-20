@@ -24,6 +24,67 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
  * @property {string} [chartType] - "doughnut" | "bar"
  * @property {boolean} [showLegend]
  */
+/**
+ * @typedef {Object} ZoneChartThemeColors
+ *
+ * @property {string} [shadowLight]
+ * @property {string[]} [zoneColors]
+ */
+/**
+ * @typedef {Object} ZoneChartThemeConfig
+ *
+ * @property {ZoneChartThemeColors} [colors]
+ */
+/**
+ * @typedef {Object} ZoneChartRuntimeGlobal
+ *
+ * @property {unknown} [__FFV_debugCharts]
+ * @property {unknown} [__FFV_debugChartsVerbose]
+ */
+/**
+ * @typedef {Object} ZoneChartBaseDataset
+ *
+ * @property {string[]} backgroundColor
+ * @property {string} borderColor
+ * @property {number} borderWidth
+ * @property {number[]} data
+ */
+/**
+ * @typedef {Object} ZoneChartBarTooltipContext
+ *
+ * @property {{ y?: number }} [parsed]
+ */
+/**
+ * @typedef {Object} ZoneChartLabelColorContext
+ *
+ * @property {{ backgroundColor?: string[]; borderColor?: string }} [dataset]
+ * @property {number} [dataIndex]
+ */
+/**
+ * @typedef {Object} ZoneChartLegendDataset
+ *
+ * @property {string[]} [backgroundColor]
+ * @property {string} [borderColor]
+ * @property {number[]} [data]
+ */
+/**
+ * @typedef {Object} ZoneChartDatasetMeta
+ *
+ * @property {{ hidden?: boolean }[]} [data]
+ */
+/**
+ * @typedef {Object} ZoneChartLegendChart
+ *
+ * @property {{ datasets?: ZoneChartLegendDataset[]; labels?: string[] }} [data]
+ * @property {(datasetIndex: number) => ZoneChartDatasetMeta} [getDatasetMeta]
+ */
+/**
+ * @typedef {Object} ZoneChartDoughnutTooltipContext
+ *
+ * @property {{ backgroundColor?: string[]; borderColor?: string; data?: number[] }} [dataset]
+ * @property {number} [dataIndex]
+ * @property {number} [parsed]
+ */
 
 // Helper function to render individual zone chart
 /**
@@ -41,6 +102,9 @@ export function renderZoneChart(
     options = {}
 ) {
     try {
+        const runtimeGlobal = /** @type {ZoneChartRuntimeGlobal} */ (
+            globalThis
+        );
         if (!(container instanceof HTMLElement)) {
             return;
         }
@@ -52,11 +116,10 @@ export function renderZoneChart(
             typeof process !== "undefined" &&
             process.env?.NODE_ENV === "development";
         const isDebugLoggingEnabled =
-            isDevEnvironment &&
-            Boolean(/** @type {any} */ (globalThis).__FFV_debugCharts);
+            isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts);
         const isVerboseDebugLoggingEnabled =
             isDebugLoggingEnabled &&
-            Boolean(/** @type {any} */ (globalThis).__FFV_debugChartsVerbose);
+            Boolean(runtimeGlobal.__FFV_debugChartsVerbose);
 
         if (isVerboseDebugLoggingEnabled) {
             console.log(
@@ -65,16 +128,17 @@ export function renderZoneChart(
             );
         }
 
-        /** @type {any} */
-        const // Second arg expects numeric index; provide 0 as default order
-            canvas = /** @type {HTMLCanvasElement} */ (
+        // Second arg expects numeric index; provide 0 as default order
+        const canvas = /** @type {HTMLCanvasElement} */ (
                 createChartCanvas(chartId, 0)
             ),
             // Determine chart type from options or default to doughnut
             chartType =
                 options && options.chartType ? options.chartType : "doughnut",
             currentTheme = detectCurrentTheme(),
-            themeConfig = getThemeConfig();
+            themeConfig = /** @type {ZoneChartThemeConfig} */ (
+                getThemeConfig()
+            );
 
         // Apply theme-aware canvas styling (background handled by plugin)
         if (themeConfig?.colors) {
@@ -139,7 +203,7 @@ export function renderZoneChart(
  * @param {string[]} colors
  * @param {string} title
  * @param {string} currentTheme
- * @param {any} baseDataset
+ * @param {ZoneChartBaseDataset} baseDataset
  */
 function createBarChartConfig(
     zoneData,
@@ -215,12 +279,14 @@ function createBarChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        label(/** @type {any} */ context) {
+                        /** @param {ZoneChartBarTooltipContext} context */
+                        label(context) {
                             const value = context?.parsed?.y || 0,
                                 timeFormatted = formatTime(value, true);
                             return `Time: ${timeFormatted}`;
                         },
-                        labelColor(/** @type {any} */ context) {
+                        /** @param {ZoneChartLabelColorContext} context */
+                        labelColor(context) {
                             return {
                                 backgroundColor:
                                     context?.dataset?.backgroundColor?.[
@@ -368,7 +434,7 @@ function createChartConfig(
  * @param {string} title
  * @param {RenderZoneChartOptions} options
  * @param {string} currentTheme
- * @param {any} baseDataset
+ * @param {ZoneChartBaseDataset} baseDataset
  */
 function createDoughnutChartConfig(
     zoneData,
@@ -445,7 +511,8 @@ function createDoughnutChartConfig(
                             size: 14,
                             weight: "600",
                         },
-                        generateLabels(/** @type {any} */ chart) {
+                        /** @param {ZoneChartLegendChart} chart */
+                        generateLabels(chart) {
                             const data = chart?.data || {
                                 datasets: [],
                                 labels: [],
@@ -529,7 +596,8 @@ function createDoughnutChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        label(/** @type {any} */ context) {
+                        /** @param {ZoneChartDoughnutTooltipContext} context */
+                        label(context) {
                             const datasetData = Array.isArray(
                                     context?.dataset?.data
                                 )
@@ -558,7 +626,8 @@ function createDoughnutChartConfig(
                                 `Percentage: ${percentage}%`,
                             ];
                         },
-                        labelColor(/** @type {any} */ context) {
+                        /** @param {ZoneChartLabelColorContext} context */
+                        labelColor(context) {
                             return {
                                 backgroundColor:
                                     context?.dataset?.backgroundColor?.[
