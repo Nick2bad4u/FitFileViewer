@@ -1,12 +1,30 @@
 /**
+ * @typedef {{
+ *     cachedFilePath?: string;
+ *     error?: string;
+ *     recordMesgs?: unknown[];
+ *     [key: string]: unknown;
+ * }} OverlayFitData
+ */
+/**
+ * @typedef {{
+ *     decodeFitFile?: (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData | null | undefined>;
+ * }} OverlayElectronAPI
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     electronAPI?: OverlayElectronAPI;
+ * }} OverlayFileGlobal
+ */
+
+/**
  * Internal function to load a single FIT file as overlay
  *
  * @private
  *
  * @param {File} file - File to load
  *
- * @returns {Promise<{ success: boolean; data?: Object; error?: string }>} Load
- *   result
+ * @returns {Promise<{ success: boolean; data?: OverlayFitData; error?: string }>} Load result
  */
 export async function loadSingleOverlayFile(file) {
     // Keep consistent with main-process IPC safety caps.
@@ -59,14 +77,7 @@ export async function loadSingleOverlayFile(file) {
             }
         }
         if (!arrayBuffer) {
-            arrayBuffer = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.addEventListener("load", (event) =>
-                    resolve(/** @type {any} */ (event.target)?.result)
-                );
-                reader.onerror = () => reject(new Error("Failed to read file"));
-                reader.readAsArrayBuffer(file);
-            });
+            arrayBuffer = await readFileWithFileReader(file);
         }
 
         if (!(arrayBuffer instanceof ArrayBuffer)) {
@@ -87,19 +98,19 @@ export async function loadSingleOverlayFile(file) {
             return { error: "File size exceeds 100MB limit", success: false };
         }
 
-        if (!arrayBuffer || !globalThis.electronAPI?.decodeFitFile) {
+        const api = resolveOverlayElectronAPI();
+        if (!arrayBuffer || !api) {
             return {
                 error: "No file data or decoder not available",
                 success: false,
             };
         }
 
-        const fitData = await globalThis.electronAPI.decodeFitFile(
-            /** @type {ArrayBuffer} */ (arrayBuffer)
-        );
-        if (!fitData || fitData.error) {
+        const fitData = await api.decodeFitFile(arrayBuffer);
+        const fitDataError = getFitDataError(fitData);
+        if (!fitData || fitDataError) {
             return {
-                error: fitData?.error || "Failed to parse FIT file",
+                error: fitDataError || "Failed to parse FIT file",
                 success: false,
             };
         }
@@ -112,13 +123,9 @@ export async function loadSingleOverlayFile(file) {
         let hasValidLocation = false;
         if (records) {
             for (const r of records) {
-                if (r && typeof r === "object") {
-                    const lat = /** @type {any} */ (r).positionLat;
-                    const lon = /** @type {any} */ (r).positionLong;
-                    if (typeof lat === "number" && typeof lon === "number") {
-                        hasValidLocation = true;
-                        break;
-                    }
+                if (hasNumericLocation(r)) {
+                    hasValidLocation = true;
+                    break;
                 }
             }
         }
@@ -137,10 +144,88 @@ export async function loadSingleOverlayFile(file) {
             file?.name,
             error
         );
-        const anyErr = /** @type {any} */ (error);
         return {
-            error: anyErr?.message || "Unknown error processing file",
+            error: getErrorMessage(error),
             success: false,
         };
     }
+}
+
+/**
+ * @returns {OverlayFileGlobal}
+ */
+function getOverlayFileGlobal() {
+    return /** @type {OverlayFileGlobal} */ (globalThis);
+}
+
+/**
+ * @returns {{ decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData | null | undefined> } | null}
+ */
+function resolveOverlayElectronAPI() {
+    const { electronAPI } = getOverlayFileGlobal();
+    if (!electronAPI || typeof electronAPI.decodeFitFile !== "function") {
+        return null;
+    }
+
+    return {
+        decodeFitFile: electronAPI.decodeFitFile,
+    };
+}
+
+/**
+ * @param {File} file
+ *
+ * @returns {Promise<unknown>}
+ */
+function readFileWithFileReader(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => resolve(reader.result));
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+/**
+ * @param {OverlayFitData | null | undefined} fitData
+ *
+ * @returns {string | null}
+ */
+function getFitDataError(fitData) {
+    if (!fitData || typeof fitData !== "object") {
+        return null;
+    }
+
+    return typeof fitData.error === "string" && fitData.error.trim()
+        ? fitData.error
+        : null;
+}
+
+/**
+ * @param {unknown} record
+ *
+ * @returns {boolean}
+ */
+function hasNumericLocation(record) {
+    if (!record || typeof record !== "object") {
+        return false;
+    }
+
+    const { positionLat, positionLong } =
+        /** @type {{ positionLat?: unknown; positionLong?: unknown }} */ (
+            record
+        );
+
+    return typeof positionLat === "number" && typeof positionLong === "number";
+}
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error && error.message
+        ? error.message
+        : "Unknown error processing file";
 }
