@@ -203,6 +203,7 @@
         "utils/performance/index.ts",
         "utils/performance/performanceMonitor.ts",
         "utils/storage/storageUtils.ts",
+        "utils/files/export/copyTableAsCSV.ts",
         "utils/files/export/exportAllCharts.ts",
         "utils/files/export/createPrintButton.ts",
         "utils/files/import/getOverlayFileName.ts",

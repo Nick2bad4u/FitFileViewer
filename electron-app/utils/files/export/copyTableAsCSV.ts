@@ -18,6 +18,25 @@ const CSV_CONFIG = {
         position: "fixed",
     },
 };
+
+type TableRow = Record<string, unknown>;
+
+type RowsTable = {
+    rows: TableRow[];
+};
+
+type ObjectsTable = {
+    objects: () => TableRow[];
+};
+
+type ClipboardElectronAPI = {
+    writeClipboardText?: (text: string) => boolean | Promise<boolean>;
+};
+
+type CopyCsvGlobal = typeof globalThis & {
+    electronAPI?: ClipboardElectronAPI;
+};
+
 /**
  * Copies the contents of a table as a CSV string to the clipboard
  *
@@ -32,88 +51,102 @@ const CSV_CONFIG = {
  * @throws When the input table cannot be normalized or clipboard copying fails.
  *
  */
-export async function copyTableAsCSV(table) {
-    let rows = null;
+export async function copyTableAsCSV(table: unknown): Promise<void> {
+    let rows: TableRow[] | null = null;
+
     if (isTableRowArray(table)) {
         rows = table;
-    }
-    else if (isRowsTable(table)) {
+    } else if (isRowsTable(table)) {
         rows = table.rows;
-    }
-    else if (isObjectsTable(table)) {
+    } else if (isObjectsTable(table)) {
         // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
         try {
             rows = table.objects();
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[copyTableAsCSV] Failed to copy table:", error);
             throw error;
         }
     }
+
     if (!rows) {
         console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.INVALID_TABLE}`);
         throw new Error(CSV_CONFIG.MESSAGES.INVALID_TABLE);
     }
+
     try {
         // Serialize table data with object handling.
         // IMPORTANT: Do not use Arquero's `toCSV()` here.
         // Arquero's CSV implementation can rely on runtime function generation in some builds,
         // which violates FitFileViewer's strict CSP (no `unsafe-eval`).
         const processedRows = processTableRows(rows);
+
         // Convert to CSV format (CSP-safe).
         const csvString = buildCsvString(processedRows, {
             includeHeader: CSV_CONFIG.HEADER_ENABLED,
         });
+
         // Attempt clipboard copy
         await copyToClipboard(csvString);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
     }
 }
+
 /**
  * Build a CSV string from row objects.
  */
-function buildCsvString(rows, { includeHeader }) {
+function buildCsvString(
+    rows: TableRow[],
+    { includeHeader }: { includeHeader: boolean }
+): string {
     const cols = getCsvColumns(rows);
-    const lines = [];
+    const lines: string[] = [];
+
     if (includeHeader) {
         lines.push(cols.map((value) => escapeCsvValue(value)).join(","));
     }
+
     for (const row of rows) {
         lines.push(cols.map((k) => escapeCsvValue(row[k])).join(","));
     }
+
     // Use CRLF for best compatibility with spreadsheet tools.
     return lines.join("\r\n");
 }
+
 /**
  * Attempts to copy text to clipboard using modern API with fallback
  *
  * @throws When all clipboard copy strategies fail.
  */
-async function copyToClipboard(text) {
+async function copyToClipboard(text: string): Promise<void> {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
         const { electronAPI } = getCopyCsvGlobal();
-        if (electronAPI &&
-            typeof electronAPI.writeClipboardText === "function") {
+        if (
+            electronAPI &&
+            typeof electronAPI.writeClipboardText === "function"
+        ) {
             const { writeClipboardText } = electronAPI;
             const ok = Boolean(await writeClipboardText(text));
             if (ok) {
                 console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
                 return;
             }
+
             // If we have the Electron bridge but it failed, skip navigator.clipboard (commonly denied)
             // and use the legacy fallback directly.
-            console.error("[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback.");
+            console.error(
+                "[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback."
+            );
             copyToClipboardFallback(text);
             return;
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
+
     // Try modern Clipboard API.
     const { clipboard } = navigator;
     if (clipboard && typeof clipboard.writeText === "function") {
@@ -121,52 +154,60 @@ async function copyToClipboard(text) {
             await clipboard.writeText(text);
             console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
             return;
-        }
-        catch {
+        } catch {
             // Do not treat as a hard error; permissions are commonly denied in non-secure contexts.
         }
     }
+
     // Fallback to legacy method (mainly for tests / non-Electron contexts).
     // Do not warn here; Electron file:// contexts frequently deny navigator.clipboard.
     copyToClipboardFallback(text);
 }
+
 /**
  * Legacy clipboard copy using textarea element
  *
  * @throws When the browser refuses the legacy copy command.
  */
-function copyToClipboardFallback(text) {
+function copyToClipboardFallback(text: string): void {
     const textarea = document.createElement("textarea");
     textarea.value = text;
+
     // Apply styles to prevent visual disruption
     Object.assign(textarea.style, CSV_CONFIG.TEXTAREA_STYLES);
+
     document.body.append(textarea);
     textarea.focus();
     textarea.select();
+
     try {
         const successful = document.execCommand("copy");
         if (successful) {
-            console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`);
-        }
-        else {
+            console.log(
+                `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`
+            );
+        } else {
             throw new Error("execCommand('copy') returned false");
         }
-    }
-    catch (error) {
-        console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`,
+            error
+        );
         throw error;
-    }
-    finally {
+    } finally {
         textarea.remove();
     }
 }
+
 /**
  * Escape a value for CSV.
  */
-function escapeCsvValue(value) {
+function escapeCsvValue(value: unknown): string {
     if (value === null || value === undefined) {
         return "";
     }
+
     const str = typeof value === "string" ? value : String(value);
     // NOTE: In unicode regex mode, some non-standard escapes are rejected.
     // We only need to match quote/comma/newlines.
@@ -174,13 +215,16 @@ function escapeCsvValue(value) {
     if (!mustQuote) {
         return str;
     }
+
     // RFC 4180: escape quotes by doubling.
     const escaped = str.replaceAll('"', '""');
     return `"${escaped}"`;
 }
-function getCsvColumns(rows) {
-    const cols = [];
-    const seen = new Set();
+
+function getCsvColumns(rows: TableRow[]): string[] {
+    const cols: string[] = [];
+    const seen = new Set<string>();
+
     // Prefer the first row's key order for stability.
     const first = rows.length > 0 ? rows[0] : null;
     if (first && typeof first === "object") {
@@ -191,6 +235,7 @@ function getCsvColumns(rows) {
             }
         }
     }
+
     // Add keys encountered later.
     for (const row of rows) {
         for (const k of Object.keys(row)) {
@@ -200,55 +245,66 @@ function getCsvColumns(rows) {
             }
         }
     }
+
     return cols;
 }
+
 /**
  * Processes table rows, handling nested objects with caching for performance
  */
-function processTableRows(rows) {
-    const cache = new Map();
+function processTableRows(rows: TableRow[]): TableRow[] {
+    const cache = new Map<object, string>();
+
     return rows.map((row) => {
-        const processedRow = {};
+        const processedRow: TableRow = {};
+
         for (const key of Object.keys(row)) {
             const cell = row[key];
+
             if (typeof cell === "object" && cell !== null) {
                 // Use cache to avoid re-serializing identical objects
                 if (cache.has(cell)) {
                     processedRow[key] = cache.get(cell);
-                }
-                else {
+                } else {
                     const serialized = JSON.stringify(cell);
                     cache.set(cell, serialized);
                     processedRow[key] = serialized;
                 }
-            }
-            else {
+            } else {
                 processedRow[key] = cell;
             }
         }
+
         return processedRow;
     });
 }
-function getCopyCsvGlobal() {
-    return globalThis;
+
+function getCopyCsvGlobal(): CopyCsvGlobal {
+    return globalThis as CopyCsvGlobal;
 }
-function isRowsTable(table) {
+
+function isRowsTable(table: unknown): table is RowsTable {
     if (!table || typeof table !== "object") {
         return false;
     }
-    const { rows } = table;
+
+    const { rows } = table as { rows?: unknown };
     return isTableRowArray(rows);
 }
-function isObjectsTable(table) {
+
+function isObjectsTable(table: unknown): table is ObjectsTable {
     if (!table || typeof table !== "object") {
         return false;
     }
-    const { objects } = table;
+
+    const { objects } = table as { objects?: unknown };
     return typeof objects === "function";
 }
-function isTableRow(value) {
+
+function isTableRow(value: unknown): value is TableRow {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function isTableRowArray(value) {
+
+function isTableRowArray(value: unknown): value is TableRow[] {
     return Array.isArray(value) && value.every((row) => isTableRow(row));
 }
