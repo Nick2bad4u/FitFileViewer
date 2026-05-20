@@ -350,6 +350,19 @@ function isDevelopmentMode() {
 // ==========================================
 
 /**
+ * @returns {Map<string, any> | null}
+ */
+function getVitestManualMockRegistry() {
+    const registry = /** @type {{ __vitest_manual_mocks__?: unknown }} */ (
+        globalThis
+    ).__vitest_manual_mocks__;
+
+    return registry instanceof Map
+        ? /** @type {Map<string, any>} */ (registry)
+        : null;
+}
+
+/**
  * Prefer an exact match in Vitest manual mock registry by test ID.
  *
  * @param {string} testId The exact id used in vi.doMock (e.g.,
@@ -359,10 +372,7 @@ function isDevelopmentMode() {
  */
 function resolveExactManualMock(testId) {
     try {
-        // @ts-ignore
-        const reg = /** @type {Map<string, any> | undefined} */ (
-            globalThis.__vitest_manual_mocks__
-        );
+        const reg = getVitestManualMockRegistry();
         if (reg && reg.has(testId)) {
             const mod = reg.get(testId);
             return mod && mod.default ? mod.default : mod;
@@ -384,10 +394,7 @@ function resolveExactManualMock(testId) {
  */
 function resolveManualMock(pathSuffix) {
     try {
-        // @ts-ignore
-        const reg = /** @type {Map<string, any> | undefined} */ (
-            globalThis.__vitest_manual_mocks__
-        );
+        const reg = getVitestManualMockRegistry();
         if (reg && typeof reg.forEach === "function") {
             for (const [id, mod] of reg.entries()) {
                 if (String(id).endsWith(pathSuffix)) {
@@ -1631,8 +1638,9 @@ try {
                 function installElectronAPIProxy() {
                     try {
                         // Preserve current value
-                        // @ts-ignore
-                        const current = globalThis.electronAPI;
+                        const current =
+                            /** @type {{ electronAPI?: any }} */ (globalThis)
+                                .electronAPI;
                         let _api = current;
                         Object.defineProperty(globalThis, "electronAPI", {
                             configurable: true,
