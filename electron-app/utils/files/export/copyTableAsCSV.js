@@ -20,13 +20,28 @@ const CSV_CONFIG = {
 };
 
 /**
- * @typedef {Record<string, any>} TableRow
+ * @typedef {Record<string, unknown>} TableRow
  */
 
 /**
  * @typedef {Object} RowsTable
  *
  * @property {TableRow[]} rows
+ */
+/**
+ * @typedef {Object} ObjectsTable
+ *
+ * @property {() => TableRow[]} objects
+ */
+/**
+ * @typedef {{
+ *     writeClipboardText?: (text: string) => boolean | Promise<boolean>;
+ * }} ClipboardElectronAPI
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     electronAPI?: ClipboardElectronAPI;
+ * }} CopyCsvGlobal
  */
 
 /**
@@ -40,9 +55,8 @@ const CSV_CONFIG = {
  *     // Copy a DataTable to clipboard as CSV
  *     copyTableAsCSV(myDataTable);
  *
- * @param {TableRow[] | RowsTable | { objects: () => TableRow[] }} table - The
- *   table data to copy. Prefer passing a plain array of row objects
- *   (CSP-safe).
+ * @param {unknown} table - The table data to copy. Prefer passing a plain
+ *   array of row objects (CSP-safe).
  */
 export async function copyTableAsCSV(table) {
     /** @type {TableRow[] | null} */
@@ -50,22 +64,12 @@ export async function copyTableAsCSV(table) {
 
     if (Array.isArray(table)) {
         rows = table;
-    } else if (
-        table &&
-        typeof table === "object" &&
-        Array.isArray(/** @type {any} */ (table).rows)
-    ) {
-        const { rows: tableRows } = /** @type {any} */ (table);
-        rows = tableRows;
-    } else if (
-        table &&
-        typeof table === "object" &&
-        typeof (/** @type {any} */ (table).objects) === "function"
-    ) {
+    } else if (isRowsTable(table)) {
+        rows = table.rows;
+    } else if (isObjectsTable(table)) {
         // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
         try {
-            const { objects } = /** @type {any} */ (table);
-            rows = objects();
+            rows = table.objects();
         } catch (error) {
             console.error("[copyTableAsCSV] Failed to copy table:", error);
             throw error;
@@ -134,7 +138,7 @@ function buildCsvString(rows, { includeHeader }) {
 async function copyToClipboard(text) {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
-        const { electronAPI } = /** @type {any} */ (globalThis);
+        const { electronAPI } = getCopyCsvGlobal();
         if (
             electronAPI &&
             typeof electronAPI.writeClipboardText === "function"
@@ -260,7 +264,7 @@ function getCsvColumns(rows) {
         }
     }
 
-    // Add any keys encountered later.
+    // Add keys encountered later.
     for (const row of rows) {
         for (const k of Object.keys(row)) {
             if (!seen.has(k)) {
@@ -283,6 +287,7 @@ function getCsvColumns(rows) {
  * @returns {TableRow[]} Processed rows with serialized objects
  */
 function processTableRows(rows) {
+    /** @type {Map<object, string>} */
     const cache = new Map();
 
     return rows.map((row) => {
@@ -307,4 +312,38 @@ function processTableRows(rows) {
 
         return processedRow;
     });
+}
+
+/**
+ * @returns {CopyCsvGlobal}
+ */
+function getCopyCsvGlobal() {
+    return /** @type {CopyCsvGlobal} */ (globalThis);
+}
+
+/**
+ * @param {unknown} table
+ *
+ * @returns {table is RowsTable}
+ */
+function isRowsTable(table) {
+    if (!table || typeof table !== "object") {
+        return false;
+    }
+
+    return Array.isArray(/** @type {Partial<RowsTable>} */ (table).rows);
+}
+
+/**
+ * @param {unknown} table
+ *
+ * @returns {table is ObjectsTable}
+ */
+function isObjectsTable(table) {
+    if (!table || typeof table !== "object") {
+        return false;
+    }
+
+    const { objects } = /** @type {Partial<ObjectsTable>} */ (table);
+    return typeof objects === "function";
 }
