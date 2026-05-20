@@ -2,9 +2,17 @@ const { logWithContext } = require("../logging/logWithContext");
 const { getAppState } = require("../state/appState");
 
 /**
+ * @typedef {{
+ *     isDestroyed?: () => boolean;
+ *     webContents?: { isDestroyed?: () => boolean };
+ * }} WindowUsabilityCandidate
+ */
+
+/**
  * Determines whether the provided BrowserWindow is still usable.
  *
- * @param {any} win - Candidate BrowserWindow instance.
+ * @param {WindowUsabilityCandidate | null | undefined} win - Candidate
+ *   BrowserWindow instance.
  *
  * @returns {boolean} True when the window and its webContents remain alive.
  */
@@ -30,7 +38,8 @@ function isWindowUsable(win) {
  * Validates that a BrowserWindow is usable and logs a structured warning when
  * it is not.
  *
- * @param {any} win - Target BrowserWindow instance.
+ * @param {WindowUsabilityCandidate | null | undefined} win - Target
+ *   BrowserWindow instance.
  * @param {string} [context="unknown operation"] - Description of the operation
  *   requiring the window. Default is `"unknown operation"`
  *
