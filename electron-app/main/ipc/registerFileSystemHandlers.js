@@ -1,14 +1,37 @@
 /**
- * Registers IPC handlers for filesystem operations.
+ * @typedef {import("node:fs")} FsModule
  *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {{ readFile?: Function }} options.fs
- * @param {(
+ * @typedef {(
+ *     channel: string,
+ *     handler: (event: unknown, ...args: unknown[]) => unknown
+ * ) => void} RegisterIpcHandle
+ *
+ * @typedef {(
  *     level: "error" | "warn" | "info",
  *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {{
+ *     registerIpcHandle: RegisterIpcHandle;
+ *     fs: Pick<FsModule, "readFile" | "stat">;
+ *     logWithContext?: LogWithContext;
+ * }} RegisterFileSystemHandlersOptions
+ */
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {string}
+ */
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Registers IPC handlers for filesystem operations.
+ *
+ * @param {RegisterFileSystemHandlersOptions} options
  */
 function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
     if (typeof registerIpcHandle !== "function") {
@@ -131,7 +154,6 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                         }
 
                         // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
-                        // @ts-ignore byteOffset exists on Buffer/Uint8Array
                         resolve(
                             data.buffer.slice(
                                 data.byteOffset,
@@ -143,7 +165,7 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
             });
         } catch (error) {
             logWithContext?.("error", "Error in file:read:", {
-                error: /** @type {Error} */ (error)?.message,
+                error: getErrorMessage(error),
                 filePath: safeLogValue(filePath),
                 authorizedPath,
             });

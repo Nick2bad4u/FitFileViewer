@@ -1,27 +1,30 @@
+import type * as fs from "node:fs";
+
+export type RegisterFileSystemIpcHandler = (
+    event: unknown,
+    ...args: unknown[]
+) => unknown;
+
+export type RegisterFileSystemIpcHandle = (
+    channel: string,
+    handler: RegisterFileSystemIpcHandler
+) => void;
+
+export type LogWithContext = (
+    level: "error" | "warn" | "info",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+export interface RegisterFileSystemHandlersOptions {
+    registerIpcHandle: RegisterFileSystemIpcHandle;
+    fs: Pick<typeof fs, "readFile" | "stat">;
+    logWithContext?: LogWithContext;
+}
+
 /**
  * Registers IPC handlers for filesystem operations.
- *
- * @param {object} options
- * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
- * @param {{ readFile?: Function }} options.fs
- * @param {(
- *     level: "error" | "warn" | "info",
- *     message: string,
- *     context?: Record<string, any>
- * ) => void} options.logWithContext
  */
-export function registerFileSystemHandlers({
-    registerIpcHandle,
-    fs,
-    logWithContext,
-}: {
-    registerIpcHandle: (channel: string, handler: Function) => void;
-    fs: {
-        readFile?: Function;
-    };
-    logWithContext: (
-        level: "error" | "warn" | "info",
-        message: string,
-        context?: Record<string, any>
-    ) => void;
-}): void;
+export function registerFileSystemHandlers(
+    options: RegisterFileSystemHandlersOptions
+): void;
