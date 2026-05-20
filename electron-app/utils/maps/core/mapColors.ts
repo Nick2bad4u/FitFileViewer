@@ -29,20 +29,25 @@ const LAP_COLOR_PALETTE = [
     "#d32f2f",
     "#388e3c",
     "#f57c00",
-];
+] as const;
+
 /**
  * Get a stable display color for a lap index.
  *
  * @throws TypeError when the lap index is not a non-negative integer or "all".
  */
-export function getLapColor(lapIdx) {
+export function getLapColor(lapIdx: "all" | number | string): string {
     if (lapIdx === "all") {
         return "blue";
     }
+
     const lapIndex = Number(lapIdx);
     if (!Number.isInteger(lapIndex) || lapIndex < 0) {
         throw new TypeError(`Invalid lapIdx: ${String(lapIdx)}`);
     }
-    return (LAP_COLOR_PALETTE[lapIndex % LAP_COLOR_PALETTE.length] ??
-        LAP_COLOR_PALETTE[0]);
+
+    return (
+        LAP_COLOR_PALETTE[lapIndex % LAP_COLOR_PALETTE.length] ??
+        LAP_COLOR_PALETTE[0]
+    );
 }

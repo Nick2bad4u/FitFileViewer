@@ -105,6 +105,7 @@
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
+        "utils/maps/core/mapColors.ts",
         "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/app/initialization/getCurrentSettings.ts",
         "utils/app/initialization/loadSharedConfiguration.ts",
