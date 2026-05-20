@@ -126,8 +126,7 @@ declare function createWindow(): BrowserWindow;
 /**
  * Retrieves the saved window state from disk with enhanced error handling
  *
- * @returns {Object} Window state object with width, height, and optional x, y
- *   coordinates
+ * @returns Window state object with width, height, and optional x, y coordinates
  */
 /**
  * @returns {WindowState}

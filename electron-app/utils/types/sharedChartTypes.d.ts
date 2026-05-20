@@ -1,6 +1,6 @@
 /**
  * Shared lightweight chart-related types to cut down on repeated 'property does
- * not exist on type Object' errors while legacy JS migrates. These are
+ * not exist on broad object values while legacy JS migrates. These are
  * intentionally partial; extend gradually.
  */
 

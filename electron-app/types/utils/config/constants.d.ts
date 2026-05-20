@@ -324,15 +324,15 @@ export type UIConstants = {
     /**
      * - Notification type configurations
      */
-    NOTIFICATION_TYPES: Object;
+    NOTIFICATION_TYPES: Record<string, unknown>;
     /**
      * - Common DOM element IDs
      */
-    DOM_IDS: Object;
+    DOM_IDS: Record<string, string>;
     /**
      * - Common CSS class names
      */
-    CSS_CLASSES: Object;
+    CSS_CLASSES: Record<string, string>;
     /**
      * - Default animation duration in ms
      */
