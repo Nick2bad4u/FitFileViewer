@@ -420,7 +420,9 @@ getMainUiGlobal().devCleanup = function () {
     setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
 
     // Clean up our new state managers
-    chartTabIntegration.destroy();
+    if (typeof chartTabIntegration.destroy === "function") {
+        chartTabIntegration.destroy();
+    }
 
     // Cleanup all resources via resource manager
     resourceManager.cleanupAll();

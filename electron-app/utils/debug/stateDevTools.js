@@ -10,6 +10,14 @@ import {
 } from "../state/core/stateManager.js";
 
 /**
+ * @typedef {Record<string, unknown>} StateRecord
+ * @typedef {unknown[]} StateHistory
+ * @typedef {{ getState: () => unknown; getHistory: () => unknown[]; logState: () => void; validateState: () => ValidationResult; findSlowSubscribers: () => unknown[]; enableMonitoring: () => void; disableMonitoring: () => void; getMetrics: () => PerformanceMetrics & { isEnabled: boolean; timestamp: number }; getReport: () => string; resetMetrics: () => void }} StateDebugGlobal
+ * @typedef {typeof globalThis & { __stateDebug?: StateDebugGlobal }} StateDevToolsGlobal
+ * @typedef {{ memory?: BrowserMemoryInfo }} PerformanceWithMemory
+ * @typedef {{ jsHeapSizeLimit: number; totalJSHeapSize: number; usedJSHeapSize: number }} BrowserMemoryInfo
+ */
+/**
  * @typedef {Object} SlowOperationRecord
  *
  * @property {string} operation
@@ -53,8 +61,8 @@ import {
  * @typedef {Object} StateSnapshot
  *
  * @property {number} timestamp
- * @property {any} state
- * @property {any[]} history
+ * @property {unknown} state
+ * @property {StateHistory} history
  * @property {PerformanceMetrics & { isEnabled: boolean; timestamp: number }} metrics
  * @property {{ used: number; total: number } | null} memory
  */
@@ -62,8 +70,8 @@ import {
  * @typedef {Object} SnapshotDiffStateChange
  *
  * @property {string} key
- * @property {any} oldValue
- * @property {any} newValue
+ * @property {unknown} oldValue
+ * @property {unknown} newValue
  */
 /**
  * @typedef {Object} SnapshotComparison
@@ -85,6 +93,39 @@ const PERFORMANCE_CONFIG = {
 };
 
 /**
+ * @returns {StateDevToolsGlobal}
+ */
+function getStateDevToolsGlobal() {
+    return /** @type {StateDevToolsGlobal} */ (globalThis);
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is StateRecord}
+ */
+function isStateRecord(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * @returns {BrowserMemoryInfo | null}
+ */
+function getBrowserMemoryInfo() {
+    if (typeof performance === "undefined" || !("memory" in performance)) {
+        return null;
+    }
+
+    const memory = /** @type {PerformanceWithMemory} */ (performance).memory;
+    return memory &&
+        typeof memory.jsHeapSizeLimit === "number" &&
+        typeof memory.totalJSHeapSize === "number" &&
+        typeof memory.usedJSHeapSize === "number"
+        ? memory
+        : null;
+}
+
+/**
  * State Debug Utilities Class
  */
 class StateDebugUtilities {
@@ -99,12 +140,12 @@ class StateDebugUtilities {
     /**
      * Check for undefined values recursively
      *
-     * @param {any} obj - Object to check
+     * @param {unknown} obj - Object to check
      * @param {string} path - Current path
      * @param {Object} validation - Validation results
      */
     /**
-     * @param {any} obj
+     * @param {unknown} obj
      * @param {string} path
      * @param {ValidationResult} validation
      */
@@ -114,7 +155,7 @@ class StateDebugUtilities {
             return;
         }
 
-        if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        if (isStateRecord(obj)) {
             for (const key of Object.keys(obj)) {
                 const newPath = path ? `${path}.${key}` : key;
                 this.checkForUndefined(obj[key], newPath, validation);
@@ -139,8 +180,10 @@ class StateDebugUtilities {
     compareSnapshots(snapshot1, snapshot2) {
         /** @type {SnapshotComparison} */
         const // Simple state comparison (could be enhanced with deep diff)
-            keys1 = Object.keys(snapshot1.state),
-            keys2 = Object.keys(snapshot2.state),
+            state1 = isStateRecord(snapshot1.state) ? snapshot1.state : {},
+            state2 = isStateRecord(snapshot2.state) ? snapshot2.state : {},
+            keys1 = Object.keys(state1),
+            keys2 = Object.keys(state2),
             allKeys = new Set([...keys1, ...keys2]),
             diff = {
                 memoryDelta: null,
@@ -150,11 +193,11 @@ class StateDebugUtilities {
             };
 
         for (const key of allKeys) {
-            if (snapshot1.state[key] !== snapshot2.state[key]) {
+            if (state1[key] !== state2[key]) {
                 diff.stateChanges.push({
                     key: /** @type {string} */ (key),
-                    newValue: snapshot2.state[key],
-                    oldValue: snapshot1.state[key],
+                    newValue: state2[key],
+                    oldValue: state1[key],
                 });
             }
         }
@@ -179,20 +222,15 @@ class StateDebugUtilities {
      * @returns {StateSnapshot}
      */
     createSnapshot() {
+        const memory = getBrowserMemoryInfo();
         return {
             history: getStateHistory().slice(-10), // Last 10 changes
-            memory:
-                typeof performance !== "undefined" &&
-                "memory" in performance &&
-                performance.memory
-                    ? {
-                          total: /** @type {any} */ (performance.memory)
-                              .totalJSHeapSize,
-                          used: /** @type {any} */ (performance.memory)
-                              .usedJSHeapSize,
-                      }
-                    : null,
-            // eslint-disable-next-line no-use-before-define -- performanceMonitor declared later in file; accessed lazily
+            memory: memory
+                ? {
+                      total: memory.totalJSHeapSize,
+                      used: memory.usedJSHeapSize,
+                  }
+                : null,
             metrics: performanceMonitor.getMetrics(),
             state: structuredClone(getState("")),
             timestamp: Date.now(),
@@ -207,7 +245,7 @@ class StateDebugUtilities {
         console.log("[StateDebug] Debug mode disabled");
 
         if (globalThis.window !== undefined) {
-            delete (/** @type {any} */ (globalThis).__stateDebug);
+            delete getStateDevToolsGlobal().__stateDebug;
         }
     }
 
@@ -221,20 +259,15 @@ class StateDebugUtilities {
         // Expose debug utilities globally
         if (globalThis.window !== undefined) {
             // Use a distinct property name to minimize clash with existing global typedefs
-            /** @type {any} */ (globalThis).__stateDebug = {
-                // eslint-disable-next-line no-use-before-define
+            getStateDevToolsGlobal().__stateDebug = {
                 disableMonitoring: () => performanceMonitor.disable(),
-                // eslint-disable-next-line no-use-before-define
                 enableMonitoring: () => performanceMonitor.enable(),
                 findSlowSubscribers: () => this.findSlowSubscribers(),
                 getHistory: () => getStateHistory(),
-                // eslint-disable-next-line no-use-before-define
                 getMetrics: () => performanceMonitor.getMetrics(),
-                // eslint-disable-next-line no-use-before-define
                 getReport: () => performanceMonitor.getReport(),
                 getState: () => getState(""),
                 logState: () => this.logCurrentState(),
-                // eslint-disable-next-line no-use-before-define
                 resetMetrics: () => performanceMonitor.resetMetrics(),
                 validateState: () => this.validateState(),
             };
@@ -244,7 +277,7 @@ class StateDebugUtilities {
     /**
      * Find slow subscribers (mock implementation)
      *
-     * @returns {any[]} List of potentially slow subscribers
+     * @returns {unknown[]} List of potentially slow subscribers
      */
     findSlowSubscribers() {
         // This would need access to internal subscription tracking
@@ -304,10 +337,16 @@ class StateDebugUtilities {
      * @param {Object} validation - Validation results
      */
     /**
-     * @param {any} state
+     * @param {unknown} state
      * @param {ValidationResult} validation
      */
     validateStateStructure(state, validation) {
+        if (!isStateRecord(state)) {
+            validation.isValid = false;
+            validation.errors.push("State root is not an object");
+            return;
+        }
+
         const expectedKeys = [
             "app",
             "ui",
@@ -323,7 +362,7 @@ class StateDebugUtilities {
         }
 
         // Check app state structure
-        if (state.app) {
+        if (isStateRecord(state.app)) {
             const expectedAppKeys = [
                 "initialized",
                 "isOpeningFile",
@@ -528,17 +567,22 @@ ${
             // Use performance.memory if available (Chrome/Edge)
             if (
                 typeof performance !== "undefined" &&
-                "memory" in performance &&
-                performance.memory
+                "memory" in performance
             ) {
-                const mem = /** @type {any} */ (performance.memory),
+                const mem = getBrowserMemoryInfo(),
                     /** @type {MemoryUsageRecord} */
-                    record = {
-                        jsHeapSizeLimit: mem.jsHeapSizeLimit,
-                        timestamp: Date.now(),
-                        totalJSHeapSize: mem.totalJSHeapSize,
-                        usedJSHeapSize: mem.usedJSHeapSize,
-                    };
+                    record = mem
+                        ? {
+                              jsHeapSizeLimit: mem.jsHeapSizeLimit,
+                              timestamp: Date.now(),
+                              totalJSHeapSize: mem.totalJSHeapSize,
+                              usedJSHeapSize: mem.usedJSHeapSize,
+                          }
+                        : null;
+
+                if (!record) {
+                    return;
+                }
 
                 this.metrics.memoryUsage.push(record);
 
@@ -682,26 +726,25 @@ export function initializeStateDevTools(enableInProduction = false) {
  * Utility function to measure state operation performance
  *
  * @param {string} operationName - Name of the operation
- * @param {Function} operation - Function to measure
+ * @template T
+ * @param {() => Promise<T> | T} operation - Operation to measure
  *
- * @returns {Promise<any>} Operation result
+ * @returns {Promise<T>} Operation result
  */
 export async function measureStateOperation(operationName, operation) {
     performanceMonitor.startTimer(operationName);
 
     try {
-        const duration = performanceMonitor.endTimer(operationName),
-            result = await operation();
+        return await Promise.resolve(operation()).finally(() => {
+            const duration = performanceMonitor.endTimer(operationName);
 
-        if (debugUtilities.isDebugMode) {
-            console.log(
-                `[StateDebug] Operation "${operationName}" completed in ${duration?.toFixed(2)}ms`
-            );
-        }
-
-        return result;
+            if (debugUtilities.isDebugMode) {
+                console.log(
+                    `[StateDebug] Operation "${operationName}" completed in ${duration?.toFixed(2)}ms`
+                );
+            }
+        });
     } catch (error) {
-        performanceMonitor.endTimer(operationName);
         performanceMonitor.recordError(
             /** @type {Error} */ (error),
             operationName
@@ -711,16 +754,18 @@ export async function measureStateOperation(operationName, operation) {
 }
 
 /**
- * Create a performance-monitored version of a function
+ * Create a performance-monitored version of a callable
  *
- * @param {string} name - Function name for monitoring
- * @param {Function} fn - Function to wrap
+ * @template {unknown[]} Args
+ * @template T
+ * @param {string} name - Callable name for monitoring
+ * @param {(...args: Args) => Promise<T> | T} fn - Callable to wrap
  *
- * @returns {Function} Wrapped function
+ * @returns {(...args: Args) => Promise<T>} Wrapped callable
  */
 export function withPerformanceMonitoring(name, fn) {
     /**
-     * @param {...any} args
+     * @param {...Args} args
      */
     return async (...args) => measureStateOperation(name, () => fn(...args));
 }
