@@ -39,8 +39,19 @@ const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
 
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
-type LooseRecord = Record<string, any>;
+type LooseRecord = Record<string, unknown>;
 type IpcHandlerArgs = unknown[];
+interface SerializableRecord {
+    [key: string]: SerializableValue;
+}
+type SerializableValue =
+    | boolean
+    | null
+    | number
+    | SerializableValue[]
+    | SerializableRecord
+    | string
+    | undefined;
 
 type StateChange = {
     metadata?: LooseRecord;
@@ -78,11 +89,11 @@ type MainProcessStateData = {
         operationTimes: Map<string, unknown>;
         startTime: number;
         startTimePerf: number;
-        [key: string]: any;
+        [key: string]: unknown;
     };
     operations: Record<string, LooseRecord>;
     pendingOAuthResolvers: Map<string, unknown>;
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 type MainBrowserWindowLike = {
@@ -251,7 +262,7 @@ class MainProcessState {
      * Clean up all event handlers
      */
     cleanupEventHandlers() {
-        const eventHandlers = this.get("eventHandlers") || new Map();
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers"));
 
         /*
          * Iterate through registered handler IDs and unregister each.
@@ -277,7 +288,9 @@ class MainProcessState {
      * @param {Object} [result]
      */
     completeOperation(operationId: string, result: LooseRecord = {}): void {
-        const operation = this.get(`operations.${operationId}`);
+        const operation = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!operation) {
             return;
         }
@@ -285,9 +298,9 @@ class MainProcessState {
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
         const duration =
-            typeof operation.startTimePerf === "number"
-                ? Math.max(0, endTimePerf - operation.startTimePerf)
-                : Math.max(0, endTime - operation.startTime);
+            typeof operation["startTimePerf"] === "number"
+                ? Math.max(0, endTimePerf - operation["startTimePerf"])
+                : Math.max(0, endTime - getNumberField(operation, "startTime"));
 
         const completedOp = {
             ...operation,
@@ -328,7 +341,9 @@ class MainProcessState {
      * @param {Error | string} error
      */
     failOperation(operationId: string, error: Error | string): void {
-        const operation = this.get(`operations.${operationId}`);
+        const operation = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!operation) {
             return;
         }
@@ -336,9 +351,9 @@ class MainProcessState {
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
         const duration =
-            typeof operation.startTimePerf === "number"
-                ? Math.max(0, endTimePerf - operation.startTimePerf)
-                : Math.max(0, endTime - operation.startTime);
+            typeof operation["startTimePerf"] === "number"
+                ? Math.max(0, endTimePerf - operation["startTimePerf"])
+                : Math.max(0, endTime - getNumberField(operation, "startTime"));
 
         const errorObj =
                 error instanceof Error
@@ -372,14 +387,14 @@ class MainProcessState {
      *
      * @param {string} path - Dot notation path (e.g., 'operations.fileLoad')
      *
-     * @returns {any} State value
+     * @returns {unknown} State value
      */
     /*
      * @param {string} path
      *
-     * @returns {any}
+     * @returns {unknown}
      */
-    get(path: string): any {
+    get(path: string): unknown {
         return this.getByPath(this.data, path);
     }
 
@@ -388,9 +403,9 @@ class MainProcessState {
      * @param {Object} obj
      * @param {string} path
      *
-     * @returns {any}
+     * @returns {unknown}
      */
-    getByPath(obj: unknown, path: string): any {
+    getByPath(obj: unknown, path: string): unknown {
         if (!path) {
             return obj;
         }
@@ -401,16 +416,12 @@ class MainProcessState {
             return null;
         }
 
-        return path.split(".").reduce((current: any, key: string) => {
-            if (
-                current &&
-                typeof current === "object" &&
-                Object.hasOwn(current, key)
-            ) {
+        return path.split(".").reduce<unknown>((current, key) => {
+            if (isObjectRecord(current) && Object.hasOwn(current, key)) {
                 return current[key];
             }
             return null;
-        }, obj as any);
+        }, obj);
     }
 
     /*
@@ -427,23 +438,26 @@ class MainProcessState {
      * }}
      */
     getDevInfo() {
-        const metrics = this.get("metrics") || {};
+        const metrics = asLooseRecord(this.get("metrics"));
         const uptime =
-            typeof metrics.startTimePerf === "number"
-                ? Math.max(0, monotonicNowMs() - metrics.startTimePerf)
-                : Math.max(0, Date.now() - (metrics.startTime || Date.now()));
+            typeof metrics["startTimePerf"] === "number"
+                ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
+                : Math.max(
+                      0,
+                      Date.now() - getNumberField(metrics, "startTime", Date.now())
+                  );
         return {
-            errors: (this.get("errors") || []).length,
-            eventHandlers: this.get("eventHandlers")?.size || 0,
+            errors: asArray(this.get("errors")).length,
+            eventHandlers: asHandlerInfoMap(this.get("eventHandlers")).size,
             listeners: [...this.listeners.keys()],
-            operations: Object.keys(this.get("operations") || {}),
+            operations: Object.keys(asLooseRecord(this.get("operations"))),
             state: this.data,
             uptime,
         };
     }
 
     /*
-     * @param {any} sender
+     * @param {unknown} sender
      *
      * @returns {number}
      */
@@ -474,10 +488,10 @@ class MainProcessState {
     /*
      * Convert metrics to a safe, IPC-serializable shape.
      *
-     * @returns {Record<string, any>}
+     * @returns {Record<string, unknown>}
      */
-    getSerializableMetrics(): Record<string, any> {
-        const metrics = this.get("metrics") || {};
+    getSerializableMetrics(): Record<string, unknown> {
+        const metrics = asLooseRecord(this.get("metrics"));
         const operationTimes =
             metrics && typeof metrics === "object"
                 ? metrics["operationTimes"]
@@ -496,7 +510,7 @@ class MainProcessState {
                 : {};
 
         return {
-            ...(metrics && typeof metrics === "object" ? metrics : {}),
+            ...metrics,
             operationTimes: operationTimesObj,
         };
     }
@@ -537,23 +551,33 @@ class MainProcessState {
      * Make an object serializable for IPC by removing non-serializable
      * properties
      *
-     * @param {any} data - Data to make serializable
+     * @param {unknown} data - Data to make serializable
      *
-     * @returns {any} Serializable data
+     * @returns {SerializableValue} Serializable data
      */
     /*
-     * @param {any} data
+     * @param {unknown} data
      *
-     * @returns {any}
+     * @returns {SerializableValue}
      */
-    makeSerializable(data: unknown): any {
+    makeSerializable(data: unknown): SerializableValue {
         if (data === null || data === undefined) {
             return data;
         }
 
         // Handle primitive types
-        if (typeof data !== "object") {
+        if (
+            typeof data === "boolean" ||
+            typeof data === "number" ||
+            typeof data === "string"
+        ) {
             return data;
+        }
+        if (typeof data === "bigint") {
+            return data.toString();
+        }
+        if (typeof data !== "object") {
+            return undefined;
         }
 
         // Handle arrays
@@ -562,7 +586,7 @@ class MainProcessState {
         }
 
         // Handle objects
-        const serializable: LooseRecord = {};
+        const serializable: SerializableRecord = {};
         const { BrowserWindow } = safeElectron();
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
@@ -594,7 +618,7 @@ class MainProcessState {
     }
 
     /*
-     * @param {any} sender
+     * @param {unknown} sender
      * @param {string} path
      *
      * @returns {string}
@@ -650,11 +674,11 @@ class MainProcessState {
      * Notify all renderer processes of an event
      *
      * @param {string} channel - IPC channel
-     * @param {any} data - Data to send
+     * @param {unknown} data - Data to send
      */
     /*
      * @param {string} channel
-     * @param {any} data
+     * @param {unknown} data
      */
     notifyRenderers(channel: string, data: unknown): void {
         // Filter out non-serializable data for IPC
@@ -710,8 +734,12 @@ class MainProcessState {
         value: unknown,
         metadata: LooseRecord = {}
     ): void {
-        const metrics = this.get("metrics") || {},
-            operationTimes = metrics["operationTimes"] || new Map();
+        const metrics = asLooseRecord(this.get("metrics")),
+            operationTimesValue = metrics["operationTimes"],
+            operationTimes =
+                operationTimesValue instanceof Map
+                    ? operationTimesValue
+                    : new Map<string, unknown>();
 
         // Avoid in-place mutation so oldValue/newValue snapshots are meaningful.
         const nextOperationTimes = new Map(operationTimes);
@@ -754,7 +782,7 @@ class MainProcessState {
 
         emitter.on?.(event, handler);
 
-        const eventHandlers = this.get("eventHandlers") || new Map();
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers"));
         eventHandlers.set(id, { emitter, event, handler });
         this.set("eventHandlers", eventHandlers);
 
@@ -769,7 +797,7 @@ class MainProcessState {
      * Ensure we clean up any subscriptions when a renderer/webContents is
      * destroyed.
      *
-     * @param {any} sender
+     * @param {unknown} sender
      *
      * @returns {void}
      */
@@ -819,12 +847,8 @@ class MainProcessState {
             this.operationCleanupTimers.delete(operationId);
         }
 
-        const operations = this.get("operations") || {};
-        if (
-            operations &&
-            typeof operations === "object" &&
-            operations[operationId]
-        ) {
+        const operations = asLooseRecord(this.get("operations"));
+        if (operations[operationId]) {
             const next = { ...operations };
             delete next[operationId];
             this.set("operations", next);
@@ -835,12 +859,12 @@ class MainProcessState {
      * Set state value by path
      *
      * @param {string} path - Dot notation path
-     * @param {any} value - Value to set
+     * @param {unknown} value - Value to set
      * @param {Object} options - Options for the update
      */
     /*
      * @param {string} path
-     * @param {any} value
+     * @param {unknown} value
      * @param {Object} [options]
      */
     set(path: string, value: unknown, options: LooseRecord = {}): void {
@@ -869,7 +893,7 @@ class MainProcessState {
     /*
      * @param {Object} obj
      * @param {string} path
-     * @param {any} value
+     * @param {unknown} value
      */
     setByPath(obj: LooseRecord, path: string, value: unknown): void {
         if (!path) {
@@ -886,16 +910,15 @@ class MainProcessState {
             return;
         }
         const keys = path.split("."),
-            lastKey = keys.pop(),
-            target = keys.reduce((current: LooseRecord, key: string) => {
-                if (current && typeof current === "object") {
-                    if (current[key] === undefined) {
-                        current[key] = {};
-                    }
-                    return current[key];
-                }
-                return {};
-            }, obj);
+            lastKey = keys.pop();
+        let target: LooseRecord = obj;
+        for (const key of keys) {
+            const next = target[key];
+            if (!isObjectRecord(next)) {
+                target[key] = {};
+            }
+            target = target[key] as LooseRecord;
+        }
         if (lastKey) {
             target[lastKey] = value;
         }
@@ -1140,7 +1163,7 @@ class MainProcessState {
                     return [];
                 }
 
-                const errors = this.get("errors") || [];
+                const errors = asArray(this.get("errors"));
                 const max = 100;
                 const n =
                     typeof limit === "number" && Number.isFinite(limit)
@@ -1192,12 +1215,12 @@ class MainProcessState {
      * @param {string} handlerId
      */
     unregisterEventHandler(handlerId: string): void {
-        const eventHandlers = this.get("eventHandlers") || new Map(),
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers")),
             handlerInfo = eventHandlers.get(handlerId);
 
         if (handlerInfo) {
             const { emitter, event, handler } = handlerInfo;
-            emitter.removeListener(event, handler);
+            emitter.removeListener?.(event, handler);
             eventHandlers.delete(handlerId);
             this.set("eventHandlers", eventHandlers);
 
@@ -1216,7 +1239,7 @@ class MainProcessState {
      * @param {Object} options - Update options
      */
     /*
-     * @param {Record<string, any>} updates
+     * @param {Record<string, unknown>} updates
      * @param {Object} [options]
      */
     update(updates: Record<string, unknown>, options: LooseRecord = {}): void {
@@ -1257,7 +1280,9 @@ class MainProcessState {
      * @param {OperationUpdate} updates
      */
     updateOperation(operationId: string, updates: LooseRecord): void {
-        const currentOp = this.get(`operations.${operationId}`);
+        const currentOp = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!currentOp) {
             return;
         }
@@ -1421,6 +1446,31 @@ function hasElectronApis(value: unknown): value is MainElectronLike {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
+}
+
+function asArray(value: unknown): unknown[] {
+    return Array.isArray(value) ? value : [];
+}
+
+function asHandlerInfoMap(value: unknown): Map<string, HandlerInfo> {
+    return value instanceof Map ? value : new Map<string, HandlerInfo>();
+}
+
+function asLooseRecord(value: unknown): LooseRecord {
+    return isObjectRecord(value) ? value : {};
+}
+
+function asLooseRecordOrNull(value: unknown): LooseRecord | null {
+    return isObjectRecord(value) ? value : null;
+}
+
+function getNumberField(
+    record: LooseRecord,
+    key: string,
+    fallback = 0
+): number {
+    const value = record[key];
+    return typeof value === "number" ? value : fallback;
 }
 
 /*

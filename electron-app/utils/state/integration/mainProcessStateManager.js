@@ -136,7 +136,7 @@ class MainProcessState {
      * Clean up all event handlers
      */
     cleanupEventHandlers() {
-        const eventHandlers = this.get("eventHandlers") || new Map();
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers"));
         /*
          * Iterate through registered handler IDs and unregister each.
          *
@@ -159,15 +159,15 @@ class MainProcessState {
      * @param {Object} [result]
      */
     completeOperation(operationId, result = {}) {
-        const operation = this.get(`operations.${operationId}`);
+        const operation = asLooseRecordOrNull(this.get(`operations.${operationId}`));
         if (!operation) {
             return;
         }
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
-        const duration = typeof operation.startTimePerf === "number"
-            ? Math.max(0, endTimePerf - operation.startTimePerf)
-            : Math.max(0, endTime - operation.startTime);
+        const duration = typeof operation["startTimePerf"] === "number"
+            ? Math.max(0, endTimePerf - operation["startTimePerf"])
+            : Math.max(0, endTime - getNumberField(operation, "startTime"));
         const completedOp = {
             ...operation,
             duration,
@@ -203,15 +203,15 @@ class MainProcessState {
      * @param {Error | string} error
      */
     failOperation(operationId, error) {
-        const operation = this.get(`operations.${operationId}`);
+        const operation = asLooseRecordOrNull(this.get(`operations.${operationId}`));
         if (!operation) {
             return;
         }
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
-        const duration = typeof operation.startTimePerf === "number"
-            ? Math.max(0, endTimePerf - operation.startTimePerf)
-            : Math.max(0, endTime - operation.startTime);
+        const duration = typeof operation["startTimePerf"] === "number"
+            ? Math.max(0, endTimePerf - operation["startTimePerf"])
+            : Math.max(0, endTime - getNumberField(operation, "startTime"));
         const errorObj = error instanceof Error
             ? {
                 message: error.message,
@@ -239,12 +239,12 @@ class MainProcessState {
      *
      * @param {string} path - Dot notation path (e.g., 'operations.fileLoad')
      *
-     * @returns {any} State value
+     * @returns {unknown} State value
      */
     /*
      * @param {string} path
      *
-     * @returns {any}
+     * @returns {unknown}
      */
     get(path) {
         return this.getByPath(this.data, path);
@@ -254,7 +254,7 @@ class MainProcessState {
      * @param {Object} obj
      * @param {string} path
      *
-     * @returns {any}
+     * @returns {unknown}
      */
     getByPath(obj, path) {
         if (!path) {
@@ -266,9 +266,7 @@ class MainProcessState {
             return null;
         }
         return path.split(".").reduce((current, key) => {
-            if (current &&
-                typeof current === "object" &&
-                Object.hasOwn(current, key)) {
+            if (isObjectRecord(current) && Object.hasOwn(current, key)) {
                 return current[key];
             }
             return null;
@@ -288,15 +286,15 @@ class MainProcessState {
      * }}
      */
     getDevInfo() {
-        const metrics = this.get("metrics") || {};
-        const uptime = typeof metrics.startTimePerf === "number"
-            ? Math.max(0, monotonicNowMs() - metrics.startTimePerf)
-            : Math.max(0, Date.now() - (metrics.startTime || Date.now()));
+        const metrics = asLooseRecord(this.get("metrics"));
+        const uptime = typeof metrics["startTimePerf"] === "number"
+            ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
+            : Math.max(0, Date.now() - getNumberField(metrics, "startTime", Date.now()));
         return {
-            errors: (this.get("errors") || []).length,
-            eventHandlers: this.get("eventHandlers")?.size || 0,
+            errors: asArray(this.get("errors")).length,
+            eventHandlers: asHandlerInfoMap(this.get("eventHandlers")).size,
             listeners: [...this.listeners.keys()],
-            operations: Object.keys(this.get("operations") || {}),
+            operations: Object.keys(asLooseRecord(this.get("operations"))),
             state: this.data,
             uptime,
         };
@@ -330,10 +328,10 @@ class MainProcessState {
     /*
      * Convert metrics to a safe, IPC-serializable shape.
      *
-     * @returns {Record<string, any>}
+     * @returns {Record<string, unknown>}
      */
     getSerializableMetrics() {
-        const metrics = this.get("metrics") || {};
+        const metrics = asLooseRecord(this.get("metrics"));
         const operationTimes = metrics && typeof metrics === "object"
             ? metrics["operationTimes"]
             : null;
@@ -344,7 +342,7 @@ class MainProcessState {
                 entry[0].length <= 128))
             : {};
         return {
-            ...(metrics && typeof metrics === "object" ? metrics : {}),
+            ...metrics,
             operationTimes: operationTimesObj,
         };
     }
@@ -382,22 +380,30 @@ class MainProcessState {
      * Make an object serializable for IPC by removing non-serializable
      * properties
      *
-     * @param {any} data - Data to make serializable
+     * @param {unknown} data - Data to make serializable
      *
-     * @returns {any} Serializable data
+     * @returns {SerializableValue} Serializable data
      */
     /*
-     * @param {any} data
+     * @param {unknown} data
      *
-     * @returns {any}
+     * @returns {SerializableValue}
      */
     makeSerializable(data) {
         if (data === null || data === undefined) {
             return data;
         }
         // Handle primitive types
-        if (typeof data !== "object") {
+        if (typeof data === "boolean" ||
+            typeof data === "number" ||
+            typeof data === "string") {
             return data;
+        }
+        if (typeof data === "bigint") {
+            return data.toString();
+        }
+        if (typeof data !== "object") {
+            return undefined;
         }
         // Handle arrays
         if (Array.isArray(data)) {
@@ -527,7 +533,9 @@ class MainProcessState {
      * @param {Object} [metadata]
      */
     recordMetric(metric, value, metadata = {}) {
-        const metrics = this.get("metrics") || {}, operationTimes = metrics["operationTimes"] || new Map();
+        const metrics = asLooseRecord(this.get("metrics")), operationTimesValue = metrics["operationTimes"], operationTimes = operationTimesValue instanceof Map
+            ? operationTimesValue
+            : new Map();
         // Avoid in-place mutation so oldValue/newValue snapshots are meaningful.
         const nextOperationTimes = new Map(operationTimes);
         nextOperationTimes.set(metric, {
@@ -559,7 +567,7 @@ class MainProcessState {
     registerEventHandler(emitter, event, handler, handlerId) {
         const id = handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
         emitter.on?.(event, handler);
-        const eventHandlers = this.get("eventHandlers") || new Map();
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers"));
         eventHandlers.set(id, { emitter, event, handler });
         this.set("eventHandlers", eventHandlers);
         if (this.devMode) {
@@ -615,10 +623,8 @@ class MainProcessState {
             clearTimeout(cleanupTimer);
             this.operationCleanupTimers.delete(operationId);
         }
-        const operations = this.get("operations") || {};
-        if (operations &&
-            typeof operations === "object" &&
-            operations[operationId]) {
+        const operations = asLooseRecord(this.get("operations"));
+        if (operations[operationId]) {
             const next = { ...operations };
             delete next[operationId];
             this.set("operations", next);
@@ -675,15 +681,15 @@ class MainProcessState {
             }
             return;
         }
-        const keys = path.split("."), lastKey = keys.pop(), target = keys.reduce((current, key) => {
-            if (current && typeof current === "object") {
-                if (current[key] === undefined) {
-                    current[key] = {};
-                }
-                return current[key];
+        const keys = path.split("."), lastKey = keys.pop();
+        let target = obj;
+        for (const key of keys) {
+            const next = target[key];
+            if (!isObjectRecord(next)) {
+                target[key] = {};
             }
-            return {};
-        }, obj);
+            target = target[key];
+        }
         if (lastKey) {
             target[lastKey] = value;
         }
@@ -845,7 +851,7 @@ class MainProcessState {
             if (!validate(event)) {
                 return [];
             }
-            const errors = this.get("errors") || [];
+            const errors = asArray(this.get("errors"));
             const max = 100;
             const n = typeof limit === "number" && Number.isFinite(limit)
                 ? Math.floor(limit)
@@ -889,10 +895,10 @@ class MainProcessState {
      * @param {string} handlerId
      */
     unregisterEventHandler(handlerId) {
-        const eventHandlers = this.get("eventHandlers") || new Map(), handlerInfo = eventHandlers.get(handlerId);
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers")), handlerInfo = eventHandlers.get(handlerId);
         if (handlerInfo) {
             const { emitter, event, handler } = handlerInfo;
-            emitter.removeListener(event, handler);
+            emitter.removeListener?.(event, handler);
             eventHandlers.delete(handlerId);
             this.set("eventHandlers", eventHandlers);
             if (this.devMode) {
@@ -946,7 +952,7 @@ class MainProcessState {
      * @param {OperationUpdate} updates
      */
     updateOperation(operationId, updates) {
-        const currentOp = this.get(`operations.${operationId}`);
+        const currentOp = asLooseRecordOrNull(this.get(`operations.${operationId}`));
         if (!currentOp) {
             return;
         }
@@ -1089,6 +1095,22 @@ function hasElectronApis(value) {
 }
 function isObjectRecord(value) {
     return typeof value === "object" && value !== null;
+}
+function asArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+function asHandlerInfoMap(value) {
+    return value instanceof Map ? value : new Map();
+}
+function asLooseRecord(value) {
+    return isObjectRecord(value) ? value : {};
+}
+function asLooseRecordOrNull(value) {
+    return isObjectRecord(value) ? value : null;
+}
+function getNumberField(record, key, fallback = 0) {
+    const value = record[key];
+    return typeof value === "number" ? value : fallback;
 }
 /*
  * Utility functions for main process state manager
