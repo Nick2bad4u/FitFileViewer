@@ -1024,20 +1024,13 @@ function getErrorMessage(error) {
 function safeElectron() {
     let mod;
     const unwrap = (m) => {
-        if (!m)
+        if (!isObjectRecord(m))
             return {};
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
-        const hasApis = (x) => x &&
-            (x.app ||
-                x.ipcMain ||
-                x.BrowserWindow ||
-                x.Menu ||
-                x.shell ||
-                x.dialog);
-        if (hasApis(m))
+        if (hasElectronApis(m))
             return m;
-        const def = m.default;
-        if (hasApis(def))
+        const def = m["default"];
+        if (hasElectronApis(def))
             return def;
         return m;
     };
@@ -1084,6 +1077,18 @@ function safeElectron() {
         }
     }
     return resolved || {};
+}
+function hasElectronApis(value) {
+    return (isObjectRecord(value) &&
+        ("app" in value ||
+            "ipcMain" in value ||
+            "BrowserWindow" in value ||
+            "Menu" in value ||
+            "shell" in value ||
+            "dialog" in value));
+}
+function isObjectRecord(value) {
+    return typeof value === "object" && value !== null;
 }
 /*
  * Utility functions for main process state manager

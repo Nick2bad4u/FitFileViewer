@@ -40,6 +40,7 @@ const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
 type LooseRecord = Record<string, any>;
+type IpcHandlerArgs = unknown[];
 
 type StateChange = {
     metadata?: LooseRecord;
@@ -55,15 +56,15 @@ type StateListener = (change: StateChange) => void;
 
 type HandlerInfo = {
     emitter: {
-        off?: (event: string, handler: (...args: any[]) => void) => void;
-        on?: (event: string, handler: (...args: any[]) => void) => void;
+        off?: (event: string, handler: (...args: IpcHandlerArgs) => void) => void;
+        on?: (event: string, handler: (...args: IpcHandlerArgs) => void) => void;
         removeListener?: (
             event: string,
-            handler: (...args: any[]) => void
+            handler: (...args: IpcHandlerArgs) => void
         ) => void;
     };
     event: string;
-    handler: (...args: any[]) => void;
+    handler: (...args: IpcHandlerArgs) => void;
 };
 
 type MainProcessStateData = {
@@ -93,7 +94,7 @@ type MainWebContentsLike = {
     id?: number;
     isDestroyed: () => boolean;
     once?: (event: string, listener: () => void) => void;
-    send: (channel: string, ...args: any[]) => void;
+    send: (channel: string, ...args: IpcHandlerArgs) => void;
 };
 
 type MainIpcEventLike = {
@@ -101,9 +102,9 @@ type MainIpcEventLike = {
 };
 
 type MainIpcMainLike = {
-    handle?: (
+    handle?: <Args extends unknown[]>(
         channel: string,
-        listener: (event: MainIpcEventLike, ...args: any[]) => unknown
+        listener: (event: MainIpcEventLike, ...args: Args) => unknown
     ) => void;
     removeHandler?: (channel: string) => void;
 };
@@ -745,7 +746,7 @@ class MainProcessState {
     registerEventHandler(
         emitter: HandlerInfo["emitter"],
         event: string,
-        handler: (...args: any[]) => void,
+        handler: (...args: IpcHandlerArgs) => void,
         handlerId?: string
     ): string {
         const id =
@@ -1345,21 +1346,13 @@ function getErrorMessage(error: unknown): string {
 
 function safeElectron(): MainElectronLike {
     let mod: unknown;
-    const unwrap = (m: any): MainElectronLike => {
-        if (!m) return {};
+    const unwrap = (m: unknown): MainElectronLike => {
+        if (!isObjectRecord(m)) return {};
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
-        const hasApis = (x: any): boolean =>
-            x &&
-            (x.app ||
-                x.ipcMain ||
-                x.BrowserWindow ||
-                x.Menu ||
-                x.shell ||
-                x.dialog);
-        if (hasApis(m)) return m;
-        const def = m.default;
-        if (hasApis(def)) return def;
-        return m;
+        if (hasElectronApis(m)) return m;
+        const def = m["default"];
+        if (hasElectronApis(def)) return def;
+        return m as MainElectronLike;
     };
 
     try {
@@ -1412,6 +1405,22 @@ function safeElectron(): MainElectronLike {
     }
 
     return resolved || {};
+}
+
+function hasElectronApis(value: unknown): value is MainElectronLike {
+    return (
+        isObjectRecord(value) &&
+        ("app" in value ||
+            "ipcMain" in value ||
+            "BrowserWindow" in value ||
+            "Menu" in value ||
+            "shell" in value ||
+            "dialog" in value)
+    );
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }
 
 /*
