@@ -132,18 +132,9 @@ import {
     startChartRendering,
 } from "./renderChartLifecycle.js";
 import { runChartRender } from "./renderChartExecution.js";
-import {
-    renderChartErrorPlaceholder,
-    renderNoChartDataPlaceholder,
-} from "./renderChartPlaceholders.js";
-import {
-    getActivityStartTime,
-    getRecordMessages,
-    isChartDataObject,
-    storeChartData,
-} from "./renderChartDataPreparation.js";
+import { renderChartErrorPlaceholder } from "./renderChartPlaceholders.js";
+import { prepareChartRenderData } from "./renderChartDataReadiness.js";
 import { exposeChartDevTools } from "./renderChartDevTools.js";
-import { touchChartRenderDependencies } from "./renderChartDependencyTouches.js";
 import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
 import {
     createRenderTimingGate,
@@ -411,65 +402,23 @@ export async function renderChartJS(targetContainer, options = {}) {
             return false;
         }
 
-        // Use state-managed data validation (read directly to avoid TDZ if tests import during init)
-        // Distinguish between missing data (warn) and present-but-empty records (handled later with info)
-        {
-            const data = callGetState("globalData");
-            if (!isChartDataObject(data)) {
-                console.warn("[ChartJS] No FIT file data available for charts");
-                await notify(
-                    "No FIT file data available for chart rendering",
-                    "warning"
-                );
-                safeCompleteRendering(false);
-                return false;
-            }
-        }
-
-        // Get validated data through state (must be retrieved before use)
-        const globalData = callGetState("globalData");
-
-        // Setup zone data from FIT file (use safe accessor so tests can spy)
-        const setup = getSetupZoneDataSafe();
-        // Let errors bubble to outer catch so critical errors are surfaced as notifications in tests
-        setup(globalData);
-
-        await touchChartRenderDependencies({
-            getConverters: getConvertersSafe,
-            getThemeConfig: getThemeConfigSafe,
-        });
-
-        // Validate record messages (main time-series data)
-        const recordMesgs = getRecordMessages(globalData);
-        if (!recordMesgs) {
-            console.warn("[ChartJS] No record messages found in FIT data");
-            await notify("No chartable data found in this FIT file", "info");
-
-            await renderNoChartDataPlaceholder(
-                { doc: document, getThemeConfig: getThemeConfigSafe },
-                targetContainer
-            );
-            safeCompleteRendering(false);
+        const preparedData = await prepareChartRenderData(
+            {
+                doc: document,
+                getConverters: getConvertersSafe,
+                getSetupZoneData: getSetupZoneDataSafe,
+                getState: callGetState,
+                getStateManager: getStateManagerSafe,
+                getThemeConfig: getThemeConfigSafe,
+                notify,
+                safeCompleteRendering,
+            },
+            { targetContainer }
+        );
+        if (!preparedData.ready) {
             return false;
         }
-
-        console.log(
-            `[ChartJS] Found ${recordMesgs.length} data points to process`
-        );
-
-        // Get the actual start time from the first valid record message (handle malformed entries)
-        const activityStartTime = getActivityStartTime(recordMesgs);
-        if (activityStartTime != null) {
-            console.log("[ChartJS] Activity start time:", activityStartTime);
-        }
-
-        // Store chart data in state for other components (use safe state manager)
-        const { setState: ss_renderStart } = getStateManagerSafe();
-        storeChartData(
-            { setState: ss_renderStart },
-            recordMesgs,
-            activityStartTime
-        );
+        const { activityStartTime, recordMesgs } = preparedData;
 
         // Measure total render time including the expensive chart creation path.
         // (Previously this was computed before renderChartsWithData ran, producing misleading ~0ms logs.)

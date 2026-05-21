@@ -194,6 +194,7 @@
         "utils/charts/core/renderChartFieldSelection.ts",
         "utils/charts/core/renderChartDataSettingsCache.ts",
         "utils/charts/core/renderChartDataPreparation.ts",
+        "utils/charts/core/renderChartDataReadiness.ts",
         "utils/charts/core/renderChartDebounce.ts",
         "utils/charts/core/renderChartDevTools.ts",
         "utils/charts/core/renderChartDependencyTouches.ts",
