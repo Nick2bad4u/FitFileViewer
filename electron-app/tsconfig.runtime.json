@@ -69,6 +69,8 @@
         "utils/state/integration/mainProcessStateClient.ts",
         "utils/state/integration/rendererStateIntegration.ts",
         "utils/state/integration/stateIntegration.ts",
+        "utils/state/integration/index.ts",
+        "utils/state/index.ts",
         "utils/formatting/converters/convertArrayBufferToBase64.ts",
         "utils/formatting/converters/convertDistanceUnits.ts",
         "utils/formatting/converters/convertMpsToKmh.ts",

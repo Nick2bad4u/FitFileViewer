@@ -2,16 +2,32 @@
 /**
  * Re-exports all modules in the state/integration category.
  */
+
 import "./mainProcessStateManager.js";
-const mainProcessStateManagerExports = globalThis.__FFV_mainProcessStateManagerExports;
+
+type MainProcessStateManagerExports = {
+    MainProcessState?: unknown;
+    mainProcessState?: unknown;
+};
+
+type MainProcessStateManagerGlobal = typeof globalThis & {
+    __FFV_mainProcessStateManagerExports?: MainProcessStateManagerExports;
+};
+
+const mainProcessStateManagerExports = (
+    globalThis as MainProcessStateManagerGlobal
+).__FFV_mainProcessStateManagerExports;
+
 /**
  * Main-process state manager constructor exposed through the legacy CommonJS bridge.
  */
 export const MainProcessState = mainProcessStateManagerExports?.MainProcessState;
+
 /**
  * Main-process state singleton exposed through the legacy CommonJS bridge.
  */
 export const mainProcessState = mainProcessStateManagerExports?.mainProcessState;
+
 // Export in deterministic sorted order to satisfy lint rules.
 export * from "./mainProcessStateClient.js";
 export * from "./rendererStateIntegration.js";
