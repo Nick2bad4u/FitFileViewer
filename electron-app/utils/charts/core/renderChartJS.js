@@ -43,10 +43,7 @@ import {
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
-import {
-    renderNoDataMessage,
-    safeAppend,
-} from "./renderChartDomHelpers.js";
+import { renderNoDataMessage, safeAppend } from "./renderChartDomHelpers.js";
 import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
@@ -171,6 +168,7 @@ import {
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
+import { resolveChartRenderResultState } from "./renderChartResultState.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
@@ -924,23 +922,14 @@ async function renderChartsWithData(
         smoothing,
         zoomPluginConfig,
     });
-    // Count total rendered charts by checking the _chartjsInstances array
-    const totalChartsRendered = chartGlobal._chartjsInstances
-        ? chartGlobal._chartjsInstances.length
-        : 0;
-
-    // Handle no charts case
-    if (totalChartsRendered === 0 && visibleFieldCount === 0) {
-        renderNoDataMessage(
+    const { totalChartsRendered } = resolveChartRenderResultState(
+        {
             chartContainer,
-            'No visible metrics selected. Enable metrics in the "Visible Metrics" section above.'
-        );
-    } else if (totalChartsRendered === 0) {
-        renderNoDataMessage(
-            chartContainer,
-            "No suitable numeric data available for selected chart type."
-        );
-    }
+            chartInstances: chartGlobal._chartjsInstances,
+            renderNoDataMessage,
+        },
+        { visibleFieldCount }
+    );
 
     // Performance logging with state updates using updateState
     const endTime = performance.now();
