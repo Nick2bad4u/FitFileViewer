@@ -80,6 +80,13 @@ import {
 } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import {
+    calculateAxisRanges,
+    createChartPoints,
+    getMaxPointCacheKey,
+    limitChartPoints,
+    normalizeMaxPointsValue,
+} from "./renderChartPointUtils.js";
+import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
     getGlobalChartActions,
@@ -947,83 +954,6 @@ export async function prewarmChartRenderCaches({
     }
 }
 
-function calculateAxisRanges(points) {
-    if (!Array.isArray(points) || points.length === 0) {
-        return null;
-    }
-
-    let minX = Number.POSITIVE_INFINITY;
-    let maxX = Number.NEGATIVE_INFINITY;
-    let minY = Number.POSITIVE_INFINITY;
-    let maxY = Number.NEGATIVE_INFINITY;
-
-    for (const point of points) {
-        if (!point) {
-            continue;
-        }
-        const { x, y } = point;
-        if (typeof x === "number" && Number.isFinite(x)) {
-            if (x < minX) {
-                minX = x;
-            }
-            if (x > maxX) {
-                maxX = x;
-            }
-        }
-        if (typeof y === "number" && Number.isFinite(y)) {
-            if (y < minY) {
-                minY = y;
-            }
-            if (y > maxY) {
-                maxY = y;
-            }
-        }
-    }
-
-    if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
-        return null;
-    }
-
-    if (!Number.isFinite(minY) || !Number.isFinite(maxY)) {
-        minY = 0;
-        maxY = 0;
-    }
-
-    if (minX === maxX) {
-        maxX = minX + 1;
-    }
-
-    if (minY === maxY) {
-        const delta = Math.abs(minY) < 1 ? 1 : Math.abs(minY * 0.05) || 1;
-        minY -= delta;
-        maxY += delta;
-    }
-
-    return {
-        x: { min: minX, max: maxX },
-        y: { min: minY, max: maxY },
-    };
-}
-
-function createChartPoints(labels, values) {
-    const labelCount = Array.isArray(labels) ? labels.length : 0;
-    const valueCount = Array.isArray(values) ? values.length : 0;
-    const length = Math.min(labelCount, valueCount);
-    return Array.from({ length }, (_, index) => {
-        const labelValue = labels?.[index];
-        const yValue = values?.[index];
-        const x =
-            typeof labelValue === "number" && Number.isFinite(labelValue)
-                ? labelValue
-                : index;
-        const y =
-            typeof yValue === "number" && Number.isFinite(yValue)
-                ? yValue
-                : null;
-        return { x, y };
-    });
-}
-
 function createDataSettingsSignature(settings = {}) {
     /** @type {Record<string, unknown>} */
     const signature = {};
@@ -1240,55 +1170,6 @@ function getLabelsForRecords(recordMesgs, startTime) {
 
     labelsCache.set(recordMesgs, { startTime, values: result });
     return result;
-}
-
-function getMaxPointCacheKey(maxPointsValue) {
-    return maxPointsValue === "all" ? "all" : `n:${maxPointsValue}`;
-}
-
-function limitChartPoints(points, maxPoints) {
-    if (!Array.isArray(points) || points.length === 0) {
-        return [];
-    }
-
-    if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
-        return points.slice();
-    }
-
-    const limit =
-        typeof maxPoints === "number"
-            ? maxPoints
-            : Number.parseInt(String(maxPoints), 10);
-    if (!Number.isFinite(limit) || limit <= 0 || points.length <= limit) {
-        return points.slice();
-    }
-
-    const step = Math.max(1, Math.ceil(points.length / limit));
-    const limited = [];
-    for (let i = 0; i < points.length; i += step) {
-        limited.push(points[i]);
-    }
-    const lastPoint = points.at(-1);
-    if (lastPoint && limited.at(-1) !== lastPoint) {
-        limited.push(lastPoint);
-    }
-    return limited;
-}
-
-function normalizeMaxPointsValue(maxPoints) {
-    if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
-        return "all";
-    }
-
-    const numeric =
-        typeof maxPoints === "number"
-            ? maxPoints
-            : Number.parseInt(String(maxPoints), 10);
-    if (!Number.isFinite(numeric) || numeric <= 0) {
-        return "all";
-    }
-
-    return numeric;
 }
 
 function readSettingOrStorageValue(settingKey, storageKey, settings) {

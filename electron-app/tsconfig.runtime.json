@@ -184,6 +184,7 @@
         "utils/charts/core/renderChartColorUtils.ts",
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",
+        "utils/charts/core/renderChartPointUtils.ts",
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartThemeHelpers.ts",
         "utils/charts/core/updateChartAnimations.ts",
