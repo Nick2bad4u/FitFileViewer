@@ -4,63 +4,110 @@
  * Split out of renderSummaryHelpers.js to keep files below the eslint max-lines
  * limit and to keep modal-only UI logic isolated.
  */
-import { getGlobalStorageKey, getStorageKey, loadColPrefs, orderSummaryColumnsNamedFirst, saveColPrefs, } from "./renderSummaryHelpers.js";
-function getSummaryGlobal() {
-    return globalThis;
+
+import {
+    getGlobalStorageKey,
+    getStorageKey,
+    loadColPrefs,
+    orderSummaryColumnsNamedFirst,
+    saveColPrefs,
+} from "./renderSummaryHelpers.js";
+
+type SummaryColModalParams = {
+    allKeys: string[];
+    data?: unknown;
+    renderTable: () => void;
+    setVisibleColumns: (cols: string[]) => void;
+    visibleColumns: string[];
+};
+
+type BadgeVariant = "off" | "ok" | "warn";
+
+type BadgeOptions = {
+    columns: string[] | null;
+    label: string;
+    variant: BadgeVariant;
+};
+
+type SummaryGlobal = typeof globalThis & {
+    globalData?: unknown;
+    window?: (Window & typeof globalThis & { globalData?: unknown }) | null;
+};
+
+function getSummaryGlobal(): SummaryGlobal {
+    return globalThis as SummaryGlobal;
 }
+
 /**
  * Show the Summary table column selector modal.
  */
-export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleColumns, visibleColumns: initialVisibleColumns, }) {
+export function showColModal({
+    allKeys,
+    renderTable: reRenderTable,
+    setVisibleColumns,
+    visibleColumns: initialVisibleColumns,
+}: SummaryColModalParams): void {
     // Determine display order: show named keys first, numbered-only keys last.
     // (This matches the Summary table column ordering as well.)
     const displayKeys = orderSummaryColumnsNamedFirst(allKeys);
+
     // Local visibleColumns state
     let visibleColumns = [...initialVisibleColumns];
+
     // Search/filter
     let filterText = "";
     let displayedKeys = [...displayKeys];
-    let lastCheckedIndex = null;
+
+    let lastCheckedIndex: null | number = null;
     const modalController = new AbortController();
     const { signal } = modalController;
+
     const overlay = document.createElement("div");
     overlay.className = "summary-col-modal-overlay";
     const modal = document.createElement("div");
     modal.className = "summary-col-modal";
+
     // Header (title + close)
     const header = document.createElement("div");
     header.className = "summary-col-modal-header";
     const title = document.createElement("h2");
     title.textContent = "Select Summary Columns";
+
     const closeBtn = document.createElement("button");
     closeBtn.className = "summary-col-modal-close";
     closeBtn.type = "button";
     closeBtn.textContent = "×";
     closeBtn.title = "Close";
     closeBtn.setAttribute("aria-label", "Close column selector");
-    const closeOverlay = () => {
+    const closeOverlay = (): void => {
         modalController.abort();
         overlay.remove();
     };
     closeBtn.addEventListener("click", closeOverlay, { signal });
+
     header.append(title, closeBtn);
     modal.append(header);
+
     const summaryGlobal = getSummaryGlobal();
-    const globalData = summaryGlobal.window?.globalData ?? summaryGlobal.globalData ?? {};
+    const globalData =
+        summaryGlobal.window?.globalData ?? summaryGlobal.globalData ?? {};
     const prefsKeyForFile = getStorageKey(globalData, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
-    const updateVisibleColumns = (cols) => {
+
+    const updateVisibleColumns = (cols: string[]): void => {
         visibleColumns = cols;
         setVisibleColumns(cols);
     };
+
     const metaBar = document.createElement("div");
     metaBar.className = "summary-col-meta";
     const selectedCount = document.createElement("div");
     selectedCount.className = "summary-col-selected-count";
-    const updateSelectedCount = () => {
+    const updateSelectedCount = (): void => {
         selectedCount.textContent = `Selected ${visibleColumns.length} / ${allKeys.length}`;
     };
     updateSelectedCount();
+
     const searchWrap = document.createElement("div");
     searchWrap.className = "summary-col-search-wrap";
     const searchInput = document.createElement("input");
@@ -74,18 +121,27 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         updateColList();
     }, { signal });
     searchWrap.append(searchInput);
+
     metaBar.append(selectedCount, searchWrap);
     modal.append(metaBar);
+
     // Default preset actions (global + per-file)
     const presetsBar = document.createElement("div");
     presetsBar.className = "summary-col-presets";
+
     const badges = document.createElement("div");
     badges.className = "summary-col-badges";
+
     const tooltip = document.createElement("div");
     tooltip.className = "summary-col-tooltip";
     tooltip.style.display = "none";
     overlay.append(tooltip);
-    const createBadge = ({ label, variant, columns, }) => {
+
+    const createBadge = ({
+        label,
+        variant,
+        columns,
+    }: BadgeOptions): HTMLButtonElement => {
         const b = document.createElement("button");
         b.type = "button";
         b.className = `summary-col-badge summary-col-badge--${variant}`;
@@ -95,14 +151,20 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             columns && columns.length > 0 ? "Click to preview" : "Not set";
         return b;
     };
-    const showTooltip = (anchor, titleText, cols) => {
-        if (!cols || cols.length === 0)
-            return;
+
+    const showTooltip = (
+        anchor: HTMLElement,
+        titleText: string,
+        cols: string[] | null
+    ): void => {
+        if (!cols || cols.length === 0) return;
+
         tooltip.replaceChildren();
         const h = document.createElement("div");
         h.className = "summary-col-tooltip-title";
         h.textContent = `${titleText} (${cols.length})`;
         tooltip.append(h);
+
         const list = document.createElement("div");
         list.className = "summary-col-tooltip-list";
         for (const c of cols) {
@@ -112,17 +174,23 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             list.append(item);
         }
         tooltip.append(list);
+
         const rect = anchor.getBoundingClientRect();
         const top = rect.bottom + 8;
-        const left = Math.min(rect.left, Math.max(8, globalThis.innerWidth - 420));
+        const left = Math.min(
+            rect.left,
+            Math.max(8, globalThis.innerWidth - 420)
+        );
         tooltip.style.top = `${Math.min(top, globalThis.innerHeight - 320)}px`;
         tooltip.style.left = `${left}px`;
         tooltip.style.display = "block";
     };
-    const hideTooltip = () => {
+
+    const hideTooltip = (): void => {
         tooltip.style.display = "none";
         tooltip.replaceChildren();
     };
+
     // Clicking outside modal closes tooltip + modal.
     overlay.addEventListener("click", (e) => {
         if (e.target === overlay) {
@@ -130,6 +198,7 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             closeOverlay();
         }
     }, { signal });
+
     // Escape closes modal.
     overlay.addEventListener("keydown", (e) => {
         if (e instanceof KeyboardEvent && e.key === "Escape") {
@@ -141,41 +210,52 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
     queueMicrotask(() => {
         try {
             overlay.focus();
-        }
-        catch {
+        } catch {
             /* ignore */
         }
     });
-    const getGlobalDefaultCols = () => loadColPrefs(prefsKeyGlobal);
-    const getFileSavedCols = () => loadColPrefs(prefsKeyForFile);
-    const normalizeCols = (cols) => {
-        if (!cols || cols.length === 0)
-            return [];
-        return orderSummaryColumnsNamedFirst(allKeys).filter((k) => cols.includes(k));
+
+    const getGlobalDefaultCols = (): string[] | null =>
+        loadColPrefs(prefsKeyGlobal);
+    const getFileSavedCols = (): string[] | null =>
+        loadColPrefs(prefsKeyForFile);
+
+    const normalizeCols = (cols: string[] | null): string[] => {
+        if (!cols || cols.length === 0) return [];
+        return orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+            cols.includes(k)
+        );
     };
-    const sameCols = (a, b) => {
+
+    const sameCols = (
+        a: string[] | null,
+        b: string[] | null
+    ): boolean => {
         const aa = normalizeCols(a);
         const bb = normalizeCols(b);
-        if (aa.length !== bb.length)
-            return false;
+        if (aa.length !== bb.length) return false;
         for (const [i, element] of aa.entries()) {
-            if (element !== bb[i])
-                return false;
+            if (element !== bb[i]) return false;
         }
         return true;
     };
+
     /**
      * Returns the "baseline" selection used when no per-file override exists.
      * Baseline = global default (if set), otherwise built-in default (all keys,
      * named-first).
      */
-    const getBaselineCols = () => {
+    const getBaselineCols = (): string[] => {
         const globalCols = getGlobalDefaultCols();
-        const baselineRaw = globalCols && globalCols.length > 0
-            ? globalCols
-            : orderSummaryColumnsNamedFirst(allKeys);
-        return orderSummaryColumnsNamedFirst(allKeys).filter((k) => baselineRaw.includes(k));
+        const baselineRaw =
+            globalCols && globalCols.length > 0
+                ? globalCols
+                : orderSummaryColumnsNamedFirst(allKeys);
+        return orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+            baselineRaw.includes(k)
+        );
     };
+
     /**
      * Persist the current selection for the current file.
      *
@@ -185,35 +265,39 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
      * file override actually stays off across tab switches and app restarts.
      *
      */
-    const persistFileSelection = (cols) => {
+    const persistFileSelection = (cols: string[]): void => {
         const baseline = getBaselineCols();
+
         // If selection matches baseline, clear per-file key to avoid a "phantom" override.
         if (sameCols(baseline, cols)) {
             try {
                 localStorage.removeItem(prefsKeyForFile);
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
             return;
         }
+
         saveColPrefs(prefsKeyForFile, cols);
     };
-    const diffCounts = (base, current) => {
+
+    const diffCounts = (
+        base: string[] | null,
+        current: string[]
+    ): { added: number; removed: number } => {
         const baseSet = new Set(normalizeCols(base));
         const currentSet = new Set(normalizeCols(current));
         let added = 0;
         let removed = 0;
         for (const k of currentSet) {
-            if (!baseSet.has(k))
-                added++;
+            if (!baseSet.has(k)) added++;
         }
         for (const k of baseSet) {
-            if (!currentSet.has(k))
-                removed++;
+            if (!currentSet.has(k)) removed++;
         }
         return { added, removed };
     };
+
     // Status line (helps users understand if they're on defaults or a custom selection)
     const statusBar = document.createElement("div");
     statusBar.className = "summary-col-status";
@@ -223,14 +307,20 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
     statusHint.className = "summary-col-status-hint";
     statusBar.append(statusText, statusHint);
     modal.append(statusBar);
+
     const updateStatus = () => {
         const globalCols = normalizeCols(getGlobalDefaultCols());
         const baseline = getBaselineCols();
         const fileCols = normalizeCols(getFileSavedCols());
+
         const hasGlobalDefault = globalCols.length > 0;
-        const fileOverrideActive = fileCols.length > 0 && !sameCols(fileCols, baseline);
+        const fileOverrideActive =
+            fileCols.length > 0 && !sameCols(fileCols, baseline);
+
         const isDefaultSelection = sameCols(baseline, visibleColumns);
-        const isSavedFileSelection = fileOverrideActive && sameCols(fileCols, visibleColumns);
+        const isSavedFileSelection =
+            fileOverrideActive && sameCols(fileCols, visibleColumns);
+
         if (isDefaultSelection) {
             statusBar.dataset["mode"] = hasGlobalDefault
                 ? "global"
@@ -243,25 +333,26 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
                 : "";
             return;
         }
+
         statusBar.dataset["mode"] = "file";
         statusText.textContent = isSavedFileSelection
             ? "This file is using: Saved selection"
             : "This file is using: Custom selection";
+
         if (hasGlobalDefault) {
             const { added, removed } = diffCounts(globalCols, visibleColumns);
-            const parts = [];
-            if (added > 0)
-                parts.push(`+${added}`);
-            if (removed > 0)
-                parts.push(`-${removed}`);
+            const parts: string[] = [];
+            if (added > 0) parts.push(`+${added}`);
+            if (removed > 0) parts.push(`-${removed}`);
             statusHint.textContent =
                 parts.length > 0 ? `vs global default: ${parts.join(" ")}` : "";
-        }
-        else {
+        } else {
             statusHint.textContent = "";
         }
     };
+
     updateStatus();
+
     const globalBadge = createBadge({
         label: "Global default",
         variant: getGlobalDefaultCols() ? "ok" : "off",
@@ -272,34 +363,58 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         variant: getFileSavedCols() ? "warn" : "off",
         columns: getFileSavedCols(),
     });
-    const wireBadgeTooltip = (badgeEl, titleText, getCols) => {
-        badgeEl.addEventListener("mouseenter", () => showTooltip(badgeEl, titleText, getCols()), { signal });
+
+    const wireBadgeTooltip = (
+        badgeEl: HTMLButtonElement,
+        titleText: string,
+        getCols: () => string[] | null
+    ): void => {
+        badgeEl.addEventListener("mouseenter", () =>
+            showTooltip(badgeEl, titleText, getCols())
+        , { signal });
         badgeEl.addEventListener("mouseleave", hideTooltip, { signal });
-        badgeEl.addEventListener("focus", () => showTooltip(badgeEl, titleText, getCols()), { signal });
+        badgeEl.addEventListener("focus", () =>
+            showTooltip(badgeEl, titleText, getCols())
+        , { signal });
         badgeEl.addEventListener("blur", hideTooltip, { signal });
         badgeEl.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
             const cols = getCols();
-            if (!cols)
-                return;
+            if (!cols) return;
             if (tooltip.style.display === "block") {
                 hideTooltip();
-            }
-            else {
+            } else {
                 showTooltip(badgeEl, titleText, cols);
             }
         }, { signal });
     };
-    wireBadgeTooltip(globalBadge, "Global default columns", getGlobalDefaultCols);
-    wireBadgeTooltip(fileBadge, "Saved override columns for this file", getFileSavedCols);
+
+    wireBadgeTooltip(
+        globalBadge,
+        "Global default columns",
+        getGlobalDefaultCols
+    );
+    wireBadgeTooltip(
+        fileBadge,
+        "Saved override columns for this file",
+        getFileSavedCols
+    );
+
     badges.append(globalBadge, fileBadge);
+
     // Help text + simplified actions
     const help = document.createElement("div");
     help.className = "summary-col-presets-help";
-    help.append(document.createTextNode("How this works: your Global default is used for files with no saved selection. Any changes you make here are saved for this file automatically."));
+    help.append(
+        document.createTextNode(
+            "How this works: your Global default is used for files with no saved selection. Any changes you make here are saved for this file automatically."
+        )
+    );
+
     const actionsWrap = document.createElement("div");
     actionsWrap.className = "summary-col-presets-actions-wrap";
+
     const resetBtn = document.createElement("button");
     resetBtn.className = "themed-btn";
     resetBtn.textContent = "Reset to Default";
@@ -315,6 +430,7 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         updateStatus();
         reRenderTable();
     }, { signal });
+
     const makeGlobalDefaultBtn = document.createElement("button");
     makeGlobalDefaultBtn.className = "themed-btn";
     makeGlobalDefaultBtn.textContent = "Make Global Default";
@@ -330,6 +446,7 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         updateStatus();
         reRenderTable();
     }, { signal });
+
     const clearGlobalDefaultBtn = document.createElement("button");
     clearGlobalDefaultBtn.className = "themed-btn";
     clearGlobalDefaultBtn.textContent = "Clear Global Default";
@@ -337,8 +454,7 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
     clearGlobalDefaultBtn.addEventListener("click", () => {
         try {
             localStorage.removeItem(prefsKeyGlobal);
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         globalBadge.className = "summary-col-badge summary-col-badge--off";
@@ -349,17 +465,22 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         updateStatus();
         reRenderTable();
     }, { signal });
+
     actionsWrap.append(resetBtn, makeGlobalDefaultBtn, clearGlobalDefaultBtn);
+
     presetsBar.append(badges, help, actionsWrap);
     modal.append(presetsBar);
+
     const colList = document.createElement("div");
     colList.className = "col-list";
     modal.append(colList);
+
     const selectAllBtn = document.createElement("button");
     selectAllBtn.className = "themed-btn summary-col-selectall-btn";
     selectAllBtn.textContent = "Select All";
-    function createMouseDownHandler(idx, key) {
-        return (event) => {
+
+    function createMouseDownHandler(idx: number, key: string): EventListener {
+        return (event: Event): void => {
             if (!(event instanceof MouseEvent)) {
                 return;
             }
@@ -381,7 +502,9 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
                         newCols = newCols.filter((x) => x !== k);
                     }
                 }
-                newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) => newCols.includes(k));
+                newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+                    newCols.includes(k)
+                );
                 updateVisibleColumns(newCols);
                 updateColList();
                 updateStatus();
@@ -390,11 +513,18 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             }
         };
     }
-    function createChangeHandler(idx, key, loopCheckbox) {
-        return (event) => {
-            if (event instanceof MouseEvent &&
+
+    function createChangeHandler(
+        idx: number,
+        key: string,
+        loopCheckbox: HTMLInputElement
+    ): EventListener {
+        return (event: Event): void => {
+            if (
+                event instanceof MouseEvent &&
                 event.shiftKey &&
-                lastCheckedIndex !== null) {
+                lastCheckedIndex !== null
+            ) {
                 return; // handled in mousedown
             }
             lastCheckedIndex = idx;
@@ -403,12 +533,13 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
                 if (!newCols.includes(key)) {
                     newCols.push(key);
                 }
-            }
-            else {
+            } else {
                 newCols = newCols.filter((k) => k !== key);
             }
             newCols = allKeys.filter((k) => newCols.includes(k));
-            newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) => newCols.includes(k));
+            newCols = orderSummaryColumnsNamedFirst(allKeys).filter((k) =>
+                newCols.includes(k)
+            );
             updateVisibleColumns(newCols);
             selectAllBtn.textContent =
                 newCols.length === allKeys.length
@@ -420,17 +551,21 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             persistFileSelection(newCols);
         };
     }
+
     /**
      * Refresh checkbox list based on current visibleColumns
      */
     function updateColList() {
         colList.replaceChildren();
+
         if (filterText.length > 0) {
-            displayedKeys = displayKeys.filter((k) => k.toLowerCase().includes(filterText));
-        }
-        else {
+            displayedKeys = displayKeys.filter((k) =>
+                k.toLowerCase().includes(filterText)
+            );
+        } else {
             displayedKeys = [...displayKeys];
         }
+
         // Always show label column as checked and disabled
         const checkbox = document.createElement("input");
         const label = document.createElement("label");
@@ -440,53 +575,70 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         label.append(checkbox);
         label.append(document.createTextNode("Type"));
         colList.append(label);
+
         if (displayedKeys.length === 0) {
             const empty = document.createElement("div");
             empty.className = "summary-col-empty";
             empty.textContent = "No matching columns";
             colList.append(empty);
         }
+
         for (const [idx, key] of displayedKeys.entries()) {
             const loopCheckbox = document.createElement("input");
             const loopLabel = document.createElement("label");
             loopCheckbox.type = "checkbox";
             loopCheckbox.checked = visibleColumns.includes(key);
             loopCheckbox.tabIndex = 0;
-            loopCheckbox.addEventListener("mousedown", createMouseDownHandler(idx, key), { signal });
-            loopCheckbox.addEventListener("change", createChangeHandler(idx, key, loopCheckbox), { signal });
+            loopCheckbox.addEventListener(
+                "mousedown",
+                createMouseDownHandler(idx, key),
+                { signal }
+            );
+            loopCheckbox.addEventListener(
+                "change",
+                createChangeHandler(idx, key, loopCheckbox),
+                { signal }
+            );
             loopLabel.append(loopCheckbox);
             loopLabel.append(document.createTextNode(key));
             colList.append(loopLabel);
         }
+
         selectAllBtn.textContent =
             visibleColumns.length === allKeys.length
                 ? "Deselect All"
                 : "Select All";
         updateSelectedCount();
         updateStatus();
+
         const fileCols = getFileSavedCols();
         fileBadge.className = `summary-col-badge summary-col-badge--${fileCols ? "warn" : "off"}`;
         fileBadge.disabled = !fileCols || fileCols.length === 0;
     }
+
     selectAllBtn.textContent =
         visibleColumns.length === allKeys.length
             ? "Deselect All"
             : "Select All";
     selectAllBtn.addEventListener("click", () => {
-        const newCols = visibleColumns.length === allKeys.length
-            ? []
-            : [...orderSummaryColumnsNamedFirst(allKeys)];
+        const newCols =
+            visibleColumns.length === allKeys.length
+                ? []
+                : [...orderSummaryColumnsNamedFirst(allKeys)];
         updateVisibleColumns(newCols);
         updateColList();
         updateStatus();
         reRenderTable();
         persistFileSelection(newCols);
     }, { signal });
+
     const selectAllWrap = document.createElement("div");
     selectAllWrap.className = "summary-col-selectall";
     selectAllWrap.append(selectAllBtn);
     modal.append(selectAllWrap);
+
     updateColList();
+
     // Actions
     const actions = document.createElement("div");
     actions.className = "modal-actions";
