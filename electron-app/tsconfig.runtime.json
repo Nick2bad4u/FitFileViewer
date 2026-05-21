@@ -52,6 +52,7 @@
         "utils/state/core/stateManagerPathUtils.ts",
         "utils/state/core/stateManagerReset.ts",
         "utils/state/core/stateManager.ts",
+        "utils/state/core/unifiedStateManager.ts",
         "utils/state/domain/settingsStateSchema.ts",
         "utils/state/domain/settingsStateCore.ts",
         "utils/state/domain/settingsStateHelpers.ts",
