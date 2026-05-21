@@ -3,12 +3,87 @@ import {
     getZoneTypeFromField,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
+import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { createManagedChart } from "../core/createManagedChart.js";
+import {
+    createManagedChart,
+    type ManagedChartConfig,
+} from "../core/createManagedChart.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
-import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
+import {
+    detectCurrentTheme,
+    type ChartTheme,
+} from "../theming/chartThemeUtils.js";
+
+interface RenderZoneChartOptions {
+    readonly chartType?: string;
+    readonly showLegend?: boolean;
+}
+
+interface ZoneChartRuntimeGlobal {
+    readonly __FFV_debugCharts?: unknown;
+    readonly __FFV_debugChartsVerbose?: unknown;
+}
+
+interface ZoneChartBaseDataset {
+    readonly backgroundColor: readonly string[];
+    readonly borderColor: string;
+    readonly borderWidth: number;
+    readonly data: readonly number[];
+}
+
+interface ZoneChartBarTooltipContext {
+    readonly parsed?: {
+        readonly y?: unknown;
+    };
+}
+
+interface ZoneChartDoughnutTooltipContext {
+    readonly dataIndex?: number;
+    readonly dataset?: {
+        readonly backgroundColor?: readonly string[];
+        readonly borderColor?: string;
+        readonly data?: readonly unknown[];
+    };
+    readonly parsed?: unknown;
+}
+
+interface ZoneChartLabelColorContext {
+    readonly dataIndex?: number;
+    readonly dataset?: {
+        readonly backgroundColor?: readonly string[];
+        readonly borderColor?: string;
+    };
+}
+
+interface ZoneChartLegendChart {
+    readonly data?: {
+        readonly datasets?: readonly ZoneChartLegendDataset[];
+        readonly labels?: readonly string[];
+    };
+    readonly getDatasetMeta?: (datasetIndex: number) => ZoneChartDatasetMeta;
+}
+
+interface ZoneChartDatasetMeta {
+    readonly data?: readonly ZoneChartDatasetMetaPoint[];
+}
+
+interface ZoneChartDatasetMetaPoint {
+    readonly hidden?: boolean;
+}
+
+interface ZoneChartLegendDataset {
+    readonly backgroundColor?: readonly string[];
+    readonly borderColor?: string;
+    readonly data?: readonly unknown[];
+}
+
 const DEFAULT_ZONE_COLOR = "#888888";
+
 /**
  * Render an individual zone chart.
  *
@@ -19,20 +94,21 @@ const DEFAULT_ZONE_COLOR = "#888888";
  * @param options - Optional chart display settings.
  */
 export function renderZoneChart(
-    container,
-    title,
-    zoneData,
-    chartId,
-    options = {}
-) {
+    container: HTMLElement,
+    title: string,
+    zoneData: readonly ZoneData[],
+    chartId: string,
+    options: RenderZoneChartOptions = {}
+): void {
     try {
-        const runtimeGlobal = globalThis;
+        const runtimeGlobal = globalThis as ZoneChartRuntimeGlobal;
         if (!(container instanceof HTMLElement)) {
             return;
         }
         if (!Array.isArray(zoneData) || zoneData.length === 0) {
             return;
         }
+
         const isDevEnvironment =
                 typeof process !== "undefined" &&
                 process.env["NODE_ENV"] === "development",
@@ -41,18 +117,22 @@ export function renderZoneChart(
             isVerboseDebugLoggingEnabled =
                 isDebugLoggingEnabled &&
                 Boolean(runtimeGlobal.__FFV_debugChartsVerbose);
+
         if (isVerboseDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] renderZoneChart called for ${title} with data:`,
                 zoneData
             );
         }
+
         const canvas = createChartCanvas(chartId, 0),
             chartType = options.chartType || "doughnut",
             currentTheme = detectCurrentTheme(),
             themeColors = getThemeColors(getThemeConfig());
+
         applyCanvasTheme(canvas, themeColors);
         container.append(canvas);
+
         const colors = resolveZoneColors(zoneData, chartId, themeColors),
             config = createChartConfig(
                 chartType,
@@ -62,12 +142,14 @@ export function renderZoneChart(
                 options,
                 currentTheme
             );
+
         if (isVerboseDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] Creating ${chartType} zone chart with config:`,
                 config
             );
         }
+
         const chart = createManagedChart(canvas, config);
         if (chart && isDebugLoggingEnabled) {
             console.log(
@@ -78,22 +160,28 @@ export function renderZoneChart(
         console.error("[ChartJS] Failed to create zone chart", error);
     }
 }
-function applyCanvasTheme(canvas, themeColors) {
+
+function applyCanvasTheme(
+    canvas: HTMLCanvasElement,
+    themeColors: ThemeColorMap | undefined
+): void {
     if (!themeColors) {
         return;
     }
+
     canvas.style.borderRadius = "12px";
     const shadowLight = getStringThemeColor(themeColors, "shadowLight");
     canvas.style.boxShadow = shadowLight ? `0 2px 16px 0 ${shadowLight}` : "";
 }
+
 function createBarChartConfig(
-    zoneData,
-    colors,
-    title,
-    _options,
-    currentTheme,
-    baseDataset
-) {
+    zoneData: readonly ZoneData[],
+    colors: readonly string[],
+    title: string,
+    _options: Pick<RenderZoneChartOptions, "showLegend">,
+    currentTheme: ChartTheme,
+    baseDataset: ZoneChartBaseDataset
+): ManagedChartConfig {
     return {
         data: {
             datasets: [
@@ -151,10 +239,10 @@ function createBarChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        label(context) {
+                        label(context: ZoneChartBarTooltipContext): string {
                             return `Time: ${formatTime(toFiniteNumber(context.parsed?.y), true)}`;
                         },
-                        labelColor(context) {
+                        labelColor(context: ZoneChartLabelColorContext) {
                             return createLabelColor(context);
                         },
                     },
@@ -201,7 +289,7 @@ function createBarChartConfig(
                         lineWidth: 1,
                     },
                     ticks: {
-                        callback(value) {
+                        callback(value: number | string): string {
                             return formatTime(toFiniteNumber(value), true);
                         },
                         color: currentTheme === "dark" ? "#ffffff" : "#333333",
@@ -225,20 +313,22 @@ function createBarChartConfig(
         type: "bar",
     };
 }
+
 function createChartConfig(
-    chartType,
-    zoneData,
-    colors,
-    title,
-    options,
-    currentTheme
-) {
-    const baseDataset = {
+    chartType: string,
+    zoneData: readonly ZoneData[],
+    colors: readonly string[],
+    title: string,
+    options: Pick<RenderZoneChartOptions, "showLegend">,
+    currentTheme: ChartTheme
+): ManagedChartConfig {
+    const baseDataset: ZoneChartBaseDataset = {
         backgroundColor: colors.slice(0, zoneData.length),
         borderColor: currentTheme === "dark" ? "#333" : "#fff",
         borderWidth: chartType === "doughnut" ? 3 : 1,
         data: zoneData.map((zone) => toFiniteNumber(zone.time)),
     };
+
     if (chartType === "bar") {
         return createBarChartConfig(
             zoneData,
@@ -249,6 +339,7 @@ function createChartConfig(
             baseDataset
         );
     }
+
     return createDoughnutChartConfig(
         zoneData,
         colors,
@@ -258,14 +349,15 @@ function createChartConfig(
         baseDataset
     );
 }
+
 function createDoughnutChartConfig(
-    zoneData,
-    colors,
-    title,
-    options,
-    currentTheme,
-    baseDataset
-) {
+    zoneData: readonly ZoneData[],
+    colors: readonly string[],
+    title: string,
+    options: Pick<RenderZoneChartOptions, "showLegend">,
+    currentTheme: ChartTheme,
+    baseDataset: ZoneChartBaseDataset
+): ManagedChartConfig {
     return {
         data: {
             datasets: [
@@ -324,7 +416,7 @@ function createDoughnutChartConfig(
                             size: 14,
                             weight: "600",
                         },
-                        generateLabels(chart) {
+                        generateLabels(chart: ZoneChartLegendChart): object[] {
                             return generateLegendLabels(chart);
                         },
                         padding: 20,
@@ -353,7 +445,9 @@ function createDoughnutChartConfig(
                         currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
                     callbacks: {
-                        label(context) {
+                        label(
+                            context: ZoneChartDoughnutTooltipContext
+                        ): string[] {
                             const datasetData = Array.isArray(
                                     context.dataset?.data
                                 )
@@ -363,12 +457,13 @@ function createDoughnutChartConfig(
                                 value = toFiniteNumber(context.parsed),
                                 percentage = getPercentageText(value, total),
                                 timeFormatted = formatTime(value, true);
+
                             return [
                                 `Time: ${timeFormatted}`,
                                 `Percentage: ${percentage}%`,
                             ];
                         },
-                        labelColor(context) {
+                        labelColor(context: ZoneChartLabelColorContext) {
                             return createLabelColor(context);
                         },
                     },
@@ -385,7 +480,13 @@ function createDoughnutChartConfig(
         type: "doughnut",
     };
 }
-function createLabelColor(context) {
+
+function createLabelColor(context: ZoneChartLabelColorContext): {
+    backgroundColor: string | undefined;
+    borderColor: string | undefined;
+    borderRadius: number;
+    borderWidth: number;
+} {
     return {
         backgroundColor:
             context.dataset?.backgroundColor?.[context.dataIndex ?? 0] ||
@@ -395,11 +496,13 @@ function createLabelColor(context) {
         borderWidth: 2,
     };
 }
-function generateLegendLabels(chart) {
+
+function generateLegendLabels(chart: ZoneChartLegendChart): object[] {
     const data = chart.data ?? {
         datasets: [],
         labels: [],
     };
+
     if (
         !Array.isArray(data.labels) ||
         data.labels.length === 0 ||
@@ -408,17 +511,21 @@ function generateLegendLabels(chart) {
     ) {
         return [];
     }
+
     const dataset = data.datasets[0];
     if (!dataset) {
         return [];
     }
+
     const datasetData = Array.isArray(dataset.data) ? dataset.data : [],
         total = sumNumbers(datasetData),
         meta = chart.getDatasetMeta?.(0) ?? { data: [] };
+
     return data.labels.map((label, index) => {
         const hidden = meta.data?.[index]?.hidden,
             value = toFiniteNumber(datasetData[index]),
             percentage = getPercentageText(value, total);
+
         return {
             fillStyle: hidden
                 ? "rgba(128, 128, 128, 0.5)"
@@ -434,17 +541,24 @@ function generateLegendLabels(chart) {
         };
     });
 }
-function getPercentageText(value, total) {
+
+function getPercentageText(value: number, total: number): string {
     if (total <= 0) {
         return "0.0";
     }
+
     return ((value / total) * 100).toFixed(1);
 }
-function getStringThemeColor(colors, key) {
+
+function getStringThemeColor(
+    colors: ThemeColorMap,
+    key: string
+): string | undefined {
     const value = colors[key];
     return typeof value === "string" && value.length > 0 ? value : undefined;
 }
-function getThemeColors(themeConfig) {
+
+function getThemeColors(themeConfig: unknown): ThemeColorMap | undefined {
     if (
         typeof themeConfig === "object" &&
         themeConfig !== null &&
@@ -452,38 +566,56 @@ function getThemeColors(themeConfig) {
         typeof themeConfig.colors === "object" &&
         themeConfig.colors !== null
     ) {
-        return themeConfig.colors;
+        return themeConfig.colors as ThemeColorMap;
     }
     return undefined;
 }
-function getThemeZoneColors(themeColors) {
+
+function getThemeZoneColors(
+    themeColors: ThemeColorMap | undefined
+): readonly string[] {
     const zoneColors = themeColors?.["zoneColors"];
     return Array.isArray(zoneColors) ? zoneColors : [];
 }
-function lightenHexColor(color, amount) {
+
+function lightenHexColor(color: string, amount: number): string {
     const safe = /^#?[\dA-Fa-f]{6}$/.test(color)
             ? color.replace("#", "")
             : "999999",
         b = Number.parseInt(safe.slice(4, 6), 16),
         g = Number.parseInt(safe.slice(2, 4), 16),
         r = Number.parseInt(safe.slice(0, 2), 16);
+
     return `rgba(${Math.min(255, r + amount)}, ${Math.min(255, g + amount)}, ${Math.min(255, b + amount)}, 0.9)`;
 }
-function resolveZoneColors(zoneData, chartId, themeColors) {
+
+function resolveZoneColors(
+    zoneData: readonly ZoneData[],
+    chartId: string,
+    themeColors: ThemeColorMap | undefined
+): readonly string[] {
     const themedColors = getThemeZoneColors(themeColors);
+
     if (typeof zoneData[0]?.color === "string") {
         return zoneData.map((zone) => zone.color || DEFAULT_ZONE_COLOR);
     }
+
     const zoneType = getZoneTypeFromField(chartId);
     if (zoneType) {
         const savedColors = getChartZoneColors(zoneType, zoneData.length);
         return savedColors.length > 0 ? savedColors : themedColors;
     }
+
     return themedColors;
 }
-function sumNumbers(values) {
-    return values.reduce((total, value) => total + toFiniteNumber(value), 0);
+
+function sumNumbers(values: readonly unknown[]): number {
+    return values.reduce<number>(
+        (total, value) => total + toFiniteNumber(value),
+        0
+    );
 }
-function toFiniteNumber(value) {
+
+function toFiniteNumber(value: unknown): number {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
