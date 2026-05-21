@@ -153,6 +153,7 @@ import {
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
+import { exposeChartDevTools } from "./renderChartDevTools.js";
 import { touchChartRenderDependencies } from "./renderChartDependencyTouches.js";
 import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
 import {
@@ -943,113 +944,23 @@ async function renderChartsWithData(
     return true;
 }
 
-// Expose comprehensive state-aware development tools and functions to window
-if (globalThis.window !== undefined) {
-    chartGlobal.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
-
-    // Enhanced development tools with complete state integration
-    if (!chartGlobal.__chartjs_dev) {
-        chartGlobal.__chartjs_dev = {
-            // Actions and state management
-            actions: chartActions,
-            clearCharts: chartActions.clearCharts,
-
-            // Computed state management
-            computed: {
-                get: (key) => getComputedStateManagerSafe().get?.(key),
-                invalidate: (key) =>
-                    getComputedStateManagerSafe().invalidate?.(key),
-                list: () => getComputedStateManagerSafe().list?.(),
-            },
-            // Comprehensive state dump for debugging
-            dumpState: () => ({
-                chartInstances: chartGlobal._chartjsInstances?.length || 0,
-                charts: getState("charts"),
-                globalData: Boolean(getState("globalData")),
-                performance: getState("performance"),
-                settings: getState("settings"),
-                ui: getState("ui"),
-            }),
-            // Export and import functions
-            exportCharts: exportChartsWithState,
-
-            // Field visibility management
-            fieldVisibility: {
-                get: (field) => chartSettingsManager.getFieldVisibility(field),
-                getAll: () => {
-                    /** @type {Record<string, string>} */
-                    const result = {};
-                    if (Array.isArray(formatChartFields)) {
-                        for (const field of formatChartFields) {
-                            result[field] =
-                                chartSettingsManager.getFieldVisibility(field);
-                        }
-                    }
-                    return result;
-                },
-                set: (
-                    field,
-                    visibility
-                ) => chartSettingsManager.setFieldVisibility(field, visibility),
-            },
-            // Chart instance management
-            getChartInstances: () => chartGlobal._chartjsInstances || [],
-            getChartSettings: () => chartSettingsManager.getSettings(),
-
-            // Core state access
-            getChartState: () => chartState,
-            getChartStatus,
-            // Performance monitoring and debugging
-            getPerformanceMetrics: () => getState("performance"),
-
-            getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
-            // State debugging and manipulation
-            getState: (path) => getState(path),
-
-            // State history and debugging
-            getStateHistory: () => getState("__stateHistory") || [],
-
-            initializeStateManagement: initializeChartStateManagement,
-            performance: chartPerformanceMonitor,
-
-            // Chart operations
-            refreshCharts: refreshChartsIfNeeded,
-            requestRerender: chartActions.requestRerender,
-
-            // State reset and initialization
-            resetNotificationState: resetChartNotificationState,
-
-            setState: (path, value) =>
-                setState(path, value, { silent: false, source: "dev-tools" }),
-
-            settings: chartSettingsManager,
-
-            subscribe: (path, callback) => subscribe(path, callback),
-
-            // Debounce testing utility
-            testDebounce: (delay = 1000) => {
-                debounce(() => {
-                    console.log("[ChartJS Dev] Debounce test executed");
-                }, delay)();
-            },
-
-            // State synchronization testing
-            testStateSynchronization: () => {
-                console.log("[ChartJS Dev] Testing state synchronization...");
-
-                // Debug state access (removed automatic theme test to prevent redundant updates)
-                console.log(
-                    "[ChartJS Dev] State access available for manual testing"
-                );
-            },
-        };
-
-        console.log(
-            "[ChartJS] Enhanced development tools available at chartGlobal.__chartjs_dev"
-        );
-        console.log(
-            "[ChartJS] Available commands:",
-            Object.keys(chartGlobal.__chartjs_dev)
-        );
-    }
-}
+exposeChartDevTools({
+    addHoverEffectsToExistingCharts,
+    chartActions,
+    chartGlobal,
+    chartPerformanceMonitor,
+    chartSettingsManager,
+    chartState,
+    debounce: (callback, delay) => debounce(callback, delay),
+    exportChartsWithState,
+    formatChartFields,
+    getChartStatus,
+    getComputedStateManager: getComputedStateManagerSafe,
+    getState,
+    initializeChartStateManagement,
+    isWindowAvailable: globalThis.window !== undefined,
+    refreshChartsIfNeeded,
+    resetChartNotificationState,
+    setState,
+    subscribe,
+});
