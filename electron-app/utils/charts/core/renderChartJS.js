@@ -89,6 +89,7 @@ import {
     resolvePerformanceSettings,
     shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
+import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
 import {
     clearChartSeriesCache,
     getCachedSeriesForSettings,
@@ -144,6 +145,9 @@ import {
     callUpdateState,
     getStateManagerSafe,
 } from "./renderChartStateAccess.js";
+
+export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
+
 const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
@@ -2473,130 +2477,6 @@ async function renderChartsWithData(
 
     return true;
 }
-
-/**
- * State-aware chart performance monitoring Tracks and reports chart rendering
- * performance metrics
- */
-export const chartPerformanceMonitor = {
-    /**
-     * End performance tracking and record metrics
-     *
-     * @param {string} trackingId - Tracking ID from startTracking
-     * @param {Object} additionalData - Additional performance data
-     */
-    endTracking(trackingId, additionalData = {}) {
-        const trackingData = getState(`performance.tracking.${trackingId}`);
-        if (!trackingData) {
-            return;
-        }
-
-        const endTime = performance.now(),
-            duration = endTime - trackingData.startTime,
-            performanceRecord = {
-                ...trackingData,
-                duration,
-                endTime,
-                status: "completed",
-                ...additionalData,
-            };
-
-        // Update tracking record using updateState
-        updateState(
-            `performance.tracking`,
-            {
-                [trackingId]: performanceRecord,
-            },
-            { merge: true, source: "chartPerformanceMonitor.endTracking" }
-        );
-
-        // Add to performance history
-        const history = getState("performance.chartHistory") || [];
-        history.push(performanceRecord);
-
-        // Keep only last 50 records
-        if (history.length > 50) {
-            history.splice(0, history.length - 50);
-        }
-
-        setState("performance.chartHistory", history, {
-            silent: false,
-            source: "chartPerformanceMonitor.endTracking",
-        });
-
-        console.log(
-            `[ChartJS Performance] ${trackingData.operation} completed in ${duration.toFixed(2)}ms`
-        );
-    },
-
-    /**
-     * Get performance summary for charts
-     *
-     * @returns {Object} Performance metrics summary
-     */
-    getSummary() {
-        const history = getState("performance.chartHistory") || [];
-        if (history.length === 0) {
-            return {};
-        }
-
-        const durations = history
-            .map((record) => Number(getRecordValue(record, "duration")))
-            .filter((duration) => Number.isFinite(duration));
-        if (durations.length === 0) {
-            return {
-                averageDuration: 0,
-                lastOperation: history.at(-1),
-                maxDuration: 0,
-                minDuration: 0,
-                recentOperations: history.slice(-10),
-                totalOperations: history.length,
-            };
-        }
-
-        const avgDuration =
-                durations.reduce((sum, duration) => sum + duration, 0) /
-                durations.length,
-            maxDuration = Math.max(...durations),
-            minDuration = Math.min(...durations);
-
-        return {
-            averageDuration: avgDuration,
-            lastOperation: history.at(-1),
-            maxDuration,
-            minDuration,
-            recentOperations: history.slice(-10),
-            totalOperations: history.length,
-        };
-    },
-
-    /**
-     * Start performance tracking for a chart operation
-     *
-     * @param {string} operation - Operation name
-     *
-     * @returns {string} Performance tracking ID
-     */
-    startTracking(operation) {
-        const startTime = performance.now(),
-            trackingId = `chart-${operation}-${Date.now()}`;
-
-        // Use updateState to efficiently add tracking data
-        updateState(
-            `performance.tracking`,
-            {
-                [trackingId]: {
-                    operation,
-                    startTime,
-                    status: "running",
-                },
-            },
-            { merge: true, source: "chartPerformanceMonitor.startTracking" }
-        );
-
-        return trackingId;
-    },
-};
 
 // Expose comprehensive state-aware development tools and functions to window
 if (globalThis.window !== undefined) {

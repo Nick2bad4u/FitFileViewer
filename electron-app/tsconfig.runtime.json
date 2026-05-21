@@ -191,6 +191,7 @@
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",
         "utils/charts/core/renderChartPointUtils.ts",
+        "utils/charts/core/renderChartPerformanceMonitor.ts",
         "utils/charts/core/renderChartPerformanceSettings.ts",
         "utils/charts/core/renderChartRecordKeyUtils.ts",
         "utils/charts/core/renderChartRuntimeHelpers.ts",
