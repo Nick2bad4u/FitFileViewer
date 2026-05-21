@@ -63,6 +63,7 @@ import {
     clearChartLabelsCache,
     getLabelsForRecords,
 } from "./renderChartLabelCache.js";
+import { applyCompletedChartHoverEffects } from "./renderChartHoverCompletion.js";
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
@@ -967,43 +968,22 @@ async function renderChartsWithData(
         }
     );
 
-    // Add hover effects to all rendered charts.
-    // IMPORTANT: defer DOM wrapping so the initial chart paint isn't blocked.
-    if (totalChartsRendered > 0) {
-        const applyHoverEffects = async () => {
-            try {
-                const hoverThemeConfig = chartGlobal.getThemeConfig
+    await applyCompletedChartHoverEffects(
+        {
+            addChartHoverEffects: addChartHoverEffectsSafe,
+            addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
+            chartContainer,
+            getThemeConfig: () =>
+                chartGlobal.getThemeConfig
                     ? chartGlobal.getThemeConfig()
-                    : await getThemeConfigSafe();
-                addChartHoverEffectsSafe(chartContainer, hoverThemeConfig);
-            } catch {
-                /* ignore */
-            }
-
-            // Integration tests expect the dev-helper to be callable.
-            if (isTestRuntime) {
-                try {
-                    addHoverEffectsToExistingChartsSafe?.();
-                } catch {
-                    /* ignore */
-                }
-            }
-        };
-
-        if (isTestRuntime) {
-            await applyHoverEffects();
-        } else {
-            setTimeout(() => {
-                applyHoverEffects().catch(() => {
-                    /* ignore */
-                });
-            }, 0);
-        }
-
-        // Update UI state for chart interactions using existing method
-        const uiMgr2 = getUIStateManagerMaybe();
-        uiMgr2?.updateChartControlsUI?.(true);
-    }
+                    : getThemeConfigSafe(),
+            isTestRuntime,
+            updateChartControlsUI:
+                (enabled) =>
+                    getUIStateManagerMaybe()?.updateChartControlsUI?.(enabled),
+        },
+        { totalChartsRendered }
+    );
 
     // Update previous chart state for future comparisons (safe wrapper)
     updatePreviousChartState(
