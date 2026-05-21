@@ -10,7 +10,12 @@ export * from "./createHRZoneControls.js";
 export * from "./createInlineZoneColorSelector.js";
 export * from "./createMarkerCountSelector.js";
 export * from "./createPowerZoneControls.js";
-export { createPowerZoneControls as createPowerZoneControlsSimple, getPowerZoneVisibilitySettings as getPowerZoneVisibilitySettingsSimple, movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple, updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple, } from "./createPowerZoneControlsSimple.js";
+export {
+    createPowerZoneControls as createPowerZoneControlsSimple,
+    getPowerZoneVisibilitySettings as getPowerZoneVisibilitySettingsSimple,
+    movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple,
+    updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple,
+} from "./createPowerZoneControlsSimple.js";
 export * from "./dataPointFilterControl/elementFactory.js";
 export * from "./dataPointFilterControl/metricsPreview.js";
 export * from "./dataPointFilterControl/stateHelpers.js";
