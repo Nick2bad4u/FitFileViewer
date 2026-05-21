@@ -1,11 +1,57 @@
-"use strict";
 /* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
 {
-    const electron = require("electron");
-    const fs = require("node:fs");
-    const path = require("node:path");
-    const { logWithContext } = require("./main/logging/logWithContext");
+    const electron = require("electron") as typeof import("electron");
+    const fs = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const { logWithContext } = require("./main/logging/logWithContext") as {
+        logWithContext: (
+            level: "error" | "info" | "warn",
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+
     const { app, BrowserWindow } = electron;
+
+    type BrowserWindowConstructorOptions =
+        import("electron").BrowserWindowConstructorOptions;
+    type BrowserWindowInstance = import("electron").BrowserWindow;
+
+    interface WindowState {
+        height: number;
+        width: number;
+        x?: number;
+        y?: number;
+    }
+
+    interface DevHelpers {
+        getConfig: () => {
+            constants: typeof CONSTANTS;
+            currentState: WindowState;
+            settingsPath: string;
+        };
+        resetState: () => boolean;
+        validateSettings: () =>
+            | {
+                  error?: never;
+                  exists: boolean;
+                  isValid: boolean;
+                  path: string;
+                  state: WindowState;
+              }
+            | {
+                  error: string;
+                  exists: boolean;
+                  isValid: false;
+                  path: string;
+                  state?: never;
+              };
+    }
+
+    interface MaybeDestroyableWindow {
+        isDestroyed?: unknown;
+    }
+
     const CONSTANTS = {
         DEFAULTS: {
             WINDOW: {
@@ -32,32 +78,41 @@
             nodeIntegration: false,
             sandbox: true,
         },
-    };
-    function safeErrorMessage(error) {
+    } as const;
+
+    function safeErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
-    function getEnvironmentValue(key) {
-        const processValue = globalThis.process;
-        if (processValue === null ||
+
+    function getEnvironmentValue(key: string): string | undefined {
+        const processValue: unknown = globalThis.process;
+        if (
+            processValue === null ||
             typeof processValue !== "object" ||
-            !("env" in processValue)) {
+            !("env" in processValue)
+        ) {
             return undefined;
         }
+
         const { env } = processValue;
         if (env === null || typeof env !== "object" || !(key in env)) {
             return undefined;
         }
-        const value = env[key];
+
+        const value = env[key as keyof typeof env];
         return typeof value === "string" ? value : undefined;
     }
-    function isBooleanCallback(value) {
+
+    function isBooleanCallback(value: unknown): value is () => boolean {
         return typeof value === "function";
     }
-    function validateWindowState(state) {
+
+    function validateWindowState(state: unknown): state is WindowState {
         if (state === null || typeof state !== "object") {
             return false;
         }
-        const obj = state;
+
+        const obj = state as Record<string, unknown>;
         const { height, width, x, y } = obj;
         if (typeof width !== "number" || width <= 0) {
             return false;
@@ -73,11 +128,13 @@
         }
         return true;
     }
-    function sanitizeWindowState(state) {
+
+    function sanitizeWindowState(state: unknown): WindowState {
         if (!validateWindowState(state)) {
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
-        const sanitized = {
+
+        const sanitized: WindowState = {
             height: Math.max(state.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
             width: Math.max(state.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
         };
@@ -89,92 +146,128 @@
         }
         return sanitized;
     }
-    function getSettingsPath() {
+
+    function getSettingsPath(): string {
         try {
             const userDataPath = app.getPath("userData");
             return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
-        }
-        catch (error) {
-            logWithContext("error", "Error getting window state settings path", {
-                error: safeErrorMessage(error),
-            });
+        } catch (error) {
+            logWithContext(
+                "error",
+                "Error getting window state settings path",
+                {
+                    error: safeErrorMessage(error),
+                }
+            );
             return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
         }
     }
-    function resolveWebSecuritySetting() {
+
+    function resolveWebSecuritySetting(): boolean {
         const isProduction = getEnvironmentValue("NODE_ENV") === "production";
-        const disableWebSecurity = !isProduction &&
+        const disableWebSecurity =
+            !isProduction &&
             getEnvironmentValue("FFV_DISABLE_WEB_SECURITY") === "true";
+
         if (disableWebSecurity) {
-            logWithContext("warn", "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)");
+            logWithContext(
+                "warn",
+                "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)"
+            );
         }
+
         return !disableWebSecurity;
     }
+
     const settingsPath = getSettingsPath();
-    function getWindowState() {
+
+    function getWindowState(): WindowState {
         try {
             if (!fs.existsSync(settingsPath)) {
-                logWithContext("info", "Window state file does not exist, using defaults");
+                logWithContext(
+                    "info",
+                    "Window state file does not exist, using defaults"
+                );
                 return { ...CONSTANTS.DEFAULTS.WINDOW };
             }
+
             const data = fs.readFileSync(settingsPath, "utf8");
             if (!data.trim()) {
-                logWithContext("warn", "Window state file is empty, using defaults");
+                logWithContext(
+                    "warn",
+                    "Window state file is empty, using defaults"
+                );
                 return { ...CONSTANTS.DEFAULTS.WINDOW };
             }
+
             const state = sanitizeWindowState(JSON.parse(data));
             logWithContext("info", "Window state loaded successfully", {
                 state,
             });
             return state;
-        }
-        catch (error) {
-            logWithContext("error", "Error reading window state, using defaults", {
-                error: safeErrorMessage(error),
-                path: settingsPath,
-            });
+        } catch (error) {
+            logWithContext(
+                "error",
+                "Error reading window state, using defaults",
+                {
+                    error: safeErrorMessage(error),
+                    path: settingsPath,
+                }
+            );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
     }
-    function validateWindow(win) {
+
+    function validateWindow(win: unknown): win is BrowserWindowInstance {
         if (win === null || typeof win !== "object") {
             return false;
         }
-        const { isDestroyed } = win;
+
+        const { isDestroyed } = win as MaybeDestroyableWindow;
         return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
     }
-    function saveWindowState(win) {
+
+    function saveWindowState(win: BrowserWindowInstance): void {
         if (!validateWindow(win)) {
-            logWithContext("error", "Invalid window object provided to saveWindowState");
+            logWithContext(
+                "error",
+                "Invalid window object provided to saveWindowState"
+            );
             return;
         }
+
         try {
             if (win.isMinimized() || win.isMaximized()) {
-                logWithContext("info", "Skipping window state save - window is minimized or maximized");
+                logWithContext(
+                    "info",
+                    "Skipping window state save - window is minimized or maximized"
+                );
                 return;
             }
+
             const bounds = win.getBounds();
             const dir = path.dirname(settingsPath);
             const state = sanitizeWindowState(bounds);
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir, { recursive: true });
             }
+
             fs.writeFileSync(settingsPath, JSON.stringify(state, null, 2));
             logWithContext("info", "Window state saved successfully", {
                 state,
             });
-        }
-        catch (error) {
+        } catch (error) {
             logWithContext("error", "Error saving window state", {
                 error: safeErrorMessage(error),
                 path: settingsPath,
             });
         }
     }
-    function createWindow() {
+
+    function createWindow(): BrowserWindowInstance {
         try {
             const state = getWindowState();
-            const windowConfig = {
+            const windowConfig: BrowserWindowConstructorOptions = {
                 autoHideMenuBar: false,
                 height: state.height,
                 icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
@@ -191,16 +284,17 @@
                 ...(typeof state.x === "number" ? { x: state.x } : {}),
                 ...(typeof state.y === "number" ? { y: state.y } : {}),
             };
+
             logWithContext("info", "Creating window with configuration", {
                 config: windowConfig,
             });
+
             const win = new BrowserWindow(windowConfig);
             win.setMenuBarVisibility(true);
             win.on("close", () => {
                 try {
                     saveWindowState(win);
-                }
-                catch (error) {
+                } catch (error) {
                     logWithContext("error", "Error in window close handler", {
                         error: safeErrorMessage(error),
                     });
@@ -213,26 +307,31 @@
                 win.show();
                 logWithContext("info", "Window displayed successfully");
             });
+
             void win
                 .loadFile(CONSTANTS.PATHS.HTML.INDEX)
                 .then(() => {
-                logWithContext("info", "Main HTML file loaded successfully");
-            })
-                .catch((error) => {
-                logWithContext("error", "Error loading main HTML file", {
-                    error: safeErrorMessage(error),
+                    logWithContext(
+                        "info",
+                        "Main HTML file loaded successfully"
+                    );
+                })
+                .catch((error: unknown) => {
+                    logWithContext("error", "Error loading main HTML file", {
+                        error: safeErrorMessage(error),
+                    });
                 });
-            });
+
             return win;
-        }
-        catch (error) {
+        } catch (error) {
             logWithContext("error", "Error creating window", {
                 error: safeErrorMessage(error),
             });
             throw error;
         }
     }
-    const devHelpers = {
+
+    const devHelpers: DevHelpers = {
         getConfig: () => ({
             constants: CONSTANTS,
             currentState: getWindowState(),
@@ -246,8 +345,7 @@
                     return true;
                 }
                 return false;
-            }
-            catch (error) {
+            } catch (error) {
                 logWithContext("error", "Error resetting window state", {
                     error: safeErrorMessage(error),
                 });
@@ -263,8 +361,7 @@
                     path: settingsPath,
                     state,
                 };
-            }
-            catch (error) {
+            } catch (error) {
                 return {
                     error: safeErrorMessage(error),
                     exists: false,
@@ -274,6 +371,7 @@
             }
         },
     };
+
     module.exports = {
         CONSTANTS,
         createWindow,
@@ -288,6 +386,7 @@
         }),
         version: "1.0.0",
     };
+
     logWithContext("info", "WindowStateUtils module initialized successfully");
 }
 /* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */

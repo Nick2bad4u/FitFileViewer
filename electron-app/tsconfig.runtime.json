@@ -45,6 +45,7 @@
         "useUnknownInCatchVariables": true
     },
     "files": [
+        "windowStateUtils.ts",
         "utils.ts",
         "utils/config/constants.ts",
         "utils/config/index.ts",
