@@ -84,6 +84,7 @@ import {
 } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
+import { registerChartJsPlugins } from "./renderChartPluginRegistration.js";
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
@@ -115,8 +116,6 @@ import {
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
-import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
-import { chartLegendItemBoxPlugin } from "../plugins/chartLegendItemBoxPlugin.js";
 import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
@@ -656,106 +655,7 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
 
 // Chart.js plugin registration
 const chartGlobal = getMutableChartRuntimeGlobal();
-// In some tests, Chart is assigned after this module is imported. Define a setter to hook registration.
-try {
-    const g = chartGlobal;
-    if (g && !Object.getOwnPropertyDescriptor(g, "Chart")?.set) {
-        let _Chart = g.Chart;
-        // Track registration per Chart object to avoid duplicate registrations across tests
-        const markRegistered = (obj) => {
-            try {
-                Object.defineProperty(obj, "__ffvPluginsRegistered", {
-                    value: true,
-                    configurable: true,
-                });
-            } catch {
-                /* ignore defineProperty errors */
-            }
-        };
-        const isRegistered = (obj) =>
-            Boolean(obj && obj.__ffvPluginsRegistered);
-        Object.defineProperty(g, "Chart", {
-            configurable: true,
-            enumerable: true,
-            get() {
-                // On read access, attempt one-time registration for current Chart object
-                try {
-                    const v = _Chart;
-                    if (
-                        v &&
-                        typeof v.register === "function" &&
-                        !isRegistered(v)
-                    ) {
-                        if (v.Zoom) v.register(v.Zoom);
-                        else if (g.chartjsPluginZoom)
-                            v.register(g.chartjsPluginZoom);
-                        else if (g.ChartZoom) v.register(g.ChartZoom);
-                        try {
-                            v.register(chartBackgroundColorPlugin);
-                            v.register(chartLegendItemBoxPlugin);
-                        } catch {
-                            /* ignore */
-                        }
-                        markRegistered(v);
-                    }
-                } catch {
-                    /* ignore */
-                }
-                return _Chart;
-            },
-            set(v) {
-                _Chart = v;
-                try {
-                    if (v && typeof v.register === "function") {
-                        // Register zoom plugin variants if present
-                        if (v.Zoom) v.register(v.Zoom);
-                        else if (g.chartjsPluginZoom)
-                            v.register(g.chartjsPluginZoom);
-                        else if (g.ChartZoom) v.register(g.ChartZoom);
-                        // Always attempt to register background color plugin
-                        try {
-                            v.register(chartBackgroundColorPlugin);
-                            v.register(chartLegendItemBoxPlugin);
-                        } catch {
-                            /* ignore */
-                        }
-                        markRegistered(v);
-                    }
-                } catch {
-                    /* ignore */
-                }
-            },
-        });
-        // Trigger getter/setter once to ensure registration for pre-existing Chart
-        try {
-            g.Chart = _Chart;
-        } catch {
-            /* ignore */
-        }
-    }
-} catch {
-    /* ignore */
-}
-try {
-    if (chartGlobal?.Chart?.register) {
-        if (chartGlobal.Chart.Zoom) {
-            chartGlobal.Chart.register(chartGlobal.Chart.Zoom);
-            console.log("[ChartJS] chartjs-plugin-zoom registered.");
-        } else if (chartGlobal.chartjsPluginZoom) {
-            chartGlobal.Chart.register(chartGlobal.chartjsPluginZoom);
-            console.log(
-                "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartjsPluginZoom)."
-            );
-        } else if (chartGlobal.ChartZoom) {
-            chartGlobal.Chart.register(chartGlobal.ChartZoom);
-            console.log(
-                "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartZoom)."
-            );
-        }
-    }
-} catch {
-    // ignore plugin registration errors in tests
-}
+registerChartJsPlugins(chartGlobal);
 
 // Enhanced state-aware file loading event listener
 if (!chartGlobal._fitFileViewerChartListener) {

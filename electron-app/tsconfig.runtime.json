@@ -193,6 +193,7 @@
         "utils/charts/core/renderChartPointUtils.ts",
         "utils/charts/core/renderChartPerformanceMonitor.ts",
         "utils/charts/core/renderChartPerformanceSettings.ts",
+        "utils/charts/core/renderChartPluginRegistration.ts",
         "utils/charts/core/renderChartRecordKeyUtils.ts",
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartSeriesCache.ts",
