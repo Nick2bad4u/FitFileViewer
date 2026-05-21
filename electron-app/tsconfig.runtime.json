@@ -182,6 +182,7 @@
         "utils/charts/core/getChartCounts.ts",
         "utils/charts/core/renderChartDomHelpers.ts",
         "utils/charts/core/renderChartColorUtils.ts",
+        "utils/charts/core/renderChartLabelCache.ts",
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",
         "utils/charts/core/renderChartPointUtils.ts",

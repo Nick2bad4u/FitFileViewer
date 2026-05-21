@@ -74,6 +74,10 @@ import {
     getRecordValue,
 } from "./renderChartModuleHelpers.js";
 import {
+    clearChartLabelsCache,
+    getLabelsForRecords,
+} from "./renderChartLabelCache.js";
+import {
     getNotificationSuppressed,
     notify,
     setNotificationSuppressed,
@@ -716,7 +720,6 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
 let fieldSeriesCache = new WeakMap();
-let labelsCache = new WeakMap();
 let lastDataSettingsSignature = "";
 const invalidateChartRenderCacheListeners = new Set();
 const chartSeriesCacheStats = { hits: 0, misses: 0 };
@@ -742,7 +745,7 @@ export function invalidateChartRenderCache(reason = "manual") {
         console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
     }
     fieldSeriesCache = new WeakMap();
-    labelsCache = new WeakMap();
+    clearChartLabelsCache();
     clearPerformanceSettingsCache();
     lastDataSettingsSignature = "";
     chartSeriesCacheStats.hits = 0;
@@ -1104,58 +1107,6 @@ function getFieldSeriesEntry(
     }
 
     return entry;
-}
-
-function getLabelsForRecords(recordMesgs, startTime) {
-    if (labelsCache.has(recordMesgs)) {
-        const cached = labelsCache.get(recordMesgs);
-        if (cached && cached.startTime === startTime) {
-            return cached.values;
-        }
-    }
-
-    const result = [];
-    let base = null;
-    if (typeof startTime === "number") {
-        base = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
-    } else if (
-        startTime &&
-        typeof startTime === "object" &&
-        "getTime" in startTime
-    ) {
-        base = startTime.getTime() / 1000;
-    }
-
-    for (const [index, row] of recordMesgs.entries()) {
-        let labelValue = index;
-        if (
-            row &&
-            typeof row === "object" &&
-            "timestamp" in row &&
-            row.timestamp != null
-        ) {
-            const rawTimestamp = getRecordValue(row, "timestamp");
-            let timestamp = rawTimestamp;
-            if (rawTimestamp instanceof Date) {
-                timestamp = rawTimestamp.getTime() / 1000;
-            } else if (
-                typeof rawTimestamp === "number" &&
-                rawTimestamp > 1_000_000_000_000
-            ) {
-                timestamp = rawTimestamp / 1000;
-            }
-            if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
-                labelValue =
-                    base != null && Number.isFinite(base)
-                        ? Math.max(0, Math.round(timestamp - base))
-                        : Math.round(timestamp);
-            }
-        }
-        result.push(labelValue);
-    }
-
-    labelsCache.set(recordMesgs, { startTime, values: result });
-    return result;
 }
 
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
