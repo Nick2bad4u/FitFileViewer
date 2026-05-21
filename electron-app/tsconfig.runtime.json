@@ -55,6 +55,7 @@
         "utils/state/core/computedStateManager.ts",
         "utils/state/core/stateMiddleware.ts",
         "utils/state/core/unifiedStateManager.ts",
+        "utils/state/core/masterStateManager.ts",
         "utils/state/domain/settingsStateSchema.ts",
         "utils/state/domain/settingsStateCore.ts",
         "utils/state/domain/settingsStateHelpers.ts",
