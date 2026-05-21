@@ -159,6 +159,12 @@ import {
     startChartRendering,
 } from "./renderChartLifecycle.js";
 import {
+    getActivityStartTime,
+    getRecordMessages,
+    isChartDataObject,
+    storeChartData,
+} from "./renderChartDataPreparation.js";
+import {
     createRenderTimingGate,
     RENDER_DEBOUNCE_MS,
 } from "./renderChartTiming.js";
@@ -467,8 +473,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         // Distinguish between missing data (warn) and present-but-empty records (handled later with info)
         {
             const data = callGetState("globalData");
-            const hasDataObject = Boolean(data && typeof data === "object");
-            if (!hasDataObject) {
+            if (!isChartDataObject(data)) {
                 console.warn("[ChartJS] No FIT file data available for charts");
                 await notify(
                     "No FIT file data available for chart rendering",
@@ -505,12 +510,8 @@ export async function renderChartJS(targetContainer, options = {}) {
         }
 
         // Validate record messages (main time-series data)
-        const { recordMesgs } = globalData;
-        if (
-            !recordMesgs ||
-            !Array.isArray(recordMesgs) ||
-            recordMesgs.length === 0
-        ) {
+        const recordMesgs = getRecordMessages(globalData);
+        if (!recordMesgs) {
             console.warn("[ChartJS] No record messages found in FIT data");
             await notify("No chartable data found in this FIT file", "info");
 
@@ -596,36 +597,17 @@ export async function renderChartJS(targetContainer, options = {}) {
         );
 
         // Get the actual start time from the first valid record message (handle malformed entries)
-        let activityStartTime = null;
-        if (recordMesgs && recordMesgs.length > 0) {
-            for (const rec of recordMesgs) {
-                const recordTimestamp =
-                    rec && typeof rec === "object"
-                        ? getRecordValue(rec, "timestamp")
-                        : null;
-                if (recordTimestamp != null) {
-                    activityStartTime = recordTimestamp;
-                    break;
-                }
-            }
-            if (activityStartTime != null) {
-                console.log(
-                    "[ChartJS] Activity start time:",
-                    activityStartTime
-                );
-            }
+        const activityStartTime = getActivityStartTime(recordMesgs);
+        if (activityStartTime != null) {
+            console.log("[ChartJS] Activity start time:", activityStartTime);
         }
 
         // Store chart data in state for other components (use safe state manager)
         const { setState: ss_renderStart } = getStateManagerSafe();
-        ss_renderStart(
-            "charts.chartData",
-            {
-                activityStartTime,
-                recordMesgs,
-                totalDataPoints: recordMesgs.length,
-            },
-            { silent: false, source: "renderChartJS" }
+        storeChartData(
+            { setState: ss_renderStart },
+            recordMesgs,
+            activityStartTime
         );
 
         // Measure total render time including the expensive chart creation path.
