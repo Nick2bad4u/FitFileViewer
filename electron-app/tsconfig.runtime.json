@@ -193,6 +193,7 @@
         "utils/charts/core/renderChartDirectRerender.ts",
         "utils/charts/core/renderChartExportState.ts",
         "utils/charts/core/renderChartLabelCache.ts",
+        "utils/charts/core/renderChartLifecycle.ts",
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",
         "utils/charts/core/renderChartPointUtils.ts",

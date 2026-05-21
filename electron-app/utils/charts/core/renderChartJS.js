@@ -154,6 +154,11 @@ import { registerChartStartup } from "./renderChartStartup.js";
 import { createChartSettingsManager } from "./renderChartSettingsManager.js";
 import { getChartStatus as getChartStatusSnapshot } from "./renderChartStatus.js";
 import {
+    clearExistingCharts,
+    completeChartRendering,
+    startChartRendering,
+} from "./renderChartLifecycle.js";
+import {
     createRenderTimingGate,
     RENDER_DEBOUNCE_MS,
 } from "./renderChartTiming.js";
@@ -428,25 +433,11 @@ export async function renderChartJS(targetContainer, options = {}) {
             }
         }
 
-        // Start rendering process through state actions
-        {
-            const ca = getGlobalChartActions();
-            if (ca?.startRendering) {
-                ca.startRendering();
-            } else {
-                // Fallback state updates to indicate rendering state
-                callSetState("charts.isRendering", true, {
-                    silent: false,
-                    source: "renderChartJS.start",
-                });
-                if (!isLoadingStateSuppressed()) {
-                    callSetState("isLoading", true, {
-                        silent: false,
-                        source: "renderChartJS.start",
-                    });
-                }
-            }
-        }
+        startChartRendering({
+            getGlobalChartActions,
+            isLoadingStateSuppressed,
+            setState: callSetState,
+        });
 
         await renderTimingGate.waitIfRapidRender();
 
@@ -457,37 +448,11 @@ export async function renderChartJS(targetContainer, options = {}) {
             chartGlobal._chartjsInstances = [];
         }
 
-        // Clear existing charts using state action (with safe fallback)
-        {
-            const ca = getGlobalChartActions();
-            if (ca?.clearCharts) {
-                ca.clearCharts();
-            } else {
-                // Local fallback clear
-                if (chartGlobal._chartjsInstances) {
-                    for (const [
-                        index,
-                        chart,
-                    ] of chartGlobal._chartjsInstances.entries()) {
-                        try {
-                            if (chart && typeof chart.destroy === "function")
-                                chart.destroy();
-                        } catch (error) {
-                            console.warn(
-                                `[ChartJS] Error destroying chart ${index}:`,
-                                error
-                            );
-                        }
-                    }
-                }
-                chartGlobal._chartjsInstances = [];
-                callUpdateState(
-                    "charts",
-                    { chartData: null, isRendered: false, renderedCount: 0 },
-                    { silent: false, source: "renderChartJS.clear" }
-                );
-            }
-        }
+        clearExistingCharts({
+            chartGlobal,
+            getGlobalChartActions,
+            updateState: callUpdateState,
+        });
 
         // Validate Chart.js availability
         if (chartGlobal.Chart === null || chartGlobal.Chart === false) {
@@ -749,16 +714,12 @@ export async function renderChartJS(targetContainer, options = {}) {
             : 0;
         // Success reflects inner renderer outcome; do not force success when DOM errors occur
         const success = result === true;
-        try {
-            const ca = getGlobalChartActions();
-            if (ca?.completeRendering) {
-                ca.completeRendering(success, chartCount, renderTime);
-            } else {
-                safeCompleteRendering(success);
-            }
-        } catch {
-            safeCompleteRendering(success);
-        }
+        completeChartRendering(
+            { getGlobalChartActions, safeCompleteRendering },
+            success,
+            chartCount,
+            renderTime
+        );
         // Hover effects are applied within renderChartsWithData (deferred). Avoid duplicate passes here.
         return success;
     } catch (error) {
