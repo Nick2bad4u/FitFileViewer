@@ -126,10 +126,6 @@ import { createChartActions } from "./renderChartActions.js";
 import { registerChartStartup } from "./renderChartStartup.js";
 import { createChartSettingsManager } from "./renderChartSettingsManager.js";
 import { getChartStatus as getChartStatusSnapshot } from "./renderChartStatus.js";
-import {
-    clearExistingCharts,
-    startChartRendering,
-} from "./renderChartLifecycle.js";
 import { renderChartErrorPlaceholder } from "./renderChartPlaceholders.js";
 import { prepareChartRenderData } from "./renderChartDataReadiness.js";
 import { exposeChartDevTools } from "./renderChartDevTools.js";
@@ -139,16 +135,15 @@ import {
     RENDER_DEBOUNCE_MS,
 } from "./renderChartTiming.js";
 import {
-    isChartLibraryUnavailable,
     normalizeRenderChartOptions,
     shouldAbortInactiveChartRender,
-    touchStringTargetContainer,
 } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
+import { beginChartRenderSession } from "./renderChartSessionStart.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -368,37 +363,25 @@ export async function renderChartJS(targetContainer, options = {}) {
     }
 
     try {
-        touchStringTargetContainer(document, targetContainer);
-
-        startChartRendering({
-            getGlobalChartActions,
-            isLoadingStateSuppressed,
-            setState: callSetState,
-        });
-
-        await renderTimingGate.waitIfRapidRender();
-
-        const performanceStart = performance.now();
-
-        // Initialize chart instances array
-        if (!chartGlobal._chartjsInstances) {
-            chartGlobal._chartjsInstances = [];
-        }
-
-        clearExistingCharts({
-            chartGlobal,
-            getGlobalChartActions,
-            updateState: callUpdateState,
-        });
-
-        // Validate Chart.js availability
-        if (isChartLibraryUnavailable(chartGlobal)) {
-            const error = "Chart.js library is not loaded or not available";
-            console.error(`[ChartJS] ${error}`);
-            await notify("Chart library not available", "error");
-            safeCompleteRendering(false);
+        const renderSession = await beginChartRenderSession(
+            {
+                chartGlobal,
+                doc: document,
+                getGlobalChartActions,
+                isLoadingStateSuppressed,
+                notify,
+                now: () => performance.now(),
+                safeCompleteRendering,
+                setState: callSetState,
+                updateState: callUpdateState,
+                waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
+            },
+            { targetContainer }
+        );
+        if (!renderSession.ready) {
             return false;
         }
+        const { performanceStart } = renderSession;
 
         const preparedData = await prepareChartRenderData(
             {
