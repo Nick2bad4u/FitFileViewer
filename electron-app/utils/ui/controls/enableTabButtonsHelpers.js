@@ -3,20 +3,22 @@
  *
  * @param element - Element to inspect.
  * @param property - CSS property name.
+ *
  * @returns Computed style value when available.
  */
 export function safeComputedStyle(element, property) {
     try {
-        if (globalThis.window !== undefined &&
-            typeof globalThis.getComputedStyle === "function") {
+        if (
+            globalThis.window !== undefined &&
+            typeof globalThis.getComputedStyle === "function"
+        ) {
             const computedStyle = globalThis.getComputedStyle(element);
             if (typeof computedStyle.getPropertyValue === "function") {
                 return computedStyle.getPropertyValue(property) || undefined;
             }
             return getIndexedStyleValue(computedStyle, property);
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     return undefined;
@@ -33,11 +35,12 @@ export function safeQueryTabButtons() {
                 return Array.from(document.querySelectorAll(".tab-button"));
             }
             if (typeof document.getElementsByClassName === "function") {
-                return Array.from(document.getElementsByClassName("tab-button"));
+                return Array.from(
+                    document.getElementsByClassName("tab-button")
+                );
             }
         }
-    }
-    catch {
+    } catch {
         // Fall through to return [].
     }
     return [];
@@ -46,6 +49,7 @@ export function safeQueryTabButtons() {
  * Normalize a button identifier for comparisons.
  *
  * @param value - Button ID or label.
+ *
  * @returns Normalized identifier.
  */
 export function normalizeButtonId(value) {
@@ -57,10 +61,12 @@ export function normalizeButtonId(value) {
  * Get common identity data for a tab button.
  *
  * @param button - Button element to inspect.
+ *
  * @returns Identity data used by tab-button state helpers.
  */
 export function getTabButtonIdentity(button) {
-    const id = button.id ||
+    const id =
+        button.id ||
         (typeof button.getAttribute === "function"
             ? button.getAttribute("id")
             : "") ||
@@ -68,7 +74,8 @@ export function getTabButtonIdentity(button) {
         "";
     const text = (button.textContent || "").trim().toLowerCase();
     const normalizedId = normalizeButtonId(id);
-    const isOpenFile = id === "open_file_btn" ||
+    const isOpenFile =
+        id === "open_file_btn" ||
         id === "open-file-btn" ||
         id === "openFileBtn" ||
         normalizedId === "openfilebtn" ||
@@ -86,12 +93,13 @@ export function getTabButtonIdentity(button) {
  * Determine if a tab button corresponds to the open file control.
  *
  * @param button - Button element to inspect.
+ *
  * @returns True when this is the open-file button.
  */
 export function isOpenFileButton(button) {
     return getTabButtonIdentity(button).isOpenFile;
 }
 function getIndexedStyleValue(computedStyle, property) {
-    const value = computedStyle[property];
+    const value = Reflect.get(computedStyle, property);
     return typeof value === "string" && value ? value : undefined;
 }

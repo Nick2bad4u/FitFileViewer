@@ -3,6 +3,7 @@
  *
  * @param element - Element to inspect.
  * @param property - CSS property name.
+ *
  * @returns Computed style value when available.
  */
 export function safeComputedStyle(
@@ -61,6 +62,7 @@ export function safeQueryTabButtons(): HTMLElement[] {
  * Normalize a button identifier for comparisons.
  *
  * @param value - Button ID or label.
+ *
  * @returns Normalized identifier.
  */
 export function normalizeButtonId(value: string): string {
@@ -81,6 +83,7 @@ export type TabButtonIdentity = {
  * Get common identity data for a tab button.
  *
  * @param button - Button element to inspect.
+ *
  * @returns Identity data used by tab-button state helpers.
  */
 export function getTabButtonIdentity(button: HTMLElement): TabButtonIdentity {
@@ -114,6 +117,7 @@ export function getTabButtonIdentity(button: HTMLElement): TabButtonIdentity {
  * Determine if a tab button corresponds to the open file control.
  *
  * @param button - Button element to inspect.
+ *
  * @returns True when this is the open-file button.
  */
 export function isOpenFileButton(button: HTMLElement): boolean {
@@ -124,9 +128,7 @@ function getIndexedStyleValue(
     computedStyle: CSSStyleDeclaration,
     property: string
 ): string | undefined {
-    const value = (computedStyle as unknown as Record<string, unknown>)[
-        property
-    ];
+    const value: unknown = Reflect.get(computedStyle, property);
 
     return typeof value === "string" && value ? value : undefined;
 }
