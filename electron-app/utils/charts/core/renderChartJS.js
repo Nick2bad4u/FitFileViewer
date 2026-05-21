@@ -78,6 +78,7 @@ import {
     notify,
     setNotificationSuppressed,
 } from "./renderChartNotificationHelpers.js";
+import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
@@ -2027,7 +2028,7 @@ export function getChartStatus() {
     };
 }
 
-// Utility function to convert hex to rgba
+// Utility function to convert hex to rgba.
 /**
  * @param {string} hex - Hex color code
  * @param {number} alpha - Alpha transparency value
@@ -2035,10 +2036,7 @@ export function getChartStatus() {
  * @returns {string} RGBA color string
  */
 export function hexToRgba(hex, alpha) {
-    const b = Number.parseInt(hex.slice(5, 7), 16),
-        g = Number.parseInt(hex.slice(3, 5), 16),
-        r = Number.parseInt(hex.slice(1, 3), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return convertHexToRgba(hex, alpha);
 }
 
 /**
