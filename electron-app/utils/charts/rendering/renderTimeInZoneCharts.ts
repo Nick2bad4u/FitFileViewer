@@ -1,27 +1,56 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
+import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { renderZoneChart } from "./renderZoneChart.js";
-const chartGlobal = globalThis;
+
+interface TimeInZoneChartOptions {
+    readonly chartType?: string;
+    readonly showGrid?: boolean;
+    readonly showLegend?: boolean;
+    readonly showTitle?: boolean;
+    readonly zoomPluginConfig?: Record<string, unknown>;
+    readonly [key: string]: unknown;
+}
+
+interface TimeInZoneRuntimeGlobal {
+    readonly __FFV_debugCharts?: unknown;
+    readonly heartRateZones?: unknown;
+    readonly powerZones?: unknown;
+}
+
+interface ZoneVisibilitySettings {
+    readonly doughnutVisible?: boolean;
+}
+
+const chartGlobal = globalThis as typeof globalThis & TimeInZoneRuntimeGlobal;
+
 /**
  * Render HR / Power time-in-zone charts into a container.
  */
-export function renderTimeInZoneCharts(container, options = {}) {
+export function renderTimeInZoneCharts(
+    container: HTMLElement | null | undefined,
+    options: TimeInZoneChartOptions = {}
+): void {
     try {
         const isDevEnvironment =
                 typeof process !== "undefined" &&
                 process.env["NODE_ENV"] === "development",
             isDebugLoggingEnabled =
                 isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
+
         if (!container) {
             return;
         }
+
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderTimeInZoneCharts called");
         }
+
         const hrZones = getZoneData(chartGlobal.heartRateZones),
             hrZoneSettings = getVisibleZoneSettings(
                 getHRZoneVisibilitySettings()
             );
+
         if (hrZoneSettings.doughnutVisible && hrZones.length > 0) {
             if (isDebugLoggingEnabled) {
                 console.log(
@@ -29,6 +58,7 @@ export function renderTimeInZoneCharts(container, options = {}) {
                     hrZones
                 );
             }
+
             renderZoneChart(
                 container,
                 "HR Zone Distribution (Doughnut)",
@@ -41,10 +71,12 @@ export function renderTimeInZoneCharts(container, options = {}) {
                 "[ChartJS] HR zone doughnut chart hidden or no data available"
             );
         }
+
         const powerZones = getZoneData(chartGlobal.powerZones),
             powerZoneSettings = getVisibleZoneSettings(
                 getPowerZoneVisibilitySettings()
             );
+
         if (powerZoneSettings.doughnutVisible && powerZones.length > 0) {
             if (isDebugLoggingEnabled) {
                 console.log(
@@ -52,6 +84,7 @@ export function renderTimeInZoneCharts(container, options = {}) {
                     powerZones
                 );
             }
+
             renderZoneChart(
                 container,
                 "Power Zone Distribution (Doughnut)",
@@ -68,15 +101,21 @@ export function renderTimeInZoneCharts(container, options = {}) {
         console.error("[ChartJS] Error rendering time in zone charts:", error);
     }
 }
-function getVisibleZoneSettings(settings) {
+
+function getVisibleZoneSettings(
+    settings: ZoneVisibilitySettings | undefined
+): ZoneVisibilitySettings {
     return settings ?? { doughnutVisible: true };
 }
-function getZoneData(value) {
+
+function getZoneData(value: unknown): ZoneData[] {
     if (!Array.isArray(value)) {
         return [];
     }
+
     return value.filter(isZoneData);
 }
-function isZoneData(value) {
+
+function isZoneData(value: unknown): value is ZoneData {
     return typeof value === "object" && value !== null;
 }
