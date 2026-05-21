@@ -228,6 +228,7 @@
         "utils/ui/layout/enhanceCreditsSection.ts",
         "utils/ui/modals/ensureAboutModal.ts",
         "utils/ui/modals/injectModalStyles.ts",
+        "utils/ui/modals/keyboardShortcutsModal.ts",
         "utils/ui/modals/openPowerEstimationSettingsModal.ts",
         "utils/ui/settingsModal.ts",
         "utils/ui/notifications/showRenderNotification.ts",

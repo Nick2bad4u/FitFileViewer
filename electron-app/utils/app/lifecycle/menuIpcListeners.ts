@@ -43,10 +43,16 @@ type AccentColorPickerModule = {
     openAccentColorPicker?: () => void;
 };
 
+type KeyboardShortcutsModalModule = {
+    showKeyboardShortcutsModal?: () => void;
+};
+
 type ShortcutDefinition = readonly [action: string, keys: string];
 
 const accentColorPickerModulePath =
     "../../../ui/modals/accentColorPicker.js" as const;
+const keyboardShortcutsModalModulePath =
+    "../../ui/modals/keyboardShortcutsModal.js" as const;
 
 function getMenuIpcGlobal(): MenuIpcGlobal {
     return globalThis as MenuIpcGlobal;
@@ -113,50 +119,33 @@ function buildKeyboardShortcutsHtml(): string {
     return `<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">${items}</ul>`;
 }
 
-function loadKeyboardShortcutsScript({
+async function openKeyboardShortcutsModalFromModule({
     debugMenuLog,
     showAboutModal,
 }: Pick<
     RegisterMenuIpcListenersParams,
     "debugMenuLog" | "showAboutModal"
->): void {
-    const script = document.createElement("script");
-    const scriptController = new AbortController();
+>): Promise<void> {
+    try {
+        // eslint-disable-next-line no-unsanitized/method -- Static local module path owned by the app bundle.
+        const mod = (await import(
+            keyboardShortcutsModalModulePath
+        )) as KeyboardShortcutsModalModule;
+        if (typeof mod.showKeyboardShortcutsModal === "function") {
+            getMenuIpcGlobal().showKeyboardShortcutsModal =
+                mod.showKeyboardShortcutsModal;
+            mod.showKeyboardShortcutsModal();
+            return;
+        }
 
-    script.src = "./utils/keyboardShortcutsModal.js";
-    script.addEventListener(
-        "load",
-        () => {
-            scriptController.abort();
-            debugMenuLog("Script loaded successfully");
-            if (
-                typeof getMenuIpcGlobal().showKeyboardShortcutsModal ===
-                "function"
-            ) {
-                debugMenuLog("Calling showKeyboardShortcutsModal function");
-                getMenuIpcGlobal().showKeyboardShortcutsModal?.();
-                return;
-            }
-
-            debugMenuLog(
-                "showKeyboardShortcutsModal function not available after script load"
-            );
-        },
-        { signal: scriptController.signal }
-    );
-    script.addEventListener(
-        "error",
-        (error) => {
-            scriptController.abort();
-            debugMenuLog(
-                "Failed to load keyboard shortcuts modal script:",
-                error
-            );
-            showAboutModal(buildKeyboardShortcutsHtml());
-        },
-        { signal: scriptController.signal }
-    );
-    document.head.append(script);
+        debugMenuLog(
+            "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"
+        );
+        showAboutModal(buildKeyboardShortcutsHtml());
+    } catch (error) {
+        debugMenuLog("Failed to load keyboard shortcuts modal module:", error);
+        showAboutModal(buildKeyboardShortcutsHtml());
+    }
 }
 
 /**
@@ -247,12 +236,16 @@ export function registerMenuIpcListeners({
     );
 
     trackUnsubscribe(
-        electronAPI.onIpc("menu-keyboard-shortcuts", () => {
+        electronAPI.onIpc("menu-keyboard-shortcuts", async () => {
             debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
 
-            if (getMenuIpcGlobal().showKeyboardShortcutsModal === undefined) {
-                debugMenuLog("Modal script not loaded, loading dynamically...");
-                loadKeyboardShortcutsScript({
+            const globalKeyboardShortcutsModal =
+                getMenuIpcGlobal().showKeyboardShortcutsModal;
+            if (typeof globalKeyboardShortcutsModal !== "function") {
+                debugMenuLog(
+                    "Keyboard shortcuts modal not loaded, importing dynamically..."
+                );
+                await openKeyboardShortcutsModalFromModule({
                     debugMenuLog,
                     showAboutModal,
                 });
@@ -260,9 +253,9 @@ export function registerMenuIpcListeners({
             }
 
             debugMenuLog(
-                "Modal script already loaded, calling function directly"
+                "Keyboard shortcuts modal already loaded, calling function directly"
             );
-            getMenuIpcGlobal().showKeyboardShortcutsModal?.();
+            globalKeyboardShortcutsModal();
         })
     );
 }

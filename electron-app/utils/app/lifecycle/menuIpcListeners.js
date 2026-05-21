@@ -1,5 +1,6 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 const accentColorPickerModulePath = "../../../ui/modals/accentColorPicker.js";
+const keyboardShortcutsModalModulePath = "../../ui/modals/keyboardShortcutsModal.js";
 function getMenuIpcGlobal() {
     return globalThis;
 }
@@ -46,27 +47,23 @@ function buildKeyboardShortcutsHtml() {
         .join("");
     return `<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">${items}</ul>`;
 }
-function loadKeyboardShortcutsScript({ debugMenuLog, showAboutModal, }) {
-    const script = document.createElement("script");
-    const scriptController = new AbortController();
-    script.src = "./utils/keyboardShortcutsModal.js";
-    script.addEventListener("load", () => {
-        scriptController.abort();
-        debugMenuLog("Script loaded successfully");
-        if (typeof getMenuIpcGlobal().showKeyboardShortcutsModal ===
-            "function") {
-            debugMenuLog("Calling showKeyboardShortcutsModal function");
-            getMenuIpcGlobal().showKeyboardShortcutsModal?.();
+async function openKeyboardShortcutsModalFromModule({ debugMenuLog, showAboutModal, }) {
+    try {
+        // eslint-disable-next-line no-unsanitized/method -- Static local module path owned by the app bundle.
+        const mod = (await import(keyboardShortcutsModalModulePath));
+        if (typeof mod.showKeyboardShortcutsModal === "function") {
+            getMenuIpcGlobal().showKeyboardShortcutsModal =
+                mod.showKeyboardShortcutsModal;
+            mod.showKeyboardShortcutsModal();
             return;
         }
-        debugMenuLog("showKeyboardShortcutsModal function not available after script load");
-    }, { signal: scriptController.signal });
-    script.addEventListener("error", (error) => {
-        scriptController.abort();
-        debugMenuLog("Failed to load keyboard shortcuts modal script:", error);
+        debugMenuLog("Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable");
         showAboutModal(buildKeyboardShortcutsHtml());
-    }, { signal: scriptController.signal });
-    document.head.append(script);
+    }
+    catch (error) {
+        debugMenuLog("Failed to load keyboard shortcuts modal module:", error);
+        showAboutModal(buildKeyboardShortcutsHtml());
+    }
 }
 /**
  * Registers renderer-side IPC listeners that are specifically driven by the
@@ -125,17 +122,18 @@ export function registerMenuIpcListeners({ debugMenuLog, isTestEnvironment, show
             showNotification,
         });
     }));
-    trackUnsubscribe(electronAPI.onIpc("menu-keyboard-shortcuts", () => {
+    trackUnsubscribe(electronAPI.onIpc("menu-keyboard-shortcuts", async () => {
         debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
-        if (getMenuIpcGlobal().showKeyboardShortcutsModal === undefined) {
-            debugMenuLog("Modal script not loaded, loading dynamically...");
-            loadKeyboardShortcutsScript({
+        const globalKeyboardShortcutsModal = getMenuIpcGlobal().showKeyboardShortcutsModal;
+        if (typeof globalKeyboardShortcutsModal !== "function") {
+            debugMenuLog("Keyboard shortcuts modal not loaded, importing dynamically...");
+            await openKeyboardShortcutsModalFromModule({
                 debugMenuLog,
                 showAboutModal,
             });
             return;
         }
-        debugMenuLog("Modal script already loaded, calling function directly");
-        getMenuIpcGlobal().showKeyboardShortcutsModal?.();
+        debugMenuLog("Keyboard shortcuts modal already loaded, calling function directly");
+        globalKeyboardShortcutsModal();
     }));
 }
