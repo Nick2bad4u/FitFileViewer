@@ -231,6 +231,7 @@
         "utils/files/export/exportAllCharts.ts",
         "utils/files/export/createPrintButton.ts",
         "utils/files/export/gpxExport.ts",
+        "utils/files/import/fitParserIntegration.ts",
         "utils/files/import/getOverlayFileName.ts",
         "utils/files/import/handleOpenFile.ts",
         "utils/files/import/loadOverlayFiles.ts",

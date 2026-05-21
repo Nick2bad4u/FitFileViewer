@@ -7,35 +7,78 @@
  *
  * @author FitFileViewer Development Team
  */
+
 import { performanceMonitor } from "../../debug/stateDevTools.js";
 // Corrected import paths to actual state manager locations
 import { masterStateManager } from "../../state/core/masterStateManager.js";
 import { setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import type {
+    ContextBridge,
+    IpcMain,
+    IpcMainInvokeEvent,
+    IpcRenderer,
+} from "electron";
+
+type IntegrationResult = { error?: string; success: boolean };
+type DecoderOptions = Record<string, unknown>;
+type DecoderResult = {
+    error?: string;
+    options?: DecoderOptions;
+    success?: boolean;
+} & Record<string, unknown>;
+
+type FitParserModule = {
+    decodeFitFile: (
+        fileBuffer: Buffer | Uint8Array,
+        options?: DecoderOptions
+    ) => Promise<DecoderResult>;
+    getCurrentDecoderOptions?: () => DecoderOptions;
+    getDefaultDecoderOptions?: () => DecoderOptions;
+    initializeStateManagement?: (deps: {
+        fitFileStateManager: unknown;
+        performanceMonitor: unknown;
+        settingsStateManager: unknown;
+    }) => void;
+    resetDecoderOptions?: () => DecoderResult | Promise<DecoderResult>;
+    updateDecoderOptions?: (
+        newOptions: DecoderOptions
+    ) => DecoderResult | Promise<DecoderResult>;
+};
+
+type DecodeBuffer = ArrayBuffer | Buffer | Uint8Array;
+type SettingsManagerFacade = {
+    getSetting?: (key: string) => unknown;
+};
+
 /*
  * @param {unknown} value
  *
  * @returns {DecoderOptions}
  */
-function normalizeDecoderOptions(value) {
+function normalizeDecoderOptions(value: unknown): DecoderOptions {
     return typeof value === "object" && value !== null && !Array.isArray(value)
-        ? value
+        ? (value as DecoderOptions)
         : {};
 }
-function loadFitParser() {
-    return require("../../../fitParser.js");
+
+function loadFitParser(): FitParserModule {
+    return require("../../../fitParser.js") as FitParserModule;
 }
-function isTrustedFitParserIpcEvent(event) {
+
+function isTrustedFitParserIpcEvent(event: IpcMainInvokeEvent): boolean {
     const senderUrl = event.senderFrame?.url || event.sender?.getURL?.() || "";
     if (!senderUrl) {
         return false;
     }
+
     try {
         const url = new URL(senderUrl);
         if (url.protocol === "file:" || url.protocol === "app:") {
             return true;
         }
+
         const isLoopbackHost =
             url.hostname === "localhost" ||
             url.hostname === "127.0.0.1" ||
@@ -45,10 +88,15 @@ function isTrustedFitParserIpcEvent(event) {
         return false;
     }
 }
-function rejectUntrustedFitParserIpc(event, channel) {
+
+function rejectUntrustedFitParserIpc(
+    event: IpcMainInvokeEvent,
+    channel: string
+): DecoderResult | null {
     if (isTrustedFitParserIpcEvent(event)) {
         return null;
     }
+
     console.warn(
         `[FitParserIntegration] Rejected ${channel} from untrusted IPC sender`
     );
@@ -57,6 +105,7 @@ function rejectUntrustedFitParserIpc(event, channel) {
         success: false,
     };
 }
+
 /*
  * Create a wrapper for decodeFitFile that integrates with renderer state This
  * function can be called from the renderer process via IPC
@@ -75,11 +124,15 @@ function rejectUntrustedFitParserIpc(event, channel) {
  * @returns {Promise<DecoderResult>} Decoder result or error shape
  */
 /** Decodes a FIT file and mirrors successful or failed state transitions. */
-export async function decodeFitFileWithState(fileBuffer, options = {}) {
+export async function decodeFitFileWithState(
+    fileBuffer: Buffer | Uint8Array,
+    options: DecoderOptions = {}
+): Promise<DecoderResult> {
     try {
         const fitParser = loadFitParser(),
             // Decode the file with state management integration
             result = await fitParser.decodeFitFile(fileBuffer, options);
+
         // If successful, update master state
         if (
             result &&
@@ -90,6 +143,7 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
             setState("currentFile.status", "loaded");
             setState("currentFile.lastModified", new Date().toISOString());
         }
+
         return result;
     } catch (error) {
         console.error(
@@ -98,6 +152,7 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
         );
         const message = error instanceof Error ? error.message : String(error),
             stack = error instanceof Error ? error.stack : undefined;
+
         // Update state with error
         if (masterStateManager) {
             setState("currentFile.status", "error");
@@ -109,6 +164,7 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
         return { details: stack, error: message };
     }
 }
+
 /*
  * Get current decoder options with state management integration
  *
@@ -120,7 +176,7 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
  * @returns {DecoderOptions}
  */
 /** Reads current decoder options, falling back to parser defaults. */
-export function getCurrentDecoderOptionsWithState() {
+export function getCurrentDecoderOptionsWithState(): DecoderOptions {
     try {
         const fitParser = loadFitParser();
         return typeof fitParser.getCurrentDecoderOptions === "function"
@@ -144,15 +200,17 @@ export function getCurrentDecoderOptionsWithState() {
         }
     }
 }
+
 /*
  * Initialize FIT parser with state management integration
  *
  * @returns {Promise<IntegrationResult>} Success flag and optional error
  */
 /** Initializes FIT parser state manager integration. */
-export async function initializeFitParserIntegration() {
+export async function initializeFitParserIntegration(): Promise<IntegrationResult> {
     try {
         const fitParser = loadFitParser();
+
         // Initialize with state management instances
         if (typeof fitParser.initializeStateManagement === "function") {
             fitParser.initializeStateManagement({
@@ -161,10 +219,12 @@ export async function initializeFitParserIntegration() {
                 settingsStateManager,
             });
         }
+
         // Set up decoder options schema in settings if not already present
         try {
             // Attempt to read existing decoder options from settings state (dynamic category not in schema)
-            const settingsManager = settingsStateManager;
+            const settingsManager =
+                settingsStateManager as SettingsManagerFacade;
             const existingDecoder = settingsManager.getSetting?.("decoder");
             if (existingDecoder == null) {
                 const defaultOptions =
@@ -184,6 +244,7 @@ export async function initializeFitParserIntegration() {
                 error
             );
         }
+
         console.log(
             "[FitParserIntegration] FIT parser integration initialized successfully"
         );
@@ -197,6 +258,7 @@ export async function initializeFitParserIntegration() {
         return { error: message, success: false };
     }
 }
+
 /*
  * Set up IPC handlers for FIT parser operations (call from main process)
  *
@@ -208,18 +270,25 @@ export async function initializeFitParserIntegration() {
  * @param {import("electron").IpcMain} ipcMain
  */
 /** Registers main-process IPC handlers for FIT parser operations. */
-export function setupFitParserIPC(ipcMain) {
+export function setupFitParserIPC(ipcMain: IpcMain): void {
     // Handle file decoding requests from renderer using canonical fit:decode channel
     ipcMain.handle(
         "fit:decode",
         // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before decoding.
-        async (event, fileBuffer, options) => {
+        async (
+            event: IpcMainInvokeEvent,
+            fileBuffer: DecodeBuffer,
+            options: unknown
+        ) => {
             const rejection = rejectUntrustedFitParserIpc(event, "fit:decode");
             if (rejection) {
                 return rejection;
             }
+
             // Normalize ArrayBuffer to Uint8Array before forwarding
-            let normalized = fileBuffer;
+            let normalized: Buffer | Uint8Array = fileBuffer as
+                | Buffer
+                | Uint8Array;
             if (fileBuffer instanceof ArrayBuffer) {
                 normalized = new Uint8Array(fileBuffer);
             }
@@ -229,11 +298,12 @@ export function setupFitParserIPC(ipcMain) {
             );
         }
     );
+
     // Handle decoder options updates from renderer
     ipcMain.handle(
         "update-decoder-options",
         // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before updating options.
-        async (event, newOptions) => {
+        async (event: IpcMainInvokeEvent, newOptions: unknown) => {
             const rejection = rejectUntrustedFitParserIpc(
                 event,
                 "update-decoder-options"
@@ -246,19 +316,21 @@ export function setupFitParserIPC(ipcMain) {
             );
         }
     );
+
     // Handle getting current decoder options
     ipcMain.handle(
         "get-decoder-options",
         // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler returns only after rejectUntrustedFitParserIpc allows the sender.
-        async (event) =>
+        async (event: IpcMainInvokeEvent) =>
             rejectUntrustedFitParserIpc(event, "get-decoder-options") ||
             getCurrentDecoderOptionsWithState()
     );
+
     // Handle resetting decoder options
     ipcMain.handle(
         "reset-decoder-options",
         // eslint-disable-next-line sdl/no-electron-unchecked-ipc-sender -- Handler rejects untrusted senders via rejectUntrustedFitParserIpc before resetting options.
-        async (event) => {
+        async (event: IpcMainInvokeEvent) => {
             const rejection = rejectUntrustedFitParserIpc(
                 event,
                 "reset-decoder-options"
@@ -266,6 +338,7 @@ export function setupFitParserIPC(ipcMain) {
             if (rejection) {
                 return rejection;
             }
+
             try {
                 const fitParser = loadFitParser();
                 return typeof fitParser.resetDecoderOptions === "function"
@@ -281,10 +354,12 @@ export function setupFitParserIPC(ipcMain) {
             }
         }
     );
+
     console.log(
         "[FitParserIntegration] IPC handlers registered for FIT parser operations"
     );
 }
+
 /*
  * Set up preload script functions for FIT parser (call from preload script)
  *
@@ -298,7 +373,10 @@ export function setupFitParserIPC(ipcMain) {
  * @param {import("electron").IpcRenderer} ipcRenderer
  */
 /** Exposes renderer-safe FIT parser helpers through the preload bridge. */
-export function setupFitParserPreload(contextBridge, ipcRenderer) {
+export function setupFitParserPreload(
+    contextBridge: ContextBridge,
+    ipcRenderer: IpcRenderer
+): void {
     if (
         contextBridge &&
         typeof contextBridge.exposeInMainWorld === "function"
@@ -312,9 +390,11 @@ export function setupFitParserPreload(contextBridge, ipcRenderer) {
              *
              * @returns {Promise<unknown>}
              */
-            decodeFitFile: (fileBuffer, options) => {
+            decodeFitFile: (fileBuffer: DecodeBuffer, options?: unknown) => {
                 // Normalize ArrayBuffer to Uint8Array to satisfy type expectations downstream
-                let normalized = fileBuffer;
+                let normalized: Buffer | Uint8Array = fileBuffer as
+                    | Buffer
+                    | Uint8Array;
                 if (fileBuffer instanceof ArrayBuffer) {
                     normalized = new Uint8Array(fileBuffer);
                 }
@@ -340,14 +420,16 @@ export function setupFitParserPreload(contextBridge, ipcRenderer) {
              *
              * @returns {Promise<unknown>}
              */
-            updateDecoderOptions: (newOptions) =>
+            updateDecoderOptions: (newOptions: unknown) =>
                 ipcRenderer.invoke("update-decoder-options", newOptions),
         });
     }
+
     console.log(
         "[FitParserIntegration] Preload functions exposed for FIT parser"
     );
 }
+
 /*
  * Update decoder options through the state management system
  *
@@ -363,7 +445,9 @@ export function setupFitParserPreload(contextBridge, ipcRenderer) {
  * @returns {Promise<DecoderResult>}
  */
 /** Updates decoder options and mirrors successful changes into settings state. */
-export async function updateDecoderOptionsWithState(newOptions) {
+export async function updateDecoderOptionsWithState(
+    newOptions: DecoderOptions
+): Promise<DecoderResult> {
     try {
         const fitParser = loadFitParser(),
             result = await (typeof fitParser.updateDecoderOptions === "function"
@@ -372,6 +456,7 @@ export async function updateDecoderOptionsWithState(newOptions) {
                       error: "updateDecoderOptions not available",
                       success: false,
                   });
+
         if (result.success && masterStateManager) {
             try {
                 setState("settings.decoder", result.options, {
@@ -381,6 +466,7 @@ export async function updateDecoderOptionsWithState(newOptions) {
                 // Silent: state update failure should not break decoder option update flow
             }
         }
+
         return result;
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -391,6 +477,7 @@ export async function updateDecoderOptionsWithState(newOptions) {
         return { error: message, success: false };
     }
 }
+
 /*
  * Example usage in renderer process:
  *
