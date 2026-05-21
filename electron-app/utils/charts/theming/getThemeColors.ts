@@ -1,7 +1,9 @@
 import {
     getThemeConfig,
+    type ThemeColorValue,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 
 const ERROR_MESSAGES = {
     INVALID_THEME_CONFIG: "Invalid theme configuration",
@@ -18,13 +20,25 @@ export const FALLBACK_THEME_COLORS = {
     textPrimary: "#000000",
 } as const satisfies ThemeColorMap;
 
-function hasThemeColors(value: unknown): value is { colors: ThemeColorMap } {
-    if (value === null || typeof value !== "object") {
-        return false;
-    }
+function isThemeColorValue(value: unknown): value is ThemeColorValue {
+    return (
+        typeof value === "string" ||
+        (Array.isArray(value) &&
+            value.every((item) => typeof item === "string"))
+    );
+}
 
-    const colors = (value as { colors?: unknown }).colors;
-    return colors !== null && typeof colors === "object";
+/**
+ * Checks whether an unknown value matches the theme color map contract.
+ */
+export function isThemeColorMap(value: unknown): value is ThemeColorMap {
+    return (
+        isObjectRecord(value) && Object.values(value).every(isThemeColorValue)
+    );
+}
+
+function hasThemeColors(value: unknown): value is { colors: ThemeColorMap } {
+    return isObjectRecord(value) && isThemeColorMap(value["colors"]);
 }
 
 /**
@@ -32,12 +46,10 @@ function hasThemeColors(value: unknown): value is { colors: ThemeColorMap } {
  *
  * @param colorKey - Color key to retrieve.
  * @param fallback - Fallback color when the key is invalid or missing.
+ *
  * @returns Theme color value or fallback.
  */
-export function getThemeColor(
-    colorKey: string,
-    fallback = "#000000"
-): string {
+export function getThemeColor(colorKey: string, fallback = "#000000"): string {
     if (typeof colorKey !== "string" || !colorKey.trim()) {
         console.warn(`[getThemeColor] Invalid color key: ${colorKey}`);
         return fallback;

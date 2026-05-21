@@ -6,6 +6,8 @@ import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createManagedChart } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
+import { isThemeColorMap } from "../theming/getThemeColors.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 const DEFAULT_ZONE_COLOR = "#888888";
@@ -445,16 +447,11 @@ function getStringThemeColor(colors, key) {
     return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 function getThemeColors(themeConfig) {
-    if (
-        typeof themeConfig === "object" &&
-        themeConfig !== null &&
-        "colors" in themeConfig &&
-        typeof themeConfig.colors === "object" &&
-        themeConfig.colors !== null
-    ) {
-        return themeConfig.colors;
+    if (!isObjectRecord(themeConfig)) {
+        return undefined;
     }
-    return undefined;
+    const colors = themeConfig["colors"];
+    return isThemeColorMap(colors) ? colors : undefined;
 }
 function getThemeZoneColors(themeColors) {
     const zoneColors = themeColors?.["zoneColors"];

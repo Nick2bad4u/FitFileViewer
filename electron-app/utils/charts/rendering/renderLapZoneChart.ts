@@ -10,6 +10,7 @@ import {
     type ManagedChartConfig,
     type ManagedChartInstance,
 } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 interface LapZoneChartOptions {
@@ -425,12 +426,8 @@ function getThemeColor(
 }
 
 function getThemeName(themeConfig: unknown): unknown {
-    if (
-        typeof themeConfig === "object" &&
-        themeConfig !== null &&
-        "name" in themeConfig
-    ) {
-        return themeConfig.name;
+    if (isObjectRecord(themeConfig) && "name" in themeConfig) {
+        return themeConfig["name"];
     }
     return undefined;
 }

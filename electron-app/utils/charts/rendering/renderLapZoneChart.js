@@ -3,6 +3,7 @@ import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createManagedChart } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 const DEFAULT_CHART_BACKGROUND = "#fff",
     DEFAULT_CHART_BORDER = "#333",
@@ -317,12 +318,8 @@ function getThemeColor(colors, key, fallback) {
         : fallback;
 }
 function getThemeName(themeConfig) {
-    if (
-        typeof themeConfig === "object" &&
-        themeConfig !== null &&
-        "name" in themeConfig
-    ) {
-        return themeConfig.name;
+    if (isObjectRecord(themeConfig) && "name" in themeConfig) {
+        return themeConfig["name"];
     }
     return undefined;
 }

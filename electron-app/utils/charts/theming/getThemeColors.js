@@ -1,4 +1,5 @@
-import { getThemeConfig, } from "../../theming/core/theme.js";
+import { getThemeConfig } from "../../theming/core/theme.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 const ERROR_MESSAGES = {
     INVALID_THEME_CONFIG: "Invalid theme configuration",
     THEME_ACCESS_ERROR: "Failed to access theme colors:",
@@ -12,18 +13,30 @@ export const FALLBACK_THEME_COLORS = {
     bgPrimary: "#ffffff",
     textPrimary: "#000000",
 };
+function isThemeColorValue(value) {
+    return (
+        typeof value === "string" ||
+        (Array.isArray(value) &&
+            value.every((item) => typeof item === "string"))
+    );
+}
+/**
+ * Checks whether an unknown value matches the theme color map contract.
+ */
+export function isThemeColorMap(value) {
+    return (
+        isObjectRecord(value) && Object.values(value).every(isThemeColorValue)
+    );
+}
 function hasThemeColors(value) {
-    if (value === null || typeof value !== "object") {
-        return false;
-    }
-    const colors = value.colors;
-    return colors !== null && typeof colors === "object";
+    return isObjectRecord(value) && isThemeColorMap(value["colors"]);
 }
 /**
  * Get a specific string theme color by key.
  *
  * @param colorKey - Color key to retrieve.
  * @param fallback - Fallback color when the key is invalid or missing.
+ *
  * @returns Theme color value or fallback.
  */
 export function getThemeColor(colorKey, fallback = "#000000") {
@@ -34,9 +47,11 @@ export function getThemeColor(colorKey, fallback = "#000000") {
     try {
         const color = getThemeColors()[colorKey];
         return typeof color === "string" && color ? color : fallback;
-    }
-    catch (error) {
-        console.error(`[getThemeColor] Error getting color '${colorKey}':`, error);
+    } catch (error) {
+        console.error(
+            `[getThemeColor] Error getting color '${colorKey}':`,
+            error
+        );
         return fallback;
     }
 }
@@ -49,13 +64,17 @@ export function getThemeColors() {
     try {
         const themeConfig = getThemeConfig();
         if (!hasThemeColors(themeConfig)) {
-            console.warn(`[getThemeColors] ${ERROR_MESSAGES.INVALID_THEME_CONFIG}`);
+            console.warn(
+                `[getThemeColors] ${ERROR_MESSAGES.INVALID_THEME_CONFIG}`
+            );
             return { ...FALLBACK_THEME_COLORS };
         }
         return { ...themeConfig.colors };
-    }
-    catch (error) {
-        console.error(`[getThemeColors] ${ERROR_MESSAGES.THEME_ACCESS_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[getThemeColors] ${ERROR_MESSAGES.THEME_ACCESS_ERROR}`,
+            error
+        );
         return { ...FALLBACK_THEME_COLORS };
     }
 }

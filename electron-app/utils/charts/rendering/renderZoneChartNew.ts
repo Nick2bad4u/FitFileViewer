@@ -13,6 +13,8 @@ import {
     createManagedChart,
     type ManagedChartConfig,
 } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
+import { isThemeColorMap } from "../theming/getThemeColors.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import {
     detectCurrentTheme,
@@ -559,16 +561,12 @@ function getStringThemeColor(
 }
 
 function getThemeColors(themeConfig: unknown): ThemeColorMap | undefined {
-    if (
-        typeof themeConfig === "object" &&
-        themeConfig !== null &&
-        "colors" in themeConfig &&
-        typeof themeConfig.colors === "object" &&
-        themeConfig.colors !== null
-    ) {
-        return themeConfig.colors as ThemeColorMap;
+    if (!isObjectRecord(themeConfig)) {
+        return undefined;
     }
-    return undefined;
+
+    const colors = themeConfig["colors"];
+    return isThemeColorMap(colors) ? colors : undefined;
 }
 
 function getThemeZoneColors(
