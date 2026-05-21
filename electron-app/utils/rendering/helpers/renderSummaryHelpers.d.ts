@@ -18,11 +18,17 @@ export const SUMMARY_COL_GLOBAL_DEFAULT_KEY: string;
 /** Returns the global summary-column storage key. */
 export function getGlobalStorageKey(): string;
 
+/** Returns the display label for a summary or lap row. */
+export function getRowLabel(rowIdx: number, isLap: boolean): string;
+
 /** Builds the file-specific summary-column storage key. */
 export function getStorageKey(
     data: FitSummaryData | SummaryRecord | null | undefined,
     allKeys?: readonly string[]
 ): string;
+
+/** Returns true when a summary column key is numeric-only. */
+export function isNumberedSummaryColumnKey(key: string): boolean;
 
 /** Loads persisted summary-column preferences. */
 export function loadColPrefs(

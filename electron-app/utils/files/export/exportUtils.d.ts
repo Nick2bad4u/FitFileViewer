@@ -13,5 +13,6 @@ export type ExportableChart = {
  * Legacy export utility surface used by migrated TypeScript modules.
  */
 export const exportUtils: {
+    copyTextToClipboard(text: string): Promise<boolean>;
     downloadChartAsPNG(chart: ExportableChart, filename: string): unknown;
 };

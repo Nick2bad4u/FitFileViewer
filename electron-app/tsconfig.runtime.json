@@ -205,6 +205,7 @@
         "utils/theming/specific/createMapThemeToggle.ts",
         "utils/theming/specific/updateMapTheme.ts",
         "utils/rendering/helpers/getActiveTabContent.ts",
+        "utils/rendering/helpers/renderSummaryHelpers.ts",
         "utils/rendering/helpers/summaryColModal.ts",
         "utils/rendering/helpers/updateControlsState.ts",
         "utils/rendering/core/renderTable.ts",
