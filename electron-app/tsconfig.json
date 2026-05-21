@@ -127,6 +127,7 @@
         "src/App.tsx",
         "src/index.css",
         "src/types/global.d.ts",
+        "main/**/*.ts",
         "windowStateUtils.ts",
         "utils.ts",
         "utils/**/*.ts",
