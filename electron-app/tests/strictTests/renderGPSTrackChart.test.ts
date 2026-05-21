@@ -832,7 +832,7 @@ describe("renderGPSTrackChart", () => {
             renderGPSTrackChart(container, data, options);
 
             const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(4); // All points with defined coordinates pass through
+            expect(chartConfig.data.datasets[0].data).toHaveLength(2); // Only finite numeric coordinates are valid
         });
     });
 });

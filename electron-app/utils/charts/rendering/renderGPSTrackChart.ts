@@ -1,8 +1,37 @@
-import { getThemeConfig } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { createManagedChart } from "../core/createManagedChart.js";
+import {
+    createManagedChart,
+    type ManagedChartConfig,
+} from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+
+interface GPSTrackPoint {
+    readonly pointIndex: number;
+    readonly x: number;
+    readonly y: number;
+}
+
+interface GPSTrackOptions {
+    readonly maxPoints: "all" | number;
+    readonly showGrid?: boolean;
+    readonly showLegend?: boolean;
+    readonly showPoints?: boolean;
+    readonly showTitle?: boolean;
+}
+
+interface GPSTrackRuntimeGlobal {
+    readonly __FFV_debugCharts?: unknown;
+}
+
+interface GPSTrackTooltipContext {
+    readonly raw: GPSTrackPoint;
+}
+
 const DEFAULT_BACKGROUND = "#181c24",
     DEFAULT_BORDER = "#444444",
     DEFAULT_GRID = "rgba(255,255,255,0.12)",
@@ -12,53 +41,70 @@ const DEFAULT_BACKGROUND = "#181c24",
     DEFAULT_SURFACE = "#23263a",
     DEFAULT_TEXT = "#ffffff",
     SEMICIRCLE_DEGREES_FACTOR = 180 / 2 ** 31;
+
 /**
  * Render a scatter chart showing GPS track coordinates.
  */
-export function renderGPSTrackChart(container, data, options) {
+export function renderGPSTrackChart(
+    container: HTMLElement | null | undefined,
+    data: readonly unknown[],
+    options: GPSTrackOptions
+): void {
     try {
         const isDebugLoggingEnabled = shouldLogDebugMessages();
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTrackChart called");
         }
+
         if (!(container instanceof HTMLElement)) {
             return;
         }
+
         const safeData = getGpsRows(data),
             hasLatitude = safeData.some((row) => row.positionLat !== null),
             hasLongitude = safeData.some((row) => row.positionLong !== null);
+
         if (!hasLatitude || !hasLongitude) {
             if (isDebugLoggingEnabled) {
                 console.log("[ChartJS] No GPS position data available");
             }
             return;
         }
+
         if (chartSettingsManager.getFieldVisibility("gps_track") === "hidden") {
             return;
         }
+
         let gpsData = createGpsTrackPoints(safeData);
+
         if (gpsData.length === 0) {
             if (isDebugLoggingEnabled) {
                 console.log("[ChartJS] No valid GPS data points found");
             }
             return;
         }
+
         gpsData = limitGpsTrackPoints(gpsData, options.maxPoints);
+
         if (isDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] Creating GPS track chart with ${gpsData.length} points`
             );
         }
+
         const colors = getGpsTrackThemeColors(),
             canvas = createChartCanvas("gps-track", 0);
+
         canvas.style.background = colors.background;
         canvas.style.boxShadow = colors.shadow;
         canvas.style.borderRadius = "12px";
         container.append(canvas);
+
         const chart = createManagedChart(
             canvas,
             createGpsTrackChartConfig(gpsData, colors, options)
         );
+
         if (chart) {
             console.log("[ChartJS] GPS track chart created successfully");
         }
@@ -66,7 +112,12 @@ export function renderGPSTrackChart(container, data, options) {
         console.error("[ChartJS] Error rendering GPS track chart:", error);
     }
 }
-function createGpsTrackChartConfig(gpsData, colors, options) {
+
+function createGpsTrackChartConfig(
+    gpsData: readonly GPSTrackPoint[],
+    colors: GPSTrackThemeColors,
+    options: GPSTrackOptions
+): ManagedChartConfig {
     return {
         data: {
             datasets: [
@@ -106,7 +157,7 @@ function createGpsTrackChartConfig(gpsData, colors, options) {
                     borderColor: colors.chartBorder,
                     borderWidth: 1,
                     callbacks: {
-                        label(context) {
+                        label(context: GPSTrackTooltipContext): string[] {
                             const point = context.raw;
                             return [
                                 `Latitude: ${point.y.toFixed(6)}°`,
@@ -162,7 +213,7 @@ function createGpsTrackChartConfig(gpsData, colors, options) {
                         display: options.showGrid,
                     },
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return `${value.toFixed(4)}°`;
                         },
                         color: colors.textPrimary,
@@ -181,7 +232,7 @@ function createGpsTrackChartConfig(gpsData, colors, options) {
                         display: options.showGrid,
                     },
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return `${value.toFixed(4)}°`;
                         },
                         color: colors.textPrimary,
@@ -199,34 +250,45 @@ function createGpsTrackChartConfig(gpsData, colors, options) {
         type: "scatter",
     };
 }
-function createGpsTrackPoints(data) {
-    const points = [];
+
+function createGpsTrackPoints(
+    data: readonly NormalizedGPSTrackDatum[]
+): GPSTrackPoint[] {
+    const points: GPSTrackPoint[] = [];
+
     for (const [index, row] of data.entries()) {
         if (row.positionLat === null || row.positionLong === null) {
             continue;
         }
+
         points.push({
             pointIndex: index,
             x: row.positionLong * SEMICIRCLE_DEGREES_FACTOR,
             y: row.positionLat * SEMICIRCLE_DEGREES_FACTOR,
         });
     }
+
     return points;
 }
-function getGpsRows(data) {
+
+function getGpsRows(data: readonly unknown[]): NormalizedGPSTrackDatum[] {
     if (!Array.isArray(data)) {
         return [];
     }
+
     return data.filter(isRecordObject).map((row) => ({
         positionLat: getFiniteNumber(row["positionLat"]),
         positionLong: getFiniteNumber(row["positionLong"]),
     }));
 }
-function getFiniteNumber(value) {
+
+function getFiniteNumber(value: unknown): null | number {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
-function getGpsTrackThemeColors() {
+
+function getGpsTrackThemeColors(): GPSTrackThemeColors {
     const colors = getThemeColors();
+
     return {
         background:
             getStringColor(colors, "bgPrimary") ??
@@ -245,21 +307,31 @@ function getGpsTrackThemeColors() {
         textPrimary: getStringColor(colors, "textPrimary") ?? DEFAULT_TEXT,
     };
 }
-function getStringColor(colors, key) {
+
+function getStringColor(
+    colors: ThemeColorMap | undefined,
+    key: string
+): string | undefined {
     const value = colors?.[key];
     return typeof value === "string" && value.length > 0 ? value : undefined;
 }
-function getThemeColors() {
+
+function getThemeColors(): ThemeColorMap | undefined {
     try {
         return getThemeConfig().colors;
     } catch {
         return undefined;
     }
 }
-function isRecordObject(value) {
+
+function isRecordObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
-function limitGpsTrackPoints(gpsData, maxPoints) {
+
+function limitGpsTrackPoints(
+    gpsData: readonly GPSTrackPoint[],
+    maxPoints: "all" | number
+): GPSTrackPoint[] {
     if (
         maxPoints === "all" ||
         !Number.isFinite(maxPoints) ||
@@ -268,19 +340,40 @@ function limitGpsTrackPoints(gpsData, maxPoints) {
     ) {
         return [...gpsData];
     }
+
     const step = Math.ceil(gpsData.length / maxPoints);
     return gpsData.filter((_point, index) => index % step === 0);
 }
-function shouldLogDebugMessages() {
+
+function shouldLogDebugMessages(): boolean {
     const isTestEnvironment =
             typeof process !== "undefined" &&
             process.env["NODE_ENV"] === "test",
         isDevEnvironment =
             typeof process !== "undefined" &&
             process.env["NODE_ENV"] === "development",
-        runtimeGlobal = globalThis;
+        runtimeGlobal = globalThis as typeof globalThis & GPSTrackRuntimeGlobal;
+
     return (
         isTestEnvironment ||
         (isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts))
     );
+}
+
+interface GPSTrackThemeColors {
+    readonly background: string;
+    readonly chartBackground: string;
+    readonly chartBorder: string;
+    readonly chartSurface: string;
+    readonly gridLines: string;
+    readonly primary: string;
+    readonly primaryAlpha: string;
+    readonly shadow: string;
+    readonly text: string;
+    readonly textPrimary: string;
+}
+
+interface NormalizedGPSTrackDatum {
+    readonly positionLat: null | number;
+    readonly positionLong: null | number;
 }
