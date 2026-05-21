@@ -1,0 +1,113 @@
+import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+
+type GetStateFunction = (path: string) => unknown;
+type NotifySuccessFunction = (
+    message: string,
+    type: "success"
+) => Promise<unknown> | unknown;
+type ScheduleFunction = (callback: () => void, delay: number) => unknown;
+type ShowRenderNotificationFunction = (
+    totalChartsRendered: number,
+    visibleFieldCount: number
+) => boolean;
+type UpdateStateFunction = (
+    path: string,
+    value: Record<string, unknown>,
+    options?: StateUpdateOptions
+) => void;
+
+interface ChartRenderNotificationDependencies {
+    getState: GetStateFunction;
+    isTestRuntime: boolean;
+    notify: NotifySuccessFunction;
+    showRenderNotification: ShowRenderNotificationFunction;
+    updateState: UpdateStateFunction;
+}
+
+interface ChartRenderNotificationInput {
+    schedule?: ScheduleFunction;
+    totalChartsRendered: number;
+    visibleFieldCount: number;
+}
+
+function isChartTabActive(activeTab: unknown, isTestRuntime: boolean): boolean {
+    return isTestRuntime || activeTab === "chart" || activeTab === "chartjs";
+}
+
+function createRenderSuccessMessage(totalChartsRendered: number): string {
+    return totalChartsRendered === 1
+        ? "Chart rendered successfully"
+        : `Rendered ${totalChartsRendered} charts successfully`;
+}
+
+/**
+ * Handles the success-notification side effects for a completed chart render.
+ *
+ * @param dependencies - State and notification dependencies.
+ * @param input - Render counts and optional scheduler override.
+ */
+export function handleChartRenderNotification(
+    dependencies: ChartRenderNotificationDependencies,
+    input: ChartRenderNotificationInput
+): void {
+    const {
+        getState,
+        isTestRuntime,
+        notify: notifySuccess,
+        showRenderNotification,
+        updateState: updateChartState,
+    } = dependencies;
+    const {
+        schedule = (callback, delay) => setTimeout(callback, delay),
+        totalChartsRendered,
+        visibleFieldCount,
+    } = input;
+
+    const shouldShowNotification = showRenderNotification(
+        totalChartsRendered,
+        visibleFieldCount
+    );
+
+    if (shouldShowNotification && totalChartsRendered > 0) {
+        const activeTab = getState("ui.activeTab");
+
+        if (isChartTabActive(activeTab, isTestRuntime)) {
+            const message = createRenderSuccessMessage(totalChartsRendered);
+
+            console.log(`[ChartJS] Showing success notification: "${message}"`);
+
+            schedule(() => {
+                const currentTab = getState("ui.activeTab");
+                if (isChartTabActive(currentTab, isTestRuntime)) {
+                    Promise.resolve().then(() => notifySuccess(message, "success"));
+                } else {
+                    console.log(
+                        `[ChartJS] Notification cancelled - tab switched to ${currentTab}`
+                    );
+                }
+            }, 100);
+
+            updateChartState(
+                "ui",
+                {
+                    lastNotification: {
+                        message,
+                        timestamp: Date.now(),
+                        type: "success",
+                    },
+                },
+                { merge: true, source: "renderChartsWithData" }
+            );
+            return;
+        }
+
+        console.log(
+            `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
+        );
+        return;
+    }
+
+    console.log(
+        `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
+    );
+}

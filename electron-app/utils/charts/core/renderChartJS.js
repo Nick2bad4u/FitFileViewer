@@ -51,6 +51,7 @@ import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
 } from "./renderChartDataSettingsCache.js";
+import { handleChartRenderNotification } from "./renderChartNotificationFlow.js";
 import {
     getInjectedModule,
     getRecordFunction,
@@ -962,67 +963,19 @@ async function renderChartsWithData(
         );
     }
 
-    // Check if this is a meaningful render that warrants a notification
-    const shouldShowNotification = showRenderNotificationSafe(
-        totalChartsRendered,
-        visibleFieldCount
-    );
-
-    if (shouldShowNotification && totalChartsRendered > 0) {
-        // Check if chart tab is still active before showing notification (skip in tests)
-        const activeTab = gs_rcwd("ui.activeTab");
-        const isChartTabActive =
-            isTestRuntime ||
-            activeTab === "chart" ||
-            activeTab === "chartjs";
-
-        if (isChartTabActive) {
-            const message =
-                totalChartsRendered === 1
-                    ? "Chart rendered successfully"
-                    : `Rendered ${totalChartsRendered} charts successfully`;
-
-            console.log(`[ChartJS] Showing success notification: "${message}"`);
-
-            // Use setTimeout to ensure notification shows after any DOM changes
-            setTimeout(() => {
-                // Double-check tab is still active (skip in tests)
-                const currentTab = gs_rcwd("ui.activeTab");
-                if (
-                    isTestRuntime ||
-                    currentTab === "chart" ||
-                    currentTab === "chartjs"
-                ) {
-                    Promise.resolve().then(() => notify(message, "success"));
-                } else {
-                    console.log(
-                        `[ChartJS] Notification cancelled - tab switched to ${currentTab}`
-                    );
-                }
-            }, 100);
-
-            // Update notification state using updateState
-            us_rcwd(
-                "ui",
-                {
-                    lastNotification: {
-                        message,
-                        timestamp: Date.now(),
-                        type: "success",
-                    },
-                },
-                { merge: true, source: "renderChartsWithData" }
-            );
-        } else {
-            console.log(
-                `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
-            );
+    handleChartRenderNotification(
+        {
+            getState: gs_rcwd,
+            isTestRuntime,
+            notify,
+            showRenderNotification: showRenderNotificationSafe,
+            updateState: us_rcwd,
+        },
+        {
+            totalChartsRendered,
+            visibleFieldCount,
         }
-    } else {
-        console.log(
-            `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
-        );
-    }
+    );
 
     // Add hover effects to all rendered charts.
     // IMPORTANT: defer DOM wrapping so the initial chart paint isn't blocked.
