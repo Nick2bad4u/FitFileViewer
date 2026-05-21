@@ -1,4 +1,5 @@
 import { modalAnimationDuration } from "./aboutModal.js";
+
 /**
  * Injects comprehensive modern styles for the modal
  */
@@ -7,6 +8,7 @@ export function injectModalStyles() {
     if (document.querySelector("#about-modal-styles")) {
         return;
     }
+
     const style = document.createElement("style");
     style.id = "about-modal-styles";
     style.textContent = `
