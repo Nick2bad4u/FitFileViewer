@@ -158,6 +158,7 @@ import {
     completeChartRendering,
     startChartRendering,
 } from "./renderChartLifecycle.js";
+import { runChartRender } from "./renderChartExecution.js";
 import {
     getActivityStartTime,
     getRecordMessages,
@@ -627,26 +628,19 @@ export async function renderChartJS(targetContainer, options = {}) {
             activityStartTime
         );
 
-        let result = false;
-        try {
-            result = await renderChartsWithData(
-                targetContainer,
-                recordMesgs,
-                activityStartTime,
-                {
-                    skipControls,
-                    skipTabAbort: skipTabAbort || allowInactiveTab,
-                }
-            );
-        } catch (innerError) {
-            console.warn(
-                "[ChartJS] renderChartsWithData threw, continuing with graceful completion:",
-                innerError
-            );
-            // If we have valid data, treat inner errors as non-fatal so that overall rendering
-            // lifecycle and performance updates still occur (tests expect success in these cases)
-            result = Array.isArray(recordMesgs) && recordMesgs.length > 0;
-        }
+        const success = await runChartRender(
+            {
+                renderChartsWithData,
+                warn: (message, error) => console.warn(message, error),
+            },
+            targetContainer,
+            recordMesgs,
+            activityStartTime,
+            {
+                skipControls,
+                skipTabAbort: skipTabAbort || allowInactiveTab,
+            }
+        );
         renderTime = performance.now() - performanceStart;
         console.log(
             `[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`
@@ -656,8 +650,6 @@ export async function renderChartJS(targetContainer, options = {}) {
         const chartCount = chartGlobal._chartjsInstances
             ? chartGlobal._chartjsInstances.length
             : 0;
-        // Success reflects inner renderer outcome; do not force success when DOM errors occur
-        const success = result === true;
         completeChartRendering(
             { getGlobalChartActions, safeCompleteRendering },
             success,
