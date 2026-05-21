@@ -152,6 +152,7 @@ import { createChartStateView } from "./renderChartStateView.js";
 import { createChartActions } from "./renderChartActions.js";
 import { registerChartStartup } from "./renderChartStartup.js";
 import { createChartSettingsManager } from "./renderChartSettingsManager.js";
+import { getChartStatus as getChartStatusSnapshot } from "./renderChartStatus.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -326,24 +327,8 @@ export const exportChartsWithState = createExportChartsWithState({
     setState,
 });
 
-/**
- * Get comprehensive chart status from state
- *
- * @returns {Object} Chart status information
- */
 export function getChartStatus() {
-    return {
-        chartOptions: getState("charts.chartOptions"),
-        controlsVisible: chartState.controlsVisible,
-        hasData: chartState.hasValidData,
-        isRendered: chartState.isRendered,
-        isRendering: chartState.isRendering,
-        lastRenderTime: getState("charts.lastRenderTime"),
-        performance: getState("performance.renderTimes.chart"),
-        renderableFields: chartState.renderableFields,
-        renderedCount: getState("charts.renderedCount") || 0,
-        selectedChart: chartState.selectedChart,
-    };
+    return getChartStatusSnapshot({ chartState, getState });
 }
 
 // Utility function to convert hex to rgba.
