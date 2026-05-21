@@ -127,6 +127,7 @@
         "utils/app/initialization/setupWindow.ts",
         "utils/app/initialization/updateSystemInfo.ts",
         "utils/app/events.ts",
+        "utils/app/lifecycle/listenersResize.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
         "utils/charts/core/chartSpecFactory.ts",
