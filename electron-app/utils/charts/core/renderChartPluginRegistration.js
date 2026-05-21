@@ -22,11 +22,45 @@ function markChartRegistered(chart) {
 }
 function registerBundledPlugins(chart) {
     try {
-        chart.register?.(chartBackgroundColorPlugin);
-        chart.register?.(chartLegendItemBoxPlugin);
+        const registry = chart.registry?.plugins;
+        if (!registry?.get?.("chartBackgroundColorPlugin")) {
+            chart.register?.(chartBackgroundColorPlugin);
+            console.log("[ChartJS] chartBackgroundColorPlugin registered");
+        }
+        if (!registry?.get?.("chartLegendItemBoxPlugin")) {
+            chart.register?.(chartLegendItemBoxPlugin);
+            console.log("[ChartJS] chartLegendItemBoxPlugin registered");
+        }
     }
     catch {
         // Ignore plugin registration failures in non-browser tests.
+    }
+}
+function configureLegendLabelDefaults(chart) {
+    try {
+        const legendDefaults = chart.defaults?.plugins?.legend?.labels;
+        if (!legendDefaults) {
+            return;
+        }
+        if (typeof legendDefaults["padding"] !== "number" ||
+            legendDefaults["padding"] < 10) {
+            legendDefaults["padding"] = 12;
+        }
+        if (typeof legendDefaults["boxWidth"] !== "number" ||
+            legendDefaults["boxWidth"] < 14) {
+            legendDefaults["boxWidth"] = 16;
+        }
+        if (typeof legendDefaults["boxHeight"] !== "number" ||
+            legendDefaults["boxHeight"] < 10) {
+            legendDefaults["boxHeight"] = 12;
+        }
+        if (typeof legendDefaults["pointStyleWidth"] !== "number" ||
+            legendDefaults["pointStyleWidth"] < 14) {
+            legendDefaults["pointStyleWidth"] = 16;
+        }
+    }
+    catch {
+        // Ignore legend default updates for non-standard Chart test doubles.
     }
 }
 function registerPluginsForChart(chartGlobal, chart) {
@@ -44,6 +78,7 @@ function registerPluginsForChart(chartGlobal, chart) {
         chart.register(chartGlobal.ChartZoom);
     }
     registerBundledPlugins(chart);
+    configureLegendLabelDefaults(chart);
     markChartRegistered(chart);
 }
 /**

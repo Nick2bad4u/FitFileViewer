@@ -148,6 +148,7 @@ import {
 } from "./renderChartStateManagement.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartActions } from "./renderChartActions.js";
+import { registerChartStartup } from "./renderChartStartup.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -507,79 +508,12 @@ export const chartActions = createChartActions({
     updateState: callUpdateState,
 });
 
-// Load shared configuration on page load
-if (globalThis.window !== undefined) {
-    globalThis.addEventListener("DOMContentLoaded", loadSharedConfiguration);
-}
-
-// Expose chartActions globally after definition for safe reference in early error paths
-try {
-    setGlobalChartActions(chartActions);
-} catch {
-    /* ignore */
-}
-
-// Register shared chart plugins globally
-try {
-    const ChartRef = chartGlobal.Chart;
-    const hasRegistry = Boolean(
-        ChartRef &&
-        ChartRef.registry &&
-        ChartRef.registry.plugins &&
-        typeof ChartRef.registry.plugins.get === "function"
-    );
-    const backgroundAlready = hasRegistry
-        ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin")
-        : false;
-    const legendAlready = hasRegistry
-        ? ChartRef.registry.plugins.get("chartLegendItemBoxPlugin")
-        : false;
-    if (ChartRef && typeof ChartRef.register === "function") {
-        if (!backgroundAlready) {
-            ChartRef.register(chartBackgroundColorPlugin);
-            console.log("[ChartJS] chartBackgroundColorPlugin registered");
-        }
-        if (!legendAlready) {
-            ChartRef.register(chartLegendItemBoxPlugin);
-            console.log("[ChartJS] chartLegendItemBoxPlugin registered");
-        }
-
-        try {
-            const legendDefaults =
-                ChartRef.defaults?.plugins?.legend?.labels || null;
-            if (legendDefaults && typeof legendDefaults === "object") {
-                if (
-                    typeof legendDefaults.padding !== "number" ||
-                    legendDefaults.padding < 10
-                ) {
-                    legendDefaults.padding = 12;
-                }
-                if (
-                    typeof legendDefaults.boxWidth !== "number" ||
-                    legendDefaults.boxWidth < 14
-                ) {
-                    legendDefaults.boxWidth = 16;
-                }
-                if (
-                    typeof legendDefaults.boxHeight !== "number" ||
-                    legendDefaults.boxHeight < 10
-                ) {
-                    legendDefaults.boxHeight = 12;
-                }
-                if (
-                    typeof legendDefaults.pointStyleWidth !== "number" ||
-                    legendDefaults.pointStyleWidth < 14
-                ) {
-                    legendDefaults.pointStyleWidth = 16;
-                }
-            }
-        } catch {
-            /* ignore legend defaults */
-        }
-    }
-} catch {
-    /* Ignore errors */
-}
+registerChartStartup({
+    chartActions,
+    chartGlobal,
+    loadSharedConfiguration,
+    setGlobalChartActions,
+});
 
 /**
  * State-aware chart export function
