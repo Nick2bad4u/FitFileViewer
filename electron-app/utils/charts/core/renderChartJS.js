@@ -87,6 +87,11 @@ import {
     normalizeMaxPointsValue,
 } from "./renderChartPointUtils.js";
 import {
+    clearPerformanceSettingsCache,
+    resolvePerformanceSettings,
+    shouldUseSpanGaps,
+} from "./renderChartPerformanceSettings.js";
+import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
     getGlobalChartActions,
@@ -709,11 +714,8 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 }, RENDER_DEBOUNCE_MS);
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
-const DECIMATION_THRESHOLD = 2500;
-const MAX_TICK_TARGET = 600;
 let fieldSeriesCache = new WeakMap();
 let labelsCache = new WeakMap();
-const performanceSettingsCache = new Map();
 let lastDataSettingsSignature = "";
 const invalidateChartRenderCacheListeners = new Set();
 const chartSeriesCacheStats = { hits: 0, misses: 0 };
@@ -740,7 +742,7 @@ export function invalidateChartRenderCache(reason = "manual") {
     }
     fieldSeriesCache = new WeakMap();
     labelsCache = new WeakMap();
-    performanceSettingsCache.clear();
+    clearPerformanceSettingsCache();
     lastDataSettingsSignature = "";
     chartSeriesCacheStats.hits = 0;
     chartSeriesCacheStats.misses = 0;
@@ -1155,45 +1157,6 @@ function getLabelsForRecords(recordMesgs, startTime) {
     return result;
 }
 
-function resolvePerformanceSettings(
-    totalPoints,
-    settings,
-    dataSettingsSignature
-) {
-    const key = `${totalPoints}|${settings?.chartType || "line"}|${dataSettingsSignature}`;
-    if (performanceSettingsCache.has(key)) {
-        return performanceSettingsCache.get(key);
-    }
-
-    const allowDecimation =
-        (!settings?.chartType ||
-            [
-                "area",
-                "line",
-                "radar",
-            ].includes(String(settings.chartType))) &&
-        totalPoints > DECIMATION_THRESHOLD;
-
-    const decimation = allowDecimation
-        ? {
-              algorithm: "min-max",
-              enabled: true,
-              samples: 4,
-              threshold: 1000,
-          }
-        : { enabled: false };
-
-    const tickSampleSize =
-        totalPoints > MAX_TICK_TARGET
-            ? Math.ceil(totalPoints / MAX_TICK_TARGET)
-            : undefined;
-    const enableSpanGaps = totalPoints > DECIMATION_THRESHOLD;
-
-    const result = { decimation, enableSpanGaps, tickSampleSize };
-    performanceSettingsCache.set(key, result);
-    return result;
-}
-
 /**
  * Resolve which key to read from record messages for a given chart field.
  *
@@ -1259,13 +1222,6 @@ function safeCompleteRendering(success) {
     } catch {
         /* ignore */
     }
-}
-
-function shouldUseSpanGaps(performanceSettings, seriesEntry) {
-    if (!performanceSettings?.enableSpanGaps) {
-        return false;
-    }
-    return Boolean(seriesEntry?.hasNull);
 }
 
 // Safe wrapper exports for compatibility with tests that import from renderChartJS
