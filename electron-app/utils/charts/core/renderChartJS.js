@@ -164,6 +164,7 @@ import {
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
+import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
 import {
     createRenderTimingGate,
     RENDER_DEBOUNCE_MS,
@@ -616,54 +617,15 @@ export async function renderChartJS(targetContainer, options = {}) {
 
         // Ensure renderer modules are referenced in tests to satisfy integration spies, even if the
         // internal renderer short-circuits later. These are no-ops in production and mocked in tests.
-        try {
-            if (isTestEnvironment()) {
-                const modules = getRendererModulesSafe();
-                const tmp = document.createElement("div");
-                try {
-                    modules.renderEventMessagesChart?.(
-                        tmp,
-                        {},
-                        activityStartTime
-                    );
-                } catch {
-                    /* ignore */
-                }
-                try {
-                    modules.renderTimeInZoneCharts?.(tmp, {});
-                } catch {
-                    /* ignore */
-                }
-                try {
-                    modules.renderLapZoneCharts?.(
-                        tmp,
-                        { visibilitySettings: {} }
-                    );
-                } catch {
-                    /* ignore */
-                }
-                try {
-                    modules.renderGPSTrackChart?.(tmp, recordMesgs, {});
-                } catch {
-                    /* ignore */
-                }
-                try {
-                    const labelsProbe = Array.isArray(recordMesgs)
-                        ? recordMesgs.map((_, i) => i)
-                        : [];
-                    modules.renderPerformanceAnalysisCharts?.(
-                        tmp,
-                        recordMesgs,
-                        labelsProbe,
-                        {}
-                    );
-                } catch {
-                    /* ignore */
-                }
-            }
-        } catch {
-            /* ignore */
-        }
+        touchRendererModulesForTest(
+            {
+                createElement: (tagName) => document.createElement(tagName),
+                getRendererModules: getRendererModulesSafe,
+                isTestEnvironment,
+            },
+            recordMesgs,
+            activityStartTime
+        );
 
         let result = false;
         try {
