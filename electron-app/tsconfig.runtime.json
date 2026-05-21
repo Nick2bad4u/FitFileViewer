@@ -51,6 +51,7 @@
         "main/updater/autoUpdaterAccess.ts",
         "main/runtime/electronAccess.ts",
         "main/runtime/nodeModules.ts",
+        "main/security/externalUrlPolicy.ts",
         "main/theme/getThemeFromRenderer.ts",
         "main/window/windowValidation.ts",
         "windowStateUtils.ts",
