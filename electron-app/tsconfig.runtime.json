@@ -200,6 +200,7 @@
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartSeriesCache.ts",
         "utils/charts/core/renderChartSettingsSignature.ts",
+        "utils/charts/core/renderChartStateManagement.ts",
         "utils/charts/core/renderChartStateAccess.ts",
         "utils/charts/core/renderChartThemeHelpers.ts",
         "utils/charts/core/updateChartAnimations.ts",

@@ -142,6 +142,10 @@ import {
     callUpdateState,
     getStateManagerSafe,
 } from "./renderChartStateAccess.js";
+import {
+    initializeChartStateManagement as initializeChartStateManagementImpl,
+    refreshChartsIfNeeded as refreshChartsIfNeededImpl,
+} from "./renderChartStateManagement.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -896,82 +900,18 @@ export function hexToRgba(hex, alpha) {
  * and state synchronization Call this during application startup
  */
 export function initializeChartStateManagement() {
-    console.log("[ChartJS] Initializing chart state management...");
-
-    // Initialize chart state in the global state using updateState for better merge handling
-    updateState(
-        "charts",
-        {
-            chartData: null,
-            chartOptions: {},
-            controlsVisible: true,
-            isRendered: false,
-            isRendering: false,
-            lastRenderTime: null,
-            previousState: {
-                chartCount: 0,
-                timestamp: 0,
-                visibleFields: 0,
-            },
-            renderedCount: 0,
-            selectedChart: "elevation",
-            zoomLevel: 1,
-        },
-        { merge: true, source: "initializeChartStateManagement" }
-    );
-
-    // Set up computed state dependencies
-    getComputedStateManagerSafe().define?.("charts.hasData", () => {
-        const data = getState("globalData");
-        return (
-            data &&
-            data.recordMesgs &&
-            Array.isArray(data.recordMesgs) &&
-            data.recordMesgs.length > 0
-        );
-    });
-
-    getComputedStateManagerSafe().define?.(
-        "charts.renderableFieldCount",
-        () => chartState.renderableFields.length
-    );
-
-    getComputedStateManagerSafe().define?.(
-        "charts.summary",
-        () => ({
-            chartCount: getState("charts.renderedCount") || 0,
-            fieldCount: chartState.renderableFields.length,
-            hasData: chartState.hasValidData,
+    return initializeChartStateManagementImpl({
+        getChartSummaryState: () => ({
+            hasValidData: chartState.hasValidData,
             isRendered: chartState.isRendered,
-            lastRender: getState("charts.lastRenderTime"),
-        })
-    );
-
-    // Set up state middleware for chart operations (only if not already registered)
-    if (!middlewareManager.middleware?.has?.("chart-render")) {
-        middlewareManager.register("chart-render", {
-            afterSet: (context) => {
-                console.log(
-                    "[ChartJS] Chart render action completed:",
-                    context
-                );
-                return context;
-            },
-            beforeSet: (context) => {
-                console.log("[ChartJS] Starting chart render action:", context);
-                return context;
-            },
-            onError: (context) => {
-                console.error("[ChartJS] Chart render action failed:", context);
-                Promise.resolve().then(() =>
-                    notify("Chart rendering failed", "error")
-                );
-                return context;
-            },
-        });
-    }
-
-    console.log("[ChartJS] Chart state management initialized successfully");
+            renderableFields: chartState.renderableFields,
+        }),
+        getComputedStateManager: getComputedStateManagerSafe,
+        getState,
+        middlewareManager,
+        notify,
+        updateState,
+    });
 }
 
 /**
@@ -979,11 +919,11 @@ export function initializeChartStateManagement() {
  * met
  */
 export function refreshChartsIfNeeded() {
-    if (chartState.hasValidData && !chartState.isRendering) {
-        chartActions.requestRerender("Manual refresh requested");
-        return true;
-    }
-    return false;
+    return refreshChartsIfNeededImpl({
+        hasValidData: () => chartState.hasValidData,
+        isRendering: () => chartState.isRendering,
+        requestRerender: (reason) => chartActions.requestRerender(reason),
+    });
 }
 
 /**
