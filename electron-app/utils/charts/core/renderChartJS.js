@@ -63,7 +63,6 @@ import {
 import { applyCompletedChartHoverEffects } from "./renderChartHoverCompletion.js";
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
-import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
 import { initializeChartRuntimeBootstrap } from "./renderChartRuntimeBootstrap.js";
 import {
@@ -71,6 +70,7 @@ import {
     resolvePerformanceSettings,
     shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
+import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
 import { updateChartRenderPerformanceState } from "./renderChartPerformanceState.js";
 import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
@@ -627,49 +627,29 @@ async function renderChartsWithData(
         { skipControls, targetContainer }
     );
 
-    // Get current settings through enhanced state management
-    const settings = chartSettingsManager.getSettings(),
+    const {
+        animationStyle,
+        boolSettings,
+        chartType,
+        customColors,
+        dataSettingsSignature,
+        distanceUnits,
+        exportTheme,
+        interpolation,
+        normalizedMaxPoints,
+        performanceTuning,
+        smoothing,
+        temperatureUnits,
+        timeUnits,
+    } = resolveChartRenderSettings(
         {
-            animation: animationStyle = "normal",
-            chartType = "line",
-            colors: customColors = [],
-            exportTheme = "auto",
-            interpolation = "linear",
-            maxpoints: maxPoints = DEFAULT_MAX_POINTS,
-            showFill = false,
-            showGrid = true,
-            showLegend = true,
-            showPoints = false,
-            showTitle = true,
-            smoothing = 0.1,
-            timeUnits = "seconds",
-            distanceUnits = "kilometers",
-            temperatureUnits = "celsius",
-        } = settings,
-        // Convert boolean settings from strings (maintain backward compatibility)
-        boolSettings = {
-            showFill: String(showFill) === "on" || showFill === true,
-            showGrid: String(showGrid) !== "off" && showGrid !== false,
-            showLegend: String(showLegend) !== "off" && showLegend !== false,
-            showPoints: String(showPoints) === "on" || showPoints === true,
-            showTitle: String(showTitle) !== "off" && showTitle !== false,
-        };
-    const normalizedMaxPoints = normalizeMaxPointsValue(maxPoints);
-    const dataSettingsSignature = ensureDataSettingsSignature(settings);
-    const performanceTuning = resolvePerformanceSettings(
-        recordMesgs.length,
-        settings,
-        dataSettingsSignature
-    );
-    ss_rcwd(
-        "charts.chartOptions",
-        {
-            ...settings,
-            boolSettings,
-            performanceTuning,
-            processedAt: Date.now(),
+            defaultMaxPoints: DEFAULT_MAX_POINTS,
+            ensureDataSettingsSignature,
+            getSettings: () => chartSettingsManager.getSettings(),
+            resolvePerformanceSettings,
+            setChartOptionsState: ss_rcwd,
         },
-        { silent: false, source: "renderChartsWithData" }
+        { recordCount: recordMesgs.length }
     );
 
     const currentTheme = detectCurrentTheme();

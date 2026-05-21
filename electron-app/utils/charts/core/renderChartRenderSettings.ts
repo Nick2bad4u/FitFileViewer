@@ -1,0 +1,140 @@
+import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
+import type { MaxPointsValue } from "./renderChartPointUtils.js";
+import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
+
+type ChartRenderSettingsRecord = Record<string, unknown>;
+
+type ResolvePerformanceSettings = (
+    totalPoints: number,
+    settings: ChartRenderSettingsRecord,
+    dataSettingsSignature: string
+) => ChartPerformanceSettings;
+
+type SetChartOptionsState = (
+    path: string,
+    value: unknown,
+    options: unknown
+) => unknown;
+
+interface ResolveChartRenderSettingsDependencies {
+    defaultMaxPoints: number;
+    ensureDataSettingsSignature(settings: ChartRenderSettingsRecord): string;
+    getSettings(): ChartRenderSettingsRecord;
+    resolvePerformanceSettings: ResolvePerformanceSettings;
+    setChartOptionsState: SetChartOptionsState;
+}
+
+interface ResolveChartRenderSettingsParams {
+    recordCount: number;
+    processedAt?: number;
+}
+
+/** Boolean chart display settings normalized from persisted string values. */
+export interface ChartRenderBooleanSettings {
+    showFill: boolean;
+    showGrid: boolean;
+    showLegend: boolean;
+    showPoints: boolean;
+    showTitle: boolean;
+}
+
+/** Normalized render settings consumed by renderChartsWithData. */
+export interface ResolvedChartRenderSettings {
+    animationStyle: unknown;
+    boolSettings: ChartRenderBooleanSettings;
+    chartType: unknown;
+    customColors: unknown;
+    dataSettingsSignature: string;
+    distanceUnits: unknown;
+    exportTheme: unknown;
+    interpolation: unknown;
+    normalizedMaxPoints: MaxPointsValue;
+    performanceTuning: ChartPerformanceSettings;
+    settings: ChartRenderSettingsRecord;
+    smoothing: unknown;
+    temperatureUnits: unknown;
+    timeUnits: unknown;
+}
+
+function isSettingOn(value: unknown): boolean {
+    return String(value) === "on" || value === true;
+}
+
+function isSettingNotOff(value: unknown): boolean {
+    return String(value) !== "off" && value !== false;
+}
+
+/**
+ * Resolves persisted chart settings into render-loop inputs and updates state.
+ *
+ * @param dependencies - Runtime settings, cache signature, performance, and state hooks.
+ * @param params - Data-size inputs for performance tuning.
+ * @returns Normalized settings for chart rendering.
+ */
+export function resolveChartRenderSettings(
+    dependencies: ResolveChartRenderSettingsDependencies,
+    params: ResolveChartRenderSettingsParams
+): ResolvedChartRenderSettings {
+    const settings = dependencies.getSettings();
+    const {
+        animation: animationStyle = "normal",
+        chartType = "line",
+        colors: customColors = [],
+        distanceUnits = "kilometers",
+        exportTheme = "auto",
+        interpolation = "linear",
+        maxpoints: maxPoints = dependencies.defaultMaxPoints,
+        showFill = false,
+        showGrid = true,
+        showLegend = true,
+        showPoints = false,
+        showTitle = true,
+        smoothing = 0.1,
+        temperatureUnits = "celsius",
+        timeUnits = "seconds",
+    } = settings;
+
+    const boolSettings = {
+        showFill: isSettingOn(showFill),
+        showGrid: isSettingNotOff(showGrid),
+        showLegend: isSettingNotOff(showLegend),
+        showPoints: isSettingOn(showPoints),
+        showTitle: isSettingNotOff(showTitle),
+    };
+    const normalizedMaxPoints = normalizeMaxPointsValue(maxPoints);
+    const dataSettingsSignature =
+        dependencies.ensureDataSettingsSignature(settings);
+    const performanceTuning = dependencies.resolvePerformanceSettings(
+        params.recordCount,
+        settings,
+        dataSettingsSignature
+    );
+
+    dependencies.setChartOptionsState(
+        "charts.chartOptions",
+        {
+            ...settings,
+            boolSettings,
+            performanceTuning,
+            processedAt: params.processedAt ?? Date.now(),
+        },
+        { silent: false, source: "renderChartsWithData" }
+    );
+
+    return {
+        animationStyle,
+        boolSettings,
+        chartType,
+        customColors,
+        dataSettingsSignature,
+        distanceUnits,
+        exportTheme,
+        interpolation,
+        normalizedMaxPoints,
+        performanceTuning,
+        settings,
+        smoothing,
+        temperatureUnits,
+        timeUnits,
+    };
+}

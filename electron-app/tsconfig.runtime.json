@@ -219,6 +219,7 @@
         "utils/charts/core/renderChartRenderedEvent.ts",
         "utils/charts/core/renderChartRequestListener.ts",
         "utils/charts/core/renderChartResultState.ts",
+        "utils/charts/core/renderChartRenderSettings.ts",
         "utils/charts/core/renderChartRuntimeBootstrap.ts",
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartSupplementalCharts.ts",
