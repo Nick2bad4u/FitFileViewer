@@ -4,6 +4,19 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 import { computedStateManager } from "../../state/core/computedStateManager.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
+import { createChartCanvas } from "../components/createChartCanvas.js";
+import { createEnhancedChart } from "../components/createEnhancedChart.js";
+import {
+    addChartHoverEffects,
+    addHoverEffectsToExistingCharts,
+    removeChartHoverEffects,
+} from "../plugins/addChartHoverEffects.js";
+import { renderEventMessagesChart } from "../rendering/renderEventMessagesChart.js";
+import { renderGPSTimeChart } from "../rendering/renderGPSTimeChart.js";
+import { renderGPSTrackChart } from "../rendering/renderGPSTrackChart.js";
+import { renderLapZoneCharts } from "../rendering/renderLapZoneCharts.js";
+import { renderPerformanceAnalysisCharts } from "../rendering/renderPerformanceAnalysisCharts.js";
+import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
 import {
     getInjectedModule,
     getRecordFunction,
@@ -13,6 +26,24 @@ import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js"
 
 type ComputedStateManagerAccess = Record<string, unknown>;
 type FieldConverter = (value: number, field: string) => number;
+type UnknownFunction = (...args: unknown[]) => unknown;
+
+interface HoverPluginAccessors {
+    addChartHoverEffects: UnknownFunction;
+    addHoverEffectsToExistingCharts: UnknownFunction;
+    removeChartHoverEffects: UnknownFunction;
+}
+
+interface RendererModuleAccessors {
+    createChartCanvas: UnknownFunction;
+    createEnhancedChart: UnknownFunction;
+    renderEventMessagesChart: UnknownFunction;
+    renderGPSTimeChart: UnknownFunction;
+    renderGPSTrackChart: UnknownFunction;
+    renderLapZoneCharts: UnknownFunction;
+    renderPerformanceAnalysisCharts: UnknownFunction;
+    renderTimeInZoneCharts: UnknownFunction;
+}
 
 /** Legacy settings manager methods used by chart rendering. */
 export interface SettingsStateManagerAccess extends Record<string, unknown> {
@@ -94,6 +125,151 @@ export function getFormatChartFieldsSafe(): readonly string[] {
     } catch {
         return formatChartFields;
     }
+}
+
+/** Returns chart hover plugin hooks, preferring test-injected modules. */
+export function getHoverPluginsSafe(): HoverPluginAccessors {
+    const result: HoverPluginAccessors = {
+        addChartHoverEffects: addChartHoverEffects as unknown as UnknownFunction,
+        addHoverEffectsToExistingCharts:
+            addHoverEffectsToExistingCharts as unknown as UnknownFunction,
+        removeChartHoverEffects:
+            removeChartHoverEffects as unknown as UnknownFunction,
+    };
+
+    try {
+        const mod = getInjectedModule("../plugins/addChartHoverEffects.js");
+        const injectedAdd = getRecordFunction(mod, "addChartHoverEffects");
+        const injectedAddExisting = getRecordFunction(
+            mod,
+            "addHoverEffectsToExistingCharts"
+        );
+        const injectedRemove = getRecordFunction(mod, "removeChartHoverEffects");
+        if (injectedAdd) {
+            result.addChartHoverEffects = injectedAdd;
+        }
+        if (injectedAddExisting) {
+            result.addHoverEffectsToExistingCharts = injectedAddExisting;
+        }
+        if (injectedRemove) {
+            result.removeChartHoverEffects = injectedRemove;
+        }
+    } catch {
+        // Keep direct imports.
+    }
+
+    return result;
+}
+
+/** Returns chart renderer modules, preferring test-injected modules. */
+export function getRendererModulesSafe(): RendererModuleAccessors {
+    const result: RendererModuleAccessors = {
+        createChartCanvas: createChartCanvas as unknown as UnknownFunction,
+        createEnhancedChart: createEnhancedChart as unknown as UnknownFunction,
+        renderEventMessagesChart:
+            renderEventMessagesChart as unknown as UnknownFunction,
+        renderGPSTimeChart: renderGPSTimeChart as unknown as UnknownFunction,
+        renderGPSTrackChart: renderGPSTrackChart as unknown as UnknownFunction,
+        renderLapZoneCharts: renderLapZoneCharts as unknown as UnknownFunction,
+        renderPerformanceAnalysisCharts:
+            renderPerformanceAnalysisCharts as unknown as UnknownFunction,
+        renderTimeInZoneCharts:
+            renderTimeInZoneCharts as unknown as UnknownFunction,
+    };
+
+    try {
+        const canvasModule = getInjectedModule(
+            "../components/createChartCanvas.js"
+        );
+        const injectedCanvas = getRecordFunction(
+            canvasModule,
+            "createChartCanvas"
+        );
+        if (injectedCanvas) {
+            result.createChartCanvas = injectedCanvas;
+        }
+
+        const enhancedChartModule = getInjectedModule(
+            "../components/createEnhancedChart.js"
+        );
+        const injectedEnhancedChart = getRecordFunction(
+            enhancedChartModule,
+            "createEnhancedChart"
+        );
+        if (injectedEnhancedChart) {
+            result.createEnhancedChart = injectedEnhancedChart;
+        }
+
+        const eventMessagesModule = getInjectedModule(
+            "../rendering/renderEventMessagesChart.js"
+        );
+        const injectedEventMessages = getRecordFunction(
+            eventMessagesModule,
+            "renderEventMessagesChart"
+        );
+        if (injectedEventMessages) {
+            result.renderEventMessagesChart = injectedEventMessages;
+        }
+
+        const gpsTimeModule = getInjectedModule(
+            "../rendering/renderGPSTimeChart.js"
+        );
+        const injectedGpsTime = getRecordFunction(
+            gpsTimeModule,
+            "renderGPSTimeChart"
+        );
+        if (injectedGpsTime) {
+            result.renderGPSTimeChart = injectedGpsTime;
+        }
+
+        const gpsTrackModule = getInjectedModule(
+            "../rendering/renderGPSTrackChart.js"
+        );
+        const injectedGpsTrack = getRecordFunction(
+            gpsTrackModule,
+            "renderGPSTrackChart"
+        );
+        if (injectedGpsTrack) {
+            result.renderGPSTrackChart = injectedGpsTrack;
+        }
+
+        const lapZoneModule = getInjectedModule(
+            "../rendering/renderLapZoneCharts.js"
+        );
+        const injectedLapZone = getRecordFunction(
+            lapZoneModule,
+            "renderLapZoneCharts"
+        );
+        if (injectedLapZone) {
+            result.renderLapZoneCharts = injectedLapZone;
+        }
+
+        const performanceModule = getInjectedModule(
+            "../rendering/renderPerformanceAnalysisCharts.js"
+        );
+        const injectedPerformance = getRecordFunction(
+            performanceModule,
+            "renderPerformanceAnalysisCharts"
+        );
+        if (injectedPerformance) {
+            result.renderPerformanceAnalysisCharts = injectedPerformance;
+        }
+
+        const timeInZoneModule = getInjectedModule(
+            "../rendering/renderTimeInZoneCharts.js"
+        );
+        const injectedTimeInZone = getRecordFunction(
+            timeInZoneModule,
+            "renderTimeInZoneCharts"
+        );
+        if (injectedTimeInZone) {
+            result.renderTimeInZoneCharts = injectedTimeInZone;
+        }
+    } catch {
+        // Keep direct imports.
+    }
+
+    return result;
 }
 
 /** Returns the settings manager, preferring test-injected modules. */

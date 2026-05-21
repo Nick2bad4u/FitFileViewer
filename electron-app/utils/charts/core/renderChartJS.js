@@ -113,22 +113,9 @@ import {
     DATA_SIGNATURE_SOURCES,
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
-import { createChartCanvas } from "../components/createChartCanvas.js";
-import { createEnhancedChart } from "../components/createEnhancedChart.js";
-// moved up to satisfy import order lint rule
-import {
-    addChartHoverEffects,
-    addHoverEffectsToExistingCharts,
-    removeChartHoverEffects,
-} from "../plugins/addChartHoverEffects.js";
+import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartLegendItemBoxPlugin } from "../plugins/chartLegendItemBoxPlugin.js";
-import { renderEventMessagesChart } from "../rendering/renderEventMessagesChart.js";
-import { renderGPSTimeChart } from "../rendering/renderGPSTimeChart.js";
-import { renderGPSTrackChart } from "../rendering/renderGPSTrackChart.js";
-import { renderLapZoneCharts } from "../rendering/renderLapZoneCharts.js";
-import { renderPerformanceAnalysisCharts } from "../rendering/renderPerformanceAnalysisCharts.js";
-import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
 import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
@@ -144,6 +131,8 @@ import {
     getComputedStateManagerSafe,
     getConvertersSafe,
     getFormatChartFieldsSafe,
+    getHoverPluginsSafe,
+    getRendererModulesSafe,
     getSettingsStateManagerSafe,
     getSetupZoneDataSafe,
     getShowRenderNotificationSafe,
@@ -158,142 +147,6 @@ import {
 const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
-
-// duplicate declarations removed
-
-function getHoverPluginsSafe() {
-    const result = {
-        addChartHoverEffects,
-        addHoverEffectsToExistingCharts,
-        removeChartHoverEffects,
-    };
-    try {
-        const m = getInjectedModule("../plugins/addChartHoverEffects.js");
-        const injectedAdd = getRecordFunction(m, "addChartHoverEffects");
-        const injectedAddExisting = getRecordFunction(
-            m,
-            "addHoverEffectsToExistingCharts"
-        );
-        const injectedRemove = getRecordFunction(m, "removeChartHoverEffects");
-        if (injectedAdd) {
-            result.addChartHoverEffects = injectedAdd;
-        }
-        if (injectedAddExisting) {
-            result.addHoverEffectsToExistingCharts = injectedAddExisting;
-        }
-        if (injectedRemove) {
-            result.removeChartHoverEffects = injectedRemove;
-        }
-    } catch {
-        /* ignore */
-    }
-    return result;
-}
-
-function getRendererModulesSafe() {
-    const result = {
-        createChartCanvas,
-        createEnhancedChart,
-        renderEventMessagesChart,
-        renderGPSTimeChart,
-        renderGPSTrackChart,
-        renderLapZoneCharts,
-        renderPerformanceAnalysisCharts,
-        renderTimeInZoneCharts,
-    };
-    try {
-        const canvasModule = getInjectedModule(
-            "../components/createChartCanvas.js"
-        );
-        const injectedCanvas = getRecordFunction(
-            canvasModule,
-            "createChartCanvas"
-        );
-        if (injectedCanvas) {
-            result.createChartCanvas = injectedCanvas;
-        }
-
-        const enhancedChartModule = getInjectedModule(
-            "../components/createEnhancedChart.js"
-        );
-        const injectedEnhancedChart = getRecordFunction(
-            enhancedChartModule,
-            "createEnhancedChart"
-        );
-        if (injectedEnhancedChart) {
-            result.createEnhancedChart = injectedEnhancedChart;
-        }
-
-        const eventMessagesModule = getInjectedModule(
-            "../rendering/renderEventMessagesChart.js"
-        );
-        const injectedEventMessages = getRecordFunction(
-            eventMessagesModule,
-            "renderEventMessagesChart"
-        );
-        if (injectedEventMessages) {
-            result.renderEventMessagesChart = injectedEventMessages;
-        }
-
-        const gpsTimeModule = getInjectedModule(
-            "../rendering/renderGPSTimeChart.js"
-        );
-        const injectedGpsTime = getRecordFunction(
-            gpsTimeModule,
-            "renderGPSTimeChart"
-        );
-        if (injectedGpsTime) {
-            result.renderGPSTimeChart = injectedGpsTime;
-        }
-
-        const gpsTrackModule = getInjectedModule(
-            "../rendering/renderGPSTrackChart.js"
-        );
-        const injectedGpsTrack = getRecordFunction(
-            gpsTrackModule,
-            "renderGPSTrackChart"
-        );
-        if (injectedGpsTrack) {
-            result.renderGPSTrackChart = injectedGpsTrack;
-        }
-
-        const lapZoneModule = getInjectedModule(
-            "../rendering/renderLapZoneCharts.js"
-        );
-        const injectedLapZone = getRecordFunction(
-            lapZoneModule,
-            "renderLapZoneCharts"
-        );
-        if (injectedLapZone) {
-            result.renderLapZoneCharts = injectedLapZone;
-        }
-
-        const performanceModule = getInjectedModule(
-            "../rendering/renderPerformanceAnalysisCharts.js"
-        );
-        const injectedPerformance = getRecordFunction(
-            performanceModule,
-            "renderPerformanceAnalysisCharts"
-        );
-        if (injectedPerformance) {
-            result.renderPerformanceAnalysisCharts = injectedPerformance;
-        }
-
-        const timeInZoneModule = getInjectedModule(
-            "../rendering/renderTimeInZoneCharts.js"
-        );
-        const injectedTimeInZone = getRecordFunction(
-            timeInZoneModule,
-            "renderTimeInZoneCharts"
-        );
-        if (injectedTimeInZone) {
-            result.renderTimeInZoneCharts = injectedTimeInZone;
-        }
-    } catch {
-        /* ignore */
-    }
-    return result;
-}
 
 function resolveChartSettingsApi() {
     const manager = getSettingsStateManagerSafe();
