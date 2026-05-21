@@ -5,7 +5,9 @@
 import * as mapControls from "./controls/index.js";
 import * as mapCore from "./core/index.js";
 import * as mapLayers from "./layers/index.js";
+
 export * from "./core/index.js";
+
 export default {
     controls: mapControls,
     core: mapCore,
