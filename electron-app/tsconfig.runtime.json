@@ -46,6 +46,7 @@
     },
     "files": [
         "main/constants.ts",
+        "main/ipc/sendToRenderer.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
         "main/updater/autoUpdaterAccess.ts",
