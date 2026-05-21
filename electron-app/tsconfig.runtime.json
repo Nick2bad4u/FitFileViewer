@@ -48,6 +48,7 @@
         "main/constants.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
+        "main/runtime/nodeModules.ts",
         "main/window/windowValidation.ts",
         "windowStateUtils.ts",
         "utils.ts",
