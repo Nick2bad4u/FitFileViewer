@@ -23,18 +23,18 @@ import {
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../notifications/showNotification.js";
 
-type LooseRecord = Record<string, any>;
+type LooseRecord = Record<string, unknown>;
 
 type FitRecord = LooseRecord & {
-    altitude?: any;
-    distance?: any;
-    enhancedAltitude?: any;
-    enhancedSpeed?: any;
-    heartRate?: any;
-    positionLat?: any;
-    positionLong?: any;
-    power?: any;
-    speed?: any;
+    altitude?: unknown;
+    distance?: unknown;
+    enhancedAltitude?: unknown;
+    enhancedSpeed?: unknown;
+    heartRate?: unknown;
+    positionLat?: unknown;
+    positionLong?: unknown;
+    power?: unknown;
+    speed?: unknown;
 };
 
 type ZoneMessage = LooseRecord & {
@@ -43,8 +43,13 @@ type ZoneMessage = LooseRecord & {
     timeInPowerZone?: unknown;
 };
 
+type ChartDataPoint = Record<string, unknown> & {
+    x?: unknown;
+    y?: unknown;
+};
+
 type ChartDataset = {
-    data?: any[];
+    data?: ChartDataPoint[];
     label?: string;
 };
 
@@ -55,7 +60,7 @@ type ChartLike = {
     data: {
         datasets: ChartDataset[];
     };
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 type SingleChartCallback = (chart: ChartLike) => void;
@@ -84,6 +89,10 @@ type GlobalData = {
 type WindowExtensions = typeof globalThis & {
     _chartjsInstances?: ChartLike[];
     globalData?: Partial<GlobalData>;
+};
+
+type ChartDevGlobal = typeof globalThis & {
+    __chartjs_dev?: { requestRerender?: (reason: string) => void };
 };
 
 type HTMLDivElementExtended = HTMLDivElement & {
@@ -137,9 +146,7 @@ function getGlobalData(): GlobalData {
 function getChartDev():
     | { requestRerender?: (reason: string) => void }
     | undefined {
-    return (globalThis as unknown as {
-        __chartjs_dev?: { requestRerender?: (reason: string) => void };
-    }).__chartjs_dev;
+    return (globalThis as ChartDevGlobal).__chartjs_dev;
 }
 
 // ==========================================
@@ -149,11 +156,11 @@ function getChartDev():
 /*
  * @typedef {Object} WindowExtensions
  *
- * @property {any[]} [_chartjsInstances] - ChartJS instances
+ * @property {unknown[]} [_chartjsInstances] - ChartJS instances
  * @property {Object} [globalData] - Global data object
- * @property {any[]} [globalData.timeInZoneMesgs] - Time in zone messages
- * @property {any[]} [globalData.eventMesgs] - Event messages
- * @property {any[]} [globalData.recordMesgs] - Record messages
+ * @property {unknown[]} [globalData.timeInZoneMesgs] - Time in zone messages
+ * @property {unknown[]} [globalData.eventMesgs] - Event messages
+ * @property {unknown[]} [globalData.recordMesgs] - Record messages
  */
 
 /*
@@ -167,11 +174,11 @@ function getChartDev():
  * @property {number} [step] - Step value for sliders
  * @property {any} [defaultValue] - Default value
  * @property {any} [default] - Default value (alternate property)
- * @property {any[]} [options] - Options for select controls
+ * @property {unknown[]} [options] - Options for select controls
  */
 
 /*
- * @typedef {HTMLInputElement & { timeout?: any }} HTMLInputElementExtended
+ * @typedef {HTMLInputElement & { timeout?: ReturnType<typeof setTimeout> }} HTMLInputElementExtended
  */
 
 /*
@@ -183,7 +190,7 @@ function getChartDev():
  * `globalThis` and `window` normally point at the same object; Vitest's jsdom
  * environment can keep them separate.
  *
- * @returns {any[] | undefined}
+ * @returns {unknown[] | undefined}
  */
 function getChartInstances(): ChartLike[] | undefined {
     const globalScope = getWindowExtensions();
@@ -192,13 +199,23 @@ function getChartInstances(): ChartLike[] | undefined {
     }
 
     if (typeof window !== "undefined") {
-        const windowScope = window as unknown as WindowExtensions;
+        const windowScope = window as WindowExtensions;
         if (Array.isArray(windowScope._chartjsInstances)) {
             return windowScope._chartjsInstances;
         }
     }
 
     return undefined;
+}
+
+function parseFiniteNumber(value: unknown): number | null {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    const parsed =
+        typeof value === "number" ? value : Number.parseFloat(String(value));
+    return Number.isFinite(parsed) ? parsed : null;
 }
 
 /** Applies inline styles to the chart settings panel wrapper. */
@@ -1134,11 +1151,7 @@ function createFieldToggle(field: string): HTMLDivElement {
             case "altitude_profile": {
                 hasValidData = data.some((row) => {
                     const altitude = row.altitude || row.enhancedAltitude;
-                    return (
-                        altitude !== undefined &&
-                        altitude !== null &&
-                        !isNaN(Number.parseFloat(altitude))
-                    );
+                    return parseFiniteNumber(altitude) !== null;
                 });
 
                 break;
@@ -1162,12 +1175,8 @@ function createFieldToggle(field: string): HTMLDivElement {
                     const lat = row.positionLat,
                         long = row.positionLong;
                     return (
-                        (lat !== undefined &&
-                            lat !== null &&
-                            !isNaN(Number.parseFloat(lat))) ||
-                        (long !== undefined &&
-                            long !== null &&
-                            !isNaN(Number.parseFloat(long)))
+                        parseFiniteNumber(lat) !== null ||
+                        parseFiniteNumber(long) !== null
                     );
                 });
 
@@ -1208,19 +1217,11 @@ function createFieldToggle(field: string): HTMLDivElement {
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
                         const hr = row.heartRate;
-                        return (
-                            hr !== undefined &&
-                            hr !== null &&
-                            !isNaN(Number.parseFloat(hr))
-                        );
+                        return parseFiniteNumber(hr) !== null;
                     }),
                     hasPower = data.some((row) => {
                         const { power } = row;
-                        return (
-                            power !== undefined &&
-                            power !== null &&
-                            !isNaN(Number.parseFloat(power))
-                        );
+                        return parseFiniteNumber(power) !== null;
                     });
                 hasValidData = hasPower && hasHeartRate;
 
@@ -1229,19 +1230,11 @@ function createFieldToggle(field: string): HTMLDivElement {
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
                         const { distance } = row;
-                        return (
-                            distance !== undefined &&
-                            distance !== null &&
-                            !isNaN(Number.parseFloat(distance))
-                        );
+                        return parseFiniteNumber(distance) !== null;
                     }),
                     hasSpeed = data.some((row) => {
                         const speed = row.enhancedSpeed || row.speed;
-                        return (
-                            speed !== undefined &&
-                            speed !== null &&
-                            !isNaN(Number.parseFloat(speed))
-                        );
+                        return parseFiniteNumber(speed) !== null;
                     });
                 hasValidData = hasSpeed && hasDistance;
 
@@ -1251,20 +1244,12 @@ function createFieldToggle(field: string): HTMLDivElement {
                 if (field.includes("hr_zone")) {
                     hasValidData = data.some((row) => {
                         const hr = row.heartRate;
-                        return (
-                            hr !== undefined &&
-                            hr !== null &&
-                            !isNaN(Number.parseFloat(hr))
-                        );
+                        return parseFiniteNumber(hr) !== null;
                     });
                 } else if (field.includes("power_zone")) {
                     hasValidData = data.some((row) => {
                         const { power } = row;
-                        return (
-                            power !== undefined &&
-                            power !== null &&
-                            !isNaN(Number.parseFloat(power))
-                        );
+                        return parseFiniteNumber(power) !== null;
                     });
                 } else if (
                     /* @type {string[]} */ (
@@ -1274,8 +1259,7 @@ function createFieldToggle(field: string): HTMLDivElement {
                     // Regular chart field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
-                            const value = Number.parseFloat(row[field]);
-                            return isNaN(value) ? null : value;
+                            return parseFiniteNumber(row[field]);
                         }
                         return null;
                     });
@@ -1284,8 +1268,7 @@ function createFieldToggle(field: string): HTMLDivElement {
                     // Developer field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
-                            const value = Number.parseFloat(row[field]);
-                            return isNaN(value) ? null : value;
+                            return parseFiniteNumber(row[field]);
                         }
                         return null;
                     });

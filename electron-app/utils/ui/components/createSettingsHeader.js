@@ -31,11 +31,11 @@ function getChartDev() {
 /*
  * @typedef {Object} WindowExtensions
  *
- * @property {any[]} [_chartjsInstances] - ChartJS instances
+ * @property {unknown[]} [_chartjsInstances] - ChartJS instances
  * @property {Object} [globalData] - Global data object
- * @property {any[]} [globalData.timeInZoneMesgs] - Time in zone messages
- * @property {any[]} [globalData.eventMesgs] - Event messages
- * @property {any[]} [globalData.recordMesgs] - Record messages
+ * @property {unknown[]} [globalData.timeInZoneMesgs] - Time in zone messages
+ * @property {unknown[]} [globalData.eventMesgs] - Event messages
+ * @property {unknown[]} [globalData.recordMesgs] - Record messages
  */
 /*
  * @typedef {Object} ChartOption
@@ -48,10 +48,10 @@ function getChartDev() {
  * @property {number} [step] - Step value for sliders
  * @property {any} [defaultValue] - Default value
  * @property {any} [default] - Default value (alternate property)
- * @property {any[]} [options] - Options for select controls
+ * @property {unknown[]} [options] - Options for select controls
  */
 /*
- * @typedef {HTMLInputElement & { timeout?: any }} HTMLInputElementExtended
+ * @typedef {HTMLInputElement & { timeout?: ReturnType<typeof setTimeout> }} HTMLInputElementExtended
  */
 /*
  * @typedef {HTMLDivElement & { _updateFromReset?: Function }} HTMLDivElementExtended
@@ -61,7 +61,7 @@ function getChartDev() {
  * `globalThis` and `window` normally point at the same object; Vitest's jsdom
  * environment can keep them separate.
  *
- * @returns {any[] | undefined}
+ * @returns {unknown[] | undefined}
  */
 function getChartInstances() {
     const globalScope = getWindowExtensions();
@@ -75,6 +75,13 @@ function getChartInstances() {
         }
     }
     return undefined;
+}
+function parseFiniteNumber(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+    const parsed = typeof value === "number" ? value : Number.parseFloat(String(value));
+    return Number.isFinite(parsed) ? parsed : null;
 }
 /** Applies inline styles to the chart settings panel wrapper. */
 export function applySettingsPanelStyles(wrapper) {
@@ -813,9 +820,7 @@ function createFieldToggle(field) {
             case "altitude_profile": {
                 hasValidData = data.some((row) => {
                     const altitude = row.altitude || row.enhancedAltitude;
-                    return (altitude !== undefined &&
-                        altitude !== null &&
-                        !isNaN(Number.parseFloat(altitude)));
+                    return parseFiniteNumber(altitude) !== null;
                 });
                 break;
             }
@@ -831,12 +836,8 @@ function createFieldToggle(field) {
             case "gps_track": {
                 hasValidData = data.some((row) => {
                     const lat = row.positionLat, long = row.positionLong;
-                    return ((lat !== undefined &&
-                        lat !== null &&
-                        !isNaN(Number.parseFloat(lat))) ||
-                        (long !== undefined &&
-                            long !== null &&
-                            !isNaN(Number.parseFloat(long))));
+                    return (parseFiniteNumber(lat) !== null ||
+                        parseFiniteNumber(long) !== null);
                 });
                 break;
             }
@@ -861,14 +862,10 @@ function createFieldToggle(field) {
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
                     const hr = row.heartRate;
-                    return (hr !== undefined &&
-                        hr !== null &&
-                        !isNaN(Number.parseFloat(hr)));
+                    return parseFiniteNumber(hr) !== null;
                 }), hasPower = data.some((row) => {
                     const { power } = row;
-                    return (power !== undefined &&
-                        power !== null &&
-                        !isNaN(Number.parseFloat(power)));
+                    return parseFiniteNumber(power) !== null;
                 });
                 hasValidData = hasPower && hasHeartRate;
                 break;
@@ -876,14 +873,10 @@ function createFieldToggle(field) {
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
                     const { distance } = row;
-                    return (distance !== undefined &&
-                        distance !== null &&
-                        !isNaN(Number.parseFloat(distance)));
+                    return parseFiniteNumber(distance) !== null;
                 }), hasSpeed = data.some((row) => {
                     const speed = row.enhancedSpeed || row.speed;
-                    return (speed !== undefined &&
-                        speed !== null &&
-                        !isNaN(Number.parseFloat(speed)));
+                    return parseFiniteNumber(speed) !== null;
                 });
                 hasValidData = hasSpeed && hasDistance;
                 break;
@@ -892,17 +885,13 @@ function createFieldToggle(field) {
                 if (field.includes("hr_zone")) {
                     hasValidData = data.some((row) => {
                         const hr = row.heartRate;
-                        return (hr !== undefined &&
-                            hr !== null &&
-                            !isNaN(Number.parseFloat(hr)));
+                        return parseFiniteNumber(hr) !== null;
                     });
                 }
                 else if (field.includes("power_zone")) {
                     hasValidData = data.some((row) => {
                         const { power } = row;
-                        return (power !== undefined &&
-                            power !== null &&
-                            !isNaN(Number.parseFloat(power)));
+                        return parseFiniteNumber(power) !== null;
                     });
                 }
                 else if (
@@ -911,8 +900,7 @@ function createFieldToggle(field) {
                     // Regular chart field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
-                            const value = Number.parseFloat(row[field]);
-                            return isNaN(value) ? null : value;
+                            return parseFiniteNumber(row[field]);
                         }
                         return null;
                     });
@@ -922,8 +910,7 @@ function createFieldToggle(field) {
                     // Developer field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
-                            const value = Number.parseFloat(row[field]);
-                            return isNaN(value) ? null : value;
+                            return parseFiniteNumber(row[field]);
                         }
                         return null;
                     });
