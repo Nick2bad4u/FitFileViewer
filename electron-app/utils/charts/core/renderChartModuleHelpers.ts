@@ -12,6 +12,13 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Returns true for non-null, non-array object values that can be used as data rows.
+ */
+export function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return isRecord(value) && !Array.isArray(value);
+}
+
+/**
  * Reads a property from an unknown record-like value.
  */
 export function getRecordValue(value: unknown, key: string): unknown {

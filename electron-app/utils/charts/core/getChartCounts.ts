@@ -1,5 +1,6 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRecordMessages } from "./renderChartDataPreparation.js";
 import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 
@@ -296,7 +297,7 @@ function getTimeInZoneRows(
         return [];
     }
 
-    return globalData.timeInZoneMesgs.filter(isObjectRow);
+    return globalData.timeInZoneMesgs.filter(isObjectRecord);
 }
 
 function hasAnalysisChartData(
@@ -335,10 +336,6 @@ function isNumericLike(value: unknown): boolean {
     }
 
     return !Number.isNaN(Number.parseFloat(String(value)));
-}
-
-function isObjectRow(value: unknown): value is ChartDataRow {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function logChartCountDebug(

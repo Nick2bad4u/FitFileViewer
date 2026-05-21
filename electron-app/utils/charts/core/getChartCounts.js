@@ -1,5 +1,6 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRecordMessages } from "./renderChartDataPreparation.js";
 const ANALYSIS_CHART_TYPES = [
     "speed_vs_distance",
@@ -161,7 +162,7 @@ function getTimeInZoneRows(globalData) {
     if (!Array.isArray(globalData?.timeInZoneMesgs)) {
         return [];
     }
-    return globalData.timeInZoneMesgs.filter(isObjectRow);
+    return globalData.timeInZoneMesgs.filter(isObjectRecord);
 }
 function hasAnalysisChartData(chartType, recordRows) {
     switch (chartType) {
@@ -182,9 +183,6 @@ function isNumericLike(value) {
         return false;
     }
     return !Number.isNaN(Number.parseFloat(String(value)));
-}
-function isObjectRow(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 function logChartCountDebug(counts, chartGlobal) {
     console.log("[ChartStatus] Chart count breakdown:", {

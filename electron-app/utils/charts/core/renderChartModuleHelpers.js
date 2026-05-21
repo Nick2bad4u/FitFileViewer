@@ -5,6 +5,12 @@ export function isRecord(value) {
     return value !== null && typeof value === "object";
 }
 /**
+ * Returns true for non-null, non-array object values that can be used as data rows.
+ */
+export function isObjectRecord(value) {
+    return isRecord(value) && !Array.isArray(value);
+}
+/**
  * Reads a property from an unknown record-like value.
  */
 export function getRecordValue(value, key) {

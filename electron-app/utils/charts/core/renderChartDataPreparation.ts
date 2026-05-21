@@ -1,4 +1,4 @@
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 
 /** Supported activity start-time values consumed by chart label normalization. */
 export type ActivityStartTime = Date | number | null;
@@ -24,7 +24,7 @@ interface StoreChartDataDependencies {
 
 /** Checks whether a value is a single object row from FIT record messages. */
 export function isChartDataRecord(value: unknown): value is ChartDataRecord {
-    return isRecord(value) && !Array.isArray(value);
+    return isObjectRecord(value);
 }
 
 /** Checks whether a value is an array containing only chart data records. */

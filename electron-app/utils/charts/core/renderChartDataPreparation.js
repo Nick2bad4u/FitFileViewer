@@ -1,7 +1,7 @@
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 /** Checks whether a value is a single object row from FIT record messages. */
 export function isChartDataRecord(value) {
-    return isRecord(value) && !Array.isArray(value);
+    return isObjectRecord(value);
 }
 /** Checks whether a value is an array containing only chart data records. */
 export function isChartDataRecordArray(value) {
