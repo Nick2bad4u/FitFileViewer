@@ -189,6 +189,7 @@
         "utils/charts/core/renderChartDataSettingsCache.ts",
         "utils/charts/core/renderChartDebounce.ts",
         "utils/charts/core/renderChartDependencyAccessors.ts",
+        "utils/charts/core/renderChartDirectRerender.ts",
         "utils/charts/core/renderChartLabelCache.ts",
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",

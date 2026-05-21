@@ -67,12 +67,12 @@ import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
 } from "./renderChartDataSettingsCache.js";
-import { debounce } from "./renderChartDebounce.js";
 import {
     getInjectedModule,
     getRecordFunction,
     getRecordValue,
 } from "./renderChartModuleHelpers.js";
+import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import {
     clearChartLabelsCache,
     getLabelsForRecords,
@@ -182,29 +182,12 @@ const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 
 // A stable debounced re-render function.
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
-const debouncedDirectRerender = debounce((reason = "State change") => {
-    const container =
-        document.querySelector("#chartjs_chart_container") ||
-        document.querySelector("#content_chartjs") ||
-        document.querySelector("#content_chart");
-
-    const { getState: getStateSafe } = getStateManagerSafe();
-    const data = getStateSafe("globalData");
-    const hasValidData = Boolean(
-        data && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0
-    );
-
-    if (container && hasValidData) {
-        // Fire and forget so this function stays purely "scheduling".
-        renderChartJS(/** @type {HTMLElement} */ (container)).catch((error) => {
-            console.warn("[ChartJS] Direct re-render failed", error);
-        });
-    } else if (isDevelopmentEnvironment()) {
-        console.log(
-            `[ChartJS] Skipping direct re-render (${reason}) - no container or no data`
-        );
-    }
-}, RENDER_DEBOUNCE_MS);
+const debouncedDirectRerender = createDebouncedDirectRerender({
+    getStateManager: getStateManagerSafe,
+    isDevelopmentEnvironment,
+    renderChart: renderChartJS,
+    waitMs: RENDER_DEBOUNCE_MS,
+});
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
 
