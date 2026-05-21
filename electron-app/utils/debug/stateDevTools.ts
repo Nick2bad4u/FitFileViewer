@@ -2,7 +2,91 @@
  * State Performance Monitor and Debug Utilities Provides debugging tools,
  * performance monitoring, and development utilities for the state system
  */
-import { getState, getStateHistory, subscribe, } from "../state/core/stateManager.js";
+
+import {
+    getState,
+    getStateHistory,
+    subscribe,
+} from "../state/core/stateManager.js";
+
+type StateRecord = Record<string, unknown>;
+type StateHistory = unknown[];
+type StateDebugGlobal = {
+    disableMonitoring: () => void;
+    enableMonitoring: () => void;
+    findSlowSubscribers: () => unknown[];
+    getHistory: () => StateHistory;
+    getMetrics: () => PerformanceMetricsSnapshot;
+    getReport: () => string;
+    getState: () => unknown;
+    logState: () => void;
+    resetMetrics: () => void;
+    validateState: () => ValidationResult;
+};
+type StateDevToolsGlobal = typeof globalThis & {
+    __stateDebug?: StateDebugGlobal;
+};
+type BrowserMemoryInfo = {
+    jsHeapSizeLimit: number;
+    totalJSHeapSize: number;
+    usedJSHeapSize: number;
+};
+type PerformanceWithMemory = Performance & {
+    memory?: unknown;
+};
+type SlowOperationRecord = {
+    duration: number;
+    operation: string;
+    stack: string | undefined;
+    timestamp: number;
+};
+type MemoryUsageRecord = {
+    jsHeapSizeLimit: number;
+    timestamp: number;
+    totalJSHeapSize: number;
+    usedJSHeapSize: number;
+};
+type ErrorRecord = {
+    context: string;
+    error: string;
+    stack: string | undefined;
+    timestamp: number;
+};
+type PerformanceMetrics = {
+    errors: ErrorRecord[];
+    memoryUsage: MemoryUsageRecord[];
+    slowOperations: SlowOperationRecord[];
+    stateChanges: number;
+    subscriptions: number;
+};
+type PerformanceMetricsSnapshot = PerformanceMetrics & {
+    isEnabled: boolean;
+    timestamp: number;
+};
+type ValidationResult = {
+    errors: string[];
+    isValid: boolean;
+    warnings: string[];
+};
+type StateSnapshot = {
+    history: StateHistory;
+    memory: { total: number; used: number } | null;
+    metrics: PerformanceMetricsSnapshot;
+    state: unknown;
+    timestamp: number;
+};
+type SnapshotDiffStateChange = {
+    key: string;
+    newValue: unknown;
+    oldValue: unknown;
+};
+type SnapshotComparison = {
+    memoryDelta: { total: number; used: number } | null;
+    stateChanges: SnapshotDiffStateChange[];
+    timeDelta: number;
+    timestamp: number;
+};
+
 /**
  * Performance monitoring configuration
  */
@@ -12,34 +96,44 @@ const PERFORMANCE_CONFIG = {
     memoryCheckInterval: 30_000, // 30 seconds
     slowOperationThreshold: 10, // Ms
 };
-function getStateDevToolsGlobal() {
-    return globalThis;
+
+function getStateDevToolsGlobal(): StateDevToolsGlobal {
+    return globalThis as StateDevToolsGlobal;
 }
+
 /**
  * Checks whether a value is a plain state record.
  */
-function isStateRecord(value) {
+function isStateRecord(value: unknown): value is StateRecord {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function isBrowserMemoryInfo(value) {
-    return (isStateRecord(value) &&
+
+function isBrowserMemoryInfo(value: unknown): value is BrowserMemoryInfo {
+    return (
+        isStateRecord(value) &&
         typeof value["jsHeapSizeLimit"] === "number" &&
         typeof value["totalJSHeapSize"] === "number" &&
-        typeof value["usedJSHeapSize"] === "number");
+        typeof value["usedJSHeapSize"] === "number"
+    );
 }
-function getBrowserMemoryInfo() {
+
+function getBrowserMemoryInfo(): BrowserMemoryInfo | null {
     if (typeof performance === "undefined" || !("memory" in performance)) {
         return null;
     }
-    const memory = performance.memory;
+
+    const memory = (performance as PerformanceWithMemory).memory;
     return isBrowserMemoryInfo(memory) ? memory : null;
 }
+
 /**
  * State Debug Utilities Class
  */
 class StateDebugUtilities {
     isDebugMode = false;
-    logLevel = "info";
+
+    logLevel: "debug" | "error" | "info" | "warn" = "info";
+
     /**
      * Check for undefined values recursively
      *
@@ -47,11 +141,16 @@ class StateDebugUtilities {
      * @param path - Current path.
      * @param validation - Validation results.
      */
-    checkForUndefined(obj, path, validation) {
+    checkForUndefined(
+        obj: unknown,
+        path: string,
+        validation: ValidationResult
+    ): void {
         if (obj === undefined) {
             validation.warnings.push(`Undefined value at path: ${path}`);
             return;
         }
+
         if (isStateRecord(obj)) {
             for (const key of Object.keys(obj)) {
                 const newPath = path ? `${path}.${key}` : key;
@@ -59,6 +158,7 @@ class StateDebugUtilities {
             }
         }
     }
+
     /**
      * Compare two state snapshots
      *
@@ -66,14 +166,23 @@ class StateDebugUtilities {
      * @param snapshot2 - Second snapshot.
      * @returns Comparison results.
      */
-    compareSnapshots(snapshot1, snapshot2) {
+    compareSnapshots(
+        snapshot1: StateSnapshot,
+        snapshot2: StateSnapshot
+    ): SnapshotComparison {
         const // Simple state comparison (could be enhanced with deep diff)
-        state1 = isStateRecord(snapshot1.state) ? snapshot1.state : {}, state2 = isStateRecord(snapshot2.state) ? snapshot2.state : {}, keys1 = Object.keys(state1), keys2 = Object.keys(state2), allKeys = new Set([...keys1, ...keys2]), diff = {
-            memoryDelta: null,
-            stateChanges: [],
-            timeDelta: snapshot2.timestamp - snapshot1.timestamp,
-            timestamp: Date.now(),
-        };
+            state1 = isStateRecord(snapshot1.state) ? snapshot1.state : {},
+            state2 = isStateRecord(snapshot2.state) ? snapshot2.state : {},
+            keys1 = Object.keys(state1),
+            keys2 = Object.keys(state2),
+            allKeys = new Set([...keys1, ...keys2]),
+            diff: SnapshotComparison = {
+                memoryDelta: null,
+                stateChanges: [],
+                timeDelta: snapshot2.timestamp - snapshot1.timestamp,
+                timestamp: Date.now(),
+            };
+
         for (const key of allKeys) {
             if (state1[key] !== state2[key]) {
                 diff.stateChanges.push({
@@ -83,6 +192,7 @@ class StateDebugUtilities {
                 });
             }
         }
+
         // Memory comparison
         if (snapshot1.memory && snapshot2.memory) {
             diff.memoryDelta = {
@@ -90,44 +200,50 @@ class StateDebugUtilities {
                 used: snapshot2.memory.used - snapshot1.memory.used,
             };
         }
+
         return diff;
     }
+
     /**
      * Create state snapshot for debugging
      *
      * @returns State snapshot with metadata.
      */
-    createSnapshot() {
+    createSnapshot(): StateSnapshot {
         const memory = getBrowserMemoryInfo();
         return {
             history: getStateHistory().slice(-10), // Last 10 changes
             memory: memory
                 ? {
-                    total: memory.totalJSHeapSize,
-                    used: memory.usedJSHeapSize,
-                }
+                      total: memory.totalJSHeapSize,
+                      used: memory.usedJSHeapSize,
+                  }
                 : null,
             metrics: performanceMonitor.getMetrics(),
             state: structuredClone(getState("")),
             timestamp: Date.now(),
         };
     }
+
     /**
      * Disable debug mode
      */
-    disableDebugMode() {
+    disableDebugMode(): void {
         this.isDebugMode = false;
         console.log("[StateDebug] Debug mode disabled");
+
         if (globalThis.window !== undefined) {
             delete getStateDevToolsGlobal().__stateDebug;
         }
     }
+
     /**
      * Enable debug mode
      */
-    enableDebugMode() {
+    enableDebugMode(): void {
         this.isDebugMode = true;
         console.log("[StateDebug] Debug mode enabled");
+
         // Expose debug utilities globally
         if (globalThis.window !== undefined) {
             // Use a distinct property name to minimize clash with existing global typedefs
@@ -145,25 +261,32 @@ class StateDebugUtilities {
             };
         }
     }
+
     /**
      * Find slow subscribers (mock implementation)
      *
      * @returns List of potentially slow subscribers.
      */
-    findSlowSubscribers() {
+    findSlowSubscribers(): unknown[] {
         // This would need access to internal subscription tracking
         // For now, return a mock result
-        console.log("[StateDebug] Slow subscriber detection not fully implemented");
+        console.log(
+            "[StateDebug] Slow subscriber detection not fully implemented"
+        );
         return [];
     }
+
     /**
      * Log current state
      */
-    logCurrentState() {
+    logCurrentState(): void {
         const state = getState("");
         console.group("[StateDebug] Current State");
         console.log("Full State:", state);
-        console.log("State Keys:", isStateRecord(state) ? Object.keys(state) : []);
+        console.log(
+            "State Keys:",
+            isStateRecord(state) ? Object.keys(state) : []
+        );
         console.log("State History Length:", getStateHistory().length);
         console.groupEnd();
     }
@@ -172,24 +295,28 @@ class StateDebugUtilities {
      *
      * @returns Validation results.
      */
-    validateState() {
-        const state = getState(""), validation = {
-            errors: [],
-            isValid: true,
-            warnings: [],
-        };
+    validateState(): ValidationResult {
+        const state = getState(""),
+            validation: ValidationResult = {
+                errors: [],
+                isValid: true,
+                warnings: [],
+            };
+
         try {
             // Check for circular references
             JSON.stringify(state);
-        }
-        catch {
+        } catch {
             validation.isValid = false;
             validation.errors.push("Circular reference detected in state");
         }
+
         // Check for undefined values
         this.checkForUndefined(state, "", validation);
+
         // Check state structure
         this.validateStateStructure(state, validation);
+
         console.log("[StateDebug] State validation:", validation);
         return validation;
     }
@@ -199,12 +326,16 @@ class StateDebugUtilities {
      * @param state - State to validate.
      * @param validation - Validation results.
      */
-    validateStateStructure(state, validation) {
+    validateStateStructure(
+        state: unknown,
+        validation: ValidationResult
+    ): void {
         if (!isStateRecord(state)) {
             validation.isValid = false;
             validation.errors.push("State root is not an object");
             return;
         }
+
         const expectedKeys = [
             "app",
             "ui",
@@ -212,11 +343,13 @@ class StateDebugUtilities {
             "system",
             "settings",
         ];
+
         for (const key of expectedKeys) {
             if (!(key in state)) {
                 validation.warnings.push(`Missing expected state key: ${key}`);
             }
         }
+
         // Check app state structure
         if (isStateRecord(state["app"])) {
             const expectedAppKeys = [
@@ -226,63 +359,77 @@ class StateDebugUtilities {
             ];
             for (const key of expectedAppKeys) {
                 if (!(key in state["app"])) {
-                    validation.warnings.push(`Missing expected app state key: ${key}`);
+                    validation.warnings.push(
+                        `Missing expected app state key: ${key}`
+                    );
                 }
             }
         }
     }
 }
+
 /**
  * State Performance Monitor Class
  */
 class StatePerformanceMonitor {
-    intervalId = null;
+    intervalId: ReturnType<typeof setInterval> | null = null;
+
     isEnabled = false;
-    metrics = {
+
+    metrics: PerformanceMetrics = {
         errors: [],
         memoryUsage: [],
         slowOperations: [],
         stateChanges: 0,
         subscriptions: 0,
     };
-    timers = new Map();
+
+    timers = new Map<string, number>();
+
     /**
      * Disable performance monitoring
      */
-    disable() {
+    disable(): void {
         if (!this.isEnabled) {
             return;
         }
+
         this.isEnabled = false;
         console.log("[StateMonitor] Performance monitoring disabled");
+
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
     }
+
     /**
      * Enable performance monitoring
      */
-    enable() {
+    enable(): void {
         if (this.isEnabled) {
             return;
         }
+
         this.isEnabled = true;
         console.log("[StateMonitor] Performance monitoring enabled");
+
         // Set up memory monitoring
         this.intervalId = setInterval(() => {
             this.recordMemoryUsage();
         }, PERFORMANCE_CONFIG.memoryCheckInterval);
+
         // Monitor state changes
         this.subscribeToStateChanges();
     }
+
     /**
      * End timing an operation
      *
      * @param operationId - Unique identifier for the operation.
      * @returns Duration in milliseconds when timing was active.
      */
-    endTimer(operationId) {
+    endTimer(operationId: string): number | undefined {
         if (!this.isEnabled) {
             return;
         }
@@ -297,25 +444,29 @@ class StatePerformanceMonitor {
         }
         return duration;
     }
+
     /**
      * Get performance metrics
      *
      * @returns Performance metrics.
      */
-    getMetrics() {
+    getMetrics(): PerformanceMetricsSnapshot {
         return {
             ...this.metrics,
             isEnabled: this.isEnabled,
             timestamp: Date.now(),
         };
     }
+
     /**
      * Get performance report
      *
      * @returns Formatted performance report.
      */
-    getReport() {
-        const metrics = this.getMetrics(), latestMemory = metrics.memoryUsage.at(-1);
+    getReport(): string {
+        const metrics = this.getMetrics(),
+            latestMemory = metrics.memoryUsage.at(-1);
+
         return `
 State Performance Report
 ========================
@@ -325,104 +476,134 @@ Slow Operations: ${metrics.slowOperations.length}
 Errors: ${metrics.errors.length}
 
 Memory Usage:
-${latestMemory
-            ? `
+${
+    latestMemory
+        ? `
   Used JS Heap: ${(latestMemory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB
   Total JS Heap: ${(latestMemory.totalJSHeapSize / 1024 / 1024).toFixed(2)} MB
   Heap Limit: ${(latestMemory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)} MB
 `
-            : "  Memory info not available"}
+        : "  Memory info not available"
+}
 
 Recent Slow Operations:
-${metrics.slowOperations
-            .slice(-5)
-            .map((op) => `  ${op.operation}: ${op.duration.toFixed(2)}ms`)
-            .join("\n") || "  None"}
+${
+    metrics.slowOperations
+        .slice(-5)
+        .map((op) => `  ${op.operation}: ${op.duration.toFixed(2)}ms`)
+        .join("\n") || "  None"
+}
 
 Recent Errors:
-${metrics.errors
-            .slice(-3)
-            .map((err) => `  ${err.context}: ${err.error}`)
-            .join("\n") || "  None"}
+${
+    metrics.errors
+        .slice(-3)
+        .map((err) => `  ${err.context}: ${err.error}`)
+        .join("\n") || "  None"
+}
         `.trim();
     }
+
     /**
      * Record an error
      *
      * @param error - Error to record.
      * @param context - Context where error occurred.
      */
-    recordError(error, context) {
-        const record = {
+    recordError(error: Error, context: string): void {
+        const record: ErrorRecord = {
             context,
             error: error.message,
             stack: error.stack,
             timestamp: Date.now(),
         };
+
         this.metrics.errors.push(record);
+
         // Keep only recent errors
         if (this.metrics.errors.length > PERFORMANCE_CONFIG.maxHistorySize) {
             this.metrics.errors.shift();
         }
     }
+
     /**
      * Record memory usage
      */
-    recordMemoryUsage() {
+    recordMemoryUsage(): void {
         if (!this.isEnabled) {
             return;
         }
+
         try {
             // Use performance.memory if available (Chrome/Edge)
-            if (typeof performance !== "undefined" &&
-                "memory" in performance) {
+            if (
+                typeof performance !== "undefined" &&
+                "memory" in performance
+            ) {
                 const mem = getBrowserMemoryInfo();
+
                 if (!mem) {
                     return;
                 }
-                const record = {
+
+                const record: MemoryUsageRecord = {
                     jsHeapSizeLimit: mem.jsHeapSizeLimit,
                     timestamp: Date.now(),
                     totalJSHeapSize: mem.totalJSHeapSize,
                     usedJSHeapSize: mem.usedJSHeapSize,
                 };
+
                 this.metrics.memoryUsage.push(record);
+
                 // Keep only recent memory records
-                if (this.metrics.memoryUsage.length >
-                    PERFORMANCE_CONFIG.maxHistorySize) {
+                if (
+                    this.metrics.memoryUsage.length >
+                    PERFORMANCE_CONFIG.maxHistorySize
+                ) {
                     this.metrics.memoryUsage.shift();
                 }
             }
-        }
-        catch (error) {
-            console.warn("[StateMonitor] Could not record memory usage:", error);
+        } catch (error) {
+            console.warn(
+                "[StateMonitor] Could not record memory usage:",
+                error
+            );
         }
     }
+
     /**
      * Record a slow operation
      *
      * @param operationId - Operation identifier.
      * @param duration - Duration in milliseconds.
      */
-    recordSlowOperation(operationId, duration) {
-        const record = {
+    recordSlowOperation(operationId: string, duration: number): void {
+        const record: SlowOperationRecord = {
             duration,
             operation: operationId,
             stack: new Error("Performance tracking stack trace").stack,
             timestamp: Date.now(),
         };
+
         this.metrics.slowOperations.push(record);
+
         // Keep only recent slow operations
-        if (this.metrics.slowOperations.length >
-            PERFORMANCE_CONFIG.maxHistorySize) {
+        if (
+            this.metrics.slowOperations.length >
+            PERFORMANCE_CONFIG.maxHistorySize
+        ) {
             this.metrics.slowOperations.shift();
         }
-        console.warn(`[StateMonitor] Slow operation detected: ${operationId} took ${duration.toFixed(2)}ms`);
+
+        console.warn(
+            `[StateMonitor] Slow operation detected: ${operationId} took ${duration.toFixed(2)}ms`
+        );
     }
+
     /**
      * Reset metrics
      */
-    resetMetrics() {
+    resetMetrics(): void {
         this.metrics = {
             errors: [],
             memoryUsage: [],
@@ -432,68 +613,85 @@ ${metrics.errors
         };
         console.log("[StateMonitor] Metrics reset");
     }
+
     /**
      * Start timing an operation
      *
      * @param operationId - Unique identifier for the operation.
      */
-    startTimer(operationId) {
+    startTimer(operationId: string): void {
         if (!this.isEnabled) {
             return;
         }
         this.timers.set(operationId, performance.now());
     }
+
     /**
      * Subscribe to state changes for monitoring
      */
-    subscribeToStateChanges() {
+    subscribeToStateChanges(): void {
         // Monitor all state changes
         subscribe("*", () => {
             this.metrics.stateChanges++;
         });
     }
 }
+
 /**
  * Shared state performance monitor instance.
  */
 export const performanceMonitor = new StatePerformanceMonitor();
+
 /**
  * Shared state debug utility instance.
  */
 export const debugUtilities = new StateDebugUtilities();
+
 /**
  * Cleanup development tools
  */
-export function cleanupStateDevTools() {
+export function cleanupStateDevTools(): void {
     debugUtilities.disableDebugMode();
     performanceMonitor.disable();
     console.log("[StateDevTools] Development tools cleaned up");
 }
+
 /**
  * Initialize debug and monitoring utilities
  *
  * @param enableInProduction - Whether to enable in production.
  */
-export function initializeStateDevTools(enableInProduction = false) {
-    const isDevelopment = globalThis.window !== undefined &&
+export function initializeStateDevTools(enableInProduction = false): void {
+    const isDevelopment =
+        globalThis.window !== undefined &&
         (globalThis.location.hostname === "localhost" ||
             globalThis.location.hostname === "127.0.0.1" ||
             globalThis.location.protocol === "file:");
+
     if (isDevelopment || enableInProduction) {
         debugUtilities.enableDebugMode();
+
         if (PERFORMANCE_CONFIG.enableMonitoring) {
             performanceMonitor.enable();
         }
+
         console.log("[StateDevTools] Development tools initialized");
         console.log("Available commands:");
         console.log("- window.__stateDebug.getState() - Get current state");
         console.log("- window.__stateDebug.getHistory() - Get state history");
-        console.log("- window.__stateDebug.getReport() - Get performance report");
-        console.log("- window.__stateDebug.enableMonitoring() - Enable performance monitoring");
+        console.log(
+            "- window.__stateDebug.getReport() - Get performance report"
+        );
+        console.log(
+            "- window.__stateDebug.enableMonitoring() - Enable performance monitoring"
+        );
         console.log("- window.__stateDebug.logState() - Log current state");
-        console.log("- window.__stateDebug.validateState() - Validate state integrity");
+        console.log(
+            "- window.__stateDebug.validateState() - Validate state integrity"
+        );
     }
 }
+
 /**
  * Utility function to measure state operation performance
  *
@@ -503,26 +701,35 @@ export function initializeStateDevTools(enableInProduction = false) {
  * @returns Operation result.
  * @throws Re-throws any error from the measured operation.
  */
-export async function measureStateOperation(operationName, operation) {
+export async function measureStateOperation<T>(
+    operationName: string,
+    operation: () => Promise<T> | T
+): Promise<T> {
     performanceMonitor.startTimer(operationName);
+
     try {
         return await Promise.resolve(operation()).finally(() => {
             const duration = performanceMonitor.endTimer(operationName);
+
             if (debugUtilities.isDebugMode) {
-                console.log(`[StateDebug] Operation "${operationName}" completed in ${duration?.toFixed(2)}ms`);
+                console.log(
+                    `[StateDebug] Operation "${operationName}" completed in ${duration?.toFixed(2)}ms`
+                );
             }
         });
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof Error) {
             performanceMonitor.recordError(error, operationName);
-        }
-        else {
-            performanceMonitor.recordError(new Error(String(error)), operationName);
+        } else {
+            performanceMonitor.recordError(
+                new Error(String(error)),
+                operationName
+            );
         }
         throw error;
     }
 }
+
 /**
  * Create a performance-monitored version of a callable
  *
@@ -532,6 +739,10 @@ export async function measureStateOperation(operationName, operation) {
  * @param fn - Callable to wrap.
  * @returns Wrapped callable.
  */
-export function withPerformanceMonitoring(name, fn) {
-    return async (...args) => measureStateOperation(name, () => fn(...args));
+export function withPerformanceMonitoring<Args extends unknown[], T>(
+    name: string,
+    fn: (...args: Args) => Promise<T> | T
+): (...args: Args) => Promise<T> {
+    return async (...args: Args) =>
+        measureStateOperation(name, () => fn(...args));
 }
