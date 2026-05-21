@@ -30,7 +30,6 @@
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
-import { sanitizeCssColorToken } from "../../dom/index.js";
 import {
     fieldLabels,
     formatChartFields,
@@ -167,6 +166,7 @@ import {
 } from "./renderChartPreflight.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
+import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -706,51 +706,8 @@ async function renderChartsWithData(
         { silent: false, source: "renderChartsWithData" }
     );
 
-    // Prepare zoom plugin config
-    const zoomDragBackgroundColor = sanitizeCssColorToken(
-        themeConfig.colors.primaryAlpha,
-        "rgba(59, 130, 246, 0.2)"
-    );
-    const zoomDragBorderColor = sanitizeCssColorToken(
-        themeConfig.colors.primary,
-        "rgba(59, 130, 246, 0.8)"
-    );
-    const // Get theme from options or fallback to system
-        currentTheme = detectCurrentTheme(),
-        zoomPluginConfig = {
-            limits: {
-                x: {
-                    max: "original",
-                    min: "original",
-                },
-            },
-            pan: {
-                enabled: true,
-                mode: "x",
-                modifierKey: null, // Allow panning without modifier key
-            },
-            zoom: {
-                drag: {
-                    backgroundColor: zoomDragBackgroundColor,
-                    borderColor: zoomDragBorderColor,
-                    borderWidth: 2,
-                    enabled: true,
-                    modifierKey: "shift", // Require shift key for drag selection
-                },
-                mode: "x",
-                pinch: {
-                    enabled: true,
-                },
-                wheel: {
-                    enabled: true,
-                    // Without a modifier key, chartjs-plugin-zoom captures the mouse wheel
-                    // which prevents the Charts tab from scrolling when the cursor is over
-                    // a chart. Require Ctrl+wheel for zoom so normal wheel scroll works.
-                    modifierKey: "ctrl",
-                    speed: 0.1,
-                },
-            },
-        };
+    const currentTheme = detectCurrentTheme();
+    const zoomPluginConfig = createChartZoomPluginConfig(themeConfig);
     if (isDebugLoggingEnabled) {
         console.log("[renderChartsWithData] Detected theme:", currentTheme);
     }
