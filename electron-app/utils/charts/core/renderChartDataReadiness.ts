@@ -1,6 +1,8 @@
 import { touchChartRenderDependencies } from "./renderChartDependencyTouches.js";
 import { renderNoChartDataPlaceholder } from "./renderChartPlaceholders.js";
 import {
+    type ActivityStartTime,
+    type ChartDataRecord,
     getActivityStartTime,
     getRecordMessages,
     isChartDataObject,
@@ -44,9 +46,9 @@ export type ChartRenderDataReadinessResult =
           ready: false;
       }
     | {
-          activityStartTime: unknown;
+          activityStartTime: ActivityStartTime;
           ready: true;
-          recordMesgs: unknown[];
+          recordMesgs: ChartDataRecord[];
       };
 
 async function completeMissingChartData(

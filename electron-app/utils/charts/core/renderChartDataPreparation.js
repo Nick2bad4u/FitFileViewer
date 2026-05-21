@@ -1,18 +1,33 @@
 import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+function isChartDataRecord(value) {
+    return isRecord(value) && !Array.isArray(value);
+}
+function isActivityStartTime(value) {
+    return (value instanceof Date ||
+        (typeof value === "number" && Number.isFinite(value)));
+}
 /**
  * Checks whether global chart data is a record-like object.
  */
 export function isChartDataObject(value) {
-    return isRecord(value);
+    return isChartDataRecord(value);
 }
 /**
  * Returns the time-series record messages when FIT data contains chartable rows.
  */
 export function getRecordMessages(globalData) {
     const recordMesgs = getRecordValue(globalData, "recordMesgs");
-    return Array.isArray(recordMesgs) && recordMesgs.length > 0
-        ? recordMesgs
-        : null;
+    if (!Array.isArray(recordMesgs)) {
+        return null;
+    }
+    if (recordMesgs.length === 0) {
+        return null;
+    }
+    if (recordMesgs.every(isChartDataRecord)) {
+        return recordMesgs;
+    }
+    const validRecords = recordMesgs.filter(isChartDataRecord);
+    return validRecords.length > 0 ? validRecords : null;
 }
 /**
  * Finds the first non-null timestamp from the chartable record messages.
@@ -20,7 +35,7 @@ export function getRecordMessages(globalData) {
 export function getActivityStartTime(recordMesgs) {
     for (const record of recordMesgs) {
         const timestamp = getRecordValue(record, "timestamp");
-        if (timestamp != null) {
+        if (isActivityStartTime(timestamp)) {
             return timestamp;
         }
     }

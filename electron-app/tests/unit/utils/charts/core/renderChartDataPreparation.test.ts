@@ -4,6 +4,7 @@ import {
     getActivityStartTime,
     getRecordMessages,
     isChartDataObject,
+    type PreparedChartData,
     storeChartData,
 } from "../../../../../utils/charts/core/renderChartDataPreparation.js";
 
@@ -16,25 +17,28 @@ describe("renderChartDataPreparation", () => {
             isChartDataObject([]),
             isChartDataObject(null),
             isChartDataObject("recordMesgs"),
-        ]).toStrictEqual([true, true, false, false]);
+        ]).toStrictEqual([true, false, false, false]);
     });
 
-    it("returns non-empty record messages from global chart data", () => {
-        expect.assertions(3);
+    it("returns non-empty object record messages from global chart data", () => {
+        expect.assertions(4);
 
         const recordMesgs = [{ timestamp: "2026-05-21T12:00:00Z" }];
 
         expect(getRecordMessages({ recordMesgs })).toBe(recordMesgs);
+        expect(getRecordMessages({ recordMesgs: [null, ...recordMesgs] }))
+            .toStrictEqual(recordMesgs);
         expect(getRecordMessages({ recordMesgs: [] })).toBeNull();
         expect(getRecordMessages({ sessionMesgs: recordMesgs })).toBeNull();
     });
 
-    it("finds the first non-null timestamp from record messages", () => {
+    it("finds the first supported activity start time from record messages", () => {
         expect.assertions(2);
 
         expect(
             getActivityStartTime([
                 { distance: 0 },
+                { timestamp: "2026-05-21T12:00:00Z" },
                 { timestamp: null },
                 { timestamp: 1_779_363_600 },
             ])
@@ -46,24 +50,25 @@ describe("renderChartDataPreparation", () => {
         expect.assertions(2);
 
         let storedPath = "";
-        let storedValue: unknown;
+        let storedValue: PreparedChartData | undefined;
         let storedOptions: unknown;
         const setState = vi.fn<
-            (path: string, value: unknown, options: unknown) => void
+            (path: string, value: PreparedChartData, options: unknown) => void
         >((path, value, options) => {
             storedPath = path;
             storedValue = value;
             storedOptions = options;
         });
-        const recordMesgs = [{ timestamp: "2026-05-21T12:00:00Z" }];
+        const activityStartTime = new Date("2026-05-21T12:00:00Z");
+        const recordMesgs = [{ timestamp: activityStartTime }];
 
-        storeChartData({ setState }, recordMesgs, recordMesgs[0]!.timestamp);
+        storeChartData({ setState }, recordMesgs, activityStartTime);
 
         expect(storedPath).toBe("charts.chartData");
         expect({ options: storedOptions, value: storedValue }).toStrictEqual({
             options: { silent: false, source: "renderChartJS" },
             value: {
-                activityStartTime: "2026-05-21T12:00:00Z",
+                activityStartTime,
                 recordMesgs,
                 totalDataPoints: 1,
             },
