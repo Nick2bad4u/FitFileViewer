@@ -87,8 +87,6 @@ import {
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
-// Chart utility imports
-import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 import {
     previousChartState as previousChartStateCompat,
     resetChartNotificationState as resetChartNotificationStateCompat,
@@ -138,10 +136,10 @@ import {
 } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
-import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
+import { resolveChartThemeRenderPlan } from "./renderChartThemePlan.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -547,11 +545,10 @@ async function renderChartsWithData(
         { recordCount: recordMesgs.length }
     );
 
-    const currentTheme = detectCurrentTheme();
-    const zoomPluginConfig = createChartZoomPluginConfig(themeConfig);
-    if (isDebugLoggingEnabled) {
-        console.log("[renderChartsWithData] Detected theme:", currentTheme);
-    }
+    const { zoomPluginConfig } = resolveChartThemeRenderPlan({
+        isDebugLoggingEnabled,
+        themeConfig,
+    });
 
     // Process data using memoization helpers to avoid redundant conversions across renders
     const data = recordMesgs;

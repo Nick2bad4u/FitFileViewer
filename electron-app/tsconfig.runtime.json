@@ -240,6 +240,7 @@
         "utils/charts/core/renderChartStartup.ts",
         "utils/charts/core/renderChartTestRendererTouches.ts",
         "utils/charts/core/renderChartThemeHelpers.ts",
+        "utils/charts/core/renderChartThemePlan.ts",
         "utils/charts/core/renderChartTiming.ts",
         "utils/charts/core/renderChartZoomConfig.ts",
         "utils/charts/core/updateChartAnimations.ts",
