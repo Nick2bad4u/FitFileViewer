@@ -82,6 +82,7 @@ import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import { registerChartJsPlugins } from "./renderChartPluginRegistration.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
+import { registerChartRequestListener } from "./renderChartRequestListener.js";
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
@@ -463,72 +464,11 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
 // Chart.js plugin registration
 const chartGlobal = getMutableChartRuntimeGlobal();
 registerChartJsPlugins(chartGlobal);
-
-// Enhanced state-aware file loading event listener
-if (!chartGlobal._fitFileViewerChartListener) {
-    chartGlobal._fitFileViewerChartListener = true;
-
-    // Subscribe to state changes for reactive chart updates instead of custom events
-    // The chartStateManager already handles this, so we can simplify or remove this
-
-    console.log(
-        "[ChartJS] Chart state management is now handled by chartStateManager"
-    );
-    console.log(
-        "[ChartJS] Old event-based system is being phased out in favor of reactive state"
-    );
-
-    // Bridge: handle generic render requests dispatched by other modules to avoid direct imports
-    try {
-        if (globalThis && typeof globalThis.addEventListener === "function") {
-            globalThis.addEventListener(
-                "ffv:request-render-charts",
-                (/** @type {CustomEvent} */ ev) => {
-                    const reason =
-                        ev && ev.detail && ev.detail.reason
-                            ? String(ev.detail.reason)
-                            : "event-trigger";
-                    console.log(
-                        `[ChartJS] Received render request event: ${reason}`
-                    );
-
-                    // Prefer chartStateManager if available
-                    const chartStateManager =
-                        getDebouncedChartStateManager();
-                    if (chartStateManager) {
-                        chartStateManager.debouncedRender(reason);
-                        return;
-                    }
-
-                    // Fallback: directly call renderChartJS with a sensible container
-                    const container =
-                        document.querySelector("#chartjs_chart_container") ||
-                        document.querySelector("#content_chartjs") ||
-                        document.querySelector("#content_chart") ||
-                        document.body;
-                    try {
-                        // Call without awaiting to keep handler non-blocking
-                        Promise.resolve().then(() =>
-                            renderChartJS(
-                                /** @type {HTMLElement} */ (container)
-                            )
-                        );
-                    } catch (error) {
-                        console.warn(
-                            "[ChartJS] Event-based render fallback failed:",
-                            error
-                        );
-                    }
-                }
-            );
-        }
-    } catch (listenerError) {
-        console.warn(
-            "[ChartJS] Failed to register render request listener:",
-            listenerError
-        );
-    }
-}
+registerChartRequestListener({
+    chartGlobal,
+    getChartStateManager: getDebouncedChartStateManager,
+    renderChart: renderChartJS,
+});
 
 /**
  * Creates an enhanced settings and control panel for charts
