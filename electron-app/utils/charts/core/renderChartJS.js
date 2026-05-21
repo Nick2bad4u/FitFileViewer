@@ -68,6 +68,7 @@ import {
     renderNoDataMessage,
     safeAppend,
 } from "./renderChartDomHelpers.js";
+import { debounce } from "./renderChartDebounce.js";
 import {
     getInjectedModule,
     getRecordFunction,
@@ -666,26 +667,6 @@ export const chartSettingsManager = {
         }
     },
 };
-
-/**
- * Simple debounce utility to limit function execution frequency
- *
- * @param {Function} func - Function to debounce
- * @param {number} wait - Milliseconds to wait
- *
- * @returns {Function} Debounced function
- */
-function debounce(func, wait) {
-    /** @type {ReturnType<typeof setTimeout> | null} */
-    let timeout = null;
-    // Use arrow function to avoid 'this' context issues
-    return (...args) => {
-        if (timeout) {
-            clearTimeout(timeout);
-        }
-        timeout = setTimeout(() => func(...args), wait);
-    };
-}
 
 // Debouncing variables for renderChartJS
 let lastRenderTime = 0;
