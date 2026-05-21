@@ -182,6 +182,7 @@
         "utils/charts/core/getChartCounts.ts",
         "utils/charts/core/renderChartActions.ts",
         "utils/charts/core/renderChartDomHelpers.ts",
+        "utils/charts/core/renderChartCacheApi.ts",
         "utils/charts/core/renderChartCacheManager.ts",
         "utils/charts/core/renderChartCacheInvalidationListeners.ts",
         "utils/charts/core/renderChartCachePrewarm.ts",

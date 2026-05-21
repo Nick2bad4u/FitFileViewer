@@ -112,6 +112,7 @@ import {
     notifyInvalidateChartRenderCacheListeners,
 } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
+import { createChartRenderCacheApi } from "./renderChartCacheApi.js";
 import { createChartRenderCacheManager } from "./renderChartCacheManager.js";
 import {
     getComputedStateManagerSafe,
@@ -222,31 +223,32 @@ const chartRenderCacheManager = createChartRenderCacheManager({
     notifyInvalidateChartRenderCacheListeners,
 });
 
+const chartRenderCacheApi = createChartRenderCacheApi({
+    chartRenderCacheManager,
+    chartSettingsManager,
+    prewarmChartRenderCaches: prewarmChartRenderCachesImpl,
+});
+
 export function addInvalidateChartRenderCacheListener(listener) {
-    return chartRenderCacheManager.addInvalidateChartRenderCacheListener(
+    return chartRenderCacheApi.addInvalidateChartRenderCacheListener(
         listener
     );
 }
 
 export function getChartSeriesCacheStats() {
-    return chartRenderCacheManager.getChartSeriesCacheStats();
+    return chartRenderCacheApi.getChartSeriesCacheStats();
 }
 
 export function invalidateChartRenderCache(reason = "manual") {
-    chartRenderCacheManager.invalidateChartRenderCache(reason);
+    chartRenderCacheApi.invalidateChartRenderCache(reason);
 }
 
 export async function prewarmChartRenderCaches(params) {
-    return prewarmChartRenderCachesImpl(params, {
-        getFieldVisibility: (field) =>
-            chartSettingsManager.getFieldVisibility(field),
-        getSettings: () => chartSettingsManager.getSettings(),
-        invalidateChartRenderCache,
-    });
+    return chartRenderCacheApi.prewarmChartRenderCaches(params);
 }
 
 const ensureDataSettingsSignature = (settings) =>
-    chartRenderCacheManager.ensureDataSettingsSignature(settings);
+    chartRenderCacheApi.ensureDataSettingsSignature(settings);
 
 export const previousChartState = previousChartStateCompat;
 

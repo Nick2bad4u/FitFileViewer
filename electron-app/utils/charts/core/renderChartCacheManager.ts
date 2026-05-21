@@ -22,7 +22,8 @@ interface CreateChartRenderCacheManagerDependencies {
     ): void;
 }
 
-interface ChartRenderCacheManager {
+/** Cache manager used by chart render orchestration. */
+export interface ChartRenderCacheManager {
     addInvalidateChartRenderCacheListener(
         listener: ChartCacheInvalidationListener
     ): () => void;
