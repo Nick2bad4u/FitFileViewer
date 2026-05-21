@@ -149,6 +149,7 @@ import {
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartActions } from "./renderChartActions.js";
 import { registerChartStartup } from "./renderChartStartup.js";
+import { createChartSettingsManager } from "./renderChartSettingsManager.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -156,209 +157,24 @@ const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
 
-function resolveChartSettingsApi() {
-    const manager = getSettingsStateManagerSafe();
-
-    return {
-        getChartSettings: manager.getUserChartSettings
-            ? () => manager.getUserChartSettings()
-            : manager.getChartSettings
-              ? () => manager.getChartSettings()
-              : () => manager.getSetting?.("chart") ?? {},
-        getChartSetting: manager.getChartSetting
-            ? (key) => manager.getChartSetting(key)
-            : (key) => manager.getSetting?.("chart", key),
-        setChartSetting: manager.setChartSetting
-            ? (key, value) => manager.setChartSetting(key, value)
-            : (key, value) => manager.setSetting?.("chart", value, key),
-        getChartFieldVisibility: manager.getChartFieldVisibility
-            ? (fieldKey, defaultVisibility) =>
-                  manager.getChartFieldVisibility(fieldKey, defaultVisibility)
-            : (fieldKey, defaultVisibility = "visible") => {
-                  const visibilityMap =
-                      manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  return visibilityMap?.[fieldKey] ?? defaultVisibility;
-              },
-        setChartFieldVisibility: manager.setChartFieldVisibility
-            ? (fieldKey, visibility) =>
-                  manager.setChartFieldVisibility(fieldKey, visibility)
-            : (fieldKey, visibility) => {
-                  const visibilityMap =
-                      manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  const nextVisibility = {
-                      ...visibilityMap,
-                      [fieldKey]: visibility,
-                  };
-                  manager.setSetting?.(
-                      "chart",
-                      nextVisibility,
-                      "fieldVisibility"
-                  );
-                  return nextVisibility;
-              },
-        updateChartSettings: manager.updateChartSettings
-            ? (updates) => manager.updateChartSettings(updates)
-            : (updates) => {
-                  for (const [key, value] of Object.entries(updates || {})) {
-                      if (
-                          key === "fieldVisibility" &&
-                          typeof value === "object"
-                      ) {
-                          const existing =
-                              manager.getSetting?.(
-                                  "chart",
-                                  "fieldVisibility"
-                              ) ?? {};
-                          manager.setSetting?.(
-                              "chart",
-                              { ...existing, ...value },
-                              "fieldVisibility"
-                          );
-                          continue;
-                      }
-                      manager.setSetting?.("chart", value, key);
-                  }
-              },
-    };
-}
-
 /**
  * Enhanced chart settings management with state integration Provides
  * centralized settings access with reactive updates
  */
-export const chartSettingsManager = {
-    /**
-     * Get field visibility setting with state management
-     *
-     * @param {string} field - Field name
-     *
-     * @returns {string} Visibility setting ("visible", "hidden")
-     */
-    getFieldVisibility(field) {
-        const settingsApi = resolveChartSettingsApi();
-        return settingsApi.getChartFieldVisibility(field, "visible");
-    },
-
-    /**
-     * Get chart settings with state management integration
-     *
-     * @returns {Object} Complete chart settings
-     */
-    getSettings() {
-        // First try to get from state
-        let settings = callGetState("settings.charts");
-
-        // Fallback to settings state manager if not available
-        if (!settings) {
-            const settingsApi = resolveChartSettingsApi();
-            settings = settingsApi.getChartSettings();
-            // Cache in state for faster access
-            callSetState("settings.charts", settings, {
-                silent: false,
-                source: "chartSettingsManager.getSettings",
-            });
-        }
-
-        const resolved =
-            settings && typeof settings === "object" ? settings : {};
-        const rawMaxpoints = getRecordValue(resolved, "maxpoints");
-        const normalizedMaxpoints =
-            rawMaxpoints === "all"
-                ? "all"
-                : typeof rawMaxpoints === "number" &&
-                    Number.isFinite(rawMaxpoints)
-                  ? rawMaxpoints
-                  : typeof rawMaxpoints === "string" &&
-                      Number.isFinite(Number(rawMaxpoints))
-                    ? Number(rawMaxpoints)
-                    : DEFAULT_MAX_POINTS;
-
-        // IMPORTANT: do not default to "all" maxpoints. That can freeze the UI.
-        return {
-            ...resolved,
-            animation: resolved.animation || "normal",
-            chartType: resolved.chartType || "line",
-            colors: resolved.colors || [],
-            exportTheme: resolved.exportTheme || "auto",
-            interpolation: resolved.interpolation || "linear",
-            maxpoints: normalizedMaxpoints,
-            showFill: resolved.showFill === true,
-            showGrid: resolved.showGrid !== false,
-            showLegend: resolved.showLegend !== false,
-            showPoints: resolved.showPoints === true,
-            showTitle: resolved.showTitle !== false,
-            smoothing: resolved.smoothing || 0.1,
-        };
-    },
-
-    /**
-     * Set field visibility and trigger updates
-     *
-     * @param {string} field - Field name
-     * @param {string} visibility - Visibility setting
-     */
-    setFieldVisibility(field, visibility) {
-        const settingsApi = resolveChartSettingsApi();
-        settingsApi.setChartFieldVisibility(field, visibility);
-
-        // Invalidate computed state that depends on field visibility
-        try {
-            const csm = getComputedStateManagerSafe();
-            if (typeof csm.invalidateComputed === "function") {
-                csm.invalidateComputed("charts.renderableFieldCount");
-            }
-        } catch {
-            /* ignore */
-        }
-
-        // Trigger re-render if needed
-        if (chartState.isRendered) {
-            chartActions.requestRerender(
-                `Field ${field} visibility changed to ${visibility}`
-            );
-        }
-    },
-
-    /**
-     * Update chart settings and trigger reactive updates
-     *
-     * @param {Object} newSettings - Settings to update
-     */
-    updateSettings(newSettings) {
-        const currentSettings = this.getSettings(),
-            updatedSettings = { ...currentSettings, ...newSettings },
-            previousDataSignature =
-                createDataSettingsSignature(currentSettings),
-            nextDataSignature = createDataSettingsSignature(updatedSettings),
-            dataSettingsChanged = DATA_SIGNATURE_SOURCES.some(
-                ({ settingKey }) => settingKey in newSettings
-            );
-
-        // Update through settings state manager for persistence
-        {
-            const settingsApi = resolveChartSettingsApi();
-            settingsApi.updateChartSettings(updatedSettings);
-        }
-
-        // Update in global state for reactive access using updateState
-        callUpdateState("settings.charts", updatedSettings, {
-            silent: false,
-            source: "chartSettingsManager.updateSettings",
-        });
-
-        if (
-            dataSettingsChanged ||
-            previousDataSignature !== nextDataSignature
-        ) {
-            invalidateChartRenderCache("settings-update:data-changing");
-        }
-
-        // Trigger chart re-render if charts are currently displayed
-        if (chartState.isRendered) {
-            chartActions.requestRerender("Settings updated");
-        }
-    },
-};
+export const chartSettingsManager = createChartSettingsManager({
+    createDataSettingsSignature,
+    dataSignatureSources: DATA_SIGNATURE_SOURCES,
+    defaultMaxPoints: DEFAULT_MAX_POINTS,
+    getComputedStateManager: getComputedStateManagerSafe,
+    getRecordValue,
+    getSettingsStateManager: getSettingsStateManagerSafe,
+    getState: callGetState,
+    invalidateChartRenderCache,
+    isRendered: () => chartState.isRendered,
+    requestRerender: (reason) => chartActions.requestRerender(reason),
+    setState: callSetState,
+    updateState: callUpdateState,
+});
 
 // Debouncing variables for renderChartJS
 let lastRenderTime = 0;
