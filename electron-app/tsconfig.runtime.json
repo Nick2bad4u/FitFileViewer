@@ -170,6 +170,7 @@
         "utils/app/lifecycle/resourceManager.ts",
         "utils/app/lifecycle/index.ts",
         "utils/app/menu/createAppMenu.ts",
+        "utils/app/menu/index.ts",
         "utils/app/events.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
