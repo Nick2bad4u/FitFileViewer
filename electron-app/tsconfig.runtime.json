@@ -206,6 +206,7 @@
         "utils/charts/core/renderChartModuleHelpers.ts",
         "utils/charts/core/renderChartNotificationFlow.ts",
         "utils/charts/core/renderChartNotificationHelpers.ts",
+        "utils/charts/core/renderChartNotificationStateCompat.ts",
         "utils/charts/core/renderChartPointUtils.ts",
         "utils/charts/core/renderChartPerformanceMonitor.ts",
         "utils/charts/core/renderChartPerformanceSettings.ts",

@@ -102,9 +102,11 @@ import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
-// Import the notification state module broadly; provide safe wrapper exports below to avoid
-// tight coupling during SSR and module cache injection in tests
-import * as chartNotificationState from "./chartNotificationState.js";
+import {
+    previousChartState as previousChartStateCompat,
+    resetChartNotificationState as resetChartNotificationStateCompat,
+    updatePreviousChartState as updatePreviousChartStateCompat,
+} from "./renderChartNotificationStateCompat.js";
 import {
     addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
     notifyInvalidateChartRenderCacheListeners,
@@ -176,8 +178,6 @@ import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
-const _previousChartState = chartNotificationState.previousChartState;
-
 ensureProcessNextTick();
 
 /**
@@ -248,46 +248,18 @@ export async function prewarmChartRenderCaches(params) {
 const ensureDataSettingsSignature = (settings) =>
     chartRenderCacheManager.ensureDataSettingsSignature(settings);
 
-// Injectable dependency helpers for tests (module cache injection) with production fallbacks
-// (Note) The test harness overrides CommonJS require during Vitest SSR transform.
-// Our ESM imports are compiled to require calls, so the test's module cache injection
-// will intercept dependencies without additional wrappers here.
-// Safe wrapper exports for compatibility with tests that import from renderChartJS
-// even when module cache injection returns empty objects for nested modules.
-export const previousChartState = chartNotificationState.previousChartState || {
-    chartCount: 0,
-    fieldsRendered: [],
-    lastRenderTimestamp: 0,
-};
+export const previousChartState = previousChartStateCompat;
 
 export function resetChartNotificationState() {
-    try {
-        if (
-            typeof chartNotificationState.resetChartNotificationState ===
-            "function"
-        ) {
-            return chartNotificationState.resetChartNotificationState();
-        }
-    } catch {
-        /* no-op */
-    }
+    return resetChartNotificationStateCompat();
 }
 
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
-    try {
-        if (
-            typeof chartNotificationState.updatePreviousChartState ===
-            "function"
-        ) {
-            return chartNotificationState.updatePreviousChartState(
-                chartCount,
-                visibleFields,
-                timestamp
-            );
-        }
-    } catch {
-        /* no-op */
-    }
+    return updatePreviousChartStateCompat(
+        chartCount,
+        visibleFields,
+        timestamp
+    );
 }
 
 // Chart.js plugin registration
