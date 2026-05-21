@@ -1,4 +1,3 @@
-// Simple point-to-point measurement tool for Leaflet
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -7,10 +6,12 @@ function isMeasureLeaflet(value) {
         return false;
     }
     const candidate = value;
-    return (typeof candidate["divIcon"] === "function" &&
+    return (
+        typeof candidate["divIcon"] === "function" &&
         typeof candidate["latLng"] === "function" &&
         typeof candidate["marker"] === "function" &&
-        typeof candidate["polyline"] === "function");
+        typeof candidate["polyline"] === "function"
+    );
 }
 function getMeasureToolGlobal() {
     return globalThis;
@@ -72,9 +73,24 @@ function createCancelIcon() {
     circle.setAttribute("stroke", "#b71c1c");
     circle.setAttribute("stroke-width", "2");
     icon.append(circle);
-    for (const [x1, y1, x2, y2] of [
-        ["6", "6", "14", "14"],
-        ["14", "6", "6", "14"],
+    for (const [
+        x1,
+        y1,
+        x2,
+        y2,
+    ] of [
+        [
+            "6",
+            "6",
+            "14",
+            "14",
+        ],
+        [
+            "14",
+            "6",
+            "6",
+            "14",
+        ],
     ]) {
         const line = document.createElementNS(SVG_NS, "line");
         line.setAttribute("x1", x1);
@@ -90,9 +106,12 @@ function createCancelIcon() {
 function setMeasureButtonContent(button, state, colors) {
     const label = document.createElement("span");
     label.textContent = state === "cancel" ? "Cancel" : "Measure";
-    button.replaceChildren(state === "cancel"
-        ? createCancelIcon()
-        : createMeasureIcon(colors.primary, colors.surface), label);
+    button.replaceChildren(
+        state === "cancel"
+            ? createCancelIcon()
+            : createMeasureIcon(colors.primary, colors.surface),
+        label
+    );
 }
 function createExitButton(doc) {
     const button = doc.createElement("button");
@@ -114,10 +133,20 @@ function createMeasureLabelLine(doc, value, unit) {
     line.append(valueEl, doc.createTextNode(" "), unitEl);
     return line;
 }
-function createMeasureLabelContent(doc, primaryValue, primaryUnit, secondaryValue, secondaryUnit) {
+function createMeasureLabelContent(
+    doc,
+    primaryValue,
+    primaryUnit,
+    secondaryValue,
+    secondaryUnit
+) {
     const content = doc.createElement("div");
     content.className = "measure-label-content";
-    content.append(createExitButton(doc), createMeasureLabelLine(doc, primaryValue, primaryUnit), createMeasureLabelLine(doc, secondaryValue, secondaryUnit));
+    content.append(
+        createExitButton(doc),
+        createMeasureLabelLine(doc, primaryValue, primaryUnit),
+        createMeasureLabelLine(doc, secondaryValue, secondaryUnit)
+    );
     return content;
 }
 /**
@@ -130,17 +159,28 @@ function createMeasureLabelContent(doc, primaryValue, primaryUnit, secondaryValu
  * @param controlsDiv - Container element for map action buttons.
  */
 export function addSimpleMeasureTool(map, controlsDiv) {
-    let measureLabel = null, measureLine = null, measureMarkers = [], measurePoints = [], measuring = false;
+    let measureLabel = null,
+        measureLine = null,
+        measureMarkers = [],
+        measurePoints = [],
+        measuring = false;
     // Button reference will be the created element below
     // Create the measure button up front so it's available to handlers
     const eventController = new AbortController();
     const { signal } = eventController;
     let disableTimer = null;
-    const measureBtn = document.createElement("button"), themeColors = getThemeColors();
+    const measureBtn = document.createElement("button"),
+        themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
     const typedThemeColors = themeColors;
-    const safePrimary = sanitizeCssColorToken(typedThemeColors.primary, "#3b82f6");
-    const safeSurface = sanitizeCssColorToken(typedThemeColors.surface, "#ffffff");
+    const safePrimary = sanitizeCssColorToken(
+        typedThemeColors.primary,
+        "#3b82f6"
+    );
+    const safeSurface = sanitizeCssColorToken(
+        typedThemeColors.surface,
+        "#ffffff"
+    );
     const buttonColors = { primary: safePrimary, surface: safeSurface };
     setMeasureButtonContent(measureBtn, "measure", buttonColors);
     measureBtn.title =
@@ -190,16 +230,22 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     };
     document.addEventListener("keydown", g[escapeKey], { signal });
-    signal.addEventListener("abort", () => {
-        if (disableTimer) {
-            clearTimeout(disableTimer);
-            disableTimer = null;
-        }
-    }, { once: true, signal });
+    signal.addEventListener(
+        "abort",
+        () => {
+            if (disableTimer) {
+                clearTimeout(disableTimer);
+                disableTimer = null;
+            }
+        },
+        { once: true, signal }
+    );
     function onLabelExitClick(event) {
         const { target } = event;
-        if (target instanceof HTMLElement &&
-            target.classList.contains("measure-exit-btn")) {
+        if (
+            target instanceof HTMLElement &&
+            target.classList.contains("measure-exit-btn")
+        ) {
             clearMeasure();
         }
     }
@@ -216,26 +262,47 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         marker.addTo(map);
         measureMarkers.push(marker);
         if (measurePoints.length === 2) {
-            measureLine = leaflet.polyline(measurePoints, {
-                color: "#222",
-                dashArray: "4,6",
-                weight: 3,
-            }).addTo(map);
+            measureLine = leaflet
+                .polyline(measurePoints, {
+                    color: "#222",
+                    dashArray: "4,6",
+                    weight: 3,
+                })
+                .addTo(map);
             const [p0, p1] = measurePoints;
             // Defensive: ensure both points exist (should by length check)
             if (!p0 || !p1) {
                 return;
             }
-            const dist = map.distance(p0, p1), distKm = dist / 1000, distMi = dist / 1609.344, mid = leaflet.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2), primaryValue = dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1), primaryUnit = dist >= 1000 ? "km" : "m", secondaryValue = distMi.toFixed(2), secondaryUnit = "mi";
-            measureLabel = leaflet.marker(mid, {
-                icon: leaflet.divIcon({
-                    className: "measure-label",
-                    html: createMeasureLabelContent(document, primaryValue, primaryUnit, secondaryValue, secondaryUnit),
-                }),
-                iconAnchor: [60, 19],
-                iconSize: [120, 38],
-                interactive: true,
-            }).addTo(map);
+            const dist = map.distance(p0, p1),
+                distKm = dist / 1000,
+                distMi = dist / 1609.344,
+                mid = leaflet.latLng(
+                    (p0.lat + p1.lat) / 2,
+                    (p0.lng + p1.lng) / 2
+                ),
+                primaryValue =
+                    dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1),
+                primaryUnit = dist >= 1000 ? "km" : "m",
+                secondaryValue = distMi.toFixed(2),
+                secondaryUnit = "mi";
+            measureLabel = leaflet
+                .marker(mid, {
+                    icon: leaflet.divIcon({
+                        className: "measure-label",
+                        html: createMeasureLabelContent(
+                            document,
+                            primaryValue,
+                            primaryUnit,
+                            secondaryValue,
+                            secondaryUnit
+                        ),
+                        iconAnchor: [60, 19],
+                        iconSize: [120, 38],
+                    }),
+                    interactive: true,
+                })
+                .addTo(map);
             // Add click handler for exit button
             const labelEl = measureLabel.getElement?.();
             if (labelEl) {
@@ -258,24 +325,31 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             btn.title = "Cancel measurement mode";
         }
     }
-    measureBtn.addEventListener("click", () => {
-        if (measuring) {
-            clearMeasure();
-            disableMeasure(measureBtn);
-        }
-        else {
-            clearMeasure();
-            enableSimpleMeasure(measureBtn);
-            measureBtn.disabled = true;
-            if (disableTimer) {
-                clearTimeout(disableTimer);
+    measureBtn.addEventListener(
+        "click",
+        () => {
+            if (measuring) {
+                clearMeasure();
+                disableMeasure(measureBtn);
+            } else {
+                clearMeasure();
+                enableSimpleMeasure(measureBtn);
+                measureBtn.disabled = true;
+                if (disableTimer) {
+                    clearTimeout(disableTimer);
+                }
+                disableTimer = setTimeout(() => {
+                    measureBtn.disabled = false;
+                    disableTimer = null;
+                }, 2000);
             }
-            disableTimer = setTimeout(() => {
-                measureBtn.disabled = false;
-                disableTimer = null;
-            }, 2000);
-        }
-    }, { signal });
-    controlsDiv.addEventListener("ffv:map-measure-tool:dispose", () => eventController.abort(), { once: true, signal });
+        },
+        { signal }
+    );
+    controlsDiv.addEventListener(
+        "ffv:map-measure-tool:dispose",
+        () => eventController.abort(),
+        { once: true, signal }
+    );
     controlsDiv.append(measureBtn);
 }

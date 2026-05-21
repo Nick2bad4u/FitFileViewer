@@ -1,51 +1,25 @@
 // Simple point-to-point measurement tool for Leaflet
+import type * as Leaflet from "leaflet";
+
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-type LatLngPoint = {
-    lat: number;
-    lng: number;
-};
+type LatLngPoint = Leaflet.LatLng;
 
-type MeasureClickEvent = {
-    latlng: LatLngPoint;
-};
+type MeasureClickEvent = Leaflet.LeafletMouseEvent;
 
-type MeasureLayer = MeasureMarker | MeasurePolyline;
+type MeasureMap = Leaflet.Map;
 
-type MeasureMap = {
-    distance(firstPoint: LatLngPoint, secondPoint: LatLngPoint): number;
-    off(eventName: "click", listener: (event: MeasureClickEvent) => void): unknown;
-    on(eventName: "click", listener: (event: MeasureClickEvent) => void): unknown;
-    removeLayer(layer: MeasureLayer): unknown;
-};
+type MeasureMarker = Leaflet.Marker;
 
-type MeasureMarker = {
-    addTo(map: MeasureMap): MeasureMarker;
-    getElement?: () => HTMLElement | null;
-};
+type MeasurePolyline = Leaflet.Polyline;
 
-type MeasurePolyline = {
-    addTo(map: MeasureMap): MeasurePolyline;
-};
-
-type MeasureLeaflet = {
-    divIcon(options: {
-        className: string;
-        html: HTMLElement;
-    }): unknown;
-    latLng(lat: number, lng: number): LatLngPoint;
-    marker(
-        latlng: LatLngPoint,
-        options?: Record<string, unknown>
-    ): MeasureMarker;
-    polyline(
-        points: LatLngPoint[],
-        options?: Record<string, unknown>
-    ): MeasurePolyline;
-};
+type MeasureLeaflet = Pick<
+    typeof Leaflet,
+    "divIcon" | "latLng" | "marker" | "polyline"
+>;
 
 type MeasureToolGlobal = typeof globalThis & {
     __ffvMapMeasureEscapeHandler?: (event: KeyboardEvent) => void;
@@ -80,10 +54,7 @@ function getLeaflet(): MeasureLeaflet | null {
     return isMeasureLeaflet(L) ? L : null;
 }
 
-function createMeasureIcon(
-    primary: string,
-    surface: string
-): SVGSVGElement {
+function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
@@ -143,9 +114,24 @@ function createCancelIcon(): SVGSVGElement {
     circle.setAttribute("stroke-width", "2");
     icon.append(circle);
 
-    for (const [x1, y1, x2, y2] of [
-        ["6", "6", "14", "14"],
-        ["14", "6", "6", "14"],
+    for (const [
+        x1,
+        y1,
+        x2,
+        y2,
+    ] of [
+        [
+            "6",
+            "6",
+            "14",
+            "14",
+        ],
+        [
+            "14",
+            "6",
+            "6",
+            "14",
+        ],
     ] as const) {
         const line = document.createElementNS(SVG_NS, "line");
         line.setAttribute("x1", x1);
@@ -348,11 +334,13 @@ export function addSimpleMeasureTool(
         marker.addTo(map);
         measureMarkers.push(marker);
         if (measurePoints.length === 2) {
-            measureLine = leaflet.polyline(measurePoints, {
-                color: "#222",
-                dashArray: "4,6",
-                weight: 3,
-            }).addTo(map);
+            measureLine = leaflet
+                .polyline(measurePoints, {
+                    color: "#222",
+                    dashArray: "4,6",
+                    weight: 3,
+                })
+                .addTo(map);
             const [p0, p1] = measurePoints;
             // Defensive: ensure both points exist (should by length check)
             if (!p0 || !p1) {
@@ -370,21 +358,23 @@ export function addSimpleMeasureTool(
                 primaryUnit = dist >= 1000 ? "km" : "m",
                 secondaryValue = distMi.toFixed(2),
                 secondaryUnit = "mi";
-            measureLabel = leaflet.marker(mid, {
-                icon: leaflet.divIcon({
-                    className: "measure-label",
-                    html: createMeasureLabelContent(
-                        document,
-                        primaryValue,
-                        primaryUnit,
-                        secondaryValue,
-                        secondaryUnit
-                    ),
-                }),
-                iconAnchor: [60, 19],
-                iconSize: [120, 38],
-                interactive: true,
-            }).addTo(map);
+            measureLabel = leaflet
+                .marker(mid, {
+                    icon: leaflet.divIcon({
+                        className: "measure-label",
+                        html: createMeasureLabelContent(
+                            document,
+                            primaryValue,
+                            primaryUnit,
+                            secondaryValue,
+                            secondaryUnit
+                        ),
+                        iconAnchor: [60, 19],
+                        iconSize: [120, 38],
+                    }),
+                    interactive: true,
+                })
+                .addTo(map);
             // Add click handler for exit button
             const labelEl = measureLabel.getElement?.();
             if (labelEl) {
@@ -409,23 +399,27 @@ export function addSimpleMeasureTool(
         }
     }
 
-    measureBtn.addEventListener("click", () => {
-        if (measuring) {
-            clearMeasure();
-            disableMeasure(measureBtn);
-        } else {
-            clearMeasure();
-            enableSimpleMeasure(measureBtn);
-            measureBtn.disabled = true;
-            if (disableTimer) {
-                clearTimeout(disableTimer);
+    measureBtn.addEventListener(
+        "click",
+        () => {
+            if (measuring) {
+                clearMeasure();
+                disableMeasure(measureBtn);
+            } else {
+                clearMeasure();
+                enableSimpleMeasure(measureBtn);
+                measureBtn.disabled = true;
+                if (disableTimer) {
+                    clearTimeout(disableTimer);
+                }
+                disableTimer = setTimeout(() => {
+                    measureBtn.disabled = false;
+                    disableTimer = null;
+                }, 2000);
             }
-            disableTimer = setTimeout(() => {
-                measureBtn.disabled = false;
-                disableTimer = null;
-            }, 2000);
-        }
-    }, { signal });
+        },
+        { signal }
+    );
     controlsDiv.addEventListener(
         "ffv:map-measure-tool:dispose",
         () => eventController.abort(),

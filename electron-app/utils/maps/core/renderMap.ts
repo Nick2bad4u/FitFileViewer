@@ -33,7 +33,7 @@ import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
 
-type LooseRecord = any;
+type LooseRecord = Record<string, unknown>;
 
 type RecordMessage = LooseRecord & {
     altitude?: number;
@@ -61,12 +61,25 @@ type FitFileEntry = LooseRecord & {
     filePath?: string;
 };
 
+type DrawActiveHandler = {
+    _finishShape?: () => void;
+    _markers?: { getLatLng?: () => Leaflet.LatLngExpression }[];
+};
+
+type DrawControlToolbars = {
+    draw?: {
+        _activeMode?: {
+            handler?: DrawActiveHandler;
+        };
+    };
+};
+
 type DisposableControl = {
     _measurementRunningTotal?: number;
     remove?: () => void;
     addTo?: (map: Leaflet.Map) => unknown;
     _miniMap?: { invalidateSize?: () => void };
-    _toolbars?: LooseRecord;
+    _toolbars?: DrawControlToolbars;
 };
 
 type LeafletPluginControl = DisposableControl & Leaflet.Control;
@@ -85,14 +98,35 @@ type LeafletRuntime = typeof Leaflet & {
 };
 
 type DrawnLayerSnapshot = {
-    geoJSON: LooseRecord;
-    options: LooseRecord;
-    type: "circle" | "marker" | "polygon" | "polyline" | "rectangle" | "unknown";
+    geoJSON: LeafletGeoJsonInput;
+    options: Leaflet.PathOptions;
+    type:
+        | "circle"
+        | "marker"
+        | "polygon"
+        | "polyline"
+        | "rectangle"
+        | "unknown";
 };
 
-type DrawnItemsLayerGroup = LooseRecord & {
-    addLayer?: (layer: LooseRecord) => void;
-    getLayers?: () => LooseRecord[];
+type DrawnLayer = Leaflet.Layer & {
+    options?: Leaflet.PathOptions;
+    toGeoJSON?: () => LeafletGeoJsonInput | null;
+};
+
+type DrawnItemsLayerGroup = Leaflet.FeatureGroup & {
+    getLayers: () => DrawnLayer[];
+};
+
+type LeafletGeoJsonInput = Parameters<typeof Leaflet.geoJSON>[0];
+
+type OverlayPolyline = Leaflet.Polyline & {
+    _map?: Leaflet.Map & {
+        _layers?: Record<string, Leaflet.Layer>;
+    };
+    options: Leaflet.PolylineOptions & {
+        color?: string;
+    };
 };
 
 type WindowExtensions = typeof globalThis & {
@@ -105,11 +139,11 @@ type WindowExtensions = typeof globalThis & {
     _drawControl?: DisposableControl | null;
     _drawnItems?: DrawnItemsLayerGroup | null;
     _highlightedOverlayIdx?: number;
-    _leafletMapInstance?: LooseRecord | null;
+    _leafletMapInstance?: Leaflet.Map | null;
     _mainPolylineOriginalBounds?: LooseRecord | null;
     _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
-    _overlayPolylines?: Record<string, LooseRecord> | null;
+    _overlayPolylines?: Record<string, OverlayPolyline> | null;
     createTables?: (data: GlobalData) => void;
     globalData?: GlobalData;
     loadedFitFiles?: FitFileEntry[];
@@ -200,27 +234,39 @@ export function renderMap(): void {
     let savedDrawnLayers: DrawnLayerSnapshot[] = [];
     if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
         try {
-            savedDrawnLayers = windowExt._drawnItems
-                .getLayers()
-                .map((layer: LooseRecord) => ({
-                    geoJSON: layer.toGeoJSON ? layer.toGeoJSON() : null,
-                    options: layer.options,
-                    type:
-                        layer instanceof L.Circle
-                            ? "circle"
-                            : layer instanceof L.Marker
-                              ? "marker"
-                              : layer instanceof L.Polygon
-                                ? "polygon"
-                                : layer instanceof L.Polyline
-                                  ? "polyline"
-                                  : layer instanceof L.Rectangle
-                                    ? "rectangle"
-                                    : "unknown",
-                }))
+            const drawnLayers =
+                windowExt._drawnItems.getLayers() as DrawnLayer[];
+            savedDrawnLayers = drawnLayers
+                .map(
+                    (
+                        layer
+                    ): DrawnLayerSnapshot & {
+                        geoJSON: LeafletGeoJsonInput | null;
+                    } => {
+                        const geoJSON =
+                            typeof layer.toGeoJSON === "function"
+                                ? layer.toGeoJSON()
+                                : null;
+                        return {
+                            geoJSON,
+                            options: layer.options ?? {},
+                            type:
+                                layer instanceof L.Circle
+                                    ? "circle"
+                                    : layer instanceof L.Marker
+                                      ? "marker"
+                                      : layer instanceof L.Polygon
+                                        ? "polygon"
+                                        : layer instanceof L.Polyline
+                                          ? "polyline"
+                                          : layer instanceof L.Rectangle
+                                            ? "rectangle"
+                                            : "unknown",
+                        };
+                    }
+                )
                 .filter(
-                    (item: DrawnLayerSnapshot & { geoJSON: LooseRecord | null }) =>
-                        item.geoJSON !== null
+                    (item): item is DrawnLayerSnapshot => item.geoJSON !== null
                 );
             console.log(
                 "[renderMap] Saved",
@@ -621,7 +667,11 @@ export function renderMap(): void {
             clearCloseTimer();
         };
 
-        mapTypeBtn.addEventListener("mouseenter", scheduleOpen, listenerOptions);
+        mapTypeBtn.addEventListener(
+            "mouseenter",
+            scheduleOpen,
+            listenerOptions
+        );
         mapTypeBtn.addEventListener(
             "mouseleave",
             scheduleClose,
@@ -843,18 +893,15 @@ export function renderMap(): void {
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            debounce(
-                (e: Event) => {
-                    zoomDraggingRef.current = true;
-                    const target = e.target;
-                    if (!(target instanceof HTMLInputElement)) {
-                        return;
-                    }
-                    const percent = Number(target.value);
-                        zoomSliderCurrent.textContent = `${percent}%`;
-                },
-                100
-            ), // Adjust debounce delay as needed
+            debounce((e: Event) => {
+                zoomDraggingRef.current = true;
+                const target = e.target;
+                if (!(target instanceof HTMLInputElement)) {
+                    return;
+                }
+                const percent = Number(target.value);
+                zoomSliderCurrent.textContent = `${percent}%`;
+            }, 100), // Adjust debounce delay as needed
             listenerOptions
         );
         zoomSlider.addEventListener(
@@ -900,7 +947,8 @@ export function renderMap(): void {
 
     // --- Locate user button ---
     if (L.control.locate) {
-        L.control.locate({
+        L.control
+            .locate({
                 flyTo: true,
                 keepCurrentZoomLevel: true,
                 position: "topleft",
@@ -911,8 +959,9 @@ export function renderMap(): void {
     // --- Print/export button ---
     const controlsDiv = document.querySelector<HTMLElement>("#map-controls");
     const primaryControls =
-        controlsDiv?.querySelector<HTMLElement>(".map-controls-panel__primary") ??
-        controlsDiv;
+        controlsDiv?.querySelector<HTMLElement>(
+            ".map-controls-panel__primary"
+        ) ?? controlsDiv;
     const ensureSecondaryControls = (): HTMLElement | null => {
         if (!controlsDiv) {
             return null;
@@ -984,20 +1033,21 @@ export function renderMap(): void {
         const estPowerBtn = createPowerEstimationButton({
             getData: () => {
                 const data =
-                    windowExt.globalData && typeof windowExt.globalData === "object"
+                    windowExt.globalData &&
+                    typeof windowExt.globalData === "object"
                         ? windowExt.globalData
                         : null;
-                return {
+                const fitData = {
                     loadedFitFiles: Array.isArray(windowExt.loadedFitFiles)
                         ? windowExt.loadedFitFiles
                         : [],
                     recordMesgs: Array.isArray(data?.recordMesgs)
                         ? data.recordMesgs
                         : [],
-                    sessionMesgs: Array.isArray(data?.sessionMesgs)
-                        ? data.sessionMesgs
-                        : undefined,
                 };
+                return Array.isArray(data?.sessionMesgs)
+                    ? { ...fitData, sessionMesgs: data.sessionMesgs }
+                    : fitData;
             },
             onAfterApply: () => {
                 // Redraw map so tooltips/points pick up the updated estimated power values.
@@ -1089,7 +1139,7 @@ export function renderMap(): void {
         // Prefer the Leaflet control (leaflet-measure-lite) when present; fall back to the simple
         // 2-click measure button only when the control plugin is unavailable.
         if (!windowExt.L || !L.control || !L.control.measure) {
-            addSimpleMeasureTool(map as any, primaryControls);
+            addSimpleMeasureTool(map, primaryControls);
         }
         primaryControls.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
@@ -1120,7 +1170,9 @@ export function renderMap(): void {
     // }
 
     // --- Lap selection UI (moved to mapLapSelector.js) ---
-    function mapDrawLapsWrapper(lapIdx: "all" | number | string | string[]): void {
+    function mapDrawLapsWrapper(
+        lapIdx: "all" | number | string | string[]
+    ): void {
         mapDrawLaps(lapIdx, {
             baseLayers,
             endIcon,
@@ -1254,7 +1306,7 @@ export function renderMap(): void {
 
     // --- Drawing/editing tool (if plugin available) ---
     if (windowExt.L && L.Control && L.Control.Draw) {
-        const drawnItems = new L.FeatureGroup();
+        const drawnItems = new L.FeatureGroup() as DrawnItemsLayerGroup;
         map.addLayer(drawnItems);
         const drawControl = new L.Control.Draw({
             draw: {
@@ -1303,9 +1355,15 @@ export function renderMap(): void {
 
         // Add drawn shapes to the layer so they persist.
         // Register exactly once (L.Draw.Event.CREATED is typically "draw:created").
-        const onDrawCreated = (e: LooseRecord) => {
-            const { layer } = e;
-            drawnItems.addLayer(layer);
+        const onDrawCreated: Leaflet.LeafletEventHandlerFn = (event) => {
+            const layer = (
+                event as Leaflet.LeafletEvent & {
+                    layer?: Leaflet.Layer;
+                }
+            ).layer;
+            if (layer) {
+                drawnItems.addLayer(layer);
+            }
         };
 
         {
@@ -1322,8 +1380,8 @@ export function renderMap(): void {
         // the click target (vertex marker) is tiny. If the user clicks *near* the last point, we
         // proactively finish the line so the workflow matches the tooltip.
         {
-            let activeHandler: LooseRecord | null = null;
-            let preclickListener: ((e: LooseRecord) => void) | undefined;
+            let activeHandler: DrawActiveHandler | null = null;
+            let preclickListener: Leaflet.LeafletEventHandlerFn | undefined;
 
             const detach = () => {
                 try {
@@ -1337,88 +1395,96 @@ export function renderMap(): void {
                 preclickListener = undefined;
             };
 
-            map.on("draw:drawstart", (evt: Leaflet.LeafletEvent & { layerType?: string }) => {
-                try {
-                    const type =
-                        evt && typeof evt === "object" ? evt.layerType : null;
-                    if (type !== "polyline") {
-                        detach();
-                        return;
-                    }
-
-                    // Leaflet.draw stores the active mode handler here.
-                    activeHandler =
-                        drawControl?._toolbars?.draw?._activeMode?.handler ??
-                        null;
-
-                    preclickListener = (e: LooseRecord) => {
-                        try {
-                            if (
-                                !activeHandler ||
-                                typeof activeHandler._finishShape !== "function"
-                            ) {
-                                return;
-                            }
-
-                            const markers = Array.isArray(
-                                activeHandler._markers
-                            )
-                                ? activeHandler._markers
-                                : [];
-                            if (markers.length < 2) {
-                                return;
-                            }
-
-                            const lastMarker = markers.at(-1);
-                            if (
-                                !lastMarker ||
-                                typeof lastMarker.getLatLng !== "function" ||
-                                !e?.latlng
-                            ) {
-                                return;
-                            }
-
-                            // Pixel tolerance around the vertex marker.
-                            const tolPx = 14;
-                            const lastPt = map.latLngToContainerPoint(
-                                lastMarker.getLatLng()
-                            );
-                            const clickPt = map.latLngToContainerPoint(
-                                e.latlng
-                            );
-                            const dist =
-                                lastPt &&
-                                clickPt &&
-                                typeof lastPt.distanceTo === "function"
-                                    ? lastPt.distanceTo(clickPt)
-                                    : null;
-                            if (
-                                typeof dist === "number" &&
-                                dist >= 0 &&
-                                dist <= tolPx
-                            ) {
-                                // Finish and stop the underlying click from adding another vertex.
-                                try {
-                                    if (e.originalEvent) {
-                                        e.originalEvent.preventDefault?.();
-                                        e.originalEvent.stopPropagation?.();
-                                    }
-                                } catch {
-                                    /* ignore */
-                                }
-                                activeHandler._finishShape();
-                            }
-                        } catch {
-                            /* ignore */
+            map.on(
+                "draw:drawstart",
+                (evt: Leaflet.LeafletEvent & { layerType?: string }) => {
+                    try {
+                        const type =
+                            evt && typeof evt === "object"
+                                ? evt.layerType
+                                : null;
+                        if (type !== "polyline") {
+                            detach();
+                            return;
                         }
-                    };
 
-                    map.off("preclick", preclickListener);
-                    map.on("preclick", preclickListener);
-                } catch {
-                    /* ignore */
+                        // Leaflet.draw stores the active mode handler here.
+                        activeHandler =
+                            drawControl?._toolbars?.draw?._activeMode
+                                ?.handler ?? null;
+
+                        preclickListener = (event) => {
+                            try {
+                                const e = event as Leaflet.LeafletMouseEvent;
+                                if (
+                                    !activeHandler ||
+                                    typeof activeHandler["_finishShape"] !==
+                                        "function"
+                                ) {
+                                    return;
+                                }
+
+                                const markers = Array.isArray(
+                                    activeHandler["_markers"]
+                                )
+                                    ? activeHandler["_markers"]
+                                    : [];
+                                if (markers.length < 2) {
+                                    return;
+                                }
+
+                                const lastMarker = markers.at(-1);
+                                if (
+                                    !lastMarker ||
+                                    typeof lastMarker.getLatLng !==
+                                        "function" ||
+                                    !e.latlng
+                                ) {
+                                    return;
+                                }
+
+                                // Pixel tolerance around the vertex marker.
+                                const tolPx = 14;
+                                const lastPt = map.latLngToContainerPoint(
+                                    lastMarker.getLatLng()
+                                );
+                                const clickPt = map.latLngToContainerPoint(
+                                    e.latlng
+                                );
+                                const dist =
+                                    lastPt &&
+                                    clickPt &&
+                                    typeof lastPt.distanceTo === "function"
+                                        ? lastPt.distanceTo(clickPt)
+                                        : null;
+                                if (
+                                    typeof dist === "number" &&
+                                    dist >= 0 &&
+                                    dist <= tolPx
+                                ) {
+                                    // Finish and stop the underlying click from adding another vertex.
+                                    try {
+                                        if (e.originalEvent) {
+                                            e.originalEvent.preventDefault?.();
+                                            e.originalEvent.stopPropagation?.();
+                                        }
+                                    } catch {
+                                        /* ignore */
+                                    }
+                                    activeHandler["_finishShape"]();
+                                }
+                            } catch {
+                                /* ignore */
+                            }
+                        };
+
+                        map.off("preclick", preclickListener);
+                        map.on("preclick", preclickListener);
+                    } catch {
+                        /* ignore */
+                    }
                 }
-            });
+            );
 
             map.on("draw:drawstop", detach);
         }
@@ -1438,13 +1504,13 @@ export function renderMap(): void {
                     if (item.geoJSON) {
                         L.geoJSON(item.geoJSON, {
                             onEachFeature: (
-                                _feature: LooseRecord,
-                                createdLayer: LooseRecord
+                                _feature: unknown,
+                                createdLayer: Leaflet.Layer
                             ) => {
                                 drawnItems.addLayer(createdLayer);
                             },
                             pointToLayer: (
-                                _feature: LooseRecord,
+                                _feature: unknown,
                                 latlng: Leaflet.LatLngExpression
                             ) => L.marker(latlng),
                             style: item.options,
@@ -1468,13 +1534,23 @@ export function renderMap(): void {
             windowExt.globalData &&
             Array.isArray(windowExt.globalData.recordMesgs)
         ) {
-            applyEstimatedPowerToRecords({
-                recordMesgs: windowExt.globalData.recordMesgs as any,
-                sessionMesgs: Array.isArray(windowExt.globalData.sessionMesgs)
-                    ? (windowExt.globalData.sessionMesgs as any)
-                    : undefined,
-                settings: getPowerEstimationSettings(),
-            });
+            const sessionMesgs = Array.isArray(
+                windowExt.globalData.sessionMesgs
+            )
+                ? windowExt.globalData.sessionMesgs
+                : undefined;
+            applyEstimatedPowerToRecords(
+                sessionMesgs === undefined
+                    ? {
+                          recordMesgs: windowExt.globalData.recordMesgs,
+                          settings: getPowerEstimationSettings(),
+                      }
+                    : {
+                          recordMesgs: windowExt.globalData.recordMesgs,
+                          sessionMesgs,
+                          settings: getPowerEstimationSettings(),
+                      }
+            );
         }
         if (Array.isArray(windowExt.loadedFitFiles)) {
             for (const fitFile of windowExt.loadedFitFiles) {
@@ -1485,16 +1561,24 @@ export function renderMap(): void {
                         ? fitFile.data.recordMesgs
                         : null;
                 if (recs) {
-                    applyEstimatedPowerToRecords({
-                        recordMesgs: recs as any,
-                        sessionMesgs:
-                            fitFile &&
-                            fitFile.data &&
-                            Array.isArray(fitFile.data.sessionMesgs)
-                                ? (fitFile.data.sessionMesgs as any)
-                                : undefined,
-                        settings: getPowerEstimationSettings(),
-                    });
+                    const sessionMesgs =
+                        fitFile &&
+                        fitFile.data &&
+                        Array.isArray(fitFile.data.sessionMesgs)
+                            ? fitFile.data.sessionMesgs
+                            : undefined;
+                    applyEstimatedPowerToRecords(
+                        sessionMesgs === undefined
+                            ? {
+                                  recordMesgs: recs,
+                                  settings: getPowerEstimationSettings(),
+                              }
+                            : {
+                                  recordMesgs: recs,
+                                  sessionMesgs,
+                                  settings: getPowerEstimationSettings(),
+                              }
+                    );
                 }
             }
         }
@@ -1523,9 +1607,8 @@ export function renderMap(): void {
                 fitFile.filePath
             );
             const color = (chartOverlayColorPalette[
-                    idx % chartOverlayColorPalette.length
-                ] || "#ff0000"
-            ) as string;
+                idx % chartOverlayColorPalette.length
+            ] || "#ff0000") as string;
             const rawOverlayName =
                 (fitFile.filePath || "").split(/[/\\]/).pop() ?? "";
             const fileName = sanitizeFilenameComponent(
