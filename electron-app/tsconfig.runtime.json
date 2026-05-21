@@ -149,6 +149,7 @@
         "utils/maps/filters/mapMetricFilter.ts",
         "utils/maps/layers/mapBaseLayers.ts",
         "utils/maps/layers/mapIcons.ts",
+        "utils/maps/layers/mapDrawLaps.ts",
         "utils/maps/core/renderMap.ts",
         "utils/maps/core/index.ts",
         "utils/maps/controls/index.ts",
