@@ -44,6 +44,25 @@ describe(getChartCounts, () => {
         });
     });
 
+    it("returns empty counts when record messages contain no object rows", () => {
+        expect.assertions(1);
+
+        resetGlobals();
+        testGlobal.globalData = { recordMesgs: [null, ["bad"], "bad"] };
+
+        expect(getChartCounts()).toStrictEqual({
+            available: 0,
+            categories: {
+                analysis: { available: 0, total: 0, visible: 0 },
+                gps: { available: 0, total: 0, visible: 0 },
+                metrics: { available: 0, total: 0, visible: 0 },
+                zones: { available: 0, total: 0, visible: 0 },
+            },
+            total: 0,
+            visible: 0,
+        });
+    });
+
     it("counts metric, gps, analysis, zone, lap-zone, event, and developer charts", () => {
         expect.assertions(6);
 

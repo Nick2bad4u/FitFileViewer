@@ -1,5 +1,7 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
+import { getRecordMessages } from "./renderChartDataPreparation.js";
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 
 /**
  * Per-category chart count totals.
@@ -25,9 +27,9 @@ export interface ChartCounts {
     visible: number;
 }
 
-type ChartDataRow = Record<string, unknown>;
+type ChartDataRow = ChartDataRecord;
 
-type ChartGlobalData = {
+type ChartGlobalData = ChartDataRecord & {
     readonly eventMesgs?: unknown;
     readonly recordMesgs?: unknown;
     readonly timeInZoneMesgs?: unknown;
@@ -284,11 +286,7 @@ function createEmptyChartCounts(): ChartCounts {
 function getRecordRows(
     globalData: ChartGlobalData | undefined
 ): ChartDataRow[] {
-    if (!Array.isArray(globalData?.recordMesgs)) {
-        return [];
-    }
-
-    return globalData.recordMesgs.filter(isRecord);
+    return globalData ? (getRecordMessages(globalData) ?? []) : [];
 }
 
 function getTimeInZoneRows(
@@ -298,7 +296,7 @@ function getTimeInZoneRows(
         return [];
     }
 
-    return globalData.timeInZoneMesgs.filter(isRecord);
+    return globalData.timeInZoneMesgs.filter(isObjectRow);
 }
 
 function hasAnalysisChartData(
@@ -339,7 +337,7 @@ function isNumericLike(value: unknown): boolean {
     return !Number.isNaN(Number.parseFloat(String(value)));
 }
 
-function isRecord(value: unknown): value is ChartDataRow {
+function isObjectRow(value: unknown): value is ChartDataRow {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
