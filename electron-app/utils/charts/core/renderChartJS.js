@@ -146,6 +146,7 @@ import {
     initializeChartStateManagement as initializeChartStateManagementImpl,
     refreshChartsIfNeeded as refreshChartsIfNeededImpl,
 } from "./renderChartStateManagement.js";
+import { createChartStateView } from "./renderChartStateView.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -481,103 +482,15 @@ registerChartRequestListener({
  *
  * @returns {Object} Current settings object
  */
-/**
- * Chart state management with reactive updates Integrates with the centralized
- * state system for chart rendering and controls
- */
-export const chartState = {
-    get chartData() {
-        return callGetState("charts.chartData");
-    },
-
-    get chartOptions() {
-        return callGetState("charts.chartOptions") || {};
-    },
-
-    get controlsVisible() {
-        return callGetState("charts.controlsVisible") !== false; // Default to true
-    },
-
-    // Computed properties using the computed state manager
-    get hasValidData() {
-        // Aggressively resolve globalData across multiple module injection paths in tests
-        let data = callGetState("globalData");
-        if (data === undefined || data === null) {
-            try {
-                // Try common ID variants used by module cache injection in tests
-                const candidates = [
-                    "../../state/core/stateManager.js",
-                    "../../../state/core/stateManager.js",
-                    "../../../../utils/state/core/stateManager.js",
-                    "../../../../state/core/stateManager.js",
-                ];
-                for (const id of candidates) {
-                    try {
-                        const m = getInjectedModule(id);
-                        const defaultExport = getRecordValue(m, "default");
-                        const getStateFn =
-                            getRecordFunction(m, "getState") ||
-                            getRecordFunction(defaultExport, "getState");
-                        if (getStateFn) {
-                            const v = getStateFn("globalData");
-                            if (v !== undefined) {
-                                data = v;
-                                break;
-                            }
-                        }
-                    } catch {
-                        /* try next */
-                    }
-                }
-            } catch {
-                /* ignore */
-            }
-        }
-        const hasModuleInjection = Boolean(
-            getInjectedModule("../../state/core/stateManager.js")
-        );
-        // Tests expect null when the state value is truly undefined
-        if (data === undefined) return null;
-        // In module-injected tests, null means explicitly no data (false).
-        // In simpler tests without module cache injection, null should be treated as unknown (null).
-        if (data === null) return hasModuleInjection ? false : null;
-        return Boolean(
-            data &&
-            data.recordMesgs &&
-            Array.isArray(data.recordMesgs) &&
-            data.recordMesgs.length > 0
-        );
-    },
-
-    // Use computed state for reactive updates
-    get isRendered() {
-        return callGetState("charts.isRendered") || false;
-    },
-
-    get isRendering() {
-        return callGetState("charts.isRendering") || false;
-    },
-
-    get renderableFields() {
-        if (!this.hasValidData) {
-            return [];
-        }
-
-        const fields = getFormatChartFieldsSafe();
-        return Array.isArray(fields)
-            ? fields.filter((field) => {
-                  const visibility =
-                      chartSettingsManager.getFieldVisibility(field) ||
-                      "visible";
-                  return visibility !== "hidden";
-              })
-            : [];
-    },
-
-    get selectedChart() {
-        return callGetState("charts.selectedChart") || "elevation";
-    },
-};
+export const chartState = createChartStateView({
+    getFieldVisibility: (field) =>
+        chartSettingsManager.getFieldVisibility(field),
+    getFormatChartFields: getFormatChartFieldsSafe,
+    getInjectedModule,
+    getRecordFunction,
+    getRecordValue,
+    getState: callGetState,
+});
 
 /**
  * Chart actions - encapsulated state transitions for chart operations
