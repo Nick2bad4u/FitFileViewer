@@ -20,6 +20,7 @@ import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
 import {
     getInjectedModule,
     getRecordFunction,
+    getTypedRecordFunction,
     getRecordValue,
     isObjectRecord,
 } from "./renderChartModuleHelpers.js";
@@ -27,23 +28,22 @@ import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js"
 
 type ComputedStateManagerAccess = Record<string, unknown>;
 type FieldConverter = (value: number, field: string) => number;
-type UnknownFunction = (...args: unknown[]) => unknown;
 
 interface HoverPluginAccessors {
-    addChartHoverEffects: UnknownFunction;
-    addHoverEffectsToExistingCharts: UnknownFunction;
-    removeChartHoverEffects: UnknownFunction;
+    addChartHoverEffects: typeof addChartHoverEffects;
+    addHoverEffectsToExistingCharts: typeof addHoverEffectsToExistingCharts;
+    removeChartHoverEffects: typeof removeChartHoverEffects;
 }
 
 interface RendererModuleAccessors {
-    createChartCanvas: UnknownFunction;
-    createEnhancedChart: UnknownFunction;
-    renderEventMessagesChart: UnknownFunction;
-    renderGPSTimeChart: UnknownFunction;
-    renderGPSTrackChart: UnknownFunction;
-    renderLapZoneCharts: UnknownFunction;
-    renderPerformanceAnalysisCharts: UnknownFunction;
-    renderTimeInZoneCharts: UnknownFunction;
+    createChartCanvas: typeof createChartCanvas;
+    createEnhancedChart: typeof createEnhancedChart;
+    renderEventMessagesChart: typeof renderEventMessagesChart;
+    renderGPSTimeChart: typeof renderGPSTimeChart;
+    renderGPSTrackChart: typeof renderGPSTrackChart;
+    renderLapZoneCharts: typeof renderLapZoneCharts;
+    renderPerformanceAnalysisCharts: typeof renderPerformanceAnalysisCharts;
+    renderTimeInZoneCharts: typeof renderTimeInZoneCharts;
 }
 
 /** Legacy settings manager methods used by chart rendering. */
@@ -134,25 +134,23 @@ export function getFormatChartFieldsSafe(): readonly string[] {
 /** Returns chart hover plugin hooks, preferring test-injected modules. */
 export function getHoverPluginsSafe(): HoverPluginAccessors {
     const result: HoverPluginAccessors = {
-        addChartHoverEffects:
-            addChartHoverEffects as unknown as UnknownFunction,
-        addHoverEffectsToExistingCharts:
-            addHoverEffectsToExistingCharts as unknown as UnknownFunction,
-        removeChartHoverEffects:
-            removeChartHoverEffects as unknown as UnknownFunction,
+        addChartHoverEffects,
+        addHoverEffectsToExistingCharts,
+        removeChartHoverEffects,
     };
 
     try {
         const mod = getInjectedModule("../plugins/addChartHoverEffects.js");
-        const injectedAdd = getRecordFunction(mod, "addChartHoverEffects");
-        const injectedAddExisting = getRecordFunction(
+        const injectedAdd = getTypedRecordFunction<typeof addChartHoverEffects>(
             mod,
-            "addHoverEffectsToExistingCharts"
+            "addChartHoverEffects"
         );
-        const injectedRemove = getRecordFunction(
-            mod,
-            "removeChartHoverEffects"
-        );
+        const injectedAddExisting = getTypedRecordFunction<
+            typeof addHoverEffectsToExistingCharts
+        >(mod, "addHoverEffectsToExistingCharts");
+        const injectedRemove = getTypedRecordFunction<
+            typeof removeChartHoverEffects
+        >(mod, "removeChartHoverEffects");
         if (injectedAdd) {
             result.addChartHoverEffects = injectedAdd;
         }
@@ -172,24 +170,21 @@ export function getHoverPluginsSafe(): HoverPluginAccessors {
 /** Returns chart renderer modules, preferring test-injected modules. */
 export function getRendererModulesSafe(): RendererModuleAccessors {
     const result: RendererModuleAccessors = {
-        createChartCanvas: createChartCanvas as unknown as UnknownFunction,
-        createEnhancedChart: createEnhancedChart as unknown as UnknownFunction,
-        renderEventMessagesChart:
-            renderEventMessagesChart as unknown as UnknownFunction,
-        renderGPSTimeChart: renderGPSTimeChart as unknown as UnknownFunction,
-        renderGPSTrackChart: renderGPSTrackChart as unknown as UnknownFunction,
-        renderLapZoneCharts: renderLapZoneCharts as unknown as UnknownFunction,
-        renderPerformanceAnalysisCharts:
-            renderPerformanceAnalysisCharts as unknown as UnknownFunction,
-        renderTimeInZoneCharts:
-            renderTimeInZoneCharts as unknown as UnknownFunction,
+        createChartCanvas,
+        createEnhancedChart,
+        renderEventMessagesChart,
+        renderGPSTimeChart,
+        renderGPSTrackChart,
+        renderLapZoneCharts,
+        renderPerformanceAnalysisCharts,
+        renderTimeInZoneCharts,
     };
 
     try {
         const canvasModule = getInjectedModule(
             "../components/createChartCanvas.js"
         );
-        const injectedCanvas = getRecordFunction(
+        const injectedCanvas = getTypedRecordFunction<typeof createChartCanvas>(
             canvasModule,
             "createChartCanvas"
         );
@@ -200,10 +195,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const enhancedChartModule = getInjectedModule(
             "../components/createEnhancedChart.js"
         );
-        const injectedEnhancedChart = getRecordFunction(
-            enhancedChartModule,
-            "createEnhancedChart"
-        );
+        const injectedEnhancedChart = getTypedRecordFunction<
+            typeof createEnhancedChart
+        >(enhancedChartModule, "createEnhancedChart");
         if (injectedEnhancedChart) {
             result.createEnhancedChart = injectedEnhancedChart;
         }
@@ -211,10 +205,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const eventMessagesModule = getInjectedModule(
             "../rendering/renderEventMessagesChart.js"
         );
-        const injectedEventMessages = getRecordFunction(
-            eventMessagesModule,
-            "renderEventMessagesChart"
-        );
+        const injectedEventMessages = getTypedRecordFunction<
+            typeof renderEventMessagesChart
+        >(eventMessagesModule, "renderEventMessagesChart");
         if (injectedEventMessages) {
             result.renderEventMessagesChart = injectedEventMessages;
         }
@@ -222,10 +215,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const gpsTimeModule = getInjectedModule(
             "../rendering/renderGPSTimeChart.js"
         );
-        const injectedGpsTime = getRecordFunction(
-            gpsTimeModule,
-            "renderGPSTimeChart"
-        );
+        const injectedGpsTime = getTypedRecordFunction<
+            typeof renderGPSTimeChart
+        >(gpsTimeModule, "renderGPSTimeChart");
         if (injectedGpsTime) {
             result.renderGPSTimeChart = injectedGpsTime;
         }
@@ -233,10 +225,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const gpsTrackModule = getInjectedModule(
             "../rendering/renderGPSTrackChart.js"
         );
-        const injectedGpsTrack = getRecordFunction(
-            gpsTrackModule,
-            "renderGPSTrackChart"
-        );
+        const injectedGpsTrack = getTypedRecordFunction<
+            typeof renderGPSTrackChart
+        >(gpsTrackModule, "renderGPSTrackChart");
         if (injectedGpsTrack) {
             result.renderGPSTrackChart = injectedGpsTrack;
         }
@@ -244,10 +235,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const lapZoneModule = getInjectedModule(
             "../rendering/renderLapZoneCharts.js"
         );
-        const injectedLapZone = getRecordFunction(
-            lapZoneModule,
-            "renderLapZoneCharts"
-        );
+        const injectedLapZone = getTypedRecordFunction<
+            typeof renderLapZoneCharts
+        >(lapZoneModule, "renderLapZoneCharts");
         if (injectedLapZone) {
             result.renderLapZoneCharts = injectedLapZone;
         }
@@ -255,10 +245,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const performanceModule = getInjectedModule(
             "../rendering/renderPerformanceAnalysisCharts.js"
         );
-        const injectedPerformance = getRecordFunction(
-            performanceModule,
-            "renderPerformanceAnalysisCharts"
-        );
+        const injectedPerformance = getTypedRecordFunction<
+            typeof renderPerformanceAnalysisCharts
+        >(performanceModule, "renderPerformanceAnalysisCharts");
         if (injectedPerformance) {
             result.renderPerformanceAnalysisCharts = injectedPerformance;
         }
@@ -266,10 +255,9 @@ export function getRendererModulesSafe(): RendererModuleAccessors {
         const timeInZoneModule = getInjectedModule(
             "../rendering/renderTimeInZoneCharts.js"
         );
-        const injectedTimeInZone = getRecordFunction(
-            timeInZoneModule,
-            "renderTimeInZoneCharts"
-        );
+        const injectedTimeInZone = getTypedRecordFunction<
+            typeof renderTimeInZoneCharts
+        >(timeInZoneModule, "renderTimeInZoneCharts");
         if (injectedTimeInZone) {
             result.renderTimeInZoneCharts = injectedTimeInZone;
         }

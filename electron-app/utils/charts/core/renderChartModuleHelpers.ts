@@ -1,4 +1,5 @@
 type UnknownFunction = (...args: unknown[]) => unknown;
+type TypedFunction = (...args: never[]) => unknown;
 
 interface ModuleShimGlobal {
     require?: unknown;
@@ -12,9 +13,12 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Returns true for non-null, non-array object values that can be used as data rows.
+ * Returns true for non-null, non-array object values that can be used as data
+ * rows.
  */
-export function isObjectRecord(value: unknown): value is Record<string, unknown> {
+export function isObjectRecord(
+    value: unknown
+): value is Record<string, unknown> {
     return isRecord(value) && !Array.isArray(value);
 }
 
@@ -36,6 +40,18 @@ export function getRecordFunction(
     return typeof candidate === "function"
         ? (candidate as UnknownFunction)
         : null;
+}
+
+/**
+ * Reads a function property when a legacy injection boundary supplies an
+ * implementation whose runtime signature is validated by the caller's tests.
+ */
+export function getTypedRecordFunction<TFunction extends TypedFunction>(
+    value: unknown,
+    key: string
+): TFunction | null {
+    const candidate = getRecordValue(value, key);
+    return typeof candidate === "function" ? (candidate as TFunction) : null;
 }
 
 /**

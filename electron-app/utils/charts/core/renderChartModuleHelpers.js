@@ -5,7 +5,8 @@ export function isRecord(value) {
     return value !== null && typeof value === "object";
 }
 /**
- * Returns true for non-null, non-array object values that can be used as data rows.
+ * Returns true for non-null, non-array object values that can be used as data
+ * rows.
  */
 export function isObjectRecord(value) {
     return isRecord(value) && !Array.isArray(value);
@@ -21,9 +22,15 @@ export function getRecordValue(value, key) {
  */
 export function getRecordFunction(value, key) {
     const candidate = getRecordValue(value, key);
-    return typeof candidate === "function"
-        ? candidate
-        : null;
+    return typeof candidate === "function" ? candidate : null;
+}
+/**
+ * Reads a function property when a legacy injection boundary supplies an
+ * implementation whose runtime signature is validated by the caller's tests.
+ */
+export function getTypedRecordFunction(value, key) {
+    const candidate = getRecordValue(value, key);
+    return typeof candidate === "function" ? candidate : null;
 }
 /**
  * Checks whether an unknown object exposes a chart-style destroy hook.
