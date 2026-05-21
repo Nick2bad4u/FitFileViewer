@@ -2,10 +2,49 @@
  * Application State Actions and Transitions Higher-level actions that
  * encapsulate common state changes
  */
-import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
+
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-const fitFileStateManagerLike = fitFileStateManager;
+
+type ChartData = {
+    datasets: unknown;
+    meta?: unknown;
+};
+type ChartOptions = Record<string, unknown>;
+type MapCenter = [number, number];
+type TableConfig = {
+    columns?: unknown;
+    data?: unknown;
+    isRendered?: boolean;
+    options?: Record<string, unknown>;
+};
+type MiddlewareFn = (
+    path: string,
+    value: unknown,
+    oldValue: unknown,
+    options: Record<string, unknown>
+) => unknown;
+type FitFileStateManagerLike = {
+    clearFileState?: () => void;
+    handleFileLoaded?: (
+        fileData: unknown,
+        options: { filePath: string | null; source: string }
+    ) => void;
+    isLoading?: () => boolean;
+    startFileLoading?: (filePath: string) => void;
+};
+
+const fitFileStateManagerLike = fitFileStateManager as
+    | FitFileStateManagerLike
+    | null
+    | undefined;
+
 /**
  * Application state actions - higher-level functions for common state changes
  */
@@ -14,15 +53,20 @@ export const AppActions = {
      * Clear all data and reset to initial state
      */
     clearData() {
-        if (fitFileStateManagerLike &&
-            typeof fitFileStateManagerLike.clearFileState === "function") {
+        if (
+            fitFileStateManagerLike &&
+            typeof fitFileStateManagerLike.clearFileState === "function"
+        ) {
             try {
                 fitFileStateManagerLike.clearFileState();
-            }
-            catch (error) {
-                console.warn("[AppActions] Failed to clear fit file domain state", error);
+            } catch (error) {
+                console.warn(
+                    "[AppActions] Failed to clear fit file domain state",
+                    error
+                );
             }
         }
+
         setState("globalData", null, { source: "AppActions.clearData" });
         setState("currentFile", null, { source: "AppActions.clearData" });
         setState("charts.isRendered", false, {
@@ -32,60 +76,77 @@ export const AppActions = {
         setState("tables.isRendered", false, {
             source: "AppActions.clearData",
         });
+
         console.log("[AppActions] Data cleared");
         showNotification("Data cleared", "info");
     },
+
     /**
      * Load a new FIT file and update related state
      *
      * @param fileData - Parsed FIT file data.
      * @param filePath - Path to the loaded file.
      */
-    async loadFile(fileData, filePath) {
-        const manager = fitFileStateManagerLike &&
+    async loadFile(fileData: unknown, filePath: string | null): Promise<void> {
+        const manager =
+            fitFileStateManagerLike &&
             typeof fitFileStateManagerLike.handleFileLoaded === "function"
-            ? fitFileStateManagerLike
-            : null;
+                ? fitFileStateManagerLike
+                : null;
+
         if (manager) {
             const handleFileLoaded = manager.handleFileLoaded;
             if (typeof handleFileLoaded !== "function") {
                 return;
             }
-            const normalizedPath = typeof filePath === "string" && filePath.length > 0
-                ? filePath
-                : null;
-            if (normalizedPath &&
+            const normalizedPath =
+                typeof filePath === "string" && filePath.length > 0
+                    ? filePath
+                    : null;
+
+            if (
+                normalizedPath &&
                 typeof manager.startFileLoading === "function" &&
                 typeof manager.isLoading === "function" &&
-                !manager.isLoading()) {
+                !manager.isLoading()
+            ) {
                 try {
                     manager.startFileLoading(normalizedPath);
-                }
-                catch (error) {
-                    console.warn("[AppActions] Failed to start fit file loading state", error);
+                } catch (error) {
+                    console.warn(
+                        "[AppActions] Failed to start fit file loading state",
+                        error
+                    );
                 }
             }
+
             try {
                 handleFileLoaded(fileData, {
                     filePath: normalizedPath,
                     source: "AppActions.loadFile",
                 });
-            }
-            catch (error) {
-                console.error("[AppActions] Error delegating file load to fitFileStateManager", error);
+            } catch (error) {
+                console.error(
+                    "[AppActions] Error delegating file load to fitFileStateManager",
+                    error
+                );
                 showNotification("Failed to load file", "error");
                 setState("isLoading", false, { source: "AppActions.loadFile" });
                 throw error;
             }
+
             return;
         }
+
         try {
             setState("isLoading", true, { source: "AppActions.loadFile" });
+
             // Update file-related state
             setState("globalData", fileData, { source: "AppActions.loadFile" });
             setState("currentFile", filePath, {
                 source: "AppActions.loadFile",
             });
+
             // Reset component states
             setState("charts.isRendered", false, {
                 source: "AppActions.loadFile",
@@ -96,147 +157,197 @@ export const AppActions = {
             setState("tables.isRendered", false, {
                 source: "AppActions.loadFile",
             });
+
             // Update performance metrics
             setState("performance.lastLoadTime", Date.now(), {
                 source: "AppActions.loadFile",
             });
+
             showNotification("File loaded successfully", "success");
             console.log("[AppActions] File loaded:", filePath);
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[AppActions] Error loading file:", error);
             showNotification("Failed to load file", "error");
             throw error;
-        }
-        finally {
+        } finally {
             setState("isLoading", false, { source: "AppActions.loadFile" });
         }
     },
+
     /**
      * Update chart rendering state and options
      *
      * @param chartData - Chart data.
      * @param options - Chart options.
      */
-    renderChart(chartData, options = {}) {
+    renderChart(chartData: ChartData, options: ChartOptions = {}) {
         const startTime = performance.now();
-        updateState("charts", {
-            chartData,
-            chartOptions: options,
-            isRendered: true,
-        }, { source: "AppActions.renderChart" });
+
+        updateState(
+            "charts",
+            {
+                chartData,
+                chartOptions: options,
+                isRendered: true,
+            },
+            { source: "AppActions.renderChart" }
+        );
+
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            chart: renderTime,
-        }, { source: "AppActions.renderChart" });
-        console.log(`[AppActions] Chart rendered in ${renderTime.toFixed(2)}ms`);
+        updateState(
+            "performance.renderTimes",
+            {
+                chart: renderTime,
+            },
+            { source: "AppActions.renderChart" }
+        );
+
+        console.log(
+            `[AppActions] Chart rendered in ${renderTime.toFixed(2)}ms`
+        );
     },
+
     /**
      * Update map rendering state and center
      *
      * @param center - [lat, lng] coordinates for map center.
      * @param zoom - Zoom level.
      */
-    renderMap(center, zoom = 13) {
+    renderMap(center: MapCenter, zoom = 13) {
         const startTime = performance.now();
-        updateState("map", {
-            center,
-            isRendered: true,
-            zoom,
-        }, { source: "AppActions.renderMap" });
+
+        updateState(
+            "map",
+            {
+                center,
+                isRendered: true,
+                zoom,
+            },
+            { source: "AppActions.renderMap" }
+        );
+
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            map: renderTime,
-        }, { source: "AppActions.renderMap" });
+        updateState(
+            "performance.renderTimes",
+            {
+                map: renderTime,
+            },
+            { source: "AppActions.renderMap" }
+        );
+
         console.log(`[AppActions] Map rendered in ${renderTime.toFixed(2)}ms`);
     },
+
     /**
      * Update table rendering state
      *
      * @param tableConfig - Table configuration.
      */
-    renderTable(tableConfig = {}) {
+    renderTable(tableConfig: TableConfig = {}) {
         const startTime = performance.now();
-        updateState("tables", {
-            isRendered: true,
-            ...tableConfig,
-        }, { source: "AppActions.renderTable" });
+
+        updateState(
+            "tables",
+            {
+                isRendered: true,
+                ...tableConfig,
+            },
+            { source: "AppActions.renderTable" }
+        );
+
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            table: renderTime,
-        }, { source: "AppActions.renderTable" });
-        console.log(`[AppActions] Table rendered in ${renderTime.toFixed(2)}ms`);
+        updateState(
+            "performance.renderTimes",
+            {
+                table: renderTime,
+            },
+            { source: "AppActions.renderTable" }
+        );
+
+        console.log(
+            `[AppActions] Table rendered in ${renderTime.toFixed(2)}ms`
+        );
     },
+
     /**
      * Select a lap on the map
      *
      * @param lapNumber - Lap number to select (0-based).
      */
-    selectLap(lapNumber) {
+    selectLap(lapNumber: number) {
         setState("map.selectedLap", lapNumber, {
             source: "AppActions.selectLap",
         });
         console.log(`[AppActions] Selected lap: ${lapNumber}`);
     },
+
     /**
      * Set file opening state
      *
      * @param isOpening - Whether a file is being opened.
      */
-    setFileOpening(isOpening) {
+    setFileOpening(isOpening: boolean) {
         setState("app.isOpeningFile", isOpening, {
             source: "AppActions.setFileOpening",
         });
         console.log(`[AppActions] File opening state: ${isOpening}`);
     },
+
     /**
      * Set application initialization state
      *
      * @param initialized - Whether the app is initialized.
      */
-    setInitialized(initialized) {
+    setInitialized(initialized: boolean) {
         setState("app.initialized", initialized, {
             source: "AppActions.setInitialized",
         });
         console.log(`[AppActions] App initialization state: ${initialized}`);
     },
+
     /**
      * Switch to a different tab
      *
      * @param tabName - Name of the tab to switch to.
      */
-    switchTab(tabName) {
+    switchTab(tabName: string) {
         const validTabs = [
             "summary",
             "chart",
             "map",
             "table",
         ];
+
         if (!validTabs.includes(tabName)) {
             console.warn(`[AppActions] Invalid tab name: ${tabName}`);
             return;
         }
+
         setState("ui.activeTab", tabName, { source: "AppActions.switchTab" });
         console.log(`[AppActions] Switched to tab: ${tabName}`);
     },
+
     /**
      * Toggle theme between light, dark, and system
      *
      * @param theme - Theme to switch to ('light', 'dark', 'system').
      */
-    switchTheme(theme) {
+    switchTheme(theme: string) {
         const validThemes = [
             "light",
             "dark",
             "system",
         ];
+
         if (!validThemes.includes(theme)) {
             console.warn(`[AppActions] Invalid theme: ${theme}`);
             return;
         }
+
         setState("ui.theme", theme, { source: "AppActions.switchTheme" });
         console.log(`[AppActions] Theme switched to: ${theme}`);
     },
+
     /**
      * Toggle chart controls visibility
      */
@@ -245,8 +356,11 @@ export const AppActions = {
         setState("charts.controlsVisible", !currentState, {
             source: "AppActions.toggleChartControls",
         });
-        console.log(`[AppActions] Chart controls ${currentState ? "hidden" : "shown"}`);
+        console.log(
+            `[AppActions] Chart controls ${currentState ? "hidden" : "shown"}`
+        );
     },
+
     /**
      * Toggle map measurement mode
      */
@@ -255,20 +369,24 @@ export const AppActions = {
         setState("map.measurementMode", !currentState, {
             source: "AppActions.toggleMeasurementMode",
         });
-        console.log(`[AppActions] Measurement mode ${currentState ? "disabled" : "enabled"}`);
+        console.log(
+            `[AppActions] Measurement mode ${currentState ? "disabled" : "enabled"}`
+        );
     },
+
     /**
      * Update window state
      *
      * @param windowState - Window state object.
      */
-    updateWindowState(windowState) {
+    updateWindowState(windowState: Record<string, unknown>) {
         updateState("ui.windowState", windowState, {
             source: "AppActions.updateWindowState",
         });
         console.log("[AppActions] Window state updated:", windowState);
     },
 };
+
 /**
  * State selectors - helper functions to get computed state values
  */
@@ -281,6 +399,7 @@ export const AppSelectors = {
     activeTab() {
         return getState("ui.activeTab") || "summary";
     },
+
     /**
      * Check if charts are rendered
      *
@@ -289,6 +408,7 @@ export const AppSelectors = {
     areChartsRendered() {
         return getState("charts.isRendered") || false;
     },
+
     /**
      * Check if tables are rendered
      *
@@ -297,6 +417,7 @@ export const AppSelectors = {
     areTablesRendered() {
         return getState("tables.isRendered") || false;
     },
+
     /**
      * Get current theme
      *
@@ -305,6 +426,7 @@ export const AppSelectors = {
     currentTheme() {
         return getState("ui.theme") || "system";
     },
+
     /**
      * Get chart configuration
      *
@@ -313,6 +435,7 @@ export const AppSelectors = {
     getChartConfig() {
         return getState("charts") || {};
     },
+
     /**
      * Get current file path
      *
@@ -321,6 +444,7 @@ export const AppSelectors = {
     getCurrentFile() {
         return getState("currentFile");
     },
+
     /**
      * Get map configuration
      *
@@ -329,6 +453,7 @@ export const AppSelectors = {
     getMapConfig() {
         return getState("map") || {};
     },
+
     /**
      * Get performance metrics
      *
@@ -337,6 +462,7 @@ export const AppSelectors = {
     getPerformanceMetrics() {
         return getState("performance") || {};
     },
+
     /**
      * Check if any data is loaded
      *
@@ -345,6 +471,7 @@ export const AppSelectors = {
     hasData() {
         return getState("globalData") !== null;
     },
+
     /**
      * Check if app is currently loading
      *
@@ -353,6 +480,7 @@ export const AppSelectors = {
     isLoading() {
         return getState("isLoading") || false;
     },
+
     /**
      * Check if map is rendered
      *
@@ -361,6 +489,7 @@ export const AppSelectors = {
     isMapRendered() {
         return getState("map.isRendered") || false;
     },
+
     /**
      * Check if a specific tab is active
      *
@@ -368,15 +497,17 @@ export const AppSelectors = {
      *
      * @returns True if tab is active.
      */
-    isTabActive(tabName) {
+    isTabActive(tabName: string) {
         return this.activeTab() === tabName;
     },
 };
+
 /**
  * State middleware - functions that can intercept and modify state changes
  */
 export class StateMiddleware {
-    middlewares = [];
+    middlewares: MiddlewareFn[] = [];
+
     /**
      * Apply all middlewares to a state change
      *
@@ -386,34 +517,48 @@ export class StateMiddleware {
      * @param options - Options.
      * @returns Potentially modified value.
      */
-    apply(path, value, oldValue, options) {
+    apply(
+        path: string,
+        value: unknown,
+        oldValue: unknown,
+        options: Record<string, unknown>
+    ): unknown {
         let modifiedValue = value;
+
         for (const middleware of this.middlewares) {
             try {
-                const result = middleware(path, modifiedValue, oldValue, options);
+                const result = middleware(
+                    path,
+                    modifiedValue,
+                    oldValue,
+                    options
+                );
                 if (result !== undefined) {
                     modifiedValue = result;
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[StateMiddleware] Error in middleware:", error);
             }
         }
+
         return modifiedValue;
     }
+
     /**
      * Add middleware function
      *
      * @param middleware - Middleware function.
      */
-    use(middleware) {
+    use(middleware: MiddlewareFn): void {
         this.middlewares.push(middleware);
     }
 }
+
 /**
  * Shared global middleware instance.
  */
 export const stateMiddleware = new StateMiddleware();
+
 // Add some default middleware
 stateMiddleware.use((path, value, oldValue) => {
     // Log important state changes
@@ -424,6 +569,7 @@ stateMiddleware.use((path, value, oldValue) => {
         });
     }
 });
+
 /**
  * Create a lazily evaluated memoized computed value invalidated by
  * dependencies.
@@ -433,26 +579,35 @@ stateMiddleware.use((path, value, oldValue) => {
  * @param dependencies - Array of state paths to watch.
  * @returns Function that returns the computed value and exposes cleanup.
  */
-export function useComputed(computeFn, dependencies = []) {
-    let cachedValue;
+export function useComputed<T>(
+    computeFn: () => T,
+    dependencies: string[] = []
+): (() => T) & { cleanup: () => void } {
+    let cachedValue: T;
     let isValid = false;
+
     // Subscribe to dependency changes
     const getComputedValue = () => {
-        if (!isValid) {
-            cachedValue = computeFn();
-            isValid = true;
-        }
-        return cachedValue;
-    }, unsubscribers = dependencies.map((dep) => subscribe(dep, () => {
-        isValid = false;
-    }));
+            if (!isValid) {
+                cachedValue = computeFn();
+                isValid = true;
+            }
+            return cachedValue;
+        },
+        unsubscribers = dependencies.map((dep) =>
+            subscribe(dep, () => {
+                isValid = false;
+            })
+        );
+
     // Cleanup function
     getComputedValue.cleanup = () => {
-        for (const unsub of unsubscribers)
-            unsub();
+        for (const unsub of unsubscribers) unsub();
     };
+
     return getComputedValue;
 }
+
 /**
  * Hook-like accessor for state values with a setter.
  *
@@ -461,9 +616,14 @@ export function useComputed(computeFn, dependencies = []) {
  * @param defaultValue - Default value if state is undefined.
  * @returns Value and setter tuple.
  */
-export function useState(path, defaultValue) {
-    const currentValue = getState(path) ?? defaultValue, setter = (newValue) => {
-        setState(path, newValue, { source: "useState" });
-    };
-    return [currentValue, setter];
+export function useState<T = unknown>(
+    path: string,
+    defaultValue?: T
+): [T, (newValue: T) => void] {
+    const currentValue = getState(path) ?? defaultValue,
+        setter = (newValue: T) => {
+            setState(path, newValue, { source: "useState" });
+        };
+
+    return [currentValue as T, setter];
 }
