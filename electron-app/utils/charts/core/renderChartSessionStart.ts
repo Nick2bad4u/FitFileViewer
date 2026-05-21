@@ -2,6 +2,7 @@ import {
     isChartLibraryUnavailable,
     touchStringTargetContainer,
 } from "./renderChartPreflight.js";
+import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import {
     clearExistingCharts,
     startChartRendering,
@@ -14,12 +15,12 @@ type NotifyErrorFunction = (
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options: unknown
+    options?: StateUpdateOptions
 ) => void;
 type UpdateStateFunction = (
     path: string,
-    value: unknown,
-    options: unknown
+    value: Record<string, unknown>,
+    options?: StateUpdateOptions
 ) => void;
 
 interface ChartLifecycleActions {
@@ -63,6 +64,7 @@ type ChartRenderSessionStartResult =
  *
  * @param dependencies - DOM, state, lifecycle, and notification dependencies.
  * @param input - Render target input.
+ *
  * @returns Session timing when chart rendering can continue.
  */
 export async function beginChartRenderSession(

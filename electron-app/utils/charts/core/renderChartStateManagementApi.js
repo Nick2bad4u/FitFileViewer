@@ -3,6 +3,7 @@ import { initializeChartStateManagement as initializeChartStateManagementImpl, r
  * Creates the state-management API exported by renderChartJS.
  *
  * @param dependencies - Runtime state, chart view, and refresh actions.
+ *
  * @returns State-management methods preserving the renderChartJS public API.
  */
 export function createChartStateManagementApi(dependencies) {

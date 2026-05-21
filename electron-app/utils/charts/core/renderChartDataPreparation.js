@@ -27,7 +27,8 @@ export function isChartDataObject(value) {
     return isChartDataRecord(value);
 }
 /**
- * Returns the time-series record messages when FIT data contains chartable rows.
+ * Returns the time-series record messages when FIT data contains chartable
+ * rows.
  */
 export function getRecordMessages(globalData) {
     const recordMesgs = getRecordValue(globalData, "recordMesgs");
@@ -56,7 +57,8 @@ export function getActivityStartTime(recordMesgs) {
     return null;
 }
 /**
- * Stores the prepared chart payload in application state for downstream consumers.
+ * Stores the prepared chart payload in application state for downstream
+ * consumers.
  */
 export function storeChartData(dependencies, recordMesgs, activityStartTime) {
     dependencies.setState("charts.chartData", {

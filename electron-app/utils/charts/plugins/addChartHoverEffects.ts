@@ -1,4 +1,5 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
+import type { ThemeColorValue } from "../../theming/core/theme.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
@@ -13,7 +14,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 let chartFullscreenTraceCounter = 0;
 
 interface ChartHoverColors {
-    [key: string]: string | undefined;
+    [key: string]: ThemeColorValue | undefined;
     accent?: string;
     border?: string;
     primary?: string;

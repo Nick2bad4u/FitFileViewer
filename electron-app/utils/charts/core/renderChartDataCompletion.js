@@ -1,9 +1,11 @@
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 /**
- * Completes a successful chart data render pass with state, hover, and notification updates.
+ * Completes a successful chart data render pass with state, hover, and
+ * notification updates.
  *
  * @param dependencies - Runtime completion dependencies and fallback accessors.
  * @param input - Render timing and visible chart count.
+ *
  * @returns Final render duration and chart count.
  */
 export async function completeChartDataRender(dependencies, input) {
@@ -15,9 +17,12 @@ export async function completeChartDataRender(dependencies, input) {
         doc: dependencies.doc,
         getComputedStateManager: dependencies.getComputedStateManager,
         getState: dependencies.getState,
-        getThemeConfig: () => dependencies.chartGlobal.getThemeConfig
-            ? dependencies.chartGlobal.getThemeConfig()
-            : dependencies.getThemeConfig(),
+        getThemeConfig: () => {
+            const globalGetThemeConfig = dependencies.chartGlobal.getThemeConfig;
+            return typeof globalGetThemeConfig === "function"
+                ? globalGetThemeConfig()
+                : dependencies.getThemeConfig();
+        },
         isTestRuntime: dependencies.isTestRuntime,
         notify: dependencies.notify,
         now: dependencies.now,

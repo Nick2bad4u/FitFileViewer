@@ -1,22 +1,16 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 function hasDebouncedRender(value) {
-    return (
-        isObjectRecord(value) && typeof value["debouncedRender"] === "function"
-    );
+    return (isObjectRecord(value) && typeof value["debouncedRender"] === "function");
 }
 function hasChartAction(value) {
-    return (
-        isObjectRecord(value) &&
+    return (isObjectRecord(value) &&
         (typeof value["clearCharts"] === "function" ||
             typeof value["completeRendering"] === "function" ||
-            typeof value["startRendering"] === "function")
-    );
+            typeof value["startRendering"] === "function"));
 }
 function hasUpdatePanelVisibility(value) {
-    return (
-        isObjectRecord(value) &&
-        typeof value["updatePanelVisibility"] === "function"
-    );
+    return (isObjectRecord(value) &&
+        typeof value["updatePanelVisibility"] === "function");
 }
 /**
  * Returns the renderer global through the local chart-runtime boundary.
@@ -45,9 +39,7 @@ export function ensureProcessNextTick() {
  * Reads NODE_ENV defensively for browser-like renderer test environments.
  */
 export function isNodeEnv(expected) {
-    return (
-        typeof process !== "undefined" && process.env["NODE_ENV"] === expected
-    );
+    return (typeof process !== "undefined" && process.env["NODE_ENV"] === expected);
 }
 /**
  * Returns true when development-only chart diagnostics should run.
@@ -119,8 +111,7 @@ export function getGlobalChartInstances(fallbackInstances) {
     const windowInstances = isObjectRecord(windowValue)
         ? windowValue["_chartjsInstances"]
         : undefined;
-    const instances =
-        chartGlobal._chartjsInstances ?? windowInstances ?? fallbackInstances;
+    const instances = chartGlobal._chartjsInstances ?? windowInstances ?? fallbackInstances;
     return Array.isArray(instances) ? instances : [];
 }
 /**

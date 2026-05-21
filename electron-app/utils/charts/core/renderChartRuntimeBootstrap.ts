@@ -8,18 +8,24 @@ type ChartRequestStateManager = {
 
 type InitializeChartRuntimeBootstrapDependencies = {
     getChartStateManager(): ChartRequestStateManager | null;
-    renderChart(container: HTMLElement): Promise<unknown> | unknown;
+    renderChart(
+        container?: Element | null | string,
+        options?: unknown
+    ): Promise<unknown> | unknown;
 };
 
 type ChartPluginGlobal = Parameters<typeof registerChartJsPlugins>[0];
 
 /** Mutable global object used by the renderer chart runtime. */
-export type ChartRuntimeGlobal = ReturnType<typeof getMutableChartRuntimeGlobal>;
+export type ChartRuntimeGlobal = ReturnType<
+    typeof getMutableChartRuntimeGlobal
+>;
 
 /**
  * Initializes Chart.js global plugin registration and legacy render requests.
  *
  * @param dependencies - Runtime render bridge dependencies.
+ *
  * @returns Mutable chart runtime global.
  */
 export function initializeChartRuntimeBootstrap(

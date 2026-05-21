@@ -8,7 +8,8 @@ import {
 import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
 
-type StateListener = (
+/** Listener invoked when a subscribed state path changes. */
+export type StateListener = (
     newValue: unknown,
     oldValue: unknown,
     path: string
@@ -117,7 +118,8 @@ export function __resetStateManagerForTests(): void {
 }
 
 /**
- * Creates a reactive global property that maps reads and writes to a state path.
+ * Creates a reactive global property that maps reads and writes to a state
+ * path.
  *
  * @param propertyName - Global property name.
  * @param statePath - State path to bind to the property.
@@ -180,9 +182,12 @@ export function createReactiveProperty(
  * Gets state by dot-notation path.
  *
  * @param path - Dot-notation path to a state property.
+ *
  * @returns State value at the path, or the root state for an empty path.
  */
-export function getState<T = unknown>(path = ""): T | AppStateShape | undefined {
+export function getState<T = unknown>(
+    path = ""
+): T | AppStateShape | undefined {
     if (!path) {
         return AppState;
     }
@@ -426,6 +431,7 @@ export function setState(
  *
  * @param path - Dot-notation state path.
  * @param callback - Listener called when the path changes.
+ *
  * @returns Unsubscribe function.
  */
 export function subscribe(path: string, callback: StateListener): Unsubscribe {
@@ -456,6 +462,7 @@ export function subscribe(path: string, callback: StateListener): Unsubscribe {
  * @param path - Dot-notation state path.
  * @param id - Unique subscription id.
  * @param callback - Listener called when the path changes.
+ *
  * @returns Unsubscribe function.
  */
 export function subscribeSingleton(

@@ -235,6 +235,11 @@ class StateMiddlewareManager {
         }));
     }
 
+    /** Returns true when middleware with the given name is registered. */
+    public has(name: string): boolean {
+        return this.middleware.has(name);
+    }
+
     /** Registers or replaces middleware. */
     public register(
         name: string,

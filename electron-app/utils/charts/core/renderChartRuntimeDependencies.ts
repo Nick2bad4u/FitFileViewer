@@ -1,62 +1,54 @@
-type ChartRuntimeCallable = (...args: unknown[]) => unknown;
+import type {
+    getConvertersSafe,
+    getHoverPluginsSafe,
+    getRendererModulesSafe,
+    getShowRenderNotificationSafe,
+} from "./renderChartDependencyAccessors.js";
+import type { getStateManagerSafe } from "./renderChartStateAccess.js";
 
-interface ChartRendererModules {
-    readonly createChartCanvas: ChartRuntimeCallable;
-    readonly createEnhancedChart: ChartRuntimeCallable;
-    readonly renderEventMessagesChart: ChartRuntimeCallable;
-    readonly renderGPSTimeChart: ChartRuntimeCallable;
-    readonly renderGPSTrackChart: ChartRuntimeCallable;
-    readonly renderLapZoneCharts: ChartRuntimeCallable;
-    readonly renderPerformanceAnalysisCharts: ChartRuntimeCallable;
-    readonly renderTimeInZoneCharts: ChartRuntimeCallable;
-}
-
-interface ChartHoverPlugins {
-    readonly addChartHoverEffects: ChartRuntimeCallable;
-    readonly addHoverEffectsToExistingCharts: ChartRuntimeCallable;
-    readonly removeChartHoverEffects: ChartRuntimeCallable;
-}
-
-interface ChartStateManagerAccess {
-    readonly getState: ChartRuntimeCallable;
-    readonly setState: ChartRuntimeCallable;
-    readonly updateState: ChartRuntimeCallable;
-}
+type ChartRendererModules = ReturnType<typeof getRendererModulesSafe>;
+type ChartHoverPlugins = ReturnType<typeof getHoverPluginsSafe>;
+type ChartStateManagerAccess = ReturnType<typeof getStateManagerSafe>;
+type ShowRenderNotificationFunction = ReturnType<
+    typeof getShowRenderNotificationSafe
+>;
+type UnitConverter = ReturnType<typeof getConvertersSafe>;
 
 interface ResolveChartRuntimeDependenciesInput {
-    readonly getConverters: () => unknown;
+    readonly getConverters: () => UnitConverter;
     readonly getHoverPlugins: () => ChartHoverPlugins;
     readonly getRendererModules: () => ChartRendererModules;
-    readonly getShowRenderNotification: () => ChartRuntimeCallable;
+    readonly getShowRenderNotification: () => ShowRenderNotificationFunction;
     readonly getStateManager: () => ChartStateManagerAccess;
     readonly getThemeConfig: () => Promise<unknown> | unknown;
 }
 
 /** Late-bound chart render dependencies resolved for a single render pass. */
 export interface ResolvedChartRuntimeDependencies {
-    readonly addChartHoverEffectsSafe: ChartRuntimeCallable;
-    readonly addHoverEffectsToExistingChartsSafe: ChartRuntimeCallable;
-    readonly convert: unknown;
-    readonly createChartCanvasSafe: ChartRuntimeCallable;
-    readonly createEnhancedChartSafe: ChartRuntimeCallable;
-    readonly gs_rcwd: ChartRuntimeCallable;
-    readonly removeChartHoverEffectsSafe: ChartRuntimeCallable;
-    readonly renderEventMessagesChartSafe: ChartRuntimeCallable;
-    readonly renderGPSTimeChartSafe: ChartRuntimeCallable;
-    readonly renderGPSTrackChartSafe: ChartRuntimeCallable;
-    readonly renderLapZoneChartsSafe: ChartRuntimeCallable;
-    readonly renderPerformanceAnalysisChartsSafe: ChartRuntimeCallable;
-    readonly renderTimeInZoneChartsSafe: ChartRuntimeCallable;
-    readonly showRenderNotificationSafe: ChartRuntimeCallable;
-    readonly ss_rcwd: ChartRuntimeCallable;
+    readonly addChartHoverEffectsSafe: ChartHoverPlugins["addChartHoverEffects"];
+    readonly addHoverEffectsToExistingChartsSafe: ChartHoverPlugins["addHoverEffectsToExistingCharts"];
+    readonly convert: UnitConverter;
+    readonly createChartCanvasSafe: ChartRendererModules["createChartCanvas"];
+    readonly createEnhancedChartSafe: ChartRendererModules["createEnhancedChart"];
+    readonly gs_rcwd: ChartStateManagerAccess["getState"];
+    readonly removeChartHoverEffectsSafe: ChartHoverPlugins["removeChartHoverEffects"];
+    readonly renderEventMessagesChartSafe: ChartRendererModules["renderEventMessagesChart"];
+    readonly renderGPSTimeChartSafe: ChartRendererModules["renderGPSTimeChart"];
+    readonly renderGPSTrackChartSafe: ChartRendererModules["renderGPSTrackChart"];
+    readonly renderLapZoneChartsSafe: ChartRendererModules["renderLapZoneCharts"];
+    readonly renderPerformanceAnalysisChartsSafe: ChartRendererModules["renderPerformanceAnalysisCharts"];
+    readonly renderTimeInZoneChartsSafe: ChartRendererModules["renderTimeInZoneCharts"];
+    readonly showRenderNotificationSafe: ShowRenderNotificationFunction;
+    readonly ss_rcwd: ChartStateManagerAccess["setState"];
     readonly themeConfig: unknown;
-    readonly us_rcwd: ChartRuntimeCallable;
+    readonly us_rcwd: ChartStateManagerAccess["updateState"];
 }
 
 /**
  * Resolves late-bound chart renderer dependencies for a render pass.
  *
  * @param input - Accessors for dynamically injected renderer dependencies.
+ *
  * @returns Safe dependency aliases consumed by the chart render loop.
  */
 export async function resolveChartRuntimeDependencies(

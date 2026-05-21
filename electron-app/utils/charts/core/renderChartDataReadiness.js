@@ -16,6 +16,7 @@ async function completeMissingChartData(dependencies, input) {
  *
  * @param dependencies - State, setup, notification, and DOM dependencies.
  * @param input - Target container used for no-data placeholder rendering.
+ *
  * @returns Prepared record messages when chart rendering should continue.
  */
 export async function prepareChartRenderData(dependencies, input) {

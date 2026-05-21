@@ -2,6 +2,7 @@
  * Reads the public chart status snapshot from state and the chart state view.
  *
  * @param dependencies - Runtime state getter and chart state view.
+ *
  * @returns Public chart status object.
  */
 export function getChartStatus(dependencies) {

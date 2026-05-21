@@ -115,6 +115,10 @@ class StateMiddlewareManager {
             priority: middleware.priority,
         }));
     }
+    /** Returns true when middleware with the given name is registered. */
+    has(name) {
+        return this.middleware.has(name);
+    }
     /** Registers or replaces middleware. */
     register(name, middleware, priority = 100) {
         if (this.middleware.has(name)) {

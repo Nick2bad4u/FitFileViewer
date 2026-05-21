@@ -2,11 +2,24 @@ import { fieldLabels } from "../../formatting/display/formatChartFields.js";
 import { safeAppend } from "./renderChartDomHelpers.js";
 import { shouldUseSpanGaps } from "./renderChartPerformanceSettings.js";
 import { getCachedSeriesForSettings, getFieldSeriesEntry, } from "./renderChartSeriesCache.js";
+function toStringRecord(value) {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+        return undefined;
+    }
+    const entries = Object.entries(value).filter((entry) => typeof entry[1] === "string");
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+function toReadonlyRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : undefined;
+}
 /**
  * Renders primary FIT data-field charts into the target container.
  *
  * @param dependencies - DOM, visibility, runtime, and registration hooks.
  * @param options - Normalized settings and data used by the field loop.
+ *
  * @returns Render-loop status and number of visible charts created.
  */
 export function renderPrimaryChartFields(dependencies, options) {
@@ -41,13 +54,14 @@ export function renderPrimaryChartFields(dependencies, options) {
         visibleFieldCount += 1;
         const canvas = dependencies.createChartCanvas(field, visibleFieldCount);
         safeAppend(dependencies.chartContainer, canvas);
-        const chart = dependencies.createEnhancedChart(canvas, {
+        const customColors = toStringRecord(options.customColors);
+        const decimation = toReadonlyRecord(options.performanceTuning.decimation);
+        const { tickSampleSize } = options.performanceTuning;
+        const createChartOptions = {
             animationStyle: options.animationStyle,
-            axisRanges,
             chartData: limitedPoints,
             chartType: options.chartType,
-            customColors: options.customColors,
-            decimation: options.performanceTuning.decimation,
+            distanceUnits: options.distanceUnits,
             enableSpanGaps: shouldUseSpanGaps(options.performanceTuning, seriesEntry),
             field,
             fieldLabels,
@@ -58,12 +72,17 @@ export function renderPrimaryChartFields(dependencies, options) {
             showPoints: options.boolSettings.showPoints,
             showTitle: options.boolSettings.showTitle,
             smoothing: options.smoothing,
-            tickSampleSize: options.performanceTuning.tickSampleSize,
-            theme: options.exportTheme,
-            zoomPluginConfig: options.zoomPluginConfig,
-            timeUnits: options.timeUnits,
-            distanceUnits: options.distanceUnits,
             temperatureUnits: options.temperatureUnits,
+            theme: options.exportTheme,
+            timeUnits: options.timeUnits,
+            zoomPluginConfig: options.zoomPluginConfig,
+            ...(axisRanges == null ? {} : { axisRanges }),
+            ...(customColors === undefined ? {} : { customColors }),
+            ...(decimation === undefined ? {} : { decimation }),
+            ...(tickSampleSize === undefined ? {} : { tickSampleSize }),
+        };
+        const chart = dependencies.createEnhancedChart(canvas, {
+            ...createChartOptions,
         });
         if (chart) {
             dependencies.chartGlobal._chartjsInstances.push(chart);

@@ -1,7 +1,7 @@
 function getAllFieldVisibility(fields, chartSettingsManager) {
     const result = {};
     for (const field of fields) {
-        result[field] = chartSettingsManager.getFieldVisibility(field);
+        result[field] = String(chartSettingsManager.getFieldVisibility(field) ?? "visible");
     }
     return result;
 }

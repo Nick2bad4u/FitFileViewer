@@ -2,16 +2,10 @@ import type {
     ActivityStartTime,
     ChartDataRecord,
 } from "./renderChartDataPreparation.js";
+import type { getRendererModulesSafe } from "./renderChartDependencyAccessors.js";
 
-type RendererProbe = (...args: unknown[]) => unknown;
-
-interface RendererProbeModules {
-    renderEventMessagesChart?: RendererProbe;
-    renderGPSTrackChart?: RendererProbe;
-    renderLapZoneCharts?: RendererProbe;
-    renderPerformanceAnalysisCharts?: RendererProbe;
-    renderTimeInZoneCharts?: RendererProbe;
-}
+type RendererProbeModules = ReturnType<typeof getRendererModulesSafe>;
+type RendererProbe = (...args: never[]) => unknown;
 
 interface TouchTestRendererModulesDependencies {
     createElement(tagName: string): HTMLElement;
@@ -19,16 +13,20 @@ interface TouchTestRendererModulesDependencies {
     isTestEnvironment(): boolean;
 }
 
-function callRenderer(renderer: RendererProbe | undefined, ...args: unknown[]): void {
+function callRenderer(
+    renderer: RendererProbe | undefined,
+    ...args: unknown[]
+): void {
     try {
-        renderer?.(...args);
+        (renderer as ((...args: unknown[]) => unknown) | undefined)?.(...args);
     } catch {
         /* Test probes must not affect render success. */
     }
 }
 
 /**
- * Touches renderer modules in tests so integration spies observe expected calls.
+ * Touches renderer modules in tests so integration spies observe expected
+ * calls.
  */
 export function touchRendererModulesForTest(
     dependencies: TouchTestRendererModulesDependencies,

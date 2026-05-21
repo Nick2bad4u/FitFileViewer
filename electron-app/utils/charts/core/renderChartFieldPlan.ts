@@ -7,7 +7,7 @@ import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
 
 interface ChartFieldRenderPlanInput {
-    readonly animationStyle: unknown;
+    readonly animationStyle: string;
     readonly isDebugLoggingEnabled: boolean;
     readonly recordMesgs: readonly ChartDataRecord[];
     readonly renderableFields: unknown;
@@ -15,15 +15,17 @@ interface ChartFieldRenderPlanInput {
 }
 
 interface ChartFieldRenderPlan {
-    readonly effectiveAnimationStyle: unknown;
+    readonly effectiveAnimationStyle: string;
     readonly fieldsToRender: readonly string[];
     readonly labels: readonly number[];
 }
 
 /**
- * Resolves chart labels, candidate metric fields, and per-render animation tuning.
+ * Resolves chart labels, candidate metric fields, and per-render animation
+ * tuning.
  *
  * @param input - Current chart render inputs.
+ *
  * @returns Field render plan consumed by primary chart rendering.
  */
 export function resolveChartFieldRenderPlan(

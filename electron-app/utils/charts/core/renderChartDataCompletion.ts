@@ -1,22 +1,23 @@
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 
-type CompletionDependencies = Parameters<typeof completeSuccessfulChartRender>[0];
+type CompletionDependencies = Parameters<
+    typeof completeSuccessfulChartRender
+>[0];
 type CompletionInput = Parameters<typeof completeSuccessfulChartRender>[1];
 
 interface ChartCompletionGlobal {
     readonly _chartjsInstances: unknown;
-    readonly getThemeConfig?: CompletionDependencies["getThemeConfig"];
+    readonly getThemeConfig?: unknown;
 }
 
 interface ChartControlsStateManager {
     updateChartControlsUI?(enabled: boolean): unknown;
 }
 
-interface CompleteChartDataRenderDependencies
-    extends Omit<
-        CompletionDependencies,
-        "chartInstances" | "getThemeConfig" | "updateChartControlsUI"
-    > {
+interface CompleteChartDataRenderDependencies extends Omit<
+    CompletionDependencies,
+    "chartInstances" | "getThemeConfig" | "updateChartControlsUI"
+> {
     readonly chartGlobal: ChartCompletionGlobal;
     readonly getThemeConfig: CompletionDependencies["getThemeConfig"];
     readonly getUIStateManager: () =>
@@ -26,10 +27,12 @@ interface CompleteChartDataRenderDependencies
 }
 
 /**
- * Completes a successful chart data render pass with state, hover, and notification updates.
+ * Completes a successful chart data render pass with state, hover, and
+ * notification updates.
  *
  * @param dependencies - Runtime completion dependencies and fallback accessors.
  * @param input - Render timing and visible chart count.
+ *
  * @returns Final render duration and chart count.
  */
 export async function completeChartDataRender(
@@ -44,10 +47,13 @@ export async function completeChartDataRender(
         doc: dependencies.doc,
         getComputedStateManager: dependencies.getComputedStateManager,
         getState: dependencies.getState,
-        getThemeConfig: () =>
-            dependencies.chartGlobal.getThemeConfig
-                ? dependencies.chartGlobal.getThemeConfig()
-                : dependencies.getThemeConfig(),
+        getThemeConfig: () => {
+            const globalGetThemeConfig =
+                dependencies.chartGlobal.getThemeConfig;
+            return typeof globalGetThemeConfig === "function"
+                ? globalGetThemeConfig()
+                : dependencies.getThemeConfig();
+        },
         isTestRuntime: dependencies.isTestRuntime,
         notify: dependencies.notify,
         now: dependencies.now,

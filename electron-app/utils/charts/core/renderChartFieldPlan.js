@@ -2,9 +2,11 @@ import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
 /**
- * Resolves chart labels, candidate metric fields, and per-render animation tuning.
+ * Resolves chart labels, candidate metric fields, and per-render animation
+ * tuning.
  *
  * @param input - Current chart render inputs.
+ *
  * @returns Field render plan consumed by primary chart rendering.
  */
 export function resolveChartFieldRenderPlan(input) {

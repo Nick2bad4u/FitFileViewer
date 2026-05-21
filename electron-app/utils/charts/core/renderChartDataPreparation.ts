@@ -19,7 +19,11 @@ export interface ChartDataRecordSource {
 }
 
 interface StoreChartDataDependencies {
-    setState(path: string, value: PreparedChartData, options: unknown): void;
+    setState(
+        path: string,
+        value: PreparedChartData,
+        options: { readonly silent: boolean; readonly source: string }
+    ): void;
 }
 
 /** Checks whether a value is a single object row from FIT record messages. */
@@ -66,7 +70,8 @@ export function isChartDataObject(value: unknown): value is ChartDataRecord {
 }
 
 /**
- * Returns the time-series record messages when FIT data contains chartable rows.
+ * Returns the time-series record messages when FIT data contains chartable
+ * rows.
  */
 export function getRecordMessages(
     globalData: ChartDataRecord
@@ -104,7 +109,8 @@ export function getActivityStartTime(
 }
 
 /**
- * Stores the prepared chart payload in application state for downstream consumers.
+ * Stores the prepared chart payload in application state for downstream
+ * consumers.
  */
 export function storeChartData(
     dependencies: StoreChartDataDependencies,

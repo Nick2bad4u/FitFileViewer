@@ -136,16 +136,18 @@ function logZoneData(message: string, data?: unknown): void {
  * Extracts zone data from FIT globals and updates window.heartRateZones /
  * window.powerZones for existing chart modules.
  */
-export function setupZoneData(
-    globalData: GlobalData | null | undefined
-): SetupZoneDataResult {
+export function setupZoneData(globalData: unknown): SetupZoneDataResult {
+    const zoneData =
+        globalData !== null && typeof globalData === "object"
+            ? (globalData as GlobalData)
+            : null;
     let heartRateZones = getExistingZones("hr");
     let powerZones = getExistingZones("power");
     let hasHRZoneData = heartRateZones.length > 0;
     let hasPowerZoneData = powerZones.length > 0;
 
     try {
-        if (!globalData) {
+        if (!zoneData) {
             return {
                 hasHRZoneData,
                 hasPowerZoneData,
@@ -156,20 +158,20 @@ export function setupZoneData(
 
         logZoneData(
             "[ChartJS] Setting up zone data from globalData:",
-            globalData
+            zoneData
         );
 
-        if (Array.isArray(globalData.timeInZoneMesgs)) {
+        if (Array.isArray(zoneData.timeInZoneMesgs)) {
             logZoneData(
                 "[ChartJS] Found timeInZoneMesgs:",
-                globalData.timeInZoneMesgs.length
+                zoneData.timeInZoneMesgs.length
             );
 
             if (isDebugLoggingEnabled()) {
                 for (const [
                     index,
                     zoneMessage,
-                ] of globalData.timeInZoneMesgs.entries()) {
+                ] of zoneData.timeInZoneMesgs.entries()) {
                     console.log(
                         `[ChartJS] TimeInZone ${index} fields:`,
                         Object.keys(zoneMessage || {})
@@ -184,7 +186,7 @@ export function setupZoneData(
                 }
             }
 
-            const sessionZoneData = globalData.timeInZoneMesgs.find(
+            const sessionZoneData = zoneData.timeInZoneMesgs.find(
                 (zoneMessage) => zoneMessage.referenceMesg === "session"
             );
 
@@ -217,9 +219,9 @@ export function setupZoneData(
 
         if (
             heartRateZones.length === 0 &&
-            Array.isArray(globalData.sessionMesgs)
+            Array.isArray(zoneData.sessionMesgs)
         ) {
-            const sessionWithHrZones = globalData.sessionMesgs.find((session) =>
+            const sessionWithHrZones = zoneData.sessionMesgs.find((session) =>
                 Array.isArray(session.time_in_hr_zone)
             );
             if (sessionWithHrZones?.time_in_hr_zone) {
@@ -239,8 +241,8 @@ export function setupZoneData(
             }
         }
 
-        if (powerZones.length === 0 && Array.isArray(globalData.sessionMesgs)) {
-            const sessionWithPowerZones = globalData.sessionMesgs.find(
+        if (powerZones.length === 0 && Array.isArray(zoneData.sessionMesgs)) {
+            const sessionWithPowerZones = zoneData.sessionMesgs.find(
                 (session) => Array.isArray(session.time_in_power_zone)
             );
             if (sessionWithPowerZones?.time_in_power_zone) {
@@ -263,13 +265,13 @@ export function setupZoneData(
         if (
             heartRateZones.length === 0 &&
             powerZones.length === 0 &&
-            Array.isArray(globalData.lapMesgs) &&
-            globalData.lapMesgs.length > 0
+            Array.isArray(zoneData.lapMesgs) &&
+            zoneData.lapMesgs.length > 0
         ) {
             logZoneData("[ChartJS] Aggregating zone data from lapMesgs");
 
             const hrZoneTimes = sumLapZoneTimes(
-                globalData.lapMesgs,
+                zoneData.lapMesgs,
                 "time_in_hr_zone"
             );
             if (hasPositiveZoneTimes(hrZoneTimes)) {
@@ -289,7 +291,7 @@ export function setupZoneData(
             }
 
             const powerZoneTimes = sumLapZoneTimes(
-                globalData.lapMesgs,
+                zoneData.lapMesgs,
                 "time_in_power_zone"
             );
             if (hasPositiveZoneTimes(powerZoneTimes)) {

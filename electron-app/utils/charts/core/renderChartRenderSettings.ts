@@ -1,4 +1,5 @@
 import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
+import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import type { MaxPointsValue } from "./renderChartPointUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 
@@ -13,7 +14,7 @@ type ResolvePerformanceSettings = (
 type SetChartOptionsState = (
     path: string,
     value: unknown,
-    options: unknown
+    options?: StateUpdateOptions
 ) => unknown;
 
 interface ResolveChartRenderSettingsDependencies {
@@ -40,20 +41,20 @@ export interface ChartRenderBooleanSettings {
 
 /** Normalized render settings consumed by renderChartsWithData. */
 export interface ResolvedChartRenderSettings {
-    animationStyle: unknown;
+    animationStyle: string;
     boolSettings: ChartRenderBooleanSettings;
-    chartType: unknown;
+    chartType: string;
     customColors: unknown;
     dataSettingsSignature: string;
-    distanceUnits: unknown;
-    exportTheme: unknown;
-    interpolation: unknown;
+    distanceUnits: string;
+    exportTheme: string;
+    interpolation: string;
     normalizedMaxPoints: MaxPointsValue;
     performanceTuning: ChartPerformanceSettings;
     settings: ChartRenderSettingsRecord;
-    smoothing: unknown;
-    temperatureUnits: unknown;
-    timeUnits: unknown;
+    smoothing: number;
+    temperatureUnits: string;
+    timeUnits: string;
 }
 
 function isSettingOn(value: unknown): boolean {
@@ -64,11 +65,18 @@ function isSettingNotOff(value: unknown): boolean {
     return String(value) !== "off" && value !== false;
 }
 
+function toFiniteNumber(value: unknown, fallback: number): number {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
 /**
  * Resolves persisted chart settings into render-loop inputs and updates state.
  *
- * @param dependencies - Runtime settings, cache signature, performance, and state hooks.
+ * @param dependencies - Runtime settings, cache signature, performance, and
+ *   state hooks.
  * @param params - Data-size inputs for performance tuning.
+ *
  * @returns Normalized settings for chart rendering.
  */
 export function resolveChartRenderSettings(
@@ -122,19 +130,19 @@ export function resolveChartRenderSettings(
     );
 
     return {
-        animationStyle,
+        animationStyle: String(animationStyle),
         boolSettings,
-        chartType,
+        chartType: String(chartType),
         customColors,
         dataSettingsSignature,
-        distanceUnits,
-        exportTheme,
-        interpolation,
+        distanceUnits: String(distanceUnits),
+        exportTheme: String(exportTheme),
+        interpolation: String(interpolation),
         normalizedMaxPoints,
         performanceTuning,
         settings,
-        smoothing,
-        temperatureUnits,
-        timeUnits,
+        smoothing: toFiniteNumber(smoothing, 0.1),
+        temperatureUnits: String(temperatureUnits),
+        timeUnits: String(timeUnits),
     };
 }

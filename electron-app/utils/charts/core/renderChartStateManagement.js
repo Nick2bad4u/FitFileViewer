@@ -39,7 +39,8 @@ export function initializeChartStateManagement(dependencies) {
             lastRender: dependencies.getState("charts.lastRenderTime"),
         };
     });
-    if (!dependencies.middlewareManager.middleware?.has?.("chart-render")) {
+    const hasChartRenderMiddleware = dependencies.middlewareManager.has?.("chart-render") ?? false;
+    if (!hasChartRenderMiddleware) {
         dependencies.middlewareManager.register?.("chart-render", {
             afterSet: (context) => {
                 console.log("[ChartJS] Chart render action completed:", context);
@@ -49,12 +50,11 @@ export function initializeChartStateManagement(dependencies) {
                 console.log("[ChartJS] Starting chart render action:", context);
                 return context;
             },
-            onError: (context) => {
-                console.error("[ChartJS] Chart render action failed:", context);
+            onError: (error, errorContext) => {
+                console.error("[ChartJS] Chart render action failed:", error, errorContext);
                 void Promise.resolve().then(() => {
                     dependencies.notify("Chart rendering failed", "error");
                 });
-                return context;
             },
         });
     }
@@ -64,6 +64,7 @@ export function initializeChartStateManagement(dependencies) {
  * Requests a chart refresh only when data is available and rendering is idle.
  *
  * @param dependencies - State and action dependencies from renderChartJS.
+ *
  * @returns True when a refresh was requested.
  */
 export function refreshChartsIfNeeded(dependencies) {

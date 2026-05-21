@@ -13,6 +13,7 @@ function getExportFormatLabel(format) {
  * Creates the state-aware chart export placeholder used by the renderer API.
  *
  * @param dependencies - State, notification, and chart instance hooks.
+ *
  * @returns Export function that reports whether charts were available.
  */
 export function createExportChartsWithState(dependencies) {

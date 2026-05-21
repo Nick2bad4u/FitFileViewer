@@ -5,6 +5,7 @@ import type {
     ActivityStartTime,
     ChartDataRecord,
 } from "./renderChartDataPreparation.js";
+import type { getRendererModulesSafe } from "./renderChartDependencyAccessors.js";
 
 interface PreparedChartRenderOptions {
     allowInactiveTab: boolean;
@@ -22,15 +23,7 @@ type RenderChartsWithData = (
     }
 ) => Promise<unknown>;
 
-type RendererProbe = (...args: unknown[]) => unknown;
-
-interface RendererProbeModules {
-    renderEventMessagesChart?: RendererProbe;
-    renderGPSTrackChart?: RendererProbe;
-    renderLapZoneCharts?: RendererProbe;
-    renderPerformanceAnalysisCharts?: RendererProbe;
-    renderTimeInZoneCharts?: RendererProbe;
-}
+type RendererProbeModules = ReturnType<typeof getRendererModulesSafe>;
 
 interface ChartLifecycleActions {
     completeRendering?: (
@@ -80,6 +73,7 @@ function getChartInstanceCount(chartGlobal: ChartRuntimeGlobal): number {
  * @param dependencies - Runtime, renderer, and lifecycle dependencies.
  * @param input - Prepared render data and timing inputs.
  * @param options - Normalized render options.
+ *
  * @returns Render success and elapsed render time.
  */
 export async function executePreparedChartRender(

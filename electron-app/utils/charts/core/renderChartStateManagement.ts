@@ -1,21 +1,16 @@
 import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import type {
+    MiddlewareContext,
+    MiddlewareDefinition,
+} from "../../state/core/stateMiddleware.js";
 
 interface ComputedStateManager {
     define?(key: string, compute: () => unknown): void;
 }
 
 interface MiddlewareManagerLike {
-    middleware?: {
-        has?(key: string): boolean;
-    };
-    register?(
-        key: string,
-        middleware: {
-            afterSet(context: unknown): unknown;
-            beforeSet(context: unknown): unknown;
-            onError(context: unknown): unknown;
-        }
-    ): void;
+    has?(key: string): boolean;
+    register?(key: string, middleware: MiddlewareDefinition): void;
 }
 
 interface ChartSummaryState {
@@ -92,25 +87,31 @@ export function initializeChartStateManagement(
         };
     });
 
-    if (!dependencies.middlewareManager.middleware?.has?.("chart-render")) {
+    const hasChartRenderMiddleware =
+        dependencies.middlewareManager.has?.("chart-render") ?? false;
+
+    if (!hasChartRenderMiddleware) {
         dependencies.middlewareManager.register?.("chart-render", {
-            afterSet: (context: unknown) => {
+            afterSet: (context: MiddlewareContext) => {
                 console.log(
                     "[ChartJS] Chart render action completed:",
                     context
                 );
                 return context;
             },
-            beforeSet: (context: unknown) => {
+            beforeSet: (context: MiddlewareContext) => {
                 console.log("[ChartJS] Starting chart render action:", context);
                 return context;
             },
-            onError: (context: unknown) => {
-                console.error("[ChartJS] Chart render action failed:", context);
+            onError: (error, errorContext) => {
+                console.error(
+                    "[ChartJS] Chart render action failed:",
+                    error,
+                    errorContext
+                );
                 void Promise.resolve().then(() => {
                     dependencies.notify("Chart rendering failed", "error");
                 });
-                return context;
             },
         });
     }
@@ -122,6 +123,7 @@ export function initializeChartStateManagement(
  * Requests a chart refresh only when data is available and rendering is idle.
  *
  * @param dependencies - State and action dependencies from renderChartJS.
+ *
  * @returns True when a refresh was requested.
  */
 export function refreshChartsIfNeeded(

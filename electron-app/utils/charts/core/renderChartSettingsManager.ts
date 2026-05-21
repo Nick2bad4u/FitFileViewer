@@ -48,7 +48,8 @@ interface CreateChartSettingsManagerDependencies {
     updateState(path: string, value: unknown, options: unknown): void;
 }
 
-interface ChartSettingsManager {
+/** State-backed chart settings access and mutation API. */
+export interface ChartSettingsManager {
     getFieldVisibility(field: string): unknown;
     getSettings(): Record<string, unknown>;
     setFieldVisibility(field: string, visibility: string): void;

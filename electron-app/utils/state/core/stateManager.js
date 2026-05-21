@@ -48,7 +48,8 @@ export function __resetStateManagerForTests() {
     stateManagerInitState.initialized = false;
 }
 /**
- * Creates a reactive global property that maps reads and writes to a state path.
+ * Creates a reactive global property that maps reads and writes to a state
+ * path.
  *
  * @param propertyName - Global property name.
  * @param statePath - State path to bind to the property.
@@ -94,6 +95,7 @@ export function createReactiveProperty(propertyName, statePath) {
  * Gets state by dot-notation path.
  *
  * @param path - Dot-notation path to a state property.
+ *
  * @returns State value at the path, or the root state for an empty path.
  */
 export function getState(path = "") {
@@ -289,6 +291,7 @@ export function setState(path, value, options = {}) {
  *
  * @param path - Dot-notation state path.
  * @param callback - Listener called when the path changes.
+ *
  * @returns Unsubscribe function.
  */
 export function subscribe(path, callback) {
@@ -315,6 +318,7 @@ export function subscribe(path, callback) {
  * @param path - Dot-notation state path.
  * @param id - Unique subscription id.
  * @param callback - Listener called when the path changes.
+ *
  * @returns Unsubscribe function.
  */
 export function subscribeSingleton(path, id, callback) {

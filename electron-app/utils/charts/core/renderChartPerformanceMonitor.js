@@ -1,18 +1,12 @@
-import {
-    getState,
-    setState,
-    updateState,
-} from "../../state/core/stateManager.js";
+import { getState, setState, updateState, } from "../../state/core/stateManager.js";
 import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 function getPerformanceHistory() {
     const history = getState("performance.chartHistory");
     return Array.isArray(history) ? history : [];
 }
 function isPerformanceTrackingRecord(value) {
-    return (
-        isObjectRecord(value) &&
-        typeof getRecordValue(value, "startTime") === "number"
-    );
+    return (isObjectRecord(value) &&
+        typeof getRecordValue(value, "startTime") === "number");
 }
 /**
  * Tracks and summarizes chart rendering performance metrics.
@@ -38,13 +32,9 @@ export const chartPerformanceMonitor = {
             endTime,
             status: "completed",
         };
-        updateState(
-            "performance.tracking",
-            {
-                [trackingId]: performanceRecord,
-            },
-            { merge: true, source: "chartPerformanceMonitor.endTracking" }
-        );
+        updateState("performance.tracking", {
+            [trackingId]: performanceRecord,
+        }, { merge: true, source: "chartPerformanceMonitor.endTracking" });
         const history = getPerformanceHistory();
         history.push(performanceRecord);
         if (history.length > 50) {
@@ -54,9 +44,7 @@ export const chartPerformanceMonitor = {
             silent: false,
             source: "chartPerformanceMonitor.endTracking",
         });
-        console.log(
-            `[ChartJS Performance] ${String(getRecordValue(trackingData, "operation"))} completed in ${duration.toFixed(2)}ms`
-        );
+        console.log(`[ChartJS Performance] ${String(getRecordValue(trackingData, "operation"))} completed in ${duration.toFixed(2)}ms`);
     },
     /**
      * Get performance summary for charts.
@@ -81,8 +69,7 @@ export const chartPerformanceMonitor = {
                 totalOperations: history.length,
             };
         }
-        const averageDuration =
-            durations.reduce((sum, duration) => sum + duration, 0) /
+        const averageDuration = durations.reduce((sum, duration) => sum + duration, 0) /
             durations.length;
         return {
             averageDuration,
@@ -103,17 +90,13 @@ export const chartPerformanceMonitor = {
     startTracking(operation) {
         const startTime = performance.now();
         const trackingId = `chart-${operation}-${Date.now()}`;
-        updateState(
-            "performance.tracking",
-            {
-                [trackingId]: {
-                    operation,
-                    startTime,
-                    status: "running",
-                },
+        updateState("performance.tracking", {
+            [trackingId]: {
+                operation,
+                startTime,
+                status: "running",
             },
-            { merge: true, source: "chartPerformanceMonitor.startTracking" }
-        );
+        }, { merge: true, source: "chartPerformanceMonitor.startTracking" });
         return trackingId;
     },
 };

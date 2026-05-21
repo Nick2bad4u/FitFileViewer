@@ -12,6 +12,8 @@ interface RenderChartRuntimeGlobal {
     __FFV_suppressLoadingState?: unknown;
     __chartjs_dev?: unknown;
     _fitFileViewerChartListener?: unknown;
+    _fitFileViewerSharedConfigurationAbortController?: AbortController;
+    _fitFileViewerSharedConfigurationListener?: unknown;
     chartStateManager?: unknown;
     process?: ProcessShim;
     chartActions?: unknown;
@@ -22,7 +24,7 @@ interface RenderChartRuntimeGlobal {
     getThemeConfig?: unknown;
     uiStateManager?: unknown;
     window?: unknown;
-    _chartjsInstances?: unknown;
+    _chartjsInstances?: unknown[];
 }
 
 interface DebouncedChartStateManager {

@@ -1,4 +1,5 @@
 import type { ChartStateView } from "./renderChartStateView.js";
+import type { MiddlewareDefinition } from "../../state/core/stateMiddleware.js";
 import {
     initializeChartStateManagement as initializeChartStateManagementImpl,
     refreshChartsIfNeeded as refreshChartsIfNeededImpl,
@@ -16,19 +17,13 @@ interface CreateChartStateManagementApiDependencies {
     };
     getState(path: string): unknown;
     middlewareManager: {
-        middleware?: {
-            has?(key: string): boolean;
-        };
-        register?(
-            key: string,
-            middleware: {
-                afterSet(context: unknown): unknown;
-                beforeSet(context: unknown): unknown;
-                onError(context: unknown): unknown;
-            }
-        ): void;
+        has?(key: string): boolean;
+        register?(key: string, middleware: MiddlewareDefinition): void;
     };
-    notify(message: string, type: string): unknown;
+    notify(
+        message: string,
+        type: "error" | "info" | "success" | "warning"
+    ): unknown;
     updateState(path: string, value: unknown, options: unknown): void;
 }
 
@@ -42,6 +37,7 @@ export interface ChartStateManagementApi {
  * Creates the state-management API exported by renderChartJS.
  *
  * @param dependencies - Runtime state, chart view, and refresh actions.
+ *
  * @returns State-management methods preserving the renderChartJS public API.
  */
 export function createChartStateManagementApi(
@@ -65,7 +61,8 @@ export function createChartStateManagementApi(
 
         refreshChartsIfNeeded() {
             return refreshChartsIfNeededImpl({
-                hasValidData: () => Boolean(dependencies.chartState.hasValidData),
+                hasValidData: () =>
+                    Boolean(dependencies.chartState.hasValidData),
                 isRendering: () => dependencies.chartState.isRendering,
                 requestRerender: (reason) =>
                     dependencies.chartActions.requestRerender(reason),

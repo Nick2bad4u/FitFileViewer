@@ -26,7 +26,8 @@ interface CreateChartActionsDependencies {
     updateState(path: string, value: unknown, options: unknown): unknown;
 }
 
-interface ChartActions {
+/** State-backed actions used by chart rendering integrations. */
+export interface ChartActions {
     clearCharts(): void;
     completeRendering(
         success: boolean,

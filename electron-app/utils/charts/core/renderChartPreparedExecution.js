@@ -12,6 +12,7 @@ function getChartInstanceCount(chartGlobal) {
  * @param dependencies - Runtime, renderer, and lifecycle dependencies.
  * @param input - Prepared render data and timing inputs.
  * @param options - Normalized render options.
+ *
  * @returns Render success and elapsed render time.
  */
 export async function executePreparedChartRender(dependencies, input, options) {

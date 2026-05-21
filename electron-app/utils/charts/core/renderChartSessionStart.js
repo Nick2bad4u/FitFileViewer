@@ -5,6 +5,7 @@ import { clearExistingCharts, startChartRendering, } from "./renderChartLifecycl
  *
  * @param dependencies - DOM, state, lifecycle, and notification dependencies.
  * @param input - Render target input.
+ *
  * @returns Session timing when chart rendering can continue.
  */
 export async function beginChartRenderSession(dependencies, input) {

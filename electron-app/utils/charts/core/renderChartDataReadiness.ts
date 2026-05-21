@@ -3,11 +3,13 @@ import { renderNoChartDataPlaceholder } from "./renderChartPlaceholders.js";
 import {
     type ActivityStartTime,
     type ChartDataRecord,
+    type ChartDataRecordSource,
     getActivityStartTime,
     getRecordMessages,
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
+import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 
 type UnitConverter = (value: number, field: string) => unknown;
 type NotifyFunction = (
@@ -17,9 +19,11 @@ type NotifyFunction = (
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options: unknown
+    options?: StateUpdateOptions
 ) => void;
-type SetupZoneDataFunction = (globalData: unknown) => unknown;
+type SetupZoneDataFunction = (
+    globalData: ChartDataRecord | ChartDataRecordSource
+) => unknown;
 
 interface ChartStateManagerAccess {
     setState: SetStateFunction;
@@ -77,6 +81,7 @@ async function completeMissingChartData(
  *
  * @param dependencies - State, setup, notification, and DOM dependencies.
  * @param input - Target container used for no-data placeholder rendering.
+ *
  * @returns Prepared record messages when chart rendering should continue.
  */
 export async function prepareChartRenderData(
@@ -118,9 +123,7 @@ export async function prepareChartRenderData(
         return completeMissingChartData(dependencies, input);
     }
 
-    console.log(
-        `[ChartJS] Found ${recordMesgs.length} data points to process`
-    );
+    console.log(`[ChartJS] Found ${recordMesgs.length} data points to process`);
 
     const activityStartTime = getActivityStartTime(recordMesgs);
     if (activityStartTime != null) {

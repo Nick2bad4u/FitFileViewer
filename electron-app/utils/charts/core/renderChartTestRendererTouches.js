@@ -7,7 +7,8 @@ function callRenderer(renderer, ...args) {
     }
 }
 /**
- * Touches renderer modules in tests so integration spies observe expected calls.
+ * Touches renderer modules in tests so integration spies observe expected
+ * calls.
  */
 export function touchRendererModulesForTest(dependencies, recordMesgs, activityStartTime) {
     if (!dependencies.isTestEnvironment()) {

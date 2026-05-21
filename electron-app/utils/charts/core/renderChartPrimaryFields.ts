@@ -1,4 +1,6 @@
 import { fieldLabels } from "../../formatting/display/formatChartFields.js";
+import type { createChartCanvas } from "../components/createChartCanvas.js";
+import type { createEnhancedChart } from "../components/createEnhancedChart.js";
 import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 import { safeAppend } from "./renderChartDomHelpers.js";
 import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
@@ -22,14 +24,31 @@ type ChartRenderBooleanSettings = {
     showTitle: boolean;
 };
 
-type CreateChartCanvas = (field: string, index: number) => Node;
-
-type CreateEnhancedChart = (
-    canvas: Node,
-    options: Record<string, unknown>
-) => unknown;
+type CreateChartCanvas = typeof createChartCanvas;
+type CreateEnhancedChart = typeof createEnhancedChart;
 
 type RegisterChart = (chart: unknown) => void;
+
+function toStringRecord(
+    value: unknown
+): Readonly<Record<string, string>> | undefined {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+        return undefined;
+    }
+
+    const entries = Object.entries(value).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string"
+    );
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function toReadonlyRecord(
+    value: unknown
+): Readonly<Record<string, unknown>> | undefined {
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? (value as Readonly<Record<string, unknown>>)
+        : undefined;
+}
 
 interface RenderPrimaryChartFieldsDependencies {
     chartContainer: ParentNode;
@@ -45,24 +64,24 @@ interface RenderPrimaryChartFieldsDependencies {
 }
 
 interface RenderPrimaryChartFieldsOptions {
-    animationStyle: unknown;
+    animationStyle: string;
     boolSettings: ChartRenderBooleanSettings;
-    chartType: unknown;
+    chartType: string;
     convert: NumericFieldConverter;
     customColors: unknown;
     dataSettingsSignature: string;
-    distanceUnits: unknown;
-    exportTheme: unknown;
+    distanceUnits: string;
+    exportTheme: string;
     fieldsToRender: readonly string[];
-    interpolation: unknown;
+    interpolation: string;
     labels: readonly unknown[];
     normalizedMaxPoints: MaxPointsValue;
     performanceTuning: ChartPerformanceSettings;
     recordMesgs: readonly ChartDataRecord[];
-    smoothing: unknown;
-    temperatureUnits: unknown;
-    timeUnits: unknown;
-    zoomPluginConfig: unknown;
+    smoothing: number;
+    temperatureUnits: string;
+    timeUnits: string;
+    zoomPluginConfig: Record<string, unknown>;
 }
 
 /** Result of rendering the primary data-field charts. */
@@ -76,6 +95,7 @@ export interface RenderPrimaryChartFieldsResult {
  *
  * @param dependencies - DOM, visibility, runtime, and registration hooks.
  * @param options - Normalized settings and data used by the field loop.
+ *
  * @returns Render-loop status and number of visible charts created.
  */
 export function renderPrimaryChartFields(
@@ -139,13 +159,16 @@ export function renderPrimaryChartFields(
         const canvas = dependencies.createChartCanvas(field, visibleFieldCount);
         safeAppend(dependencies.chartContainer, canvas);
 
-        const chart = dependencies.createEnhancedChart(canvas, {
+        const customColors = toStringRecord(options.customColors);
+        const decimation = toReadonlyRecord(
+            options.performanceTuning.decimation
+        );
+        const { tickSampleSize } = options.performanceTuning;
+        const createChartOptions = {
             animationStyle: options.animationStyle,
-            axisRanges,
             chartData: limitedPoints,
             chartType: options.chartType,
-            customColors: options.customColors,
-            decimation: options.performanceTuning.decimation,
+            distanceUnits: options.distanceUnits,
             enableSpanGaps: shouldUseSpanGaps(
                 options.performanceTuning,
                 seriesEntry
@@ -159,12 +182,18 @@ export function renderPrimaryChartFields(
             showPoints: options.boolSettings.showPoints,
             showTitle: options.boolSettings.showTitle,
             smoothing: options.smoothing,
-            tickSampleSize: options.performanceTuning.tickSampleSize,
-            theme: options.exportTheme,
-            zoomPluginConfig: options.zoomPluginConfig,
-            timeUnits: options.timeUnits,
-            distanceUnits: options.distanceUnits,
             temperatureUnits: options.temperatureUnits,
+            theme: options.exportTheme,
+            timeUnits: options.timeUnits,
+            zoomPluginConfig: options.zoomPluginConfig,
+            ...(axisRanges == null ? {} : { axisRanges }),
+            ...(customColors === undefined ? {} : { customColors }),
+            ...(decimation === undefined ? {} : { decimation }),
+            ...(tickSampleSize === undefined ? {} : { tickSampleSize }),
+        };
+
+        const chart = dependencies.createEnhancedChart(canvas, {
+            ...createChartOptions,
         });
 
         if (chart) {

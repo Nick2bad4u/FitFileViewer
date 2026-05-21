@@ -36,7 +36,11 @@ import {
 import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js";
 
 interface ComputedStateManagerAccess {
+    define?(key: string, compute: () => unknown): unknown;
+    get?(key: string): unknown;
+    invalidate?(key: string): unknown;
     invalidateComputed?(key: string): unknown;
+    list?(): unknown;
 }
 
 type FieldConverter = (value: number, field: string) => number;

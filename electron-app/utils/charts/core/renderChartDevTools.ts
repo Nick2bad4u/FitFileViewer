@@ -1,4 +1,9 @@
-interface ChartActionsAccess extends Record<string, unknown> {
+import type {
+    StateListener,
+    StateUpdateOptions,
+} from "../../state/core/stateManager.js";
+
+interface ChartActionsAccess {
     readonly clearCharts?: unknown;
     readonly requestRerender?: unknown;
 }
@@ -10,7 +15,7 @@ interface ChartRuntimeGlobal {
 }
 
 interface ChartSettingsManagerAccess {
-    getFieldVisibility(field: string): string;
+    getFieldVisibility(field: string): unknown;
     getSettings(): unknown;
     setFieldVisibility(field: string, visibility: unknown): unknown;
 }
@@ -29,9 +34,9 @@ type DebounceFunction = (callback: () => void, delay: number) => () => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options: { readonly silent: boolean; readonly source: string }
+    options?: StateUpdateOptions
 ) => unknown;
-type SubscribeFunction = (path: string, callback: unknown) => unknown;
+type SubscribeFunction = (path: string, callback: StateListener) => unknown;
 
 interface ChartDevToolsDependencies {
     readonly addHoverEffectsToExistingCharts: unknown;
@@ -60,7 +65,9 @@ function getAllFieldVisibility(
 ): Record<string, string> {
     const result: Record<string, string> = {};
     for (const field of fields) {
-        result[field] = chartSettingsManager.getFieldVisibility(field);
+        result[field] = String(
+            chartSettingsManager.getFieldVisibility(field) ?? "visible"
+        );
     }
     return result;
 }
@@ -139,7 +146,7 @@ export function exposeChartDevTools(
                 source: "dev-tools",
             }),
         settings: chartSettingsManager,
-        subscribe: (path: string, callback: unknown) =>
+        subscribe: (path: string, callback: StateListener) =>
             dependencies.subscribe(path, callback),
         testDebounce: (delay = 1000) => {
             dependencies.debounce(() => {
@@ -148,7 +155,9 @@ export function exposeChartDevTools(
         },
         testStateSynchronization: () => {
             console.log("[ChartJS Dev] Testing state synchronization...");
-            console.log("[ChartJS Dev] State access available for manual testing");
+            console.log(
+                "[ChartJS Dev] State access available for manual testing"
+            );
         },
     };
 

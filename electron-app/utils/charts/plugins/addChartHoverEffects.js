@@ -13,11 +13,9 @@ let chartFullscreenTraceCounter = 0;
 const chartHoverGlobal = globalThis;
 const wrapperCleanupControllers = new WeakMap();
 function isPromiseLike(value) {
-    return (
-        isObjectRecord(value) &&
+    return (isObjectRecord(value) &&
         "then" in value &&
-        typeof value["then"] === "function"
-    );
+        typeof value["then"] === "function");
 }
 function createSvgPath(pathData) {
     const path = document.createElementNS(SVG_NAMESPACE, "path");
@@ -32,20 +30,19 @@ function createFullscreenIcon(mode) {
     const svg = document.createElementNS(SVG_NAMESPACE, "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
-    const pathData =
-        mode === "enter"
-            ? [
-                  "M9 3H5a2 2 0 0 0-2 2v4",
-                  "M15 3h4a2 2 0 0 1 2 2v4",
-                  "M9 21H5a2 2 0 0 1-2-2v-4",
-                  "M15 21h4a2 2 0 0 0 2-2v-4",
-              ]
-            : [
-                  "M9 9H5a2 2 0 0 1-2-2V3",
-                  "M15 9h4a2 2 0 0 0 2-2V3",
-                  "M9 15H5a2 2 0 0 0-2 2v4",
-                  "M15 15h4a2 2 0 0 1 2 2v4",
-              ];
+    const pathData = mode === "enter"
+        ? [
+            "M9 3H5a2 2 0 0 0-2 2v4",
+            "M15 3h4a2 2 0 0 1 2 2v4",
+            "M9 21H5a2 2 0 0 1-2-2v-4",
+            "M15 21h4a2 2 0 0 0 2-2v-4",
+        ]
+        : [
+            "M9 9H5a2 2 0 0 1-2-2V3",
+            "M15 9h4a2 2 0 0 0 2-2V3",
+            "M9 15H5a2 2 0 0 0-2 2v4",
+            "M15 15h4a2 2 0 0 1 2 2v4",
+        ];
     for (const path of pathData) {
         svg.append(createSvgPath(path));
     }
@@ -116,11 +113,9 @@ function isChartGlobalLike(value) {
     return isObjectRecord(value);
 }
 function resolveChartHoverThemeConfig(value) {
-    if (
-        !isObjectRecord(value) ||
+    if (!isObjectRecord(value) ||
         !("colors" in value) ||
-        !isObjectRecord(value["colors"])
-    ) {
+        !isObjectRecord(value["colors"])) {
         return { colors: {} };
     }
     const colors = {};
@@ -136,20 +131,17 @@ function isFullscreenTraceEnabled() {
     if (typeof override === "boolean") {
         return override;
     }
-    return (
-        typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development"
-    );
+    return (typeof process !== "undefined" &&
+        process.env["NODE_ENV"] === "development");
 }
 function describeElement(element) {
     if (!element) {
         return "<none>";
     }
     const id = element.id ? `#${element.id}` : "";
-    const className =
-        typeof element.className === "string" && element.className.length > 0
-            ? `.${element.className.trim().replace(/\s+/gu, ".")}`
-            : "";
+    const className = typeof element.className === "string" && element.className.length > 0
+        ? `.${element.className.trim().replace(/\s+/gu, ".")}`
+        : "";
     return `${element.tagName.toLowerCase()}${id}${className}`;
 }
 function traceChartFullscreen(traceId, event, payload = {}) {
@@ -158,16 +150,15 @@ function traceChartFullscreen(traceId, event, payload = {}) {
     }
     try {
         console.log(`[ChartFullscreen:${traceId}] ${event}`, payload);
-    } catch {
+    }
+    catch {
         /* ignore */
     }
 }
 function getChartInstanceFromCanvas(canvas) {
     const chartGlobal = chartHoverGlobal.Chart;
-    if (
-        isChartGlobalLike(chartGlobal) &&
-        typeof chartGlobal.getChart === "function"
-    ) {
+    if (isChartGlobalLike(chartGlobal) &&
+        typeof chartGlobal.getChart === "function") {
         const chart = chartGlobal.getChart(canvas);
         return isChartInstanceLike(chart) ? chart : null;
     }
@@ -190,20 +181,19 @@ function applyCanvasSize(canvas, isFullscreen) {
     if (isFullscreen) {
         canvas.style.height = "100%";
         canvas.style.maxHeight = "none";
-    } else {
+    }
+    else {
         canvas.style.height = DEFAULT_CHART_HEIGHT;
         canvas.style.maxHeight = DEFAULT_CHART_HEIGHT;
     }
 }
 function getFullscreenElement() {
     const doc = document;
-    return (
-        document.fullscreenElement ||
+    return (document.fullscreenElement ||
         doc.webkitFullscreenElement ||
         doc.mozFullScreenElement ||
         doc.msFullscreenElement ||
-        null
-    );
+        null);
 }
 async function waitForAnimationFrame() {
     await new Promise((resolve) => {
@@ -239,8 +229,7 @@ function isWrapperOverlayFullscreenActive(wrapper) {
 }
 async function requestNativeFullscreen(element) {
     const fullscreenElement = element;
-    const request =
-        fullscreenElement.requestFullscreen ||
+    const request = fullscreenElement.requestFullscreen ||
         fullscreenElement.webkitRequestFullscreen ||
         fullscreenElement.mozRequestFullScreen ||
         fullscreenElement.msRequestFullscreen;
@@ -256,8 +245,7 @@ async function requestElementFullscreen(element) {
 }
 async function exitFullscreen() {
     const doc = document;
-    const exit =
-        document.exitFullscreen ||
+    const exit = document.exitFullscreen ||
         doc.webkitExitFullscreen ||
         doc.mozCancelFullScreen ||
         doc.msExitFullscreen;
@@ -278,11 +266,9 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     }
     // Find all chart canvases in the container
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
-    const isDevEnvironment =
-        typeof process !== "undefined" &&
+    const isDevEnvironment = typeof process !== "undefined" &&
         process.env["NODE_ENV"] === "development";
-    const isDebugLoggingEnabled =
-        isDevEnvironment && Boolean(chartHoverGlobal.__FFV_debugCharts);
+    const isDebugLoggingEnabled = isDevEnvironment && Boolean(chartHoverGlobal.__FFV_debugCharts);
     let appliedCount = 0;
     for (const canvas of chartCanvases) {
         if (!(canvas instanceof HTMLElement)) {
@@ -352,8 +338,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         `;
         glowOverlay.style.opacity = "0";
         wrapper.append(glowOverlay);
-        const chartTitle = canvas.getAttribute("aria-label") || "Chart",
-            titleOverlay = document.createElement("div");
+        const chartTitle = canvas.getAttribute("aria-label") || "Chart", titleOverlay = document.createElement("div");
         const overlayTitle = chartTitle.replace("Chart for ", "").trim();
         const overlayTitleText = overlayTitle.toUpperCase() || "CHART";
         titleOverlay.className = "chart-title-overlay";
@@ -374,9 +359,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             pointer-events: none;
             box-shadow: 0 2px 8px ${colors.shadowLight || "#00000033"};
         `;
-        const titleIcon = createTitleIcon(
-            resolveChartTitleIconName(overlayTitle)
-        );
+        const titleIcon = createTitleIcon(resolveChartTitleIconName(overlayTitle));
         const titleText = document.createElement("span");
         titleText.className = "chart-title-overlay__text";
         titleText.textContent = overlayTitleText;
@@ -421,16 +404,13 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         fullscreenButton.className = "chart-fullscreen-btn";
         fullscreenButton.type = "button";
         fullscreenButton.title = "View chart fullscreen";
-        fullscreenButton.setAttribute(
-            "aria-label",
-            `View ${overlayTitleText} in fullscreen`
-        );
+        fullscreenButton.setAttribute("aria-label", `View ${overlayTitleText} in fullscreen`);
         replaceElementChildren(fullscreenButton, createFullscreenIcon("enter"));
         chartFullscreenTraceCounter += 1;
         const traceId = `${chartFullscreenTraceCounter}`;
         let overlayPlaceholder = null;
         let overlayParent = null;
-        let overlayEscHandler = () => {};
+        let overlayEscHandler = () => { };
         const cleanupController = new AbortController();
         const { signal } = cleanupController;
         wrapperCleanupControllers.set(wrapper, cleanupController);
@@ -479,8 +459,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         };
         const updateFullscreenState = () => {
             const fsElement = getFullscreenElement();
-            const isActive =
-                isWrapperFullscreenActive(wrapper) ||
+            const isActive = isWrapperFullscreenActive(wrapper) ||
                 isWrapperOverlayFullscreenActive(wrapper);
             wrapper.classList.toggle("chart-wrapper--fullscreen", isActive);
             applyCanvasSize(chartCanvas, isActive);
@@ -489,22 +468,17 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 isActive,
                 wrapper: describeElement(wrapper),
             });
-            replaceElementChildren(
-                fullscreenButton,
-                createFullscreenIcon(isActive ? "exit" : "enter")
-            );
+            replaceElementChildren(fullscreenButton, createFullscreenIcon(isActive ? "exit" : "enter"));
             fullscreenButton.title = isActive
                 ? "Exit fullscreen"
                 : "View chart fullscreen";
-            fullscreenButton.setAttribute(
-                "aria-label",
-                isActive
-                    ? `Exit ${overlayTitleText} fullscreen`
-                    : `View ${overlayTitleText} in fullscreen`
-            );
+            fullscreenButton.setAttribute("aria-label", isActive
+                ? `Exit ${overlayTitleText} fullscreen`
+                : `View ${overlayTitleText} in fullscreen`);
             if (typeof globalThis.requestAnimationFrame !== "function") {
                 requestChartResize(chartCanvas);
-            } else {
+            }
+            else {
                 scheduleAnimationFrame(() => {
                     requestChartResize(chartCanvas);
                 }, signal);
@@ -525,153 +499,113 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         for (const evt of FULLSCREEN_EVENTS) {
             document.addEventListener(evt, handleFullscreenChange, { signal });
         }
-        fullscreenButton.addEventListener(
-            "click",
-            async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                const fsElement = getFullscreenElement();
-                const isActive = isWrapperFullscreenActive(wrapper);
-                const isOverlayActive =
-                    isWrapperOverlayFullscreenActive(wrapper);
-                traceChartFullscreen(traceId, "button-click", {
-                    isActive,
-                    isOverlayActive,
-                    fullscreenElement: describeElement(fsElement),
-                    wrapper: describeElement(wrapper),
-                });
-                try {
-                    if (isOverlayActive) {
-                        exitOverlayFullscreen();
-                        return;
-                    }
-                    if (isActive) {
-                        traceChartFullscreen(traceId, "exit-request", {
-                            via: "button",
-                        });
-                        await exitFullscreen();
-                        return;
-                    }
-                    if (fsElement && fsElement !== wrapper) {
-                        traceChartFullscreen(
-                            traceId,
-                            "exit-existing-fullscreen",
-                            {
-                                fullscreenElement: describeElement(fsElement),
-                            }
-                        );
-                        await exitFullscreen();
-                        await waitForFullscreenTarget(null, 3);
-                        if (getFullscreenElement() !== null) {
-                            traceChartFullscreen(
-                                traceId,
-                                "blocked-existing-fullscreen",
-                                {
-                                    fullscreenElement: describeElement(
-                                        getFullscreenElement()
-                                    ),
-                                }
-                            );
-                            return;
-                        }
-                    }
-                    traceChartFullscreen(traceId, "enter-request", {
-                        target: describeElement(wrapper),
-                    });
-                    await requestElementFullscreen(wrapper);
-                    const didEnterNativeFullscreen =
-                        await waitForFullscreenTarget(wrapper, 3);
-                    if (!didEnterNativeFullscreen) {
-                        enterOverlayFullscreen();
-                    }
-                } catch {
-                    if (!isWrapperOverlayFullscreenActive(wrapper)) {
-                        enterOverlayFullscreen();
-                    }
-                } finally {
-                    updateFullscreenState();
+        fullscreenButton.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const fsElement = getFullscreenElement();
+            const isActive = isWrapperFullscreenActive(wrapper);
+            const isOverlayActive = isWrapperOverlayFullscreenActive(wrapper);
+            traceChartFullscreen(traceId, "button-click", {
+                isActive,
+                isOverlayActive,
+                fullscreenElement: describeElement(fsElement),
+                wrapper: describeElement(wrapper),
+            });
+            try {
+                if (isOverlayActive) {
+                    exitOverlayFullscreen();
+                    return;
                 }
-            },
-            { signal }
-        );
+                if (isActive) {
+                    traceChartFullscreen(traceId, "exit-request", {
+                        via: "button",
+                    });
+                    await exitFullscreen();
+                    return;
+                }
+                if (fsElement && fsElement !== wrapper) {
+                    traceChartFullscreen(traceId, "exit-existing-fullscreen", {
+                        fullscreenElement: describeElement(fsElement),
+                    });
+                    await exitFullscreen();
+                    await waitForFullscreenTarget(null, 3);
+                    if (getFullscreenElement() !== null) {
+                        traceChartFullscreen(traceId, "blocked-existing-fullscreen", {
+                            fullscreenElement: describeElement(getFullscreenElement()),
+                        });
+                        return;
+                    }
+                }
+                traceChartFullscreen(traceId, "enter-request", {
+                    target: describeElement(wrapper),
+                });
+                await requestElementFullscreen(wrapper);
+                const didEnterNativeFullscreen = await waitForFullscreenTarget(wrapper, 3);
+                if (!didEnterNativeFullscreen) {
+                    enterOverlayFullscreen();
+                }
+            }
+            catch {
+                if (!isWrapperOverlayFullscreenActive(wrapper)) {
+                    enterOverlayFullscreen();
+                }
+            }
+            finally {
+                updateFullscreenState();
+            }
+        }, { signal });
         wrapper.append(fullscreenButton);
         applyCanvasSize(chartCanvas, false);
         // Add hover event listeners to wrapper
-        wrapper.addEventListener(
-            "mouseenter",
-            () => {
-                const isFullscreen =
-                    wrapper.classList.contains("chart-wrapper--fullscreen") ||
-                    wrapper.classList.contains(
-                        "chart-wrapper--overlay-fullscreen"
-                    );
-                if (!isFullscreen) {
-                    wrapper.style.transform = "translateY(-6px) scale(1.02)";
-                    wrapper.style.boxShadow = `0 12px 40px ${colors.shadow || "#00000088"},
+        wrapper.addEventListener("mouseenter", () => {
+            const isFullscreen = wrapper.classList.contains("chart-wrapper--fullscreen") ||
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen");
+            if (!isFullscreen) {
+                wrapper.style.transform = "translateY(-6px) scale(1.02)";
+                wrapper.style.boxShadow = `0 12px 40px ${colors.shadow || "#00000088"},
                                        0 8px 20px ${colors.primaryShadowHeavy || "#00000055"}`;
-                    wrapper.style.borderColor = colors.primary || "";
-                }
-                glowOverlay.style.opacity = "0.3";
-                titleOverlay.style.opacity = "1";
-                titleOverlay.style.transform = "translateY(0)";
-                zoomHint.style.opacity = "1";
-                zoomHint.style.transform = "translateY(0)";
-                if (!isFullscreen) {
-                    wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
-                }
-            },
-            { signal }
-        );
-        wrapper.addEventListener(
-            "mouseleave",
-            () => {
-                const isFullscreen =
-                    wrapper.classList.contains("chart-wrapper--fullscreen") ||
-                    wrapper.classList.contains(
-                        "chart-wrapper--overlay-fullscreen"
-                    );
-                if (!isFullscreen) {
-                    wrapper.style.transform = "translateY(0) scale(1)";
-                    wrapper.style.boxShadow = `0 4px 20px ${colors.shadowLight || "#00000055"},
+                wrapper.style.borderColor = colors.primary || "";
+            }
+            glowOverlay.style.opacity = "0.3";
+            titleOverlay.style.opacity = "1";
+            titleOverlay.style.transform = "translateY(0)";
+            zoomHint.style.opacity = "1";
+            zoomHint.style.transform = "translateY(0)";
+            if (!isFullscreen) {
+                wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
+            }
+        }, { signal });
+        wrapper.addEventListener("mouseleave", () => {
+            const isFullscreen = wrapper.classList.contains("chart-wrapper--fullscreen") ||
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen");
+            if (!isFullscreen) {
+                wrapper.style.transform = "translateY(0) scale(1)";
+                wrapper.style.boxShadow = `0 4px 20px ${colors.shadowLight || "#00000055"},
                                        0 2px 8px ${colors.primaryShadowLight || "#00000033"}`;
-                    wrapper.style.borderColor = colors.border || "";
-                }
-                glowOverlay.style.opacity = "0";
-                titleOverlay.style.opacity = "0";
-                titleOverlay.style.transform = "translateY(-8px)";
-                zoomHint.style.opacity = "0";
-                zoomHint.style.transform = "translateY(6px)";
-                if (!isFullscreen) {
-                    wrapper.style.background = colors.surface || "#222";
-                }
-            },
-            { signal }
-        );
-        wrapper.addEventListener(
-            "click",
-            (event) => {
-                if (
-                    event.target instanceof HTMLElement &&
-                    event.target.closest(".chart-fullscreen-btn")
-                ) {
-                    return;
-                }
-                if (getFullscreenElement() === wrapper) {
-                    return;
-                }
-                if (
-                    wrapper.classList.contains(
-                        "chart-wrapper--overlay-fullscreen"
-                    )
-                ) {
-                    return;
-                }
-                const rect = wrapper.getBoundingClientRect(),
-                    ripple = document.createElement("div"),
-                    size = Math.max(rect.width, rect.height),
-                    x = event.clientX - rect.left - size / 2,
-                    y = event.clientY - rect.top - size / 2;
-                ripple.style.cssText = `
+                wrapper.style.borderColor = colors.border || "";
+            }
+            glowOverlay.style.opacity = "0";
+            titleOverlay.style.opacity = "0";
+            titleOverlay.style.transform = "translateY(-8px)";
+            zoomHint.style.opacity = "0";
+            zoomHint.style.transform = "translateY(6px)";
+            if (!isFullscreen) {
+                wrapper.style.background = colors.surface || "#222";
+            }
+        }, { signal });
+        wrapper.addEventListener("click", (event) => {
+            if (event.target instanceof HTMLElement &&
+                event.target.closest(".chart-fullscreen-btn")) {
+                return;
+            }
+            if (getFullscreenElement() === wrapper) {
+                return;
+            }
+            if (wrapper.classList.contains("chart-wrapper--overlay-fullscreen")) {
+                return;
+            }
+            const rect = wrapper.getBoundingClientRect(), ripple = document.createElement("div"), size = Math.max(rect.width, rect.height), x = event.clientX - rect.left - size / 2, y = event.clientY - rect.top - size / 2;
+            ripple.style.cssText = `
                 position: absolute;
                 width: ${size}px;
                 height: ${size}px;
@@ -684,23 +618,15 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 pointer-events: none;
                 z-index: 5;
             `;
-                wrapper.append(ripple);
-                scheduleTimeout(
-                    () => {
-                        if (ripple.parentNode) {
-                            ripple.remove();
-                        }
-                    },
-                    600,
-                    signal
-                );
-            },
-            { signal }
-        );
+            wrapper.append(ripple);
+            scheduleTimeout(() => {
+                if (ripple.parentNode) {
+                    ripple.remove();
+                }
+            }, 600, signal);
+        }, { signal });
         if (isDebugLoggingEnabled) {
-            console.log(
-                `[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`
-            );
+            console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
         }
     }
     // Inject CSS keyframes for ripple effect if not already added
@@ -741,9 +667,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         document.head.append(style);
     }
     if (isDebugLoggingEnabled) {
-        console.log(
-            `[ChartHoverEffects] Added hover effects to ${appliedCount} chart(s)`
-        );
+        console.log(`[ChartHoverEffects] Added hover effects to ${appliedCount} chart(s)`);
     }
 }
 /**
@@ -751,8 +675,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
  * theme.
  */
 export function addHoverEffectsToExistingCharts() {
-    const chartContainer =
-        document.querySelector("#chartjs_chart_container") ||
+    const chartContainer = document.querySelector("#chartjs_chart_container") ||
         document.querySelector("#chartjs-chart-container");
     if (!chartContainer) {
         console.warn("[DevHelper] Chart container not found");
@@ -761,7 +684,8 @@ export function addHoverEffectsToExistingCharts() {
     let rawThemeConfig;
     if (typeof chartHoverGlobal.getThemeConfig === "function") {
         rawThemeConfig = chartHoverGlobal.getThemeConfig();
-    } else {
+    }
+    else {
         rawThemeConfig = getThemeConfig();
     }
     const themeConfig = resolveChartHoverThemeConfig(rawThemeConfig);
@@ -781,14 +705,11 @@ export function removeChartHoverEffects(chartContainer) {
     if (!chartContainer) {
         return;
     }
-    const chartWrappers = chartContainer.querySelectorAll(".chart-wrapper"),
-        { colors } = resolveChartHoverThemeConfig(getThemeConfig());
+    const chartWrappers = chartContainer.querySelectorAll(".chart-wrapper"), { colors } = resolveChartHoverThemeConfig(getThemeConfig());
     for (const wrapper of chartWrappers) {
         const canvas = wrapper.querySelector(".chart-canvas");
-        if (
-            canvas instanceof HTMLElement &&
-            wrapper.parentNode instanceof HTMLElement
-        ) {
+        if (canvas instanceof HTMLElement &&
+            wrapper.parentNode instanceof HTMLElement) {
             if (wrapper instanceof HTMLElement) {
                 wrapperCleanupControllers.get(wrapper)?.abort();
                 wrapperCleanupControllers.delete(wrapper);
@@ -816,7 +737,5 @@ export function removeChartHoverEffects(chartContainer) {
             }
         }
     }
-    console.log(
-        `[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`
-    );
+    console.log(`[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`);
 }

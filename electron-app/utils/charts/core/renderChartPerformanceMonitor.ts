@@ -9,7 +9,8 @@ interface PerformanceTrackingRecord extends Record<string, unknown> {
     startTime: number;
 }
 
-interface PerformanceSummary {
+/** Summary of recent chart rendering performance samples. */
+export interface PerformanceSummary {
     averageDuration?: number;
     lastOperation?: unknown;
     maxDuration?: number;

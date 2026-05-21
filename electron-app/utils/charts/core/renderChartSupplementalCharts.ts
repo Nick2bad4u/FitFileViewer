@@ -75,9 +75,10 @@ export interface SupplementalChartVisibility {
 }
 
 interface PerformanceAnalysisOptions extends BaseChartDisplayOptions {
+    readonly [key: string]: unknown;
     readonly animationStyle: string;
     readonly chartType: string;
-    readonly customColors: readonly unknown[];
+    readonly customColors: unknown;
     readonly interpolation: string;
     readonly maxPoints: MaxPointsValue;
     readonly showFill: boolean;
@@ -92,7 +93,8 @@ interface RenderSupplementalChartsDependencies {
 }
 
 interface RenderSupplementalChartsInput
-    extends BaseChartDisplayOptions,
+    extends
+        BaseChartDisplayOptions,
         Pick<
             PerformanceAnalysisOptions,
             | "animationStyle"
@@ -112,7 +114,8 @@ function isVisible(visibility: unknown): boolean {
 }
 
 /**
- * Resolves state-managed visibility for the lap-zone supplemental chart variants.
+ * Resolves state-managed visibility for the lap-zone supplemental chart
+ * variants.
  */
 export function resolveLapZoneVisibility(
     visibility: SupplementalChartVisibility
@@ -138,7 +141,8 @@ function shouldRenderLapZones(visibility: LapZoneVisibility): boolean {
 }
 
 /**
- * Renders the supplemental chart families that sit outside the per-field metric loop.
+ * Renders the supplemental chart families that sit outside the per-field metric
+ * loop.
  */
 export function renderSupplementalCharts(
     dependencies: RenderSupplementalChartsDependencies,

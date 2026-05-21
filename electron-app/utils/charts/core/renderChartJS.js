@@ -23,32 +23,17 @@
  *
  * - Chart.js library (chartGlobal.Chart)
  * - Chart.js zoom plugin (chartGlobal.ChartZoom)
- *
- * @file Enhanced Chart.js rendering utility with State Management Integration
  */
-
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 // State management imports
-import {
-    getState,
-    setState,
-    subscribe,
-    updateState,
-} from "../../state/core/stateManager.js";
+import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
-import {
-    clearDataSettingsSignatureCache,
-    ensureDataSettingsSignature as resolveDataSettingsSignature,
-} from "./renderChartDataSettingsCache.js";
-import {
-    getInjectedModule,
-    getRecordFunction,
-    getRecordValue,
-} from "./renderChartModuleHelpers.js";
+import { clearDataSettingsSignatureCache, ensureDataSettingsSignature as resolveDataSettingsSignature, } from "./renderChartDataSettingsCache.js";
+import { getInjectedModule, getRecordFunction, getRecordValue, } from "./renderChartModuleHelpers.js";
 import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import { createExportChartsWithState } from "./renderChartExportState.js";
 import { clearChartLabelsCache } from "./renderChartLabelCache.js";
@@ -56,63 +41,21 @@ import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
 import { initializeChartRuntimeBootstrap } from "./renderChartRuntimeBootstrap.js";
-import {
-    clearPerformanceSettingsCache,
-    resolvePerformanceSettings,
-} from "./renderChartPerformanceSettings.js";
+import { clearPerformanceSettingsCache, resolvePerformanceSettings, } from "./renderChartPerformanceSettings.js";
 import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
-import {
-    clearChartSeriesCache,
-    getChartSeriesCacheStats as getSeriesCacheStats,
-} from "./renderChartSeriesCache.js";
-import {
-    ensureProcessNextTick,
-    getDebouncedChartStateManager,
-    getGlobalChartActions,
-    getGlobalChartInstances,
-    isChartDebugEnabled,
-    isDevelopmentEnvironment,
-    isLoadingStateSuppressed,
-    isTestEnvironment,
-    notifyChartRenderComplete,
-    setGlobalChartActions,
-} from "./renderChartRuntimeHelpers.js";
-import {
-    createDataSettingsSignature,
-    DATA_SIGNATURE_SOURCES,
-} from "./renderChartSettingsSignature.js";
+import { clearChartSeriesCache, getChartSeriesCacheStats as getSeriesCacheStats, } from "./renderChartSeriesCache.js";
+import { ensureProcessNextTick, getDebouncedChartStateManager, getGlobalChartActions, getGlobalChartInstances, isChartDebugEnabled, isDevelopmentEnvironment, isLoadingStateSuppressed, isTestEnvironment, notifyChartRenderComplete, setGlobalChartActions, } from "./renderChartRuntimeHelpers.js";
+import { createDataSettingsSignature, DATA_SIGNATURE_SOURCES, } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
-import {
-    previousChartState as previousChartStateCompat,
-    resetChartNotificationState as resetChartNotificationStateCompat,
-    updatePreviousChartState as updatePreviousChartStateCompat,
-} from "./renderChartNotificationStateCompat.js";
-import {
-    addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
-    notifyInvalidateChartRenderCacheListeners,
-} from "./renderChartCacheInvalidationListeners.js";
+import { previousChartState as previousChartStateCompat, resetChartNotificationState as resetChartNotificationStateCompat, updatePreviousChartState as updatePreviousChartStateCompat, } from "./renderChartNotificationStateCompat.js";
+import { addInvalidateChartRenderCacheListener as addCacheInvalidationListener, notifyInvalidateChartRenderCacheListeners, } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
 import { createChartRenderCacheApi } from "./renderChartCacheApi.js";
 import { createChartRenderCacheManager } from "./renderChartCacheManager.js";
-import {
-    getComputedStateManagerSafe,
-    getConvertersSafe,
-    getFormatChartFieldsSafe,
-    getHoverPluginsSafe,
-    getRendererModulesSafe,
-    getSettingsStateManagerSafe,
-    getSetupZoneDataSafe,
-    getShowRenderNotificationSafe,
-    getUIStateManagerMaybe,
-} from "./renderChartDependencyAccessors.js";
-import {
-    callGetState,
-    callSetState,
-    callUpdateState,
-    getStateManagerSafe,
-} from "./renderChartStateAccess.js";
+import { getComputedStateManagerSafe, getConvertersSafe, getFormatChartFieldsSafe, getHoverPluginsSafe, getRendererModulesSafe, getSettingsStateManagerSafe, getSetupZoneDataSafe, getShowRenderNotificationSafe, getUIStateManagerMaybe, } from "./renderChartDependencyAccessors.js";
+import { callGetState, callSetState, callUpdateState, getStateManagerSafe, } from "./renderChartStateAccess.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
 import { createChartActions } from "./renderChartActions.js";
@@ -123,14 +66,8 @@ import { renderChartErrorPlaceholder } from "./renderChartPlaceholders.js";
 import { prepareChartRenderData } from "./renderChartDataReadiness.js";
 import { exposeChartDevTools } from "./renderChartDevTools.js";
 import { executePreparedChartRender } from "./renderChartPreparedExecution.js";
-import {
-    createRenderTimingGate,
-    RENDER_DEBOUNCE_MS,
-} from "./renderChartTiming.js";
-import {
-    normalizeRenderChartOptions,
-    shouldAbortInactiveChartRender,
-} from "./renderChartPreflight.js";
+import { createRenderTimingGate, RENDER_DEBOUNCE_MS, } from "./renderChartTiming.js";
+import { normalizeRenderChartOptions, shouldAbortInactiveChartRender, } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
@@ -139,11 +76,22 @@ import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencie
 import { renderChartDataCharts } from "./renderChartDataCharts.js";
 import { completeChartDataRender } from "./renderChartDataCompletion.js";
 import { beginChartDataRenderContext } from "./renderChartDataContext.js";
-
+function debounceCallback(callback, delay) {
+    let timer;
+    return () => {
+        if (timer !== undefined) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(callback, delay);
+    };
+}
+function getChartGlobalWithInstances() {
+    chartGlobal._chartjsInstances ??= [];
+    return chartGlobal;
+}
+/** Tracks render timings and exposes chart performance summaries. */
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
-
 ensureProcessNextTick();
-
 /**
  * Enhanced chart settings management with state integration Provides
  * centralized settings access with reactive updates
@@ -162,9 +110,7 @@ export const chartSettingsManager = createChartSettingsManager({
     setState: callSetState,
     updateState: callUpdateState,
 });
-
 const renderTimingGate = createRenderTimingGate(RENDER_DEBOUNCE_MS);
-
 // A stable debounced re-render function.
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
 const debouncedDirectRerender = createDebouncedDirectRerender({
@@ -173,7 +119,6 @@ const debouncedDirectRerender = createDebouncedDirectRerender({
     renderChart: renderChartJS,
     waitMs: RENDER_DEBOUNCE_MS,
 });
-
 const chartRenderCacheManager = createChartRenderCacheManager({
     addInvalidateChartRenderCacheListener: addCacheInvalidationListener,
     clearChartLabelsCache,
@@ -185,70 +130,52 @@ const chartRenderCacheManager = createChartRenderCacheManager({
     isDevelopmentEnvironment,
     notifyInvalidateChartRenderCacheListeners,
 });
-
 const chartRenderCacheApi = createChartRenderCacheApi({
     chartRenderCacheManager,
     chartSettingsManager,
     prewarmChartRenderCaches: prewarmChartRenderCachesImpl,
 });
-
+/** Registers a listener that runs when chart render caches are invalidated. */
 export function addInvalidateChartRenderCacheListener(listener) {
-    return chartRenderCacheApi.addInvalidateChartRenderCacheListener(
-        listener
-    );
+    return chartRenderCacheApi.addInvalidateChartRenderCacheListener(listener);
 }
-
+/** Returns current chart series cache statistics. */
 export function getChartSeriesCacheStats() {
     return chartRenderCacheApi.getChartSeriesCacheStats();
 }
-
+/** Clears chart render caches for a specific invalidation reason. */
 export function invalidateChartRenderCache(reason = "manual") {
     chartRenderCacheApi.invalidateChartRenderCache(reason);
 }
-
+/** Prewarms expensive chart render caches for a prospective render. */
 export async function prewarmChartRenderCaches(params) {
     return chartRenderCacheApi.prewarmChartRenderCaches(params);
 }
-
-const ensureDataSettingsSignature = (settings) =>
-    chartRenderCacheApi.ensureDataSettingsSignature(settings);
-
+const ensureDataSettingsSignature = (settings) => chartRenderCacheApi.ensureDataSettingsSignature(settings);
+/** Last chart notification state retained for compatibility callers. */
 export const previousChartState = previousChartStateCompat;
-
+/** Resets notification tracking for the next chart render. */
 export function resetChartNotificationState() {
     return resetChartNotificationStateCompat();
 }
-
+/** Updates compatibility tracking for the previous chart render. */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
-    return updatePreviousChartStateCompat(
-        chartCount,
-        visibleFields,
-        timestamp
-    );
+    return updatePreviousChartStateCompat(chartCount, visibleFields, timestamp);
 }
-
 const chartGlobal = initializeChartRuntimeBootstrap({
     getChartStateManager: getDebouncedChartStateManager,
     renderChart: renderChartJS,
 });
-
-/**
- * Creates an enhanced settings and control panel for charts
- *
- * @param {HTMLElement | string} targetContainer - Container element or ID
- *
- * @returns {Object} Current settings object
- */
+/** Reactive view over chart state and renderable fields. */
 export const chartState = createChartStateView({
-    getFieldVisibility: (field) =>
-        chartSettingsManager.getFieldVisibility(field),
+    getFieldVisibility: (field) => chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
     getInjectedModule,
-    getRecordFunction,
+    getRecordFunction: (value, key) => getRecordFunction(value, key) ?? undefined,
     getRecordValue,
     getState: callGetState,
 });
-
+/** State-backed chart action handlers exposed to chart integrations. */
 export const chartActions = createChartActions({
     appActions: AppActions,
     chartGlobal,
@@ -262,7 +189,6 @@ export const chartActions = createChartActions({
     setState: callSetState,
     updateState: callUpdateState,
 });
-
 const chartStateManagementApi = createChartStateManagementApi({
     chartActions,
     chartState,
@@ -272,14 +198,13 @@ const chartStateManagementApi = createChartStateManagementApi({
     notify,
     updateState,
 });
-
 registerChartStartup({
     chartActions,
     chartGlobal,
     loadSharedConfiguration,
     setGlobalChartActions,
 });
-
+/** Exports rendered chart artifacts using current state. */
 export const exportChartsWithState = createExportChartsWithState({
     chartGlobal,
     getChartInstances: getGlobalChartInstances,
@@ -287,22 +212,21 @@ export const exportChartsWithState = createExportChartsWithState({
     notify,
     setState,
 });
-
+/** Returns the current public chart-rendering status snapshot. */
 export function getChartStatus() {
     return getChartStatusSnapshot({ chartState, getState });
 }
-
-// Utility function to convert hex to rgba.
 /**
- * @param {string} hex - Hex color code
- * @param {number} alpha - Alpha transparency value
+ * Converts a hex color token to an rgba string.
  *
- * @returns {string} RGBA color string
+ * @param hex - Hex color code.
+ * @param alpha - Alpha transparency value.
+ *
+ * @returns RGBA color string.
  */
 export function hexToRgba(hex, alpha) {
     return convertHexToRgba(hex, alpha);
 }
-
 /**
  * Initialize chart state management integration Sets up reactive subscriptions
  * and state synchronization Call this during application startup
@@ -310,7 +234,6 @@ export function hexToRgba(hex, alpha) {
 export function initializeChartStateManagement() {
     return chartStateManagementApi.initializeChartStateManagement();
 }
-
 /**
  * State-aware chart refresh function Triggers re-render only if conditions are
  * met
@@ -318,196 +241,107 @@ export function initializeChartStateManagement() {
 export function refreshChartsIfNeeded() {
     return chartStateManagementApi.refreshChartsIfNeeded();
 }
-
-/**
- * Process and set up zone data from FIT file for chart rendering Extracts time
- * in zone data from session messages and sets global variables
- */
 /**
  * Main chart rendering function with state management integration and
  * comprehensive error handling
  *
- * @param {Element | string} [targetContainer] - Optional container element or
- *   ID for chart rendering. If omitted, defaults to '#content_chart'.
- * @param {{
- *     allowInactiveTab?: boolean;
- *     skipTabAbort?: boolean;
- *     skipControls?: boolean;
- *     renderMode?: "foreground" | "background";
- * }} [options]
+ * @param targetContainer - Optional container element or ID for chart
+ *   rendering.
+ * @param options - Render-mode and inactive-tab controls.
  *
- * @returns {Promise<boolean>} Success status of the rendering operation
+ * @returns Success status of the rendering operation.
  */
-export async function renderChartJS(targetContainer, options = {}) {
+export async function renderChartJS(targetContainer = undefined, options = {}) {
     console.log("[ChartJS] Starting chart rendering...");
-
-    const { allowInactiveTab, skipTabAbort, skipControls } =
-        normalizeRenderChartOptions(options);
-
-    if (
-        shouldAbortInactiveChartRender(
-            {
-                getStateManager: getStateManagerSafe,
-                isTestEnvironment,
-                log: (message) => console.log(message),
-            },
-            allowInactiveTab
-        )
-    ) {
+    const { allowInactiveTab, skipTabAbort, skipControls } = normalizeRenderChartOptions(options);
+    if (shouldAbortInactiveChartRender({
+        getStateManager: getStateManagerSafe,
+        isTestEnvironment,
+        log: (message) => console.log(message),
+    }, allowInactiveTab)) {
         return false;
     }
-
     try {
-        const renderSession = await beginChartRenderSession(
-            {
-                chartGlobal,
-                doc: document,
-                getGlobalChartActions,
-                isLoadingStateSuppressed,
-                notify,
-                now: () => performance.now(),
-                safeCompleteRendering,
-                setState: callSetState,
-                updateState: callUpdateState,
-                waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
-            },
-            { targetContainer }
-        );
+        const renderSession = await beginChartRenderSession({
+            chartGlobal,
+            doc: document,
+            getGlobalChartActions,
+            isLoadingStateSuppressed,
+            notify,
+            now: () => performance.now(),
+            safeCompleteRendering,
+            setState: callSetState,
+            updateState: callUpdateState,
+            waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
+        }, { targetContainer });
         if (!renderSession.ready) {
             return false;
         }
         const { performanceStart } = renderSession;
-
-        const preparedData = await prepareChartRenderData(
-            {
-                doc: document,
-                getConverters: getConvertersSafe,
-                getSetupZoneData: getSetupZoneDataSafe,
-                getState: callGetState,
-                getStateManager: getStateManagerSafe,
-                getThemeConfig: getThemeConfigSafe,
-                notify,
-                safeCompleteRendering,
-            },
-            { targetContainer }
-        );
+        const preparedData = await prepareChartRenderData({
+            doc: document,
+            getConverters: getConvertersSafe,
+            getSetupZoneData: getSetupZoneDataSafe,
+            getState: callGetState,
+            getStateManager: getStateManagerSafe,
+            getThemeConfig: getThemeConfigSafe,
+            notify,
+            safeCompleteRendering,
+        }, { targetContainer });
         if (!preparedData.ready) {
             return false;
         }
         const { activityStartTime, recordMesgs } = preparedData;
-
-        const { success } = await executePreparedChartRender(
-            {
-                chartGlobal,
-                createElement: (tagName) => document.createElement(tagName),
-                getGlobalChartActions,
-                getRendererModules: getRendererModulesSafe,
-                isTestEnvironment,
-                now: () => performance.now(),
-                renderChartsWithData,
-                warn: (message, error) => console.warn(message, error),
-            },
-            {
-                activityStartTime,
-                performanceStart,
-                recordMesgs,
-                targetContainer,
-            },
-            {
-                allowInactiveTab,
-                skipControls,
-                skipTabAbort,
-            }
-        );
+        const { success } = await executePreparedChartRender({
+            chartGlobal,
+            createElement: (tagName) => document.createElement(tagName),
+            getGlobalChartActions,
+            getRendererModules: getRendererModulesSafe,
+            isTestEnvironment,
+            now: () => performance.now(),
+            renderChartsWithData: (target, messages, activityStart, renderOptions) => renderChartsWithData(target, messages, activityStart, renderOptions),
+            safeCompleteRendering,
+            warn: (message, error) => console.warn(message, error),
+        }, {
+            activityStartTime,
+            performanceStart,
+            recordMesgs,
+            targetContainer,
+        }, {
+            allowInactiveTab,
+            skipControls,
+            skipTabAbort,
+        });
         return success;
-    } catch (error) {
+    }
+    catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
         await notify("Failed to render charts due to an error", "error");
-
         // Handle error through state actions
         safeCompleteRendering(false);
-
-        await renderChartErrorPlaceholder(
-            { doc: document, getThemeConfig: getThemeConfigSafe },
-            targetContainer,
-            error
-        );
+        await renderChartErrorPlaceholder({ doc: document, getThemeConfig: getThemeConfigSafe }, targetContainer, error);
         return false;
     }
 }
-
 /**
- * Resets the chart state tracking - call when loading a new FIT file This
- * ensures notifications are shown for the first render of a new file
- */
-// resetChartNotificationState now imported and re-exported
-
-/**
- * Updates the previous chart state tracking
+ * Renders charts with validated FIT record data.
  *
- * @param {number} chartCount - Current chart count
- * @param {number} visibleFields - Current visible field count
- * @param {number} timestamp - Current timestamp
- */
-// updatePreviousChartState now imported and re-exported
-
-/**
- * Renders charts with validated data
+ * @param targetContainer - Container element or selector for charts.
+ * @param recordMesgs - FIT file record messages.
+ * @param startTime - Activity start time used for label generation.
+ * @param options - Controls render loop behavior.
  *
- * @private
+ * @returns Success status.
  */
-/**
- * @param {Element | string} targetContainer - Container element or selector
- *   for charts
- * @param {Object[]} recordMesgs - FIT file record messages
- * @param {number | Date | null} startTime - Activity start time used for label
- *   generation
- * @param {{ skipTabAbort?: boolean; skipControls?: boolean }} [options]
- *
- * @returns {Promise<boolean>} Success status
- */
-async function renderChartsWithData(
-    targetContainer,
-    recordMesgs,
-    startTime,
-    options = {}
-) {
-    const {
-        isDebugLoggingEnabled,
-        isTestRuntime,
-        renderStartTime,
-        skipControls,
-        skipTabAbort,
-    } = beginChartDataRenderContext(
-        {
-            doc: document,
-            isChartDebugEnabled,
-            isDevelopmentEnvironment,
-            isTestEnvironment,
-            nowPerformance: () => performance.now(),
-        },
-        options
-    );
-
-    const {
-        addChartHoverEffectsSafe,
-        addHoverEffectsToExistingChartsSafe,
-        convert,
-        createChartCanvasSafe,
-        createEnhancedChartSafe,
-        gs_rcwd,
-        removeChartHoverEffectsSafe,
-        renderEventMessagesChartSafe,
-        renderGPSTimeChartSafe,
-        renderGPSTrackChartSafe,
-        renderLapZoneChartsSafe,
-        renderPerformanceAnalysisChartsSafe,
-        renderTimeInZoneChartsSafe,
-        showRenderNotificationSafe,
-        ss_rcwd,
-        themeConfig,
-        us_rcwd,
-    } = await resolveChartRuntimeDependencies({
+async function renderChartsWithData(targetContainer, recordMesgs, startTime, options = {}) {
+    const { isDebugLoggingEnabled, isTestRuntime, renderStartTime, skipControls, skipTabAbort, } = beginChartDataRenderContext({
+        doc: document,
+        isChartDebugEnabled,
+        isDevelopmentEnvironment,
+        isTestEnvironment,
+        nowPerformance: () => performance.now(),
+    }, options);
+    const { addChartHoverEffectsSafe, addHoverEffectsToExistingChartsSafe, convert, createChartCanvasSafe, createEnhancedChartSafe, gs_rcwd, removeChartHoverEffectsSafe, renderEventMessagesChartSafe, renderGPSTimeChartSafe, renderGPSTrackChartSafe, renderLapZoneChartsSafe, renderPerformanceAnalysisChartsSafe, renderTimeInZoneChartsSafe, showRenderNotificationSafe, ss_rcwd, themeConfig, us_rcwd, } = await resolveChartRuntimeDependencies({
         getConverters: getConvertersSafe,
         getHoverPlugins: getHoverPluginsSafe,
         getRendererModules: getRendererModulesSafe,
@@ -515,137 +349,98 @@ async function renderChartsWithData(
         getStateManager: getStateManagerSafe,
         getThemeConfig: getThemeConfigSafe,
     });
-
-    const chartContainer = prepareChartRenderContainer(
-        {
-            doc: document,
-            removeChartHoverEffects: removeChartHoverEffectsSafe,
-        },
-        { skipControls, targetContainer }
-    );
-
-    const {
-        animationStyle,
-        boolSettings,
-        chartType,
-        customColors,
-        dataSettingsSignature,
-        distanceUnits,
-        exportTheme,
-        interpolation,
-        normalizedMaxPoints,
-        performanceTuning,
-        smoothing,
-        temperatureUnits,
-        timeUnits,
-    } = resolveChartRenderSettings(
-        {
-            defaultMaxPoints: DEFAULT_MAX_POINTS,
-            ensureDataSettingsSignature,
-            getSettings: () => chartSettingsManager.getSettings(),
-            resolvePerformanceSettings,
-            setChartOptionsState: ss_rcwd,
-        },
-        { recordCount: recordMesgs.length }
-    );
-
+    const chartContainer = prepareChartRenderContainer({
+        doc: document,
+        removeChartHoverEffects: removeChartHoverEffectsSafe,
+    }, { skipControls, targetContainer });
+    const { animationStyle, boolSettings, chartType, customColors, dataSettingsSignature, distanceUnits, exportTheme, interpolation, normalizedMaxPoints, performanceTuning, smoothing, temperatureUnits, timeUnits, } = resolveChartRenderSettings({
+        defaultMaxPoints: DEFAULT_MAX_POINTS,
+        ensureDataSettingsSignature,
+        getSettings: () => chartSettingsManager.getSettings(),
+        resolvePerformanceSettings,
+        setChartOptionsState: ss_rcwd,
+    }, { recordCount: recordMesgs.length });
     const { zoomPluginConfig } = resolveChartThemeRenderPlan({
         isDebugLoggingEnabled,
         themeConfig,
     });
-
     // Process data using memoization helpers to avoid redundant conversions across renders
-    const {
-        effectiveAnimationStyle,
-        fieldsToRender,
-        labels,
-    } = resolveChartFieldRenderPlan({
+    const { effectiveAnimationStyle, fieldsToRender, labels } = resolveChartFieldRenderPlan({
         animationStyle,
         isDebugLoggingEnabled,
         recordMesgs,
         renderableFields: chartState.renderableFields,
         startTime,
     });
-
-    const chartDataRenderResult = renderChartDataCharts(
-        {
-            chartContainer,
-            chartGlobal,
-            createChartCanvas: createChartCanvasSafe,
-            createEnhancedChart: createEnhancedChartSafe,
-            getActiveTab: () => gs_rcwd("ui.activeTab"),
-            getFieldVisibility: (field) =>
-                chartSettingsManager.getFieldVisibility(field),
-            isDebugLoggingEnabled,
-            isTestRuntime,
-            registerChart: (chart) =>
-                resourceManager.registerChart(chart, { owner: "renderChartJS" }),
-            renderers: {
-                renderEventMessagesChart: renderEventMessagesChartSafe,
-                renderGPSTimeChart: renderGPSTimeChartSafe,
-                renderGPSTrackChart: renderGPSTrackChartSafe,
-                renderLapZoneCharts: renderLapZoneChartsSafe,
-                renderPerformanceAnalysisCharts:
-                    renderPerformanceAnalysisChartsSafe,
-                renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
-            },
-            skipTabAbort,
+    const chartDataRenderResult = renderChartDataCharts({
+        chartContainer,
+        chartGlobal: getChartGlobalWithInstances(),
+        createChartCanvas: createChartCanvasSafe,
+        createEnhancedChart: createEnhancedChartSafe,
+        getActiveTab: () => gs_rcwd("ui.activeTab"),
+        getFieldVisibility: (field) => chartSettingsManager.getFieldVisibility(field),
+        isDebugLoggingEnabled,
+        isTestRuntime,
+        registerChart: (chart) => resourceManager.registerChart(chart, {
+            owner: "renderChartJS",
+        }),
+        renderers: {
+            renderEventMessagesChart: renderEventMessagesChartSafe,
+            renderGPSTimeChart: renderGPSTimeChartSafe,
+            renderGPSTrackChart: renderGPSTrackChartSafe,
+            renderLapZoneCharts: renderLapZoneChartsSafe,
+            renderPerformanceAnalysisCharts: (container, data, chartLabels, rendererOptions) => renderPerformanceAnalysisChartsSafe(container, [...data], [...chartLabels], rendererOptions),
+            renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
         },
-        {
-            animationStyle: effectiveAnimationStyle,
-            boolSettings,
-            chartType,
-            convert,
-            customColors,
-            dataSettingsSignature,
-            distanceUnits,
-            exportTheme,
-            fieldsToRender,
-            interpolation,
-            labels,
-            normalizedMaxPoints,
-            performanceTuning,
-            recordMesgs,
-            smoothing,
-            startTime,
-            temperatureUnits,
-            timeUnits,
-            zoomPluginConfig,
-        }
-    );
+        skipTabAbort,
+    }, {
+        animationStyle: effectiveAnimationStyle,
+        boolSettings,
+        chartType,
+        convert,
+        customColors,
+        dataSettingsSignature,
+        distanceUnits,
+        exportTheme,
+        fieldsToRender,
+        interpolation,
+        labels,
+        normalizedMaxPoints,
+        performanceTuning,
+        recordMesgs,
+        smoothing,
+        startTime,
+        temperatureUnits,
+        timeUnits,
+        zoomPluginConfig: zoomPluginConfig,
+    });
     if (chartDataRenderResult.aborted) {
         return false;
     }
-
-    await completeChartDataRender(
-        {
-            addChartHoverEffects: addChartHoverEffectsSafe,
-            addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
-            chartContainer,
-            chartGlobal,
-            CustomEventConstructor: globalThis.CustomEvent,
-            doc: document,
-            getComputedStateManager: getComputedStateManagerSafe,
-            getState: gs_rcwd,
-            getThemeConfig: getThemeConfigSafe,
-            getUIStateManager: getUIStateManagerMaybe,
-            isTestRuntime,
-            notify,
-            now: Date.now,
-            nowPerformance: () => performance.now(),
-            showRenderNotification: showRenderNotificationSafe,
-            updatePreviousChartState,
-            updateState: us_rcwd,
-        },
-        {
-            renderStartTime,
-            visibleFieldCount: chartDataRenderResult.visibleFieldCount,
-        }
-    );
-
+    await completeChartDataRender({
+        addChartHoverEffects: addChartHoverEffectsSafe,
+        addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
+        chartContainer,
+        chartGlobal: getChartGlobalWithInstances(),
+        CustomEventConstructor: globalThis.CustomEvent,
+        doc: document,
+        getComputedStateManager: getComputedStateManagerSafe,
+        getState: gs_rcwd,
+        getThemeConfig: getThemeConfigSafe,
+        getUIStateManager: getUIStateManagerMaybe,
+        isTestRuntime,
+        notify,
+        now: Date.now,
+        nowPerformance: () => performance.now(),
+        showRenderNotification: showRenderNotificationSafe,
+        updatePreviousChartState,
+        updateState: us_rcwd,
+    }, {
+        renderStartTime,
+        visibleFieldCount: chartDataRenderResult.visibleFieldCount,
+    });
     return true;
 }
-
 exposeChartDevTools({
     addHoverEffectsToExistingCharts,
     chartActions,
@@ -653,7 +448,7 @@ exposeChartDevTools({
     chartPerformanceMonitor,
     chartSettingsManager,
     chartState,
-    debounce: (callback, delay) => debounce(callback, delay),
+    debounce: (callback, delay) => debounceCallback(callback, delay),
     exportChartsWithState,
     formatChartFields,
     getChartStatus,

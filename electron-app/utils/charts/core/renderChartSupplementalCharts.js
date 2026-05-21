@@ -2,7 +2,8 @@ function isVisible(visibility) {
     return visibility !== "hidden";
 }
 /**
- * Resolves state-managed visibility for the lap-zone supplemental chart variants.
+ * Resolves state-managed visibility for the lap-zone supplemental chart
+ * variants.
  */
 export function resolveLapZoneVisibility(visibility) {
     return {
@@ -16,7 +17,8 @@ function shouldRenderLapZones(visibility) {
     return Object.values(visibility).some(Boolean);
 }
 /**
- * Renders the supplemental chart families that sit outside the per-field metric loop.
+ * Renders the supplemental chart families that sit outside the per-field metric
+ * loop.
  */
 export function renderSupplementalCharts(dependencies, input) {
     const { chartContainer, labels, renderers, visibility } = dependencies;

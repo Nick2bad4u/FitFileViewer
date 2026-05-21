@@ -5,6 +5,7 @@ import { getMutableChartRuntimeGlobal } from "./renderChartRuntimeHelpers.js";
  * Initializes Chart.js global plugin registration and legacy render requests.
  *
  * @param dependencies - Runtime render bridge dependencies.
+ *
  * @returns Mutable chart runtime global.
  */
 export function initializeChartRuntimeBootstrap(dependencies) {

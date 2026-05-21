@@ -5,11 +5,17 @@ function isSettingOn(value) {
 function isSettingNotOff(value) {
     return String(value) !== "off" && value !== false;
 }
+function toFiniteNumber(value, fallback) {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : fallback;
+}
 /**
  * Resolves persisted chart settings into render-loop inputs and updates state.
  *
- * @param dependencies - Runtime settings, cache signature, performance, and state hooks.
+ * @param dependencies - Runtime settings, cache signature, performance, and
+ *   state hooks.
  * @param params - Data-size inputs for performance tuning.
+ *
  * @returns Normalized settings for chart rendering.
  */
 export function resolveChartRenderSettings(dependencies, params) {
@@ -32,19 +38,19 @@ export function resolveChartRenderSettings(dependencies, params) {
         processedAt: params.processedAt ?? Date.now(),
     }, { silent: false, source: "renderChartsWithData" });
     return {
-        animationStyle,
+        animationStyle: String(animationStyle),
         boolSettings,
-        chartType,
+        chartType: String(chartType),
         customColors,
         dataSettingsSignature,
-        distanceUnits,
-        exportTheme,
-        interpolation,
+        distanceUnits: String(distanceUnits),
+        exportTheme: String(exportTheme),
+        interpolation: String(interpolation),
         normalizedMaxPoints,
         performanceTuning,
         settings,
-        smoothing,
-        temperatureUnits,
-        timeUnits,
+        smoothing: toFiniteNumber(smoothing, 0.1),
+        temperatureUnits: String(temperatureUnits),
+        timeUnits: String(timeUnits),
     };
 }

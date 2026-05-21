@@ -2,6 +2,7 @@
  * Resolves late-bound chart renderer dependencies for a render pass.
  *
  * @param input - Accessors for dynamically injected renderer dependencies.
+ *
  * @returns Safe dependency aliases consumed by the chart render loop.
  */
 export async function resolveChartRuntimeDependencies(input) {

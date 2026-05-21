@@ -1,3 +1,5 @@
+import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+
 interface ChartExportGlobal {
     _chartjsInstances?: unknown;
 }
@@ -6,8 +8,15 @@ interface CreateExportChartsWithStateDependencies {
     chartGlobal: ChartExportGlobal;
     getChartInstances(fallbackInstances: unknown): unknown[];
     getState(path: string): unknown;
-    notify(message: string, type: string): unknown;
-    setState(path: string, value: unknown, options: unknown): unknown;
+    notify(
+        message: string,
+        type: "error" | "info" | "success" | "warning"
+    ): unknown;
+    setState(
+        path: string,
+        value: unknown,
+        options?: StateUpdateOptions
+    ): unknown;
 }
 
 type ExportChartsWithState = (format?: unknown) => Promise<boolean>;
@@ -31,6 +40,7 @@ function getExportFormatLabel(format: unknown): string {
  * Creates the state-aware chart export placeholder used by the renderer API.
  *
  * @param dependencies - State, notification, and chart instance hooks.
+ *
  * @returns Export function that reports whether charts were available.
  */
 export function createExportChartsWithState(
