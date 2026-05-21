@@ -133,6 +133,7 @@
         "utils/app/initialization/updateSystemInfo.ts",
         "utils/app/events.ts",
         "utils/app/lifecycle/appActions.ts",
+        "utils/app/lifecycle/listeners.ts",
         "utils/app/lifecycle/listenersResize.ts",
         "utils/app/lifecycle/menuIpcListeners.ts",
         "utils/app/lifecycle/recentFilesContextMenu.ts",
