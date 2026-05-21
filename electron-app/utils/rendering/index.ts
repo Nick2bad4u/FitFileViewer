@@ -4,8 +4,10 @@
  */
 import * as renderingComponents from "./components/index.js";
 import * as renderingCore from "./core/index.js";
+
 export * from "./components/index.js";
 export * from "./core/index.js";
+
 export default {
     components: renderingComponents,
     core: renderingCore,
