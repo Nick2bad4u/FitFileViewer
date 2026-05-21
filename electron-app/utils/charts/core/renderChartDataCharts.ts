@@ -3,6 +3,7 @@ import {
     type RenderPrimaryChartFieldsResult,
 } from "./renderChartPrimaryFields.js";
 import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 
 type PrimaryRenderDependencies = Parameters<typeof renderPrimaryChartFields>[0];
 type PrimaryRenderInput = Parameters<typeof renderPrimaryChartFields>[1];
@@ -10,7 +11,6 @@ type SupplementalRenderDependencies = Parameters<
     typeof renderSupplementalCharts
 >[0];
 type SupplementalRenderInput = Parameters<typeof renderSupplementalCharts>[1];
-type ChartDataRecord = SupplementalRenderInput["data"][number];
 
 interface RenderChartDataChartsDependencies
     extends Omit<

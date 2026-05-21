@@ -1,11 +1,15 @@
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 
 type LabelCacheEntry = {
-    readonly startTime: unknown;
+    readonly startTime: ActivityStartTime;
     readonly values: number[];
 };
 
-let labelsCache = new WeakMap<readonly unknown[], LabelCacheEntry>();
+let labelsCache = new WeakMap<readonly ChartDataRecord[], LabelCacheEntry>();
 
 /** Clears cached x-axis labels for chart record arrays. */
 export function clearChartLabelsCache(): void {
@@ -14,8 +18,8 @@ export function clearChartLabelsCache(): void {
 
 /** Returns x-axis labels for records, reusing cached values by record array. */
 export function getLabelsForRecords(
-    recordMesgs: readonly unknown[],
-    startTime: unknown
+    recordMesgs: readonly ChartDataRecord[],
+    startTime: ActivityStartTime
 ): number[] {
     if (labelsCache.has(recordMesgs)) {
         const cached = labelsCache.get(recordMesgs);
@@ -49,7 +53,7 @@ export function getLabelsForRecords(
     return result;
 }
 
-function normalizeStartTime(startTime: unknown): null | number {
+function normalizeStartTime(startTime: ActivityStartTime): null | number {
     if (typeof startTime === "number") {
         return startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
     }

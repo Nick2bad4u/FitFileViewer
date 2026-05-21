@@ -1,4 +1,5 @@
 import { fieldLabels } from "../../formatting/display/formatChartFields.js";
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 import { safeAppend } from "./renderChartDomHelpers.js";
 import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
 import { shouldUseSpanGaps } from "./renderChartPerformanceSettings.js";
@@ -57,7 +58,7 @@ interface RenderPrimaryChartFieldsOptions {
     labels: readonly unknown[];
     normalizedMaxPoints: MaxPointsValue;
     performanceTuning: ChartPerformanceSettings;
-    recordMesgs: readonly unknown[];
+    recordMesgs: readonly ChartDataRecord[];
     smoothing: unknown;
     temperatureUnits: unknown;
     timeUnits: unknown;

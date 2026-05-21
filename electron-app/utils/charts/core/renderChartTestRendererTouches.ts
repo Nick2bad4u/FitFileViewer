@@ -1,3 +1,8 @@
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
+
 type RendererProbe = (...args: unknown[]) => unknown;
 
 interface RendererProbeModules {
@@ -27,8 +32,8 @@ function callRenderer(renderer: RendererProbe | undefined, ...args: unknown[]): 
  */
 export function touchRendererModulesForTest(
     dependencies: TouchTestRendererModulesDependencies,
-    recordMesgs: readonly unknown[],
-    activityStartTime: unknown
+    recordMesgs: readonly ChartDataRecord[],
+    activityStartTime: ActivityStartTime
 ): void {
     if (!dependencies.isTestEnvironment()) {
         return;

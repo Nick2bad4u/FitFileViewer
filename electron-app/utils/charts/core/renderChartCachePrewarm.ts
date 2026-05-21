@@ -1,5 +1,9 @@
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
-import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
 import {
     getNotificationSuppressed,
     setNotificationSuppressed,
@@ -49,7 +53,7 @@ export interface ChartCachePrewarmDependencies {
 export interface PrewarmChartRenderCachesParams {
     reason?: string;
     recordMesgs: unknown;
-    startTime: unknown;
+    startTime: ActivityStartTime;
     yieldEvery?: number;
 }
 
@@ -60,7 +64,7 @@ export interface PrewarmChartRenderCachesResult {
 }
 
 function getFieldsToPrewarm(
-    recordMesgs: readonly unknown[],
+    recordMesgs: readonly ChartDataRecord[],
     getFieldVisibility: (field: string) => unknown
 ): string[] {
     const fields = getFormatChartFieldsSafe();
@@ -110,8 +114,18 @@ function isChartsTab(tab: unknown): boolean {
     return tab === "chart" || tab === "chartjs";
 }
 
-function isNonEmptyRecordArray(recordMesgs: unknown): recordMesgs is unknown[] {
-    return Array.isArray(recordMesgs) && recordMesgs.length > 0;
+function isChartDataRecord(value: unknown): value is ChartDataRecord {
+    return isRecord(value) && !Array.isArray(value);
+}
+
+function isNonEmptyRecordArray(
+    recordMesgs: unknown
+): recordMesgs is ChartDataRecord[] {
+    return (
+        Array.isArray(recordMesgs) &&
+        recordMesgs.length > 0 &&
+        recordMesgs.every(isChartDataRecord)
+    );
 }
 
 function waitForNextTask(): Promise<void> {

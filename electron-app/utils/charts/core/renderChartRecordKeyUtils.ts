@@ -1,3 +1,5 @@
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
+
 type FieldReadKeyCache = {
     readKeys?: Map<string, string>;
 };
@@ -5,7 +7,7 @@ type FieldReadKeyCache = {
 /** Resolves which record-message key should be read for a configured chart field. */
 export function resolveRecordFieldKey(
     cache: FieldReadKeyCache | null | undefined,
-    recordMesgs: readonly unknown[],
+    recordMesgs: readonly ChartDataRecord[],
     field: string
 ): string {
     if (cache?.readKeys instanceof Map) {

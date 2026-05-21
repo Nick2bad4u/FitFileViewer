@@ -1,4 +1,5 @@
 import { getRecordValue } from "./renderChartModuleHelpers.js";
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 import {
     calculateAxisRanges,
     createChartPoints,
@@ -63,7 +64,7 @@ export function getChartSeriesCacheStats(): ChartSeriesCacheStats {
 }
 
 function ensureFieldSeriesCache(
-    recordMesgs: readonly unknown[]
+    recordMesgs: readonly ChartDataRecord[]
 ): FieldSeriesCache {
     let cache = fieldSeriesCache.get(recordMesgs);
     if (!cache) {
@@ -138,7 +139,7 @@ export function getCachedSeriesForSettings(
 
 /** Returns converted numeric values for a record field and settings signature. */
 export function getFieldSeriesEntry(
-    recordMesgs: readonly unknown[],
+    recordMesgs: readonly ChartDataRecord[],
     field: string,
     dataSettingsSignature: string,
     convert: NumericFieldConverter

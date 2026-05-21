@@ -1,13 +1,17 @@
 import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
 
 interface ChartFieldRenderPlanInput {
     readonly animationStyle: unknown;
     readonly isDebugLoggingEnabled: boolean;
-    readonly recordMesgs: readonly unknown[];
+    readonly recordMesgs: readonly ChartDataRecord[];
     readonly renderableFields: unknown;
-    readonly startTime: unknown;
+    readonly startTime: ActivityStartTime;
 }
 
 interface ChartFieldRenderPlan {

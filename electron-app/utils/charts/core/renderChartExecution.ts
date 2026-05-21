@@ -1,3 +1,8 @@
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
+
 interface ChartRenderOptions {
     skipControls: boolean;
     skipTabAbort: boolean;
@@ -5,8 +10,8 @@ interface ChartRenderOptions {
 
 type RenderChartsWithData = (
     targetContainer: unknown,
-    recordMesgs: readonly unknown[],
-    activityStartTime: unknown,
+    recordMesgs: readonly ChartDataRecord[],
+    activityStartTime: ActivityStartTime,
     options: ChartRenderOptions
 ) => Promise<unknown>;
 
@@ -21,8 +26,8 @@ interface RunChartRenderDependencies {
 export async function runChartRender(
     dependencies: RunChartRenderDependencies,
     targetContainer: unknown,
-    recordMesgs: readonly unknown[],
-    activityStartTime: unknown,
+    recordMesgs: readonly ChartDataRecord[],
+    activityStartTime: ActivityStartTime,
     options: ChartRenderOptions
 ): Promise<boolean> {
     try {

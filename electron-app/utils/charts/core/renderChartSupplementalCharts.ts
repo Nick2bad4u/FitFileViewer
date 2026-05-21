@@ -1,5 +1,8 @@
-type ActivityStartTime = Date | number | null;
-type ChartDataRecord = Record<string, unknown>;
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
+
 type ChartLabel = number | string;
 type MaxPointsValue = "all" | number;
 type FieldVisibilityReader = (field: string) => unknown;
@@ -20,7 +23,7 @@ interface SupplementalChartRenderers {
             "showGrid" | "showLegend" | "showTitle" | "zoomPluginConfig"
         >,
         startTime: ActivityStartTime
-    ): unknown;
+    ): void;
     renderGPSTimeChart(
         container: HTMLElement,
         data: readonly ChartDataRecord[],
@@ -28,7 +31,7 @@ interface SupplementalChartRenderers {
             BaseChartDisplayOptions,
             "showGrid" | "showLegend" | "showPoints" | "showTitle"
         > & { readonly maxPoints: MaxPointsValue }
-    ): unknown;
+    ): void;
     renderGPSTrackChart(
         container: HTMLElement,
         data: readonly ChartDataRecord[],
@@ -36,27 +39,27 @@ interface SupplementalChartRenderers {
             BaseChartDisplayOptions,
             "showGrid" | "showLegend" | "showPoints" | "showTitle"
         > & { readonly maxPoints: MaxPointsValue }
-    ): unknown;
+    ): void;
     renderLapZoneCharts(
         container: HTMLElement,
         options: Pick<
             BaseChartDisplayOptions,
             "showGrid" | "showLegend" | "showTitle" | "zoomPluginConfig"
         > & { readonly visibilitySettings: LapZoneVisibility }
-    ): unknown;
+    ): void;
     renderPerformanceAnalysisCharts(
         container: HTMLElement,
         data: readonly ChartDataRecord[],
         labels: readonly ChartLabel[],
         options: PerformanceAnalysisOptions
-    ): unknown;
+    ): void;
     renderTimeInZoneCharts(
         container: HTMLElement,
         options: Pick<
             BaseChartDisplayOptions,
             "showGrid" | "showLegend" | "showTitle" | "zoomPluginConfig"
         >
-    ): unknown;
+    ): void;
 }
 
 interface LapZoneVisibility {

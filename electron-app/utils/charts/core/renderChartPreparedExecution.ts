@@ -1,6 +1,10 @@
 import { runChartRender } from "./renderChartExecution.js";
 import { completeChartRendering } from "./renderChartLifecycle.js";
 import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
+import type {
+    ActivityStartTime,
+    ChartDataRecord,
+} from "./renderChartDataPreparation.js";
 
 interface PreparedChartRenderOptions {
     allowInactiveTab: boolean;
@@ -10,8 +14,8 @@ interface PreparedChartRenderOptions {
 
 type RenderChartsWithData = (
     targetContainer: unknown,
-    recordMesgs: readonly unknown[],
-    activityStartTime: unknown,
+    recordMesgs: readonly ChartDataRecord[],
+    activityStartTime: ActivityStartTime,
     options: {
         skipControls: boolean;
         skipTabAbort: boolean;
@@ -53,9 +57,9 @@ interface PreparedChartRenderDependencies {
 }
 
 interface PreparedChartRenderInput {
-    activityStartTime: unknown;
+    activityStartTime: ActivityStartTime;
     performanceStart: number;
-    recordMesgs: readonly unknown[];
+    recordMesgs: readonly ChartDataRecord[];
     targetContainer: unknown;
 }
 
