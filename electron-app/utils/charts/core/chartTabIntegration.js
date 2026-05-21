@@ -2,6 +2,7 @@ import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 /**
  * Coordinates chart rendering state with the application tab system.
  */
@@ -12,7 +13,7 @@ export class ChartTabIntegration {
      */
     checkAndRenderCharts() {
         const globalData = getGlobalFitData();
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             console.log("[ChartTabIntegration] No data available for chart rendering");
             return;
         }
@@ -76,7 +77,7 @@ export class ChartTabIntegration {
         return {
             chartState: chartStateManager.getChartInfo(),
             chartTabActive: this.isChartTabActive(),
-            hasData: hasRecordMessages(getGlobalFitData()),
+            hasData: hasChartDataRecordMessages(getGlobalFitData()),
             isInitialized: this.isInitialized,
             tabState: tabStateManager.getActiveTabInfo(),
         };
@@ -88,7 +89,7 @@ export class ChartTabIntegration {
      */
     handleDataChange(newData) {
         console.log("[ChartTabIntegration] Data changed, updating availability");
-        if (hasRecordMessages(asFitGlobalData(newData))) {
+        if (hasChartDataRecordMessages(newData)) {
             this.enableChartTab();
             if (this.isChartTabActive()) {
                 chartStateManager.debouncedRender("New data loaded via integration");
@@ -125,7 +126,7 @@ export class ChartTabIntegration {
      */
     refreshCharts(reason = "Manual refresh") {
         const globalData = getGlobalFitData();
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             void showNotification("No data available for chart rendering", "warning");
             return false;
         }
@@ -154,7 +155,7 @@ export class ChartTabIntegration {
      */
     switchToChartTab() {
         const globalData = getGlobalFitData();
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             void showNotification("Please load a FIT file first", "info");
             return false;
         }
@@ -167,20 +168,8 @@ function asDisableableTabButton(element) {
         ? element
         : null;
 }
-function asFitGlobalData(value) {
-    if (value === null || value === undefined) {
-        return value;
-    }
-    return isRecord(value) ? value : undefined;
-}
 function getGlobalFitData() {
-    return asFitGlobalData(getState("globalData")) ?? undefined;
-}
-function hasRecordMessages(globalData) {
-    return Array.isArray(globalData?.recordMesgs);
-}
-function isRecord(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
+    return getState("globalData");
 }
 /**
  * Singleton chart tab integration used by the legacy UI bootstrap.

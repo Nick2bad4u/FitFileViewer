@@ -2,10 +2,7 @@ import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
-
-type FitGlobalData = {
-    readonly recordMesgs?: readonly unknown[];
-};
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 
 type DisableableTabButton = HTMLElement & {
     disabled?: boolean;
@@ -36,7 +33,7 @@ export class ChartTabIntegration {
     checkAndRenderCharts(): void {
         const globalData = getGlobalFitData();
 
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             console.log(
                 "[ChartTabIntegration] No data available for chart rendering"
             );
@@ -118,7 +115,7 @@ export class ChartTabIntegration {
         return {
             chartState: chartStateManager.getChartInfo(),
             chartTabActive: this.isChartTabActive(),
-            hasData: hasRecordMessages(getGlobalFitData()),
+            hasData: hasChartDataRecordMessages(getGlobalFitData()),
             isInitialized: this.isInitialized,
             tabState: tabStateManager.getActiveTabInfo(),
         };
@@ -134,7 +131,7 @@ export class ChartTabIntegration {
             "[ChartTabIntegration] Data changed, updating availability"
         );
 
-        if (hasRecordMessages(asFitGlobalData(newData))) {
+        if (hasChartDataRecordMessages(newData)) {
             this.enableChartTab();
 
             if (this.isChartTabActive()) {
@@ -179,7 +176,7 @@ export class ChartTabIntegration {
     refreshCharts(reason = "Manual refresh"): boolean {
         const globalData = getGlobalFitData();
 
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             void showNotification(
                 "No data available for chart rendering",
                 "warning"
@@ -217,7 +214,7 @@ export class ChartTabIntegration {
     switchToChartTab(): boolean {
         const globalData = getGlobalFitData();
 
-        if (!hasRecordMessages(globalData)) {
+        if (!hasChartDataRecordMessages(globalData)) {
             void showNotification("Please load a FIT file first", "info");
             return false;
         }
@@ -237,26 +234,8 @@ function asDisableableTabButton(
         : null;
 }
 
-function asFitGlobalData(value: unknown): FitGlobalData | null | undefined {
-    if (value === null || value === undefined) {
-        return value;
-    }
-
-    return isRecord(value) ? (value as FitGlobalData) : undefined;
-}
-
-function getGlobalFitData(): FitGlobalData | undefined {
-    return asFitGlobalData(getState("globalData")) ?? undefined;
-}
-
-function hasRecordMessages(
-    globalData: FitGlobalData | null | undefined
-): boolean {
-    return Array.isArray(globalData?.recordMesgs);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
+function getGlobalFitData(): unknown {
+    return getState("globalData");
 }
 
 /**
