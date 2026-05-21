@@ -1,6 +1,4 @@
-function isRecord(value) {
-    return value !== null && typeof value === "object";
-}
+import { isRecord } from "./renderChartModuleHelpers.js";
 function normalizeMaxpoints(rawMaxpoints, defaultMaxPoints) {
     if (rawMaxpoints === "all") {
         return "all";

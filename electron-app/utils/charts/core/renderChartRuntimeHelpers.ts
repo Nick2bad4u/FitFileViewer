@@ -1,3 +1,5 @@
+import { isRecord } from "./renderChartModuleHelpers.js";
+
 type UnknownFunction = (...args: unknown[]) => unknown;
 
 interface ProcessShim {
@@ -39,10 +41,6 @@ interface ChartActionsBridge {
 
 interface PanelVisibilityBridge {
     updatePanelVisibility(panelId: string, visible: boolean): void;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object";
 }
 
 function hasDebouncedRender(

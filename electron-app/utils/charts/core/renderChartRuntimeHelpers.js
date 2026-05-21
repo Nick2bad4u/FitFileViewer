@@ -1,6 +1,4 @@
-function isRecord(value) {
-    return value !== null && typeof value === "object";
-}
+import { isRecord } from "./renderChartModuleHelpers.js";
 function hasDebouncedRender(value) {
     return (isRecord(value) &&
         typeof value["debouncedRender"] === "function");

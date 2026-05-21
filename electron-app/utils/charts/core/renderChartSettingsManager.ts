@@ -1,3 +1,5 @@
+import { isRecord } from "./renderChartModuleHelpers.js";
+
 interface ComputedStateManager {
     invalidateComputed?(key: string): void;
 }
@@ -48,10 +50,6 @@ interface ChartSettingsManager {
     getSettings(): Record<string, unknown>;
     setFieldVisibility(field: string, visibility: string): void;
     updateSettings(newSettings: Record<string, unknown>): void;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object";
 }
 
 function normalizeMaxpoints(
