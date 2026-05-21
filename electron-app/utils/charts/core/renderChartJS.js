@@ -100,6 +100,10 @@ import {
     notifyChartRenderComplete,
     setGlobalChartActions,
 } from "./renderChartRuntimeHelpers.js";
+import {
+    createDataSettingsSignature,
+    DATA_SIGNATURE_SOURCES,
+} from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createEnhancedChart } from "../components/createEnhancedChart.js";
@@ -124,11 +128,6 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // tight coupling during SSR and module cache injection in tests
 import * as chartNotificationState from "./chartNotificationState.js";
 const _previousChartState = chartNotificationState.previousChartState;
-
-const DATA_SIGNATURE_SOURCES = [
-    { settingKey: "distanceUnits", storageKey: "chartjs_distanceUnits" },
-    { settingKey: "temperatureUnits", storageKey: "chartjs_temperatureUnits" },
-];
 
 ensureProcessNextTick();
 
@@ -954,22 +953,6 @@ export async function prewarmChartRenderCaches({
     }
 }
 
-function createDataSettingsSignature(settings = {}) {
-    /** @type {Record<string, unknown>} */
-    const signature = {};
-    for (const { settingKey, storageKey } of DATA_SIGNATURE_SOURCES) {
-        const value = readSettingOrStorageValue(
-            settingKey,
-            storageKey,
-            settings
-        );
-        if (value != null) {
-            signature[settingKey] = value;
-        }
-    }
-    return JSON.stringify(signature);
-}
-
 function ensureDataSettingsSignature(settings) {
     const signature = createDataSettingsSignature(settings);
     if (
@@ -1170,13 +1153,6 @@ function getLabelsForRecords(recordMesgs, startTime) {
 
     labelsCache.set(recordMesgs, { startTime, values: result });
     return result;
-}
-
-function readSettingOrStorageValue(settingKey, storageKey, settings) {
-    if (settingKey in settings && settings[settingKey] != null) {
-        return settings[settingKey];
-    }
-    return null;
 }
 
 function resolvePerformanceSettings(
