@@ -74,6 +74,7 @@
         "utils/data/processing/getLapNumForIdx.ts",
         "utils/data/processing/patchSummaryFields.ts",
         "utils/data/processing/powerEstimationSettings.ts",
+        "utils/data/processing/setupZoneData.ts",
         "utils/data/zones/chartZoneColorUtils.ts",
         "utils/data/zones/renderSingleHRZoneBar.ts",
         "utils/data/zones/renderSinglePowerZoneBar.ts",
