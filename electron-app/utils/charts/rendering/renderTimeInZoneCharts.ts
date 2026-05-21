@@ -1,6 +1,7 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderZoneChart } from "./renderZoneChart.js";
 
 interface TimeInZoneChartOptions {
@@ -117,5 +118,5 @@ function getZoneData(value: unknown): ZoneData[] {
 }
 
 function isZoneData(value: unknown): value is ZoneData {
-    return typeof value === "object" && value !== null;
+    return isObjectRecord(value);
 }

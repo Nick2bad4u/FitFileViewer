@@ -8,6 +8,7 @@ import {
     type ManagedChartConfig,
 } from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 interface GPSTimeChartOptions {
@@ -408,7 +409,7 @@ function getGpsTimeRows(data: readonly unknown[]): NormalizedGPSTimeDatum[] {
     const rows: NormalizedGPSTimeDatum[] = [];
 
     for (const row of data) {
-        if (!isRecordObject(row)) {
+        if (!isObjectRecord(row)) {
             continue;
         }
 
@@ -488,10 +489,6 @@ function getTimestampMillis(value: unknown): null | number {
 
     const timestampMillis = new Date(value).getTime();
     return Number.isFinite(timestampMillis) ? timestampMillis : null;
-}
-
-function isRecordObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }
 
 function isTimestampValue(value: unknown): value is Date | number | string {

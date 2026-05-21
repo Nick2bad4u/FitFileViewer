@@ -1,5 +1,6 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderZoneChart } from "./renderZoneChart.js";
 const chartGlobal = globalThis;
 /**
@@ -78,5 +79,5 @@ function getZoneData(value) {
     return value.filter(isZoneData);
 }
 function isZoneData(value) {
-    return typeof value === "object" && value !== null;
+    return isObjectRecord(value);
 }

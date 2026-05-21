@@ -2,6 +2,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createManagedChart } from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 const DEFAULT_BACKGROUND = "#000",
     DEFAULT_BORDER = "#333333",
@@ -316,7 +317,7 @@ function getGpsTimeRows(data) {
     }
     const rows = [];
     for (const row of data) {
-        if (!isRecordObject(row)) {
+        if (!isObjectRecord(row)) {
             continue;
         }
         const positionLat = getFiniteNumber(row["positionLat"]),
@@ -383,9 +384,6 @@ function getTimestampMillis(value) {
     }
     const timestampMillis = new Date(value).getTime();
     return Number.isFinite(timestampMillis) ? timestampMillis : null;
-}
-function isRecordObject(value) {
-    return typeof value === "object" && value !== null;
 }
 function isTimestampValue(value) {
     return (

@@ -3,6 +3,7 @@ import { renderSingleHRZoneBar } from "../../data/zones/renderSingleHRZoneBar.js
 import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZoneBar.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 const DEFAULT_VISIBILITY = {
     hrIndividualVisible: true,
@@ -196,7 +197,7 @@ function getTimeInZoneMessages(runtimeGlobal) {
     return Array.isArray(timeInZoneMesgs) ? timeInZoneMesgs : null;
 }
 function isTimeInZoneMessage(value) {
-    return value !== null && typeof value === "object";
+    return isObjectRecord(value);
 }
 function logThemeConfig(isDebugLoggingEnabled) {
     const themeConfig = getThemeConfig(),
@@ -206,12 +207,8 @@ function logThemeConfig(isDebugLoggingEnabled) {
     }
 }
 function getThemeName(themeConfig) {
-    if (
-        typeof themeConfig === "object" &&
-        themeConfig !== null &&
-        "name" in themeConfig
-    ) {
-        return themeConfig.name;
+    if (isObjectRecord(themeConfig) && "name" in themeConfig) {
+        return themeConfig["name"];
     }
     return undefined;
 }
@@ -233,26 +230,22 @@ function normalizeSessionZones(rawZones) {
     if (!Array.isArray(rawZones)) {
         return [];
     }
-    return rawZones
-        .filter((zone) => zone !== null && typeof zone === "object")
-        .map((zone) => {
-            const value =
-                    typeof zone["value"] === "number"
-                        ? zone["value"]
-                        : typeof zone["time"] === "number"
-                          ? zone["time"]
-                          : 0,
-                normalizedZone = {
-                    color:
-                        typeof zone["color"] === "string" ? zone["color"] : "",
-                    label:
-                        typeof zone["label"] === "string" ? zone["label"] : "",
-                    value,
-                };
-            return typeof zone["time"] === "number"
-                ? { ...normalizedZone, time: zone["time"] }
-                : normalizedZone;
-        });
+    return rawZones.filter(isObjectRecord).map((zone) => {
+        const value =
+                typeof zone["value"] === "number"
+                    ? zone["value"]
+                    : typeof zone["time"] === "number"
+                      ? zone["time"]
+                      : 0,
+            normalizedZone = {
+                color: typeof zone["color"] === "string" ? zone["color"] : "",
+                label: typeof zone["label"] === "string" ? zone["label"] : "",
+                value,
+            };
+        return typeof zone["time"] === "number"
+            ? { ...normalizedZone, time: zone["time"] }
+            : normalizedZone;
+    });
 }
 function registerChartInstance(chart) {
     if (!chart) {

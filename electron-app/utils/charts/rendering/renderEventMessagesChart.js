@@ -4,6 +4,7 @@ import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createManagedChart } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 const DEFAULT_EVENT_THEME_COLORS = {
@@ -38,7 +39,7 @@ function getEventThemeColors(colors) {
     };
 }
 function asEventRecord(value) {
-    return value !== null && typeof value === "object" ? value : {};
+    return isObjectRecord(value) ? value : {};
 }
 function getEventLabel(event) {
     for (const value of [

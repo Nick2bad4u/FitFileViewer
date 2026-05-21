@@ -2,6 +2,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createManagedChart } from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 const DEFAULT_BACKGROUND = "#181c24",
     DEFAULT_BORDER = "#444444",
@@ -217,7 +218,7 @@ function getGpsRows(data) {
     if (!Array.isArray(data)) {
         return [];
     }
-    return data.filter(isRecordObject).map((row) => ({
+    return data.filter(isObjectRecord).map((row) => ({
         positionLat: getFiniteNumber(row["positionLat"]),
         positionLong: getFiniteNumber(row["positionLong"]),
     }));
@@ -255,9 +256,6 @@ function getThemeColors() {
     } catch {
         return undefined;
     }
-}
-function isRecordObject(value) {
-    return typeof value === "object" && value !== null;
 }
 function limitGpsTrackPoints(gpsData, maxPoints) {
     if (

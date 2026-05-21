@@ -8,6 +8,7 @@ import {
     type ManagedChartConfig,
 } from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 interface GPSTrackPoint {
@@ -276,7 +277,7 @@ function getGpsRows(data: readonly unknown[]): NormalizedGPSTrackDatum[] {
         return [];
     }
 
-    return data.filter(isRecordObject).map((row) => ({
+    return data.filter(isObjectRecord).map((row) => ({
         positionLat: getFiniteNumber(row["positionLat"]),
         positionLong: getFiniteNumber(row["positionLong"]),
     }));
@@ -322,10 +323,6 @@ function getThemeColors(): ThemeColorMap | undefined {
     } catch {
         return undefined;
     }
-}
-
-function isRecordObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }
 
 function limitGpsTrackPoints(

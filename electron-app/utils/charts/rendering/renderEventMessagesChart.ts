@@ -10,6 +10,7 @@ import {
     createManagedChart,
     type ManagedChartConfig,
 } from "../core/createManagedChart.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
@@ -96,9 +97,7 @@ function getEventThemeColors(colors: ThemeColorMap): EventThemeColors {
 }
 
 function asEventRecord(value: unknown): EventMessageRecord {
-    return value !== null && typeof value === "object"
-        ? (value as EventMessageRecord)
-        : {};
+    return isObjectRecord(value) ? value : {};
 }
 
 function getEventLabel(event: EventMessageRecord): string {
