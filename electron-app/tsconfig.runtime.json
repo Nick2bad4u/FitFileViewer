@@ -45,6 +45,7 @@
         "useUnknownInCatchVariables": true
     },
     "files": [
+        "utils.ts",
         "utils/config/constants.ts",
         "utils/config/index.ts",
         "utils/state/core/stateManagerDefaults.ts",

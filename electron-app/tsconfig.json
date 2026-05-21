@@ -127,6 +127,7 @@
         "src/App.tsx",
         "src/index.css",
         "src/types/global.d.ts",
+        "utils.ts",
         "utils/**/*.ts",
         "vite.config.ts",
         "vite/client",
