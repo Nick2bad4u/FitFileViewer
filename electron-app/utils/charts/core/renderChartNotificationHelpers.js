@@ -1,4 +1,4 @@
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 function isNotificationInvoker(value) {
     return typeof value === "function";
 }
@@ -6,7 +6,7 @@ function resolveNotificationInvoker(value) {
     if (isNotificationInvoker(value)) {
         return value;
     }
-    if (!isRecord(value)) {
+    if (!isObjectRecord(value)) {
         return null;
     }
     if (isNotificationInvoker(value["showNotification"])) {
@@ -16,8 +16,10 @@ function resolveNotificationInvoker(value) {
     if (isNotificationInvoker(defaultExport)) {
         return defaultExport;
     }
-    if (isRecord(defaultExport) &&
-        isNotificationInvoker(defaultExport["showNotification"])) {
+    if (
+        isObjectRecord(defaultExport) &&
+        isNotificationInvoker(defaultExport["showNotification"])
+    ) {
         return defaultExport["showNotification"];
     }
     return null;
@@ -26,8 +28,7 @@ function resolveNotificationInvoker(value) {
  * Returns the current global chart-notification suppression flag.
  */
 export function getNotificationSuppressed() {
-    return globalThis
-        .__FFV_suppressNotifications;
+    return globalThis.__FFV_suppressNotifications;
 }
 /**
  * Sets or clears the global chart-notification suppression flag.
@@ -44,28 +45,37 @@ export function setNotificationSuppressed(value) {
  * Lazily sends chart notifications without forcing notification modules into
  * the renderer import graph during test and SSR-style module evaluation.
  */
-export async function notify(message, type = "info", _duration = null, options = {}) {
+export async function notify(
+    message,
+    type = "info",
+    _duration = null,
+    options = {}
+) {
     try {
         const chartGlobal = globalThis;
-        const suppress = options.silent === true || getNotificationSuppressed() === true;
+        const suppress =
+            options.silent === true || getNotificationSuppressed() === true;
         if (suppress) {
             return;
         }
-        const globalNotifier = resolveNotificationInvoker(chartGlobal.showNotification);
+        const globalNotifier = resolveNotificationInvoker(
+            chartGlobal.showNotification
+        );
         if (globalNotifier) {
             await globalNotifier(message, type);
             return;
         }
         if (typeof chartGlobal.require === "function") {
             try {
-                const reqMod = chartGlobal.require("../../ui/notifications/showNotification.js");
+                const reqMod = chartGlobal.require(
+                    "../../ui/notifications/showNotification.js"
+                );
                 const requiredNotifier = resolveNotificationInvoker(reqMod);
                 if (requiredNotifier) {
                     await requiredNotifier(message, type);
                     return;
                 }
-            }
-            catch {
+            } catch {
                 // Ignore and fall through to dynamic import.
             }
         }
@@ -75,9 +85,10 @@ export async function notify(message, type = "info", _duration = null, options =
             await importedNotifier(message, type);
             return;
         }
-        console.warn("[ChartJS] Notification module missing showNotification export");
-    }
-    catch (error) {
+        console.warn(
+            "[ChartJS] Notification module missing showNotification export"
+        );
+    } catch (error) {
         console.warn("[ChartJS] notify() fallback failed:", error);
     }
 }

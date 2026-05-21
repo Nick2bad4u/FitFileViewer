@@ -1,4 +1,4 @@
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface ComputedStateManager {
     invalidateComputed?(key: string): void;
@@ -24,7 +24,10 @@ interface SettingsStateManager {
 }
 
 interface ChartSettingsApi {
-    getChartFieldVisibility(fieldKey: string, defaultVisibility: string): unknown;
+    getChartFieldVisibility(
+        fieldKey: string,
+        defaultVisibility: string
+    ): unknown;
     getChartSettings(): unknown;
     setChartFieldVisibility(fieldKey: string, visibility: string): unknown;
     updateChartSettings(updates: Record<string, unknown>): unknown;
@@ -80,14 +83,11 @@ function resolveChartSettingsApi(
     return {
         getChartFieldVisibility: manager.getChartFieldVisibility
             ? (fieldKey, defaultVisibility) =>
-                  manager.getChartFieldVisibility?.(
-                      fieldKey,
-                      defaultVisibility
-                  )
+                  manager.getChartFieldVisibility?.(fieldKey, defaultVisibility)
             : (fieldKey, defaultVisibility = "visible") => {
                   const visibilityMap =
                       manager.getSetting?.("chart", "fieldVisibility") ?? {};
-                  return isRecord(visibilityMap)
+                  return isObjectRecord(visibilityMap)
                       ? (visibilityMap[fieldKey] ?? defaultVisibility)
                       : defaultVisibility;
               },
@@ -103,7 +103,7 @@ function resolveChartSettingsApi(
                   const visibilityMap =
                       manager.getSetting?.("chart", "fieldVisibility") ?? {};
                   const nextVisibility = {
-                      ...(isRecord(visibilityMap) ? visibilityMap : {}),
+                      ...(isObjectRecord(visibilityMap) ? visibilityMap : {}),
                       [fieldKey]: visibility,
                   };
                   manager.setSetting?.(
@@ -117,7 +117,7 @@ function resolveChartSettingsApi(
             ? (updates) => manager.updateChartSettings?.(updates)
             : (updates) => {
                   for (const [key, value] of Object.entries(updates)) {
-                      if (key === "fieldVisibility" && isRecord(value)) {
+                      if (key === "fieldVisibility" && isObjectRecord(value)) {
                           const existing =
                               manager.getSetting?.(
                                   "chart",
@@ -126,7 +126,7 @@ function resolveChartSettingsApi(
                           manager.setSetting?.(
                               "chart",
                               {
-                                  ...(isRecord(existing) ? existing : {}),
+                                  ...(isObjectRecord(existing) ? existing : {}),
                                   ...value,
                               },
                               "fieldVisibility"
@@ -149,7 +149,7 @@ function normalizeChartSettings(
     settings: unknown,
     dependencies: CreateChartSettingsManagerDependencies
 ): Record<string, unknown> {
-    const resolved = isRecord(settings) ? settings : {};
+    const resolved = isObjectRecord(settings) ? settings : {};
     const rawMaxpoints = dependencies.getRecordValue(resolved, "maxpoints");
 
     return {
@@ -185,6 +185,7 @@ function hasDataSettingsUpdate(
  * Creates the chart settings manager used by renderChartJS orchestration.
  *
  * @param dependencies - State, persistence, invalidation, and rendering hooks.
+ *
  * @returns Chart settings manager facade.
  */
 export function createChartSettingsManager(

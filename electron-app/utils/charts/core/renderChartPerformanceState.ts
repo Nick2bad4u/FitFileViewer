@@ -1,5 +1,5 @@
 import type { StateUpdateOptions } from "../../state/core/stateManager.js";
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type GetStateFunction = (path: string) => unknown;
 type UpdateStateFunction = (
@@ -28,8 +28,10 @@ export function updateChartRenderPerformanceState(
     dependencies: ChartRenderPerformanceStateDependencies,
     input: ChartRenderPerformanceStateInput
 ): void {
-    const existingRenderTimes = dependencies.getState("performance.renderTimes");
-    const renderTimes = isRecord(existingRenderTimes)
+    const existingRenderTimes = dependencies.getState(
+        "performance.renderTimes"
+    );
+    const renderTimes = isObjectRecord(existingRenderTimes)
         ? existingRenderTimes
         : {};
 

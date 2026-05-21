@@ -2,7 +2,7 @@ import type {
     NotificationOptions,
     NotificationType,
 } from "../../ui/notifications/showNotification.js";
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type NotificationInvoker = (
     message: string,
@@ -23,12 +23,14 @@ function isNotificationInvoker(value: unknown): value is NotificationInvoker {
     return typeof value === "function";
 }
 
-function resolveNotificationInvoker(value: unknown): NotificationInvoker | null {
+function resolveNotificationInvoker(
+    value: unknown
+): NotificationInvoker | null {
     if (isNotificationInvoker(value)) {
         return value;
     }
 
-    if (!isRecord(value)) {
+    if (!isObjectRecord(value)) {
         return null;
     }
 
@@ -42,7 +44,7 @@ function resolveNotificationInvoker(value: unknown): NotificationInvoker | null 
     }
 
     if (
-        isRecord(defaultExport) &&
+        isObjectRecord(defaultExport) &&
         isNotificationInvoker(defaultExport["showNotification"])
     ) {
         return defaultExport["showNotification"];

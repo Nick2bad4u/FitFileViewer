@@ -1,4 +1,4 @@
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 /**
  * Records summary performance state for the completed Chart.js render.
  *
@@ -6,15 +6,21 @@ import { isRecord } from "./renderChartModuleHelpers.js";
  * @param input - Render duration and rendered chart count.
  */
 export function updateChartRenderPerformanceState(dependencies, input) {
-    const existingRenderTimes = dependencies.getState("performance.renderTimes");
-    const renderTimes = isRecord(existingRenderTimes)
+    const existingRenderTimes = dependencies.getState(
+        "performance.renderTimes"
+    );
+    const renderTimes = isObjectRecord(existingRenderTimes)
         ? existingRenderTimes
         : {};
-    dependencies.updateState("performance", {
-        chartsRendered: input.totalChartsRendered,
-        renderTimes: {
-            ...renderTimes,
-            lastChartRender: input.renderTime,
+    dependencies.updateState(
+        "performance",
+        {
+            chartsRendered: input.totalChartsRendered,
+            renderTimes: {
+                ...renderTimes,
+                lastChartRender: input.renderTime,
+            },
         },
-    }, { merge: true, source: "renderChartsWithData" });
+        { merge: true, source: "renderChartsWithData" }
+    );
 }
