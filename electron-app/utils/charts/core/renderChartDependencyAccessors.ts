@@ -2,7 +2,16 @@ import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { computedStateManager } from "../../state/core/computedStateManager.js";
-import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import {
+    getChartFieldVisibility,
+    getChartSetting,
+    getChartSettings,
+    getUserChartSettings,
+    setChartFieldVisibility,
+    setChartSetting,
+    settingsStateManager,
+    updateChartSettings,
+} from "../../state/domain/settingsStateManager.js";
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createEnhancedChart } from "../components/createEnhancedChart.js";
@@ -26,7 +35,10 @@ import {
 } from "./renderChartModuleHelpers.js";
 import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js";
 
-type ComputedStateManagerAccess = Record<string, unknown>;
+interface ComputedStateManagerAccess {
+    invalidateComputed?(key: string): unknown;
+}
+
 type FieldConverter = (value: number, field: string) => number;
 
 interface HoverPluginAccessors {
@@ -47,7 +59,7 @@ interface RendererModuleAccessors {
 }
 
 /** Legacy settings manager methods used by chart rendering. */
-export interface SettingsStateManagerAccess extends Record<string, unknown> {
+export interface SettingsStateManagerAccess {
     getChartFieldVisibility?(
         fieldKey: string,
         defaultVisibility?: string
@@ -70,6 +82,39 @@ export interface UIStateManagerAccess extends Record<string, unknown> {
     updatePanelVisibility?(panelId: string, visible: boolean): unknown;
 }
 
+const importedSettingsStateManager: SettingsStateManagerAccess = {
+    getChartFieldVisibility,
+    getChartSetting,
+    getChartSettings,
+    getSetting: (category, key) =>
+        settingsStateManager.getSetting(category, key),
+    getUserChartSettings,
+    setChartFieldVisibility,
+    setChartSetting,
+    setSetting: (category, value, key) =>
+        settingsStateManager.setSetting(category, value, key),
+    updateChartSettings,
+};
+
+function isComputedStateManagerAccess(
+    value: unknown
+): value is ComputedStateManagerAccess {
+    return (
+        isObjectRecord(value) &&
+        getRecordFunction(value, "invalidateComputed") !== null
+    );
+}
+
+function isSettingsStateManagerAccess(
+    value: unknown
+): value is SettingsStateManagerAccess {
+    return (
+        isObjectRecord(value) &&
+        (getRecordFunction(value, "getChartSettings") !== null ||
+            getRecordFunction(value, "getSetting") !== null)
+    );
+}
+
 /** Returns the computed state manager, preferring test-injected modules. */
 export function getComputedStateManagerSafe(): ComputedStateManagerAccess {
     try {
@@ -81,21 +126,18 @@ export function getComputedStateManagerSafe(): ComputedStateManagerAccess {
             getRecordValue(mod, "computedStateManager") ||
             getRecordValue(defaultExport, "computedStateManager") ||
             defaultExport;
-        if (isObjectRecord(nested)) {
+        if (isComputedStateManagerAccess(nested)) {
             return nested;
         }
 
-        if (
-            isObjectRecord(mod) &&
-            getRecordFunction(mod, "invalidateComputed")
-        ) {
+        if (isComputedStateManagerAccess(mod)) {
             return mod;
         }
     } catch {
         // Fall back to direct import below.
     }
 
-    return computedStateManager as unknown as ComputedStateManagerAccess;
+    return computedStateManager;
 }
 
 /** Returns the user-unit field converter, preferring test-injected modules. */
@@ -274,7 +316,7 @@ export function getSettingsStateManagerSafe(): SettingsStateManagerAccess {
         const mod = getInjectedModule(
             "../../state/domain/settingsStateManager.js"
         );
-        if (isObjectRecord(mod) && getRecordFunction(mod, "getChartSettings")) {
+        if (isSettingsStateManagerAccess(mod)) {
             return mod;
         }
 
@@ -282,14 +324,14 @@ export function getSettingsStateManagerSafe(): SettingsStateManagerAccess {
         const nested =
             getRecordValue(mod, "settingsStateManager") ||
             getRecordValue(defaultExport, "settingsStateManager");
-        if (isObjectRecord(nested)) {
+        if (isSettingsStateManagerAccess(nested)) {
             return nested;
         }
     } catch {
         // Fall back to direct import below.
     }
 
-    return settingsStateManager as unknown as SettingsStateManagerAccess;
+    return importedSettingsStateManager;
 }
 
 /** Returns the zone-data setup function, preferring test-injected modules. */

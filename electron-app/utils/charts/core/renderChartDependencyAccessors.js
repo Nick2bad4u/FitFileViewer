@@ -2,7 +2,16 @@ import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { computedStateManager } from "../../state/core/computedStateManager.js";
-import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import {
+    getChartFieldVisibility,
+    getChartSetting,
+    getChartSettings,
+    getUserChartSettings,
+    setChartFieldVisibility,
+    setChartSetting,
+    settingsStateManager,
+    updateChartSettings,
+} from "../../state/domain/settingsStateManager.js";
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createEnhancedChart } from "../components/createEnhancedChart.js";
@@ -25,6 +34,32 @@ import {
     isObjectRecord,
 } from "./renderChartModuleHelpers.js";
 import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js";
+const importedSettingsStateManager = {
+    getChartFieldVisibility,
+    getChartSetting,
+    getChartSettings,
+    getSetting: (category, key) =>
+        settingsStateManager.getSetting(category, key),
+    getUserChartSettings,
+    setChartFieldVisibility,
+    setChartSetting,
+    setSetting: (category, value, key) =>
+        settingsStateManager.setSetting(category, value, key),
+    updateChartSettings,
+};
+function isComputedStateManagerAccess(value) {
+    return (
+        isObjectRecord(value) &&
+        getRecordFunction(value, "invalidateComputed") !== null
+    );
+}
+function isSettingsStateManagerAccess(value) {
+    return (
+        isObjectRecord(value) &&
+        (getRecordFunction(value, "getChartSettings") !== null ||
+            getRecordFunction(value, "getSetting") !== null)
+    );
+}
 /** Returns the computed state manager, preferring test-injected modules. */
 export function getComputedStateManagerSafe() {
     try {
@@ -36,13 +71,10 @@ export function getComputedStateManagerSafe() {
             getRecordValue(mod, "computedStateManager") ||
             getRecordValue(defaultExport, "computedStateManager") ||
             defaultExport;
-        if (isObjectRecord(nested)) {
+        if (isComputedStateManagerAccess(nested)) {
             return nested;
         }
-        if (
-            isObjectRecord(mod) &&
-            getRecordFunction(mod, "invalidateComputed")
-        ) {
+        if (isComputedStateManagerAccess(mod)) {
             return mod;
         }
     } catch {
@@ -216,20 +248,20 @@ export function getSettingsStateManagerSafe() {
         const mod = getInjectedModule(
             "../../state/domain/settingsStateManager.js"
         );
-        if (isObjectRecord(mod) && getRecordFunction(mod, "getChartSettings")) {
+        if (isSettingsStateManagerAccess(mod)) {
             return mod;
         }
         const defaultExport = getRecordValue(mod, "default");
         const nested =
             getRecordValue(mod, "settingsStateManager") ||
             getRecordValue(defaultExport, "settingsStateManager");
-        if (isObjectRecord(nested)) {
+        if (isSettingsStateManagerAccess(nested)) {
             return nested;
         }
     } catch {
         // Fall back to direct import below.
     }
-    return settingsStateManager;
+    return importedSettingsStateManager;
 }
 /** Returns the zone-data setup function, preferring test-injected modules. */
 export function getSetupZoneDataSafe() {
