@@ -133,6 +133,7 @@
         "utils/maps/core/mapColors.ts",
         "utils/maps/core/mapDocumentListeners.ts",
         "utils/maps/controls/mapFullscreenControl.ts",
+        "utils/maps/controls/mapLapSelector.ts",
         "utils/maps/controls/mapMeasureTool.ts",
         "utils/maps/filters/mapMetricFilter.ts",
         "utils/maps/layers/mapBaseLayers.ts",
