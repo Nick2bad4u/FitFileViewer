@@ -154,6 +154,7 @@
         "utils/charts/plugins/chartTitleOverlayUtils.ts",
         "utils/charts/plugins/chartZoomResetPlugin.ts",
         "utils/charts/rendering/renderPerformanceAnalysisCharts.ts",
+        "utils/charts/rendering/renderPowerVsHeartRateChart.ts",
         "utils/charts/theming/chartThemeUtils.ts",
         "utils/charts/theming/chartColorSchemes.ts",
         "utils/charts/theming/chartOverlayColorPalette.ts",

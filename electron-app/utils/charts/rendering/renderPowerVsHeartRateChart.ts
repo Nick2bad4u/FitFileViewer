@@ -5,23 +5,65 @@ import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
+
+type PowerHeartRateDatum = Record<string, unknown> & {
+    heartRate?: unknown;
+    power?: unknown;
+};
+
+type PowerHeartRatePoint = {
+    x: unknown;
+    y: unknown;
+};
+
+type PowerHeartRateOptions = {
+    animationStyle?: string;
+    maxPoints?: number | "all";
+    showGrid?: boolean;
+    showLegend?: boolean;
+    showPoints?: boolean;
+    showTitle?: boolean;
+    theme?: string;
+};
+
+type PowerHeartRateThemeConfig = {
+    colors?: Partial<Record<string, string>>;
+};
+
+type PowerHeartRateTooltipContext = {
+    parsed: {
+        x?: unknown;
+        y?: unknown;
+    };
+};
+
 const DEFAULT_COLORS = {
     primary: "#3b82f6",
     primaryAlpha: "rgba(59, 130, 246, 0.2)",
     shadow: "",
     warning: "#f59e0b",
-};
-function getThemeColor(colors, key) {
+} as const;
+
+function getThemeColor(
+    colors: PowerHeartRateThemeConfig["colors"],
+    key: keyof typeof DEFAULT_COLORS
+): string {
     const value = colors?.[key];
     return typeof value === "string" && value.length > 0
         ? value
         : DEFAULT_COLORS[key];
 }
-function toPowerHeartRatePoint({ heartRate, power, }) {
-    if (power !== undefined &&
+
+function toPowerHeartRatePoint({
+    heartRate,
+    power,
+}: PowerHeartRateDatum): PowerHeartRatePoint | null {
+    if (
+        power !== undefined &&
         power !== null &&
         heartRate !== undefined &&
-        heartRate !== null) {
+        heartRate !== null
+    ) {
         return {
             x: heartRate,
             y: power,
@@ -29,23 +71,46 @@ function toPowerHeartRatePoint({ heartRate, power, }) {
     }
     return null;
 }
+
 /**
  * Render a scatter chart comparing power to heart rate.
  */
-export function renderPowerVsHeartRateChart(container, data, options) {
+export function renderPowerVsHeartRateChart(
+    container: HTMLElement,
+    data: PowerHeartRateDatum[],
+    options: PowerHeartRateOptions
+): void {
     try {
-        const { animationStyle = "normal", maxPoints = "all", showGrid, showLegend, showPoints, showTitle, theme = "auto", } = options;
-        const hasHeartRate = data.some(({ heartRate }) => heartRate !== undefined && heartRate !== null);
-        const hasPower = data.some(({ power }) => power !== undefined && power !== null);
+        const {
+            animationStyle = "normal",
+            maxPoints = "all",
+            showGrid,
+            showLegend,
+            showPoints,
+            showTitle,
+            theme = "auto",
+        } = options;
+
+        const hasHeartRate = data.some(
+            ({ heartRate }) => heartRate !== undefined && heartRate !== null
+        );
+        const hasPower = data.some(
+            ({ power }) => power !== undefined && power !== null
+        );
+
         if (!hasPower || !hasHeartRate) {
             return;
         }
-        const visibility = chartSettingsManager.getFieldVisibility("power_vs_hr");
+
+        const visibility =
+            chartSettingsManager.getFieldVisibility("power_vs_hr");
         if (visibility === "hidden") {
             return;
         }
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
-        const themeConfig = getThemeConfig();
+
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const themeConfig = getThemeConfig() as PowerHeartRateThemeConfig;
         const { colors } = themeConfig || {};
         const isDark = currentTheme === "dark";
         const textColor = isDark ? "#fff" : "#000";
@@ -55,16 +120,20 @@ export function renderPowerVsHeartRateChart(container, data, options) {
         const primaryAlphaColor = getThemeColor(colors, "primaryAlpha");
         const shadowColor = getThemeColor(colors, "shadow");
         const warningColor = getThemeColor(colors, "warning");
+
         let chartData = data
             .map((datum) => toPowerHeartRatePoint(datum))
-            .filter((point) => point !== null);
+            .filter((point): point is PowerHeartRatePoint => point !== null);
+
         if (chartData.length === 0) {
             return;
         }
+
         if (maxPoints !== "all" && chartData.length > maxPoints) {
             const step = Math.ceil(chartData.length / maxPoints);
             chartData = chartData.filter((_, index) => index % step === 0);
         }
+
         const canvas = createChartCanvas("power-vs-hr", 0);
         canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
@@ -72,6 +141,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             canvas.style.boxShadow = `0 2px 16px 0 ${shadowColor}`;
         }
         container.append(canvas);
+
         const config = {
             data: {
                 datasets: [
@@ -87,11 +157,12 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             },
             options: {
                 animation: {
-                    duration: animationStyle === "none"
-                        ? 0
-                        : animationStyle === "fast"
-                            ? 500
-                            : animationStyle === "slow"
+                    duration:
+                        animationStyle === "none"
+                            ? 0
+                            : animationStyle === "fast"
+                              ? 500
+                              : animationStyle === "slow"
                                 ? 2000
                                 : 1000,
                     easing: "easeOutQuart",
@@ -117,7 +188,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         borderColor: isDark ? "#555" : "#ddd",
                         borderWidth: 1,
                         callbacks: {
-                            label(context) {
+                            label(context: PowerHeartRateTooltipContext) {
                                 return [
                                     `Heart Rate: ${context.parsed.x} bpm`,
                                     `Power: ${context.parsed.y} W`,
@@ -197,12 +268,17 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
             type: "scatter",
         };
+
         const chart = createManagedChart(canvas, config);
         if (chart) {
-            console.log("[ChartJS] Power vs Heart Rate chart created successfully");
+            console.log(
+                "[ChartJS] Power vs Heart Rate chart created successfully"
+            );
         }
-    }
-    catch (error) {
-        console.error("[ChartJS] Error rendering power vs heart rate chart:", error);
+    } catch (error) {
+        console.error(
+            "[ChartJS] Error rendering power vs heart rate chart:",
+            error
+        );
     }
 }
