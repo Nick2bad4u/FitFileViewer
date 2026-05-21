@@ -1,3 +1,4 @@
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 const INITIAL_CHARTS_STATE = {
     chartData: null,
     chartOptions: {},
@@ -14,12 +15,6 @@ const INITIAL_CHARTS_STATE = {
     selectedChart: "elevation",
     zoomLevel: 1,
 };
-function hasRecordMessagesData(data) {
-    return (data !== null &&
-        typeof data === "object" &&
-        Array.isArray(data.recordMesgs) &&
-        data.recordMesgs.length > 0);
-}
 /**
  * Initializes chart state, computed chart state, and render middleware.
  *
@@ -32,7 +27,7 @@ export function initializeChartStateManagement(dependencies) {
         source: "initializeChartStateManagement",
     });
     const computedStateManager = dependencies.getComputedStateManager();
-    computedStateManager.define?.("charts.hasData", () => hasRecordMessagesData(dependencies.getState("globalData")));
+    computedStateManager.define?.("charts.hasData", () => hasChartDataRecordMessages(dependencies.getState("globalData")));
     computedStateManager.define?.("charts.renderableFieldCount", () => dependencies.getChartSummaryState().renderableFields.length);
     computedStateManager.define?.("charts.summary", () => {
         const chartState = dependencies.getChartSummaryState();

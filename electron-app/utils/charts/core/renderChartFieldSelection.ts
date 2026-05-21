@@ -1,4 +1,5 @@
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import type { ChartDataRecord } from "./renderChartDataPreparation.js";
+import { getRecordValue } from "./renderChartModuleHelpers.js";
 
 const DEFAULT_RENDERABLE_FIELDS = [
     "speed",
@@ -7,25 +8,17 @@ const DEFAULT_RENDERABLE_FIELDS = [
     "power",
 ] as const;
 
-function getFirstRecord(records: unknown): unknown {
-    return Array.isArray(records) ? records.find(isRecord) ?? {} : {};
+function getFirstRecord(records: readonly ChartDataRecord[]): ChartDataRecord {
+    return records[0] ?? {};
 }
 
-function getNumericRecordFields(record: unknown): string[] {
-    if (!isRecord(record)) {
-        return [];
-    }
-
+function getNumericRecordFields(record: ChartDataRecord): string[] {
     return Object.keys(record)
         .filter((key) => key !== "timestamp")
         .filter((key) => typeof getRecordValue(record, key) === "number");
 }
 
-function getDefaultRecordFields(record: unknown): string[] {
-    if (!isRecord(record)) {
-        return [];
-    }
-
+function getDefaultRecordFields(record: ChartDataRecord): string[] {
     return DEFAULT_RENDERABLE_FIELDS.filter((field) => field in record);
 }
 
@@ -38,7 +31,7 @@ function getDefaultRecordFields(record: unknown): string[] {
  */
 export function resolveRenderableChartFields(
     renderableFields: unknown,
-    records: unknown
+    records: readonly ChartDataRecord[]
 ): string[] {
     if (Array.isArray(renderableFields) && renderableFields.length > 0) {
         return renderableFields.filter(

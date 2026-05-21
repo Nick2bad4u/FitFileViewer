@@ -1,4 +1,5 @@
 import { debounce } from "./renderChartDebounce.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 function getChartContainer() {
     if (typeof document === "undefined") {
         return null;
@@ -6,11 +7,6 @@ function getChartContainer() {
     return (document.querySelector("#chartjs_chart_container") ||
         document.querySelector("#content_chartjs") ||
         document.querySelector("#content_chart"));
-}
-function hasRecordMessages(value) {
-    return (value !== null &&
-        typeof value === "object" &&
-        Array.isArray(value.recordMesgs));
 }
 /**
  * Creates the stable debounced direct re-render fallback used when the chart
@@ -24,7 +20,7 @@ export function createDebouncedDirectRerender(dependencies) {
         const container = getChartContainer();
         const { getState } = dependencies.getStateManager();
         const data = getState("globalData");
-        const hasValidData = hasRecordMessages(data) && data.recordMesgs.length > 0;
+        const hasValidData = hasChartDataRecordMessages(data);
         if (container && hasValidData) {
             void dependencies
                 .renderChart(container)

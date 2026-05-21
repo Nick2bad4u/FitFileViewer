@@ -13,12 +13,42 @@ export interface PreparedChartData {
     readonly totalDataPoints: number;
 }
 
+/** Object that exposes validated chart record messages. */
+export interface ChartDataRecordSource {
+    readonly recordMesgs: readonly ChartDataRecord[];
+}
+
 interface StoreChartDataDependencies {
     setState(path: string, value: PreparedChartData, options: unknown): void;
 }
 
-function isChartDataRecord(value: unknown): value is ChartDataRecord {
+/** Checks whether a value is a single object row from FIT record messages. */
+export function isChartDataRecord(value: unknown): value is ChartDataRecord {
     return isRecord(value) && !Array.isArray(value);
+}
+
+/** Checks whether a value is an array containing only chart data records. */
+export function isChartDataRecordArray(
+    value: unknown
+): value is ChartDataRecord[] {
+    return Array.isArray(value) && value.every(isChartDataRecord);
+}
+
+/** Checks whether a value is a non-empty array of chart data records. */
+export function isNonEmptyChartDataRecordArray(
+    value: unknown
+): value is ChartDataRecord[] {
+    return isChartDataRecordArray(value) && value.length > 0;
+}
+
+/** Checks whether an object exposes non-empty validated chart record messages. */
+export function hasChartDataRecordMessages(
+    value: unknown
+): value is ChartDataRecordSource {
+    return (
+        isChartDataRecord(value) &&
+        isNonEmptyChartDataRecordArray(getRecordValue(value, "recordMesgs"))
+    );
 }
 
 function isActivityStartTime(value: unknown): value is Date | number {
@@ -49,7 +79,7 @@ export function getRecordMessages(
         return null;
     }
 
-    if (recordMesgs.every(isChartDataRecord)) {
+    if (isChartDataRecordArray(recordMesgs)) {
         return recordMesgs;
     }
 

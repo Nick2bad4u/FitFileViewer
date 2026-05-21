@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
     getActivityStartTime,
     getRecordMessages,
+    hasChartDataRecordMessages,
+    isChartDataRecordArray,
     isChartDataObject,
+    isNonEmptyChartDataRecordArray,
     type PreparedChartData,
     storeChartData,
 } from "../../../../../utils/charts/core/renderChartDataPreparation.js";
@@ -30,6 +33,22 @@ describe("renderChartDataPreparation", () => {
             .toStrictEqual(recordMesgs);
         expect(getRecordMessages({ recordMesgs: [] })).toBeNull();
         expect(getRecordMessages({ sessionMesgs: recordMesgs })).toBeNull();
+    });
+
+    it("validates reusable record-message boundaries", () => {
+        expect.assertions(1);
+
+        const recordMesgs = [{ timestamp: 1_779_363_600 }];
+
+        expect(
+            [
+                isChartDataRecordArray(recordMesgs),
+                isNonEmptyChartDataRecordArray([]),
+                hasChartDataRecordMessages({ recordMesgs }),
+                hasChartDataRecordMessages({ recordMesgs: [recordMesgs, []] }),
+                hasChartDataRecordMessages({ recordMesgs: [null] }),
+            ]
+        ).toStrictEqual([true, false, true, false, false]);
     });
 
     it("finds the first supported activity start time from record messages", () => {

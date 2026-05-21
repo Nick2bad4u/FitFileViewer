@@ -1,4 +1,5 @@
 import { debounce } from "./renderChartDebounce.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 
 interface StateManager {
     getState(path: string): unknown;
@@ -23,14 +24,6 @@ function getChartContainer(): Element | null {
     );
 }
 
-function hasRecordMessages(value: unknown): value is { recordMesgs: unknown[] } {
-    return (
-        value !== null &&
-        typeof value === "object" &&
-        Array.isArray((value as { recordMesgs?: unknown }).recordMesgs)
-    );
-}
-
 /**
  * Creates the stable debounced direct re-render fallback used when the chart
  * state manager is unavailable.
@@ -45,8 +38,7 @@ export function createDebouncedDirectRerender(
         const container = getChartContainer();
         const { getState } = dependencies.getStateManager();
         const data = getState("globalData");
-        const hasValidData =
-            hasRecordMessages(data) && data.recordMesgs.length > 0;
+        const hasValidData = hasChartDataRecordMessages(data);
 
         if (container && hasValidData) {
             void dependencies

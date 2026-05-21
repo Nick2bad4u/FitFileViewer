@@ -1,5 +1,6 @@
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { isNonEmptyChartDataRecordArray, } from "./renderChartDataPreparation.js";
 import { getNotificationSuppressed, setNotificationSuppressed, } from "./renderChartNotificationHelpers.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import { getCachedSeriesForSettings, getFieldSeriesEntry, } from "./renderChartSeriesCache.js";
@@ -59,14 +60,6 @@ function getFieldsToPrewarm(recordMesgs, getFieldVisibility) {
 function isChartsTab(tab) {
     return tab === "chart" || tab === "chartjs";
 }
-function isChartDataRecord(value) {
-    return isRecord(value) && !Array.isArray(value);
-}
-function isNonEmptyRecordArray(recordMesgs) {
-    return (Array.isArray(recordMesgs) &&
-        recordMesgs.length > 0 &&
-        recordMesgs.every(isChartDataRecord));
-}
 function waitForNextTask() {
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
@@ -84,7 +77,7 @@ function waitForNextTask() {
  */
 export async function prewarmChartRenderCaches(params, dependencies) {
     const { reason = "prewarm", recordMesgs, startTime, yieldEvery = 2, } = params;
-    if (!isNonEmptyRecordArray(recordMesgs)) {
+    if (!isNonEmptyChartDataRecordArray(recordMesgs)) {
         return { processedFields: 0, skipped: true };
     }
     const { getState } = getStateManagerSafe();

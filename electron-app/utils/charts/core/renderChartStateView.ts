@@ -1,3 +1,5 @@
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+
 type UnknownFunction = (...args: unknown[]) => unknown;
 
 interface CreateChartStateViewDependencies {
@@ -30,15 +32,6 @@ const STATE_MANAGER_MODULE_IDS = [
     "../../../../utils/state/core/stateManager.js",
     "../../../../state/core/stateManager.js",
 ] as const;
-
-function hasRecordMessagesData(data: unknown): boolean {
-    return (
-        data !== null &&
-        typeof data === "object" &&
-        Array.isArray((data as { recordMesgs?: unknown }).recordMesgs) &&
-        (data as { recordMesgs: unknown[] }).recordMesgs.length > 0
-    );
-}
 
 function readInjectedGlobalData(
     dependencies: CreateChartStateViewDependencies
@@ -99,7 +92,7 @@ function resolveHasValidData(
         return hasModuleInjection(dependencies) ? false : null;
     }
 
-    return hasRecordMessagesData(data);
+    return hasChartDataRecordMessages(data);
 }
 
 function resolveRenderableFields(

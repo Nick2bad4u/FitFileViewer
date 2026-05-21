@@ -1,4 +1,4 @@
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
+import { getRecordValue } from "./renderChartModuleHelpers.js";
 const DEFAULT_RENDERABLE_FIELDS = [
     "speed",
     "elevation",
@@ -6,20 +6,14 @@ const DEFAULT_RENDERABLE_FIELDS = [
     "power",
 ];
 function getFirstRecord(records) {
-    return Array.isArray(records) ? records.find(isRecord) ?? {} : {};
+    return records[0] ?? {};
 }
 function getNumericRecordFields(record) {
-    if (!isRecord(record)) {
-        return [];
-    }
     return Object.keys(record)
         .filter((key) => key !== "timestamp")
         .filter((key) => typeof getRecordValue(record, key) === "number");
 }
 function getDefaultRecordFields(record) {
-    if (!isRecord(record)) {
-        return [];
-    }
     return DEFAULT_RENDERABLE_FIELDS.filter((field) => field in record);
 }
 /**

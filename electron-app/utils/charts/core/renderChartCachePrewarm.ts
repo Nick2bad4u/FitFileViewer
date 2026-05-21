@@ -1,8 +1,9 @@
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
-import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
-import type {
-    ActivityStartTime,
-    ChartDataRecord,
+import { getRecordValue } from "./renderChartModuleHelpers.js";
+import {
+    isNonEmptyChartDataRecordArray,
+    type ActivityStartTime,
+    type ChartDataRecord,
 } from "./renderChartDataPreparation.js";
 import {
     getNotificationSuppressed,
@@ -114,20 +115,6 @@ function isChartsTab(tab: unknown): boolean {
     return tab === "chart" || tab === "chartjs";
 }
 
-function isChartDataRecord(value: unknown): value is ChartDataRecord {
-    return isRecord(value) && !Array.isArray(value);
-}
-
-function isNonEmptyRecordArray(
-    recordMesgs: unknown
-): recordMesgs is ChartDataRecord[] {
-    return (
-        Array.isArray(recordMesgs) &&
-        recordMesgs.length > 0 &&
-        recordMesgs.every(isChartDataRecord)
-    );
-}
-
 function waitForNextTask(): Promise<void> {
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
@@ -155,7 +142,7 @@ export async function prewarmChartRenderCaches(
         yieldEvery = 2,
     } = params;
 
-    if (!isNonEmptyRecordArray(recordMesgs)) {
+    if (!isNonEmptyChartDataRecordArray(recordMesgs)) {
         return { processedFields: 0, skipped: true };
     }
 

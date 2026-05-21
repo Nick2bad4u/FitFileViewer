@@ -1,6 +1,20 @@
 import { getRecordValue, isRecord } from "./renderChartModuleHelpers.js";
-function isChartDataRecord(value) {
+/** Checks whether a value is a single object row from FIT record messages. */
+export function isChartDataRecord(value) {
     return isRecord(value) && !Array.isArray(value);
+}
+/** Checks whether a value is an array containing only chart data records. */
+export function isChartDataRecordArray(value) {
+    return Array.isArray(value) && value.every(isChartDataRecord);
+}
+/** Checks whether a value is a non-empty array of chart data records. */
+export function isNonEmptyChartDataRecordArray(value) {
+    return isChartDataRecordArray(value) && value.length > 0;
+}
+/** Checks whether an object exposes non-empty validated chart record messages. */
+export function hasChartDataRecordMessages(value) {
+    return (isChartDataRecord(value) &&
+        isNonEmptyChartDataRecordArray(getRecordValue(value, "recordMesgs")));
 }
 function isActivityStartTime(value) {
     return (value instanceof Date ||
@@ -23,7 +37,7 @@ export function getRecordMessages(globalData) {
     if (recordMesgs.length === 0) {
         return null;
     }
-    if (recordMesgs.every(isChartDataRecord)) {
+    if (isChartDataRecordArray(recordMesgs)) {
         return recordMesgs;
     }
     const validRecords = recordMesgs.filter(isChartDataRecord);

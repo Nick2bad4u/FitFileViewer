@@ -1,15 +1,10 @@
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 const STATE_MANAGER_MODULE_IDS = [
     "../../state/core/stateManager.js",
     "../../../state/core/stateManager.js",
     "../../../../utils/state/core/stateManager.js",
     "../../../../state/core/stateManager.js",
 ];
-function hasRecordMessagesData(data) {
-    return (data !== null &&
-        typeof data === "object" &&
-        Array.isArray(data.recordMesgs) &&
-        data.recordMesgs.length > 0);
-}
 function readInjectedGlobalData(dependencies) {
     for (const id of STATE_MANAGER_MODULE_IDS) {
         try {
@@ -52,7 +47,7 @@ function resolveHasValidData(dependencies) {
     if (data === null) {
         return hasModuleInjection(dependencies) ? false : null;
     }
-    return hasRecordMessagesData(data);
+    return hasChartDataRecordMessages(data);
 }
 function resolveRenderableFields(state, dependencies) {
     if (!state.hasValidData) {

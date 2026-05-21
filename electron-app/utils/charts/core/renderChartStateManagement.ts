@@ -1,3 +1,5 @@
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+
 interface ComputedStateManager {
     define?(key: string, compute: () => unknown): void;
 }
@@ -54,15 +56,6 @@ const INITIAL_CHARTS_STATE = {
     zoomLevel: 1,
 } as const;
 
-function hasRecordMessagesData(data: unknown): boolean {
-    return (
-        data !== null &&
-        typeof data === "object" &&
-        Array.isArray((data as { recordMesgs?: unknown }).recordMesgs) &&
-        (data as { recordMesgs: unknown[] }).recordMesgs.length > 0
-    );
-}
-
 /**
  * Initializes chart state, computed chart state, and render middleware.
  *
@@ -80,7 +73,7 @@ export function initializeChartStateManagement(
 
     const computedStateManager = dependencies.getComputedStateManager();
     computedStateManager.define?.("charts.hasData", () =>
-        hasRecordMessagesData(dependencies.getState("globalData"))
+        hasChartDataRecordMessages(dependencies.getState("globalData"))
     );
 
     computedStateManager.define?.(
