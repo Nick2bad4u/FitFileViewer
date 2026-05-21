@@ -192,6 +192,7 @@
         "utils/charts/core/renderChartCompletion.ts",
         "utils/charts/core/renderChartContainerSetup.ts",
         "utils/charts/core/renderChartDataCharts.ts",
+        "utils/charts/core/renderChartDataCompletion.ts",
         "utils/charts/core/renderChartFieldPlan.ts",
         "utils/charts/core/renderChartFieldSelection.ts",
         "utils/charts/core/renderChartDataSettingsCache.ts",

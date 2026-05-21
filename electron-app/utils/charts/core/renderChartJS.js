@@ -134,12 +134,12 @@ import {
     shouldAbortInactiveChartRender,
 } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
-import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
 import { resolveChartThemeRenderPlan } from "./renderChartThemePlan.js";
 import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencies.js";
 import { renderChartDataCharts } from "./renderChartDataCharts.js";
+import { completeChartDataRender } from "./renderChartDataCompletion.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -614,28 +614,23 @@ async function renderChartsWithData(
         return false;
     }
 
-    await completeSuccessfulChartRender(
+    await completeChartDataRender(
         {
             addChartHoverEffects: addChartHoverEffectsSafe,
             addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
             chartContainer,
-            chartInstances: chartGlobal._chartjsInstances,
+            chartGlobal,
             CustomEventConstructor: globalThis.CustomEvent,
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
             getState: gs_rcwd,
-            getThemeConfig: () =>
-                chartGlobal.getThemeConfig
-                    ? chartGlobal.getThemeConfig()
-                    : getThemeConfigSafe(),
+            getThemeConfig: getThemeConfigSafe,
+            getUIStateManager: getUIStateManagerMaybe,
             isTestRuntime,
             notify,
             now: Date.now,
             nowPerformance: () => performance.now(),
             showRenderNotification: showRenderNotificationSafe,
-            updateChartControlsUI:
-                (enabled) =>
-                    getUIStateManagerMaybe()?.updateChartControlsUI?.(enabled),
             updatePreviousChartState,
             updateState: us_rcwd,
         },
