@@ -1,15 +1,38 @@
 import {
     getPowerEstimationSettings,
+    type PowerEstimationSettings,
     setPowerEstimationSettings,
 } from "../../data/processing/powerEstimationSettings.js";
 import { showNotification } from "../notifications/showNotification.js";
+
+type NumberInputBounds = {
+    max: number;
+    min: number;
+    step: number;
+};
+
+type NumberValidationOptions = {
+    allowNegative?: boolean;
+    max?: number;
+    min?: number;
+};
+
+type OpenPowerEstimationSettingsModalParams = {
+    hasRealPower: boolean;
+    onApply: (settings: PowerEstimationSettings) => void;
+};
+
 /**
  * Open the Power Estimation settings modal.
  *
  * @param params - Current power availability and apply callback.
  */
-export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
+export function openPowerEstimationSettingsModal({
+    hasRealPower,
+    onApply,
+}: OpenPowerEstimationSettingsModalParams): void {
     const current = getPowerEstimationSettings();
+
     const overlay = document.createElement("div");
     overlay.style.cssText = `
         position: fixed;
@@ -25,18 +48,22 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         backdrop-filter: blur(4px);
     `;
     const eventListeners = new AbortController();
-    function cleanup() {
+
+    function cleanup(): void {
         eventListeners.abort();
         overlay.remove();
     }
-    function handleEscape(e) {
+
+    function handleEscape(e: KeyboardEvent): void {
         if (e.key === "Escape") {
             cleanup();
         }
     }
+
     document.addEventListener("keydown", handleEscape, {
         signal: eventListeners.signal,
     });
+
     const modal = document.createElement("div");
     modal.style.cssText = `
         background: var(--color-glass);
@@ -48,20 +75,27 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         overflow: auto;
         color: var(--color-fg);
     `;
+
     const title = document.createElement("div");
     title.textContent = "⚡ Estimated Power (Experimental)";
     title.style.cssText =
         "font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;";
+
     const note = document.createElement("div");
     note.style.cssText =
         "color: var(--color-fg-muted); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;";
     note.textContent = hasRealPower
         ? "This file contains real power data. Estimated power will not be applied."
         : "This estimates power from speed + elevation/grade using a physics-based model (virtual power). Results are approximate.";
+
     const form = document.createElement("div");
     form.style.cssText =
         "display: grid; grid-template-columns: 1fr 1fr; gap: 10px;";
-    const makeField = (labelText, inputEl) => {
+
+    const makeField = (
+        labelText: string,
+        inputEl: HTMLElement
+    ): HTMLLabelElement => {
         const wrap = document.createElement("label");
         wrap.style.cssText = "display:flex; flex-direction:column; gap:6px;";
         const label = document.createElement("span");
@@ -71,7 +105,11 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         wrap.append(label, inputEl);
         return wrap;
     };
-    const makeNumber = (value, { max, min, step }) => {
+
+    const makeNumber = (
+        value: number,
+        { max, min, step }: NumberInputBounds
+    ): HTMLInputElement => {
         const input = document.createElement("input");
         input.type = "number";
         input.value = String(value);
@@ -87,15 +125,18 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         `;
         return input;
     };
+
     const enabledInput = document.createElement("input");
     enabledInput.type = "checkbox";
     enabledInput.checked = current.enabled;
+
     const enabledWrap = document.createElement("label");
     enabledWrap.style.cssText =
         "grid-column: 1 / -1; display:flex; align-items:center; gap:10px; margin-bottom: 4px;";
     const enabledText = document.createElement("span");
     enabledText.textContent = "Enable estimated power for files without power";
     enabledWrap.append(enabledInput, enabledText);
+
     const riderWeight = makeNumber(current.riderWeightKg, {
         min: 30,
         max: 200,
@@ -132,6 +173,7 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         max: 4000,
         step: 50,
     });
+
     form.append(
         makeField("Rider weight (kg)", riderWeight),
         makeField("Bike + gear weight (kg)", bikeWeight),
@@ -142,22 +184,26 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         makeField("Grade smoothing window (m)", gradeWindow),
         makeField("Max power clamp (W)", maxPower)
     );
+
     const actions = document.createElement("div");
     actions.style.cssText =
         "display:flex; justify-content:flex-end; gap:10px; margin-top: 14px;";
+
     const cancel = document.createElement("button");
     cancel.className = "themed-btn";
     cancel.textContent = "Cancel";
+
     const apply = document.createElement("button");
     apply.className = "themed-btn";
     apply.textContent = "Apply";
+
     cancel.addEventListener("click", cleanup, {
         signal: eventListeners.signal,
     });
     apply.addEventListener(
         "click",
         () => {
-            const parsed = {
+            const parsed: PowerEstimationSettings = {
                 enabled: enabledInput.checked,
                 bikeWeightKg: Number(bikeWeight.value),
                 cda: Number(cda.value),
@@ -168,7 +214,12 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
                 riderWeightKg: Number(riderWeight.value),
                 windSpeedMps: Number(wind.value),
             };
-            function validateNumber(label, value, opts = {}) {
+
+            function validateNumber(
+                label: string,
+                value: number,
+                opts: NumberValidationOptions = {}
+            ): boolean {
                 if (!Number.isFinite(value)) {
                     showNotification(
                         `${label} must be a valid number.`,
@@ -199,6 +250,7 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
                 }
                 return true;
             }
+
             if (
                 !validateNumber("Rider weight", parsed.riderWeightKg, {
                     min: 30,
@@ -259,6 +311,7 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
                 })
             )
                 return;
+
             setPowerEstimationSettings(parsed);
             try {
                 onApply(parsed);
@@ -272,7 +325,9 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         },
         { signal: eventListeners.signal }
     );
+
     actions.append(cancel, apply);
+
     modal.append(title, note, enabledWrap, form, actions);
     overlay.append(modal);
     overlay.addEventListener(
@@ -284,5 +339,6 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
         },
         { signal: eventListeners.signal }
     );
+
     document.body.append(overlay);
 }
