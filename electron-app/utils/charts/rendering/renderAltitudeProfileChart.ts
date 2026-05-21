@@ -1,12 +1,71 @@
 import { convertTimeUnits } from "../../formatting/converters/convertTimeUnits.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { createManagedChart } from "../core/createManagedChart.js";
+import {
+    createManagedChart,
+    type ManagedChartConfig,
+} from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
-import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
+import {
+    detectCurrentTheme,
+    type ChartTheme,
+} from "../theming/chartThemeUtils.js";
+
+interface AltitudeProfileDatum {
+    readonly altitude?: null | unknown;
+    readonly enhancedAltitude?: null | unknown;
+}
+
+interface AltitudeProfileOptions {
+    readonly animationStyle?: string;
+    readonly distanceUnits?: string;
+    readonly interpolation?: string;
+    readonly maxPoints: "all" | number;
+    readonly showFill?: boolean;
+    readonly showGrid?: boolean;
+    readonly showLegend?: boolean;
+    readonly showTitle?: boolean;
+    readonly smoothing?: number;
+    readonly theme?: string;
+    readonly timeUnits?: string;
+}
+
+interface AltitudeProfilePoint {
+    readonly x: number;
+    readonly y: number;
+}
+
+interface AltitudeProfileThemeColors {
+    readonly background: string;
+    readonly chartBackground: string;
+    readonly chartBorder: string;
+    readonly chartSurface: string;
+    readonly grid: string;
+    readonly primary: string;
+    readonly primaryAlpha: string;
+    readonly shadow: string;
+    readonly success: string;
+    readonly text: string;
+}
+
+interface AltitudeProfileTooltipContext {
+    readonly parsed: {
+        readonly y: number;
+    };
+}
+
+interface AltitudeProfileTooltipTitleContext {
+    readonly parsed: {
+        readonly x: number;
+    };
+}
+
 const DEFAULT_DARK_BACKGROUND = "#181c24",
     DEFAULT_DARK_BORDER = "#555",
     DEFAULT_DARK_GRID = "rgba(255,255,255,0.1)",
@@ -21,10 +80,16 @@ const DEFAULT_DARK_BACKGROUND = "#181c24",
     DEFAULT_PRIMARY_ALPHA = "#0066cc33",
     DEFAULT_SHADOW = "#00000020",
     DEFAULT_SUCCESS = "#10b981";
+
 /**
  * Render a line chart showing activity altitude over time.
  */
-export function renderAltitudeProfileChart(container, data, labels, options) {
+export function renderAltitudeProfileChart(
+    container: HTMLElement,
+    data: readonly AltitudeProfileDatum[],
+    labels: readonly number[],
+    options: AltitudeProfileOptions
+): void {
     try {
         const {
             animationStyle = "normal",
@@ -39,31 +104,39 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             theme = "auto",
             timeUnits = "seconds",
         } = options;
+
         if (!hasAltitudeData(data)) {
             return;
         }
+
         if (
             chartSettingsManager.getFieldVisibility("altitude_profile") ===
             "hidden"
         ) {
             return;
         }
+
         const currentTheme = resolveChartTheme(theme),
             colors = getAltitudeProfileThemeColors(currentTheme);
+
         let chartData = createAltitudeProfilePoints(
             data,
             labels,
             distanceUnits
         );
+
         if (chartData.length === 0) {
             return;
         }
+
         chartData = limitAltitudeProfilePoints(chartData, maxPoints);
+
         const canvas = createChartCanvas("altitude-profile", 0);
         canvas.style.background = colors.background;
         canvas.style.borderRadius = "12px";
         canvas.style.boxShadow = `0 2px 16px 0 ${colors.shadow}`;
         container.append(canvas);
+
         const chart = createManagedChart(
             canvas,
             createAltitudeProfileConfig({
@@ -80,6 +153,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                 timeUnits,
             })
         );
+
         if (chart) {
             console.log(
                 "[ChartJS] Altitude Profile chart created successfully"
@@ -92,6 +166,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
         );
     }
 }
+
 function createAltitudeProfileConfig({
     animationStyle,
     chartData,
@@ -104,12 +179,25 @@ function createAltitudeProfileConfig({
     showTitle,
     smoothing,
     timeUnits,
-}) {
+}: {
+    readonly animationStyle: string;
+    readonly chartData: readonly AltitudeProfilePoint[];
+    readonly colors: AltitudeProfileThemeColors;
+    readonly distanceUnits: string;
+    readonly interpolation: string;
+    readonly showFill: boolean;
+    readonly showGrid: boolean | undefined;
+    readonly showLegend: boolean | undefined;
+    readonly showTitle: boolean | undefined;
+    readonly smoothing: number;
+    readonly timeUnits: string;
+}): ManagedChartConfig {
     const interpolationConfig = getAltitudeProfileInterpolationConfig(
             interpolation,
             smoothing
         ),
         altitudeUnit = getAltitudeUnit(distanceUnits);
+
     return {
         data: {
             datasets: [
@@ -155,14 +243,17 @@ function createAltitudeProfileConfig({
                     borderColor: colors.chartBorder,
                     borderWidth: 1,
                     callbacks: {
-                        label(context) {
+                        label(context: AltitudeProfileTooltipContext): string {
                             return `Altitude: ${context.parsed.y.toFixed(1)} ${altitudeUnit}`;
                         },
-                        title(context) {
+                        title(
+                            context: readonly AltitudeProfileTooltipTitleContext[]
+                        ): string {
                             const firstContext = context[0];
                             if (!firstContext) {
                                 return "Time: 0:00";
                             }
+
                             return formatTooltipTimeLabel(
                                 firstContext.parsed.x,
                                 timeUnits
@@ -216,7 +307,7 @@ function createAltitudeProfileConfig({
                         display: showGrid,
                     },
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return formatTickTimeLabel(value, timeUnits);
                         },
                         color: colors.text,
@@ -248,11 +339,18 @@ function createAltitudeProfileConfig({
         type: "line",
     };
 }
-function createAltitudeProfilePoints(data, labels, distanceUnits) {
-    const points = [];
+
+function createAltitudeProfilePoints(
+    data: readonly AltitudeProfileDatum[],
+    labels: readonly number[],
+    distanceUnits: string
+): AltitudeProfilePoint[] {
+    const points: AltitudeProfilePoint[] = [];
+
     for (const [index, row] of data.entries()) {
         const altitude = getFiniteNumber(row.enhancedAltitude ?? row.altitude),
             label = labels[index];
+
         if (
             altitude === null ||
             typeof label !== "number" ||
@@ -260,39 +358,61 @@ function createAltitudeProfilePoints(data, labels, distanceUnits) {
         ) {
             continue;
         }
+
         points.push({
             x: label,
             y: convertAltitudeToDisplayUnit(altitude, distanceUnits),
         });
     }
+
     return points;
 }
-function convertAltitudeToDisplayUnit(altitudeMeters, distanceUnits) {
+
+function convertAltitudeToDisplayUnit(
+    altitudeMeters: number,
+    distanceUnits: string
+): number {
     return usesImperialAltitude(distanceUnits)
         ? altitudeMeters * 3.280_84
         : altitudeMeters;
 }
-function formatTickTimeLabel(seconds, timeUnits) {
+
+function formatTickTimeLabel(seconds: number, timeUnits: string): string {
     const converted = convertTimeUnits(seconds, timeUnits);
+
     if (timeUnits === "hours") {
         return `${converted.toFixed(2)}h`;
     }
+
     if (timeUnits === "minutes") {
         return `${converted.toFixed(1)}m`;
     }
+
     return formatTime(seconds, true);
 }
-function formatTooltipTimeLabel(seconds, timeUnits) {
+
+function formatTooltipTimeLabel(seconds: number, timeUnits: string): string {
     const converted = convertTimeUnits(seconds, timeUnits);
+
     if (timeUnits === "hours") {
         return `Time: ${converted.toFixed(2)}h`;
     }
+
     if (timeUnits === "minutes") {
         return `Time: ${converted.toFixed(1)}m`;
     }
+
     return `Time: ${formatTime(seconds)}`;
 }
-function getAltitudeProfileInterpolationConfig(interpolation, smoothing) {
+
+function getAltitudeProfileInterpolationConfig(
+    interpolation: string,
+    smoothing: number
+): {
+    readonly cubicInterpolationMode: "default" | "monotone";
+    readonly stepped: boolean;
+    readonly tension: number;
+} {
     if (interpolation === "step") {
         return {
             cubicInterpolationMode: "default",
@@ -300,6 +420,7 @@ function getAltitudeProfileInterpolationConfig(interpolation, smoothing) {
             tension: 0,
         };
     }
+
     if (interpolation === "monotone") {
         return {
             cubicInterpolationMode: "monotone",
@@ -307,15 +428,20 @@ function getAltitudeProfileInterpolationConfig(interpolation, smoothing) {
             tension: smoothing,
         };
     }
+
     return {
         cubicInterpolationMode: "default",
         stepped: false,
         tension: smoothing,
     };
 }
-function getAltitudeProfileThemeColors(currentTheme) {
+
+function getAltitudeProfileThemeColors(
+    currentTheme: ChartTheme
+): AltitudeProfileThemeColors {
     const colors = getThemeColors(),
         isDark = currentTheme === "dark";
+
     return {
         background: isDark ? DEFAULT_DARK_BACKGROUND : DEFAULT_LIGHT_BACKGROUND,
         chartBackground:
@@ -339,51 +465,70 @@ function getAltitudeProfileThemeColors(currentTheme) {
         text: isDark ? DEFAULT_DARK_TEXT : DEFAULT_LIGHT_TEXT,
     };
 }
-function getAnimationDuration(animationStyle) {
+
+function getAnimationDuration(animationStyle: string): number {
     if (animationStyle === "none") {
         return 0;
     }
+
     if (animationStyle === "fast") {
         return 500;
     }
+
     if (animationStyle === "slow") {
         return 2000;
     }
+
     return 1000;
 }
-function getAltitudeUnit(distanceUnits) {
+
+function getAltitudeUnit(distanceUnits: string): "ft" | "m" {
     return usesImperialAltitude(distanceUnits) ? "ft" : "m";
 }
-function getFiniteNumber(value) {
+
+function getFiniteNumber(value: unknown): null | number {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
-function getStringColor(colors, key) {
+
+function getStringColor(
+    colors: ThemeColorMap | undefined,
+    key: string
+): string | undefined {
     const value = colors?.[key];
     return typeof value === "string" && value.length > 0 ? value : undefined;
 }
-function getThemeColors() {
+
+function getThemeColors(): ThemeColorMap | undefined {
     try {
         return getThemeConfig().colors;
     } catch {
         return undefined;
     }
 }
-function getTimeAxisUnitLabel(timeUnits) {
+
+function getTimeAxisUnitLabel(timeUnits: string): "h" | "min" | "s" {
     if (timeUnits === "hours") {
         return "h";
     }
+
     if (timeUnits === "minutes") {
         return "min";
     }
+
     return "s";
 }
-function hasAltitudeData(data) {
+
+function hasAltitudeData(data: readonly AltitudeProfileDatum[]): boolean {
     return data.some(
         ({ altitude, enhancedAltitude }) =>
             getFiniteNumber(enhancedAltitude ?? altitude) !== null
     );
 }
-function limitAltitudeProfilePoints(chartData, maxPoints) {
+
+function limitAltitudeProfilePoints(
+    chartData: readonly AltitudeProfilePoint[],
+    maxPoints: "all" | number
+): AltitudeProfilePoint[] {
     if (
         maxPoints === "all" ||
         !Number.isFinite(maxPoints) ||
@@ -392,15 +537,19 @@ function limitAltitudeProfilePoints(chartData, maxPoints) {
     ) {
         return [...chartData];
     }
+
     const step = Math.ceil(chartData.length / maxPoints);
     return chartData.filter((_point, index) => index % step === 0);
 }
-function resolveChartTheme(theme) {
+
+function resolveChartTheme(theme: string): ChartTheme {
     if (theme === "dark" || theme === "light") {
         return theme;
     }
+
     return detectCurrentTheme();
 }
-function usesImperialAltitude(distanceUnits) {
+
+function usesImperialAltitude(distanceUnits: string): boolean {
     return distanceUnits === "feet" || distanceUnits === "miles";
 }

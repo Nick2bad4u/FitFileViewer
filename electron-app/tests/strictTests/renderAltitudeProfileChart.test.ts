@@ -913,7 +913,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(chartData[2]).toEqual({ x: 60, y: 160 });
         });
 
-        it("should handle mismatched data and labels arrays", () => {
+        it("should skip points without matching numeric labels", () => {
             const container = document.createElement("div");
             const data = [{ altitude: 100 }, { altitude: 200 }];
             const labels = [0]; // Shorter than data array
@@ -927,12 +927,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
-            // Function includes points even with undefined x values
-            expect(chartData).toEqual([
-                { x: 0, y: 100 },
-                { x: undefined, y: 200 },
-            ]);
-            expect(chartData.length).toBe(2); // Both points included despite undefined x
+            expect(chartData).toEqual([{ x: 0, y: 100 }]);
+            expect(chartData.length).toBe(1);
         });
 
         it("should handle negative altitude values", () => {
