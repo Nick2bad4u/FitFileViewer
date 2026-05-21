@@ -164,6 +164,7 @@
         "utils/charts/plugins/chartZoomResetPlugin.ts",
         "utils/charts/rendering/renderEventMessagesChart.ts",
         "utils/charts/rendering/renderAltitudeProfileChart.ts",
+        "utils/charts/rendering/renderGPSTimeChart.ts",
         "utils/charts/rendering/renderGPSTrackChart.ts",
         "utils/charts/rendering/renderPerformanceAnalysisCharts.ts",
         "utils/charts/rendering/renderPowerVsHeartRateChart.ts",

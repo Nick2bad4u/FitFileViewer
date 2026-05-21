@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
 let renderGPSTimeChart: any;
 let Chart: any;
 let chartInstanceMock: any;
 let mockLocalStorage: any;
+let mockChartSettingsManager: { getFieldVisibility: ReturnType<typeof vi.fn> };
 let getThemeConfigMock: ReturnType<typeof vi.fn>;
 let createChartCanvasMock: ReturnType<typeof vi.fn>;
 
@@ -67,7 +67,13 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         createChartCanvasMock = vi.fn(() => document.createElement("canvas"));
         getThemeConfigMock = vi.fn(() => ({ colors: MOCK_COLORS }));
+        mockChartSettingsManager = {
+            getFieldVisibility: vi.fn(() => "visible"),
+        };
 
+        vi.doMock("../../utils/charts/core/renderChartJS.js", () => ({
+            chartSettingsManager: mockChartSettingsManager,
+        }));
         vi.doMock("../../utils/theming/core/theme.js", () => ({
             getThemeConfig: getThemeConfigMock,
         }));
@@ -117,8 +123,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             },
         ];
 
-        (chartSettingsManager as any).getFieldVisibility = vi.fn(
-            () => "hidden" as any
+        mockChartSettingsManager.getFieldVisibility.mockReturnValue(
+            "hidden" as any
         );
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });

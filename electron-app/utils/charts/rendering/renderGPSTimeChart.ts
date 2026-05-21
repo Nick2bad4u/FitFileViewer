@@ -1,8 +1,61 @@
-import { getThemeConfig } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { createManagedChart } from "../core/createManagedChart.js";
+import {
+    createManagedChart,
+    type ManagedChartConfig,
+} from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+
+interface GPSTimeChartOptions {
+    readonly maxPoints: "all" | number;
+    readonly showGrid?: boolean;
+    readonly showLegend?: boolean;
+    readonly showPoints?: boolean;
+    readonly showTitle?: boolean;
+}
+
+interface GPSTimePoint {
+    readonly elapsedSeconds: number;
+    readonly pointIndex: number;
+    readonly timestamp: Date | number | string;
+    readonly x: number;
+    readonly y: number;
+}
+
+interface GPSTimeRuntimeGlobal {
+    readonly __FFV_debugCharts?: unknown;
+}
+
+interface GPSTimeThemeColors {
+    readonly background: string;
+    readonly chartBackground: string;
+    readonly chartBorder: string;
+    readonly chartSurface: string;
+    readonly gridLines: string;
+    readonly primary: string;
+    readonly primaryAlpha: string;
+    readonly shadow: string;
+    readonly success: string;
+    readonly text: string;
+    readonly textPrimary: string;
+}
+
+interface GPSTimeTooltipContext {
+    readonly datasetIndex: number;
+    readonly raw: GPSTimePoint;
+}
+
+interface NormalizedGPSTimeDatum {
+    readonly positionLat: number;
+    readonly positionLong: number;
+    readonly timestamp: Date | number | string;
+    readonly timestampMillis: number;
+}
+
 const DEFAULT_BACKGROUND = "#000",
     DEFAULT_BORDER = "#333333",
     DEFAULT_GRID = "#222222",
@@ -14,16 +67,23 @@ const DEFAULT_BACKGROUND = "#000",
     DEFAULT_TEXT = "#f5f5f5",
     DEFAULT_TEXT_PRIMARY = "#e8e8e8",
     SEMICIRCLE_DEGREES_FACTOR = 180 / 2 ** 31;
+
 /**
  * Renders GPS latitude and longitude over elapsed activity time.
  */
-export function renderGPSTimeChart(container, data, options) {
+export function renderGPSTimeChart(
+    container: HTMLElement,
+    data: readonly unknown[],
+    options: GPSTimeChartOptions
+): void {
     try {
         const isDebugLoggingEnabled = shouldLogDebugMessages();
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTimeChart called");
         }
+
         const normalizedData = getGpsTimeRows(data);
+
         if (normalizedData.length === 0) {
             if (isDebugLoggingEnabled) {
                 console.log(
@@ -32,9 +92,11 @@ export function renderGPSTimeChart(container, data, options) {
             }
             return;
         }
+
         if (chartSettingsManager.getFieldVisibility("gps_time") === "hidden") {
             return;
         }
+
         const [firstRow] = normalizedData;
         if (!firstRow) {
             if (isDebugLoggingEnabled) {
@@ -42,32 +104,39 @@ export function renderGPSTimeChart(container, data, options) {
             }
             return;
         }
+
         let { latitudeData, longitudeData } = createGpsTimeDataSets(
             normalizedData,
             firstRow.timestampMillis
         );
+
         if (latitudeData.length === 0 || longitudeData.length === 0) {
             if (isDebugLoggingEnabled) {
                 console.log("[ChartJS] No valid GPS time data points found");
             }
             return;
         }
+
         ({ latitudeData, longitudeData } = limitGpsTimePoints(
             latitudeData,
             longitudeData,
             options.maxPoints
         ));
+
         if (isDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] Creating GPS time chart with ${latitudeData.length} points`
             );
         }
+
         const colors = getGpsTimeThemeColors(),
             canvas = createChartCanvas("gps-time", 0);
+
         canvas.style.background = colors.background;
         canvas.style.boxShadow = colors.shadow;
         canvas.style.borderRadius = "12px";
         container.append(canvas);
+
         const chart = createManagedChart(
             canvas,
             createGpsTimeChartConfig(
@@ -77,6 +146,7 @@ export function renderGPSTimeChart(container, data, options) {
                 options
             )
         );
+
         if (chart) {
             console.log("[ChartJS] GPS time chart created successfully");
         }
@@ -84,12 +154,13 @@ export function renderGPSTimeChart(container, data, options) {
         console.error("[ChartJS] Error rendering GPS time chart:", error);
     }
 }
+
 function createGpsTimeChartConfig(
-    latitudeData,
-    longitudeData,
-    colors,
-    options
-) {
+    latitudeData: readonly GPSTimePoint[],
+    longitudeData: readonly GPSTimePoint[],
+    colors: GPSTimeThemeColors,
+    options: GPSTimeChartOptions
+): ManagedChartConfig {
     return {
         data: {
             datasets: [
@@ -147,19 +218,22 @@ function createGpsTimeChartConfig(
                     borderColor: colors.chartBorder,
                     borderWidth: 1,
                     callbacks: {
-                        label(context) {
+                        label(context: GPSTimeTooltipContext): string[] {
                             const point = context.raw,
                                 coordType =
                                     context.datasetIndex === 0
                                         ? "Latitude"
                                         : "Longitude";
+
                             return [
                                 `${coordType}: ${point.y.toFixed(6)}°`,
                                 `Elapsed: ${formatElapsedTime(point.elapsedSeconds)}`,
                                 `Point: ${point.pointIndex}`,
                             ];
                         },
-                        title(tooltipItems) {
+                        title(
+                            tooltipItems: readonly GPSTimeTooltipContext[]
+                        ): string {
                             const firstItem = tooltipItems[0];
                             return firstItem
                                 ? new Date(
@@ -215,7 +289,7 @@ function createGpsTimeChartConfig(
                         display: options.showGrid !== false,
                     },
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return formatElapsedTime(value);
                         },
                         color: colors.textPrimary,
@@ -235,7 +309,7 @@ function createGpsTimeChartConfig(
                     },
                     position: "left",
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return `${value.toFixed(5)}°`;
                         },
                         color: colors.primary,
@@ -255,7 +329,7 @@ function createGpsTimeChartConfig(
                     },
                     position: "right",
                     ticks: {
-                        callback(value) {
+                        callback(value: number): string {
                             return `${value.toFixed(5)}°`;
                         },
                         color: colors.success,
@@ -273,11 +347,20 @@ function createGpsTimeChartConfig(
         type: "line",
     };
 }
-function createGpsTimeDataSets(normalizedData, startTimeMillis) {
-    const latitudeData = [],
-        longitudeData = [];
+
+function createGpsTimeDataSets(
+    normalizedData: readonly NormalizedGPSTimeDatum[],
+    startTimeMillis: number
+): {
+    readonly latitudeData: GPSTimePoint[];
+    readonly longitudeData: GPSTimePoint[];
+} {
+    const latitudeData: GPSTimePoint[] = [],
+        longitudeData: GPSTimePoint[] = [];
+
     for (const [index, row] of normalizedData.entries()) {
         const elapsedSeconds = (row.timestampMillis - startTimeMillis) / 1000;
+
         latitudeData.push({
             elapsedSeconds,
             pointIndex: index,
@@ -293,36 +376,47 @@ function createGpsTimeDataSets(normalizedData, startTimeMillis) {
             y: row.positionLong * SEMICIRCLE_DEGREES_FACTOR,
         });
     }
+
     return { latitudeData, longitudeData };
 }
-function formatElapsedTime(seconds) {
+
+function formatElapsedTime(seconds: number): string {
     const hours = Math.floor(seconds / 3600),
         minutes = Math.floor((seconds % 3600) / 60),
         secs = Math.floor(seconds % 60);
+
     if (hours > 0) {
         return `${hours}h ${minutes}m ${secs}s`;
     }
+
     if (minutes > 0) {
         return `${minutes}m ${secs}s`;
     }
+
     return `${secs}s`;
 }
-function getFiniteNumber(value) {
+
+function getFiniteNumber(value: unknown): null | number {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
-function getGpsTimeRows(data) {
+
+function getGpsTimeRows(data: readonly unknown[]): NormalizedGPSTimeDatum[] {
     if (!Array.isArray(data)) {
         return [];
     }
-    const rows = [];
+
+    const rows: NormalizedGPSTimeDatum[] = [];
+
     for (const row of data) {
         if (!isRecordObject(row)) {
             continue;
         }
+
         const positionLat = getFiniteNumber(row["positionLat"]),
             positionLong = getFiniteNumber(row["positionLong"]),
             timestamp = row["timestamp"],
             timestampMillis = getTimestampMillis(timestamp);
+
         if (
             positionLat === null ||
             positionLong === null ||
@@ -331,6 +425,7 @@ function getGpsTimeRows(data) {
         ) {
             continue;
         }
+
         rows.push({
             positionLat,
             positionLong,
@@ -338,10 +433,13 @@ function getGpsTimeRows(data) {
             timestampMillis,
         });
     }
+
     return rows;
 }
-function getGpsTimeThemeColors() {
+
+function getGpsTimeThemeColors(): GPSTimeThemeColors {
     const colors = getThemeColors();
+
     return {
         background:
             getStringColor(colors, "bgPrimary") ??
@@ -362,18 +460,24 @@ function getGpsTimeThemeColors() {
             getStringColor(colors, "textPrimary") ?? DEFAULT_TEXT_PRIMARY,
     };
 }
-function getStringColor(colors, key) {
+
+function getStringColor(
+    colors: ThemeColorMap | undefined,
+    key: string
+): string | undefined {
     const value = colors?.[key];
     return typeof value === "string" && value.length > 0 ? value : undefined;
 }
-function getThemeColors() {
+
+function getThemeColors(): ThemeColorMap | undefined {
     try {
         return getThemeConfig().colors;
     } catch {
         return undefined;
     }
 }
-function getTimestampMillis(value) {
+
+function getTimestampMillis(value: unknown): null | number {
     if (
         typeof value !== "number" &&
         typeof value !== "string" &&
@@ -381,20 +485,31 @@ function getTimestampMillis(value) {
     ) {
         return null;
     }
+
     const timestampMillis = new Date(value).getTime();
     return Number.isFinite(timestampMillis) ? timestampMillis : null;
 }
-function isRecordObject(value) {
+
+function isRecordObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
-function isTimestampValue(value) {
+
+function isTimestampValue(value: unknown): value is Date | number | string {
     return (
         typeof value === "number" ||
         typeof value === "string" ||
         value instanceof Date
     );
 }
-function limitGpsTimePoints(latitudeData, longitudeData, maxPoints) {
+
+function limitGpsTimePoints(
+    latitudeData: readonly GPSTimePoint[],
+    longitudeData: readonly GPSTimePoint[],
+    maxPoints: "all" | number
+): {
+    readonly latitudeData: GPSTimePoint[];
+    readonly longitudeData: GPSTimePoint[];
+} {
     if (
         maxPoints === "all" ||
         !Number.isFinite(maxPoints) ||
@@ -406,7 +521,9 @@ function limitGpsTimePoints(latitudeData, longitudeData, maxPoints) {
             longitudeData: [...longitudeData],
         };
     }
+
     const step = Math.ceil(latitudeData.length / maxPoints);
+
     return {
         latitudeData: latitudeData.filter(
             (_point, index) => index % step === 0
@@ -416,14 +533,16 @@ function limitGpsTimePoints(latitudeData, longitudeData, maxPoints) {
         ),
     };
 }
-function shouldLogDebugMessages() {
+
+function shouldLogDebugMessages(): boolean {
     const isTestEnvironment =
             typeof process !== "undefined" &&
             process.env["NODE_ENV"] === "test",
         isDevEnvironment =
             typeof process !== "undefined" &&
             process.env["NODE_ENV"] === "development",
-        runtimeGlobal = globalThis;
+        runtimeGlobal = globalThis as typeof globalThis & GPSTimeRuntimeGlobal;
+
     return (
         isTestEnvironment ||
         (isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts))
