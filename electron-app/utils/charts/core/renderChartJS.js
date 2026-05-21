@@ -73,6 +73,7 @@ import {
     getRecordValue,
 } from "./renderChartModuleHelpers.js";
 import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
+import { createExportChartsWithState } from "./renderChartExportState.js";
 import {
     clearChartLabelsCache,
     getLabelsForRecords,
@@ -317,61 +318,13 @@ registerChartStartup({
     setGlobalChartActions,
 });
 
-/**
- * State-aware chart export function
- *
- * @param {string} format - Export format (png, csv, json)
- *
- * @returns {Promise<boolean>} Success status
- */
-export async function exportChartsWithState(format = "png") {
-    // Avoid referencing chartState here to prevent TDZ/cycle issues in tests; read directly from state
-    const isRendered = Boolean(getState("charts.isRendered"));
-
-    // Robustly detect chart instances from either globalThis or window (some tests mutate one or the other)
-    const instances = getGlobalChartInstances(chartGlobal._chartjsInstances);
-
-    // Only treat as "no charts" when we have neither rendered state nor any instances
-    if (!isRendered && instances.length === 0) {
-        // fire and forget
-        Promise.resolve().then(() =>
-            notify("No charts available for export", "warning")
-        );
-        return false;
-    }
-
-    // Best-effort export: non-critical errors (state/notify) should not flip success when charts exist
-    try {
-        setState("ui.isExporting", true, {
-            silent: false,
-            source: "exportChartsWithState",
-        });
-    } catch {
-        /* non-fatal */
-    }
-
-    // Placeholder: real export implementation handled elsewhere; here we just signal success
-    try {
-        Promise.resolve().then(() =>
-            notify(
-                `Charts exported as ${format?.toUpperCase?.() || String(format)}`,
-                "success"
-            )
-        );
-    } catch {
-        /* non-fatal */
-    }
-
-    try {
-        setState("ui.isExporting", false, {
-            silent: false,
-            source: "exportChartsWithState",
-        });
-    } catch {
-        /* non-fatal */
-    }
-    return true;
-}
+export const exportChartsWithState = createExportChartsWithState({
+    chartGlobal,
+    getChartInstances: getGlobalChartInstances,
+    getState,
+    notify,
+    setState,
+});
 
 /**
  * Get comprehensive chart status from state
