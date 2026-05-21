@@ -30,15 +30,12 @@
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
-import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { clearElement, sanitizeCssColorToken } from "../../dom/index.js";
-import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import {
     fieldLabels,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
 import { createUserDeviceInfoBox } from "../../rendering/components/createUserDeviceInfoBox.js";
-import { computedStateManager } from "../../state/core/computedStateManager.js";
 // State management imports
 import {
     getState,
@@ -56,7 +53,6 @@ import {
     querySelectorByIdFlexible,
 } from "../../ui/dom/elementIdUtils.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
-import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
 import {
     getChartRenderContainer,
     getChartSettingsWrapper,
@@ -147,6 +143,13 @@ import {
 } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
 import {
+    getComputedStateManagerSafe,
+    getConvertersSafe,
+    getFormatChartFieldsSafe,
+    getSetupZoneDataSafe,
+    getShowRenderNotificationSafe,
+} from "./renderChartDependencyAccessors.js";
+import {
     callGetState,
     callSetState,
     callUpdateState,
@@ -156,53 +159,6 @@ const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
 
-// Safe accessors that prefer test-injected modules via globalThis.require (alphabetical order)
-function getComputedStateManagerSafe() {
-    try {
-        const mod = getInjectedModule(
-            "../../state/core/computedStateManager.js"
-        );
-        const defaultExport = getRecordValue(mod, "default");
-        const nested =
-            getRecordValue(mod, "computedStateManager") ||
-            getRecordValue(defaultExport, "computedStateManager") ||
-            defaultExport;
-        if (nested && typeof nested === "object") return nested;
-        if (getRecordFunction(mod, "invalidateComputed")) return mod;
-    } catch {
-        /* ignore */
-    }
-    return computedStateManager;
-}
-
-function getConvertersSafe() {
-    try {
-        const mod = getInjectedModule(
-            "../../formatting/converters/convertValueToUserUnits.js"
-        );
-        const convert = getRecordFunction(mod, "convertValueToUserUnits");
-        if (convert) return convert;
-    } catch {
-        /* ignore */
-    }
-    return convertValueToUserUnits;
-}
-
-function getFormatChartFieldsSafe() {
-    try {
-        const mod = getInjectedModule(
-            "../../formatting/display/formatChartFields.js"
-        );
-        const defaultExport = getRecordValue(mod, "default");
-        const fields =
-            getRecordValue(mod, "formatChartFields") ||
-            getRecordValue(defaultExport, "formatChartFields");
-        return Array.isArray(fields) ? fields : formatChartFields;
-    } catch {
-        /* ignore */
-    }
-    return formatChartFields;
-}
 // duplicate declarations removed
 
 function getHoverPluginsSafe() {
@@ -355,35 +311,6 @@ function getSettingsStateManagerSafe() {
     }
     return settingsStateManager;
 }
-
-function getSetupZoneDataSafe() {
-    try {
-        const mod = getInjectedModule("../../data/processing/setupZoneData.js");
-        const setup = getRecordFunction(mod, "setupZoneData");
-        if (setup) return setup;
-    } catch {
-        /* ignore */
-    }
-    return setupZoneData;
-}
-
-// Safe accessor for settings state manager (tests inject nested object)
-// (duplicate removed below)
-
-function getShowRenderNotificationSafe() {
-    try {
-        const mod = getInjectedModule(
-            "../../ui/notifications/showRenderNotification.js"
-        );
-        const show = getRecordFunction(mod, "showRenderNotification");
-        if (show) return show;
-    } catch {
-        /* ignore */
-    }
-    return showRenderNotification;
-}
-
-// (moved up)
 
 // Safe accessor for a UIStateManager instance that might be provided by the app/tests
 function getUIStateManagerMaybe() {
