@@ -44,7 +44,6 @@ import {
     updateState,
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
-import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
 // Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
 // We'll access a global instance if the app exposes one.
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
@@ -101,7 +100,6 @@ import {
     getDebouncedChartStateManager,
     getGlobalChartActions,
     getGlobalChartInstances,
-    getGlobalPanelVisibilityManager,
     getMutableChartRuntimeGlobal,
     isChartDebugEnabled,
     isDevelopmentEnvironment,
@@ -146,8 +144,10 @@ import {
     getComputedStateManagerSafe,
     getConvertersSafe,
     getFormatChartFieldsSafe,
+    getSettingsStateManagerSafe,
     getSetupZoneDataSafe,
     getShowRenderNotificationSafe,
+    getUIStateManagerMaybe,
 } from "./renderChartDependencyAccessors.js";
 import {
     callGetState,
@@ -293,50 +293,6 @@ function getRendererModulesSafe() {
         /* ignore */
     }
     return result;
-}
-
-function getSettingsStateManagerSafe() {
-    try {
-        const mod = getInjectedModule(
-            "../../state/domain/settingsStateManager.js"
-        );
-        if (getRecordFunction(mod, "getChartSettings")) return mod;
-        const defaultExport = getRecordValue(mod, "default");
-        const nested =
-            getRecordValue(mod, "settingsStateManager") ||
-            getRecordValue(defaultExport, "settingsStateManager");
-        if (nested && typeof nested === "object") return nested;
-    } catch {
-        /* ignore */
-    }
-    return settingsStateManager;
-}
-
-// Safe accessor for a UIStateManager instance that might be provided by the app/tests
-function getUIStateManagerMaybe() {
-    try {
-        const ui = getGlobalPanelVisibilityManager();
-        if (ui) return ui;
-        // In test environments, a CommonJS-like require is injected; use it to avoid ESM side effects
-        try {
-            const mod = getInjectedModule(
-                "../../state/domain/uiStateManager.js"
-            );
-            const defaultExport = getRecordValue(mod, "default");
-            const candidate =
-                getRecordValue(mod, "uiStateManager") ||
-                getRecordValue(defaultExport, "uiStateManager") ||
-                defaultExport;
-            return candidate && typeof candidate === "object"
-                ? candidate
-                : null;
-        } catch {
-            /* ignore */
-        }
-        return null;
-    } catch {
-        return null;
-    }
 }
 
 function resolveChartSettingsApi() {
