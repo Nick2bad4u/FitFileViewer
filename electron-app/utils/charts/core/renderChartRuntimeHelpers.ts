@@ -1,4 +1,4 @@
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
 
@@ -47,14 +47,13 @@ function hasDebouncedRender(
     value: unknown
 ): value is DebouncedChartStateManager {
     return (
-        isRecord(value) &&
-        typeof value["debouncedRender"] === "function"
+        isObjectRecord(value) && typeof value["debouncedRender"] === "function"
     );
 }
 
 function hasChartAction(value: unknown): value is ChartActionsBridge {
     return (
-        isRecord(value) &&
+        isObjectRecord(value) &&
         (typeof value["clearCharts"] === "function" ||
             typeof value["completeRendering"] === "function" ||
             typeof value["startRendering"] === "function")
@@ -65,7 +64,7 @@ function hasUpdatePanelVisibility(
     value: unknown
 ): value is PanelVisibilityBridge {
     return (
-        isRecord(value) &&
+        isObjectRecord(value) &&
         typeof value["updatePanelVisibility"] === "function"
     );
 }
@@ -79,7 +78,8 @@ export function getMutableChartRuntimeGlobal(): RenderChartRuntimeGlobal {
 
 /**
  * Ensures Vitest/jsdom environments expose the process.nextTick shape expected
- * by renderer dependencies without spreading untyped global casts through the renderer.
+ * by renderer dependencies without spreading untyped global casts through the
+ * renderer.
  */
 export function ensureProcessNextTick(): void {
     const chartGlobal = getMutableChartRuntimeGlobal();
@@ -104,8 +104,7 @@ export function ensureProcessNextTick(): void {
  */
 export function isNodeEnv(expected: string): boolean {
     return (
-        typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === expected
+        typeof process !== "undefined" && process.env["NODE_ENV"] === expected
     );
 }
 
@@ -124,7 +123,8 @@ export function isTestEnvironment(): boolean {
 }
 
 /**
- * Reads the background-render loading suppression flag from the renderer global.
+ * Reads the background-render loading suppression flag from the renderer
+ * global.
  */
 export function isLoadingStateSuppressed(): boolean {
     return Boolean(getMutableChartRuntimeGlobal().__FFV_suppressLoadingState);
@@ -158,7 +158,8 @@ export function getGlobalChartActions(): ChartActionsBridge | null {
 }
 
 /**
- * Exposes chart actions for legacy event paths that still resolve them through globalThis.
+ * Exposes chart actions for legacy event paths that still resolve them through
+ * globalThis.
  */
 export function setGlobalChartActions(actions: unknown): void {
     const chartGlobal = getMutableChartRuntimeGlobal();
@@ -166,7 +167,8 @@ export function setGlobalChartActions(actions: unknown): void {
 }
 
 /**
- * Returns a globally exposed UI state manager when it can update panel visibility.
+ * Returns a globally exposed UI state manager when it can update panel
+ * visibility.
  */
 export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null {
     const chartGlobal = getMutableChartRuntimeGlobal();
@@ -181,7 +183,7 @@ export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null 
 export function getGlobalChartInstances(fallbackInstances: unknown): unknown[] {
     const chartGlobal = getMutableChartRuntimeGlobal();
     const windowValue = chartGlobal.window;
-    const windowInstances = isRecord(windowValue)
+    const windowInstances = isObjectRecord(windowValue)
         ? windowValue["_chartjsInstances"]
         : undefined;
     const instances =
@@ -197,7 +199,7 @@ export function notifyChartRenderComplete(
     appActions: unknown,
     chartCount: number
 ): void {
-    if (!isRecord(appActions)) {
+    if (!isObjectRecord(appActions)) {
         return;
     }
 

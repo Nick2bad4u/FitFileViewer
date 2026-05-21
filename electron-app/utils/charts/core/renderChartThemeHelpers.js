@@ -1,4 +1,4 @@
-import { isRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 const FALLBACK_ZONE_COLORS = [
     "#808080",
     "#3b82f665",
@@ -57,7 +57,7 @@ function resolveThemeConfigProvider(value) {
     if (isThemeConfigProvider(value)) {
         return value;
     }
-    if (!isRecord(value)) {
+    if (!isObjectRecord(value)) {
         return null;
     }
     if (isThemeConfigProvider(value["getThemeConfig"])) {
@@ -67,8 +67,10 @@ function resolveThemeConfigProvider(value) {
     if (isThemeConfigProvider(defaultExport)) {
         return defaultExport;
     }
-    if (isRecord(defaultExport) &&
-        isThemeConfigProvider(defaultExport["getThemeConfig"])) {
+    if (
+        isObjectRecord(defaultExport) &&
+        isThemeConfigProvider(defaultExport["getThemeConfig"])
+    ) {
         return defaultExport["getThemeConfig"];
     }
     return null;
@@ -77,24 +79,31 @@ function resolveThemeConfigProvider(value) {
  * Normalizes a theme config object to ensure required color keys exist.
  */
 export function normalizeThemeConfig(rawConfig) {
-    const normalized = isRecord(rawConfig) ? { ...rawConfig } : {};
-    const providedColors = isRecord(rawConfig) && isRecord(rawConfig["colors"])
-        ? rawConfig["colors"]
-        : {};
+    const normalized = isObjectRecord(rawConfig) ? { ...rawConfig } : {};
+    const providedColors =
+        isObjectRecord(rawConfig) && isObjectRecord(rawConfig["colors"])
+            ? rawConfig["colors"]
+            : {};
     const mergedColors = {
         ...FALLBACK_THEME_COLORS,
         ...providedColors,
     };
-    if (!Array.isArray(mergedColors.zoneColors) ||
-        mergedColors.zoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.zoneColors) ||
+        mergedColors.zoneColors.length === 0
+    ) {
         mergedColors.zoneColors = [...FALLBACK_ZONE_COLORS];
     }
-    if (!Array.isArray(mergedColors.heartRateZoneColors) ||
-        mergedColors.heartRateZoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.heartRateZoneColors) ||
+        mergedColors.heartRateZoneColors.length === 0
+    ) {
         mergedColors.heartRateZoneColors = [...FALLBACK_HEART_RATE_ZONE_COLORS];
     }
-    if (!Array.isArray(mergedColors.powerZoneColors) ||
-        mergedColors.powerZoneColors.length === 0) {
+    if (
+        !Array.isArray(mergedColors.powerZoneColors) ||
+        mergedColors.powerZoneColors.length === 0
+    ) {
         mergedColors.powerZoneColors = [...FALLBACK_POWER_ZONE_COLORS];
     }
     normalized.colors = mergedColors;
@@ -122,24 +131,26 @@ export async function getThemeConfigSafe() {
             themeConfig = importedProvider();
         }
         const chartGlobal = globalThis;
-        const globalProvider = resolveThemeConfigProvider(chartGlobal.getThemeConfig);
+        const globalProvider = resolveThemeConfigProvider(
+            chartGlobal.getThemeConfig
+        );
         if (!themeConfig && globalProvider) {
             themeConfig = globalProvider();
         }
         if (!themeConfig && typeof chartGlobal.require === "function") {
             try {
-                const reqMod = chartGlobal.require("../../theming/core/theme.js");
+                const reqMod = chartGlobal.require(
+                    "../../theming/core/theme.js"
+                );
                 const requiredProvider = resolveThemeConfigProvider(reqMod);
                 if (requiredProvider) {
                     themeConfig = requiredProvider();
                 }
-            }
-            catch {
+            } catch {
                 // Ignore and fall through to normalized fallback colors.
             }
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.warn("[ChartJS] getThemeConfigSafe() fallback:", error);
     }
     return normalizeThemeConfig(themeConfig);

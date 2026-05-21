@@ -1,8 +1,5 @@
-import type {
-    ThemeColorMap,
-    ThemeConfig,
-} from "../../theming/core/theme.js";
-import { isRecord } from "./renderChartModuleHelpers.js";
+import type { ThemeColorMap, ThemeConfig } from "../../theming/core/theme.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type ThemeConfigProvider = () => unknown;
 
@@ -107,12 +104,14 @@ function isThemeConfigProvider(value: unknown): value is ThemeConfigProvider {
     return typeof value === "function";
 }
 
-function resolveThemeConfigProvider(value: unknown): ThemeConfigProvider | null {
+function resolveThemeConfigProvider(
+    value: unknown
+): ThemeConfigProvider | null {
     if (isThemeConfigProvider(value)) {
         return value;
     }
 
-    if (!isRecord(value)) {
+    if (!isObjectRecord(value)) {
         return null;
     }
 
@@ -126,7 +125,7 @@ function resolveThemeConfigProvider(value: unknown): ThemeConfigProvider | null 
     }
 
     if (
-        isRecord(defaultExport) &&
+        isObjectRecord(defaultExport) &&
         isThemeConfigProvider(defaultExport["getThemeConfig"])
     ) {
         return defaultExport["getThemeConfig"];
@@ -141,10 +140,10 @@ function resolveThemeConfigProvider(value: unknown): ThemeConfigProvider | null 
 export function normalizeThemeConfig(
     rawConfig: unknown
 ): NormalizedThemeConfig {
-    const normalized: Partial<NormalizedThemeConfig> &
-        Record<string, unknown> = isRecord(rawConfig) ? { ...rawConfig } : {};
+    const normalized: Partial<NormalizedThemeConfig> & Record<string, unknown> =
+        isObjectRecord(rawConfig) ? { ...rawConfig } : {};
     const providedColors =
-        isRecord(rawConfig) && isRecord(rawConfig["colors"])
+        isObjectRecord(rawConfig) && isObjectRecord(rawConfig["colors"])
             ? rawConfig["colors"]
             : {};
     const mergedColors = {

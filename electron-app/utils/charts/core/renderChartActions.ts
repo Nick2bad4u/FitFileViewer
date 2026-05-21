@@ -1,4 +1,4 @@
-import { hasDestroy } from "./renderChartModuleHelpers.js";
+import { hasDestroy, isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface ChartActionsGlobal {
     _chartjsInstances?: unknown[];
@@ -39,23 +39,27 @@ interface ChartActions {
     toggleControls(): void;
 }
 
+function isPanelVisibilityManager(
+    value: unknown
+): value is PanelVisibilityManager {
+    return (
+        isObjectRecord(value) &&
+        typeof value["updatePanelVisibility"] === "function"
+    );
+}
+
 function getPanelVisibilityManager(
     value: unknown
 ): PanelVisibilityManager | null {
-    return (
-        value !== null &&
-            typeof value === "object" &&
-            typeof (value as { updatePanelVisibility?: unknown })
-                .updatePanelVisibility === "function"
-    )
-        ? (value as PanelVisibilityManager)
-        : null;
+    return isPanelVisibilityManager(value) ? value : null;
 }
 
 /**
  * Creates chart action handlers backed by the centralized state store.
  *
- * @param dependencies - Runtime state, rendering, and global bridge dependencies.
+ * @param dependencies - Runtime state, rendering, and global bridge
+ *   dependencies.
+ *
  * @returns Mutable chart action handlers for the renderer public API.
  */
 export function createChartActions(
@@ -178,10 +182,7 @@ export function createChartActions(
             const uiManager = getPanelVisibilityManager(
                 dependencies.getPanelVisibilityManager()
             );
-            uiManager?.updatePanelVisibility(
-                "chart-controls",
-                newVisibility
-            );
+            uiManager?.updatePanelVisibility("chart-controls", newVisibility);
         },
     };
 }
