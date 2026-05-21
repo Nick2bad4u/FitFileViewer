@@ -206,6 +206,7 @@
         "utils/charts/core/renderChartPointUtils.ts",
         "utils/charts/core/renderChartPerformanceMonitor.ts",
         "utils/charts/core/renderChartPerformanceSettings.ts",
+        "utils/charts/core/renderChartPerformanceState.ts",
         "utils/charts/core/renderChartPluginRegistration.ts",
         "utils/charts/core/renderChartPlaceholders.ts",
         "utils/charts/core/renderChartPreflight.ts",

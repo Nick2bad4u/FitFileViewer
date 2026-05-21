@@ -75,6 +75,7 @@ import {
     shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
+import { updateChartRenderPerformanceState } from "./renderChartPerformanceState.js";
 import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import {
     clearChartSeriesCache,
@@ -947,21 +948,10 @@ async function renderChartsWithData(
         `[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`
     );
 
-    // Update performance metrics in state using updateState for efficiency
-    {
-        const existingRenderTimes = gs_rcwd("performance.renderTimes") || {};
-        us_rcwd(
-            "performance",
-            {
-                chartsRendered: totalChartsRendered,
-                renderTimes: {
-                    ...existingRenderTimes,
-                    lastChartRender: renderTime,
-                },
-            },
-            { merge: true, source: "renderChartsWithData" }
-        );
-    }
+    updateChartRenderPerformanceState(
+        { getState: gs_rcwd, updateState: us_rcwd },
+        { renderTime, totalChartsRendered }
+    );
 
     handleChartRenderNotification(
         {
