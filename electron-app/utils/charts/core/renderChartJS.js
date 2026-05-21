@@ -30,10 +30,7 @@
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
-import {
-    fieldLabels,
-    formatChartFields,
-} from "../../formatting/display/formatChartFields.js";
+import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 // State management imports
 import {
     getState,
@@ -43,7 +40,7 @@ import {
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
-import { renderNoDataMessage, safeAppend } from "./renderChartDomHelpers.js";
+import { renderNoDataMessage } from "./renderChartDomHelpers.js";
 import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
@@ -68,7 +65,6 @@ import { initializeChartRuntimeBootstrap } from "./renderChartRuntimeBootstrap.j
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
-    shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
 import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
@@ -76,10 +72,9 @@ import { updateChartRenderPerformanceState } from "./renderChartPerformanceState
 import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import {
     clearChartSeriesCache,
-    getCachedSeriesForSettings,
-    getFieldSeriesEntry,
     getChartSeriesCacheStats as getSeriesCacheStats,
 } from "./renderChartSeriesCache.js";
+import { renderPrimaryChartFields } from "./renderChartPrimaryFields.js";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
@@ -684,98 +679,46 @@ async function renderChartsWithData(
         );
     }
 
-    for (const field of fieldsToRender) {
-        // Check if still on chart tab before each chart creation (skip in tests)
-        if (!isTestRuntime && !skipTabAbort) {
-            const currentTab = gs_rcwd("ui.activeTab");
-            if (currentTab !== "chart" && currentTab !== "chartjs") {
-                console.log(
-                    `[ChartJS] Aborting render loop - tab switched to ${currentTab}`
-                );
-                return false;
-            }
-        }
-
-        const visibility = chartSettingsManager.getFieldVisibility(field);
-        if (visibility === "hidden") {
-            if (isDebugLoggingEnabled) {
-                console.log(`[ChartJS] Skipping hidden field: ${field}`);
-            }
-            continue;
-        }
-
-        const seriesEntry = getFieldSeriesEntry(
-            recordMesgs,
-            field,
+    const primaryFieldRenderResult = renderPrimaryChartFields(
+        {
+            chartContainer,
+            chartGlobal,
+            createChartCanvas: createChartCanvasSafe,
+            createEnhancedChart: createEnhancedChartSafe,
+            getActiveTab: () => gs_rcwd("ui.activeTab"),
+            getFieldVisibility: (field) =>
+                chartSettingsManager.getFieldVisibility(field),
+            isDebugLoggingEnabled,
+            isTestRuntime,
+            registerChart: (chart) =>
+                resourceManager.registerChart(chart, { owner: "renderChartJS" }),
+            skipTabAbort,
+        },
+        {
+            animationStyle: effectiveAnimationStyle,
+            boolSettings,
+            chartType,
+            convert,
+            customColors,
             dataSettingsSignature,
-            convert
-        );
-        const rawValueCount = seriesEntry.values.length;
-        const {
-            axisRanges,
-            hasValidData,
-            points: limitedPoints,
-        } = getCachedSeriesForSettings(
-            seriesEntry,
+            distanceUnits,
+            exportTheme,
+            fieldsToRender,
+            interpolation,
             labels,
-            normalizedMaxPoints
-        );
-
-        if (isDebugLoggingEnabled) {
-            console.log(
-                `[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${visibility}`
-            );
+            normalizedMaxPoints,
+            performanceTuning,
+            recordMesgs,
+            smoothing,
+            temperatureUnits,
+            timeUnits,
+            zoomPluginConfig,
         }
-
-        if (!hasValidData) {
-            if (isDebugLoggingEnabled) {
-                console.log(
-                    `[ChartJS] Skipping field ${field} - no valid data after memoization`
-                );
-            }
-            continue;
-        }
-
-        visibleFieldCount += 1;
-        const canvas = createChartCanvasSafe(field, visibleFieldCount);
-        safeAppend(chartContainer, canvas);
-
-        const chart = createEnhancedChartSafe(
-            canvas,
-            {
-                animationStyle: effectiveAnimationStyle,
-                axisRanges,
-                chartData: limitedPoints,
-                chartType,
-                customColors,
-                decimation: performanceTuning.decimation,
-                enableSpanGaps: shouldUseSpanGaps(
-                    performanceTuning,
-                    seriesEntry
-                ),
-                field,
-                fieldLabels,
-                interpolation,
-                showFill: boolSettings.showFill,
-                showGrid: boolSettings.showGrid,
-                showLegend: boolSettings.showLegend,
-                showPoints: boolSettings.showPoints,
-                showTitle: boolSettings.showTitle,
-                smoothing,
-                tickSampleSize: performanceTuning.tickSampleSize,
-                theme: exportTheme,
-                zoomPluginConfig,
-                timeUnits,
-                distanceUnits,
-                temperatureUnits,
-            }
-        );
-        if (chart) {
-            chartGlobal._chartjsInstances.push(chart);
-            // Register chart with resource manager for automatic cleanup
-            resourceManager.registerChart(chart, { owner: "renderChartJS" });
-        }
+    );
+    if (primaryFieldRenderResult.aborted) {
+        return false;
     }
+    visibleFieldCount = primaryFieldRenderResult.visibleFieldCount;
 
     renderSupplementalCharts(
         {
