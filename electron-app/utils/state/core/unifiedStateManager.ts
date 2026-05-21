@@ -9,9 +9,8 @@ type UnifiedStateWindow = {
     globalData?: unknown;
 };
 
-type UnifiedStateGlobal = {
+type UnifiedStateGlobal = typeof globalThis & {
     globalData?: unknown;
-    window?: UnifiedStateWindow;
 };
 
 type UnifiedStateOptions = {
@@ -238,16 +237,14 @@ export class UnifiedStateManager {
     private getLegacyState(path: string, defaultValue?: unknown): unknown {
         this.warnLegacyPathOnce(path, "Accessing");
 
-        const stateGlobal = globalThis as unknown as UnifiedStateGlobal;
+        const stateGlobal = getUnifiedStateGlobal();
         if (stateGlobal.globalData !== undefined && path === "globalData") {
             return stateGlobal.globalData;
         }
 
-        if (
-            stateGlobal.window?.globalData !== undefined &&
-            path === "globalData"
-        ) {
-            return stateGlobal.window.globalData;
+        const stateWindow = getUnifiedStateWindow(stateGlobal);
+        if (stateWindow?.globalData !== undefined && path === "globalData") {
+            return stateWindow.globalData;
         }
 
         return defaultValue;
@@ -257,10 +254,11 @@ export class UnifiedStateManager {
         this.warnLegacyPathOnce(path, "Setting");
 
         if (path === "globalData") {
-            const stateGlobal = globalThis as unknown as UnifiedStateGlobal;
+            const stateGlobal = getUnifiedStateGlobal();
             stateGlobal.globalData = value;
-            if (stateGlobal.window) {
-                stateGlobal.window.globalData = value;
+            const stateWindow = getUnifiedStateWindow(stateGlobal);
+            if (stateWindow) {
+                stateWindow.globalData = value;
             }
         }
     }
@@ -275,6 +273,18 @@ export class UnifiedStateManager {
         );
         this.legacyWarningsShown.add(path);
     }
+}
+
+function getUnifiedStateGlobal(): UnifiedStateGlobal {
+    return globalThis as UnifiedStateGlobal;
+}
+
+function getUnifiedStateWindow(
+    stateGlobal: UnifiedStateGlobal
+): UnifiedStateWindow | undefined {
+    return typeof stateGlobal.window === "undefined"
+        ? undefined
+        : (stateGlobal.window as UnifiedStateWindow);
 }
 
 /** Singleton unified state manager used during the state migration. */
