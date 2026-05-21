@@ -216,6 +216,7 @@
         "utils/charts/core/renderChartPluginRegistration.ts",
         "utils/charts/core/renderChartPlaceholders.ts",
         "utils/charts/core/renderChartPreflight.ts",
+        "utils/charts/core/renderChartPreparedExecution.ts",
         "utils/charts/core/renderChartPrimaryFields.ts",
         "utils/charts/core/renderChartRecordKeyUtils.ts",
         "utils/charts/core/renderChartRenderedEvent.ts",

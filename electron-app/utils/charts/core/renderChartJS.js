@@ -128,14 +128,12 @@ import { createChartSettingsManager } from "./renderChartSettingsManager.js";
 import { getChartStatus as getChartStatusSnapshot } from "./renderChartStatus.js";
 import {
     clearExistingCharts,
-    completeChartRendering,
     startChartRendering,
 } from "./renderChartLifecycle.js";
-import { runChartRender } from "./renderChartExecution.js";
 import { renderChartErrorPlaceholder } from "./renderChartPlaceholders.js";
 import { prepareChartRenderData } from "./renderChartDataReadiness.js";
 import { exposeChartDevTools } from "./renderChartDevTools.js";
-import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
+import { executePreparedChartRender } from "./renderChartPreparedExecution.js";
 import {
     createRenderTimingGate,
     RENDER_DEBOUNCE_MS,
@@ -420,51 +418,29 @@ export async function renderChartJS(targetContainer, options = {}) {
         }
         const { activityStartTime, recordMesgs } = preparedData;
 
-        // Measure total render time including the expensive chart creation path.
-        // (Previously this was computed before renderChartsWithData ran, producing misleading ~0ms logs.)
-        let renderTime = 0;
-
-        // Ensure renderer modules are referenced in tests to satisfy integration spies, even if the
-        // internal renderer short-circuits later. These are no-ops in production and mocked in tests.
-        touchRendererModulesForTest(
+        const { success } = await executePreparedChartRender(
             {
+                chartGlobal,
                 createElement: (tagName) => document.createElement(tagName),
+                getGlobalChartActions,
                 getRendererModules: getRendererModulesSafe,
                 isTestEnvironment,
-            },
-            recordMesgs,
-            activityStartTime
-        );
-
-        const success = await runChartRender(
-            {
+                now: () => performance.now(),
                 renderChartsWithData,
                 warn: (message, error) => console.warn(message, error),
             },
-            targetContainer,
-            recordMesgs,
-            activityStartTime,
             {
+                activityStartTime,
+                performanceStart,
+                recordMesgs,
+                targetContainer,
+            },
+            {
+                allowInactiveTab,
                 skipControls,
-                skipTabAbort: skipTabAbort || allowInactiveTab,
+                skipTabAbort,
             }
         );
-        renderTime = performance.now() - performanceStart;
-        console.log(
-            `[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`
-        );
-
-        // Complete rendering process through state actions
-        const chartCount = chartGlobal._chartjsInstances
-            ? chartGlobal._chartjsInstances.length
-            : 0;
-        completeChartRendering(
-            { getGlobalChartActions, safeCompleteRendering },
-            success,
-            chartCount,
-            renderTime
-        );
-        // Hover effects are applied within renderChartsWithData (deferred). Avoid duplicate passes here.
         return success;
     } catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
