@@ -8,6 +8,7 @@
 import {
     getGlobalStorageKey,
     getStorageKey,
+    type FitSummaryData,
     loadColPrefs,
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
@@ -15,7 +16,7 @@ import {
 
 type SummaryColModalParams = {
     allKeys: string[];
-    data?: unknown;
+    data?: FitSummaryData;
     renderTable: () => void;
     setVisibleColumns: (cols: string[]) => void;
     visibleColumns: string[];
@@ -115,11 +116,15 @@ export function showColModal({
     searchInput.type = "search";
     searchInput.placeholder = "Filter columns…";
     searchInput.autocomplete = "off";
-    searchInput.addEventListener("input", () => {
-        filterText = searchInput.value.trim().toLowerCase();
-        lastCheckedIndex = null;
-        updateColList();
-    }, { signal });
+    searchInput.addEventListener(
+        "input",
+        () => {
+            filterText = searchInput.value.trim().toLowerCase();
+            lastCheckedIndex = null;
+            updateColList();
+        },
+        { signal }
+    );
     searchWrap.append(searchInput);
 
     metaBar.append(selectedCount, searchWrap);
@@ -192,20 +197,28 @@ export function showColModal({
     };
 
     // Clicking outside modal closes tooltip + modal.
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-            hideTooltip();
-            closeOverlay();
-        }
-    }, { signal });
+    overlay.addEventListener(
+        "click",
+        (e) => {
+            if (e.target === overlay) {
+                hideTooltip();
+                closeOverlay();
+            }
+        },
+        { signal }
+    );
 
     // Escape closes modal.
-    overlay.addEventListener("keydown", (e) => {
-        if (e instanceof KeyboardEvent && e.key === "Escape") {
-            e.preventDefault();
-            closeOverlay();
-        }
-    }, { signal });
+    overlay.addEventListener(
+        "keydown",
+        (e) => {
+            if (e instanceof KeyboardEvent && e.key === "Escape") {
+                e.preventDefault();
+                closeOverlay();
+            }
+        },
+        { signal }
+    );
     overlay.tabIndex = -1;
     queueMicrotask(() => {
         try {
@@ -227,10 +240,7 @@ export function showColModal({
         );
     };
 
-    const sameCols = (
-        a: string[] | null,
-        b: string[] | null
-    ): boolean => {
+    const sameCols = (a: string[] | null, b: string[] | null): boolean => {
         const aa = normalizeCols(a);
         const bb = normalizeCols(b);
         if (aa.length !== bb.length) return false;
@@ -263,7 +273,6 @@ export function showColModal({
      * (global default when set, otherwise the built-in default), we remove the
      * per-file key instead of saving it. This ensures that "switching off" a
      * file override actually stays off across tab switches and app restarts.
-     *
      */
     const persistFileSelection = (cols: string[]): void => {
         const baseline = getBaselineCols();
@@ -322,9 +331,7 @@ export function showColModal({
             fileOverrideActive && sameCols(fileCols, visibleColumns);
 
         if (isDefaultSelection) {
-            statusBar.dataset["mode"] = hasGlobalDefault
-                ? "global"
-                : "custom";
+            statusBar.dataset["mode"] = hasGlobalDefault ? "global" : "custom";
             statusText.textContent = hasGlobalDefault
                 ? "This file is using: Default (Global)"
                 : "This file is using: Default";
@@ -369,25 +376,33 @@ export function showColModal({
         titleText: string,
         getCols: () => string[] | null
     ): void => {
-        badgeEl.addEventListener("mouseenter", () =>
-            showTooltip(badgeEl, titleText, getCols())
-        , { signal });
+        badgeEl.addEventListener(
+            "mouseenter",
+            () => showTooltip(badgeEl, titleText, getCols()),
+            { signal }
+        );
         badgeEl.addEventListener("mouseleave", hideTooltip, { signal });
-        badgeEl.addEventListener("focus", () =>
-            showTooltip(badgeEl, titleText, getCols())
-        , { signal });
+        badgeEl.addEventListener(
+            "focus",
+            () => showTooltip(badgeEl, titleText, getCols()),
+            { signal }
+        );
         badgeEl.addEventListener("blur", hideTooltip, { signal });
-        badgeEl.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const cols = getCols();
-            if (!cols) return;
-            if (tooltip.style.display === "block") {
-                hideTooltip();
-            } else {
-                showTooltip(badgeEl, titleText, cols);
-            }
-        }, { signal });
+        badgeEl.addEventListener(
+            "click",
+            (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const cols = getCols();
+                if (!cols) return;
+                if (tooltip.style.display === "block") {
+                    hideTooltip();
+                } else {
+                    showTooltip(badgeEl, titleText, cols);
+                }
+            },
+            { signal }
+        );
     };
 
     wireBadgeTooltip(
@@ -420,51 +435,63 @@ export function showColModal({
     resetBtn.textContent = "Reset to Default";
     resetBtn.title =
         "Stop overriding this file and go back to the default column selection";
-    resetBtn.addEventListener("click", () => {
-        hideTooltip();
-        const ordered = getBaselineCols();
-        updateVisibleColumns(ordered);
-        updateColList();
-        updateSelectedCount();
-        persistFileSelection(ordered);
-        updateStatus();
-        reRenderTable();
-    }, { signal });
+    resetBtn.addEventListener(
+        "click",
+        () => {
+            hideTooltip();
+            const ordered = getBaselineCols();
+            updateVisibleColumns(ordered);
+            updateColList();
+            updateSelectedCount();
+            persistFileSelection(ordered);
+            updateStatus();
+            reRenderTable();
+        },
+        { signal }
+    );
 
     const makeGlobalDefaultBtn = document.createElement("button");
     makeGlobalDefaultBtn.className = "themed-btn";
     makeGlobalDefaultBtn.textContent = "Make Global Default";
     makeGlobalDefaultBtn.title =
         "Use this selection as the default for future files";
-    makeGlobalDefaultBtn.addEventListener("click", () => {
-        saveColPrefs(prefsKeyGlobal, visibleColumns);
-        // Now that the global default matches the selection, clear redundant per-file override.
-        persistFileSelection(visibleColumns);
-        globalBadge.className = "summary-col-badge summary-col-badge--ok";
-        globalBadge.disabled = false;
-        hideTooltip();
-        updateStatus();
-        reRenderTable();
-    }, { signal });
+    makeGlobalDefaultBtn.addEventListener(
+        "click",
+        () => {
+            saveColPrefs(prefsKeyGlobal, visibleColumns);
+            // Now that the global default matches the selection, clear redundant per-file override.
+            persistFileSelection(visibleColumns);
+            globalBadge.className = "summary-col-badge summary-col-badge--ok";
+            globalBadge.disabled = false;
+            hideTooltip();
+            updateStatus();
+            reRenderTable();
+        },
+        { signal }
+    );
 
     const clearGlobalDefaultBtn = document.createElement("button");
     clearGlobalDefaultBtn.className = "themed-btn";
     clearGlobalDefaultBtn.textContent = "Clear Global Default";
     clearGlobalDefaultBtn.title = "Remove the saved global default";
-    clearGlobalDefaultBtn.addEventListener("click", () => {
-        try {
-            localStorage.removeItem(prefsKeyGlobal);
-        } catch {
-            /* ignore */
-        }
-        globalBadge.className = "summary-col-badge summary-col-badge--off";
-        globalBadge.disabled = true;
-        hideTooltip();
-        // Clearing global default can change the baseline; ensure file override state is normalized.
-        persistFileSelection(visibleColumns);
-        updateStatus();
-        reRenderTable();
-    }, { signal });
+    clearGlobalDefaultBtn.addEventListener(
+        "click",
+        () => {
+            try {
+                localStorage.removeItem(prefsKeyGlobal);
+            } catch {
+                /* ignore */
+            }
+            globalBadge.className = "summary-col-badge summary-col-badge--off";
+            globalBadge.disabled = true;
+            hideTooltip();
+            // Clearing global default can change the baseline; ensure file override state is normalized.
+            persistFileSelection(visibleColumns);
+            updateStatus();
+            reRenderTable();
+        },
+        { signal }
+    );
 
     actionsWrap.append(resetBtn, makeGlobalDefaultBtn, clearGlobalDefaultBtn);
 
@@ -620,17 +647,21 @@ export function showColModal({
         visibleColumns.length === allKeys.length
             ? "Deselect All"
             : "Select All";
-    selectAllBtn.addEventListener("click", () => {
-        const newCols =
-            visibleColumns.length === allKeys.length
-                ? []
-                : [...orderSummaryColumnsNamedFirst(allKeys)];
-        updateVisibleColumns(newCols);
-        updateColList();
-        updateStatus();
-        reRenderTable();
-        persistFileSelection(newCols);
-    }, { signal });
+    selectAllBtn.addEventListener(
+        "click",
+        () => {
+            const newCols =
+                visibleColumns.length === allKeys.length
+                    ? []
+                    : [...orderSummaryColumnsNamedFirst(allKeys)];
+            updateVisibleColumns(newCols);
+            updateColList();
+            updateStatus();
+            reRenderTable();
+            persistFileSelection(newCols);
+        },
+        { signal }
+    );
 
     const selectAllWrap = document.createElement("div");
     selectAllWrap.className = "summary-col-selectall";

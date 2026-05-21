@@ -183,7 +183,6 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
      * (global default when set, otherwise the built-in default), we remove the
      * per-file key instead of saving it. This ensures that "switching off" a
      * file override actually stays off across tab switches and app restarts.
-     *
      */
     const persistFileSelection = (cols) => {
         const baseline = getBaselineCols();
@@ -232,9 +231,7 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         const isDefaultSelection = sameCols(baseline, visibleColumns);
         const isSavedFileSelection = fileOverrideActive && sameCols(fileCols, visibleColumns);
         if (isDefaultSelection) {
-            statusBar.dataset["mode"] = hasGlobalDefault
-                ? "global"
-                : "custom";
+            statusBar.dataset["mode"] = hasGlobalDefault ? "global" : "custom";
             statusText.textContent = hasGlobalDefault
                 ? "This file is using: Default (Global)"
                 : "This file is using: Default";

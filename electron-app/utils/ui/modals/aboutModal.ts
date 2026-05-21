@@ -76,7 +76,8 @@ const FEATURE_ITEMS: FeatureItem[] = [
     },
     {
         color: "#34d399",
-        description: "Export data to CSV, GPX, and other formats for further analysis",
+        description:
+            "Export data to CSV, GPX, and other formats for further analysis",
         icon: "💾",
         title: "Data Export",
     },
@@ -170,9 +171,8 @@ export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 
 /**
  * Creates the About modal content as DOM nodes.
- *
  */
-export function createAboutModalContentElement() {
+export function createAboutModalContentElement(): HTMLElement {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
 
@@ -220,7 +220,7 @@ export function createAboutModalContentElement() {
     return backdrop;
 }
 
-function createCloseIcon() {
+function createCloseIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
@@ -237,7 +237,7 @@ function createCloseIcon() {
     return icon;
 }
 
-function createAboutTitle() {
+function createAboutTitle(): HTMLHeadingElement {
     const title = document.createElement("h1");
     title.className = "modal-title";
 
@@ -249,7 +249,7 @@ function createAboutTitle() {
     return title;
 }
 
-function createVersionBadge() {
+function createVersionBadge(): HTMLSpanElement {
     const badge = document.createElement("span");
     badge.className = "version-badge";
 
@@ -265,7 +265,7 @@ function createVersionBadge() {
     return badge;
 }
 
-function createAboutSplit() {
+function createAboutSplit(): HTMLElement {
     const split = document.createElement("div");
     split.className = "about-split";
 
@@ -277,14 +277,17 @@ function createAboutSplit() {
     const systemPanel = document.createElement("section");
     systemPanel.className = "about-panel about-panel--system";
     systemPanel.setAttribute("aria-label", "System information");
-    systemPanel.append(createSystemInfoPanelHeader(), createSystemInfoSection());
+    systemPanel.append(
+        createSystemInfoPanelHeader(),
+        createSystemInfoSection()
+    );
 
     split.append(featuresPanel, systemPanel);
 
     return split;
 }
 
-function createFeaturesElement() {
+function createFeaturesElement(): HTMLElement {
     const content = document.createElement("div");
     content.className = "features-content";
 
@@ -303,9 +306,6 @@ function createFeaturesElement() {
     return content;
 }
 
-/**
- *
- */
 function createFeatureItem(item: FeatureItem): HTMLElement {
     const listItem = document.createElement("li");
     listItem.className = "features-item";
@@ -325,7 +325,7 @@ function createFeatureItem(item: FeatureItem): HTMLElement {
     return listItem;
 }
 
-function createSystemInfoPanelHeader() {
+function createSystemInfoPanelHeader(): HTMLElement {
     const header = document.createElement("div");
     header.className = "about-panel-header";
 
@@ -349,7 +349,7 @@ function createSystemInfoPanelHeader() {
     return header;
 }
 
-function createSystemInfoSection() {
+function createSystemInfoSection(): HTMLElement {
     const section = document.createElement("div");
     section.className = "system-info-section";
     section.id = "info-toggle-section";
@@ -358,7 +358,7 @@ function createSystemInfoSection() {
     return section;
 }
 
-function createSystemInfoGridElement() {
+function createSystemInfoGridElement(): HTMLElement {
     const grid = document.createElement("div");
     grid.className = "system-info-grid";
     for (const item of SYSTEM_INFO_ITEMS) {
@@ -368,9 +368,6 @@ function createSystemInfoGridElement() {
     return grid;
 }
 
-/**
- *
- */
 function createSystemInfoItem(item: SystemInfoItem): HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.className = "system-info-item";
@@ -386,7 +383,7 @@ function createSystemInfoItem(item: SystemInfoItem): HTMLElement {
     return wrapper;
 }
 
-function createEmptyAboutBody() {
+function createEmptyAboutBody(): HTMLElement {
     const body = document.createElement("div");
     body.id = "about-modal-body";
     body.className = "modal-content-body";
@@ -394,7 +391,7 @@ function createEmptyAboutBody() {
     return body;
 }
 
-function createAboutFooter() {
+function createAboutFooter(): HTMLElement {
     const footer = document.createElement("div");
     footer.className = "modal-footer";
 
@@ -408,9 +405,6 @@ function createAboutFooter() {
     return footer;
 }
 
-/**
- *
- */
 function createTechBadgeLink(badge: TechBadge): HTMLAnchorElement {
     const link = document.createElement("a");
     link.href = badge.href;
@@ -428,9 +422,6 @@ function createTechBadgeLink(badge: TechBadge): HTMLAnchorElement {
     return link;
 }
 
-/**
- *
- */
 function createTextElement<T extends keyof HTMLElementTagNameMap>(
     tagName: T,
     className: string,
@@ -460,7 +451,6 @@ export function handleEscapeKey(e: Event): void {
 
 /**
  * Enhanced modal display function with animations and improved accessibility
- *
  */
 export function showAboutModal(html = ""): void {
     ensureAboutModal();
@@ -528,9 +518,7 @@ export function showAboutModal(html = ""): void {
                         // Brief UX feedback on the button itself.
                         try {
                             const btnText =
-                                copyBtn.querySelector<HTMLElement>(
-                                    ".btn-text"
-                                );
+                                copyBtn.querySelector<HTMLElement>(".btn-text");
                             if (btnText) {
                                 const prev = btnText.textContent;
                                 btnText.textContent = "Copied";
@@ -588,13 +576,9 @@ export function showAboutModal(html = ""): void {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(
-                    modalContent,
-                    "click",
-                    (e) => {
-                        e.stopPropagation();
-                    }
-                );
+                addEventListenerWithCleanup(modalContent, "click", (e) => {
+                    e.stopPropagation();
+                });
             }
 
             // Focus management - focus close button after animation
@@ -623,7 +607,6 @@ export function showAboutModal(html = ""): void {
 /**
  * Build a human-friendly clipboard payload from the About modal's system info.
  * Falls back gracefully if the DOM isn't present.
- *
  */
 function buildSystemInfoClipboardText(): string {
     try {
@@ -705,8 +688,6 @@ function hideAboutModal(): void {
  * This sanitizer is intentionally minimal and UI-friendly (keeps common
  * formatting tags and inline styles), while blocking the common high-risk
  * vectors.
- *
- *
  */
 function sanitizeAboutBodyHtml(html: string): DocumentFragment {
     const fragment = parseAboutBodyHtml(html);
@@ -720,10 +701,7 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
         "SCRIPT",
     ]);
 
-    const walker = document.createTreeWalker(
-        fragment,
-        NodeFilter.SHOW_ELEMENT
-    );
+    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
     const nodesToRemove: Element[] = [];
 
     while (walker.nextNode()) {
@@ -792,8 +770,6 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
 
 /**
  * Parse the supplied body fragment before the allowlist cleanup runs.
- *
- *
  */
 function parseAboutBodyHtml(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Sanitization happens immediately in sanitizeAboutBodyHtml before callers receive the fragment.
@@ -868,9 +844,11 @@ if (
     process.env &&
     process.env["NODE_ENV"] === "development"
 ) {
-    (globalThis as typeof globalThis & {
-        aboutModalDevHelpers?: typeof devHelpers;
-    }).aboutModalDevHelpers = devHelpers;
+    (
+        globalThis as typeof globalThis & {
+            aboutModalDevHelpers?: typeof devHelpers;
+        }
+    ).aboutModalDevHelpers = devHelpers;
 }
 
 // Initialize modal styles when module loads

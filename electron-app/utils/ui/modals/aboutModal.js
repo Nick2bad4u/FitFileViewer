@@ -134,7 +134,6 @@ let showAnimationFrame = null;
 export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 /**
  * Creates the About modal content as DOM nodes.
- *
  */
 export function createAboutModalContentElement() {
     const backdrop = document.createElement("div");
@@ -222,9 +221,6 @@ function createFeaturesElement() {
     content.append(title, list);
     return content;
 }
-/**
- *
- */
 function createFeatureItem(item) {
     const listItem = document.createElement("li");
     listItem.className = "features-item";
@@ -267,9 +263,6 @@ function createSystemInfoGridElement() {
     }
     return grid;
 }
-/**
- *
- */
 function createSystemInfoItem(item) {
     const wrapper = document.createElement("div");
     wrapper.className = "system-info-item";
@@ -293,9 +286,6 @@ function createAboutFooter() {
     footer.append(stack);
     return footer;
 }
-/**
- *
- */
 function createTechBadgeLink(badge) {
     const link = document.createElement("a");
     link.href = badge.href;
@@ -307,9 +297,6 @@ function createTechBadgeLink(badge) {
     link.append(wrapper);
     return link;
 }
-/**
- *
- */
 function createTextElement(tagName, className, text) {
     const element = document.createElement(tagName);
     if (className) {
@@ -332,7 +319,6 @@ export function handleEscapeKey(e) {
 }
 /**
  * Enhanced modal display function with animations and improved accessibility
- *
  */
 export function showAboutModal(html = "") {
     ensureAboutModal();
@@ -454,7 +440,6 @@ export function showAboutModal(html = "") {
 /**
  * Build a human-friendly clipboard payload from the About modal's system info.
  * Falls back gracefully if the DOM isn't present.
- *
  */
 function buildSystemInfoClipboardText() {
     try {
@@ -525,8 +510,6 @@ function hideAboutModal() {
  * This sanitizer is intentionally minimal and UI-friendly (keeps common
  * formatting tags and inline styles), while blocking the common high-risk
  * vectors.
- *
- *
  */
 function sanitizeAboutBodyHtml(html) {
     const fragment = parseAboutBodyHtml(html);
@@ -593,8 +576,6 @@ function sanitizeAboutBodyHtml(html) {
 }
 /**
  * Parse the supplied body fragment before the allowlist cleanup runs.
- *
- *
  */
 function parseAboutBodyHtml(html) {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Sanitization happens immediately in sanitizeAboutBodyHtml before callers receive the fragment.
