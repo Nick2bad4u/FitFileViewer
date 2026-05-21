@@ -313,15 +313,17 @@ function resolveMutationObserverConstructor() {
     return windowConstructor ?? globalConstructor;
 }
 function getGlobalMutationObserverConstructor() {
-    return typeof MutationObserver === "undefined"
-        ? undefined
-        : MutationObserver;
+    return typeof MutationObserver !== "undefined" &&
+        isMutationObserverConstructorLike(MutationObserver)
+        ? MutationObserver
+        : undefined;
 }
 function getWindowMutationObserverConstructor() {
     const candidate = getTabButtonsGlobal().MutationObserver;
-    return candidate === undefined
-        ? undefined
-        : candidate;
+    return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
+}
+function isMutationObserverConstructorLike(candidate) {
+    return typeof candidate === "function";
 }
 function getTabButtonsGlobal() {
     return globalThis;
