@@ -167,6 +167,7 @@
         "utils/charts/rendering/renderGPSTrackChart.ts",
         "utils/charts/rendering/renderPerformanceAnalysisCharts.ts",
         "utils/charts/rendering/renderPowerVsHeartRateChart.ts",
+        "utils/charts/rendering/renderSpeedVsDistanceChart.ts",
         "utils/charts/rendering/renderTimeInZoneCharts.ts",
         "utils/charts/rendering/renderZoneChart.ts",
         "utils/charts/theming/chartThemeUtils.ts",
