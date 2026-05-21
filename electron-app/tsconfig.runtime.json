@@ -266,6 +266,7 @@
         "utils/files/import/loadSingleOverlayFile.ts",
         "utils/files/import/openFileSelector.ts",
         "utils/files/import/openFitFileFromPath.ts",
+        "utils/files/recent/index.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",
         "utils/dom/escapeHtml.ts",
