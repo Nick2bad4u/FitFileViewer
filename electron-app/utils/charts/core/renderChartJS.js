@@ -53,7 +53,6 @@ import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import { createExportChartsWithState } from "./renderChartExportState.js";
 import {
     clearChartLabelsCache,
-    getLabelsForRecords,
 } from "./renderChartLabelCache.js";
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
@@ -65,7 +64,6 @@ import {
 } from "./renderChartPerformanceSettings.js";
 import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
-import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import {
     clearChartSeriesCache,
     getChartSeriesCacheStats as getSeriesCacheStats,
@@ -139,11 +137,11 @@ import {
     shouldAbortInactiveChartRender,
 } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
-import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
+import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -557,29 +555,18 @@ async function renderChartsWithData(
 
     // Process data using memoization helpers to avoid redundant conversions across renders
     const data = recordMesgs;
-    const labels = getLabelsForRecords(recordMesgs, startTime);
-
+    const {
+        effectiveAnimationStyle,
+        fieldsToRender,
+        labels,
+    } = resolveChartFieldRenderPlan({
+        animationStyle,
+        isDebugLoggingEnabled,
+        recordMesgs,
+        renderableFields: chartState.renderableFields,
+        startTime,
+    });
     let visibleFieldCount = 0;
-    const fieldsToRender = resolveRenderableChartFields(
-        chartState.renderableFields,
-        recordMesgs
-    );
-
-    if (isDebugLoggingEnabled) {
-        console.log(
-            `[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`
-        );
-    }
-
-    const { effectiveAnimationStyle, estimatedChartCount } =
-        resolveChartAnimationTuning(animationStyle, fieldsToRender.length);
-    if (isDebugLoggingEnabled && effectiveAnimationStyle !== animationStyle) {
-        console.log(
-            `[ChartJS] Auto-tuned animation from ${String(animationStyle)} to ${String(
-                effectiveAnimationStyle
-            )} (estimatedCharts=${estimatedChartCount})`
-        );
-    }
 
     const primaryFieldRenderResult = renderPrimaryChartFields(
         {
