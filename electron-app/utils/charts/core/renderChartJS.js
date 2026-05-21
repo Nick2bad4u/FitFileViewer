@@ -166,6 +166,7 @@ import {
 } from "./renderChartPreflight.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
+import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
@@ -717,33 +718,10 @@ async function renderChartsWithData(
     const labels = getLabelsForRecords(recordMesgs, startTime);
 
     let visibleFieldCount = 0;
-    const { renderableFields } = chartState;
-    /** @type {string[]} */
-    let fieldsToRender = Array.isArray(renderableFields)
-        ? [...renderableFields]
-        : [];
-    if (!fieldsToRender.length) {
-        try {
-            const sample = Array.isArray(recordMesgs)
-                ? recordMesgs.find((r) => r && typeof r === "object") || {}
-                : {};
-            fieldsToRender = Object.keys(sample)
-                .filter((key) => key !== "timestamp")
-                .filter((key) => typeof getRecordValue(sample, key) === "number");
-            if (!fieldsToRender.length) {
-                fieldsToRender = [
-                    "speed",
-                    "elevation",
-                    "heart_rate",
-                    "power",
-                ].filter(
-                    (field) => sample && typeof sample === "object" && field in sample
-                );
-            }
-        } catch {
-            // ignore and proceed with empty, which will show no-data messages later
-        }
-    }
+    const fieldsToRender = resolveRenderableChartFields(
+        chartState.renderableFields,
+        recordMesgs
+    );
 
     if (isDebugLoggingEnabled) {
         console.log(
