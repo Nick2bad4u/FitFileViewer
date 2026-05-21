@@ -75,6 +75,8 @@
         "utils/data/processing/patchSummaryFields.ts",
         "utils/data/processing/powerEstimationSettings.ts",
         "utils/data/zones/chartZoneColorUtils.ts",
+        "utils/data/zones/renderSingleHRZoneBar.ts",
+        "utils/data/zones/renderSinglePowerZoneBar.ts",
         "utils/formatting/display/formatAntNames.ts",
         "utils/formatting/display/formatCapitalize.ts",
         "utils/formatting/display/formatChartFields.ts",
