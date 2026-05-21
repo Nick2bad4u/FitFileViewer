@@ -172,6 +172,7 @@
         "utils/app/menu/createAppMenu.ts",
         "utils/app/menu/index.ts",
         "utils/app/events.ts",
+        "utils/app/index.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",
         "utils/charts/core/chartSpecFactory.ts",
