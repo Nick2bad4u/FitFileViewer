@@ -21,6 +21,7 @@ import {
     getInjectedModule,
     getRecordFunction,
     getRecordValue,
+    isObjectRecord,
 } from "./renderChartModuleHelpers.js";
 import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js";
 
@@ -80,12 +81,15 @@ export function getComputedStateManagerSafe(): ComputedStateManagerAccess {
             getRecordValue(mod, "computedStateManager") ||
             getRecordValue(defaultExport, "computedStateManager") ||
             defaultExport;
-        if (nested && typeof nested === "object") {
-            return nested as ComputedStateManagerAccess;
+        if (isObjectRecord(nested)) {
+            return nested;
         }
 
-        if (getRecordFunction(mod, "invalidateComputed")) {
-            return mod as ComputedStateManagerAccess;
+        if (
+            isObjectRecord(mod) &&
+            getRecordFunction(mod, "invalidateComputed")
+        ) {
+            return mod;
         }
     } catch {
         // Fall back to direct import below.
@@ -130,7 +134,8 @@ export function getFormatChartFieldsSafe(): readonly string[] {
 /** Returns chart hover plugin hooks, preferring test-injected modules. */
 export function getHoverPluginsSafe(): HoverPluginAccessors {
     const result: HoverPluginAccessors = {
-        addChartHoverEffects: addChartHoverEffects as unknown as UnknownFunction,
+        addChartHoverEffects:
+            addChartHoverEffects as unknown as UnknownFunction,
         addHoverEffectsToExistingCharts:
             addHoverEffectsToExistingCharts as unknown as UnknownFunction,
         removeChartHoverEffects:
@@ -144,7 +149,10 @@ export function getHoverPluginsSafe(): HoverPluginAccessors {
             mod,
             "addHoverEffectsToExistingCharts"
         );
-        const injectedRemove = getRecordFunction(mod, "removeChartHoverEffects");
+        const injectedRemove = getRecordFunction(
+            mod,
+            "removeChartHoverEffects"
+        );
         if (injectedAdd) {
             result.addChartHoverEffects = injectedAdd;
         }
@@ -278,16 +286,16 @@ export function getSettingsStateManagerSafe(): SettingsStateManagerAccess {
         const mod = getInjectedModule(
             "../../state/domain/settingsStateManager.js"
         );
-        if (getRecordFunction(mod, "getChartSettings")) {
-            return mod as SettingsStateManagerAccess;
+        if (isObjectRecord(mod) && getRecordFunction(mod, "getChartSettings")) {
+            return mod;
         }
 
         const defaultExport = getRecordValue(mod, "default");
         const nested =
             getRecordValue(mod, "settingsStateManager") ||
             getRecordValue(defaultExport, "settingsStateManager");
-        if (nested && typeof nested === "object") {
-            return nested as SettingsStateManagerAccess;
+        if (isObjectRecord(nested)) {
+            return nested;
         }
     } catch {
         // Fall back to direct import below.
@@ -328,9 +336,7 @@ export function getUIStateManagerMaybe(): UIStateManagerAccess | null {
                 getRecordValue(mod, "uiStateManager") ||
                 getRecordValue(defaultExport, "uiStateManager") ||
                 defaultExport;
-            return candidate && typeof candidate === "object"
-                ? (candidate as UIStateManagerAccess)
-                : null;
+            return isObjectRecord(candidate) ? candidate : null;
         } catch {
             // Fall through to null.
         }
