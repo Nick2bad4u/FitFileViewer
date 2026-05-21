@@ -2,6 +2,7 @@
  * Enhanced About Modal Dialog Utility Provides modern design and animations
  * with dynamic version loading.
  */
+
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
@@ -9,6 +10,7 @@ import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
+
 // Constants for better maintainability
 const CONSTANTS = {
     DEFAULT_VALUES: {
@@ -22,25 +24,53 @@ const CONSTANTS = {
     },
     LOG_PREFIX: "[AboutModal]",
     MODAL_ANIMATION_DURATION: 300,
-};
+} as const;
 const SVG_NS = "http://www.w3.org/2000/svg";
-const clipboardExportUtils = exportUtils;
-const FEATURE_ITEMS = [
+
+type FeatureItem = {
+    color: string;
+    description: string;
+    icon: string;
+    title: string;
+};
+
+type SystemInfoItem = {
+    label: string;
+    valueClass: string;
+    valueKey: keyof typeof CONSTANTS.DEFAULT_VALUES;
+};
+
+type TechBadge = {
+    href: string;
+    icon: string;
+    label: string;
+};
+
+type ClipboardExportUtils = typeof exportUtils & {
+    copyTextToClipboard?: (text: string) => Promise<boolean>;
+};
+
+const clipboardExportUtils = exportUtils as ClipboardExportUtils;
+
+const FEATURE_ITEMS: FeatureItem[] = [
     {
         color: "#4ade80",
-        description: "View detailed FIT file data in interactive tables with sorting and filtering",
+        description:
+            "View detailed FIT file data in interactive tables with sorting and filtering",
         icon: "📊",
         title: "Data Analysis",
     },
     {
         color: "#60a5fa",
-        description: "Interactive maps with route visualization, elevation profiles, and GPX export",
+        description:
+            "Interactive maps with route visualization, elevation profiles, and GPX export",
         icon: "🗺️",
         title: "GPS Mapping",
     },
     {
         color: "#f472b6",
-        description: "Advanced charts and graphs for analyzing performance trends",
+        description:
+            "Advanced charts and graphs for analyzing performance trends",
         icon: "📈",
         title: "Performance Metrics",
     },
@@ -52,7 +82,8 @@ const FEATURE_ITEMS = [
     },
     {
         color: "#fbbf24",
-        description: "Repair corrupted FIT files for import into Garmin Connect, Strava, etc.",
+        description:
+            "Repair corrupted FIT files for import into Garmin Connect, Strava, etc.",
         icon: "🔧",
         title: "File Recovery",
     },
@@ -63,7 +94,8 @@ const FEATURE_ITEMS = [
         title: "Cross-Platform",
     },
 ];
-const SYSTEM_INFO_ITEMS = [
+
+const SYSTEM_INFO_ITEMS: SystemInfoItem[] = [
     {
         label: "Version",
         valueClass: "version-highlight",
@@ -100,7 +132,8 @@ const SYSTEM_INFO_ITEMS = [
         valueKey: "LICENSE",
     },
 ];
-const TECH_BADGES = [
+
+const TECH_BADGES: TechBadge[] = [
     {
         href: "https://electronjs.org/",
         icon: "⚡",
@@ -122,16 +155,19 @@ const TECH_BADGES = [
         label: "Leaflet",
     },
 ];
+
 // Module state
-let copyFeedbackTimer = null;
-let focusTimer = null;
-let hideTimer = null;
-let lastFocusedElement = null;
-let showAnimationFrame = null;
+let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+let focusTimer: ReturnType<typeof setTimeout> | null = null;
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
+let lastFocusedElement: HTMLElement | null = null;
+let showAnimationFrame: number | null = null;
+
 /**
  * Duration used by the About modal show/hide animation.
  */
 export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
+
 /**
  * Creates the About modal content as DOM nodes.
  *
@@ -139,10 +175,13 @@ export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 export function createAboutModalContentElement() {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
+
     const content = document.createElement("div");
     content.className = "modal-content";
+
     const header = document.createElement("div");
     header.className = "modal-header";
+
     const iconWrapper = document.createElement("div");
     iconWrapper.className = "modal-icon";
     const appIcon = document.createElement("img");
@@ -150,6 +189,7 @@ export function createAboutModalContentElement() {
     appIcon.alt = "App Icon";
     appIcon.className = "app-icon";
     iconWrapper.append(appIcon);
+
     const closeButton = document.createElement("button");
     closeButton.id = "about-modal-close";
     closeButton.className = "modal-close";
@@ -157,19 +197,35 @@ export function createAboutModalContentElement() {
     closeButton.tabIndex = 0;
     closeButton.setAttribute("aria-label", "Close About dialog");
     closeButton.append(createCloseIcon());
+
     header.append(iconWrapper, closeButton);
+
     const body = document.createElement("div");
     body.className = "modal-body";
-    body.append(createAboutTitle(), createTextElement("p", "modal-subtitle", "Advanced FIT file analysis and visualization tool"), createAboutSplit(), createEmptyAboutBody(), createAboutFooter());
+    body.append(
+        createAboutTitle(),
+        createTextElement(
+            "p",
+            "modal-subtitle",
+            "Advanced FIT file analysis and visualization tool"
+        ),
+        createAboutSplit(),
+        createEmptyAboutBody(),
+        createAboutFooter()
+    );
+
     content.append(header, body);
     backdrop.append(content);
+
     return backdrop;
 }
+
 function createCloseIcon() {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
+
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", "M18 6L6 18M6 6l12 12");
     path.setAttribute("stroke", "currentColor");
@@ -177,181 +233,262 @@ function createCloseIcon() {
     path.setAttribute("stroke-linecap", "round");
     path.setAttribute("stroke-linejoin", "round");
     icon.append(path);
+
     return icon;
 }
+
 function createAboutTitle() {
     const title = document.createElement("h1");
     title.className = "modal-title";
-    title.append(createTextElement("span", "title-gradient", "Fit File Viewer"), createVersionBadge());
+
+    title.append(
+        createTextElement("span", "title-gradient", "Fit File Viewer"),
+        createVersionBadge()
+    );
+
     return title;
 }
+
 function createVersionBadge() {
     const badge = document.createElement("span");
     badge.className = "version-badge";
+
     const prefix = createTextElement("span", "version-prefix", "v");
-    const version = createTextElement("span", "version-number", CONSTANTS.DEFAULT_VALUES.VERSION);
+    const version = createTextElement(
+        "span",
+        "version-number",
+        CONSTANTS.DEFAULT_VALUES.VERSION
+    );
     version.id = "version-number";
     badge.append(prefix, version);
+
     return badge;
 }
+
 function createAboutSplit() {
     const split = document.createElement("div");
     split.className = "about-split";
+
     const featuresPanel = document.createElement("section");
     featuresPanel.className = "about-panel about-panel--features";
     featuresPanel.setAttribute("aria-label", "Key features");
     featuresPanel.append(createFeaturesElement());
+
     const systemPanel = document.createElement("section");
     systemPanel.className = "about-panel about-panel--system";
     systemPanel.setAttribute("aria-label", "System information");
     systemPanel.append(createSystemInfoPanelHeader(), createSystemInfoSection());
+
     split.append(featuresPanel, systemPanel);
+
     return split;
 }
+
 function createFeaturesElement() {
     const content = document.createElement("div");
     content.className = "features-content";
+
     const title = document.createElement("h3");
     title.className = "features-title";
     title.append(createTextElement("span", "", "✨"), " Key Features");
+
     const list = document.createElement("ul");
     list.className = "features-list";
     for (const item of FEATURE_ITEMS) {
         list.append(createFeatureItem(item));
     }
+
     content.append(title, list);
+
     return content;
 }
+
 /**
  *
  */
-function createFeatureItem(item) {
+function createFeatureItem(item: FeatureItem): HTMLElement {
     const listItem = document.createElement("li");
     listItem.className = "features-item";
+
     const icon = createTextElement("span", "features-icon", item.icon);
     icon.style.color = item.color;
+
     const content = document.createElement("div");
     content.className = "features-content-item";
-    content.append(createTextElement("h4", "features-item-title", item.title), createTextElement("p", "features-item-description", item.description));
+    content.append(
+        createTextElement("h4", "features-item-title", item.title),
+        createTextElement("p", "features-item-description", item.description)
+    );
+
     listItem.append(icon, content);
+
     return listItem;
 }
+
 function createSystemInfoPanelHeader() {
     const header = document.createElement("div");
     header.className = "about-panel-header";
+
     const title = document.createElement("h3");
     title.className = "features-title";
     title.append(createTextElement("span", "", "🧩"), " System Info");
+
     const button = document.createElement("button");
     button.id = "about-copy-system-info";
     button.className = "features-btn features-btn--compact";
     button.type = "button";
     button.tabIndex = 0;
     button.setAttribute("aria-label", "Copy system information to clipboard");
-    button.append(createTextElement("span", "btn-icon", "📋"), createTextElement("span", "btn-text", "Copy"));
+    button.append(
+        createTextElement("span", "btn-icon", "📋"),
+        createTextElement("span", "btn-text", "Copy")
+    );
+
     header.append(title, button);
+
     return header;
 }
+
 function createSystemInfoSection() {
     const section = document.createElement("div");
     section.className = "system-info-section";
     section.id = "info-toggle-section";
     section.append(createSystemInfoGridElement());
+
     return section;
 }
+
 function createSystemInfoGridElement() {
     const grid = document.createElement("div");
     grid.className = "system-info-grid";
     for (const item of SYSTEM_INFO_ITEMS) {
         grid.append(createSystemInfoItem(item));
     }
+
     return grid;
 }
+
 /**
  *
  */
-function createSystemInfoItem(item) {
+function createSystemInfoItem(item: SystemInfoItem): HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.className = "system-info-item";
-    wrapper.append(createTextElement("span", "system-info-label", item.label), createTextElement("span", `system-info-value ${item.valueClass}`, CONSTANTS.DEFAULT_VALUES[item.valueKey]));
+    wrapper.append(
+        createTextElement("span", "system-info-label", item.label),
+        createTextElement(
+            "span",
+            `system-info-value ${item.valueClass}`,
+            CONSTANTS.DEFAULT_VALUES[item.valueKey]
+        )
+    );
+
     return wrapper;
 }
+
 function createEmptyAboutBody() {
     const body = document.createElement("div");
     body.id = "about-modal-body";
     body.className = "modal-content-body";
+
     return body;
 }
+
 function createAboutFooter() {
     const footer = document.createElement("div");
     footer.className = "modal-footer";
+
     const stack = document.createElement("div");
     stack.className = "tech-stack";
     for (const badge of TECH_BADGES) {
         stack.append(createTechBadgeLink(badge));
     }
     footer.append(stack);
+
     return footer;
 }
+
 /**
  *
  */
-function createTechBadgeLink(badge) {
+function createTechBadgeLink(badge: TechBadge): HTMLAnchorElement {
     const link = document.createElement("a");
     link.href = badge.href;
     link.className = "tech-badge-link";
     link.dataset["externalLink"] = "";
+
     const wrapper = document.createElement("span");
     wrapper.className = "tech-badge";
-    wrapper.append(createTextElement("span", "tech-icon", badge.icon), createTextElement("span", "", badge.label));
+    wrapper.append(
+        createTextElement("span", "tech-icon", badge.icon),
+        createTextElement("span", "", badge.label)
+    );
     link.append(wrapper);
+
     return link;
 }
+
 /**
  *
  */
-function createTextElement(tagName, className, text) {
+function createTextElement<T extends keyof HTMLElementTagNameMap>(
+    tagName: T,
+    className: string,
+    text: string
+): HTMLElementTagNameMap[T] {
     const element = document.createElement(tagName);
     if (className) {
         element.className = className;
     }
     element.textContent = text;
+
     return element;
 }
+
 /**
  * Enhanced escape key handler with better UX
  *
  * @param e - Keyboard event.
  */
-export function handleEscapeKey(e) {
+export function handleEscapeKey(e: Event): void {
     if (e instanceof KeyboardEvent && e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         hideAboutModal();
     }
 }
+
 /**
  * Enhanced modal display function with animations and improved accessibility
  *
  */
-export function showAboutModal(html = "") {
+export function showAboutModal(html = ""): void {
     ensureAboutModal();
-    const modal = document.querySelector("#about-modal");
+    const modal = document.querySelector<HTMLElement>("#about-modal");
     if (modal) {
-        const body = document.querySelector("#about-modal-body"), closeBtn = document.querySelector("#about-modal-close"), copyBtn = document.querySelector("#about-copy-system-info");
+        const body = document.querySelector<HTMLElement>("#about-modal-body"),
+            closeBtn =
+                document.querySelector<HTMLElement>("#about-modal-close"),
+            copyBtn = document.querySelector<HTMLElement>(
+                "#about-copy-system-info"
+            );
+
         if (body && closeBtn) {
             // Set content
             body.replaceChildren();
             if (html) {
                 body.append(sanitizeAboutBodyHtml(html));
             }
+
             // Save current focus
             lastFocusedElement =
                 document.activeElement instanceof HTMLElement
                     ? document.activeElement
                     : null;
+
             // Show modal with animation
             modal.style.display = "flex";
+
             // Trigger animation on next frame
             if (showAnimationFrame !== null) {
                 cancelAnimationFrame(showAnimationFrame);
@@ -360,27 +497,40 @@ export function showAboutModal(html = "") {
                 showAnimationFrame = null;
                 modal.classList.add("show");
             });
+
             // Set up event listeners
             addEventListenerWithCleanup(closeBtn, "click", (e) => {
                 e.preventDefault();
                 hideAboutModal();
             });
+
             addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
-                if (e instanceof KeyboardEvent &&
-                    (e.key === "Enter" || e.key === " ")) {
+                if (
+                    e instanceof KeyboardEvent &&
+                    (e.key === "Enter" || e.key === " ")
+                ) {
                     e.preventDefault();
                     hideAboutModal();
                 }
             });
+
             if (copyBtn) {
                 const runCopy = async () => {
                     const text = buildSystemInfoClipboardText();
-                    const ok = await clipboardExportUtils.copyTextToClipboard?.(text);
+                    const ok =
+                        await clipboardExportUtils.copyTextToClipboard?.(text);
                     if (ok) {
-                        showNotification("System info copied to clipboard", "success", 2500);
+                        showNotification(
+                            "System info copied to clipboard",
+                            "success",
+                            2500
+                        );
                         // Brief UX feedback on the button itself.
                         try {
-                            const btnText = copyBtn.querySelector(".btn-text");
+                            const btnText =
+                                copyBtn.querySelector<HTMLElement>(
+                                    ".btn-text"
+                                );
                             if (btnText) {
                                 const prev = btnText.textContent;
                                 btnText.textContent = "Copied";
@@ -392,46 +542,61 @@ export function showAboutModal(html = "") {
                                     btnText.textContent = prev || "Copy";
                                 }, 1200);
                             }
-                        }
-                        catch {
+                        } catch {
                             /* ignore */
                         }
-                    }
-                    else {
-                        showNotification("Failed to copy system info", "error", 3000);
+                    } else {
+                        showNotification(
+                            "Failed to copy system info",
+                            "error",
+                            3000
+                        );
                     }
                 };
+
                 addEventListenerWithCleanup(copyBtn, "click", (e) => {
                     e.preventDefault();
                     void runCopy();
                 });
+
                 addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
-                    if (e instanceof KeyboardEvent &&
-                        (e.key === "Enter" || e.key === " ")) {
+                    if (
+                        e instanceof KeyboardEvent &&
+                        (e.key === "Enter" || e.key === " ")
+                    ) {
                         e.preventDefault();
                         void runCopy();
                     }
                 });
             }
             // No toggle button: features + system info are displayed together.
+
             // Handle external links to open in user's default browser.
             // NOTE: The modal content container stops propagation to prevent backdrop-closing.
             // Attach handlers to .modal-content so delegated link clicks are still observed.
-            const modalContentForLinks = modal.querySelector(".modal-content") ?? modal;
+            const modalContentForLinks =
+                modal.querySelector(".modal-content") ?? modal;
             attachExternalLinkHandlers({ root: modalContentForLinks });
+
             // Close on backdrop click
             addEventListenerWithCleanup(modal, "click", (e) => {
                 if (e.target === modal) {
                     hideAboutModal();
                 }
             });
+
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(modalContent, "click", (e) => {
-                    e.stopPropagation();
-                });
+                addEventListenerWithCleanup(
+                    modalContent,
+                    "click",
+                    (e) => {
+                        e.stopPropagation();
+                    }
+                );
             }
+
             // Focus management - focus close button after animation
             if (focusTimer) {
                 clearTimeout(focusTimer);
@@ -440,30 +605,39 @@ export function showAboutModal(html = "") {
                 focusTimer = null;
                 closeBtn.focus();
             }, modalAnimationDuration);
+
             // Load version information after modal is displayed
             try {
                 loadVersionInfo();
-            }
-            catch (error) {
-                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
+            } catch (error) {
+                console.warn(
+                    `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,
+                    error
+                );
             }
             // Sound functionality removed as requested
         }
     }
 }
+
 /**
  * Build a human-friendly clipboard payload from the About modal's system info.
  * Falls back gracefully if the DOM isn't present.
  *
  */
-function buildSystemInfoClipboardText() {
+function buildSystemInfoClipboardText(): string {
     try {
-        const lines = ["Fit File Viewer – System Info"];
+        const lines: string[] = ["Fit File Viewer – System Info"];
+
         const versionNumber = document.querySelector("#version-number");
         if (versionNumber && versionNumber.textContent) {
             lines.push(`App Version: ${versionNumber.textContent.trim()}`);
         }
-        const items = document.querySelectorAll("#info-toggle-section .system-info-item");
+
+        const items = document.querySelectorAll(
+            "#info-toggle-section .system-info-item"
+        );
+
         for (const item of Array.from(items)) {
             const labelEl = item.querySelector(".system-info-label");
             const valueEl = item.querySelector(".system-info-value");
@@ -477,17 +651,18 @@ function buildSystemInfoClipboardText() {
                 lines.push(`${labelRaw}: ${valueRaw}`);
             }
         }
+
         return lines.join("\n");
-    }
-    catch {
+    } catch {
         return "Fit File Viewer – System Info";
     }
 }
+
 /**
  * Enhanced modal hide function with smooth animations
  */
-function hideAboutModal() {
-    const modal = document.querySelector("#about-modal");
+function hideAboutModal(): void {
+    const modal = document.querySelector<HTMLElement>("#about-modal");
     if (modal) {
         // Start closing animation
         modal.classList.remove("show");
@@ -495,6 +670,7 @@ function hideAboutModal() {
             cancelAnimationFrame(showAnimationFrame);
             showAnimationFrame = null;
         }
+
         // Wait for animation to complete before hiding
         if (hideTimer) {
             clearTimeout(hideTimer);
@@ -502,17 +678,21 @@ function hideAboutModal() {
         hideTimer = setTimeout(() => {
             hideTimer = null;
             modal.style.display = "none";
+
             // No toggle state to reset.
+
             // Restore focus to last focused element
             if (lastFocusedElement) {
                 lastFocusedElement.focus();
                 lastFocusedElement = null;
             }
+
             // Clean up event listeners
             document.removeEventListener("keydown", handleEscapeKey, true);
         }, modalAnimationDuration);
     }
 }
+
 /**
  * Sanitize HTML inserted into the About modal body.
  *
@@ -528,9 +708,10 @@ function hideAboutModal() {
  *
  *
  */
-function sanitizeAboutBodyHtml(html) {
+function sanitizeAboutBodyHtml(html: string): DocumentFragment {
     const fragment = parseAboutBodyHtml(html);
-    const blockedTags = new Set([
+
+    const blockedTags = new Set<string>([
         "EMBED",
         "IFRAME",
         "LINK",
@@ -538,36 +719,48 @@ function sanitizeAboutBodyHtml(html) {
         "OBJECT",
         "SCRIPT",
     ]);
-    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
-    const nodesToRemove = [];
+
+    const walker = document.createTreeWalker(
+        fragment,
+        NodeFilter.SHOW_ELEMENT
+    );
+    const nodesToRemove: Element[] = [];
+
     while (walker.nextNode()) {
         const { currentNode } = walker;
         if (!(currentNode instanceof Element)) {
             continue;
         }
+
         const el = currentNode;
         if (blockedTags.has(el.tagName)) {
             nodesToRemove.push(el);
             continue;
         }
+
         // Strip inline event handlers and dangerous URL-based attributes.
         for (const attr of Array.from(el.attributes)) {
             const name = attr.name.toLowerCase();
             const value = String(attr.value);
+
             if (name.startsWith("on")) {
                 el.removeAttribute(attr.name);
                 continue;
             }
+
             if (name === "href" || name === "src") {
                 const trimmed = value.trim();
                 const lower = trimmed.toLowerCase();
                 const isHttps = lower.startsWith("https://");
                 const isMailto = lower.startsWith("mailto:");
+
                 if (!isHttps && !isMailto) {
                     el.removeAttribute(attr.name);
                 }
+
                 continue;
             }
+
             // Avoid CSS-based resource loading via url(...). Keep benign inline styles.
             if (name === "style") {
                 const lower = value.toLowerCase();
@@ -576,35 +769,43 @@ function sanitizeAboutBodyHtml(html) {
                 }
             }
         }
+
         // Force safe external links to be handled by the modal.
         if (el instanceof HTMLElement && el.tagName === "A") {
             const href = el.getAttribute("href");
-            if (href &&
-                (href.startsWith("https://") || href.startsWith("mailto:"))) {
+            if (
+                href &&
+                (href.startsWith("https://") || href.startsWith("mailto:"))
+            ) {
                 el.dataset["externalLink"] = "";
                 el.setAttribute("rel", "noopener noreferrer");
             }
         }
     }
+
     for (const node of nodesToRemove) {
         node.remove();
     }
+
     return fragment;
 }
+
 /**
  * Parse the supplied body fragment before the allowlist cleanup runs.
  *
  *
  */
-function parseAboutBodyHtml(html) {
+function parseAboutBodyHtml(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Sanitization happens immediately in sanitizeAboutBodyHtml before callers receive the fragment.
     const parsed = new DOMParser().parseFromString(html, "text/html");
     const fragment = document.createDocumentFragment();
     for (const child of Array.from(parsed.body.childNodes)) {
         fragment.append(child);
     }
+
     return fragment;
 }
+
 /**
  * Development helpers for testing and debugging
  */
@@ -612,18 +813,22 @@ const devHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
-    * Reset all styles and recreate modal
-    */
+     * Reset all styles and recreate modal
+     */
     reset: () => {
-        const existingModal = document.querySelector("#about-modal"), existingStyles = document.querySelector("#about-modal-styles");
+        const existingModal = document.querySelector("#about-modal"),
+            existingStyles = document.querySelector("#about-modal-styles");
+
         if (existingModal) {
             existingModal.remove();
         }
         if (existingStyles) {
             existingStyles.remove();
         }
+
         ensureAboutModal();
     },
+
     showSample: () => {
         const sampleContent = `
 			<h3 style="color: var(--color-fg); opacity: 0.9; margin-top: 0;">Sample Content</h3>
@@ -638,14 +843,16 @@ const devHelpers = {
 		`;
         showAboutModal(sampleContent);
     },
+
     /**
      * Test modal animations
      */
     testAnimations: () => {
-        const modal = document.querySelector("#about-modal");
+        const modal = document.querySelector<HTMLElement>("#about-modal");
         if (modal) {
             modal.style.transition = "all 1000ms ease";
-            const modalContent = modal.querySelector(".modal-content");
+            const modalContent =
+                modal.querySelector<HTMLElement>(".modal-content");
             if (modalContent) {
                 modalContent.style.transition =
                     "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -654,20 +861,25 @@ const devHelpers = {
         devHelpers.showSample();
     },
 };
+
 // Export development helpers in development mode
-if (typeof process !== "undefined" &&
+if (
+    typeof process !== "undefined" &&
     process.env &&
-    process.env["NODE_ENV"] === "development") {
-    globalThis.aboutModalDevHelpers = devHelpers;
+    process.env["NODE_ENV"] === "development"
+) {
+    (globalThis as typeof globalThis & {
+        aboutModalDevHelpers?: typeof devHelpers;
+    }).aboutModalDevHelpers = devHelpers;
 }
+
 // Initialize modal styles when module loads
 if (typeof document !== "undefined" && document.readyState === "loading") {
     addEventListenerWithCleanup(document, "DOMContentLoaded", () => {
         // Pre-initialize styles for better performance
         injectModalStyles();
     });
-}
-else if (typeof document !== "undefined") {
+} else if (typeof document !== "undefined") {
     // Document already loaded, initialize immediately
     injectModalStyles();
 }

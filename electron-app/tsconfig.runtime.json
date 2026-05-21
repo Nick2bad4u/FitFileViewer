@@ -227,6 +227,7 @@
         "utils/ui/browser/initFitBrowserFeatureGate.ts",
         "utils/ui/links/externalLinkHandlers.ts",
         "utils/ui/layout/enhanceCreditsSection.ts",
+        "utils/ui/modals/aboutModal.ts",
         "utils/ui/modals/ensureAboutModal.ts",
         "utils/ui/modals/injectModalStyles.ts",
         "utils/ui/modals/keyboardShortcutsModal.ts",
