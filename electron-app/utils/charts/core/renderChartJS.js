@@ -30,12 +30,11 @@
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
-import { clearElement, sanitizeCssColorToken } from "../../dom/index.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 import {
     fieldLabels,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
-import { createUserDeviceInfoBox } from "../../rendering/components/createUserDeviceInfoBox.js";
 // State management imports
 import {
     getState,
@@ -44,15 +43,6 @@ import {
     updateState,
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
-// Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
-// We'll access a global instance if the app exposes one.
-import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
-// Avoid direct usage in critical paths to prevent SSR init order issues
-import {
-    getChartRenderContainer,
-    getChartSettingsWrapper,
-    resolveChartContainer,
-} from "../dom/chartDomUtils.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import {
     renderNoDataMessage,
@@ -110,7 +100,6 @@ import {
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
-import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // Import the notification state module broadly; provide safe wrapper exports below to avoid
@@ -177,6 +166,7 @@ import {
     touchStringTargetContainer,
 } from "./renderChartPreflight.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
+import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -663,51 +653,13 @@ async function renderChartsWithData(
         getState: gs_rcwd,
     } = getStateManagerSafe();
 
-    // Ensure settings dropdowns exist (skip in background pre-render mode)
-    if (!skipControls) {
-        ensureChartSettingsDropdowns(targetContainer);
-    }
-
-    // Setup theme listener for real-time theme updates
-    const settingsWrapperElem = getChartSettingsWrapper(document);
-    if (!skipControls && targetContainer && settingsWrapperElem) {
-        setupChartThemeListener(targetContainer, settingsWrapperElem);
-    }
-
-    // Get chart container
-    let chartContainer = resolveChartContainer(document, targetContainer);
-
-    if (!chartContainer) {
-        chartContainer = getChartRenderContainer(document);
-    }
-
-    if (!chartContainer) {
-        chartContainer = document.createElement("div");
-        chartContainer.id = "chartjs_chart_container";
-        chartContainer.style.cssText = `
-			margin-top: 20px;
-			padding: 20px;
-			background: var(--color-shadow, rgba(0, 0, 0, 0.05));
-			border-radius: 12px;
-		`;
-
-        const settingsWrapperElem2 = getChartSettingsWrapper(document);
-        if (settingsWrapperElem2 && settingsWrapperElem2.parentNode) {
-            settingsWrapperElem2.parentNode.insertBefore(
-                chartContainer,
-                settingsWrapperElem2.nextSibling
-            );
-        } else {
-            document.body.append(chartContainer);
-        }
-    }
-
-    // Clear existing charts and remove any hover effects
-    removeChartHoverEffectsSafe(chartContainer);
-    clearElement(chartContainer);
-
-    // Add user and device info box
-    createUserDeviceInfoBox(chartContainer);
+    const chartContainer = prepareChartRenderContainer(
+        {
+            doc: document,
+            removeChartHoverEffects: removeChartHoverEffectsSafe,
+        },
+        { skipControls, targetContainer }
+    );
 
     // Get current settings through enhanced state management
     const settings = chartSettingsManager.getSettings(),
