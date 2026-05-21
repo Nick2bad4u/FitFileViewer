@@ -232,6 +232,7 @@
         "utils/files/export/createPrintButton.ts",
         "utils/files/export/gpxExport.ts",
         "utils/files/import/getOverlayFileName.ts",
+        "utils/files/import/loadSingleOverlayFile.ts",
         "utils/files/import/openFitFileFromPath.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",

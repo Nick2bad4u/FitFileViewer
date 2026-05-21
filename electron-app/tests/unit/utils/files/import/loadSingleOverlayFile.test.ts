@@ -1,72 +1,56 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../utils/files/import/loadSingleOverlayFile.js";
+import type { OverlayFitData } from "../../../../../utils/files/import/loadSingleOverlayFile.js";
 
-type OverlayFitData = {
-    error?: string;
-    recordMesgs?: unknown[];
+type OverlayTestGlobal = typeof globalThis & {
+    electronAPI?: {
+        decodeFitFile?: (
+            arrayBuffer: ArrayBuffer
+        ) => Promise<OverlayFitData | undefined>;
+    };
 };
 
-type FileLike = File & {
-    arrayBuffer: () => Promise<ArrayBuffer>;
-    name: string;
-    size: number;
-};
+function makeFitFile(
+    bytes = new Uint8Array([
+        1,
+        2,
+        3,
+    ])
+): File {
+    return new File([bytes], "overlay.fit", {
+        type: "application/octet-stream",
+    });
+}
 
-type TestElectronAPI = {
-    decodeFitFile?: (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>;
-};
+function setDecodeFitFile(
+    decodeFitFile: (
+        arrayBuffer: ArrayBuffer
+    ) => Promise<OverlayFitData | undefined>
+): void {
+    (globalThis as OverlayTestGlobal).electronAPI = { decodeFitFile };
+}
 
-type OverlayFileTestGlobal = typeof globalThis & {
-    electronAPI?: TestElectronAPI;
-};
-
-const appGlobal = globalThis as OverlayFileTestGlobal;
-
-function cleanupGlobals() {
-    delete appGlobal.electronAPI;
-    vi.restoreAllMocks();
+function clearElectronApi(): void {
+    delete (globalThis as OverlayTestGlobal).electronAPI;
 }
 
 describe(loadSingleOverlayFile, () => {
-    it("loads a valid FIT overlay with coordinate records", async () => {
-        expect.assertions(3);
+    it("rejects non-FIT file names before reading or decoding", async () => {
+        expect.hasAssertions();
 
-        const fitData = {
-            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        };
-        const decodeFitFile = vi.fn<
-            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
-        >(async () => fitData);
-        const file = new File([new Uint8Array([1, 2, 3])], "overlay.fit");
+        const decodeFitFile =
+            vi.fn<
+                (
+                    arrayBuffer: ArrayBuffer
+                ) => Promise<OverlayFitData | undefined>
+            >();
+        setDecodeFitFile(decodeFitFile);
 
         try {
-            appGlobal.electronAPI = { decodeFitFile };
-
-            const result = await loadSingleOverlayFile(file);
-
-            expect(result).toStrictEqual({ data: fitData, success: true });
-            expect(decodeFitFile).toHaveBeenCalledOnce();
-            expect(decodeFitFile.mock.calls[0]?.[0]).toBeInstanceOf(
-                ArrayBuffer
+            const result = await loadSingleOverlayFile(
+                new File([new Uint8Array([1])], "overlay.txt")
             );
-        } finally {
-            cleanupGlobals();
-        }
-    });
-
-    it("rejects non-FIT overlay names before decoding", async () => {
-        expect.assertions(2);
-
-        const decodeFitFile = vi.fn<
-            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
-        >();
-        const file = new File([new Uint8Array([1])], "overlay.txt");
-
-        try {
-            appGlobal.electronAPI = { decodeFitFile };
-
-            const result = await loadSingleOverlayFile(file);
 
             expect(result).toStrictEqual({
                 error: "Only .fit files can be loaded as overlays",
@@ -74,100 +58,158 @@ describe(loadSingleOverlayFile, () => {
             });
             expect(decodeFitFile).not.toHaveBeenCalled();
         } finally {
-            cleanupGlobals();
+            clearElectronApi();
         }
     });
 
-    it("rejects missing decoder bridge after reading file data", async () => {
-        expect.assertions(1);
+    it("rejects empty files", async () => {
+        expect.hasAssertions();
 
-        const file = new File([new Uint8Array([1])], "overlay.fit");
-
-        try {
-            const result = await loadSingleOverlayFile(file);
-
-            expect(result).toStrictEqual({
-                error: "No file data or decoder not available",
-                success: false,
-            });
-        } finally {
-            cleanupGlobals();
-        }
-    });
-
-    it("rejects oversized overlay files before decoding", async () => {
-        expect.assertions(2);
-
-        const decodeFitFile = vi.fn<
-            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
-        >();
-        const file = {
-            arrayBuffer: async () => new ArrayBuffer(8),
-            name: "big.fit",
-            size: 101 * 1024 * 1024,
-        } as FileLike;
+        setDecodeFitFile(async () => ({
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        }));
 
         try {
-            appGlobal.electronAPI = { decodeFitFile };
-
-            const result = await loadSingleOverlayFile(file);
-
-            expect(result).toStrictEqual({
-                error: "File size exceeds 100MB limit",
-                success: false,
-            });
-            expect(decodeFitFile).not.toHaveBeenCalled();
-        } finally {
-            cleanupGlobals();
-        }
-    });
-
-    it("rejects empty overlay buffers before decoding", async () => {
-        expect.assertions(2);
-
-        const decodeFitFile = vi.fn<
-            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
-        >();
-        const file = {
-            arrayBuffer: async () => new ArrayBuffer(0),
-            name: "empty.fit",
-            size: 1,
-        } as FileLike;
-
-        try {
-            appGlobal.electronAPI = { decodeFitFile };
-
-            const result = await loadSingleOverlayFile(file);
+            const result = await loadSingleOverlayFile(
+                makeFitFile(new Uint8Array())
+            );
 
             expect(result).toStrictEqual({
                 error: "Selected file appears to be empty",
                 success: false,
             });
-            expect(decodeFitFile).not.toHaveBeenCalled();
         } finally {
-            cleanupGlobals();
+            clearElectronApi();
         }
     });
 
-    it("rejects decoded overlays without coordinate records", async () => {
-        expect.assertions(1);
+    it("rejects oversized declared files before reading", async () => {
+        expect.hasAssertions();
 
-        const decodeFitFile = vi.fn<
-            (arrayBuffer: ArrayBuffer) => Promise<OverlayFitData>
-        >(async () => ({ recordMesgs: [{ heartRate: 150 }] }));
-        const file = new File([new Uint8Array([1])], "overlay.fit");
+        const file = {
+            arrayBuffer: async () => new ArrayBuffer(1),
+            name: "large.fit",
+            size: 100 * 1024 * 1024 + 1,
+        };
+
+        const result = await loadSingleOverlayFile(file);
+
+        expect(result).toStrictEqual({
+            error: "File size exceeds 100MB limit",
+            success: false,
+        });
+    });
+
+    it("reports a missing decoder bridge", async () => {
+        expect.hasAssertions();
+
+        clearElectronApi();
+
+        const result = await loadSingleOverlayFile(makeFitFile());
+
+        expect(result).toStrictEqual({
+            error: "No file data or decoder not available",
+            success: false,
+        });
+    });
+
+    it("returns parser errors from decoded FIT data", async () => {
+        expect.hasAssertions();
+
+        setDecodeFitFile(async () => ({
+            error: "Parse failed",
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        }));
 
         try {
-            appGlobal.electronAPI = { decodeFitFile };
+            const result = await loadSingleOverlayFile(makeFitFile());
 
-            const result = await loadSingleOverlayFile(file);
+            expect(result).toStrictEqual({
+                error: "Parse failed",
+                success: false,
+            });
+        } finally {
+            clearElectronApi();
+        }
+    });
+
+    it("requires at least one record with numeric coordinates", async () => {
+        expect.hasAssertions();
+
+        setDecodeFitFile(async () => ({
+            recordMesgs: [
+                { positionLat: "1", positionLong: 2 },
+                { positionLat: 1, positionLong: undefined },
+            ],
+        }));
+
+        try {
+            const result = await loadSingleOverlayFile(makeFitFile());
 
             expect(result).toStrictEqual({
                 error: "No valid location data found in file",
                 success: false,
             });
         } finally {
-            cleanupGlobals();
+            clearElectronApi();
+        }
+    });
+
+    it("returns decoded FIT data when validation succeeds", async () => {
+        expect.hasAssertions();
+
+        const decodedData = {
+            cachedFilePath: "C:/rides/overlay.fit",
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        };
+        setDecodeFitFile(async (arrayBuffer) => ({
+            ...decodedData,
+            byteLength: arrayBuffer.byteLength,
+        }));
+
+        try {
+            const result = await loadSingleOverlayFile(makeFitFile());
+
+            expect(result).toStrictEqual({
+                data: {
+                    ...decodedData,
+                    byteLength: 3,
+                },
+                success: true,
+            });
+        } finally {
+            clearElectronApi();
+        }
+    });
+
+    it("reports thrown read errors without leaking unhandled exceptions", async () => {
+        expect.hasAssertions();
+
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        const file = {
+            arrayBuffer: async () => {
+                throw new Error("read failed");
+            },
+            name: "broken.fit",
+        };
+
+        try {
+            const result = await loadSingleOverlayFile(file);
+
+            expect(result).toStrictEqual({
+                error: "read failed",
+                success: false,
+            });
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[loadSingleOverlayFile] Error processing file:",
+                "broken.fit",
+                expect.any(Error)
+            );
+        } finally {
+            consoleErrorSpy.mockRestore();
+            clearElectronApi();
         }
     });
 });
