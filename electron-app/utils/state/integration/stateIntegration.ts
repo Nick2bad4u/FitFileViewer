@@ -460,13 +460,9 @@ function setupStateDebugging(): void {
         },
         setState,
         triggerAction(actionName: string, ...args: unknown[]) {
-            const actions = AppActions as unknown as Record<
-                string,
-                (...actionArgs: unknown[]) => unknown
-            >;
-            const action = actions[actionName];
+            const action = Reflect.get(AppActions, actionName);
 
-            if (action) {
+            if (typeof action === "function") {
                 console.log(
                     `[StateDebug] Triggering action: ${actionName}`,
                     args

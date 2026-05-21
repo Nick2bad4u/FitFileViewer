@@ -321,9 +321,8 @@ function setupStateDebugging() {
         },
         setState,
         triggerAction(actionName, ...args) {
-            const actions = AppActions;
-            const action = actions[actionName];
-            if (action) {
+            const action = Reflect.get(AppActions, actionName);
+            if (typeof action === "function") {
                 console.log(`[StateDebug] Triggering action: ${actionName}`, args);
                 return action(...args);
             }
