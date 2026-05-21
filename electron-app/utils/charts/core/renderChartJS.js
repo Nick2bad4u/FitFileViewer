@@ -141,6 +141,10 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // Import the notification state module broadly; provide safe wrapper exports below to avoid
 // tight coupling during SSR and module cache injection in tests
 import * as chartNotificationState from "./chartNotificationState.js";
+import {
+    addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
+    notifyInvalidateChartRenderCacheListeners,
+} from "./renderChartCacheInvalidationListeners.js";
 const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
@@ -703,18 +707,9 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 }, RENDER_DEBOUNCE_MS);
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
-const invalidateChartRenderCacheListeners = new Set();
 
 export function addInvalidateChartRenderCacheListener(listener) {
-    if (typeof listener !== "function") {
-        return () => {};
-    }
-
-    invalidateChartRenderCacheListeners.add(listener);
-
-    return () => {
-        invalidateChartRenderCacheListeners.delete(listener);
-    };
+    return addCacheInvalidationListener(listener);
 }
 
 export function getChartSeriesCacheStats() {
@@ -730,13 +725,7 @@ export function invalidateChartRenderCache(reason = "manual") {
     clearPerformanceSettingsCache();
     clearDataSettingsSignatureCache();
 
-    for (const listener of invalidateChartRenderCacheListeners) {
-        try {
-            listener(reason);
-        } catch (error) {
-            console.warn(`${CACHE_LOG_PREFIX} listener error`, error);
-        }
-    }
+    notifyInvalidateChartRenderCacheListeners(reason, CACHE_LOG_PREFIX);
 }
 
 /**
