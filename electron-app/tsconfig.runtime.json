@@ -183,6 +183,7 @@
         "utils/charts/core/renderChartDomHelpers.ts",
         "utils/charts/core/renderChartCacheInvalidationListeners.ts",
         "utils/charts/core/renderChartColorUtils.ts",
+        "utils/charts/core/renderChartCompletion.ts",
         "utils/charts/core/renderChartDataSettingsCache.ts",
         "utils/charts/core/renderChartDebounce.ts",
         "utils/charts/core/renderChartLabelCache.ts",

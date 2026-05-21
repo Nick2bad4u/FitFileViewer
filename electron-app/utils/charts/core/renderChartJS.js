@@ -145,6 +145,7 @@ import {
     addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
     notifyInvalidateChartRenderCacheListeners,
 } from "./renderChartCacheInvalidationListeners.js";
+import { safeCompleteRendering } from "./renderChartCompletion.js";
 const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
@@ -936,18 +937,6 @@ const ensureDataSettingsSignature = (settings) =>
 // (Note) The test harness overrides CommonJS require during Vitest SSR transform.
 // Our ESM imports are compiled to require calls, so the test's module cache injection
 // will intercept dependencies without additional wrappers here.
-// Helper to avoid TDZ when referencing chartActions in early execution paths
-function safeCompleteRendering(success) {
-    try {
-        const maybe = getGlobalChartActions();
-        if (maybe && typeof maybe.completeRendering === "function") {
-            maybe.completeRendering(success);
-        }
-    } catch {
-        /* ignore */
-    }
-}
-
 // Safe wrapper exports for compatibility with tests that import from renderChartJS
 // even when module cache injection returns empty objects for nested modules.
 export const previousChartState = chartNotificationState.previousChartState || {
