@@ -56,6 +56,7 @@
         "utils/state/domain/settingsStateCore.ts",
         "utils/state/domain/settingsStateHelpers.ts",
         "utils/state/domain/settingsStateManager.ts",
+        "utils/state/integration/mainProcessStateClient.ts",
         "utils/formatting/converters/convertArrayBufferToBase64.ts",
         "utils/formatting/converters/convertDistanceUnits.ts",
         "utils/formatting/converters/convertMpsToKmh.ts",
