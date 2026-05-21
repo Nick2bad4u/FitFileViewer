@@ -2,6 +2,7 @@
  * FIT data display utility for FitFileViewer Handles the display and management
  * of loaded FIT file data with state management integration
  */
+
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
 import {
@@ -12,6 +13,7 @@ import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCycl
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { setState } from "../../state/core/stateManager.js";
+
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
     CSS_CLASSES: {
@@ -30,10 +32,56 @@ const DISPLAY_CONSTANTS = {
     },
     TITLE_PREFIX: "Fit File Viewer",
 };
+
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
-function getShowFitDataGlobal() {
-    return globalThis;
+
+type FitRecord = Record<string, unknown>;
+
+type FitDataObject = {
+    cachedFileName?: string;
+    cachedFilePath?: string;
+    recordMesgs?: FitRecord[];
+    sessionMesgs?: FitRecord[];
+} & Record<string, unknown>;
+
+/** Display options accepted by the FIT data renderer. */
+export type ShowFitDataOptions = {
+    resetRenderStates?: boolean;
+    updateUI?: boolean;
+};
+
+type ElectronApiLike = {
+    notifyFitFileLoaded?: (filePath: string) => void;
+    send?: (channel: string, ...args: unknown[]) => void;
+};
+
+type FitFileStateManagerLike = {
+    handleFileLoaded: (
+        data: FitDataObject,
+        context: { filePath: null | string }
+    ) => void;
+    startFileLoading?: (filePath: string) => void;
+};
+
+type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
+
+type ShowFitDataGlobal = typeof globalThis & {
+    __FFV_fitFileStateManager?: unknown;
+    createTables?: (data: FitDataObject) => void;
+    electronAPI?: ElectronApiLike;
+    globalData?: FitDataObject;
+    isMapRendered?: boolean;
+    renderMap?: () => void;
+    renderSummary?: (data: FitDataObject) => void;
+    setTabButtonsEnabled?: (enabled: boolean) => void;
+    updateActiveTab?: (tabId: string) => void;
+    updateTabVisibility?: (contentId: string) => void;
+};
+
+function getShowFitDataGlobal(): ShowFitDataGlobal {
+    return globalThis as ShowFitDataGlobal;
 }
+
 /**
  * Shows FIT data in the UI and updates application state.
  *
@@ -44,25 +92,34 @@ function getShowFitDataGlobal() {
  * @throws When the supplied data is not a valid object or state integration
  *   fails.
  */
-export function showFitData(data, filePath, options = {}) {
+export function showFitData(
+    data: FitDataObject,
+    filePath?: string,
+    options: ShowFitDataOptions = {}
+): void {
     const config = {
         resetRenderStates: true,
         updateUI: true,
         ...options,
     };
+
     try {
         // Validate input
         if (!data || typeof data !== "object") {
             throw new Error("Invalid data: expected object");
         }
+
         log("info", "Displaying FIT data", {
             filePath,
             hasData: Boolean(data),
         });
+
         integrateFitState(data, filePath);
+
         // Set global data for legacy compatibility
         const showFitGlobal = getShowFitDataGlobal();
         showFitGlobal.globalData = data;
+
         // Apply estimated power early so Charts/Summary/Tables can consume it immediately.
         // This only applies to cycling-like activities that lack real power, and only when enabled.
         try {
@@ -70,7 +127,7 @@ export function showFitData(data, filePath, options = {}) {
                 showFitGlobal.globalData &&
                 Array.isArray(showFitGlobal.globalData.recordMesgs)
             ) {
-                const powerInput = {
+                const powerInput: EstimatedPowerInput = {
                     recordMesgs: showFitGlobal.globalData.recordMesgs,
                     settings: getPowerEstimationSettings(),
                 };
@@ -83,6 +140,7 @@ export function showFitData(data, filePath, options = {}) {
         } catch {
             /* ignore */
         }
+
         // Normalize auxiliary heart rate fields so charts/map/tables can render them.
         try {
             if (
@@ -99,6 +157,7 @@ export function showFitData(data, filePath, options = {}) {
         } catch {
             /* ignore */
         }
+
         // Reset rendering states if requested
         if (config.resetRenderStates) {
             log(
@@ -106,15 +165,20 @@ export function showFitData(data, filePath, options = {}) {
                 "resetRenderStates option is deprecated and now handled by AppActions"
             );
         }
+
         // Handle file path and UI updates
         if (filePath && config.updateUI) {
             const fileName = getCachedFileName(data, filePath);
+
             // Update file display state
             updateFileState(fileName);
+
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
+
             // Switch to map tab early to avoid a brief summary flash during load.
             switchToMapTabOnLoad();
+
             try {
                 if (typeof globalThis.scrollTo === "function") {
                     const prefersReducedMotion =
@@ -122,6 +186,7 @@ export function showFitData(data, filePath, options = {}) {
                         globalThis.matchMedia(
                             "(prefers-reduced-motion: reduce)"
                         ).matches;
+
                     queueMicrotask(() => {
                         globalThis.scrollTo({
                             top: 0,
@@ -133,6 +198,7 @@ export function showFitData(data, filePath, options = {}) {
                 /* no-op */
             }
         }
+
         // Create global chart status indicator if available
         if (typeof createGlobalChartStatusIndicator === "function") {
             try {
@@ -147,6 +213,7 @@ export function showFitData(data, filePath, options = {}) {
                 });
             }
         }
+
         log("info", "FIT data displayed successfully", {
             filePath,
         });
@@ -159,9 +226,11 @@ export function showFitData(data, filePath, options = {}) {
             error: errorMessage,
             filePath,
         });
+
         // Let the central error handling system manage this error
         // instead of writing directly to state
         console.error("[ShowFitData] Error:", error);
+
         throw error;
     } finally {
         try {
@@ -170,45 +239,56 @@ export function showFitData(data, filePath, options = {}) {
             /* ignore */
         }
     }
+
     // Create tables if available
     const showFitGlobal = getShowFitDataGlobal();
+
     if (showFitGlobal.createTables && showFitGlobal.globalData) {
         showFitGlobal.createTables(showFitGlobal.globalData);
     }
+
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
     if (showFitGlobal.renderSummary && showFitGlobal.globalData) {
         showFitGlobal.renderSummary(showFitGlobal.globalData);
     }
+
     // Charts are rendered on-demand when the user activates the Charts tab.
     // Background pre-rendering was removed because it can freeze the UI.
+
     // Default map tab switching happens earlier in the flow via switchToMapTabOnLoad.
 }
+
 /**
  * Switch to the Map tab immediately after a file is loaded. Keeps map rendering
  * in sync while avoiding a summary tab flash.
  */
-function switchToMapTabOnLoad() {
+function switchToMapTabOnLoad(): void {
     const windowExt = getShowFitDataGlobal();
+
     if (!windowExt.updateTabVisibility || !windowExt.updateActiveTab) {
         return;
     }
+
     windowExt.updateTabVisibility("content-map");
     windowExt.updateActiveTab("tab-map");
+
     // Manually trigger map rendering since we're programmatically switching tabs
     if (windowExt.renderMap && !windowExt.isMapRendered) {
         windowExt.renderMap();
         windowExt.isMapRendered = true;
     }
 }
+
 /** Enables tab buttons and notifies the main process. */
-function enableTabsAndNotify(filePath) {
+function enableTabsAndNotify(filePath: string): void {
     try {
         // Enable tab buttons when a file is loaded
         const showFitGlobal = getShowFitDataGlobal();
         if (showFitGlobal.setTabButtonsEnabled) {
             showFitGlobal.setTabButtonsEnabled(true);
         }
+
         // Notify main process via IPC
         if (showFitGlobal.electronAPI?.notifyFitFileLoaded) {
             showFitGlobal.electronAPI.notifyFitFileLoaded(filePath);
@@ -219,6 +299,7 @@ function enableTabsAndNotify(filePath) {
                 filePath
             );
         }
+
         // Dispatch custom event for other components
         const event = new CustomEvent(
             DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED,
@@ -227,6 +308,7 @@ function enableTabsAndNotify(filePath) {
             }
         );
         globalThis.dispatchEvent(event);
+
         log("info", "Tabs enabled and notifications sent", { filePath });
     } catch (error) {
         const errorMessage =
@@ -239,24 +321,28 @@ function enableTabsAndNotify(filePath) {
         });
     }
 }
+
 /** Extracts the filename portion from a file path. */
-function extractFileName(filePath) {
+function extractFileName(filePath: string): string {
     if (!filePath || typeof filePath !== "string") {
         return "";
     }
     return filePath.split(/[/\\]/).pop() || "";
 }
+
 /** Returns a cached or newly computed display filename. */
-function getCachedFileName(data, filePath) {
+function getCachedFileName(data: FitDataObject, filePath: string): string {
     try {
         // Check if we can use cached filename
         if (data.cachedFileName && data.cachedFilePath === filePath) {
             return data.cachedFileName;
         }
+
         // Extract and cache new filename
         const fileName = extractFileName(filePath);
         data.cachedFileName = fileName;
         data.cachedFilePath = filePath;
+
         return fileName;
     } catch (error) {
         const errorMessage =
@@ -270,9 +356,11 @@ function getCachedFileName(data, filePath) {
         return extractFileName(filePath);
     }
 }
-function integrateFitState(data, filePath) {
+
+function integrateFitState(data: FitDataObject, filePath?: string): void {
     try {
         const manager = resolveFitFileStateManager();
+
         if (manager && typeof manager.handleFileLoaded === "function") {
             if (filePath && typeof manager.startFileLoading === "function") {
                 try {
@@ -286,9 +374,11 @@ function integrateFitState(data, filePath) {
                     });
                 }
             }
+
             manager.handleFileLoaded(data, { filePath: filePath ?? null });
             return;
         }
+
         AppActions.loadFile(data, filePath ?? null);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -299,20 +389,25 @@ function integrateFitState(data, filePath) {
         AppActions.loadFile(data, filePath ?? null);
     }
 }
-function resolveFitFileStateManager() {
+
+function resolveFitFileStateManager(): FitFileStateManagerLike | null {
     const candidate = getShowFitDataGlobal().__FFV_fitFileStateManager;
+
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoaded" in candidate &&
-        typeof candidate.handleFileLoaded === "function"
+        typeof (candidate as { handleFileLoaded?: unknown })
+            .handleFileLoaded === "function"
     ) {
-        return candidate;
+        return candidate as FitFileStateManagerLike;
     }
+
     return null;
 }
+
 /** Updates state-backed UI fields for the active file. */
-function updateFileState(fileName) {
+function updateFileState(fileName: string): void {
     try {
         const { TITLE_PREFIX } = DISPLAY_CONSTANTS,
             hasFile = Boolean(fileName),
@@ -320,6 +415,7 @@ function updateFileState(fileName) {
             title = hasFile
                 ? `${TITLE_PREFIX} - ${sanitizedName}`
                 : TITLE_PREFIX;
+
         setState(
             "ui.fileInfo",
             {
@@ -332,6 +428,7 @@ function updateFileState(fileName) {
         setState("ui.unloadButtonVisible", hasFile, {
             source: "showFitData.updateFileState",
         });
+
         log("info", "File state updated for display", {
             fileName: sanitizedName,
             hasFile,
