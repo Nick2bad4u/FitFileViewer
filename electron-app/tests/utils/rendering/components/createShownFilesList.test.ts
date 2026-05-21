@@ -200,7 +200,10 @@ describe("createShownFilesList", () => {
 
             expect(addEventListenerSpy).toHaveBeenCalledWith(
                 "themechange",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({
+                    signal: expect.any(AbortSignal),
+                })
             );
         });
 
@@ -750,9 +753,7 @@ describe("createShownFilesList", () => {
             expect(stopPropagationSpy).toHaveBeenCalled();
         });
 
-        it("cleans up tooltips after clearing all", () => {
-            vi.useFakeTimers();
-
+        it("cleans up tooltips after clearing all", async () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -765,13 +766,11 @@ describe("createShownFilesList", () => {
             ) as HTMLElement;
             clearAllBtn.click();
 
-            vi.advanceTimersByTime(10);
+            await Promise.resolve();
 
             expect(
                 document.querySelector(".overlay-filename-tooltip")
             ).toBeFalsy();
-
-            vi.useRealTimers();
         });
 
         it("does not create duplicate clear all buttons", () => {
@@ -1400,10 +1399,10 @@ describe("createShownFilesList", () => {
             }).not.toThrow();
         });
 
-        it("prevents memory leaks by cleaning up event listeners", () => {
-            const removeEventListenerSpy = vi.spyOn(
+        it("prevents memory leaks by aborting event listeners", () => {
+            const addEventListenerSpy = vi.spyOn(
                 window,
-                "removeEventListener"
+                "addEventListener"
             );
 
             const container = createShownFilesList();
@@ -1423,14 +1422,19 @@ describe("createShownFilesList", () => {
             );
             vi.advanceTimersByTime(350);
 
+            const mouseMoveCall = addEventListenerSpy.mock.calls.find(
+                ([eventName]) => eventName === "mousemove"
+            );
+            const mouseMoveOptions = mouseMoveCall?.[2] as
+                | AddEventListenerOptions
+                | undefined;
+            expect(mouseMoveOptions?.signal).toBeInstanceOf(AbortSignal);
+            expect(mouseMoveOptions?.signal?.aborted).toBe(false);
+
             // Trigger cleanup
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            // Should clean up mousemove listener
-            expect(removeEventListenerSpy).toHaveBeenCalledWith(
-                "mousemove",
-                expect.any(Function)
-            );
+            expect(mouseMoveOptions?.signal?.aborted).toBe(true);
 
             vi.useRealTimers();
         });

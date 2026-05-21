@@ -471,8 +471,7 @@ describe("setupListeners", () => {
         shortcutsHandler?.();
         expect(createdScripts).toHaveLength(1);
         const [script] = createdScripts;
-        expect(script.onerror).toBeTypeOf("function");
-        script.onerror?.(new Event("error"));
+        script.dispatchEvent(new Event("error"));
         expect(showAboutModal).toHaveBeenCalled();
     });
 

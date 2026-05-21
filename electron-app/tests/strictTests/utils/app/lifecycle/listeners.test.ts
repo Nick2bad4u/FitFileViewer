@@ -1,13 +1,15 @@
 // @ts-nocheck
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../../../../utils/files/import/openFileSelector.js", () => ({
+const dependencyMocks = vi.hoisted(() => ({
     openFileSelector: vi.fn(),
 }));
 
-import { openFileSelector } from "../../../../../utils/files/import/openFileSelector.js";
+vi.mock("../../../../../utils/files/import/openFileSelector.js", () => ({
+    openFileSelector: dependencyMocks.openFileSelector,
+}));
 
-const openFileSelectorMock = vi.mocked(openFileSelector);
+const openFileSelectorMock = dependencyMocks.openFileSelector;
 
 // Import the module under test
 import { setupListeners } from "../../../../../utils/app/lifecycle/listeners.js";
@@ -579,7 +581,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
 
-    it("IPC: menu-open-overlay triggers openFileSelector", () => {
+    it("IPC: menu-open-overlay triggers openFileSelector", async () => {
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -590,15 +592,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("menu-open-overlay");
+        await window.electronAPI.emit("menu-open-overlay");
         expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("IPC: menu-open-overlay surfaces errors", () => {
-        openFileSelectorMock.mockImplementationOnce(() => {
-            throw new Error("fail");
-        });
+    it("IPC: menu-open-overlay surfaces errors", async () => {
+        openFileSelectorMock.mockRejectedValueOnce(new Error("fail"));
 
         setupListeners({
             openFileBtn,
@@ -610,7 +610,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("menu-open-overlay");
+        await window.electronAPI.emit("menu-open-overlay");
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
             "error",
@@ -645,7 +645,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         window.electronAPI.emit("menu-keyboard-shortcuts");
         // Simulate load error to trigger fallback path
-        (capturedScript as any)?.onerror?.(new Event("error"));
+        capturedScript?.dispatchEvent(new Event("error"));
 
         expect(showAboutModal).toHaveBeenCalledTimes(2);
         const lastArg = showAboutModal.mock.calls.at(-1)?.[0];
