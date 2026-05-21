@@ -92,8 +92,8 @@ import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./render
 import {
     clearChartSeriesCache,
     getCachedSeriesForSettings,
-    getChartSeriesCacheStats as getSeriesCacheStats,
     getFieldSeriesEntry,
+    getChartSeriesCacheStats as getSeriesCacheStats,
 } from "./renderChartSeriesCache.js";
 import {
     ensureProcessNextTick,
@@ -125,6 +125,7 @@ import {
     notifyInvalidateChartRenderCacheListeners,
 } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
+import { createChartRenderCacheManager } from "./renderChartCacheManager.js";
 import {
     getComputedStateManagerSafe,
     getConvertersSafe,
@@ -189,26 +190,30 @@ const debouncedDirectRerender = createDebouncedDirectRerender({
     waitMs: RENDER_DEBOUNCE_MS,
 });
 
-const CACHE_LOG_PREFIX = "[ChartJS Cache]";
+const chartRenderCacheManager = createChartRenderCacheManager({
+    addInvalidateChartRenderCacheListener: addCacheInvalidationListener,
+    clearChartLabelsCache,
+    clearChartSeriesCache,
+    clearDataSettingsSignatureCache,
+    clearPerformanceSettingsCache,
+    ensureDataSettingsSignature: resolveDataSettingsSignature,
+    getChartSeriesCacheStats: getSeriesCacheStats,
+    isDevelopmentEnvironment,
+    notifyInvalidateChartRenderCacheListeners,
+});
 
 export function addInvalidateChartRenderCacheListener(listener) {
-    return addCacheInvalidationListener(listener);
+    return chartRenderCacheManager.addInvalidateChartRenderCacheListener(
+        listener
+    );
 }
 
 export function getChartSeriesCacheStats() {
-    return getSeriesCacheStats();
+    return chartRenderCacheManager.getChartSeriesCacheStats();
 }
 
 export function invalidateChartRenderCache(reason = "manual") {
-    if (isDevelopmentEnvironment()) {
-        console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
-    }
-    clearChartSeriesCache();
-    clearChartLabelsCache();
-    clearPerformanceSettingsCache();
-    clearDataSettingsSignatureCache();
-
-    notifyInvalidateChartRenderCacheListeners(reason, CACHE_LOG_PREFIX);
+    chartRenderCacheManager.invalidateChartRenderCache(reason);
 }
 
 export async function prewarmChartRenderCaches(params) {
@@ -221,9 +226,7 @@ export async function prewarmChartRenderCaches(params) {
 }
 
 const ensureDataSettingsSignature = (settings) =>
-    resolveDataSettingsSignature(settings, () => {
-        invalidateChartRenderCache("data-settings-changed");
-    });
+    chartRenderCacheManager.ensureDataSettingsSignature(settings);
 
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
 // (Note) The test harness overrides CommonJS require during Vitest SSR transform.
