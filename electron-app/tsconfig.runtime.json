@@ -251,6 +251,7 @@
         "utils/ui/controls/createElevationProfileButton.ts",
         "utils/ui/controls/createPowerEstimationButton.ts",
         "utils/ui/controls/createMarkerCountSelector.ts",
+        "utils/ui/controls/createDataPointFilterControl.ts",
         "utils/ui/controls/dataPointFilterControl/stateHelpers.ts",
         "utils/ui/controls/dataPointFilterControl/metricsPreview.ts",
         "utils/ui/controls/dataPointFilterControl/panelController.ts",

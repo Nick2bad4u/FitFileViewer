@@ -1,27 +1,99 @@
-import { MAP_FILTER_METRICS, } from "../../maps/filters/mapMetricFilter.js";
+import {
+    MAP_FILTER_METRICS,
+    type MapDataPointFilterConfig,
+    type MapFilterMode,
+    type MetricFilterResult,
+    type MetricStatistics,
+} from "../../maps/filters/mapMetricFilter.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createFilterControlElements } from "./dataPointFilterControl/elementFactory.js";
-import { buildSummaryText, previewFilterResult, } from "./dataPointFilterControl/metricsPreview.js";
+import {
+    buildSummaryText,
+    previewFilterResult,
+} from "./dataPointFilterControl/metricsPreview.js";
 import { createPanelController } from "./dataPointFilterControl/panelController.js";
-import { clampPercent, clampRangeValue, computeMetricStats, computeRangeState, formatMetricValue, formatPercent, resolveInitialConfig, toSliderString, updateGlobalFilter, } from "./dataPointFilterControl/stateHelpers.js";
+import {
+    clampPercent,
+    clampRangeValue,
+    computeMetricStats,
+    computeRangeState,
+    formatMetricValue,
+    formatPercent,
+    resolveInitialConfig,
+    toSliderString,
+    updateGlobalFilter,
+    type ResolvedDataPointFilterConfig,
+} from "./dataPointFilterControl/stateHelpers.js";
 import { createSummaryRefresher } from "./dataPointFilterControl/summaryRefresher.js";
+
 let filterControlInstance = 0;
+
+type CurrentRangeValues = {
+    max?: number;
+    min?: number;
+};
+
+type RangeStatsOptions = {
+    preserveSelection?: boolean;
+};
+
+type DataPointFilterGlobal = typeof globalThis & {
+    mapDataPointFilter?: MapDataPointFilterConfig | ResolvedDataPointFilterConfig;
+};
+
+type FilterChangePayload = {
+    action: "apply" | "clear";
+    config: MapDataPointFilterConfig;
+    result?: MetricFilterResult;
+};
+
+type FilterControlElement = HTMLDivElement & {
+    refreshSummary?: () => void;
+};
+
+type FilterMode = NonNullable<MapDataPointFilterConfig["mode"]>;
+
 /**
  * Creates the map data-point filter control.
  *
  * @returns The filter control container.
  */
-export function createDataPointFilterControl(onFilterChange) {
+export function createDataPointFilterControl(
+    onFilterChange?: (payload: FilterChangePayload) => void
+): HTMLDivElement {
     filterControlInstance += 1;
     const instanceId = filterControlInstance;
-    const { applyButton, container, panel, percentGroup, percentInput, rangeGroup, rangeOption, rangeRadio, rangeSliderMax, rangeSliderMin, rangeValueDisplay, resetButton, summary, toggleButton, topPercentOption, topPercentRadio, metricSelect, } = createFilterControlElements(instanceId);
+
+    const {
+        applyButton,
+        container,
+        panel,
+        percentGroup,
+        percentInput,
+        rangeGroup,
+        rangeOption,
+        rangeRadio,
+        rangeSliderMax,
+        rangeSliderMin,
+        rangeValueDisplay,
+        resetButton,
+        summary,
+        toggleButton,
+        topPercentOption,
+        topPercentRadio,
+        metricSelect,
+    } = createFilterControlElements(instanceId);
+
     const eventController = new AbortController();
     const { signal } = eventController;
-    const scheduleMicrotask = typeof queueMicrotask === "function"
-        ? queueMicrotask
-        : (callback) => {
-            void Promise.resolve().then(callback);
-        };
+
+    const scheduleMicrotask =
+        typeof queueMicrotask === "function"
+            ? queueMicrotask
+            : (callback: VoidFunction) => {
+                  void Promise.resolve().then(callback);
+              };
+
     const viewportPadding = 16;
     const { closePanel, openPanel } = createPanelController({
         container,
@@ -30,9 +102,11 @@ export function createDataPointFilterControl(onFilterChange) {
         toggleButton,
         viewportPadding,
     });
-    const metricStatsCache = new Map();
+
+    const metricStatsCache = new Map<string, MetricStatistics | null>();
+
     /** Resolve cached stats for a metric key to avoid repeated scans. */
-    const getMetricStats = (metricKey) => {
+    const getMetricStats = (metricKey: string): MetricStatistics | null => {
         if (metricStatsCache.has(metricKey)) {
             return metricStatsCache.get(metricKey) ?? null;
         }
@@ -40,6 +114,7 @@ export function createDataPointFilterControl(onFilterChange) {
         metricStatsCache.set(metricKey, stats);
         return stats;
     };
+
     /**
      * Determine if a metric has data available for this file.
      *
@@ -47,12 +122,18 @@ export function createDataPointFilterControl(onFilterChange) {
      * constant values (e.g., stationary rides or flat altitude), and users
      * still expect those metrics to appear in the selector.
      */
-    const isMetricAvailable = (metricKey) => {
+    const isMetricAvailable = (metricKey: string): boolean => {
         const stats = getMetricStats(metricKey);
-        return Boolean(stats && Number.isFinite(stats.count) && stats.count > 0);
+        return Boolean(
+            stats && Number.isFinite(stats.count) && stats.count > 0
+        );
     };
-    const availableMetrics = MAP_FILTER_METRICS.filter((metric) => isMetricAvailable(metric.key));
+
+    const availableMetrics = MAP_FILTER_METRICS.filter((metric) =>
+        isMetricAvailable(metric.key)
+    );
     metricSelect.replaceChildren();
+
     if (availableMetrics.length === 0) {
         const emptyOption = document.createElement("option");
         emptyOption.value = "";
@@ -65,8 +146,7 @@ export function createDataPointFilterControl(onFilterChange) {
         applyButton.disabled = true;
         resetButton.disabled = true;
         summary.textContent = "No map metrics available for this file.";
-    }
-    else {
+    } else {
         for (const metric of availableMetrics) {
             const option = document.createElement("option");
             option.value = metric.key;
@@ -78,38 +158,52 @@ export function createDataPointFilterControl(onFilterChange) {
         applyButton.disabled = false;
         resetButton.disabled = false;
     }
+
     const defaultMetric = availableMetrics[0]?.key ?? "";
-    const resolvedConfig = resolveInitialConfig(defaultMetric, percentInput.value);
-    const metricIsAvailable = availableMetrics.some((metric) => metric.key === resolvedConfig.metric);
+    const resolvedConfig = resolveInitialConfig(
+        defaultMetric,
+        percentInput.value
+    );
+    const metricIsAvailable = availableMetrics.some(
+        (metric) => metric.key === resolvedConfig.metric
+    );
     const metricKey = metricIsAvailable ? resolvedConfig.metric : defaultMetric;
     metricSelect.value = metricKey;
     percentInput.value = String(resolvedConfig.percent ?? 10);
+
     const shouldDisable = availableMetrics.length === 0 || !metricIsAvailable;
-    const initialConfig = {
+    const initialConfig: ResolvedDataPointFilterConfig = {
         ...resolvedConfig,
         enabled: shouldDisable ? false : resolvedConfig.enabled,
         metric: metricKey,
     };
-    let currentMode = initialConfig.mode === "valueRange" ? "valueRange" : "topPercent";
-    let currentStats = null;
-    let currentRangeValues = {};
+
+    let currentMode: FilterMode =
+        initialConfig.mode === "valueRange" ? "valueRange" : "topPercent";
+    let currentStats: MetricStatistics | null = null;
+    let currentRangeValues: CurrentRangeValues = {};
     if (typeof initialConfig.maxValue === "number") {
         currentRangeValues.max = initialConfig.maxValue;
     }
     if (typeof initialConfig.minValue === "number") {
         currentRangeValues.min = initialConfig.minValue;
     }
+
     topPercentRadio.checked = currentMode === "topPercent";
     rangeRadio.checked = currentMode === "valueRange";
+
     updateModeVisibility();
     updateModeSelectionState();
     updateRangeStats({ preserveSelection: true });
+
     if (!getDataPointFilterGlobal().mapDataPointFilter || shouldDisable) {
         updateGlobalFilter(toMapFilterConfig(initialConfig));
     }
+
     if (!metricIsAvailable && availableMetrics.length > 0) {
         summary.textContent = "Selected metric unavailable; filter disabled.";
     }
+
     if (initialConfig.enabled) {
         const previewConfig = toMapFilterConfig(initialConfig);
         const preview = previewFilterResult(previewConfig);
@@ -118,24 +212,27 @@ export function createDataPointFilterControl(onFilterChange) {
             summary.textContent = text;
         }
     }
+
     const refreshSummary = createSummaryRefresher({
         formatMetricValue: (value, stats) => formatMetricValue(value, stats),
         formatPercent: (value) => formatPercent(value),
         summary,
     });
+
     metricSelect.addEventListener("change", () => {
         currentRangeValues = {};
         updateRangeStats({ preserveSelection: false });
         scheduleMicrotask(() => refreshSummary());
     }, { signal });
+
     toggleButton.addEventListener("click", () => {
         if (panel.hidden) {
             openPanel();
-        }
-        else {
+        } else {
             closePanel();
         }
     }, { signal });
+
     topPercentRadio.addEventListener("change", () => {
         if (!topPercentRadio.checked) {
             return;
@@ -146,6 +243,7 @@ export function createDataPointFilterControl(onFilterChange) {
         updateModeSelectionState();
         scheduleMicrotask(() => refreshSummary());
     }, { signal });
+
     rangeRadio.addEventListener("change", () => {
         if (!rangeRadio.checked) {
             return;
@@ -157,6 +255,7 @@ export function createDataPointFilterControl(onFilterChange) {
         updateRangeStats({ preserveSelection: true });
         scheduleMicrotask(() => refreshSummary());
     }, { signal });
+
     const handleRangeMinInput = () => {
         if (currentMode !== "valueRange") {
             currentMode = "valueRange";
@@ -167,6 +266,7 @@ export function createDataPointFilterControl(onFilterChange) {
         }
         syncRangeSlider("min");
     };
+
     const handleRangeMaxInput = () => {
         if (currentMode !== "valueRange") {
             currentMode = "valueRange";
@@ -177,58 +277,95 @@ export function createDataPointFilterControl(onFilterChange) {
         }
         syncRangeSlider("max");
     };
+
     rangeSliderMin.addEventListener("input", handleRangeMinInput, { signal });
     rangeSliderMin.addEventListener("change", handleRangeMinInput, { signal });
     rangeSliderMax.addEventListener("input", handleRangeMaxInput, { signal });
     rangeSliderMax.addEventListener("change", handleRangeMaxInput, { signal });
+
     percentInput.addEventListener("change", () => {
-        const percentValue = clampPercent(Number.parseInt(percentInput.value, 10));
+        const percentValue = clampPercent(
+            Number.parseInt(percentInput.value, 10)
+        );
         percentInput.value = String(percentValue);
     }, { signal });
+
     applyButton.addEventListener("click", () => {
         const selectedMetricKey = metricSelect.value;
+
         if (currentMode === "valueRange") {
             if (!currentStats) {
-                showNotification("No data points available for that metric.", "info");
+                showNotification(
+                    "No data points available for that metric.",
+                    "info"
+                );
                 return;
             }
-            const minValue = clampRangeValue(currentRangeValues.min ?? currentStats.min, currentStats);
-            const maxValue = clampRangeValue(currentRangeValues.max ?? currentStats.max, currentStats);
-            const config = {
+
+            const minValue = clampRangeValue(
+                currentRangeValues.min ?? currentStats.min,
+                currentStats
+            );
+            const maxValue = clampRangeValue(
+                currentRangeValues.max ?? currentStats.max,
+                currentStats
+            );
+
+            const config: MapDataPointFilterConfig = {
                 enabled: true,
                 maxValue,
                 metric: selectedMetricKey,
                 minValue,
                 mode: "valueRange",
             };
+
             const preview = previewFilterResult(config);
-            const shouldEnable = preview &&
+            const shouldEnable =
+                preview &&
                 preview.isActive &&
                 !preview.reason &&
                 preview.selectedCount > 0;
+
             if (!shouldEnable) {
                 updateGlobalFilter({ ...config, enabled: false });
                 if (preview?.reason) {
                     showNotification(preview.reason, "info");
                     summary.textContent = preview.reason;
-                }
-                else {
-                    showNotification("No data points available for that range.", "info");
+                } else {
+                    showNotification(
+                        "No data points available for that range.",
+                        "info"
+                    );
                     summary.textContent =
                         "Filter disabled due to insufficient data.";
                 }
                 notifyChange("clear", config, preview);
                 return;
             }
+
             currentRangeValues = {
-                min: clampRangeValue(preview.appliedMin ?? minValue, currentStats),
-                max: clampRangeValue(preview.appliedMax ?? maxValue, currentStats),
+                min: clampRangeValue(
+                    preview.appliedMin ?? minValue,
+                    currentStats
+                ),
+                max: clampRangeValue(
+                    preview.appliedMax ?? maxValue,
+                    currentStats
+                ),
             };
+
             const nextMin = currentRangeValues.min ?? minValue;
             const nextMax = currentRangeValues.max ?? maxValue;
-            rangeSliderMin.value = toSliderString(nextMin, currentStats.decimals);
-            rangeSliderMax.value = toSliderString(nextMax, currentStats.decimals);
+            rangeSliderMin.value = toSliderString(
+                nextMin,
+                currentStats.decimals
+            );
+            rangeSliderMax.value = toSliderString(
+                nextMax,
+                currentStats.decimals
+            );
             updateRangeDisplay();
+
             updateGlobalFilter(config);
             closePanel();
             const summaryText = buildSummaryText(preview, config, currentStats);
@@ -238,53 +375,77 @@ export function createDataPointFilterControl(onFilterChange) {
             const minLabel = formatMetricValue(nextMin, currentStats);
             const maxLabel = formatMetricValue(nextMax, currentStats);
             const coverage = formatPercent(preview.percent ?? 0);
-            showNotification(`Showing ${preview.metricLabel ?? preview.metric} between ${minLabel} and ${maxLabel} (${coverage}% coverage)`, "success");
+            showNotification(
+                `Showing ${preview.metricLabel ?? preview.metric} between ${minLabel} and ${maxLabel} (${coverage}% coverage)`,
+                "success"
+            );
             notifyChange("apply", config, preview);
             return;
         }
-        const percentValue = clampPercent(Number.parseInt(percentInput.value, 10));
+
+        const percentValue = clampPercent(
+            Number.parseInt(percentInput.value, 10)
+        );
         percentInput.value = String(percentValue);
-        const config = {
+
+        const config: MapDataPointFilterConfig = {
             enabled: true,
             metric: selectedMetricKey,
             mode: "topPercent",
             percent: percentValue,
         };
+
         const preview = previewFilterResult(config);
-        const shouldEnable = preview &&
+        const shouldEnable =
+            preview &&
             preview.isActive &&
             !preview.reason &&
             preview.selectedCount > 0;
+
         if (!shouldEnable) {
             updateGlobalFilter({ ...config, enabled: false });
             if (preview?.reason) {
                 showNotification(preview.reason, "info");
                 summary.textContent = preview.reason;
-            }
-            else {
-                showNotification("No data points available for that metric.", "info");
+            } else {
+                showNotification(
+                    "No data points available for that metric.",
+                    "info"
+                );
                 summary.textContent =
                     "Filter disabled due to insufficient data.";
             }
             notifyChange("clear", config, preview);
             return;
         }
+
         updateGlobalFilter(config);
         closePanel();
         const summaryText = buildSummaryText(preview, config, currentStats);
         if (summaryText) {
             summary.textContent = summaryText;
         }
-        showNotification(`Showing top ${percentValue}% ${preview.metricLabel} data points`, "success");
+        showNotification(
+            `Showing top ${percentValue}% ${preview.metricLabel} data points`,
+            "success"
+        );
         notifyChange("apply", config, preview);
     }, { signal });
+
     resetButton.addEventListener("click", () => {
         const selectedMetricKey = metricSelect.value;
-        let clearedConfig;
+        let clearedConfig: MapDataPointFilterConfig;
+
         if (currentMode === "valueRange") {
             if (currentStats) {
-                const minValue = clampRangeValue(currentRangeValues.min ?? currentStats.min, currentStats);
-                const maxValue = clampRangeValue(currentRangeValues.max ?? currentStats.max, currentStats);
+                const minValue = clampRangeValue(
+                    currentRangeValues.min ?? currentStats.min,
+                    currentStats
+                );
+                const maxValue = clampRangeValue(
+                    currentRangeValues.max ?? currentStats.max,
+                    currentStats
+                );
                 clearedConfig = {
                     enabled: false,
                     maxValue,
@@ -292,17 +453,17 @@ export function createDataPointFilterControl(onFilterChange) {
                     minValue,
                     mode: "valueRange",
                 };
-            }
-            else {
+            } else {
                 clearedConfig = {
                     enabled: false,
                     metric: selectedMetricKey,
                     mode: "valueRange",
                 };
             }
-        }
-        else {
-            const percentValue = clampPercent(Number.parseInt(percentInput.value, 10));
+        } else {
+            const percentValue = clampPercent(
+                Number.parseInt(percentInput.value, 10)
+            );
             percentInput.value = String(percentValue);
             clearedConfig = {
                 enabled: false,
@@ -317,6 +478,7 @@ export function createDataPointFilterControl(onFilterChange) {
         showNotification("Map metric filtering cleared", "info");
         notifyChange("clear", clearedConfig);
     }, { signal });
+
     function updateModeVisibility() {
         const isRange = currentMode === "valueRange";
         percentGroup.style.display = isRange ? "none" : "";
@@ -324,13 +486,15 @@ export function createDataPointFilterControl(onFilterChange) {
         rangeGroup.style.display = isRange ? "" : "none";
         rangeGroup.setAttribute("aria-hidden", isRange ? "false" : "true");
     }
+
     function updateModeSelectionState() {
         topPercentOption.dataset["checked"] = topPercentRadio.checked
             ? "true"
             : "false";
         rangeOption.dataset["checked"] = rangeRadio.checked ? "true" : "false";
     }
-    function syncRangeSlider(source) {
+
+    function syncRangeSlider(source: "min" | "max"): void {
         if (!currentStats) {
             return;
         }
@@ -345,11 +509,16 @@ export function createDataPointFilterControl(onFilterChange) {
         if (minValue > maxValue) {
             if (source === "min") {
                 maxValue = minValue;
-                rangeSliderMax.value = toSliderString(maxValue, currentStats.decimals);
-            }
-            else {
+                rangeSliderMax.value = toSliderString(
+                    maxValue,
+                    currentStats.decimals
+                );
+            } else {
                 minValue = maxValue;
-                rangeSliderMin.value = toSliderString(minValue, currentStats.decimals);
+                rangeSliderMin.value = toSliderString(
+                    minValue,
+                    currentStats.decimals
+                );
             }
         }
         currentRangeValues = {
@@ -359,9 +528,15 @@ export function createDataPointFilterControl(onFilterChange) {
         updateRangeDisplay();
         scheduleMicrotask(() => refreshSummary());
     }
-    function updateRangeStats(options = {}) {
-        const { stats, rangeValues, sliderValues } = computeRangeState(metricSelect.value, toCompleteRangeValues(currentRangeValues), options);
+
+    function updateRangeStats(options: RangeStatsOptions = {}): void {
+        const { stats, rangeValues, sliderValues } = computeRangeState(
+            metricSelect.value,
+            toCompleteRangeValues(currentRangeValues),
+            options
+        );
         currentStats = stats;
+
         if (!stats || !rangeValues || !sliderValues) {
             rangeSliderMin.disabled = true;
             rangeSliderMax.disabled = true;
@@ -369,35 +544,53 @@ export function createDataPointFilterControl(onFilterChange) {
             rangeGroup.dataset["disabled"] = "true";
             return;
         }
+
         delete rangeGroup.dataset["disabled"];
         rangeSliderMin.disabled = false;
         rangeSliderMax.disabled = false;
         rangeSliderMin.min = rangeSliderMax.min = String(stats.min);
         rangeSliderMin.max = rangeSliderMax.max = String(stats.max);
         rangeSliderMin.step = rangeSliderMax.step = String(stats.step);
+
         currentRangeValues = rangeValues;
         rangeSliderMin.value = sliderValues.min;
         rangeSliderMax.value = sliderValues.max;
         updateRangeDisplay();
     }
+
     function updateRangeDisplay() {
         if (!currentStats) {
             rangeValueDisplay.textContent = "Range unavailable";
             return;
         }
-        const minValue = clampRangeValue(currentRangeValues.min ?? currentStats.min, currentStats);
-        const maxValue = clampRangeValue(currentRangeValues.max ?? currentStats.max, currentStats);
-        rangeValueDisplay.textContent = `${formatMetricValue(minValue, currentStats)} – ${formatMetricValue(maxValue, currentStats)} ${currentStats.metricLabel}`;
+        const minValue = clampRangeValue(
+            currentRangeValues.min ?? currentStats.min,
+            currentStats
+        );
+        const maxValue = clampRangeValue(
+            currentRangeValues.max ?? currentStats.max,
+            currentStats
+        );
+        rangeValueDisplay.textContent = `${formatMetricValue(minValue, currentStats)} – ${formatMetricValue(
+            maxValue,
+            currentStats
+        )} ${currentStats.metricLabel}`;
     }
+
     container.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !panel.hidden) {
             closePanel();
             toggleButton.focus();
         }
     }, { signal });
-    function notifyChange(action, config, result) {
+
+    function notifyChange(
+        action: "apply" | "clear",
+        config: MapDataPointFilterConfig,
+        result?: MetricFilterResult | null
+    ): void {
         if (typeof onFilterChange === "function") {
-            const payload = { action, config };
+            const payload: FilterChangePayload = { action, config };
             if (result) {
                 payload.result = result;
             }
@@ -405,25 +598,39 @@ export function createDataPointFilterControl(onFilterChange) {
         }
         scheduleMicrotask(() => refreshSummary());
     }
-    container.refreshSummary = refreshSummary;
-    container.addEventListener("ffv:data-point-filter:dispose", () => eventController.abort(), { once: true, signal });
+
+    (container as FilterControlElement).refreshSummary = refreshSummary;
+    (container as FilterControlElement).addEventListener(
+        "ffv:data-point-filter:dispose",
+        () => eventController.abort(),
+        { once: true, signal }
+    );
+
     return container;
 }
-function getDataPointFilterGlobal() {
-    return globalThis;
+
+function getDataPointFilterGlobal(): DataPointFilterGlobal {
+    return globalThis as DataPointFilterGlobal;
 }
-function toCompleteRangeValues(values) {
+
+function toCompleteRangeValues(
+    values: CurrentRangeValues
+): { max: number; min: number } | null {
     return typeof values.max === "number" && typeof values.min === "number"
         ? { max: values.max, min: values.min }
         : null;
 }
-function toMapFilterConfig(config) {
-    const normalized = {
+
+function toMapFilterConfig(
+    config: MapDataPointFilterConfig | ResolvedDataPointFilterConfig
+): MapDataPointFilterConfig {
+    const normalized: MapDataPointFilterConfig = {
         enabled: config.enabled,
         metric: config.metric,
     };
+
     if (config.mode) {
-        normalized.mode = config.mode;
+        normalized.mode = config.mode as MapFilterMode;
     }
     if (typeof config.percent === "number") {
         normalized.percent = config.percent;
@@ -434,5 +641,6 @@ function toMapFilterConfig(config) {
     if (typeof config.maxValue === "number") {
         normalized.maxValue = config.maxValue;
     }
+
     return normalized;
 }
