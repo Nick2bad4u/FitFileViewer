@@ -211,6 +211,7 @@
         "utils/charts/core/renderChartStateView.ts",
         "utils/charts/core/renderChartStartup.ts",
         "utils/charts/core/renderChartThemeHelpers.ts",
+        "utils/charts/core/renderChartTiming.ts",
         "utils/charts/core/updateChartAnimations.ts",
         "utils/charts/core/updateGlobalChartStatusIndicator.ts",
         "utils/charts/core/chartUpdater.ts",

@@ -153,6 +153,10 @@ import { createChartActions } from "./renderChartActions.js";
 import { registerChartStartup } from "./renderChartStartup.js";
 import { createChartSettingsManager } from "./renderChartSettingsManager.js";
 import { getChartStatus as getChartStatusSnapshot } from "./renderChartStatus.js";
+import {
+    createRenderTimingGate,
+    RENDER_DEBOUNCE_MS,
+} from "./renderChartTiming.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -179,9 +183,7 @@ export const chartSettingsManager = createChartSettingsManager({
     updateState: callUpdateState,
 });
 
-// Debouncing variables for renderChartJS
-let lastRenderTime = 0;
-const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
+const renderTimingGate = createRenderTimingGate(RENDER_DEBOUNCE_MS);
 
 // A stable debounced re-render function.
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
@@ -446,20 +448,7 @@ export async function renderChartJS(targetContainer, options = {}) {
             }
         }
 
-        // Debounce multiple rapid calls
-        const now = Date.now();
-        if (now - lastRenderTime < RENDER_DEBOUNCE_MS) {
-            console.log("[ChartJS] Debouncing rapid render calls");
-
-            // Wait for the debounce period, then continue with current execution
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(true);
-                }, RENDER_DEBOUNCE_MS);
-            });
-            // Do NOT return early; continue to full rendering so tests can observe all effects
-        }
-        lastRenderTime = Date.now();
+        await renderTimingGate.waitIfRapidRender();
 
         const performanceStart = performance.now();
 
