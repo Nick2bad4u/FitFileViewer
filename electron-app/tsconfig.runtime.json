@@ -46,6 +46,7 @@
     },
     "files": [
         "main/constants.ts",
+        "main/logging/logWithContext.ts",
         "windowStateUtils.ts",
         "utils.ts",
         "utils/config/constants.ts",
