@@ -1,6 +1,7 @@
 /**
  * Debug utilities for inspecting sensor data extracted from FIT files.
  */
+
 import {
     getManufacturerName,
     getProductName,
@@ -8,36 +9,95 @@ import {
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
-function isRecord(value) {
+
+type SensorEntry = Record<string, unknown> & {
+    readonly device_index?: unknown;
+    readonly device_type?: unknown;
+    readonly deviceIndex?: unknown;
+    readonly deviceType?: unknown;
+    readonly garmin_product?: unknown;
+    readonly garminProduct?: unknown;
+    readonly manufacturer?: unknown;
+    readonly manufacturer_id?: unknown;
+    readonly manufacturerId?: unknown;
+    readonly product?: unknown;
+    readonly product_name?: unknown;
+    readonly productName?: unknown;
+    readonly serial_number?: unknown;
+    readonly serialNumber?: unknown;
+    readonly source: string;
+};
+
+type FitGlobalData = Record<string, unknown>;
+
+type RendererGlobalData = typeof globalThis & {
+    readonly globalData?: unknown;
+};
+
+type SensorIssue = {
+    readonly actualManufacturer?: unknown;
+    readonly index?: number;
+    readonly product?: unknown;
+};
+
+type SensorAnalysis = {
+    readonly manufacturerIssues: SensorIssue[];
+    readonly productIssues: SensorIssue[];
+    readonly summary: Record<string, unknown>;
+    readonly totalSensors: number;
+};
+
+type ManufacturerIdResult = {
+    readonly formatted: string;
+    readonly id: number;
+    readonly resolved: unknown;
+};
+
+type ProductIdResult = {
+    readonly formattedProduct: string;
+    readonly manufacturerId: number;
+    readonly manufacturerName: unknown;
+    readonly productId: number;
+    readonly resolvedProduct: unknown;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object";
 }
-function getGlobalData() {
-    const { globalData } = globalThis;
+
+function getGlobalData(): FitGlobalData | null {
+    const { globalData } = globalThis as RendererGlobalData;
     return isRecord(globalData) ? globalData : null;
 }
-function getArrayValue(data, key) {
+
+function getArrayValue(data: FitGlobalData, key: string): unknown[] {
     const value = data[key];
     return Array.isArray(value) ? value : [];
 }
-function withSource(value, source) {
+
+function withSource(value: unknown, source: string): SensorEntry {
     return {
         ...(isRecord(value) ? value : {}),
         source,
     };
 }
+
 /**
  * Quick data availability check
  *
  * @returns Current global FIT data, or null when no parsed data is loaded.
  */
-export function checkDataAvailability() {
+export function checkDataAvailability(): FitGlobalData | null {
     const data = getGlobalData();
+
     console.log("🔍 DATA AVAILABILITY CHECK:");
     console.log(`window.globalData exists: ${Boolean(data)}`);
     console.log(`window.globalData type: ${typeof data}`);
+
     if (data) {
         console.log(`Keys count: ${Object.keys(data).length}`);
         console.log(`Available keys: ${Object.keys(data).join(", ")}`);
+
         // Check specifically for sensor-related data
         const sensorKeys = Object.keys(data).filter(
             (key) =>
@@ -50,23 +110,27 @@ export function checkDataAvailability() {
             `Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`
         );
     }
+
     return data;
 }
+
 /**
  * Extracts and displays detailed sensor information from global data.
  *
  * @returns Sensor analysis summary, or null if no data is available.
  */
-export function debugSensorInfo() {
+export function debugSensorInfo(): SensorAnalysis | null {
     const data = getGlobalData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
     }
+
     console.log("🔍 SENSOR INFORMATION DEBUG");
     console.log("=".repeat(50));
     // Look for sensor data in different locations
-    const sensors = [];
+    const sensors: SensorEntry[] = [];
+
     // Check deviceInfoMesgs (actual FIT file structure)
     const deviceInfoMesgs = getArrayValue(data, "deviceInfoMesgs");
     if (deviceInfoMesgs.length > 0) {
@@ -79,6 +143,7 @@ export function debugSensorInfo() {
             )
         );
     }
+
     // Check deviceSettingsMesgs
     const deviceSettingsMesgs = getArrayValue(data, "deviceSettingsMesgs");
     if (deviceSettingsMesgs.length > 0) {
@@ -91,6 +156,7 @@ export function debugSensorInfo() {
             )
         );
     }
+
     // Check legacy device_info format (for backward compatibility)
     const deviceInfo = getArrayValue(data, "device_info");
     if (deviceInfo.length > 0) {
@@ -99,6 +165,7 @@ export function debugSensorInfo() {
             ...deviceInfo.map((device) => withSource(device, "device_info"))
         );
     }
+
     // Check sessionMesgs messages for sensor info
     const sessionMesgs = getArrayValue(data, "sessionMesgs");
     if (sessionMesgs.length > 0) {
@@ -112,6 +179,7 @@ export function debugSensorInfo() {
             sensors.push(session);
         }
     }
+
     // Check legacy session format
     const sessions = getArrayValue(data, "session");
     if (sessions.length > 0) {
@@ -121,6 +189,7 @@ export function debugSensorInfo() {
             sensors.push(session);
         }
     }
+
     // Check fileIdMesgs for creator info
     const fileIdMesgs = getArrayValue(data, "fileIdMesgs");
     if (fileIdMesgs.length > 0) {
@@ -134,6 +203,7 @@ export function debugSensorInfo() {
             sensors.push(fileId);
         }
     }
+
     // Check legacy file_id format
     const fileIds = getArrayValue(data, "file_id");
     if (fileIds.length > 0) {
@@ -143,6 +213,7 @@ export function debugSensorInfo() {
             sensors.push(fileId);
         }
     }
+
     // Check for additional sensor-related data.
     const sensorKeys = Object.keys(data).filter(
         (key) =>
@@ -150,23 +221,28 @@ export function debugSensorInfo() {
             key.includes("device") ||
             key.includes("manufacturer")
     );
+
     if (sensorKeys.length > 0) {
         console.log(
             `🔧 Additional sensor-related keys found: ${sensorKeys.join(", ")}`
         );
     }
+
     if (sensors.length === 0) {
         console.warn("⚠️ No sensor information found in the data");
         return null;
     }
+
     console.log(`\n🎯 ANALYZING ${sensors.length} SENSOR ENTRIES:`);
     console.log("-".repeat(50));
-    const analysis = {
+
+    const analysis: SensorAnalysis = {
         manufacturerIssues: [],
         productIssues: [],
         summary: {},
         totalSensors: sensors.length,
     };
+
     for (const [index, sensor] of sensors.entries()) {
         console.log(`\n[${index + 1}] Source: ${sensor.source}`);
         console.log(`    Raw Data:`, {
@@ -187,16 +263,19 @@ export function debugSensorInfo() {
         }); // Check manufacturer resolution
         let resolvedManufacturer = sensor.manufacturer;
         const manufacturerId = sensor.manufacturerId || sensor.manufacturer_id;
+
         if (manufacturerId && !resolvedManufacturer) {
             resolvedManufacturer = getManufacturerName(manufacturerId);
             console.log(
                 `    📋 Resolved manufacturer ID ${manufacturerId} → "${resolvedManufacturer}"`
             );
         }
+
         // Check product resolution
         const productField =
             sensor.product || sensor.productName || sensor.product_name;
         let resolvedProduct = productField;
+
         if (manufacturerId && productField) {
             resolvedProduct = getProductName(manufacturerId, productField);
             if (resolvedProduct !== productField) {
@@ -216,6 +295,7 @@ export function debugSensorInfo() {
                           productField
                       )
                     : productField;
+
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(
             `    🏭 Formatted Manufacturer: "${formattedManufacturer}"`
@@ -224,10 +304,12 @@ export function debugSensorInfo() {
             console.log(`    📦 Formatted Product: "${formattedProduct}"`);
         }
     }
+
     // Summary
     console.log(`\n📊 SUMMARY:`);
     console.log(`    Total sensors: ${analysis.totalSensors}`);
     console.log(`    Product field issues: ${analysis.productIssues.length}`);
+
     if (analysis.productIssues.length > 0) {
         console.log(`\n⚠️  PRODUCT FIELD ISSUES DETECTED:`);
         for (const issue of analysis.productIssues) {
@@ -236,17 +318,20 @@ export function debugSensorInfo() {
             );
         }
     }
+
     return analysis;
 }
+
 /**
  * Shows all available global data keys for debugging.
  */
-export function showDataKeys() {
+export function showDataKeys(): void {
     const data = getGlobalData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
+
     console.log("🗂️  AVAILABLE DATA KEYS:");
     for (const key of Object.keys(data)) {
         const count = Array.isArray(data[key]) ? data[key].length : 1;
@@ -255,16 +340,18 @@ export function showDataKeys() {
         );
     }
 }
+
 /**
  * Shows only the formatted sensor names from the loaded global data.
  */
-export function showSensorNames() {
+export function showSensorNames(): void {
     const data = getGlobalData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
-    const sensors = [];
+
+    const sensors: SensorEntry[] = [];
     // Collect all potential sensors
     const deviceInfoMesgs = getArrayValue(data, "deviceInfoMesgs");
     if (deviceInfoMesgs.length > 0) {
@@ -304,12 +391,14 @@ export function showSensorNames() {
     if (fileIds[0]) {
         sensors.push(withSource(fileIds[0], "file_id"));
     }
+
     console.log("🏷️  SENSOR NAMES:");
     for (const [index, sensor] of sensors.entries()) {
         const formattedName = formatSensorName(sensor);
         console.log(`  ${index + 1}. ${formattedName} (${sensor.source})`);
     }
 }
+
 /**
  * Tests manufacturer ID resolution.
  *
@@ -317,15 +406,20 @@ export function showSensorNames() {
  *
  * @returns Resolution and formatting details for the manufacturer ID.
  */
-export function testManufacturerId(manufacturerId) {
+export function testManufacturerId(
+    manufacturerId: number | string
+): ManufacturerIdResult {
     const id = Number.parseInt(String(manufacturerId), 10),
         resolved = getManufacturerName(id),
         formatted = formatManufacturer(resolved);
+
     console.log(`🧪 TESTING MANUFACTURER ID: ${id}`);
     console.log(`    Resolved to: "${resolved}"`);
     console.log(`    Formatted as: "${formatted}"`);
+
     return { formatted, id, resolved };
 }
+
 /**
  * Tests product ID resolution.
  *
@@ -334,12 +428,16 @@ export function testManufacturerId(manufacturerId) {
  *
  * @returns Resolution and formatting details for the product ID.
  */
-export function testProductId(manufacturerId, productId) {
+export function testProductId(
+    manufacturerId: number | string,
+    productId: number | string
+): ProductIdResult {
     const mfgId = Number.parseInt(String(manufacturerId), 10),
         prodId = Number.parseInt(String(productId), 10),
         formattedProduct = formatProduct(mfgId, prodId),
         manufacturerName = getManufacturerName(mfgId),
         resolvedProduct = getProductName(mfgId, prodId);
+
     console.log(`🧪 TESTING PRODUCT ID: ${prodId} for manufacturer ${mfgId}`);
     console.log(`    Manufacturer: "${manufacturerName}"`);
     console.log(`    Product resolved to: "${resolvedProduct}"`);
@@ -347,6 +445,7 @@ export function testProductId(manufacturerId, productId) {
     console.log(
         `    Full sensor name: "${formatManufacturer(manufacturerName)} ${formattedProduct}"`
     );
+
     return {
         formattedProduct,
         manufacturerId: mfgId,
@@ -355,5 +454,6 @@ export function testProductId(manufacturerId, productId) {
         resolvedProduct,
     };
 }
+
 // Debug functions are exported for use in renderer.js
 // The renderer will expose them globally in development mode
