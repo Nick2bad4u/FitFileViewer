@@ -165,6 +165,7 @@ import {
     shouldAbortInactiveChartRender,
     touchStringTargetContainer,
 } from "./renderChartPreflight.js";
+import { completeChartRenderState } from "./renderChartCompletionState.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
@@ -922,19 +923,15 @@ async function renderChartsWithData(
         { totalChartsRendered }
     );
 
-    // Update previous chart state for future comparisons (safe wrapper)
-    updatePreviousChartState(
-        totalChartsRendered,
-        visibleFieldCount,
-        Date.now()
-    );
-
-    emitChartsRenderedEvent(
+    completeChartRenderState(
         {
             CustomEventConstructor: globalThis.CustomEvent,
             doc: document,
+            emitChartsRenderedEvent,
+            getComputedStateManager: getComputedStateManagerSafe,
             getState,
             now: Date.now,
+            updatePreviousChartState,
         },
         {
             renderTime,
@@ -942,14 +939,6 @@ async function renderChartsWithData(
             visibleFieldCount,
         }
     );
-
-    // Update computed state that depends on rendered charts
-    try {
-        const csm2 = getComputedStateManagerSafe();
-        csm2.invalidateComputed?.("charts.summary");
-    } catch {
-        /* ignore */
-    }
 
     return true;
 }
