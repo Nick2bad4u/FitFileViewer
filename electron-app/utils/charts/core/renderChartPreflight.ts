@@ -1,10 +1,5 @@
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
-
-interface RenderChartOptionsInput {
-    allowInactiveTab?: boolean;
-    skipControls?: boolean;
-    skipTabAbort?: boolean;
-}
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface NormalizedRenderChartOptions {
     allowInactiveTab: boolean;
@@ -36,12 +31,13 @@ export function normalizeRenderChartOptions(
         allowInactiveTab = false,
         skipControls = false,
         skipTabAbort = false,
-    } =
-        options !== null && typeof options === "object"
-            ? (options as RenderChartOptionsInput)
-            : {};
+    } = isObjectRecord(options) ? options : {};
 
-    return { allowInactiveTab, skipControls, skipTabAbort };
+    return {
+        allowInactiveTab: Boolean(allowInactiveTab),
+        skipControls: Boolean(skipControls),
+        skipTabAbort: Boolean(skipTabAbort),
+    };
 }
 
 /**
@@ -68,7 +64,8 @@ export function shouldAbortInactiveChartRender(
 }
 
 /**
- * Touches a string target ID early so legacy DOM access expectations are preserved.
+ * Touches a string target ID early so legacy DOM access expectations are
+ * preserved.
  */
 export function touchStringTargetContainer(
     doc: Document,

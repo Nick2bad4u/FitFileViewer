@@ -1,12 +1,19 @@
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 /**
  * Normalizes caller-provided render options to explicit booleans.
  */
 export function normalizeRenderChartOptions(options) {
-    const { allowInactiveTab = false, skipControls = false, skipTabAbort = false, } = options !== null && typeof options === "object"
-        ? options
-        : {};
-    return { allowInactiveTab, skipControls, skipTabAbort };
+    const {
+        allowInactiveTab = false,
+        skipControls = false,
+        skipTabAbort = false,
+    } = isObjectRecord(options) ? options : {};
+    return {
+        allowInactiveTab: Boolean(allowInactiveTab),
+        skipControls: Boolean(skipControls),
+        skipTabAbort: Boolean(skipTabAbort),
+    };
 }
 /**
  * Returns true when chart rendering should be skipped for an inactive tab.
@@ -20,11 +27,14 @@ export function shouldAbortInactiveChartRender(dependencies, allowInactiveTab) {
     if (activeTab === "chart" || activeTab === "chartjs") {
         return false;
     }
-    dependencies.log(`[ChartJS] Skipping render - chart tab not active (current tab: ${String(activeTab)})`);
+    dependencies.log(
+        `[ChartJS] Skipping render - chart tab not active (current tab: ${String(activeTab)})`
+    );
     return true;
 }
 /**
- * Touches a string target ID early so legacy DOM access expectations are preserved.
+ * Touches a string target ID early so legacy DOM access expectations are
+ * preserved.
  */
 export function touchStringTargetContainer(doc, targetContainer) {
     if (typeof targetContainer !== "string") {
@@ -35,8 +45,7 @@ export function touchStringTargetContainer(doc, targetContainer) {
             ? targetContainer.slice(1)
             : targetContainer;
         getElementByIdFlexible(doc, normalizedId);
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }

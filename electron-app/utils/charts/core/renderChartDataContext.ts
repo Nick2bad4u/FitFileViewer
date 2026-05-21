@@ -1,3 +1,5 @@
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
+
 interface BeginChartDataRenderContextDependencies {
     readonly doc: Pick<Document, "createElement">;
     readonly isChartDebugEnabled: () => boolean;
@@ -20,9 +22,7 @@ export interface ChartDataRenderContext {
 function normalizeRenderOptions(
     options: unknown
 ): Readonly<Record<string, unknown>> {
-    return options !== null && typeof options === "object"
-        ? (options as Readonly<Record<string, unknown>>)
-        : {};
+    return isObjectRecord(options) ? options : {};
 }
 
 function readBooleanOption(
@@ -37,8 +37,10 @@ function readBooleanOption(
 /**
  * Captures per-call chart data render flags and validates DOM write capability.
  *
- * @param dependencies - Runtime probes and environment accessors for the render pass.
+ * @param dependencies - Runtime probes and environment accessors for the render
+ *   pass.
  * @param options - Caller-provided render options.
+ *
  * @returns Normalized render context used by the chart data pipeline.
  */
 export function beginChartDataRenderContext(

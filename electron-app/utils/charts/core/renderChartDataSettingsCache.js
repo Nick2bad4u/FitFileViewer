@@ -1,4 +1,5 @@
 import { createDataSettingsSignature } from "./renderChartSettingsSignature.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 let lastDataSettingsSignature = "";
 /** Clears the remembered data settings signature. */
 export function clearDataSettingsSignatureCache() {
@@ -9,12 +10,14 @@ export function clearDataSettingsSignatureCache() {
  * first observed signature.
  */
 export function ensureDataSettingsSignature(settings, onChanged) {
-    const signature = createDataSettingsSignature(settings !== null && typeof settings === "object"
-        ? settings
-        : undefined);
-    if (signature &&
+    const signature = createDataSettingsSignature(
+        isObjectRecord(settings) ? settings : undefined
+    );
+    if (
+        signature &&
         lastDataSettingsSignature &&
-        lastDataSettingsSignature !== signature) {
+        lastDataSettingsSignature !== signature
+    ) {
         onChanged();
     }
     lastDataSettingsSignature = signature;

@@ -1,5 +1,6 @@
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartLegendItemBoxPlugin } from "../plugins/chartLegendItemBoxPlugin.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface ChartLike extends Record<string, unknown> {
     defaults?: {
@@ -25,15 +26,14 @@ interface ChartPluginGlobal extends Record<string, unknown> {
 
 function isChartRegistered(chart: unknown): boolean {
     return Boolean(
-        chart &&
-            typeof chart === "object" &&
-            "__ffvPluginsRegistered" in chart &&
-            (chart as Record<string, unknown>)["__ffvPluginsRegistered"]
+        isObjectRecord(chart) &&
+        "__ffvPluginsRegistered" in chart &&
+        chart["__ffvPluginsRegistered"]
     );
 }
 
 function markChartRegistered(chart: unknown): void {
-    if (!chart || typeof chart !== "object") {
+    if (!isObjectRecord(chart)) {
         return;
     }
 
@@ -128,7 +128,10 @@ function registerPluginsForChart(
  */
 export function registerChartJsPlugins(chartGlobal: ChartPluginGlobal): void {
     try {
-        if (chartGlobal && !Object.getOwnPropertyDescriptor(chartGlobal, "Chart")?.set) {
+        if (
+            chartGlobal &&
+            !Object.getOwnPropertyDescriptor(chartGlobal, "Chart")?.set
+        ) {
             let currentChart = chartGlobal.Chart;
 
             Object.defineProperty(chartGlobal, "Chart", {

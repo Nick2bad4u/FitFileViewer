@@ -1,4 +1,5 @@
 import { createDataSettingsSignature } from "./renderChartSettingsSignature.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 /** Callback invoked when the chart data-affecting settings signature changes. */
 export type DataSettingsChangedHandler = () => void;
@@ -19,9 +20,7 @@ export function ensureDataSettingsSignature(
     onChanged: DataSettingsChangedHandler
 ): string {
     const signature = createDataSettingsSignature(
-        settings !== null && typeof settings === "object"
-            ? (settings as Record<string, unknown>)
-            : undefined
+        isObjectRecord(settings) ? settings : undefined
     );
     if (
         signature &&

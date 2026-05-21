@@ -1,12 +1,11 @@
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 function getRecordValue(record, key) {
     const value = record[key];
     return typeof value === "number" || value === null ? value : null;
 }
 function getFieldVisibility(chartSettings) {
     const fieldVisibility = chartSettings["fieldVisibility"];
-    return fieldVisibility && typeof fieldVisibility === "object"
-        ? fieldVisibility
-        : {};
+    return isObjectRecord(fieldVisibility) ? fieldVisibility : {};
 }
 /**
  * Build a Chart.js configuration object from a declarative spec and theme
@@ -14,12 +13,14 @@ function getFieldVisibility(chartSettings) {
  *
  * @param spec - Declarative chart specification.
  * @param themeConfig - Theme configuration.
+ *
  * @returns Chart.js configuration object.
  */
 export function buildChartConfigFromSpec(spec, themeConfig) {
     const colors = themeConfig?.colors ?? {};
     const datasets = spec.datasets.map((dataset) => {
-        const baseColor = dataset.borderColor ??
+        const baseColor =
+            dataset.borderColor ??
             dataset.backgroundColor ??
             (dataset.colorRole ? colors[dataset.colorRole] : undefined) ??
             colors["primary"] ??
@@ -86,30 +87,43 @@ export function buildChartConfigFromSpec(spec, themeConfig) {
     };
 }
 /**
- * Build a chart specification from a declarative definition and raw record data.
+ * Build a chart specification from a declarative definition and raw record
+ * data.
  *
  * @param definition - Declarative chart definition.
  * @param records - Raw record rows.
  * @param options - Optional settings and default palette.
+ *
  * @returns Chart specification.
  */
-export function buildChartSpecFromDefinition(definition, records, options = {}) {
-    const { chartSettings = {}, defaultColorPalette = [] } = options, fieldVisibility = getFieldVisibility(chartSettings);
+export function buildChartSpecFromDefinition(
+    definition,
+    records,
+    options = {}
+) {
+    const { chartSettings = {}, defaultColorPalette = [] } = options,
+        fieldVisibility = getFieldVisibility(chartSettings);
     const labels = definition.labelSelector
-        ? records.map((record, index) => definition.labelSelector?.(record, index) ?? index)
+        ? records.map(
+              (record, index) =>
+                  definition.labelSelector?.(record, index) ?? index
+          )
         : records.map((_, index) => index);
     const datasets = definition.datasets.map((dataset, datasetIndex) => {
-        const color = dataset.color ?? defaultColorPalette[datasetIndex], data = records.map((record, recordIndex) => {
-            const rawValue = dataset.valueSelector
-                ? dataset.valueSelector(record, recordIndex)
-                : dataset.dataKey
-                    ? getRecordValue(record, dataset.dataKey)
-                    : null;
-            return dataset.transform
-                ? dataset.transform(rawValue, record, recordIndex)
-                : rawValue;
-        });
-        const visibilityOverride = fieldVisibility[dataset.id], isHidden = visibilityOverride === "hidden" || dataset.hidden === true;
+        const color = dataset.color ?? defaultColorPalette[datasetIndex],
+            data = records.map((record, recordIndex) => {
+                const rawValue = dataset.valueSelector
+                    ? dataset.valueSelector(record, recordIndex)
+                    : dataset.dataKey
+                      ? getRecordValue(record, dataset.dataKey)
+                      : null;
+                return dataset.transform
+                    ? dataset.transform(rawValue, record, recordIndex)
+                    : rawValue;
+            });
+        const visibilityOverride = fieldVisibility[dataset.id],
+            isHidden =
+                visibilityOverride === "hidden" || dataset.hidden === true;
         const chartDataset = {
             ...dataset.datasetOptions,
             data,
@@ -152,8 +166,12 @@ export function buildChartSpecFromDefinition(definition, records, options = {}) 
     });
 }
 function createChartSpec(input) {
-    const labels = input.labels, labelIsNumeric = labels.length > 0 &&
-        labels.every((label) => typeof label === "number"), chartType = input.chartType === "area" ? "line" : input.chartType, axes = [];
+    const labels = input.labels,
+        labelIsNumeric =
+            labels.length > 0 &&
+            labels.every((label) => typeof label === "number"),
+        chartType = input.chartType === "area" ? "line" : input.chartType,
+        axes = [];
     if (input.axes?.x?.label) {
         axes.push({
             display: true,

@@ -1,3 +1,5 @@
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
+
 /**
  * Dataset payload used by declarative chart specs.
  */
@@ -141,9 +143,7 @@ function getFieldVisibility(
     chartSettings: Record<string, unknown>
 ): Record<string, unknown> {
     const fieldVisibility = chartSettings["fieldVisibility"];
-    return fieldVisibility && typeof fieldVisibility === "object"
-        ? (fieldVisibility as Record<string, unknown>)
-        : {};
+    return isObjectRecord(fieldVisibility) ? fieldVisibility : {};
 }
 
 /**
@@ -152,6 +152,7 @@ function getFieldVisibility(
  *
  * @param spec - Declarative chart specification.
  * @param themeConfig - Theme configuration.
+ *
  * @returns Chart.js configuration object.
  */
 export function buildChartConfigFromSpec(
@@ -233,11 +234,13 @@ export function buildChartConfigFromSpec(
 }
 
 /**
- * Build a chart specification from a declarative definition and raw record data.
+ * Build a chart specification from a declarative definition and raw record
+ * data.
  *
  * @param definition - Declarative chart definition.
  * @param records - Raw record rows.
  * @param options - Optional settings and default palette.
+ *
  * @returns Chart specification.
  */
 export function buildChartSpecFromDefinition(
@@ -249,8 +252,9 @@ export function buildChartSpecFromDefinition(
         fieldVisibility = getFieldVisibility(chartSettings);
 
     const labels = definition.labelSelector
-        ? records.map((record, index) =>
-              definition.labelSelector?.(record, index) ?? index
+        ? records.map(
+              (record, index) =>
+                  definition.labelSelector?.(record, index) ?? index
           )
         : records.map((_, index) => index);
 
