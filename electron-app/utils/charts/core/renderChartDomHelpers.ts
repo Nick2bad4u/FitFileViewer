@@ -1,4 +1,5 @@
 import { clearElement } from "../../dom/index.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 const ELEMENT_NODE = 1;
 
@@ -8,10 +9,9 @@ const ELEMENT_NODE = 1;
  */
 export function isElement(maybe: unknown): maybe is HTMLElement {
     return (
-        maybe !== null &&
-        typeof maybe === "object" &&
+        isObjectRecord(maybe) &&
         "nodeType" in maybe &&
-        maybe.nodeType === ELEMENT_NODE
+        maybe["nodeType"] === ELEMENT_NODE
     );
 }
 

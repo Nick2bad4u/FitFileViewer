@@ -58,12 +58,7 @@ function normalizeStartTime(startTime: ActivityStartTime): null | number {
         return startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
     }
 
-    if (
-        startTime &&
-        typeof startTime === "object" &&
-        "getTime" in startTime &&
-        typeof startTime.getTime === "function"
-    ) {
+    if (startTime instanceof Date) {
         return startTime.getTime() / 1000;
     }
 
@@ -75,10 +70,7 @@ function normalizeTimestamp(rawTimestamp: unknown): null | number {
         return rawTimestamp.getTime() / 1000;
     }
 
-    if (
-        typeof rawTimestamp === "number" &&
-        Number.isFinite(rawTimestamp)
-    ) {
+    if (typeof rawTimestamp === "number" && Number.isFinite(rawTimestamp)) {
         return rawTimestamp > 1_000_000_000_000
             ? rawTimestamp / 1000
             : rawTimestamp;

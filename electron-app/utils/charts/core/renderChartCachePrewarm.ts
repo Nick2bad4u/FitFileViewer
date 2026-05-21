@@ -1,5 +1,5 @@
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
-import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
     isNonEmptyChartDataRecordArray,
     type ActivityStartTime,
@@ -71,16 +71,13 @@ function getFieldsToPrewarm(
     const fields = getFormatChartFieldsSafe();
     let fieldsToPrewarm = Array.isArray(fields)
         ? fields.filter(
-              (field) =>
-                  (getFieldVisibility(field) || "visible") !== "hidden"
+              (field) => (getFieldVisibility(field) || "visible") !== "hidden"
           )
         : [];
 
     if (!fieldsToPrewarm.length) {
         try {
-            const sample =
-                recordMesgs.find((row) => row && typeof row === "object") ??
-                {};
+            const sample = recordMesgs.find(isObjectRecord) ?? {};
             fieldsToPrewarm = Object.keys(sample)
                 .filter((key) => key !== "timestamp")
                 .filter(
@@ -129,6 +126,7 @@ function waitForNextTask(): Promise<void> {
  *
  * @param params - Cache prewarm parameters.
  * @param dependencies - Runtime chart settings and invalidation hooks.
+ *
  * @returns Summary information for debugging.
  */
 export async function prewarmChartRenderCaches(
@@ -153,8 +151,7 @@ export async function prewarmChartRenderCaches(
 
     const chartsState = getState("charts");
     if (
-        chartsState &&
-        typeof chartsState === "object" &&
+        isObjectRecord(chartsState) &&
         (getRecordValue(chartsState, "isRendered") === true ||
             getRecordValue(chartsState, "isRendering") === true)
     ) {

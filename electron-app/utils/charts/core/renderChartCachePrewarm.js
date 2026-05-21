@@ -1,11 +1,20 @@
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
-import { getRecordValue } from "./renderChartModuleHelpers.js";
-import { isNonEmptyChartDataRecordArray, } from "./renderChartDataPreparation.js";
-import { getNotificationSuppressed, setNotificationSuppressed, } from "./renderChartNotificationHelpers.js";
+import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
+import { isNonEmptyChartDataRecordArray } from "./renderChartDataPreparation.js";
+import {
+    getNotificationSuppressed,
+    setNotificationSuppressed,
+} from "./renderChartNotificationHelpers.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
-import { getCachedSeriesForSettings, getFieldSeriesEntry, } from "./renderChartSeriesCache.js";
+import {
+    getCachedSeriesForSettings,
+    getFieldSeriesEntry,
+} from "./renderChartSeriesCache.js";
 import { getStateManagerSafe } from "./renderChartStateAccess.js";
-import { getConvertersSafe, getFormatChartFieldsSafe, } from "./renderChartDependencyAccessors.js";
+import {
+    getConvertersSafe,
+    getFormatChartFieldsSafe,
+} from "./renderChartDependencyAccessors.js";
 import { isDevelopmentEnvironment } from "./renderChartRuntimeHelpers.js";
 import { ensureDataSettingsSignature } from "./renderChartDataSettingsCache.js";
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
@@ -31,21 +40,26 @@ const PRIORITY_FIELDS = [
 function getFieldsToPrewarm(recordMesgs, getFieldVisibility) {
     const fields = getFormatChartFieldsSafe();
     let fieldsToPrewarm = Array.isArray(fields)
-        ? fields.filter((field) => (getFieldVisibility(field) || "visible") !== "hidden")
+        ? fields.filter(
+              (field) => (getFieldVisibility(field) || "visible") !== "hidden"
+          )
         : [];
     if (!fieldsToPrewarm.length) {
         try {
-            const sample = recordMesgs.find((row) => row && typeof row === "object") ??
-                {};
+            const sample = recordMesgs.find(isObjectRecord) ?? {};
             fieldsToPrewarm = Object.keys(sample)
                 .filter((key) => key !== "timestamp")
-                .filter((key) => typeof getRecordValue(sample, key) === "number");
-        }
-        catch {
+                .filter(
+                    (key) => typeof getRecordValue(sample, key) === "number"
+                );
+        } catch {
             // Keep empty field list.
         }
     }
-    const maxFieldsToPrewarm = MAX_FIELDS_BY_RECORD_COUNT.find(({ minRecords }) => recordMesgs.length >= minRecords)?.maxFields ?? 8;
+    const maxFieldsToPrewarm =
+        MAX_FIELDS_BY_RECORD_COUNT.find(
+            ({ minRecords }) => recordMesgs.length >= minRecords
+        )?.maxFields ?? 8;
     const prioritized = [];
     const candidateSet = new Set(fieldsToPrewarm);
     for (const field of PRIORITY_FIELDS) {
@@ -54,7 +68,9 @@ function getFieldsToPrewarm(recordMesgs, getFieldVisibility) {
             candidateSet.delete(field);
         }
     }
-    const remaining = fieldsToPrewarm.filter((field) => candidateSet.has(field));
+    const remaining = fieldsToPrewarm.filter((field) =>
+        candidateSet.has(field)
+    );
     return [...prioritized, ...remaining].slice(0, maxFieldsToPrewarm);
 }
 function isChartsTab(tab) {
@@ -73,10 +89,16 @@ function waitForNextTask() {
  *
  * @param params - Cache prewarm parameters.
  * @param dependencies - Runtime chart settings and invalidation hooks.
+ *
  * @returns Summary information for debugging.
  */
 export async function prewarmChartRenderCaches(params, dependencies) {
-    const { reason = "prewarm", recordMesgs, startTime, yieldEvery = 2, } = params;
+    const {
+        reason = "prewarm",
+        recordMesgs,
+        startTime,
+        yieldEvery = 2,
+    } = params;
     if (!isNonEmptyChartDataRecordArray(recordMesgs)) {
         return { processedFields: 0, skipped: true };
     }
@@ -85,25 +107,38 @@ export async function prewarmChartRenderCaches(params, dependencies) {
         return { processedFields: 0, skipped: true };
     }
     const chartsState = getState("charts");
-    if (chartsState &&
-        typeof chartsState === "object" &&
+    if (
+        isObjectRecord(chartsState) &&
         (getRecordValue(chartsState, "isRendered") === true ||
-            getRecordValue(chartsState, "isRendering") === true)) {
+            getRecordValue(chartsState, "isRendering") === true)
+    ) {
         return { processedFields: 0, skipped: true };
     }
     const prevSuppress = getNotificationSuppressed();
     setNotificationSuppressed(true);
     try {
         const settings = dependencies.getSettings();
-        const normalizedMaxPoints = normalizeMaxPointsValue(getRecordValue(settings, "maxpoints"));
-        const dataSettingsSignature = ensureDataSettingsSignature(settings, () => {
-            dependencies.invalidateChartRenderCache("data-settings-changed");
-        });
+        const normalizedMaxPoints = normalizeMaxPointsValue(
+            getRecordValue(settings, "maxpoints")
+        );
+        const dataSettingsSignature = ensureDataSettingsSignature(
+            settings,
+            () => {
+                dependencies.invalidateChartRenderCache(
+                    "data-settings-changed"
+                );
+            }
+        );
         const convert = getConvertersSafe();
         const labels = getLabelsForRecords(recordMesgs, startTime);
-        const fieldsToPrewarm = getFieldsToPrewarm(recordMesgs, dependencies.getFieldVisibility);
+        const fieldsToPrewarm = getFieldsToPrewarm(
+            recordMesgs,
+            dependencies.getFieldVisibility
+        );
         if (isDevelopmentEnvironment()) {
-            console.log(`${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`);
+            console.log(
+                `${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`
+            );
         }
         let processedFields = 0;
         for (const field of fieldsToPrewarm) {
@@ -113,7 +148,12 @@ export async function prewarmChartRenderCaches(params, dependencies) {
             if (dependencies.getFieldVisibility(field) === "hidden") {
                 continue;
             }
-            const entry = getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert);
+            const entry = getFieldSeriesEntry(
+                recordMesgs,
+                field,
+                dataSettingsSignature,
+                convert
+            );
             getCachedSeriesForSettings(entry, labels, normalizedMaxPoints);
             processedFields += 1;
             if (yieldEvery > 0 && processedFields % yieldEvery === 0) {
@@ -121,15 +161,15 @@ export async function prewarmChartRenderCaches(params, dependencies) {
             }
         }
         if (isDevelopmentEnvironment()) {
-            console.log(`${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`);
+            console.log(
+                `${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`
+            );
         }
         return { processedFields, skipped: false };
-    }
-    catch (error) {
+    } catch (error) {
         console.warn(`${CACHE_LOG_PREFIX} prewarm failed (${reason})`, error);
         return { processedFields: 0, skipped: false };
-    }
-    finally {
+    } finally {
         setNotificationSuppressed(prevSuppress);
     }
 }

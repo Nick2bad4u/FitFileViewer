@@ -1,28 +1,33 @@
-import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
-import { getInjectedModule, getRecordFunction, } from "./renderChartModuleHelpers.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../state/core/stateManager.js";
+import {
+    getInjectedModule,
+    getRecordFunction,
+    isObjectRecord,
+} from "./renderChartModuleHelpers.js";
 /** Reads the state manager, preferring test-injected modules when present. */
 export function getStateManagerSafe() {
     try {
         const mod = getInjectedModule("../../state/core/stateManager.js");
-        if (mod && typeof mod === "object") {
+        if (isObjectRecord(mod)) {
             const injectedGetState = getRecordFunction(mod, "getState");
             const injectedSetState = getRecordFunction(mod, "setState");
             const injectedSubscribe = getRecordFunction(mod, "subscribe");
             const injectedUpdateState = getRecordFunction(mod, "updateState");
             if (injectedGetState || injectedSetState || injectedUpdateState) {
                 return {
-                    getState: (injectedGetState || getState),
-                    setState: (injectedSetState ||
-                        setState),
-                    subscribe: (injectedSubscribe ||
-                        subscribe),
-                    updateState: (injectedUpdateState ||
-                        updateState),
+                    getState: injectedGetState || getState,
+                    setState: injectedSetState || setState,
+                    subscribe: injectedSubscribe || subscribe,
+                    updateState: injectedUpdateState || updateState,
                 };
             }
         }
-    }
-    catch {
+    } catch {
         // Fall back to direct imports below.
     }
     return {
@@ -40,14 +45,12 @@ export function callGetState(path) {
         if (value !== undefined) {
             return value;
         }
-    }
-    catch {
+    } catch {
         // Fall back to direct import below.
     }
     try {
         return getState(path);
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
@@ -56,14 +59,12 @@ export function callSetState(path, value, options) {
     try {
         const { setState: setStateSafe } = getStateManagerSafe();
         setStateSafe(path, value, options);
-    }
-    catch {
+    } catch {
         // Continue to direct import fallback below.
     }
     try {
         setState(path, value, options);
-    }
-    catch {
+    } catch {
         // Ignore state-manager compatibility failures.
     }
 }
@@ -72,14 +73,12 @@ export function callUpdateState(path, value, options) {
     try {
         const { updateState: updateStateSafe } = getStateManagerSafe();
         updateStateSafe(path, value, options);
-    }
-    catch {
+    } catch {
         // Continue to direct import fallback below.
     }
     try {
         updateState(path, value, options);
-    }
-    catch {
+    } catch {
         // Ignore state-manager compatibility failures.
     }
 }

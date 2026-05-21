@@ -1,4 +1,5 @@
 import { throttledAnimLog } from "../../debug/lastAnimLog.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 const ANIMATION_CONFIG = {
     DURATION: {
         COLORS: 1000,
@@ -22,16 +23,17 @@ const CHART_TYPES = {
 };
 const LOG_PREFIX = "[ChartAnimations]";
 function isChartLike(chart) {
-    return Boolean(chart) && typeof chart === "object";
+    return isObjectRecord(chart);
 }
 function hasOptions(chart) {
-    return Boolean(chart.options) && typeof chart.options === "object";
+    return isObjectRecord(chart.options);
 }
 /**
  * Updates animation configurations for Chart.js charts.
  *
  * @param chart - Chart.js chart instance to configure.
  * @param type - Chart type identifier for logging.
+ *
  * @returns Modified chart instance, or null when the chart input is invalid.
  */
 export function updateChartAnimations(chart, type) {
@@ -58,14 +60,14 @@ export function updateChartAnimations(chart, type) {
         const chartType = chart.config?.type;
         if (typeof chartType === "string" && chartType.length > 0) {
             configureTypeSpecificAnimations(chart, chartType);
-        }
-        else {
+        } else {
             console.warn(`${LOG_PREFIX} Chart config missing type property`);
         }
-        console.log(`${LOG_PREFIX} Animation configuration updated for ${type} chart`);
+        console.log(
+            `${LOG_PREFIX} Animation configuration updated for ${type} chart`
+        );
         return chart;
-    }
-    catch (error) {
+    } catch (error) {
         console.error(`${LOG_PREFIX} Error updating chart animations:`, error);
         return isChartLike(chart) ? chart : null;
     }
@@ -106,12 +108,16 @@ function createCompletionCallback(type) {
 }
 function createProgressCallback(type) {
     return (context) => {
-        if (typeof context.currentStep !== "number" ||
+        if (
+            typeof context.currentStep !== "number" ||
             typeof context.numSteps !== "number" ||
-            context.numSteps <= 0) {
+            context.numSteps <= 0
+        ) {
             return;
         }
-        const percentage = Math.round((100 * context.currentStep) / context.numSteps);
+        const percentage = Math.round(
+            (100 * context.currentStep) / context.numSteps
+        );
         throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
     };
 }

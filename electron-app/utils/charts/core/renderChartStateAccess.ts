@@ -8,6 +8,7 @@ import {
 import {
     getInjectedModule,
     getRecordFunction,
+    isObjectRecord,
 } from "./renderChartModuleHelpers.js";
 
 type GetStateFunction = (path?: string) => unknown;
@@ -31,14 +32,15 @@ export type ChartStateManagerAccess = {
 export function getStateManagerSafe(): ChartStateManagerAccess {
     try {
         const mod = getInjectedModule("../../state/core/stateManager.js");
-        if (mod && typeof mod === "object") {
+        if (isObjectRecord(mod)) {
             const injectedGetState = getRecordFunction(mod, "getState");
             const injectedSetState = getRecordFunction(mod, "setState");
             const injectedSubscribe = getRecordFunction(mod, "subscribe");
             const injectedUpdateState = getRecordFunction(mod, "updateState");
             if (injectedGetState || injectedSetState || injectedUpdateState) {
                 return {
-                    getState: (injectedGetState || getState) as GetStateFunction,
+                    getState: (injectedGetState ||
+                        getState) as GetStateFunction,
                     setState: (injectedSetState ||
                         setState) as SetStateFunction,
                     subscribe: (injectedSubscribe ||

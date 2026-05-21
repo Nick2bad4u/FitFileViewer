@@ -1,14 +1,16 @@
 import { clearElement } from "../../dom/index.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 const ELEMENT_NODE = 1;
 /**
  * Type guard for element-like DOM nodes that works across jsdom and renderer
  * realms.
  */
 export function isElement(maybe) {
-    return (maybe !== null &&
-        typeof maybe === "object" &&
+    return (
+        isObjectRecord(maybe) &&
         "nodeType" in maybe &&
-        maybe.nodeType === ELEMENT_NODE);
+        maybe["nodeType"] === ELEMENT_NODE
+    );
 }
 /**
  * Append a child using the broadest available DOM API in mocked test
@@ -25,13 +27,11 @@ export function safeAppend(parent, child) {
             return;
         }
         parent.appendChild(child);
-    }
-    catch (error) {
+    } catch (error) {
         console.warn("[ChartJS] safeAppend fallback used:", error);
         try {
             parent.appendChild(child);
-        }
-        catch {
+        } catch {
             // Best-effort compatibility helper; callers already tolerate failure.
         }
     }

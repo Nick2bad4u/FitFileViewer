@@ -1,4 +1,5 @@
 import { throttledAnimLog } from "../../debug/lastAnimLog.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type ChartAnimationOptions = {
     duration?: number;
@@ -69,11 +70,13 @@ const CHART_TYPES = {
 const LOG_PREFIX = "[ChartAnimations]";
 
 function isChartLike(chart: unknown): chart is ChartLike {
-    return Boolean(chart) && typeof chart === "object";
+    return isObjectRecord(chart);
 }
 
-function hasOptions(chart: ChartLike): chart is ChartLike & { options: ChartOptions } {
-    return Boolean(chart.options) && typeof chart.options === "object";
+function hasOptions(
+    chart: ChartLike
+): chart is ChartLike & { options: ChartOptions } {
+    return isObjectRecord(chart.options);
 }
 
 /**
@@ -81,6 +84,7 @@ function hasOptions(chart: ChartLike): chart is ChartLike & { options: ChartOpti
  *
  * @param chart - Chart.js chart instance to configure.
  * @param type - Chart type identifier for logging.
+ *
  * @returns Modified chart instance, or null when the chart input is invalid.
  */
 export function updateChartAnimations(
