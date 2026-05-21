@@ -83,19 +83,18 @@ import {
     setNotificationSuppressed,
 } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
-import {
-    calculateAxisRanges,
-    createChartPoints,
-    getMaxPointCacheKey,
-    limitChartPoints,
-    normalizeMaxPointsValue,
-} from "./renderChartPointUtils.js";
+import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
     shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
-import { resolveRecordFieldKey } from "./renderChartRecordKeyUtils.js";
+import {
+    clearChartSeriesCache,
+    getCachedSeriesForSettings,
+    getChartSeriesCacheStats as getSeriesCacheStats,
+    getFieldSeriesEntry,
+} from "./renderChartSeriesCache.js";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
@@ -719,10 +718,8 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 }, RENDER_DEBOUNCE_MS);
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
-let fieldSeriesCache = new WeakMap();
 let lastDataSettingsSignature = "";
 const invalidateChartRenderCacheListeners = new Set();
-const chartSeriesCacheStats = { hits: 0, misses: 0 };
 
 export function addInvalidateChartRenderCacheListener(listener) {
     if (typeof listener !== "function") {
@@ -737,19 +734,17 @@ export function addInvalidateChartRenderCacheListener(listener) {
 }
 
 export function getChartSeriesCacheStats() {
-    return { ...chartSeriesCacheStats };
+    return getSeriesCacheStats();
 }
 
 export function invalidateChartRenderCache(reason = "manual") {
     if (isDevelopmentEnvironment()) {
         console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
     }
-    fieldSeriesCache = new WeakMap();
+    clearChartSeriesCache();
     clearChartLabelsCache();
     clearPerformanceSettingsCache();
     lastDataSettingsSignature = "";
-    chartSeriesCacheStats.hits = 0;
-    chartSeriesCacheStats.misses = 0;
 
     for (const listener of invalidateChartRenderCacheListeners) {
         try {
@@ -970,143 +965,6 @@ function ensureDataSettingsSignature(settings) {
     }
     lastDataSettingsSignature = signature;
     return signature;
-}
-
-function ensureFieldSeriesCache(recordMesgs) {
-    let cache = fieldSeriesCache.get(recordMesgs);
-    if (!cache) {
-        cache = {
-            fields: new Map(),
-            readKeys: new Map(),
-        };
-        fieldSeriesCache.set(recordMesgs, cache);
-    } else if (!(cache.readKeys instanceof Map)) {
-        cache.readKeys = new Map();
-    }
-    return cache;
-}
-
-function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
-    if (!entry.pointCache) {
-        entry.pointCache = new WeakMap();
-    }
-
-    let labelCache = entry.pointCache.get(labels);
-    if (!labelCache) {
-        const basePoints = createChartPoints(labels, entry.values);
-        const baseAxisRange = calculateAxisRanges(basePoints);
-        const baseHasValidData = basePoints.some(
-            ({ y }) => typeof y === "number" && Number.isFinite(y)
-        );
-        labelCache = {
-            baseAxisRange,
-            baseHasValidData,
-            basePoints,
-            limits: new Map(),
-        };
-        entry.pointCache.set(labels, labelCache);
-    }
-
-    const key = getMaxPointCacheKey(maxPointsValue);
-    if (labelCache.limits.has(key)) {
-        chartSeriesCacheStats.hits += 1;
-        return labelCache.limits.get(key);
-    }
-
-    chartSeriesCacheStats.misses += 1;
-    const points =
-        maxPointsValue === "all"
-            ? labelCache.basePoints
-            : limitChartPoints(labelCache.basePoints, maxPointsValue);
-    const hasValidData =
-        maxPointsValue === "all"
-            ? labelCache.baseHasValidData
-            : points.some(
-                  ({ y }) => typeof y === "number" && Number.isFinite(y)
-              );
-    const axisRanges =
-        maxPointsValue === "all"
-            ? labelCache.baseAxisRange
-            : calculateAxisRanges(points) || labelCache.baseAxisRange;
-
-    labelCache.limits.set(key, {
-        axisRanges,
-        hasValidData,
-        points,
-    });
-
-    return labelCache.limits.get(key);
-}
-
-function getFieldSeriesEntry(
-    recordMesgs,
-    field,
-    dataSettingsSignature,
-    convert
-) {
-    const cache = ensureFieldSeriesCache(recordMesgs);
-    let fieldMap = cache.fields.get(field);
-    if (!fieldMap) {
-        fieldMap = new Map();
-        cache.fields.set(field, fieldMap);
-    }
-
-    let entry = fieldMap.get(dataSettingsSignature);
-    if (!entry) {
-        const readKey = resolveRecordFieldKey(cache, recordMesgs, field);
-        const values = [];
-        let min = Number.POSITIVE_INFINITY;
-        let max = Number.NEGATIVE_INFINITY;
-        let hasNull = false;
-
-        for (const row of recordMesgs) {
-            const raw =
-                row && typeof row === "object"
-                    ? getRecordValue(row, readKey)
-                    : null;
-            let numeric = Number(raw);
-            if (!Number.isFinite(numeric)) {
-                values.push(null);
-                hasNull = true;
-                continue;
-            }
-            try {
-                numeric = convert(numeric, field);
-            } catch {
-                // Use fallback numeric value if conversion fails
-            }
-            if (!Number.isFinite(numeric)) {
-                values.push(null);
-                hasNull = true;
-                continue;
-            }
-            if (numeric < min) {
-                min = numeric;
-            }
-            if (numeric > max) {
-                max = numeric;
-            }
-            values.push(numeric);
-        }
-
-        if (!Number.isFinite(min) || !Number.isFinite(max)) {
-            min = Number.NaN;
-            max = Number.NaN;
-        }
-
-        entry = {
-            hasNull,
-            max,
-            min,
-            pointCache: new WeakMap(),
-            values,
-        };
-        fieldMap.set(dataSettingsSignature, entry);
-    } else if (!entry.pointCache) {
-        entry.pointCache = new WeakMap();
-    }
-
-    return entry;
 }
 
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
