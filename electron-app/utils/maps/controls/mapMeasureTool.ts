@@ -1,25 +1,89 @@
 // Simple point-to-point measurement tool for Leaflet
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
-function isMeasureLeaflet(value) {
+
+type LatLngPoint = {
+    lat: number;
+    lng: number;
+};
+
+type MeasureClickEvent = {
+    latlng: LatLngPoint;
+};
+
+type MeasureLayer = MeasureMarker | MeasurePolyline;
+
+type MeasureMap = {
+    distance(firstPoint: LatLngPoint, secondPoint: LatLngPoint): number;
+    off(eventName: "click", listener: (event: MeasureClickEvent) => void): unknown;
+    on(eventName: "click", listener: (event: MeasureClickEvent) => void): unknown;
+    removeLayer(layer: MeasureLayer): unknown;
+};
+
+type MeasureMarker = {
+    addTo(map: MeasureMap): MeasureMarker;
+    getElement?: () => HTMLElement | null;
+};
+
+type MeasurePolyline = {
+    addTo(map: MeasureMap): MeasurePolyline;
+};
+
+type MeasureLeaflet = {
+    divIcon(options: {
+        className: string;
+        html: HTMLElement;
+    }): unknown;
+    latLng(lat: number, lng: number): LatLngPoint;
+    marker(
+        latlng: LatLngPoint,
+        options?: Record<string, unknown>
+    ): MeasureMarker;
+    polyline(
+        points: LatLngPoint[],
+        options?: Record<string, unknown>
+    ): MeasurePolyline;
+};
+
+type MeasureToolGlobal = typeof globalThis & {
+    __ffvMapMeasureEscapeHandler?: (event: KeyboardEvent) => void;
+    L?: unknown;
+};
+
+type ThemeColors = {
+    primary?: unknown;
+    surface?: unknown;
+};
+
+function isMeasureLeaflet(value: unknown): value is MeasureLeaflet {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return (typeof candidate["divIcon"] === "function" &&
+
+    const candidate = value as Record<string, unknown>;
+    return (
+        typeof candidate["divIcon"] === "function" &&
         typeof candidate["latLng"] === "function" &&
         typeof candidate["marker"] === "function" &&
-        typeof candidate["polyline"] === "function");
+        typeof candidate["polyline"] === "function"
+    );
 }
-function getMeasureToolGlobal() {
-    return globalThis;
+
+function getMeasureToolGlobal(): MeasureToolGlobal {
+    return globalThis as MeasureToolGlobal;
 }
-function getLeaflet() {
+
+function getLeaflet(): MeasureLeaflet | null {
     const { L } = getMeasureToolGlobal();
     return isMeasureLeaflet(L) ? L : null;
 }
-function createMeasureIcon(primary, surface) {
+
+function createMeasureIcon(
+    primary: string,
+    surface: string
+): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
@@ -27,6 +91,7 @@ function createMeasureIcon(primary, surface) {
     icon.setAttribute("height", "18");
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
+
     const line = document.createElementNS(SVG_NS, "line");
     line.setAttribute("x1", "5");
     line.setAttribute("y1", "19");
@@ -35,10 +100,11 @@ function createMeasureIcon(primary, surface) {
     line.setAttribute("stroke", primary);
     line.setAttribute("stroke-width", "2");
     icon.append(line);
+
     for (const [cx, cy] of [
         ["5", "19"],
         ["19", "5"],
-    ]) {
+    ] as const) {
         const circle = document.createElementNS(SVG_NS, "circle");
         circle.setAttribute("cx", cx);
         circle.setAttribute("cy", cy);
@@ -48,6 +114,7 @@ function createMeasureIcon(primary, surface) {
         circle.setAttribute("stroke-width", "2");
         icon.append(circle);
     }
+
     const text = document.createElementNS(SVG_NS, "text");
     text.setAttribute("x", "12");
     text.setAttribute("y", "15");
@@ -56,14 +123,17 @@ function createMeasureIcon(primary, surface) {
     text.setAttribute("fill", primary);
     text.textContent = "↔";
     icon.append(text);
+
     return icon;
 }
-function createCancelIcon() {
+
+function createCancelIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
+
     const circle = document.createElementNS(SVG_NS, "circle");
     circle.setAttribute("cx", "10");
     circle.setAttribute("cy", "10");
@@ -72,10 +142,11 @@ function createCancelIcon() {
     circle.setAttribute("stroke", "#b71c1c");
     circle.setAttribute("stroke-width", "2");
     icon.append(circle);
+
     for (const [x1, y1, x2, y2] of [
         ["6", "6", "14", "14"],
         ["14", "6", "6", "14"],
-    ]) {
+    ] as const) {
         const line = document.createElementNS(SVG_NS, "line");
         line.setAttribute("x1", x1);
         line.setAttribute("y1", y1);
@@ -85,41 +156,74 @@ function createCancelIcon() {
         line.setAttribute("stroke-width", "2");
         icon.append(line);
     }
+
     return icon;
 }
-function setMeasureButtonContent(button, state, colors) {
+
+function setMeasureButtonContent(
+    button: HTMLButtonElement,
+    state: "cancel" | "measure",
+    colors: { primary: string; surface: string }
+): void {
     const label = document.createElement("span");
     label.textContent = state === "cancel" ? "Cancel" : "Measure";
-    button.replaceChildren(state === "cancel"
-        ? createCancelIcon()
-        : createMeasureIcon(colors.primary, colors.surface), label);
+    button.replaceChildren(
+        state === "cancel"
+            ? createCancelIcon()
+            : createMeasureIcon(colors.primary, colors.surface),
+        label
+    );
 }
-function createExitButton(doc) {
+
+function createExitButton(doc: Document): HTMLButtonElement {
     const button = doc.createElement("button");
     button.className = "measure-exit-btn";
     button.type = "button";
     button.title = "Remove measurement";
     button.textContent = "×";
+
     return button;
 }
-function createMeasureLabelLine(doc, value, unit) {
+
+function createMeasureLabelLine(
+    doc: Document,
+    value: string,
+    unit: string
+): HTMLDivElement {
     const line = doc.createElement("div");
     line.className = "measure-label-line";
+
     const valueEl = doc.createElement("span");
     valueEl.className = "measure-label-value";
     valueEl.textContent = value;
+
     const unitEl = doc.createElement("span");
     unitEl.className = "measure-label-unit";
     unitEl.textContent = unit;
+
     line.append(valueEl, doc.createTextNode(" "), unitEl);
+
     return line;
 }
-function createMeasureLabelContent(doc, primaryValue, primaryUnit, secondaryValue, secondaryUnit) {
+
+function createMeasureLabelContent(
+    doc: Document,
+    primaryValue: string,
+    primaryUnit: string,
+    secondaryValue: string,
+    secondaryUnit: string
+): HTMLDivElement {
     const content = doc.createElement("div");
     content.className = "measure-label-content";
-    content.append(createExitButton(doc), createMeasureLabelLine(doc, primaryValue, primaryUnit), createMeasureLabelLine(doc, secondaryValue, secondaryUnit));
+    content.append(
+        createExitButton(doc),
+        createMeasureLabelLine(doc, primaryValue, primaryUnit),
+        createMeasureLabelLine(doc, secondaryValue, secondaryUnit)
+    );
+
     return content;
 }
+
 /**
  * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
  * Creates a button in the provided controls container; when activated, the next
@@ -129,22 +233,39 @@ function createMeasureLabelContent(doc, primaryValue, primaryUnit, secondaryValu
  * @param map - Leaflet map instance.
  * @param controlsDiv - Container element for map action buttons.
  */
-export function addSimpleMeasureTool(map, controlsDiv) {
-    let measureLabel = null, measureLine = null, measureMarkers = [], measurePoints = [], measuring = false;
+export function addSimpleMeasureTool(
+    map: MeasureMap,
+    controlsDiv: HTMLElement
+): void {
+    let measureLabel: MeasureMarker | null = null,
+        measureLine: MeasurePolyline | null = null,
+        measureMarkers: MeasureMarker[] = [],
+        measurePoints: LatLngPoint[] = [],
+        measuring = false;
     // Button reference will be the created element below
+
     // Create the measure button up front so it's available to handlers
     const eventController = new AbortController();
     const { signal } = eventController;
-    let disableTimer = null;
-    const measureBtn = document.createElement("button"), themeColors = getThemeColors();
+    let disableTimer: ReturnType<typeof setTimeout> | null = null;
+    const measureBtn = document.createElement("button"),
+        themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
-    const typedThemeColors = themeColors;
-    const safePrimary = sanitizeCssColorToken(typedThemeColors.primary, "#3b82f6");
-    const safeSurface = sanitizeCssColorToken(typedThemeColors.surface, "#ffffff");
+
+    const typedThemeColors = themeColors as ThemeColors;
+    const safePrimary = sanitizeCssColorToken(
+        typedThemeColors.primary,
+        "#3b82f6"
+    );
+    const safeSurface = sanitizeCssColorToken(
+        typedThemeColors.surface,
+        "#ffffff"
+    );
     const buttonColors = { primary: safePrimary, surface: safeSurface };
     setMeasureButtonContent(measureBtn, "measure", buttonColors);
     measureBtn.title =
         "Click, then click two points on the map to measure distance";
+
     function clearMeasure() {
         measurePoints = [];
         if (measureLine) {
@@ -160,10 +281,11 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             measureLabel = null;
         }
     }
+
     /**
      * Disable measurement mode, restore button icon/text.
      */
-    function disableMeasure(btn) {
+    function disableMeasure(btn: HTMLButtonElement | null | undefined): void {
         measuring = false;
         map.off("click", onMapClickMeasure);
         if (btn) {
@@ -172,14 +294,15 @@ export function addSimpleMeasureTool(map, controlsDiv) {
                 "Click, then click two points on the map to measure distance";
         }
     }
+
     // Add Escape key handler to clear measurement.
     // Idempotent: avoid leaking duplicate handlers if the map is re-rendered.
     const g = getMeasureToolGlobal();
-    const escapeKey = "__ffvMapMeasureEscapeHandler";
+    const escapeKey = "__ffvMapMeasureEscapeHandler" as const;
     if (typeof g[escapeKey] === "function") {
         document.removeEventListener("keydown", g[escapeKey]);
     }
-    g[escapeKey] = (event) => {
+    g[escapeKey] = (event: KeyboardEvent) => {
         const { key } = event;
         if (key === "Escape") {
             clearMeasure();
@@ -190,24 +313,33 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     };
     document.addEventListener("keydown", g[escapeKey], { signal });
-    signal.addEventListener("abort", () => {
-        if (disableTimer) {
-            clearTimeout(disableTimer);
-            disableTimer = null;
-        }
-    }, { once: true, signal });
-    function onLabelExitClick(event) {
+    signal.addEventListener(
+        "abort",
+        () => {
+            if (disableTimer) {
+                clearTimeout(disableTimer);
+                disableTimer = null;
+            }
+        },
+        { once: true, signal }
+    );
+
+    function onLabelExitClick(event: MouseEvent): void {
         const { target } = event;
-        if (target instanceof HTMLElement &&
-            target.classList.contains("measure-exit-btn")) {
+        if (
+            target instanceof HTMLElement &&
+            target.classList.contains("measure-exit-btn")
+        ) {
             clearMeasure();
         }
     }
-    function onMapClickMeasure(event) {
+
+    function onMapClickMeasure(event: MeasureClickEvent): void {
         const leaflet = getLeaflet();
         if (!leaflet) {
             return;
         }
+
         if (measurePoints.length >= 2) {
             clearMeasure();
         }
@@ -226,11 +358,28 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             if (!p0 || !p1) {
                 return;
             }
-            const dist = map.distance(p0, p1), distKm = dist / 1000, distMi = dist / 1609.344, mid = leaflet.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2), primaryValue = dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1), primaryUnit = dist >= 1000 ? "km" : "m", secondaryValue = distMi.toFixed(2), secondaryUnit = "mi";
+            const dist = map.distance(p0, p1),
+                distKm = dist / 1000,
+                distMi = dist / 1609.344,
+                mid = leaflet.latLng(
+                    (p0.lat + p1.lat) / 2,
+                    (p0.lng + p1.lng) / 2
+                ),
+                primaryValue =
+                    dist >= 1000 ? distKm.toFixed(2) : dist.toFixed(1),
+                primaryUnit = dist >= 1000 ? "km" : "m",
+                secondaryValue = distMi.toFixed(2),
+                secondaryUnit = "mi";
             measureLabel = leaflet.marker(mid, {
                 icon: leaflet.divIcon({
                     className: "measure-label",
-                    html: createMeasureLabelContent(document, primaryValue, primaryUnit, secondaryValue, secondaryUnit),
+                    html: createMeasureLabelContent(
+                        document,
+                        primaryValue,
+                        primaryUnit,
+                        secondaryValue,
+                        secondaryUnit
+                    ),
                 }),
                 iconAnchor: [60, 19],
                 iconSize: [120, 38],
@@ -247,7 +396,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             disableMeasure(measureBtn);
         }
     }
-    function enableSimpleMeasure(btn) {
+
+    function enableSimpleMeasure(btn: HTMLButtonElement | null | undefined) {
         if (measuring) {
             return;
         }
@@ -258,12 +408,12 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             btn.title = "Cancel measurement mode";
         }
     }
+
     measureBtn.addEventListener("click", () => {
         if (measuring) {
             clearMeasure();
             disableMeasure(measureBtn);
-        }
-        else {
+        } else {
             clearMeasure();
             enableSimpleMeasure(measureBtn);
             measureBtn.disabled = true;
@@ -276,6 +426,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             }, 2000);
         }
     }, { signal });
-    controlsDiv.addEventListener("ffv:map-measure-tool:dispose", () => eventController.abort(), { once: true, signal });
+    controlsDiv.addEventListener(
+        "ffv:map-measure-tool:dispose",
+        () => eventController.abort(),
+        { once: true, signal }
+    );
     controlsDiv.append(measureBtn);
 }
