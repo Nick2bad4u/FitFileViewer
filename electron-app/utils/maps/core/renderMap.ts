@@ -69,16 +69,18 @@ type DisposableControl = {
     _toolbars?: LooseRecord;
 };
 
+type LeafletPluginControl = DisposableControl & Leaflet.Control;
+
 type LeafletRuntime = typeof Leaflet & {
     Control: typeof Leaflet.Control & {
-        Draw?: new (...args: any[]) => DisposableControl;
-        MiniMap?: new (...args: any[]) => DisposableControl;
+        Draw?: new (...args: unknown[]) => LeafletPluginControl;
+        MiniMap?: new (...args: unknown[]) => LeafletPluginControl;
     };
     Draw?: { Event?: { CREATED?: string } };
     control: typeof Leaflet.control & {
-        fullscreen?: (...args: any[]) => DisposableControl;
-        locate?: (...args: any[]) => DisposableControl;
-        measure?: (...args: any[]) => DisposableControl;
+        fullscreen?: (...args: unknown[]) => DisposableControl;
+        locate?: (...args: unknown[]) => DisposableControl;
+        measure?: (...args: unknown[]) => DisposableControl;
     };
 };
 
@@ -94,7 +96,7 @@ type DrawnItemsLayerGroup = LooseRecord & {
 };
 
 type WindowExtensions = typeof globalThis & {
-    [key: string]: any;
+    [key: string]: unknown;
     L?: LeafletRuntime;
     __ffvLayoutLayersControl?: () => void;
     __ffvMapTypeButton?: HTMLElement;
@@ -826,17 +828,17 @@ export function renderMap(): void {
     const zoomDraggingRef = { current: false };
     windowExt.__ffvMapZoomDraggingRef = zoomDraggingRef;
     // Debounce function to limit the frequency of updates
-    function debounce<T extends (...args: any[]) => void>(
-        func: T,
+    function debounce<Args extends unknown[]>(
+        func: (...args: Args) => void,
         wait: number
-    ): T {
+    ): (...args: Args) => void {
         let timeout: ReturnType<typeof setTimeout> | undefined;
-        return ((...args: Parameters<T>) => {
+        return (...args: Args) => {
             if (timeout) {
                 clearTimeout(timeout);
             }
             timeout = setTimeout(() => func(...args), wait);
-        }) as T;
+        };
     }
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
@@ -1296,7 +1298,7 @@ export function renderMap(): void {
                 remove: true,
             },
         });
-        map.addControl(drawControl as unknown as Leaflet.Control);
+        map.addControl(drawControl);
         windowExt._drawControl = drawControl;
 
         // Add drawn shapes to the layer so they persist.

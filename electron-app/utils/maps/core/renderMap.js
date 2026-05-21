@@ -576,12 +576,12 @@ export function renderMap() {
     // Debounce function to limit the frequency of updates
     function debounce(func, wait) {
         let timeout;
-        return ((...args) => {
+        return (...args) => {
             if (timeout) {
                 clearTimeout(timeout);
             }
             timeout = setTimeout(() => func(...args), wait);
-        });
+        };
     }
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener("input", debounce((e) => {
