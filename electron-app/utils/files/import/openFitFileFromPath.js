@@ -8,7 +8,7 @@
  * Open and parse a FIT file from a path exposed by the renderer file browser.
  *
  * @throws Never intentionally; failures are reported through notifications and
- * file-state error handling.
+ *   file-state error handling.
  */
 export async function openFitFileFromPath({ filePath, showNotification, openFileBtn, }) {
     if (!isNonEmptyString(filePath)) {

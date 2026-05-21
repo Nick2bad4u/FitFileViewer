@@ -105,6 +105,7 @@
         "utils/errors/errorHandling.ts",
         "utils/errors/index.ts",
         "utils/app/async/cancellationToken.ts",
+        "utils/app/performance/lazyRenderingUtils.ts",
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
