@@ -224,6 +224,7 @@
         "utils/charts/core/renderChartRuntimeBootstrap.ts",
         "utils/charts/core/renderChartRuntimeHelpers.ts",
         "utils/charts/core/renderChartSupplementalCharts.ts",
+        "utils/charts/core/renderChartSuccessfulCompletion.ts",
         "utils/charts/core/renderChartSeriesCache.ts",
         "utils/charts/core/renderChartSettingsManager.ts",
         "utils/charts/core/renderChartSettingsSignature.ts",

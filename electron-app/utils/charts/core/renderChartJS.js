@@ -40,12 +40,10 @@ import {
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
-import { renderNoDataMessage } from "./renderChartDomHelpers.js";
 import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
 } from "./renderChartDataSettingsCache.js";
-import { handleChartRenderNotification } from "./renderChartNotificationFlow.js";
 import {
     getInjectedModule,
     getRecordFunction,
@@ -57,7 +55,6 @@ import {
     clearChartLabelsCache,
     getLabelsForRecords,
 } from "./renderChartLabelCache.js";
-import { applyCompletedChartHoverEffects } from "./renderChartHoverCompletion.js";
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
@@ -68,7 +65,6 @@ import {
 } from "./renderChartPerformanceSettings.js";
 import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
-import { updateChartRenderPerformanceState } from "./renderChartPerformanceState.js";
 import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import {
     clearChartSeriesCache,
@@ -159,13 +155,11 @@ import {
     shouldAbortInactiveChartRender,
     touchStringTargetContainer,
 } from "./renderChartPreflight.js";
-import { completeChartRenderState } from "./renderChartCompletionState.js";
-import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
-import { resolveChartRenderResultState } from "./renderChartResultState.js";
 import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
+import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -755,71 +749,33 @@ async function renderChartsWithData(
             zoomPluginConfig,
         }
     );
-    const { totalChartsRendered } = resolveChartRenderResultState(
-        {
-            chartContainer,
-            chartInstances: chartGlobal._chartjsInstances,
-            renderNoDataMessage,
-        },
-        { visibleFieldCount }
-    );
-
-    // Performance logging with state updates using updateState
-    const endTime = performance.now();
-    const renderTime = endTime - renderStartTime;
-    console.log(
-        `[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`
-    );
-
-    updateChartRenderPerformanceState(
-        { getState: gs_rcwd, updateState: us_rcwd },
-        { renderTime, totalChartsRendered }
-    );
-
-    handleChartRenderNotification(
-        {
-            getState: gs_rcwd,
-            isTestRuntime,
-            notify,
-            showRenderNotification: showRenderNotificationSafe,
-            updateState: us_rcwd,
-        },
-        {
-            totalChartsRendered,
-            visibleFieldCount,
-        }
-    );
-
-    await applyCompletedChartHoverEffects(
+    await completeSuccessfulChartRender(
         {
             addChartHoverEffects: addChartHoverEffectsSafe,
             addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
             chartContainer,
+            chartInstances: chartGlobal._chartjsInstances,
+            CustomEventConstructor: globalThis.CustomEvent,
+            doc: document,
+            getComputedStateManager: getComputedStateManagerSafe,
+            getState: gs_rcwd,
             getThemeConfig: () =>
                 chartGlobal.getThemeConfig
                     ? chartGlobal.getThemeConfig()
                     : getThemeConfigSafe(),
             isTestRuntime,
+            notify,
+            now: Date.now,
+            nowPerformance: () => performance.now(),
+            showRenderNotification: showRenderNotificationSafe,
             updateChartControlsUI:
                 (enabled) =>
                     getUIStateManagerMaybe()?.updateChartControlsUI?.(enabled),
-        },
-        { totalChartsRendered }
-    );
-
-    completeChartRenderState(
-        {
-            CustomEventConstructor: globalThis.CustomEvent,
-            doc: document,
-            emitChartsRenderedEvent,
-            getComputedStateManager: getComputedStateManagerSafe,
-            getState,
-            now: Date.now,
             updatePreviousChartState,
+            updateState: us_rcwd,
         },
         {
-            renderTime,
-            totalChartsRendered,
+            renderStartTime,
             visibleFieldCount,
         }
     );
