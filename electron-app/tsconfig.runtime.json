@@ -115,6 +115,7 @@
         "utils/legacy/globalUtilityUi.ts",
         "utils/maps/core/mapColors.ts",
         "utils/maps/controls/mapFullscreenControl.ts",
+        "utils/maps/filters/mapMetricFilter.ts",
         "utils/maps/layers/mapIcons.ts",
         "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/app/initialization/getCurrentSettings.ts",

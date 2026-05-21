@@ -2,11 +2,79 @@
  * Map data point metric filtering utilities. Provides helpers to compute the
  * top percentile of record indices for a given metric when rendering markers.
  */
+
 import { getAuxHeartRateValue } from "../../data/processing/auxHeartRateUtils.js";
+
+/** A FIT record row with metric fields used by map data-point filtering. */
+export type MetricRecord = Record<string, unknown> & {
+    altitude?: number;
+    auxHeartRate?: number;
+    cadence?: number;
+    heartRate?: number;
+    power?: number;
+    speed?: number;
+};
+
+/** Data-point filter modes supported by the map marker renderer. */
+export type MapFilterMode = "topPercent" | "valueRange";
+
+/** User-facing data-point filter configuration. */
+export type MapDataPointFilterConfig = {
+    enabled: boolean;
+    maxValue?: number;
+    metric: string;
+    minValue?: number;
+    mode?: MapFilterMode;
+    percent?: number;
+};
+
+/** Definition of a metric available for map data-point filtering. */
+export type MetricDefinition = {
+    key: string;
+    label: string;
+    resolver: (row: MetricRecord) => number | null;
+};
+
+/** Descriptive statistics for a metric across the current record set. */
+export type MetricStatistics = {
+    average: number;
+    count: number;
+    decimals: number;
+    max: number;
+    metric: string;
+    metricLabel: string;
+    min: number;
+    step: number;
+};
+
+/** Result returned after applying a data-point metric filter. */
+export type MetricFilterResult = {
+    allowedIndices: Set<number>;
+    appliedMax: number | null;
+    appliedMin: number | null;
+    isActive: boolean;
+    maxCandidate: number | null;
+    metric: string | null;
+    metricLabel: string | null;
+    minCandidate: number | null;
+    mode: MapFilterMode;
+    orderedIndices: number[];
+    percent: number;
+    reason: string | null;
+    selectedCount: number;
+    threshold: number | null;
+    totalCandidates: number;
+};
+
+/** Optional hooks for metric filtering. */
+export type MetricFilterOptions = {
+    valueExtractor?: (row: MetricRecord) => number | null;
+};
+
 /**
  * Available metrics that can be filtered on. Keep in sync with UI control.
  */
-export const MAP_FILTER_METRICS = [
+export const MAP_FILTER_METRICS: MetricDefinition[] = [
     {
         key: "speed",
         label: "Speed",
@@ -20,12 +88,14 @@ export const MAP_FILTER_METRICS = [
     {
         key: "cadence",
         label: "Cadence",
-        resolver: (row) => typeof row.cadence === "number" ? row.cadence : null,
+        resolver: (row) =>
+            typeof row.cadence === "number" ? row.cadence : null,
     },
     {
         key: "heartRate",
         label: "Heart Rate",
-        resolver: (row) => typeof row.heartRate === "number" ? row.heartRate : null,
+        resolver: (row) =>
+            typeof row.heartRate === "number" ? row.heartRate : null,
     },
     {
         key: "auxHeartRate",
@@ -35,32 +105,45 @@ export const MAP_FILTER_METRICS = [
     {
         key: "altitude",
         label: "Altitude",
-        resolver: (row) => typeof row.altitude === "number" ? row.altitude : null,
+        resolver: (row) =>
+            typeof row.altitude === "number" ? row.altitude : null,
     },
 ];
+
 /**
  * Convenience helper returning a predicate for whether a record index should be
  * displayed, based on the provided metric filter result.
  */
-export function buildMetricFilterPredicate(result) {
+export function buildMetricFilterPredicate(
+    result: MetricFilterResult
+): (recordIndex: number) => boolean {
     if (!result.isActive || result.allowedIndices.size === 0) {
         return () => true;
     }
     return (recordIndex) => result.allowedIndices.has(recordIndex);
 }
+
 /**
  * Compute descriptive statistics for a metric across record messages.
  */
-export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
+export function computeMetricStatistics(
+    recordMesgs: readonly MetricRecord[],
+    metricKey: string,
+    options: MetricFilterOptions = {}
+): MetricStatistics | null {
     const metricDef = getMetricDefinition(metricKey);
     if (!metricDef) {
         return null;
     }
-    const valueExtractor = typeof options.valueExtractor === "function"
-        ? options.valueExtractor
-        : metricDef.resolver;
-    const values = [];
+
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
+
+    const values: number[] = [];
     let hasDecimal = false;
+
     for (const row of recordMesgs) {
         const value = valueExtractor(row);
         if (typeof value === "number" && Number.isFinite(value)) {
@@ -70,27 +153,34 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
             }
         }
     }
+
     if (values.length === 0) {
         return null;
     }
+
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const sum = values.reduce((accumulator, current) => accumulator + current, 0);
+    const sum = values.reduce(
+        (accumulator, current) => accumulator + current,
+        0
+    );
     const average = sum / values.length;
     const decimals = hasDecimal ? 2 : 0;
     const range = Math.abs(max - min);
-    let step;
+    let step: number;
     if (decimals === 0) {
         const raw = Math.round(range / 200) || 1;
         step = Math.max(1, raw);
-    }
-    else {
+    } else {
         const base = range / 200;
         const minimumStep = 1 / 10 ** decimals;
-        step = Number(Number.isFinite(base) && base > minimumStep
-            ? base.toFixed(decimals)
-            : minimumStep.toFixed(decimals));
+        step = Number(
+            Number.isFinite(base) && base > minimumStep
+                ? base.toFixed(decimals)
+                : minimumStep.toFixed(decimals)
+        );
     }
+
     return {
         average,
         count: values.length,
@@ -102,13 +192,20 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
         step,
     };
 }
+
 /**
  * Compute the indices belonging to the requested top percentile for a metric.
  */
-export function createMetricFilter(recordMesgs, config, options = {}) {
-    const mode = config?.mode === "valueRange" ? "valueRange" : "topPercent";
-    const disabledResult = {
-        allowedIndices: new Set(),
+export function createMetricFilter(
+    recordMesgs: readonly MetricRecord[],
+    config: MapDataPointFilterConfig | null | undefined,
+    options: MetricFilterOptions = {}
+): MetricFilterResult {
+    const mode: MapFilterMode =
+        config?.mode === "valueRange" ? "valueRange" : "topPercent";
+
+    const disabledResult: MetricFilterResult = {
+        allowedIndices: new Set<number>(),
         appliedMax: null,
         appliedMin: null,
         isActive: false,
@@ -124,9 +221,11 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
         threshold: null,
         totalCandidates: 0,
     };
+
     if (!config?.enabled) {
         return disabledResult;
     }
+
     const metricDef = getMetricDefinition(config.metric);
     if (!metricDef) {
         return {
@@ -134,29 +233,37 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
             reason: `Unknown metric: ${config.metric}`,
         };
     }
-    const valueExtractor = typeof options.valueExtractor === "function"
-        ? options.valueExtractor
-        : metricDef.resolver;
-    const entries = [];
+
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
+
+    const entries: { index: number; value: number }[] = [];
     for (const [idx, row] of recordMesgs.entries()) {
         const value = valueExtractor(row);
         if (typeof value === "number" && Number.isFinite(value)) {
             entries.push({ index: idx, value });
         }
     }
+
     if (entries.length === 0) {
         return {
             ...disabledResult,
             reason: `No valid ${metricDef.label.toLowerCase()} data available for filtering`,
         };
     }
+
     entries.sort((a, b) => b.value - a.value);
+
     const maxEntry = entries[0];
     if (!maxEntry) {
         return disabledResult;
     }
+
     const maxCandidate = maxEntry.value;
     const minCandidate = entries.at(-1)?.value ?? maxCandidate;
+
     if (mode === "valueRange") {
         return createValueRangeFilter({
             config,
@@ -167,6 +274,7 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
             minCandidate,
         });
     }
+
     return createTopPercentFilter({
         config,
         disabledResult,
@@ -176,25 +284,57 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
         minCandidate,
     });
 }
+
 /**
  * Resolve metric definition by key.
  */
-export function getMetricDefinition(metricKey) {
-    return (MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null);
+export function getMetricDefinition(
+    metricKey: string
+): MetricDefinition | null {
+    return (
+        MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null
+    );
 }
-function createValueRangeFilter({ config, disabledResult, entries, maxCandidate, metricDef, minCandidate, }) {
-    const appliedMin = clampValue(typeof config.minValue === "number" ? config.minValue : minCandidate, minCandidate, maxCandidate);
-    const appliedMax = clampValue(typeof config.maxValue === "number" ? config.maxValue : maxCandidate, minCandidate, maxCandidate);
+
+function createValueRangeFilter({
+    config,
+    disabledResult,
+    entries,
+    maxCandidate,
+    metricDef,
+    minCandidate,
+}: {
+    config: MapDataPointFilterConfig;
+    disabledResult: MetricFilterResult;
+    entries: { index: number; value: number }[];
+    maxCandidate: number;
+    metricDef: MetricDefinition;
+    minCandidate: number;
+}): MetricFilterResult {
+    const appliedMin = clampValue(
+        typeof config.minValue === "number" ? config.minValue : minCandidate,
+        minCandidate,
+        maxCandidate
+    );
+    const appliedMax = clampValue(
+        typeof config.maxValue === "number" ? config.maxValue : maxCandidate,
+        minCandidate,
+        maxCandidate
+    );
+
     const normalizedMin = Math.min(appliedMin, appliedMax);
     const normalizedMax = Math.max(appliedMin, appliedMax);
-    const orderedIndices = [];
-    const allowedIndices = new Set();
+
+    const orderedIndices: number[] = [];
+    const allowedIndices = new Set<number>();
+
     for (const entry of entries) {
         if (entry.value >= normalizedMin && entry.value <= normalizedMax) {
             allowedIndices.add(entry.index);
             orderedIndices.push(entry.index);
         }
     }
+
     if (orderedIndices.length === 0) {
         return {
             ...disabledResult,
@@ -206,6 +346,7 @@ function createValueRangeFilter({ config, disabledResult, entries, maxCandidate,
             reason: `No data points fall between ${normalizedMin} and ${normalizedMax}`,
         };
     }
+
     return {
         allowedIndices,
         appliedMax: normalizedMax,
@@ -224,7 +365,22 @@ function createValueRangeFilter({ config, disabledResult, entries, maxCandidate,
         totalCandidates: entries.length,
     };
 }
-function createTopPercentFilter({ config, disabledResult, entries, maxCandidate, metricDef, minCandidate, }) {
+
+function createTopPercentFilter({
+    config,
+    disabledResult,
+    entries,
+    maxCandidate,
+    metricDef,
+    minCandidate,
+}: {
+    config: MapDataPointFilterConfig;
+    disabledResult: MetricFilterResult;
+    entries: { index: number; value: number }[];
+    maxCandidate: number;
+    metricDef: MetricDefinition;
+    minCandidate: number;
+}): MetricFilterResult {
     const pct = clamp(Number(config.percent) || 0, 0, 100);
     if (pct <= 0) {
         return {
@@ -234,20 +390,26 @@ function createTopPercentFilter({ config, disabledResult, entries, maxCandidate,
             reason: "Percent must be greater than zero for filtering",
         };
     }
+
     const requestedCount = Math.ceil((entries.length * pct) / 100);
     const selectionCount = clamp(requestedCount, 1, entries.length);
     const thresholdEntry = entries.at(selectionCount - 1) ?? entries.at(-1);
     const thresholdValue = thresholdEntry?.value ?? maxCandidate;
-    const orderedIndices = [];
-    const allowedIndices = new Set();
+
+    const orderedIndices: number[] = [];
+    const allowedIndices = new Set<number>();
+
     for (const entry of entries) {
-        if (orderedIndices.length >= selectionCount &&
-            entry.value < thresholdValue) {
+        if (
+            orderedIndices.length >= selectionCount &&
+            entry.value < thresholdValue
+        ) {
             break;
         }
         allowedIndices.add(entry.index);
         orderedIndices.push(entry.index);
     }
+
     return {
         allowedIndices,
         appliedMax: null,
@@ -266,7 +428,8 @@ function createTopPercentFilter({ config, disabledResult, entries, maxCandidate,
         totalCandidates: entries.length,
     };
 }
-function clamp(value, min, max) {
+
+function clamp(value: number, min: number, max: number): number {
     if (Number.isNaN(value)) {
         return min;
     }
@@ -278,7 +441,8 @@ function clamp(value, min, max) {
     }
     return value;
 }
-function clampValue(value, min, max) {
+
+function clampValue(value: number, min: number, max: number): number {
     if (!Number.isFinite(value)) {
         return min;
     }
