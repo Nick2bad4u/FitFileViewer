@@ -183,6 +183,7 @@
         "utils/ui/layout/enhanceCreditsSection.ts",
         "utils/ui/modals/ensureAboutModal.ts",
         "utils/ui/modals/injectModalStyles.ts",
+        "utils/ui/settingsModal.ts",
         "utils/ui/notifications/showRenderNotification.ts",
         "utils/ui/notifications/showNotification.ts",
         "utils/ui/notifications/showUpdateNotification.ts",

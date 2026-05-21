@@ -1,44 +1,70 @@
 /**
  * Provides a settings UI for theme and accent color customization.
  */
+
 import { setState } from "../state/core/stateManager.js";
-import { getEffectiveAccentColor, isValidHexColor, resetAccentColor, setAccentColor, } from "../theming/core/accentColor.js";
-import { applyTheme, getEffectiveTheme, loadTheme, THEME_MODES, } from "../theming/core/theme.js";
+import {
+    getEffectiveAccentColor,
+    isValidHexColor,
+    resetAccentColor,
+    setAccentColor,
+} from "../theming/core/accentColor.js";
+import {
+    applyTheme,
+    getEffectiveTheme,
+    loadTheme,
+    THEME_MODES,
+} from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
+
 const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
-let closeAnimationTimer;
-let showAnimationFrameId;
-function clearCloseAnimationTimer() {
+
+type SettingsModalGlobal = typeof globalThis & {
+    closeSettingsModal?: typeof closeSettingsModal;
+    electronAPI?: {
+        sendThemeChanged?: (theme: string) => void;
+    };
+    showSettingsModal?: typeof showSettingsModal;
+};
+
+let closeAnimationTimer: ReturnType<typeof setTimeout> | undefined;
+let showAnimationFrameId: number | undefined;
+
+function clearCloseAnimationTimer(): void {
     if (closeAnimationTimer !== undefined) {
         clearTimeout(closeAnimationTimer);
         closeAnimationTimer = undefined;
     }
 }
-function scheduleModalClose(modal) {
+
+function scheduleModalClose(modal: HTMLElement): void {
     clearCloseAnimationTimer();
     closeAnimationTimer = setTimeout(() => {
         closeAnimationTimer = undefined;
         modal.style.display = "none";
     }, ANIMATION_DURATION);
 }
+
 /**
  * Closes the settings modal.
  */
-export function closeSettingsModal() {
+export function closeSettingsModal(): void {
     const modal = document.getElementById(SETTINGS_MODAL_ID);
     if (modal) {
         modal.classList.remove("show");
         scheduleModalClose(modal);
     }
 }
+
 /**
  * Shows the settings modal.
  */
-export async function showSettingsModal() {
+export async function showSettingsModal(): Promise<void> {
     let modal = document.getElementById(SETTINGS_MODAL_ID);
+
     // Create modal if it doesn't exist
     if (!modal) {
         modal = document.createElement("div");
@@ -46,12 +72,16 @@ export async function showSettingsModal() {
         modal.className = "modal fancy-modal";
         modal.style.display = "none";
         document.body.append(modal);
+
         // Inject styles (from aboutModal styles)
-        const { injectModalStyles } = await import("./modals/injectModalStyles.js");
+        const { injectModalStyles } =
+            await import("./modals/injectModalStyles.js");
         injectModalStyles();
     }
+
     // Inject settings-specific styles
     injectSettingsModalStyles();
+
     // Get current theme and accent color
     const currentTheme = loadTheme();
     const safeTheme = Object.values(THEME_MODES).includes(currentTheme)
@@ -62,8 +92,10 @@ export async function showSettingsModal() {
     const safeAccent = isValidHexColor(currentAccent)
         ? currentAccent
         : getEffectiveAccentColor(effectiveTheme);
+
     // Set modal content
     modal.replaceChildren(createSettingsModalContent(safeTheme, safeAccent));
+
     // Show modal with animation
     modal.style.display = "flex";
     if (showAnimationFrameId !== undefined) {
@@ -73,23 +105,32 @@ export async function showSettingsModal() {
         showAnimationFrameId = undefined;
         modal.classList.add("show");
     });
+
     // Setup event handlers
     setupSettingsModalHandlers(modal, effectiveTheme);
 }
+
 /**
  * Creates the settings modal content.
  */
-function createSettingsModalContent(currentTheme, currentAccent) {
+function createSettingsModalContent(
+    currentTheme: string,
+    currentAccent: string
+): HTMLElement {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
+
     const content = document.createElement("div");
     content.className = "modal-content";
     content.style.maxWidth = "600px";
+
     const header = document.createElement("div");
     header.className = "modal-header";
+
     const iconWrapper = document.createElement("div");
     iconWrapper.className = "modal-icon";
     iconWrapper.append(createAppIconElement("settings", { size: 32 }));
+
     const closeButton = document.createElement("button");
     closeButton.id = "settings-modal-close";
     closeButton.className = "modal-close";
@@ -97,21 +138,33 @@ function createSettingsModalContent(currentTheme, currentAccent) {
     closeButton.tabIndex = 0;
     closeButton.setAttribute("aria-label", "Close settings");
     closeButton.append(createCloseIcon());
+
     header.append(iconWrapper, closeButton);
+
     const body = document.createElement("div");
     body.className = "modal-body";
+
     const title = document.createElement("h2");
     title.className = "modal-title";
     title.textContent = "Settings";
+
     const subtitle = document.createElement("p");
     subtitle.className = "modal-subtitle";
     subtitle.textContent = "Customize your FitFileViewer experience";
+
     const settingsSection = document.createElement("div");
     settingsSection.className = "settings-section";
+
     const sectionTitle = document.createElement("h3");
     sectionTitle.className = "settings-section-title";
     sectionTitle.textContent = "🎨 Appearance";
-    settingsSection.append(sectionTitle, createThemeSetting(currentTheme), createAccentSetting(currentAccent));
+
+    settingsSection.append(
+        sectionTitle,
+        createThemeSetting(currentTheme),
+        createAccentSetting(currentAccent)
+    );
+
     const footer = document.createElement("div");
     footer.className = "settings-footer";
     const footerCloseButton = document.createElement("button");
@@ -120,12 +173,15 @@ function createSettingsModalContent(currentTheme, currentAccent) {
     footerCloseButton.type = "button";
     footerCloseButton.textContent = "Close";
     footer.append(footerCloseButton);
+
     body.append(title, subtitle, settingsSection, footer);
     content.append(header, body);
     backdrop.append(content);
+
     return backdrop;
 }
-function createCloseIcon() {
+
+function createCloseIcon(): SVGSVGElement {
     const icon = createSvgIcon();
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", "M18 6L6 18M6 6l12 12");
@@ -134,16 +190,23 @@ function createCloseIcon() {
     path.setAttribute("stroke-linecap", "round");
     path.setAttribute("stroke-linejoin", "round");
     icon.append(path);
+
     return icon;
 }
-function createResetIcon() {
+
+function createResetIcon(): SVGSVGElement {
     const icon = createSvgIcon();
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
+
     const firstPath = document.createElementNS(SVG_NS, "path");
     firstPath.setAttribute("d", "M1 4v6h6M23 20v-6h-6");
     const secondPath = document.createElementNS(SVG_NS, "path");
-    secondPath.setAttribute("d", "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15");
+    secondPath.setAttribute(
+        "d",
+        "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"
+    );
+
     for (const path of [firstPath, secondPath]) {
         path.setAttribute("stroke", "currentColor");
         path.setAttribute("stroke-width", "2");
@@ -151,78 +214,117 @@ function createResetIcon() {
         path.setAttribute("stroke-linejoin", "round");
     }
     icon.append(firstPath, secondPath);
+
     return icon;
 }
-function createSvgIcon() {
+
+function createSvgIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
     return icon;
 }
-function createThemeSetting(currentTheme) {
+
+function createThemeSetting(currentTheme: string): HTMLElement {
     const item = document.createElement("div");
     item.className = "setting-item";
+
     const label = document.createElement("label");
     label.className = "setting-label";
     label.htmlFor = "theme-select";
     label.textContent = "Theme";
+
     const select = document.createElement("select");
     select.id = "theme-select";
     select.className = "setting-select";
-    select.append(createThemeOption(THEME_MODES.AUTO, "Auto (Follow System)", currentTheme), createThemeOption(THEME_MODES.DARK, "Dark", currentTheme), createThemeOption(THEME_MODES.LIGHT, "Light", currentTheme));
+    select.append(
+        createThemeOption(
+            THEME_MODES.AUTO,
+            "Auto (Follow System)",
+            currentTheme
+        ),
+        createThemeOption(THEME_MODES.DARK, "Dark", currentTheme),
+        createThemeOption(THEME_MODES.LIGHT, "Light", currentTheme)
+    );
+
     item.append(label, select);
+
     return item;
 }
-function createThemeOption(value, label, currentTheme) {
+
+function createThemeOption(
+    value: string,
+    label: string,
+    currentTheme: string
+): HTMLOptionElement {
     const option = document.createElement("option");
     option.value = value;
     option.selected = currentTheme === value;
     option.textContent = label;
+
     return option;
 }
-function createAccentSetting(currentAccent) {
+
+function createAccentSetting(currentAccent: string): HTMLElement {
     const item = document.createElement("div");
     item.className = "setting-item";
+
     const label = document.createElement("label");
     label.className = "setting-label";
     label.htmlFor = "accent-color-picker";
     label.textContent = "Accent Color";
+
     const controls = document.createElement("div");
     controls.className = "accent-color-controls";
-    controls.append(createAccentColorInput(currentAccent), createAccentTextInput(currentAccent), createResetButton());
+    controls.append(
+        createAccentColorInput(currentAccent),
+        createAccentTextInput(currentAccent),
+        createResetButton()
+    );
+
     const preview = document.createElement("div");
     preview.className = "accent-color-preview";
+
     const previewLabel = document.createElement("div");
     previewLabel.className = "preview-label";
     previewLabel.textContent = "Preview:";
+
     const previewSamples = document.createElement("div");
     previewSamples.className = "preview-samples";
+
     const previewButton = document.createElement("button");
     previewButton.className = "preview-button";
     previewButton.type = "button";
     previewButton.textContent = "Button";
+
     const previewChip = document.createElement("div");
     previewChip.className = "preview-chip";
     previewChip.textContent = "Chip";
+
     const previewBadge = document.createElement("div");
     previewBadge.className = "preview-badge";
     previewBadge.textContent = "Badge";
+
     previewSamples.append(previewButton, previewChip, previewBadge);
     preview.append(previewLabel, previewSamples);
     item.append(label, controls, preview);
+
     return item;
 }
-function createAccentColorInput(currentAccent) {
+
+function createAccentColorInput(currentAccent: string): HTMLInputElement {
     const input = document.createElement("input");
     input.id = "accent-color-picker";
     input.className = "accent-color-input";
     input.type = "color";
     input.value = currentAccent;
     input.title = "Choose accent color";
+
     return input;
 }
-function createAccentTextInput(currentAccent) {
+
+function createAccentTextInput(currentAccent: string): HTMLInputElement {
     const input = document.createElement("input");
     input.id = "accent-color-text";
     input.className = "accent-color-text-input";
@@ -231,24 +333,29 @@ function createAccentTextInput(currentAccent) {
     input.pattern = "^#[0-9A-Fa-f]{6}$";
     input.placeholder = "#3b82f6";
     input.maxLength = 7;
+
     return input;
 }
-function createResetButton() {
+
+function createResetButton(): HTMLButtonElement {
     const button = document.createElement("button");
     button.id = "reset-accent-color";
     button.className = "reset-btn";
     button.type = "button";
     button.title = "Reset to default";
     button.append(createResetIcon());
+
     return button;
 }
+
 /**
  * Injects CSS styles for the settings modal.
  */
-function injectSettingsModalStyles() {
+function injectSettingsModalStyles(): void {
     if (document.querySelector("#settings-modal-styles")) {
         return;
     }
+
     const style = document.createElement("style");
     style.id = "settings-modal-styles";
     style.textContent = `
@@ -455,35 +562,50 @@ function injectSettingsModalStyles() {
 			transform: translateY(0);
 		}
 	`;
+
     document.head.append(style);
 }
+
 /**
  * Sets up event handlers for the settings modal.
  */
-function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
+function setupSettingsModalHandlers(
+    modal: HTMLElement,
+    currentEffectiveTheme: string
+): void {
     let effectiveTheme = currentEffectiveTheme;
+
     // Close button
-    const closeBtn = modal.querySelector("#settings-modal-close");
-    const closeFooterBtn = modal.querySelector("#settings-close-btn");
+    const closeBtn = modal.querySelector<HTMLButtonElement>(
+        "#settings-modal-close"
+    );
+    const closeFooterBtn = modal.querySelector<HTMLButtonElement>(
+        "#settings-close-btn"
+    );
+
     const closeModal = () => {
         modal.classList.remove("show");
         scheduleModalClose(modal);
     };
+
     if (closeBtn) {
         addEventListenerWithCleanup(closeBtn, "click", closeModal);
     }
+
     if (closeFooterBtn) {
         addEventListenerWithCleanup(closeFooterBtn, "click", closeModal);
     }
+
     // Click outside to close
-    addEventListenerWithCleanup(modal, "click", (event) => {
+    addEventListenerWithCleanup(modal, "click", (event: Event) => {
         if (event.target === modal) {
             closeModal();
         }
     });
+
     // Escape key to close
-    let cleanupEscape;
-    const handleEscape = (event) => {
+    let cleanupEscape: (() => void) | undefined;
+    const handleEscape = (event: Event) => {
         if (event instanceof KeyboardEvent && event.key === "Escape") {
             event.preventDefault();
             closeModal();
@@ -491,11 +613,16 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             cleanupEscape = undefined;
         }
     };
-    cleanupEscape = addEventListenerWithCleanup(document, "keydown", handleEscape);
+    cleanupEscape = addEventListenerWithCleanup(
+        document,
+        "keydown",
+        handleEscape
+    );
+
     // Theme selector
-    const themeSelect = modal.querySelector("#theme-select");
+    const themeSelect = modal.querySelector<HTMLSelectElement>("#theme-select");
     if (themeSelect) {
-        addEventListenerWithCleanup(themeSelect, "change", (event) => {
+        addEventListenerWithCleanup(themeSelect, "change", (event: Event) => {
             if (!(event.target instanceof HTMLSelectElement)) {
                 return;
             }
@@ -506,28 +633,35 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             //
             // - Theme core persists: "auto" | "dark" | "light"
             // - UI/state layer historically uses: "system" for auto
-            const stateTheme = newTheme === THEME_MODES.AUTO ? "system" : newTheme;
+            const stateTheme =
+                newTheme === THEME_MODES.AUTO ? "system" : newTheme;
+
             try {
                 setState("ui.theme", stateTheme, {
                     source: "settingsModal:theme-select",
                 });
-            }
-            catch {
+            } catch {
                 // Fallback for environments where state management is unavailable.
                 applyTheme(newTheme, true);
             }
+
             // Keep the main process in sync so it doesn't override the renderer's
             // theme later (e.g., after focus/menu interactions).
             try {
-                globalThis.electronAPI?.sendThemeChanged?.(newTheme);
-            }
-            catch {
+                (
+                    globalThis as SettingsModalGlobal
+                ).electronAPI?.sendThemeChanged?.(newTheme);
+            } catch {
                 /* ignore */
             }
+
             // Update effective theme for accent color
             effectiveTheme = getEffectiveTheme(newTheme);
+
             // Reapply current accent color for the new theme
-            const colorPicker = modal.querySelector("#accent-color-picker");
+            const colorPicker = modal.querySelector<HTMLInputElement>(
+                "#accent-color-picker"
+            );
             if (colorPicker) {
                 const currentColor = colorPicker.value;
                 if (isValidHexColor(currentColor)) {
@@ -536,42 +670,55 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             }
         });
     }
+
     // Accent color picker
-    const colorPicker = modal.querySelector("#accent-color-picker");
-    const colorText = modal.querySelector("#accent-color-text");
-    const resetBtn = modal.querySelector("#reset-accent-color");
+    const colorPicker = modal.querySelector<HTMLInputElement>(
+        "#accent-color-picker"
+    );
+    const colorText =
+        modal.querySelector<HTMLInputElement>("#accent-color-text");
+    const resetBtn = modal.querySelector<HTMLButtonElement>(
+        "#reset-accent-color"
+    );
+
     if (colorPicker && colorText) {
         // Sync color picker and text input
-        addEventListenerWithCleanup(colorPicker, "input", (event) => {
+        addEventListenerWithCleanup(colorPicker, "input", (event: Event) => {
             if (!(event.target instanceof HTMLInputElement)) {
                 return;
             }
             const color = event.target.value;
             colorText.value = color;
+
             if (isValidHexColor(color)) {
                 setAccentColor(color, effectiveTheme);
             }
         });
-        addEventListenerWithCleanup(colorText, "input", (event) => {
+
+        addEventListenerWithCleanup(colorText, "input", (event: Event) => {
             if (!(event.target instanceof HTMLInputElement)) {
                 return;
             }
             let color = event.target.value.trim();
+
             // Auto-add # if missing
             if (color && !color.startsWith("#")) {
                 color = `#${color}`;
                 event.target.value = color;
             }
+
             if (isValidHexColor(color)) {
                 colorPicker.value = color;
                 setAccentColor(color, effectiveTheme);
             }
         });
     }
+
     // Reset accent color
     if (resetBtn) {
         addEventListenerWithCleanup(resetBtn, "click", () => {
             const defaultColor = resetAccentColor(effectiveTheme);
+
             // Update UI
             if (colorPicker) {
                 colorPicker.value = defaultColor;
@@ -582,9 +729,10 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
         });
     }
 }
+
 // Export globally for menu integration
 if (typeof globalThis !== "undefined") {
-    const settingsModalGlobal = globalThis;
+    const settingsModalGlobal = globalThis as SettingsModalGlobal;
     settingsModalGlobal.showSettingsModal = showSettingsModal;
     settingsModalGlobal.closeSettingsModal = closeSettingsModal;
 }
