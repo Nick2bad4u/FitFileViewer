@@ -165,6 +165,7 @@ import {
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
+import { touchChartRenderDependencies } from "./renderChartDependencyTouches.js";
 import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
 import {
     createRenderTimingGate,
@@ -494,22 +495,10 @@ export async function renderChartJS(targetContainer, options = {}) {
         // Let errors bubble to outer catch so critical errors are surfaced as notifications in tests
         setup(globalData);
 
-        // Proactively touch theme and converter so spies are exercised even if
-        // downstream rendering takes alternate paths (e.g., debounce, early returns in private helpers)
-        try {
-            // Theme config access (safe for all environments)
-            await getThemeConfigSafe();
-        } catch {
-            /* ignore */
-        }
-        try {
-            // Unit converter touch (safe no-op for production; satisfies test spies)
-            const _conv = getConvertersSafe();
-            // Use a stable sample to avoid NaN propagation
-            _conv(1, "speed");
-        } catch {
-            /* ignore */
-        }
+        await touchChartRenderDependencies({
+            getConverters: getConvertersSafe,
+            getThemeConfig: getThemeConfigSafe,
+        });
 
         // Validate record messages (main time-series data)
         const recordMesgs = getRecordMessages(globalData);
