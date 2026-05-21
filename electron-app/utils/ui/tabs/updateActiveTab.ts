@@ -37,11 +37,6 @@ type TabButtonLike = EventTarget & {
     readonly setAttribute?: (qualifiedName: string, value: string) => void;
 };
 
-type ButtonCollection = {
-    readonly length: number;
-    [Symbol.iterator](): IterableIterator<unknown>;
-};
-
 type EffectiveGlobals = typeof globalThis & {
     __vitest_effective_document__?: Document;
     __vitest_effective_stateManager__?: unknown;
@@ -191,8 +186,8 @@ function getSubscribeSingleton():
     return typeof value === "function" ? value : undefined;
 }
 
-function getButtonCollection(selector: string): ButtonCollection {
-    return getDoc().querySelectorAll(selector) as unknown as ButtonCollection;
+function getButtonCollection(selector: string): NodeListOf<Element> {
+    return getDoc().querySelectorAll(selector);
 }
 
 function isButtonLike(candidate: unknown): candidate is TabButtonLike {
@@ -360,6 +355,7 @@ export function initializeActiveTabState(): void {
  * Update active tab efficiently.
  *
  * @param tabId - Tab button element ID.
+ *
  * @returns True when the active tab was updated.
  */
 export function updateActiveTab(tabId: unknown): boolean {
