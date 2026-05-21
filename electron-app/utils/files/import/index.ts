@@ -6,6 +6,15 @@ export * from "./fitParserIntegration.js";
 export * from "./getOverlayFileName.js";
 export * from "./handleOpenFile.js";
 export { loadOverlayFiles } from "./loadOverlayFiles.js";
+export type {
+    LoadedFitFileEntry,
+    OverlayFitData,
+    OverlayInputFile,
+} from "./loadOverlayFiles.js";
 export { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
+export type {
+    OverlayFitData as SingleOverlayFitData,
+    OverlayLoadResult,
+} from "./loadSingleOverlayFile.js";
 export * from "./openFileSelector.js";
 /* eslint-enable no-barrel-files/no-barrel-files */
