@@ -1,5 +1,6 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
 const FULLSCREEN_EVENTS = [
     "fullscreenchange",
@@ -69,10 +70,9 @@ export interface ChartHoverThemeConfig {
 
 function isPromiseLike(value: unknown): value is PromiseLike<void> {
     return (
-        value !== null &&
-        typeof value === "object" &&
+        isObjectRecord(value) &&
         "then" in value &&
-        typeof value.then === "function"
+        typeof value["then"] === "function"
     );
 }
 
@@ -125,9 +125,22 @@ function createTitleIcon(iconName: AppIconName): SVGSVGElement {
         activity: ["M22 12h-4l-3 9L9 3l-3 9H2"],
         gauge: ["M12 14l4-4", "M4 18a8 8 0 1 1 16 0"],
         route: ["M6 19a3 3 0 1 1 0-6h12a3 3 0 1 0 0-6H7"],
-        ruler: ["M4 17 17 4", "M14 7l3 3", "M10 11l2 2", "M6 15l3 3"],
-        table: ["M3 5h18v14H3z", "M3 10h18", "M8 5v14"],
-        timer: ["M10 2h4", "M12 14l3-3", "M12 22a8 8 0 1 0 0-16"],
+        ruler: [
+            "M4 17 17 4",
+            "M14 7l3 3",
+            "M10 11l2 2",
+            "M6 15l3 3",
+        ],
+        table: [
+            "M3 5h18v14H3z",
+            "M3 10h18",
+            "M8 5v14",
+        ],
+        timer: [
+            "M10 2h4",
+            "M12 14l3-3",
+            "M12 22a8 8 0 1 0 0-16",
+        ],
     };
 
     for (const path of iconPaths[iconName] ?? iconPaths.table ?? []) {
@@ -179,28 +192,24 @@ function scheduleTimeout(
 }
 
 function isChartInstanceLike(value: unknown): value is ChartInstanceLike {
-    return value !== null && typeof value === "object";
+    return isObjectRecord(value);
 }
 
 function isChartGlobalLike(value: unknown): value is ChartGlobalLike {
-    return value !== null && typeof value === "object";
+    return isObjectRecord(value);
 }
 
 function resolveChartHoverThemeConfig(value: unknown): ChartHoverThemeConfig {
     if (
-        value === null ||
-        typeof value !== "object" ||
+        !isObjectRecord(value) ||
         !("colors" in value) ||
-        value.colors === null ||
-        typeof value.colors !== "object"
+        !isObjectRecord(value["colors"])
     ) {
         return { colors: {} };
     }
 
     const colors: ChartHoverColors = {};
-    for (const [key, color] of Object.entries(
-        value.colors as Record<string, unknown>
-    )) {
+    for (const [key, color] of Object.entries(value["colors"])) {
         if (typeof color === "string") {
             colors[key] = color;
         }
@@ -838,11 +847,15 @@ export function addChartHoverEffects(
 
                 wrapper.append(ripple);
 
-                scheduleTimeout(() => {
-                    if (ripple.parentNode) {
-                        ripple.remove();
-                    }
-                }, 600, signal);
+                scheduleTimeout(
+                    () => {
+                        if (ripple.parentNode) {
+                            ripple.remove();
+                        }
+                    },
+                    600,
+                    signal
+                );
             },
             { signal }
         );
@@ -900,7 +913,8 @@ export function addChartHoverEffects(
 }
 
 /**
- * Apply hover effects to the active chart container using the current app theme.
+ * Apply hover effects to the active chart container using the current app
+ * theme.
  */
 export function addHoverEffectsToExistingCharts(): void {
     const chartContainer =
@@ -929,7 +943,8 @@ export function addHoverEffectsToExistingCharts(): void {
  */
 
 /**
- * Remove hover-effect wrappers from a chart container and restore canvas styles.
+ * Remove hover-effect wrappers from a chart container and restore canvas
+ * styles.
  */
 export function removeChartHoverEffects(
     chartContainer: HTMLElement | null | undefined

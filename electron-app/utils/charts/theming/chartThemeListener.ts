@@ -1,4 +1,5 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import type { FitDecodeResult } from "../../../shared/fit";
 
 interface ChartUpdateAdapter {
@@ -27,10 +28,9 @@ function getGlobalWindow(): LegacyChartWindow | undefined {
 
 function hasUpdateAll(value: unknown): value is ChartUpdateAdapter {
     return (
-        typeof value === "object" &&
-        value !== null &&
+        isObjectRecord(value) &&
         "updateAll" in value &&
-        typeof value.updateAll === "function"
+        typeof value["updateAll"] === "function"
     );
 }
 
@@ -41,7 +41,9 @@ function getThemeFromEvent(event: Event): string | undefined {
 
     const detail = event.detail as ThemeChangeDetail | undefined;
 
-    return detail && typeof detail === "object" ? detail.theme : undefined;
+    return isObjectRecord(detail) && typeof detail["theme"] === "string"
+        ? detail["theme"]
+        : undefined;
 }
 
 function updateChartsForTheme(
@@ -166,10 +168,9 @@ function onChartThemeChangeFactory(
 
 function updateSettingsPanelTheme(settingsContainer: HTMLElement): void {
     try {
-        const sliders =
-            settingsContainer.querySelectorAll<HTMLInputElement>(
-                'input[type="range"]'
-            );
+        const sliders = settingsContainer.querySelectorAll<HTMLInputElement>(
+            'input[type="range"]'
+        );
 
         for (const slider of sliders) {
             const current = Number(slider.value || 0);
@@ -192,10 +193,9 @@ function updateSettingsPanelTheme(settingsContainer: HTMLElement): void {
                     : "var(--color-border)";
         }
 
-        const statusTexts =
-            settingsContainer.querySelectorAll<HTMLElement>(
-                ".toggle-switch + span"
-            );
+        const statusTexts = settingsContainer.querySelectorAll<HTMLElement>(
+            ".toggle-switch + span"
+        );
 
         for (const statusText of statusTexts) {
             statusText.style.color =

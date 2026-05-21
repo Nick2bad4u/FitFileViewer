@@ -3,7 +3,7 @@ import {
     setState,
     updateState,
 } from "../../state/core/stateManager.js";
-import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface PerformanceTrackingRecord extends Record<string, unknown> {
     startTime: number;
@@ -27,8 +27,7 @@ function isPerformanceTrackingRecord(
     value: unknown
 ): value is PerformanceTrackingRecord {
     return (
-        value !== null &&
-        typeof value === "object" &&
+        isObjectRecord(value) &&
         typeof getRecordValue(value, "startTime") === "number"
     );
 }
@@ -130,6 +129,7 @@ export const chartPerformanceMonitor = {
      * Start performance tracking for a chart operation.
      *
      * @param operation - Operation name.
+     *
      * @returns Performance tracking ID.
      */
     startTracking(operation: string): string {

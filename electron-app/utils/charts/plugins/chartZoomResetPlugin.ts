@@ -1,5 +1,6 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 
 interface RendererDevGlobal {
     __renderer_dev?: {
@@ -115,8 +116,7 @@ function normalizeRadius(radius: unknown): CornerRadii {
 
 function isLegacyCornerRadius(value: unknown): value is LegacyCornerRadius {
     return (
-        typeof value === "object" &&
-        value !== null &&
+        isObjectRecord(value) &&
         ("bl" in value || "br" in value || "tl" in value || "tr" in value)
     );
 }

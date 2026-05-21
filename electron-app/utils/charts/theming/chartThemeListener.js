@@ -1,20 +1,24 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
+import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 let chartThemeListener;
 function getGlobalWindow() {
     return typeof window === "undefined" ? undefined : window;
 }
 function hasUpdateAll(value) {
-    return (typeof value === "object" &&
-        value !== null &&
+    return (
+        isObjectRecord(value) &&
         "updateAll" in value &&
-        typeof value.updateAll === "function");
+        typeof value["updateAll"] === "function"
+    );
 }
 function getThemeFromEvent(event) {
     if (!(event instanceof CustomEvent)) {
         return undefined;
     }
     const detail = event.detail;
-    return detail && typeof detail === "object" ? detail.theme : undefined;
+    return isObjectRecord(detail) && typeof detail["theme"] === "string"
+        ? detail["theme"]
+        : undefined;
 }
 function updateChartsForTheme(reason, unavailableMessage, theme) {
     const stateManager = importedChartStateManager;
@@ -42,7 +46,10 @@ function hasChartData() {
 export function forceUpdateChartTheme(chartsContainer, settingsContainer) {
     console.log("[ChartThemeListener] Force updating chart theme");
     if (chartsContainer && hasChartData()) {
-        updateChartsForTheme("Force theme update", "[ChartThemeListener] No chart update mechanism available for force update");
+        updateChartsForTheme(
+            "Force theme update",
+            "[ChartThemeListener] No chart update mechanism available for force update"
+        );
     }
     if (settingsContainer) {
         updateSettingsPanelTheme(settingsContainer);
@@ -66,9 +73,14 @@ export function setupChartThemeListener(chartsContainer, settingsContainer) {
     if (chartThemeListener) {
         document.body.removeEventListener("themechange", chartThemeListener);
     }
-    chartThemeListener = onChartThemeChangeFactory(chartsContainer, settingsContainer);
+    chartThemeListener = onChartThemeChangeFactory(
+        chartsContainer,
+        settingsContainer
+    );
     document.body.addEventListener("themechange", chartThemeListener);
-    console.log("[ChartThemeListener] Theme listener set up for charts and settings");
+    console.log(
+        "[ChartThemeListener] Theme listener set up for charts and settings"
+    );
 }
 function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
     const handler = (event) => {
@@ -79,8 +91,14 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
         }
         handler.timeout = setTimeout(() => {
             if (chartsContainer && hasChartData()) {
-                console.log("[ChartThemeListener] Re-rendering charts for theme change");
-                updateChartsForTheme("Theme change", "[ChartThemeListener] No chart update mechanism available", theme);
+                console.log(
+                    "[ChartThemeListener] Re-rendering charts for theme change"
+                );
+                updateChartsForTheme(
+                    "Theme change",
+                    "[ChartThemeListener] No chart update mechanism available",
+                    theme
+                );
             }
             if (settingsContainer) {
                 updateSettingsPanelTheme(settingsContainer);
@@ -91,12 +109,15 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
 }
 function updateSettingsPanelTheme(settingsContainer) {
     try {
-        const sliders = settingsContainer.querySelectorAll('input[type="range"]');
+        const sliders = settingsContainer.querySelectorAll(
+            'input[type="range"]'
+        );
         for (const slider of sliders) {
             const current = Number(slider.value || 0);
             const max = Number(slider.max || 100);
             const min = Number(slider.min || 0);
-            const percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
+            const percentage =
+                max === min ? 0 : ((current - min) / (max - min)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
         }
         const toggles = settingsContainer.querySelectorAll(".toggle-switch");
@@ -107,7 +128,9 @@ function updateSettingsPanelTheme(settingsContainer) {
                     ? "var(--color-success)"
                     : "var(--color-border)";
         }
-        const statusTexts = settingsContainer.querySelectorAll(".toggle-switch + span");
+        const statusTexts = settingsContainer.querySelectorAll(
+            ".toggle-switch + span"
+        );
         for (const statusText of statusTexts) {
             statusText.style.color =
                 statusText.textContent === "On"
@@ -115,8 +138,10 @@ function updateSettingsPanelTheme(settingsContainer) {
                     : "var(--color-fg)";
         }
         console.log("[ChartThemeListener] Settings panel theme updated");
-    }
-    catch (error) {
-        console.error("[ChartThemeListener] Error updating settings panel theme:", error);
+    } catch (error) {
+        console.error(
+            "[ChartThemeListener] Error updating settings panel theme:",
+            error
+        );
     }
 }
