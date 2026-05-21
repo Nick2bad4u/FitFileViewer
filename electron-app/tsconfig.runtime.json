@@ -217,6 +217,7 @@
         "utils/charts/rendering/renderZoneChart.ts",
         "utils/charts/rendering/renderZoneChartNew.ts",
         "utils/charts/rendering/index.ts",
+        "utils/charts/index.ts",
         "utils/charts/theming/chartThemeUtils.ts",
         "utils/charts/theming/chartColorSchemes.ts",
         "utils/charts/theming/chartOverlayColorPalette.ts",
