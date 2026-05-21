@@ -176,6 +176,7 @@
         "utils/rendering/helpers/updateControlsState.ts",
         "utils/rendering/core/renderSummary.ts",
         "utils/rendering/components/createTables.ts",
+        "utils/rendering/components/shownFilesListItemHandlers.ts",
         "utils/ui/events/eventListenerManager.ts",
         "utils/ui/dragDropHandler.ts",
         "utils/ui/mainUiDomUtils.ts",

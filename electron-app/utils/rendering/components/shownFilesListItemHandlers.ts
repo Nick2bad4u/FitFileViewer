@@ -1,37 +1,103 @@
-function getOverlayGlobal() {
-    return globalThis;
+type OverlayListItem = HTMLLIElement & {
+    _overlayListItemCleanup?: (() => void) | null;
+    _tooltipRemover?: (() => void) | null;
+    _tooltipTimeout?: ReturnType<typeof setTimeout> | null;
+};
+
+type AttachOverlayListItemHandlersParams = {
+    assignKeyboardFocus: (index: number) => void;
+    fullPath: string;
+    isDark: boolean;
+    li: HTMLLIElement;
+    overlayIndex: number;
+    removeBtn: HTMLSpanElement;
+    scheduleOverlayStateSync: () => void;
+    showWarning: boolean;
+};
+
+type CircleMarkerLayer = {
+    bringToFront?: () => void;
+    options?: {
+        color?: string;
+    };
+};
+
+type CircleMarkerConstructor = new (...args: unknown[]) => CircleMarkerLayer;
+
+type OverlayPolyline = {
+    _map?: {
+        _layers?: Record<string, unknown>;
+    };
+    bringToFront?: () => void;
+    getBounds?: () => unknown;
+    getElement?: () => HTMLElement | null;
+    options?: {
+        color?: string;
+    };
+};
+
+type OverlayGlobal = typeof globalThis & {
+    L?: {
+        CircleMarker?: CircleMarkerConstructor;
+    };
+    _highlightedOverlayIdx?: number | null;
+    _leafletMapInstance?: {
+        fitBounds: (
+            bounds: unknown,
+            options: {
+                padding: [number, number];
+            }
+        ) => void;
+    };
+    _overlayPolylines?: readonly (OverlayPolyline | undefined)[];
+    _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
+    loadedFitFiles?: unknown[];
+    renderMap?: () => void;
+    updateOverlayHighlights?: () => void;
+    updateShownFilesList?: () => void;
+};
+
+function getOverlayGlobal(): OverlayGlobal {
+    return globalThis as OverlayGlobal;
 }
-function removeOverlayFilenameTooltips() {
+
+function removeOverlayFilenameTooltips(): void {
     const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
     for (const tooltip of tooltips) {
         tooltip.parentNode?.removeChild(tooltip);
     }
 }
-function scheduleTooltipCleanup() {
+
+function scheduleTooltipCleanup(): ReturnType<typeof setTimeout> {
     return setTimeout(() => {
         removeOverlayFilenameTooltips();
     }, 10);
 }
-function clearOverlayTooltipTimeout() {
+
+function clearOverlayTooltipTimeout(): void {
     const overlayGlobal = getOverlayGlobal();
     if (overlayGlobal._overlayTooltipTimeout) {
         clearTimeout(overlayGlobal._overlayTooltipTimeout);
         overlayGlobal._overlayTooltipTimeout = null;
     }
 }
-function updateOverlayHighlights() {
+
+function updateOverlayHighlights(): void {
     getOverlayGlobal().updateOverlayHighlights?.();
 }
-function getOverlayPolyline(overlayIndex) {
+
+function getOverlayPolyline(overlayIndex: number): OverlayPolyline | undefined {
     return getOverlayGlobal()._overlayPolylines?.[overlayIndex];
 }
-function bringMatchingOverlayMarkersToFront(polyline) {
+
+function bringMatchingOverlayMarkersToFront(polyline: OverlayPolyline): void {
     const overlayGlobal = getOverlayGlobal();
     const circleMarker = overlayGlobal.L?.CircleMarker;
     const layers = polyline._map?._layers;
     if (!circleMarker || !layers || !polyline.options) {
         return;
     }
+
     for (const layer of Object.values(layers)) {
         if (
             layer instanceof circleMarker &&
@@ -43,7 +109,8 @@ function bringMatchingOverlayMarkersToFront(polyline) {
         }
     }
 }
-function focusOverlayOnMap(polyline) {
+
+function focusOverlayOnMap(polyline: OverlayPolyline): void {
     const overlayGlobal = getOverlayGlobal();
     if (polyline.getBounds && overlayGlobal._leafletMapInstance) {
         overlayGlobal._leafletMapInstance.fitBounds(polyline.getBounds(), {
@@ -51,11 +118,16 @@ function focusOverlayOnMap(polyline) {
         });
     }
 }
-function highlightPolylineElement(polyline, overlayIndex) {
+
+function highlightPolylineElement(
+    polyline: OverlayPolyline,
+    overlayIndex: number
+): ReturnType<typeof setTimeout> | null {
     const polylineElement = polyline.getElement?.();
     if (!polylineElement) {
         return null;
     }
+
     const color = polyline.options?.color || "#1976d2";
     polylineElement.style.transition = "filter 0.2s";
     polylineElement.style.filter = `drop-shadow(0 0 16px ${color})`;
@@ -65,6 +137,7 @@ function highlightPolylineElement(polyline, overlayIndex) {
         }
     }, 250);
 }
+
 function showOverlayTooltip({
     fullPath,
     initialEvent,
@@ -72,10 +145,18 @@ function showOverlayTooltip({
     li,
     overlayIndex,
     showWarning,
-}) {
+}: {
+    fullPath: string;
+    initialEvent: MouseEvent;
+    isDark: boolean;
+    li: OverlayListItem;
+    overlayIndex: number;
+    showWarning: boolean;
+}): void {
     if (getOverlayGlobal()._highlightedOverlayIdx !== overlayIndex) {
         return;
     }
+
     const tooltip = document.createElement("div");
     tooltip.className = "overlay-filename-tooltip";
     tooltip.style.position = "fixed";
@@ -89,11 +170,13 @@ function showOverlayTooltip({
     tooltip.style.fontSize = "0.95em";
     tooltip.style.boxShadow = "0 2px 8px #0003";
     tooltip.style.whiteSpace = "pre-line";
+
     // Avoid innerHTML because file paths are user-controlled.
     tooltip.textContent = `File: ${String(fullPath)}${showWarning ? "\n⚠️ This color may be hard to read in this theme." : ""}`;
     document.body.append(tooltip);
+
     const tooltipMovement = new AbortController();
-    const moveTooltip = (event) => {
+    const moveTooltip = (event: MouseEvent): void => {
         const pad = 12;
         let x = event.clientX + pad;
         let y = event.clientY + pad;
@@ -106,6 +189,7 @@ function showOverlayTooltip({
         tooltip.style.left = `${x}px`;
         tooltip.style.top = `${y}px`;
     };
+
     moveTooltip(initialEvent);
     globalThis.addEventListener("mousemove", moveTooltip, {
         signal: tooltipMovement.signal,
@@ -115,6 +199,7 @@ function showOverlayTooltip({
         tooltip.remove();
     };
 }
+
 /**
  * Attach overlay list item interactions for map overlay selection and removal.
  *
@@ -131,20 +216,21 @@ export function attachOverlayListItemHandlers({
     removeBtn,
     scheduleOverlayStateSync,
     showWarning,
-}) {
-    const listItem = li;
+}: AttachOverlayListItemHandlersParams): () => void {
+    const listItem = li as OverlayListItem;
     const eventListeners = new AbortController();
     const { signal } = eventListeners;
-    const timers = new Set();
-    const trackTimer = (timer) => {
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const trackTimer = (timer: ReturnType<typeof setTimeout> | null): void => {
         if (timer) {
             timers.add(timer);
         }
     };
-    const scheduleManagedTooltipCleanup = () => {
+    const scheduleManagedTooltipCleanup = (): void => {
         trackTimer(scheduleTooltipCleanup());
     };
-    const cleanup = () => {
+
+    const cleanup = (): void => {
         for (const timer of timers) {
             clearTimeout(timer);
         }
@@ -159,6 +245,7 @@ export function attachOverlayListItemHandlers({
     listItem._overlayListItemCleanup = cleanup;
     listItem._tooltipTimeout = null;
     listItem._tooltipRemover = null;
+
     removeBtn.addEventListener(
         "mouseenter",
         (event) => {
@@ -192,6 +279,7 @@ export function attachOverlayListItemHandlers({
         },
         { signal }
     );
+
     listItem.addEventListener(
         "click",
         () => {
@@ -200,10 +288,12 @@ export function attachOverlayListItemHandlers({
             overlayGlobal._highlightedOverlayIdx = overlayIndex;
             updateOverlayHighlights();
             listItem._tooltipRemover?.();
+
             const polyline = getOverlayPolyline(overlayIndex);
             if (!polyline) {
                 return;
             }
+
             polyline.bringToFront?.();
             bringMatchingOverlayMarkersToFront(polyline);
             trackTimer(highlightPolylineElement(polyline, overlayIndex));
@@ -211,6 +301,7 @@ export function attachOverlayListItemHandlers({
         },
         { signal }
     );
+
     listItem.addEventListener(
         "focus",
         () => {
@@ -218,6 +309,7 @@ export function attachOverlayListItemHandlers({
         },
         { signal }
     );
+
     listItem.addEventListener(
         "mouseenter",
         (event) => {
@@ -225,9 +317,11 @@ export function attachOverlayListItemHandlers({
             overlayGlobal._highlightedOverlayIdx = overlayIndex;
             updateOverlayHighlights();
             removeBtn.style.opacity = "1";
+
             clearOverlayTooltipTimeout();
             removeOverlayFilenameTooltips();
             listItem._tooltipRemover?.();
+
             overlayGlobal._overlayTooltipTimeout = setTimeout(() => {
                 showOverlayTooltip({
                     fullPath,
@@ -253,5 +347,6 @@ export function attachOverlayListItemHandlers({
         },
         { signal }
     );
+
     return cleanup;
 }
