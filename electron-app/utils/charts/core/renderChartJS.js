@@ -51,9 +51,7 @@ import {
 } from "./renderChartModuleHelpers.js";
 import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import { createExportChartsWithState } from "./renderChartExportState.js";
-import {
-    clearChartLabelsCache,
-} from "./renderChartLabelCache.js";
+import { clearChartLabelsCache } from "./renderChartLabelCache.js";
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
@@ -140,6 +138,7 @@ import { resolveChartThemeRenderPlan } from "./renderChartThemePlan.js";
 import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencies.js";
 import { renderChartDataCharts } from "./renderChartDataCharts.js";
 import { completeChartDataRender } from "./renderChartDataCompletion.js";
+import { beginChartDataRenderContext } from "./renderChartDataContext.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -473,18 +472,22 @@ async function renderChartsWithData(
     startTime,
     options = {}
 ) {
-    const isTestRuntime = isTestEnvironment();
-    const isDebugLoggingEnabled =
-        isDevelopmentEnvironment() && isChartDebugEnabled();
-    const { skipControls = false, skipTabAbort = false } =
-        options && typeof options === "object" ? options : {};
-
-    const renderStartTime = performance.now();
-
-    // Preflight DOM capability check to surface DOM issues early (tested scenario)
-    // This will throw in the specific test where document.createElement is mocked to throw,
-    // allowing the error to be handled by the outer try/catch in renderChartJS()
-    document.createElement("div");
+    const {
+        isDebugLoggingEnabled,
+        isTestRuntime,
+        renderStartTime,
+        skipControls,
+        skipTabAbort,
+    } = beginChartDataRenderContext(
+        {
+            doc: document,
+            isChartDebugEnabled,
+            isDevelopmentEnvironment,
+            isTestEnvironment,
+            nowPerformance: () => performance.now(),
+        },
+        options
+    );
 
     const {
         addChartHoverEffectsSafe,
