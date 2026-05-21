@@ -147,6 +147,7 @@
         "utils/app/initialization/rendererUtils.ts",
         "utils/app/initialization/setupWindow.ts",
         "utils/app/initialization/updateSystemInfo.ts",
+        "utils/app/menu/createAppMenu.ts",
         "utils/app/events.ts",
         "utils/app/lifecycle/appActions.ts",
         "utils/app/lifecycle/listeners.ts",
