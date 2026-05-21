@@ -63,6 +63,7 @@
         "utils/state/domain/fitFileState.ts",
         "utils/state/domain/uiStateManager.ts",
         "utils/state/integration/mainProcessStateClient.ts",
+        "utils/state/integration/stateIntegration.ts",
         "utils/formatting/converters/convertArrayBufferToBase64.ts",
         "utils/formatting/converters/convertDistanceUnits.ts",
         "utils/formatting/converters/convertMpsToKmh.ts",
