@@ -110,6 +110,7 @@
         "utils/async/pLimitCompat.ts",
         "utils/net/networkUtils.ts",
         "utils/docs/documentationStandards.ts",
+        "utils/debug/debugChartFormatting.ts",
         "utils/legacy/globalUtilityApp.ts",
         "utils/legacy/globalUtilityData.ts",
         "utils/legacy/globalUtilityFormatting.ts",
