@@ -77,14 +77,11 @@ import {
     clearChartLabelsCache,
     getLabelsForRecords,
 } from "./renderChartLabelCache.js";
-import {
-    getNotificationSuppressed,
-    notify,
-    setNotificationSuppressed,
-} from "./renderChartNotificationHelpers.js";
+import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import { registerChartJsPlugins } from "./renderChartPluginRegistration.js";
+import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
@@ -407,203 +404,13 @@ export function invalidateChartRenderCache(reason = "manual") {
     notifyInvalidateChartRenderCacheListeners(reason, CACHE_LOG_PREFIX);
 }
 
-/**
- * Pre-warm the most expensive chart caches (labels + per-field converted values
- *
- * - Chart points).
- *
- * Why this helps:
- *
- * - The slow part of chart rendering is frequently the O(N) scan across
- *   recordMesgs for each field, plus unit conversion and point creation.
- * - `renderChartsWithData()` already caches this work in WeakMaps/Maps.
- * - By pre-warming those caches during idle time after file load, the Charts tab
- *   render becomes dramatically faster without attempting to render charts
- *   while the tab is hidden (display:none).
- *
- * This function intentionally does **not** touch the DOM and is safe to run
- * while the map tab is active.
- *
- * @param {{
- *     recordMesgs: Record<string, unknown>[];
- *     startTime: unknown;
- *     reason?: string;
- *     yieldEvery?: number;
- * }} params
- *
- * @returns {Promise<{ processedFields: number; skipped: boolean }>} Summary
- *   info for debugging.
- */
-export async function prewarmChartRenderCaches({
-    recordMesgs,
-    startTime,
-    reason = "prewarm",
-    yieldEvery = 2,
-}) {
-    if (!Array.isArray(recordMesgs) || recordMesgs.length === 0) {
-        return { processedFields: 0, skipped: true };
-    }
-
-    const { getState: gs } = getStateManagerSafe();
-    const activeTab = gs("ui.activeTab");
-    // If the user is actively on the chart tab, don't compete with the real render.
-    if (activeTab === "chart" || activeTab === "chartjs") {
-        return { processedFields: 0, skipped: true };
-    }
-
-    // If charts are already rendered or rendering, pre-warming is unnecessary.
-    const chartsState = gs("charts");
-    if (chartsState && typeof chartsState === "object") {
-        if (
-            getRecordValue(chartsState, "isRendered") === true ||
-            getRecordValue(chartsState, "isRendering") === true
-        ) {
-            return { processedFields: 0, skipped: true };
-        }
-    }
-
-    // Pre-warming should not produce user notifications.
-    const prevSuppress = getNotificationSuppressed();
-    setNotificationSuppressed(true);
-
-    try {
-        const settings = chartSettingsManager.getSettings();
-        const normalizedMaxPoints = normalizeMaxPointsValue(
-            settings?.maxpoints
-        );
-        const dataSettingsSignature = ensureDataSettingsSignature(settings);
-        const convert = getConvertersSafe();
-
-        // Warm labels cache.
-        const labels = getLabelsForRecords(recordMesgs, startTime);
-
-        // Determine candidate fields using the same logic as renderChartsWithData.
-        const fields = getFormatChartFieldsSafe();
-        /** @type {string[]} */
-        const renderable = Array.isArray(fields)
-            ? fields.filter(
-                  (field) =>
-                      (chartSettingsManager.getFieldVisibility(field) ||
-                          "visible") !== "hidden"
-              )
-            : [];
-
-        /** @type {string[]} */
-        let fieldsToPrewarm = renderable;
-        if (!fieldsToPrewarm.length) {
-            try {
-                const sample = Array.isArray(recordMesgs)
-                    ? recordMesgs.find((r) => r && typeof r === "object") || {}
-                    : {};
-                fieldsToPrewarm = Object.keys(sample)
-                    .filter((key) => key !== "timestamp")
-                    .filter(
-                        (key) =>
-                            typeof getRecordValue(sample, key) === "number"
-                    );
-            } catch {
-                /* ignore */
-            }
-        }
-
-        // Limit the amount of pre-warming work to avoid UI stalls.
-        // This is a best-effort optimization — we want "faster first Charts render",
-        // not "freeze the app for 10 seconds after load".
-        // Dynamic cap: large activities can have 100k+ records, and pre-warming many fields
-        // can noticeably stall the UI even when scheduled during idle time.
-        const totalRecords = recordMesgs.length;
-        const MAX_FIELDS_TO_PREWARM =
-            totalRecords >= 250_000
-                ? 2
-                : totalRecords >= 120_000
-                  ? 4
-                  : totalRecords >= 60_000
-                    ? 6
-                    : 8;
-        const PRIORITY_FIELDS = [
-            // Common record fields (both snake_case and camelCase variants seen across parsers)
-            "speed",
-            "enhanced_speed",
-            "heart_rate",
-            "heartRate",
-            "aux_heart_rate",
-            "auxHeartRate",
-            "power",
-            "enhanced_power",
-            "altitude",
-            "enhanced_altitude",
-            "cadence",
-            "temperature",
-        ];
-
-        /** @type {string[]} */
-        const prioritized = [];
-        const candidateSet = new Set(fieldsToPrewarm);
-        for (const f of PRIORITY_FIELDS) {
-            if (candidateSet.has(f)) {
-                prioritized.push(f);
-                candidateSet.delete(f);
-            }
-        }
-        // Keep original ordering for the remaining candidates.
-        const remaining = fieldsToPrewarm.filter((f) => candidateSet.has(f));
-        fieldsToPrewarm = [...prioritized, ...remaining].slice(
-            0,
-            MAX_FIELDS_TO_PREWARM
-        );
-
-        if (isDevelopmentEnvironment()) {
-            console.log(
-                `${CACHE_LOG_PREFIX} prewarm started (${reason}): ${fieldsToPrewarm.length} fields, ${recordMesgs.length} records`
-            );
-        }
-
-        let processedFields = 0;
-        for (const field of fieldsToPrewarm) {
-            // Abort if the user navigates to the chart tab during prewarm.
-            const tabNow = gs("ui.activeTab");
-            if (tabNow === "chart" || tabNow === "chartjs") {
-                return { processedFields, skipped: false };
-            }
-
-            const visibility = chartSettingsManager.getFieldVisibility(field);
-            if (visibility === "hidden") {
-                continue;
-            }
-
-            const entry = getFieldSeriesEntry(
-                recordMesgs,
-                field,
-                dataSettingsSignature,
-                convert
-            );
-            // Warm point + axis-range caches for the current maxpoints setting.
-            getCachedSeriesForSettings(entry, labels, normalizedMaxPoints);
-
-            processedFields += 1;
-
-            if (yieldEvery > 0 && processedFields % yieldEvery === 0) {
-                // Yield to the event loop so we don't freeze the UI while pre-warming.
-                // (Still best-effort; the inner per-field scan is synchronous.)
-                await new Promise((resolve) => {
-                    setTimeout(resolve, 0);
-                });
-            }
-        }
-
-        if (isDevelopmentEnvironment()) {
-            console.log(
-                `${CACHE_LOG_PREFIX} prewarm complete (${reason}): processedFields=${processedFields}`
-            );
-        }
-
-        return { processedFields, skipped: false };
-    } catch (error) {
-        console.warn(`${CACHE_LOG_PREFIX} prewarm failed (${reason})`, error);
-        return { processedFields: 0, skipped: false };
-    } finally {
-        setNotificationSuppressed(prevSuppress);
-    }
+export async function prewarmChartRenderCaches(params) {
+    return prewarmChartRenderCachesImpl(params, {
+        getFieldVisibility: (field) =>
+            chartSettingsManager.getFieldVisibility(field),
+        getSettings: () => chartSettingsManager.getSettings(),
+        invalidateChartRenderCache,
+    });
 }
 
 const ensureDataSettingsSignature = (settings) =>
