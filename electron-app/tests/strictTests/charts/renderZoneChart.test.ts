@@ -60,7 +60,7 @@ describe("renderZoneChart", () => {
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
-        vi.mock("../../../utils/data/zones/chartZoneColorUtils.js", () => ({
+        vi.doMock("../../../utils/data/zones/chartZoneColorUtils.js", () => ({
             getZoneTypeFromField: (id: string) =>
                 id.includes("power") ? "power" : "hr",
             getChartZoneColors: (_type: string, n: number) =>
