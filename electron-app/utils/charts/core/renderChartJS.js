@@ -176,6 +176,7 @@ import {
     shouldAbortInactiveChartRender,
     touchStringTargetContainer,
 } from "./renderChartPreflight.js";
+import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -1190,34 +1191,19 @@ async function renderChartsWithData(
         Date.now()
     );
 
-    // Emit comprehensive chart status event with state information
-    // Compute directly to avoid relying on chartState in tests that import during init
-    const hasValidData = Boolean(
-        getState("globalData") &&
-        getState("globalData").recordMesgs &&
-        Array.isArray(getState("globalData").recordMesgs) &&
-        getState("globalData").recordMesgs.length > 0
-    );
-    try {
-        if (typeof globalThis.CustomEvent === "function") {
-            const chartsRenderedEvent = new globalThis.CustomEvent(
-                "chartsRendered",
-                {
-                    detail: {
-                        hasData: hasValidData,
-                        renderTime,
-                        settings: getState("charts.chartOptions"),
-                        timestamp: Date.now(),
-                        totalRendered: totalChartsRendered,
-                        visibleFields: visibleFieldCount,
-                    },
-                }
-            );
-            document.dispatchEvent(chartsRenderedEvent);
+    emitChartsRenderedEvent(
+        {
+            CustomEventConstructor: globalThis.CustomEvent,
+            doc: document,
+            getState,
+            now: Date.now,
+        },
+        {
+            renderTime,
+            totalChartsRendered,
+            visibleFieldCount,
         }
-    } catch {
-        // Ignore CustomEvent issues in non-browser test environments
-    }
+    );
 
     // Update computed state that depends on rendered charts
     try {
