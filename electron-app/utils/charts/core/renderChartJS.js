@@ -146,53 +146,15 @@ import {
     notifyInvalidateChartRenderCacheListeners,
 } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
+import {
+    callGetState,
+    callSetState,
+    callUpdateState,
+    getStateManagerSafe,
+} from "./renderChartStateAccess.js";
 const _previousChartState = chartNotificationState.previousChartState;
 
 ensureProcessNextTick();
-
-// State helpers that invoke both safe module-injected functions and direct imports so test spies always see calls
-function callGetState(path) {
-    try {
-        const { getState: gs } = getStateManagerSafe();
-        const v = gs(path);
-        if (v !== undefined) return v;
-    } catch {
-        /* ignore */
-    }
-    try {
-        return getState(path);
-    } catch {
-        /* ignore */
-    }
-}
-
-function callSetState(path, value, options) {
-    try {
-        const { setState: ss } = getStateManagerSafe();
-        if (typeof ss === "function") ss(path, value, options);
-    } catch {
-        /* ignore */
-    }
-    try {
-        setState(path, value, options);
-    } catch {
-        /* ignore */
-    }
-}
-
-function callUpdateState(path, value, options) {
-    try {
-        const { updateState: us } = getStateManagerSafe();
-        if (typeof us === "function") us(path, value, options);
-    } catch {
-        /* ignore */
-    }
-    try {
-        updateState(path, value, options);
-    } catch {
-        /* ignore */
-    }
-}
 
 // Safe accessors that prefer test-injected modules via globalThis.require (alphabetical order)
 function getComputedStateManagerSafe() {
@@ -422,29 +384,6 @@ function getShowRenderNotificationSafe() {
 }
 
 // (moved up)
-
-function getStateManagerSafe() {
-    try {
-        const mod = getInjectedModule("../../state/core/stateManager.js");
-        if (mod && typeof mod === "object") {
-            const injectedGetState = getRecordFunction(mod, "getState");
-            const injectedSetState = getRecordFunction(mod, "setState");
-            const injectedSubscribe = getRecordFunction(mod, "subscribe");
-            const injectedUpdateState = getRecordFunction(mod, "updateState");
-            if (injectedGetState || injectedSetState || injectedUpdateState) {
-                return {
-                    getState: injectedGetState || getState,
-                    setState: injectedSetState || setState,
-                    subscribe: injectedSubscribe || subscribe,
-                    updateState: injectedUpdateState || updateState,
-                };
-            }
-        }
-    } catch {
-        /* ignore */
-    }
-    return { getState, setState, subscribe, updateState };
-}
 
 // Safe accessor for a UIStateManager instance that might be provided by the app/tests
 function getUIStateManagerMaybe() {
