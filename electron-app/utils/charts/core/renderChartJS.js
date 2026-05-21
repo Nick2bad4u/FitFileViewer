@@ -64,9 +64,8 @@ import { applyCompletedChartHoverEffects } from "./renderChartHoverCompletion.js
 import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
-import { registerChartJsPlugins } from "./renderChartPluginRegistration.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
-import { registerChartRequestListener } from "./renderChartRequestListener.js";
+import { initializeChartRuntimeBootstrap } from "./renderChartRuntimeBootstrap.js";
 import {
     clearPerformanceSettingsCache,
     resolvePerformanceSettings,
@@ -86,7 +85,6 @@ import {
     getDebouncedChartStateManager,
     getGlobalChartActions,
     getGlobalChartInstances,
-    getMutableChartRuntimeGlobal,
     isChartDebugEnabled,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -261,11 +259,7 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     );
 }
 
-// Chart.js plugin registration
-const chartGlobal = getMutableChartRuntimeGlobal();
-registerChartJsPlugins(chartGlobal);
-registerChartRequestListener({
-    chartGlobal,
+const chartGlobal = initializeChartRuntimeBootstrap({
     getChartStateManager: getDebouncedChartStateManager,
     renderChart: renderChartJS,
 });
