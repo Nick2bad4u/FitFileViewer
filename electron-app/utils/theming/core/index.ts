@@ -3,5 +3,6 @@
  * Re-exports all modules in the theming/core category.
  */
 export { setupTheme } from "./setupTheme.js";
+export type { SetupThemeOptions } from "./setupTheme.js";
 export * from "./theme.js";
 /* eslint-enable no-barrel-files/no-barrel-files */
