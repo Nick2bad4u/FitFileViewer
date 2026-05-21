@@ -4,12 +4,69 @@ import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZone
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
-const DEFAULT_VISIBILITY = {
+
+interface LapZoneChartsOptions {
+    readonly showGrid?: boolean;
+    readonly showLegend?: boolean;
+    readonly showTitle?: boolean;
+    readonly visibilitySettings?: LapZoneVisibility;
+    readonly zoomPluginConfig?: Record<string, unknown>;
+}
+
+interface LapZoneDatum {
+    readonly color: string;
+    readonly label: string;
+    readonly value: number;
+    readonly zoneIndex: number;
+}
+
+interface LapZoneEntry {
+    readonly lapLabel: string;
+    readonly zones: readonly LapZoneDatum[];
+}
+
+interface LapZoneRuntimeGlobal {
+    readonly __FFV_debugCharts?: unknown;
+    readonly __FFV_debugChartsVerbose?: unknown;
+    _chartjsInstances?: unknown[];
+    readonly globalData?: {
+        readonly timeInZoneMesgs?: unknown;
+    };
+    readonly heartRateZones?: unknown;
+    readonly powerZones?: unknown;
+    readonly showNotification?: (message: string, type: string) => void;
+}
+
+interface LapZoneVisibility {
+    readonly hrIndividualVisible: boolean;
+    readonly hrStackedVisible: boolean;
+    readonly powerIndividualVisible: boolean;
+    readonly powerStackedVisible: boolean;
+}
+
+interface TimeInZoneMessage {
+    readonly referenceIndex?: unknown;
+    readonly referenceMesg?: unknown;
+    readonly timeInHrZone?: unknown;
+    readonly timeInPowerZone?: unknown;
+}
+
+interface ZoneSummaryDatum {
+    readonly color: string;
+    readonly label: string;
+    readonly time?: number;
+    readonly value: number;
+}
+
+type ZoneKind = "hr" | "power";
+
+const DEFAULT_VISIBILITY: LapZoneVisibility = {
     hrIndividualVisible: true,
     hrStackedVisible: true,
     powerIndividualVisible: true,
     powerStackedVisible: true,
 };
+
 /**
  * Render lap-specific stacked and individual zone charts when lap zone data is
  * available.
@@ -17,13 +74,18 @@ const DEFAULT_VISIBILITY = {
  * @param container - Target chart container.
  * @param options - Optional visibility and chart settings.
  */
-export function renderLapZoneCharts(container, options = {}) {
+export function renderLapZoneCharts(
+    container: HTMLElement,
+    options: LapZoneChartsOptions | null = {}
+): void {
     const runtimeGlobal = getRuntimeGlobal(),
         debug = getDebugState(runtimeGlobal);
+
     try {
         if (debug.isDebugLoggingEnabled) {
             console.log("[ChartJS] renderLapZoneCharts called");
         }
+
         const timeInZoneMesgs = getTimeInZoneMessages(runtimeGlobal);
         if (!timeInZoneMesgs) {
             if (debug.isDebugLoggingEnabled) {
@@ -33,28 +95,36 @@ export function renderLapZoneCharts(container, options = {}) {
             }
             return;
         }
+
         const lapZoneMsgs = timeInZoneMesgs.filter(
-            (msg) => isTimeInZoneMessage(msg) && msg.referenceMesg === "lap"
+            (msg): msg is TimeInZoneMessage =>
+                isTimeInZoneMessage(msg) && msg.referenceMesg === "lap"
         );
         logThemeConfig(debug.isDebugLoggingEnabled);
+
         if (debug.isDebugLoggingEnabled) {
             console.log(
                 "[ChartJS] Found timeInZoneMesgs:",
                 timeInZoneMesgs.length
             );
         }
+
         if (lapZoneMsgs.length === 0) {
             if (debug.isDebugLoggingEnabled) {
                 console.log("[ChartJS] No lap-specific zone data found");
             }
             return;
         }
+
         const visibility = options?.visibilitySettings ?? DEFAULT_VISIBILITY;
+
         if (debug.isVerboseDebugLoggingEnabled) {
             console.log("[ChartJS] Found lap zone data:", lapZoneMsgs);
         }
+
         const hrZoneData = buildLapZoneData(lapZoneMsgs, "hr"),
             pwrZoneData = buildLapZoneData(lapZoneMsgs, "power");
+
         logZoneData(
             "HR",
             hrZoneData.meaningfulZoneIndexes,
@@ -67,6 +137,7 @@ export function renderLapZoneCharts(container, options = {}) {
             pwrZoneData.laps,
             debug
         );
+
         renderStackedLapZoneCharts(
             container,
             visibility,
@@ -81,6 +152,7 @@ export function renderLapZoneCharts(container, options = {}) {
             runtimeGlobal,
             debug
         );
+
         if (debug.isDebugLoggingEnabled) {
             console.log("[ChartJS] Lap zone charts rendered successfully");
         }
@@ -92,8 +164,12 @@ export function renderLapZoneCharts(container, options = {}) {
         );
     }
 }
-function aggregateLapZones(lapZoneData) {
-    const aggregatedZones = new Map();
+
+function aggregateLapZones(
+    lapZoneData: readonly LapZoneEntry[]
+): ZoneSummaryDatum[] {
+    const aggregatedZones = new Map<string, ZoneSummaryDatum>();
+
     for (const lap of lapZoneData) {
         for (const zone of lap.zones) {
             const existingZone = aggregatedZones.get(zone.label);
@@ -111,9 +187,17 @@ function aggregateLapZones(lapZoneData) {
             }
         }
     }
+
     return [...aggregatedZones.values()];
 }
-function buildLapZoneData(lapZoneMsgs, zoneKind) {
+
+function buildLapZoneData(
+    lapZoneMsgs: readonly TimeInZoneMessage[],
+    zoneKind: ZoneKind
+): {
+    readonly laps: readonly LapZoneEntry[];
+    readonly meaningfulZoneIndexes: readonly number[];
+} {
     const zoneField = zoneKind === "hr" ? "timeInHrZone" : "timeInPowerZone",
         rawLaps = lapZoneMsgs
             .filter((msg) => Boolean(msg[zoneField]))
@@ -135,13 +219,21 @@ function buildLapZoneData(lapZoneMsgs, zoneKind) {
                 ),
             }))
             .filter((lap) => lap.zones.length > 0);
+
     return {
         laps,
         meaningfulZoneIndexes,
     };
 }
-function createLapZoneEntry(message, fallbackIndex, zoneKind, zones) {
+
+function createLapZoneEntry(
+    message: TimeInZoneMessage,
+    fallbackIndex: number,
+    zoneKind: ZoneKind,
+    zones: readonly number[]
+): LapZoneEntry {
     const labelPrefix = zoneKind === "hr" ? "HR" : "Power";
+
     return {
         lapLabel: getLapLabel(message.referenceIndex, fallbackIndex),
         zones: zones.slice(1).map((value, zoneIndex) => ({
@@ -152,7 +244,11 @@ function createLapZoneEntry(message, fallbackIndex, zoneKind, zones) {
         })),
     };
 }
-function getDebugState(runtimeGlobal) {
+
+function getDebugState(runtimeGlobal: LapZoneRuntimeGlobal): {
+    readonly isDebugLoggingEnabled: boolean;
+    readonly isVerboseDebugLoggingEnabled: boolean;
+} {
     const isTestEnvironment =
             typeof process !== "undefined" &&
             process.env?.["NODE_ENV"] === "test",
@@ -166,16 +262,22 @@ function getDebugState(runtimeGlobal) {
             isTestEnvironment ||
             (isDebugLoggingEnabled &&
                 Boolean(runtimeGlobal.__FFV_debugChartsVerbose));
+
     return {
         isDebugLoggingEnabled,
         isVerboseDebugLoggingEnabled,
     };
 }
-function getLapLabel(referenceIndex, fallbackIndex) {
+
+function getLapLabel(referenceIndex: unknown, fallbackIndex: number): string {
     return `Lap ${referenceIndex || fallbackIndex + 1}`;
 }
-function getMeaningfulZoneIndexes(lapZoneData) {
-    const zoneTotals = new Map();
+
+function getMeaningfulZoneIndexes(
+    lapZoneData: readonly LapZoneEntry[]
+): readonly number[] {
+    const zoneTotals = new Map<number, number>();
+
     for (const lap of lapZoneData) {
         for (const zone of lap.zones) {
             zoneTotals.set(
@@ -184,28 +286,37 @@ function getMeaningfulZoneIndexes(lapZoneData) {
             );
         }
     }
+
     return [...zoneTotals.entries()]
         .filter(([, total]) => total > 0)
         .map(([zoneIndex]) => zoneIndex);
 }
-function getRuntimeGlobal() {
-    return globalThis;
+
+function getRuntimeGlobal(): LapZoneRuntimeGlobal {
+    return globalThis as LapZoneRuntimeGlobal;
 }
-function getTimeInZoneMessages(runtimeGlobal) {
+
+function getTimeInZoneMessages(
+    runtimeGlobal: LapZoneRuntimeGlobal
+): readonly unknown[] | null {
     const timeInZoneMesgs = runtimeGlobal.globalData?.timeInZoneMesgs;
     return Array.isArray(timeInZoneMesgs) ? timeInZoneMesgs : null;
 }
-function isTimeInZoneMessage(value) {
+
+function isTimeInZoneMessage(value: unknown): value is TimeInZoneMessage {
     return value !== null && typeof value === "object";
 }
-function logThemeConfig(isDebugLoggingEnabled) {
+
+function logThemeConfig(isDebugLoggingEnabled: boolean): void {
     const themeConfig = getThemeConfig(),
         themeName = getThemeName(themeConfig);
+
     if (themeName && isDebugLoggingEnabled) {
         console.log("[renderLapZoneCharts] Using theme config:", themeName);
     }
 }
-function getThemeName(themeConfig) {
+
+function getThemeName(themeConfig: unknown): unknown {
     if (
         typeof themeConfig === "object" &&
         themeConfig !== null &&
@@ -215,13 +326,20 @@ function getThemeName(themeConfig) {
     }
     return undefined;
 }
-function logZoneData(zoneLabel, meaningfulZoneIndexes, lapZoneData, debug) {
+
+function logZoneData(
+    zoneLabel: "HR" | "Power",
+    meaningfulZoneIndexes: readonly number[],
+    lapZoneData: readonly LapZoneEntry[],
+    debug: ReturnType<typeof getDebugState>
+): void {
     if (debug.isDebugLoggingEnabled) {
         console.log(
             `[ChartJS] ${zoneLabel} Zone filtering - meaningful${zoneLabel}Zones:`,
             meaningfulZoneIndexes
         );
     }
+
     if (debug.isVerboseDebugLoggingEnabled) {
         console.log(
             `[ChartJS] ${zoneLabel} Zone data after filtering:`,
@@ -229,12 +347,17 @@ function logZoneData(zoneLabel, meaningfulZoneIndexes, lapZoneData, debug) {
         );
     }
 }
-function normalizeSessionZones(rawZones) {
+
+function normalizeSessionZones(rawZones: unknown): ZoneSummaryDatum[] {
     if (!Array.isArray(rawZones)) {
         return [];
     }
+
     return rawZones
-        .filter((zone) => zone !== null && typeof zone === "object")
+        .filter(
+            (zone): zone is Record<string, unknown> =>
+                zone !== null && typeof zone === "object"
+        )
         .map((zone) => {
             const value =
                     typeof zone["value"] === "number"
@@ -249,29 +372,33 @@ function normalizeSessionZones(rawZones) {
                         typeof zone["label"] === "string" ? zone["label"] : "",
                     value,
                 };
+
             return typeof zone["time"] === "number"
                 ? { ...normalizedZone, time: zone["time"] }
                 : normalizedZone;
         });
 }
-function registerChartInstance(chart) {
+
+function registerChartInstance(chart: unknown): void {
     if (!chart) {
         return;
     }
+
     const runtimeGlobal = getRuntimeGlobal();
     if (!Array.isArray(runtimeGlobal._chartjsInstances)) {
         runtimeGlobal._chartjsInstances = [];
     }
     runtimeGlobal._chartjsInstances.push(chart);
 }
+
 function renderIndividualLapZoneCharts(
-    container,
-    visibility,
-    hrZoneData,
-    pwrZoneData,
-    runtimeGlobal,
-    debug
-) {
+    container: HTMLElement,
+    visibility: LapZoneVisibility,
+    hrZoneData: readonly LapZoneEntry[],
+    pwrZoneData: readonly LapZoneEntry[],
+    runtimeGlobal: LapZoneRuntimeGlobal,
+    debug: ReturnType<typeof getDebugState>
+): void {
     if (visibility.hrIndividualVisible) {
         renderIndividualZoneChart(
             container,
@@ -281,6 +408,7 @@ function renderIndividualLapZoneCharts(
             debug
         );
     }
+
     if (visibility.powerIndividualVisible) {
         renderIndividualZoneChart(
             container,
@@ -291,15 +419,17 @@ function renderIndividualLapZoneCharts(
         );
     }
 }
+
 function renderIndividualZoneChart(
-    container,
-    zoneKind,
-    lapZoneData,
-    rawSessionZones,
-    debug
-) {
+    container: HTMLElement,
+    zoneKind: ZoneKind,
+    lapZoneData: readonly LapZoneEntry[],
+    rawSessionZones: unknown,
+    debug: ReturnType<typeof getDebugState>
+): void {
     const zoneLabel = zoneKind === "hr" ? "HR" : "Power",
         chartNumber = zoneKind === "hr" ? 3 : 4;
+
     if (debug.isDebugLoggingEnabled) {
         console.log(
             `[ChartJS] Chart ${chartNumber} - ${zoneLabel} zone data check:`,
@@ -312,7 +442,9 @@ function renderIndividualZoneChart(
             }
         );
     }
+
     let sessionZones = normalizeSessionZones(rawSessionZones);
+
     if (sessionZones.length > 0) {
         if (debug.isVerboseDebugLoggingEnabled) {
             console.log(
@@ -338,6 +470,7 @@ function renderIndividualZoneChart(
             );
         }
     }
+
     if (sessionZones.length === 0) {
         if (debug.isDebugLoggingEnabled) {
             console.log(
@@ -346,12 +479,14 @@ function renderIndividualZoneChart(
         }
         return;
     }
+
     if (debug.isDebugLoggingEnabled) {
         console.log(
             `[ChartJS] Rendering ${zoneLabel} zone bar with data:`,
             sessionZones
         );
     }
+
     const canvas = createChartCanvas(
         zoneKind === "hr" ? "single-lap-hr" : "single-lap-power",
         0
@@ -361,6 +496,7 @@ function renderIndividualZoneChart(
             ? "chartjs-canvas-single-lap-hr"
             : "chartjs-canvas-single-lap-power";
     container.append(canvas);
+
     const chart =
         zoneKind === "hr"
             ? renderSingleHRZoneBar(canvas, sessionZones, {
@@ -371,26 +507,30 @@ function renderIndividualZoneChart(
               });
     registerChartInstance(chart);
 }
+
 function renderStackedLapZoneCharts(
-    container,
-    visibility,
-    hrZoneData,
-    pwrZoneData
-) {
+    container: HTMLElement,
+    visibility: LapZoneVisibility,
+    hrZoneData: readonly LapZoneEntry[],
+    pwrZoneData: readonly LapZoneEntry[]
+): void {
     if (visibility.hrStackedVisible && hrZoneData.length > 0) {
         const canvas = createChartCanvas("lap-hr-zones", 0);
         canvas.id = "chartjs-canvas-lap-hr-zones";
         container.append(canvas);
+
         registerChartInstance(
             renderLapZoneChart(canvas, hrZoneData, {
                 title: "HR Zone by Lap (Stacked)",
             })
         );
     }
+
     if (visibility.powerStackedVisible && pwrZoneData.length > 0) {
         const canvas = createChartCanvas("lap-power-zones", 0);
         canvas.id = "chartjs-canvas-lap-power-zones";
         container.append(canvas);
+
         registerChartInstance(
             renderLapZoneChart(canvas, pwrZoneData, {
                 title: "Power Zone by Lap (Stacked)",
@@ -398,22 +538,26 @@ function renderStackedLapZoneCharts(
         );
     }
 }
-function safeParseArray(value) {
+
+function safeParseArray(value: unknown): number[] {
     const parsedValue = Array.isArray(value)
         ? value
         : parseSerializedArray(value);
+
     return parsedValue.map((entry) => {
         const numericValue = Number(entry);
         return Number.isFinite(numericValue) ? numericValue : 0;
     });
 }
-function parseSerializedArray(value) {
+
+function parseSerializedArray(value: unknown): unknown[] {
     if (!value || typeof value !== "string") {
         return [];
     }
+
     try {
         const clean = value.trim().replace(/^"+|"+$/g, ""),
-            parsedValue = JSON.parse(clean);
+            parsedValue: unknown = JSON.parse(clean);
         return Array.isArray(parsedValue) ? parsedValue : [];
     } catch {
         return [];
