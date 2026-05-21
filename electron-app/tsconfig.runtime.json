@@ -128,6 +128,7 @@
         "utils/app/initialization/updateSystemInfo.ts",
         "utils/app/events.ts",
         "utils/app/lifecycle/listenersResize.ts",
+        "utils/app/lifecycle/menuIpcListeners.ts",
         "utils/app/lifecycle/resourceManager.ts",
         "utils/charts/core/chartNotificationState.ts",
         "utils/charts/core/createManagedChart.ts",

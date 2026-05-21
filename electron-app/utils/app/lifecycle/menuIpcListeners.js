@@ -1,224 +1,141 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
-
-/**
- * @typedef {typeof globalThis & {
- *     __ffvMenuForwardRegistry?: Set<string>;
- * }} MenuIpcGlobal
- */
-
-/**
- * @returns {MenuIpcGlobal}
- */
+const accentColorPickerModulePath = "../../../ui/modals/accentColorPicker.js";
 function getMenuIpcGlobal() {
-    return /** @type {MenuIpcGlobal} */ (globalThis);
+    return globalThis;
 }
-
+function getMenuForwardRegistry() {
+    const holder = getMenuIpcGlobal();
+    if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
+        holder.__ffvMenuForwardRegistry = new Set();
+    }
+    return holder.__ffvMenuForwardRegistry;
+}
+async function openAccentColorPickerFromModule({ debugMenuLog, showNotification, }) {
+    try {
+        // eslint-disable-next-line no-unsanitized/method -- Static local module path; this modal remains JS-only during this migration slice.
+        const mod = (await import(accentColorPickerModulePath));
+        if (typeof mod.openAccentColorPicker === "function") {
+            getMenuIpcGlobal().showAccentColorPicker = () => {
+                mod.openAccentColorPicker?.();
+            };
+            getMenuIpcGlobal().showAccentColorPicker?.();
+            return;
+        }
+        debugMenuLog("Accent color picker module loaded, but openAccentColorPicker is unavailable");
+        showNotification("Accent color picker is unavailable.", "error", 3000);
+    }
+    catch (error) {
+        debugMenuLog("Failed to load accent color picker module", error);
+        showNotification("Failed to open accent color picker.", "error", 3000);
+    }
+}
+function buildKeyboardShortcutsHtml() {
+    const shortcuts = [
+        ["Open File", "Ctrl+O"],
+        ["Save As", "Ctrl+S"],
+        ["Print", "Ctrl+P"],
+        ["Close Window", "Ctrl+W"],
+        ["Reload", "Ctrl+R"],
+        ["Toggle DevTools", "Ctrl+Shift+I"],
+        ["Toggle Fullscreen", "F11"],
+        ["Export", "No default"],
+        ["Theme: Dark/Light", "Settings > Theme"],
+    ];
+    const items = shortcuts
+        .map(([action, keys]) => `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`)
+        .join("");
+    return `<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">${items}</ul>`;
+}
+function loadKeyboardShortcutsScript({ debugMenuLog, showAboutModal, }) {
+    const script = document.createElement("script");
+    const scriptController = new AbortController();
+    script.src = "./utils/keyboardShortcutsModal.js";
+    script.addEventListener("load", () => {
+        scriptController.abort();
+        debugMenuLog("Script loaded successfully");
+        if (typeof getMenuIpcGlobal().showKeyboardShortcutsModal ===
+            "function") {
+            debugMenuLog("Calling showKeyboardShortcutsModal function");
+            getMenuIpcGlobal().showKeyboardShortcutsModal?.();
+            return;
+        }
+        debugMenuLog("showKeyboardShortcutsModal function not available after script load");
+    }, { signal: scriptController.signal });
+    script.addEventListener("error", (error) => {
+        scriptController.abort();
+        debugMenuLog("Failed to load keyboard shortcuts modal script:", error);
+        showAboutModal(buildKeyboardShortcutsHtml());
+    }, { signal: scriptController.signal });
+    document.head.append(script);
+}
 /**
  * Registers renderer-side IPC listeners that are specifically driven by the
  * Electron application menu.
- *
- * Why this module exists:
- *
- * - `listeners.js` was exceeding the repo's `max-lines` lint threshold.
- * - Menu IPC wiring is logically separable from general UI lifecycle listeners.
- *
- * @param {{
- *     trackUnsubscribe: (maybeUnsubscribe: unknown) => void;
- *     debugMenuLog: (...args: unknown[]) => void;
- *     isTestEnvironment: boolean;
- *     showAboutModal: (...args: unknown[]) => void;
- *     showNotification: (message: string, type?: string, durationMs?: number) => void;
- * }} params
  */
-export function registerMenuIpcListeners({
-    debugMenuLog,
-    isTestEnvironment,
-    showAboutModal,
-    showNotification,
-    trackUnsubscribe,
-}) {
-    if (
-        !globalThis.electronAPI ||
-        typeof globalThis.electronAPI.onIpc !== "function"
-    ) {
+export function registerMenuIpcListeners({ debugMenuLog, isTestEnvironment, showAboutModal, showNotification, trackUnsubscribe, }) {
+    const menuGlobal = getMenuIpcGlobal();
+    const electronAPI = menuGlobal.electronAPI;
+    if (!electronAPI || typeof electronAPI.onIpc !== "function") {
         return;
     }
-
-    // Menu-driven actions that must run in the renderer.
-    trackUnsubscribe(
-        globalThis.electronAPI.onIpc("menu-restart-update", () => {
-            try {
-                if (
-                    globalThis.electronAPI &&
-                    typeof globalThis.electronAPI.installUpdate === "function"
-                ) {
-                    globalThis.electronAPI.installUpdate();
-                }
-            } catch {
-                /* ignore */
-            }
-        })
-    );
-
-    trackUnsubscribe(
-        globalThis.electronAPI.onIpc("menu-open-overlay", async () => {
-            try {
-                await openFileSelector();
-            } catch (error) {
-                if (!isTestEnvironment) {
-                    console.error(
-                        "[MenuIpcListeners] Failed to open overlay selector:",
-                        error
-                    );
-                }
-                showNotification(
-                    "Failed to open overlay selector.",
-                    "error",
-                    3000
-                );
-            }
-        })
-    );
-
-    // Forward selected menu events back to main process.
-    // (Main triggers renderer event; renderer calls `electronAPI.send(channel)`;
-    // main listens to that channel and performs the privileged action.)
-    /** @param {string} channel */
-    const ensureMenuForwarder = (channel) => {
-        const holder = getMenuIpcGlobal();
-        if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
-            holder.__ffvMenuForwardRegistry = new Set();
+    trackUnsubscribe(electronAPI.onIpc("menu-restart-update", () => {
+        try {
+            getMenuIpcGlobal().electronAPI?.installUpdate?.();
         }
-        /** @type {Set<string>} */
-        const registry = holder.__ffvMenuForwardRegistry;
+        catch {
+            /* ignore */
+        }
+    }));
+    trackUnsubscribe(electronAPI.onIpc("menu-open-overlay", async () => {
+        try {
+            await openFileSelector();
+        }
+        catch (error) {
+            if (!isTestEnvironment) {
+                console.error("[MenuIpcListeners] Failed to open overlay selector:", error);
+            }
+            showNotification("Failed to open overlay selector.", "error", 3000);
+        }
+    }));
+    const ensureMenuForwarder = (channel) => {
+        const registry = getMenuForwardRegistry();
         if (registry.has(channel)) {
             return;
         }
         registry.add(channel);
-        trackUnsubscribe(
-            globalThis.electronAPI.onIpc(channel, () => {
-                if (
-                    globalThis.electronAPI &&
-                    typeof globalThis.electronAPI.send === "function"
-                ) {
-                    globalThis.electronAPI.send(channel);
-                }
-            })
-        );
+        trackUnsubscribe(electronAPI.onIpc(channel, () => {
+            getMenuIpcGlobal().electronAPI?.send?.(channel);
+        }));
     };
-
     ensureMenuForwarder("menu-save-as");
     ensureMenuForwarder("menu-export");
-
-    trackUnsubscribe(
-        globalThis.electronAPI.onIpc("menu-about", () => {
-            // Show the about modal without extra content since the styled system info
-            // section will automatically load and display all the version information.
-            showAboutModal();
-        })
-    );
-
-    trackUnsubscribe(
-        globalThis.electronAPI.onIpc("open-accent-color-picker", async () => {
-            debugMenuLog("Opening accent color picker");
-            if (typeof globalThis.showAccentColorPicker === "function") {
-                globalThis.showAccentColorPicker();
-                return;
-            }
-
-            // In dev / non-bundled renderer entrypoints, the global helper may
-            // not be registered. Load the modal on-demand so the app menu always works.
-            try {
-                const mod =
-                    await import("../../../ui/modals/accentColorPicker.js");
-                if (typeof mod.openAccentColorPicker === "function") {
-                    globalThis.showAccentColorPicker = () => {
-                        mod.openAccentColorPicker();
-                    };
-                    globalThis.showAccentColorPicker();
-                } else {
-                    debugMenuLog(
-                        "Accent color picker module loaded, but openAccentColorPicker is unavailable"
-                    );
-                    showNotification(
-                        "Accent color picker is unavailable.",
-                        "error",
-                        3000
-                    );
-                }
-            } catch (error) {
-                debugMenuLog(
-                    "Failed to load accent color picker module",
-                    error
-                );
-                showNotification(
-                    "Failed to open accent color picker.",
-                    "error",
-                    3000
-                );
-            }
-        })
-    );
-
-    trackUnsubscribe(
-        globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
-            debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
-
-            // Check if the keyboard shortcuts modal script is already loaded.
-            if (globalThis.showKeyboardShortcutsModal === undefined) {
-                debugMenuLog("Modal script not loaded, loading dynamically...");
-                const script = document.createElement("script");
-                script.src = "./utils/keyboardShortcutsModal.js";
-                script.addEventListener("load", () => {
-                    debugMenuLog("Script loaded successfully");
-                    if (
-                        typeof globalThis.showKeyboardShortcutsModal ===
-                        "function"
-                    ) {
-                        debugMenuLog(
-                            "Calling showKeyboardShortcutsModal function"
-                        );
-                        globalThis.showKeyboardShortcutsModal();
-                    } else {
-                        debugMenuLog(
-                            "showKeyboardShortcutsModal function not available after script load"
-                        );
-                    }
-                });
-                script.onerror = (error) => {
-                    debugMenuLog(
-                        "Failed to load keyboard shortcuts modal script:",
-                        error
-                    );
-
-                    // Fallback to old implementation.
-                    const shortcuts = [
-                        ["Open File", "Ctrl+O"],
-                        ["Save As", "Ctrl+S"],
-                        ["Print", "Ctrl+P"],
-                        ["Close Window", "Ctrl+W"],
-                        ["Reload", "Ctrl+R"],
-                        ["Toggle DevTools", "Ctrl+Shift+I"],
-                        ["Toggle Fullscreen", "F11"],
-                        ["Export", "No default"],
-                        ["Theme: Dark/Light", "Settings > Theme"],
-                    ];
-                    let html =
-                        '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
-                    for (const [action, keys] of shortcuts) {
-                        html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
-                    }
-                    html += "</ul>";
-                    showAboutModal(html);
-                };
-                document.head.append(script);
-                return;
-            }
-
-            debugMenuLog(
-                "Modal script already loaded, calling function directly"
-            );
-            globalThis.showKeyboardShortcutsModal();
-        })
-    );
+    trackUnsubscribe(electronAPI.onIpc("menu-about", () => {
+        // The styled system info section loads version data by itself.
+        showAboutModal();
+    }));
+    trackUnsubscribe(electronAPI.onIpc("open-accent-color-picker", async () => {
+        debugMenuLog("Opening accent color picker");
+        const globalAccentPicker = getMenuIpcGlobal().showAccentColorPicker;
+        if (typeof globalAccentPicker === "function") {
+            globalAccentPicker();
+            return;
+        }
+        await openAccentColorPickerFromModule({
+            debugMenuLog,
+            showNotification,
+        });
+    }));
+    trackUnsubscribe(electronAPI.onIpc("menu-keyboard-shortcuts", () => {
+        debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
+        if (getMenuIpcGlobal().showKeyboardShortcutsModal === undefined) {
+            debugMenuLog("Modal script not loaded, loading dynamically...");
+            loadKeyboardShortcutsScript({
+                debugMenuLog,
+                showAboutModal,
+            });
+            return;
+        }
+        debugMenuLog("Modal script already loaded, calling function directly");
+        getMenuIpcGlobal().showKeyboardShortcutsModal?.();
+    }));
 }
