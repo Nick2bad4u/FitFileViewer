@@ -63,6 +63,7 @@
         "utils/state/domain/appState.ts",
         "utils/state/domain/fitFileState.ts",
         "utils/state/domain/uiStateManager.ts",
+        "utils/state/integration/mainProcessStateManager.ts",
         "utils/state/integration/mainProcessStateClient.ts",
         "utils/state/integration/rendererStateIntegration.ts",
         "utils/state/integration/stateIntegration.ts",
