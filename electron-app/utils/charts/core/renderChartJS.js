@@ -47,10 +47,6 @@ import { middlewareManager } from "../../state/core/stateMiddleware.js";
 // Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
 // We'll access a global instance if the app exposes one.
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
-import {
-    getElementByIdFlexible,
-    querySelectorByIdFlexible,
-} from "../../ui/dom/elementIdUtils.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
 import {
     getChartRenderContainer,
@@ -59,7 +55,6 @@ import {
 } from "../dom/chartDomUtils.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import {
-    isElement,
     renderNoDataMessage,
     safeAppend,
 } from "./renderChartDomHelpers.js";
@@ -175,6 +170,12 @@ import {
     createRenderTimingGate,
     RENDER_DEBOUNCE_MS,
 } from "./renderChartTiming.js";
+import {
+    isChartLibraryUnavailable,
+    normalizeRenderChartOptions,
+    shouldAbortInactiveChartRender,
+    touchStringTargetContainer,
+} from "./renderChartPreflight.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -415,36 +416,24 @@ export function refreshChartsIfNeeded() {
 export async function renderChartJS(targetContainer, options = {}) {
     console.log("[ChartJS] Starting chart rendering...");
 
-    const {
-        allowInactiveTab = false,
-        skipTabAbort = false,
-        skipControls = false,
-    } = options && typeof options === "object" ? options : {};
+    const { allowInactiveTab, skipTabAbort, skipControls } =
+        normalizeRenderChartOptions(options);
 
-    // Early exit if chart tab is not active to prevent unnecessary rendering (except in tests)
-    if (!isTestEnvironment() && !allowInactiveTab) {
-        const { getState: getStateEarly } = getStateManagerSafe();
-        const activeTab = getStateEarly("ui.activeTab");
-        if (activeTab !== "chart" && activeTab !== "chartjs") {
-            console.log(
-                `[ChartJS] Skipping render - chart tab not active (current tab: ${activeTab})`
-            );
-            return false;
-        }
+    if (
+        shouldAbortInactiveChartRender(
+            {
+                getStateManager: getStateManagerSafe,
+                isTestEnvironment,
+                log: (message) => console.log(message),
+            },
+            allowInactiveTab
+        )
+    ) {
+        return false;
     }
 
     try {
-        // If a string container ID was provided, resolve it early to satisfy DOM access expectations in tests
-        if (typeof targetContainer === "string") {
-            try {
-                const normalizedId = targetContainer.startsWith("#")
-                    ? targetContainer.slice(1)
-                    : targetContainer;
-                getElementByIdFlexible(document, normalizedId);
-            } catch {
-                /* ignore */
-            }
-        }
+        touchStringTargetContainer(document, targetContainer);
 
         startChartRendering({
             getGlobalChartActions,
@@ -468,7 +457,7 @@ export async function renderChartJS(targetContainer, options = {}) {
         });
 
         // Validate Chart.js availability
-        if (chartGlobal.Chart === null || chartGlobal.Chart === false) {
+        if (isChartLibraryUnavailable(chartGlobal)) {
             const error = "Chart.js library is not loaded or not available";
             console.error(`[ChartJS] ${error}`);
             await notify("Chart library not available", "error");
