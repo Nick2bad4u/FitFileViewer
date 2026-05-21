@@ -68,6 +68,10 @@ import {
     renderNoDataMessage,
     safeAppend,
 } from "./renderChartDomHelpers.js";
+import {
+    clearDataSettingsSignatureCache,
+    ensureDataSettingsSignature as resolveDataSettingsSignature,
+} from "./renderChartDataSettingsCache.js";
 import { debounce } from "./renderChartDebounce.js";
 import {
     getInjectedModule,
@@ -699,7 +703,6 @@ const debouncedDirectRerender = debounce((reason = "State change") => {
 }, RENDER_DEBOUNCE_MS);
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
-let lastDataSettingsSignature = "";
 const invalidateChartRenderCacheListeners = new Set();
 
 export function addInvalidateChartRenderCacheListener(listener) {
@@ -725,7 +728,7 @@ export function invalidateChartRenderCache(reason = "manual") {
     clearChartSeriesCache();
     clearChartLabelsCache();
     clearPerformanceSettingsCache();
-    lastDataSettingsSignature = "";
+    clearDataSettingsSignatureCache();
 
     for (const listener of invalidateChartRenderCacheListeners) {
         try {
@@ -935,18 +938,10 @@ export async function prewarmChartRenderCaches({
     }
 }
 
-function ensureDataSettingsSignature(settings) {
-    const signature = createDataSettingsSignature(settings);
-    if (
-        signature &&
-        lastDataSettingsSignature &&
-        lastDataSettingsSignature !== signature
-    ) {
+const ensureDataSettingsSignature = (settings) =>
+    resolveDataSettingsSignature(settings, () => {
         invalidateChartRenderCache("data-settings-changed");
-    }
-    lastDataSettingsSignature = signature;
-    return signature;
-}
+    });
 
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
 // (Note) The test harness overrides CommonJS require during Vitest SSR transform.
