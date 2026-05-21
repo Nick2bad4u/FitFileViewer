@@ -131,11 +131,8 @@ import {
     callUpdateState,
     getStateManagerSafe,
 } from "./renderChartStateAccess.js";
-import {
-    initializeChartStateManagement as initializeChartStateManagementImpl,
-    refreshChartsIfNeeded as refreshChartsIfNeededImpl,
-} from "./renderChartStateManagement.js";
 import { createChartStateView } from "./renderChartStateView.js";
+import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
 import { createChartActions } from "./renderChartActions.js";
 import { registerChartStartup } from "./renderChartStartup.js";
 import { createChartSettingsManager } from "./renderChartSettingsManager.js";
@@ -304,6 +301,16 @@ export const chartActions = createChartActions({
     updateState: callUpdateState,
 });
 
+const chartStateManagementApi = createChartStateManagementApi({
+    chartActions,
+    chartState,
+    getComputedStateManager: getComputedStateManagerSafe,
+    getState,
+    middlewareManager,
+    notify,
+    updateState,
+});
+
 registerChartStartup({
     chartActions,
     chartGlobal,
@@ -339,18 +346,7 @@ export function hexToRgba(hex, alpha) {
  * and state synchronization Call this during application startup
  */
 export function initializeChartStateManagement() {
-    return initializeChartStateManagementImpl({
-        getChartSummaryState: () => ({
-            hasValidData: chartState.hasValidData,
-            isRendered: chartState.isRendered,
-            renderableFields: chartState.renderableFields,
-        }),
-        getComputedStateManager: getComputedStateManagerSafe,
-        getState,
-        middlewareManager,
-        notify,
-        updateState,
-    });
+    return chartStateManagementApi.initializeChartStateManagement();
 }
 
 /**
@@ -358,11 +354,7 @@ export function initializeChartStateManagement() {
  * met
  */
 export function refreshChartsIfNeeded() {
-    return refreshChartsIfNeededImpl({
-        hasValidData: () => chartState.hasValidData,
-        isRendering: () => chartState.isRendering,
-        requestRerender: (reason) => chartActions.requestRerender(reason),
-    });
+    return chartStateManagementApi.refreshChartsIfNeeded();
 }
 
 /**

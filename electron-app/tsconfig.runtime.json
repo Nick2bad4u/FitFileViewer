@@ -226,6 +226,7 @@
         "utils/charts/core/renderChartSettingsSignature.ts",
         "utils/charts/core/renderChartStatus.ts",
         "utils/charts/core/renderChartStateManagement.ts",
+        "utils/charts/core/renderChartStateManagementApi.ts",
         "utils/charts/core/renderChartStateAccess.ts",
         "utils/charts/core/renderChartStateView.ts",
         "utils/charts/core/renderChartStartup.ts",
