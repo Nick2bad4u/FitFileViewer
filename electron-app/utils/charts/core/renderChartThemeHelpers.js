@@ -1,3 +1,4 @@
+import { isRecord } from "./renderChartModuleHelpers.js";
 const FALLBACK_ZONE_COLORS = [
     "#808080",
     "#3b82f665",
@@ -49,9 +50,6 @@ const FALLBACK_THEME_COLORS = {
     warning: "#f59e0b",
     zoneColors: FALLBACK_ZONE_COLORS,
 };
-function isRecord(value) {
-    return value !== null && typeof value === "object";
-}
 function isThemeConfigProvider(value) {
     return typeof value === "function";
 }

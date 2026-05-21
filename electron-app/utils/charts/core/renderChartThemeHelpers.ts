@@ -2,6 +2,7 @@ import type {
     ThemeColorMap,
     ThemeConfig,
 } from "../../theming/core/theme.js";
+import { isRecord } from "./renderChartModuleHelpers.js";
 
 type ThemeConfigProvider = () => unknown;
 
@@ -101,10 +102,6 @@ const FALLBACK_THEME_COLORS: NormalizedThemeColors = {
     warning: "#f59e0b",
     zoneColors: FALLBACK_ZONE_COLORS,
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object";
-}
 
 function isThemeConfigProvider(value: unknown): value is ThemeConfigProvider {
     return typeof value === "function";

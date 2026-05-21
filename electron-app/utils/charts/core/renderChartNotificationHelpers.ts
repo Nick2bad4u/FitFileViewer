@@ -2,6 +2,7 @@ import type {
     NotificationOptions,
     NotificationType,
 } from "../../ui/notifications/showNotification.js";
+import { isRecord } from "./renderChartModuleHelpers.js";
 
 type NotificationInvoker = (
     message: string,
@@ -16,10 +17,6 @@ interface RenderChartNotificationGlobal {
     __FFV_suppressNotifications?: boolean;
     require?: unknown;
     showNotification?: unknown;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object";
 }
 
 function isNotificationInvoker(value: unknown): value is NotificationInvoker {
