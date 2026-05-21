@@ -1,6 +1,40 @@
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadOverlayFiles } from "./loadOverlayFiles.js";
+import type { OverlayInputFile } from "./loadOverlayFiles.js";
+
+type FileSelectorElectronAPI = {
+    openOverlayDialog?: () => Promise<string[]>;
+    readFile?: (filePath: string) => Promise<ArrayBuffer>;
+};
+
+type NativeFileFacade = OverlayInputFile & {
+    arrayBuffer: () => Promise<ArrayBuffer>;
+    name: string;
+    originalPath: string;
+    path: string;
+};
+
+type FileSelectorInput = HTMLInputElement & {
+    __files?: ArrayLike<File>;
+    selectedFiles?: ArrayLike<File>;
+};
+
+type OverlayFilesLoader = (
+    files: Array<File | NativeFileFacade>
+) => Promise<void> | void;
+
+type FileSelectorGlobal = typeof globalThis & {
+    electronAPI?: FileSelectorElectronAPI;
+    loadOverlayFiles?: OverlayFilesLoader;
+};
+
+type InputProcessingController = {
+    done: Promise<void>;
+    run: (origin?: string) => Promise<void>;
+    signal: AbortSignal;
+};
+
 /**
  * File selector configuration
  */
@@ -16,9 +50,12 @@ const FILE_SELECTOR_CONFIG = {
     LOG_PREFIX: "[openFileSelector]",
     MULTIPLE_FILES: true,
 };
+
 // Track whether a given input has already been handled by the change listener
-const PROCESSED_INPUTS = new WeakSet();
+const PROCESSED_INPUTS = new WeakSet<HTMLInputElement>();
+
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
+
 /**
  * Opens a file selector dialog for choosing FIT files as overlays
  *
@@ -28,53 +65,74 @@ const PATH_SEPARATOR_REGEX = /[/\\]+/g;
  *
  * @example // Open file selector for overlay files. openFileSelector();
  */
-export async function openFileSelector() {
+export async function openFileSelector(): Promise<void> {
     const { electronAPI } = getFileSelectorGlobal();
+
     if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
         try {
             const selectedPaths = await electronAPI.openOverlayDialog();
             if (!Array.isArray(selectedPaths) || selectedPaths.length === 0) {
                 return;
             }
+
             const facadeFiles = selectedPaths
-                .filter((filePath) => typeof filePath === "string" &&
-                filePath.trim().length > 0)
+                .filter(
+                    (filePath) =>
+                        typeof filePath === "string" &&
+                        filePath.trim().length > 0
+                )
                 .map((filePath) => createNativeFileFacade(filePath));
+
             if (facadeFiles.length === 0) {
                 return;
             }
+
             await loadOverlayFiles(facadeFiles);
             return;
-        }
-        catch (error) {
-            console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error);
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error
+            );
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
             LoadingOverlay.hide();
             return;
         }
     }
+
     try {
         const input = createFileInput();
         const controller = setupFileInputHandler(input);
         await triggerFileSelection(input, controller);
-    }
-    catch (error) {
-        console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error);
-        showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+    } catch (error) {
+        console.error(
+            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+            error
+        );
+        showNotification(
+            FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+            "error"
+        );
         LoadingOverlay.hide();
     }
 }
-function getFileSelectorGlobal() {
-    return globalThis;
+
+function getFileSelectorGlobal(): FileSelectorGlobal {
+    return globalThis as FileSelectorGlobal;
 }
+
 /**
  * Creates and configures the file input element
  */
-function createFileInput() {
+function createFileInput(): HTMLInputElement {
     const input = document.createElement("input");
     // In JSDOM tests, setting type="file" can make the `files` property non-configurable,
     // Which prevents tests from redefining it. Detect JSDOM and skip setting type there.
-    const isJsdom = typeof navigator !== "undefined" &&
+    const isJsdom =
+        typeof navigator !== "undefined" &&
         /jsdom/i.test(navigator.userAgent || "");
     if (!isJsdom) {
         input.type = FILE_SELECTOR_CONFIG.INPUT_TYPE;
@@ -82,49 +140,64 @@ function createFileInput() {
     input.accept = FILE_SELECTOR_CONFIG.ACCEPTED_EXTENSIONS;
     input.multiple = FILE_SELECTOR_CONFIG.MULTIPLE_FILES;
     input.style.cssText = FILE_SELECTOR_CONFIG.HIDDEN_STYLES;
+
     return input;
 }
+
 /**
  * Creates a single-run processor for an input element. Ensures that
  * handleFilesFromInput executes at most once per element and provides a promise
  * that resolves when processing completes.
  */
-function createInputProcessingController(input) {
+function createInputProcessingController(
+    input: HTMLInputElement
+): InputProcessingController {
     let handled = false;
     const abortController = new AbortController();
-    let resolveDone = () => { };
-    const done = new Promise((resolve) => {
+    let resolveDone: (value: void | PromiseLike<void>) => void = () => {};
+    const done = new Promise<void>((resolve) => {
         resolveDone = resolve;
     });
-    const finalize = () => {
+
+    const finalize = (): void => {
         abortController.abort();
         if (input.isConnected) {
             input.remove();
         }
         resolveDone();
     };
-    const run = async (origin = "unknown") => {
+
+    const run = async (origin = "unknown"): Promise<void> => {
         if (handled) {
             return done;
         }
         handled = true;
         PROCESSED_INPUTS.add(input);
+
         try {
             await handleFilesFromInput(input);
-        }
-        catch (error) {
-            console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error, `(source: ${origin})`);
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-        }
-        finally {
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error,
+                `(source: ${origin})`
+            );
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
+        } finally {
             LoadingOverlay.hide();
             finalize();
         }
+
         return done;
     };
+
     return { done, run, signal: abortController.signal };
 }
-function createNativeFileFacade(filePath) {
+
+function createNativeFileFacade(filePath: string): NativeFileFacade {
     const name = getFileNameFromPath(filePath);
     return {
         arrayBuffer: async () => {
@@ -139,42 +212,56 @@ function createNativeFileFacade(filePath) {
         path: filePath,
     };
 }
-function getFileNameFromPath(filePath) {
+
+function getFileNameFromPath(filePath: string): string {
     const segments = filePath.split(PATH_SEPARATOR_REGEX).filter(Boolean);
     return segments.at(-1) ?? filePath;
 }
+
 /**
  * Extracts files from the provided input element and dispatches to loader
  */
-async function handleFilesFromInput(input) {
-    const merged = [];
-    const fileSelectorInput = input;
+async function handleFilesFromInput(input: HTMLInputElement): Promise<void> {
+    const merged: File[] = [];
+    const fileSelectorInput = input as FileSelectorInput;
     appendFileSource(merged, fileSelectorInput.files);
     appendFileSource(merged, fileSelectorInput.selectedFiles);
     appendFileSource(merged, fileSelectorInput.__files);
+
     // Deduplicate while preserving insertion order — tests may populate multiple sources
-    const unique = [];
-    const seen = new Set();
+    const unique: File[] = [];
+    const seen = new Set<File>();
     for (const file of merged) {
         if (!seen.has(file)) {
             seen.add(file);
             unique.push(file);
         }
     }
+
     if (unique.length === 0) {
-        console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`);
+        console.debug(
+            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`
+        );
         return;
     }
+
     const fileArray = unique;
-    console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
+    console.debug(
+        `${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`
+    );
     // Support test-time injection via window.loadOverlayFiles
     const loader = resolveOverlayFilesLoader();
     await loader(fileArray);
 }
-function appendFileSource(target, source) {
+
+function appendFileSource(
+    target: File[],
+    source: ArrayLike<File> | null | undefined
+): void {
     if (!source || typeof source.length !== "number" || source.length <= 0) {
         return;
     }
+
     for (let index = 0; index < source.length; index++) {
         const file = source[index];
         if (file instanceof File) {
@@ -182,31 +269,45 @@ function appendFileSource(target, source) {
         }
     }
 }
-function resolveOverlayFilesLoader() {
+
+function resolveOverlayFilesLoader(): OverlayFilesLoader {
     const { loadOverlayFiles: injectedLoader } = getFileSelectorGlobal();
     return typeof injectedLoader === "function"
         ? injectedLoader
         : loadOverlayFiles;
 }
-function setupFileInputHandler(input) {
+
+function setupFileInputHandler(
+    input: HTMLInputElement
+): InputProcessingController {
     const controller = createInputProcessingController(input);
-    input.addEventListener("change", () => {
-        controller.run("change").catch(() => {
-            // Errors are surfaced via showNotification; suppress unhandled rejection.
-        });
-    }, { signal: controller.signal });
+
+    input.addEventListener(
+        "change",
+        () => {
+            controller.run("change").catch(() => {
+                // Errors are surfaced via showNotification; suppress unhandled rejection.
+            });
+        },
+        { signal: controller.signal }
+    );
+
     return controller;
 }
+
 /**
  * Triggers the file selection dialog and cleans up the input element
  */
-async function triggerFileSelection(input, controller) {
+async function triggerFileSelection(
+    input: HTMLInputElement,
+    controller: InputProcessingController
+): Promise<void> {
     // Temporarily add to DOM to enable click trigger
     document.body.append(input);
+
     try {
         input.click();
-    }
-    finally {
+    } finally {
         queueMicrotask(() => {
             controller.run("microtask").catch(() => {
                 /* handled in controller */
@@ -214,13 +315,19 @@ async function triggerFileSelection(input, controller) {
         });
         if (typeof globalThis.setTimeout === "function") {
             const timeoutCleanupController = new AbortController();
-            const clearScheduledTimeout = () => {
+            const clearScheduledTimeout = (): void => {
                 globalThis.clearTimeout(timeoutHandle);
                 timeoutCleanupController.abort();
-                controller.signal.removeEventListener("abort", clearScheduledTimeout);
+                controller.signal.removeEventListener(
+                    "abort",
+                    clearScheduledTimeout
+                );
             };
             const timeoutHandle = globalThis.setTimeout(() => {
-                controller.signal.removeEventListener("abort", clearScheduledTimeout);
+                controller.signal.removeEventListener(
+                    "abort",
+                    clearScheduledTimeout
+                );
                 controller.run("timeout").catch(() => {
                     /* handled in controller */
                 });
@@ -231,5 +338,6 @@ async function triggerFileSelection(input, controller) {
             });
         }
     }
+
     await controller.done;
 }

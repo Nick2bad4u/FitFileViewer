@@ -234,6 +234,7 @@
         "utils/files/import/getOverlayFileName.ts",
         "utils/files/import/loadOverlayFiles.ts",
         "utils/files/import/loadSingleOverlayFile.ts",
+        "utils/files/import/openFileSelector.ts",
         "utils/files/import/openFitFileFromPath.ts",
         "utils/files/sanitizeFilename.ts",
         "utils/dom/domHelpers.ts",
