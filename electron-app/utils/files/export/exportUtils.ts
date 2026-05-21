@@ -16,7 +16,7 @@ import {
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 
-type LooseRecord = any;
+type LooseRecord = unknown;
 type ManualMockModule = Record<string, LooseRecord>;
 type VitestManualMockGlobal = typeof globalThis & {
     __vitest_manual_mocks__?: Map<string, unknown>;
@@ -42,8 +42,23 @@ type ExportZipLike = {
     generateAsync: (options: { type: "blob" }) => Promise<Blob>;
 };
 type ExportZipConstructor = new () => ExportZipLike;
+type GyazoServerStartResult = {
+    message?: string;
+    port: number;
+    success: boolean;
+};
+type ElectronApiLike = {
+    onIpc?: (
+        channel: "gyazo-oauth-callback",
+        callback: (_event: unknown, data: unknown) => void | Promise<void>
+    ) => () => void;
+    startGyazoServer?: (port: number) => Promise<GyazoServerStartResult>;
+    stopGyazoServer?: () => Promise<void>;
+    writeClipboardPngDataUrl?: (pngDataUrl: string) => Promise<boolean>;
+    writeClipboardText?: (text: string) => Promise<boolean>;
+};
 type ExportRuntimeGlobal = typeof globalThis & {
-    electronAPI?: LooseRecord;
+    electronAPI?: ElectronApiLike;
     JSZip?: ExportZipConstructor;
 };
 type ChartDataPoint = {
@@ -80,55 +95,23 @@ export type ExportableChart = {
     [key: string]: LooseRecord;
 };
 
-type ChartJSInstance = ExportableChart;
+type ValidChart = ExportableChart & {
+    canvas: HTMLCanvasElement;
+    config: NonNullable<ExportableChart["config"]>;
+    toBase64Image: NonNullable<ExportableChart["toBase64Image"]>;
+};
 type GyazoConfig = z.infer<typeof GyazoConfigSchema>;
 type GyazoOAuthCallbackPayload = {
     code: string;
     state: string;
 };
-type ExportUtilsMethod = (...args: LooseRecord[]) => LooseRecord;
-type ExportUtilsApi = {
-    [key: string]: LooseRecord;
-    addCombinedCSVToZip: ExportUtilsMethod;
-    authenticateWithGyazo: ExportUtilsMethod;
-    clearGyazoAccessToken: ExportUtilsMethod;
-    clearGyazoConfig: ExportUtilsMethod;
-    clearImgurConfig: ExportUtilsMethod;
-    copyChartToClipboard: ExportUtilsMethod;
-    copyCombinedChartsToClipboard: ExportUtilsMethod;
-    copyPngDataUrlToClipboard: ExportUtilsMethod;
-    copyTextToClipboard: ExportUtilsMethod;
-    createCombinedChartsImage: ExportUtilsMethod;
-    createGyazoAuthModal: ExportUtilsMethod;
-    downloadChartAsPNG: ExportUtilsMethod;
-    exchangeGyazoCodeForToken: ExportUtilsMethod;
-    exportAllAsZip: ExportUtilsMethod;
-    exportChartDataAsCSV: ExportUtilsMethod;
-    exportChartDataAsJSON: ExportUtilsMethod;
-    exportCombinedChartsDataAsCSV: ExportUtilsMethod;
-    getExportThemeBackground: ExportUtilsMethod;
-    getGyazoAccessToken: ExportUtilsMethod;
-    getGyazoConfig: () => GyazoConfig;
-    getImgurConfig: ExportUtilsMethod;
-    isGyazoAuthenticated: ExportUtilsMethod;
-    isImgurConfigured: ExportUtilsMethod;
-    isValidChart: ExportUtilsMethod;
-    printChart: ExportUtilsMethod;
-    printCombinedCharts: ExportUtilsMethod;
-    setGyazoAccessToken: ExportUtilsMethod;
-    setGyazoConfig: ExportUtilsMethod;
-    setImgurConfig: ExportUtilsMethod;
-    shareChartsAsURL: ExportUtilsMethod;
-    shareChartsToGyazo: ExportUtilsMethod;
-    showGyazoAccountManager: ExportUtilsMethod;
-    showGyazoSetupGuide: ExportUtilsMethod;
-    showImgurAccountManager: ExportUtilsMethod;
-    showImgurSetupGuide: ExportUtilsMethod;
-    updateGyazoAuthStatus: ExportUtilsMethod;
-    updateImgurStatus: ExportUtilsMethod;
-    uploadToGyazo: ExportUtilsMethod;
-    uploadToImgur: ExportUtilsMethod;
+type GyazoTokenResponse = z.infer<typeof GyazoTokenResponseSchema>;
+type ImgurConfig = {
+    clientId: string;
+    uploadUrl: string;
 };
+type OAuthModalReject = (reason?: unknown) => void;
+type OAuthModalResolve = (token: string) => void;
 
 function getExportRuntimeGlobal(): ExportRuntimeGlobal {
     return globalThis as ExportRuntimeGlobal;
@@ -233,7 +216,9 @@ try {
             );
             console.log(
                 "[exportUtils][debug] resolved detectCurrentTheme mock?",
-                Boolean(__chartThemeMod && __chartThemeMod["detectCurrentTheme"])
+                Boolean(
+                    __chartThemeMod && __chartThemeMod["detectCurrentTheme"]
+                )
             );
         }
     }
@@ -725,7 +710,9 @@ export function __setTestDeps(overrides: Partial<typeof __deps>): void {
  *
  * @returns {ChartDataset | undefined}
  */
-function getFirstChartDataset(chart: ChartJSInstance): ChartDataset | undefined {
+function getFirstChartDataset(
+    chart: ExportableChart
+): ChartDataset | undefined {
     return chart.data?.datasets?.[0];
 }
 
@@ -733,14 +720,14 @@ function getFirstChartDataset(chart: ChartJSInstance): ChartDataset | undefined 
 /**
  * Export, sharing, printing, and upload helpers used by the renderer UI.
  */
-export const exportUtils: ExportUtilsApi = {
+export const exportUtils = {
     /*
      * Helper method to add combined CSV data to ZIP
      *
      * @param {ExportZipLike} zip - JSZip instance
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    async addCombinedCSVToZip(zip, charts) {
+    async addCombinedCSVToZip(zip: ExportZipLike, charts: ExportableChart[]) {
         try {
             /* @type {Set<ChartDataPointX>} */
             const allTimestamps = new Set();
@@ -766,9 +753,7 @@ export const exportUtils: ExportUtilsApi = {
                 const row = [String(timestamp)];
                 for (const chart of charts) {
                     const dataset = getFirstChartDataset(chart),
-                        point = dataset?.data?.find(
-                            (p) => p.x === timestamp
-                        );
+                        point = dataset?.data?.find((p) => p.x === timestamp);
                     row.push(point?.y == null ? "" : String(point.y));
                 }
                 rows.push(row.join(","));
@@ -786,7 +771,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {Promise<string>} Access token
      */
-    async authenticateWithGyazo() {
+    async authenticateWithGyazo(): Promise<string> {
         const config = exportUtils.getGyazoConfig();
 
         if (!config.clientId || !config.clientSecret) {
@@ -808,6 +793,7 @@ export const exportUtils: ExportUtilsApi = {
                 "Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)"
             );
         }
+        const { onIpc, startGyazoServer, stopGyazoServer } = electronAPI;
 
         // Generate state before opening the local server so environments without
         // secure randomness fail closed without leaving a server running.
@@ -815,7 +801,7 @@ export const exportUtils: ExportUtilsApi = {
 
         try {
             // Start the OAuth callback server
-            const serverResult = await electronAPI.startGyazoServer(3000);
+            const serverResult = await startGyazoServer(3000);
             if (!serverResult.success) {
                 throw new Error(
                     `Failed to start OAuth server: ${serverResult.message}`
@@ -846,7 +832,7 @@ export const exportUtils: ExportUtilsApi = {
                     );
 
                     try {
-                        await electronAPI.stopGyazoServer();
+                        await stopGyazoServer();
                     } catch {
                         /* ignore */
                     }
@@ -909,10 +895,12 @@ export const exportUtils: ExportUtilsApi = {
                                 await exportUtils.exchangeGyazoCodeForToken(
                                     data.code,
                                     redirectUri
-                            );
+                                );
 
                             // Store the access token
-                            exportUtils.setGyazoAccessToken(tokenData.access_token);
+                            exportUtils.setGyazoAccessToken(
+                                tokenData.access_token
+                            );
 
                             // Update status in any open account manager modal
                             const accountManagerModal = document.querySelector(
@@ -920,9 +908,7 @@ export const exportUtils: ExportUtilsApi = {
                             );
                             if (accountManagerModal) {
                                 exportUtils.updateGyazoAuthStatus(
-                                    /* @type {HTMLElement} */ (
-                                        accountManagerModal
-                                    )
+                                    accountManagerModal as HTMLElement
                                 );
                             }
 
@@ -935,7 +921,7 @@ export const exportUtils: ExportUtilsApi = {
                     };
 
                 // Set up the callback listener
-                unsubscribeRef.current = electronAPI.onIpc(
+                unsubscribeRef.current = onIpc(
                     "gyazo-oauth-callback",
                     callbackHandler
                 );
@@ -955,7 +941,7 @@ export const exportUtils: ExportUtilsApi = {
         } catch (error) {
             // Stop the server if it was started
             try {
-                await electronAPI.stopGyazoServer();
+                await stopGyazoServer();
             } catch (stopError) {
                 console.error("Failed to stop OAuth server:", stopError);
             }
@@ -988,7 +974,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {Promise<boolean>}
      */
-    async copyTextToClipboard(text) {
+    async copyTextToClipboard(text: string) {
         // 1) Electron bridge (preferred)
         try {
             const { electronAPI: api } = getExportRuntimeGlobal();
@@ -1039,7 +1025,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {Promise<boolean>}
      */
-    async copyPngDataUrlToClipboard(pngDataUrl) {
+    async copyPngDataUrlToClipboard(pngDataUrl: string) {
         // 1) Electron bridge (preferred)
         try {
             const { electronAPI: api } = getExportRuntimeGlobal();
@@ -1077,7 +1063,7 @@ export const exportUtils: ExportUtilsApi = {
      * Copies chart image to clipboard with theme background
      *
      * @param {ChartJSInstance} chart - Chart.js instance
-     */ async copyChartToClipboard(chart) {
+     */ async copyChartToClipboard(chart: ExportableChart) {
         try {
             // Validate chart using utility function
             if (!exportUtils.isValidChart(chart)) {
@@ -1132,7 +1118,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    async copyCombinedChartsToClipboard(charts) {
+    async copyCombinedChartsToClipboard(charts: ExportableChart[]) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
@@ -1172,6 +1158,9 @@ export const exportUtils: ExportUtilsApi = {
 
             // Draw each chart
             for (const [index, chart] of charts.entries()) {
+                if (!exportUtils.isValidChart(chart)) {
+                    continue;
+                }
                 const col = index % cols,
                     row = Math.floor(index / cols),
                     tempCanvas = document.createElement("canvas"),
@@ -1231,7 +1220,10 @@ export const exportUtils: ExportUtilsApi = {
         }
     },
 
-    async createCombinedChartsImage(charts, filename = "combined-charts.png") {
+    async createCombinedChartsImage(
+        charts: ExportableChart[],
+        filename = "combined-charts.png"
+    ) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
@@ -1271,6 +1263,9 @@ export const exportUtils: ExportUtilsApi = {
 
             // Draw each chart onto the combined canvas
             for (const [index, chart] of charts.entries()) {
+                if (!exportUtils.isValidChart(chart)) {
+                    continue;
+                }
                 const col = index % cols,
                     row = Math.floor(index / cols),
                     // Create temporary canvas with theme background
@@ -1340,12 +1335,12 @@ export const exportUtils: ExportUtilsApi = {
      * @returns {HTMLElement} Modal element
      */
     createGyazoAuthModal(
-        authUrl,
-        _state,
-        resolve,
-        reject,
-        useServer,
-        onCancel
+        authUrl: string,
+        _state: string,
+        resolve: OAuthModalResolve,
+        reject: OAuthModalReject,
+        useServer: boolean,
+        onCancel?: (() => Promise<void> | void) | undefined
     ) {
         const useServerFlag = useServer === true;
         // Create modal overlay
@@ -1526,48 +1521,51 @@ export const exportUtils: ExportUtilsApi = {
 
         if (completeAuthBtn && codeInput) {
             // Manual mode - handle authentication button
-            completeAuthBtn.addEventListener("click", async () => {
-                const code = /* @type {HTMLInputElement} */ (
-                    codeInput
-                ).value.trim();
-                if (!code) {
-                    showNotification(
-                        "Please enter the authorization code",
-                        "error"
-                    );
-                    return;
-                }
-
-                try {
-                    showNotification(
-                        "Exchanging code for access token...",
-                        "info"
-                    );
-                    const tokenData =
-                        await exportUtils.exchangeGyazoCodeForToken(
-                            code,
-                            exportUtils.getGyazoConfig().redirectUri
+            completeAuthBtn.addEventListener(
+                "click",
+                async () => {
+                    const code =
+                        /* @type {HTMLInputElement} */ codeInput.value.trim();
+                    if (!code) {
+                        showNotification(
+                            "Please enter the authorization code",
+                            "error"
                         );
-                    exportUtils.setGyazoAccessToken(tokenData.access_token);
+                        return;
+                    }
 
-                    listenerController.abort();
-                    overlay.remove();
-                    showNotification(
-                        "Gyazo authentication successful!",
-                        "success"
-                    );
-                    resolve(tokenData.access_token);
-                } catch (error) {
-                    console.error(
-                        "Error completing Gyazo authentication:",
-                        error
-                    );
-                    showNotification(
-                        `Authentication failed: ${getErrorMessage(error)}`,
-                        "error"
-                    );
-                }
-            }, listenerOptions);
+                    try {
+                        showNotification(
+                            "Exchanging code for access token...",
+                            "info"
+                        );
+                        const tokenData =
+                            await exportUtils.exchangeGyazoCodeForToken(
+                                code,
+                                exportUtils.getGyazoConfig().redirectUri
+                            );
+                        exportUtils.setGyazoAccessToken(tokenData.access_token);
+
+                        listenerController.abort();
+                        overlay.remove();
+                        showNotification(
+                            "Gyazo authentication successful!",
+                            "success"
+                        );
+                        resolve(tokenData.access_token);
+                    } catch (error) {
+                        console.error(
+                            "Error completing Gyazo authentication:",
+                            error
+                        );
+                        showNotification(
+                            `Authentication failed: ${getErrorMessage(error)}`,
+                            "error"
+                        );
+                    }
+                },
+                listenerOptions
+            );
         }
 
         /*
@@ -1604,63 +1602,77 @@ export const exportUtils: ExportUtilsApi = {
         }
 
         if (cancelBtn) {
-            cancelBtn.addEventListener("click", async () => {
-                document.removeEventListener("keydown", handleEscape);
-                listenerController.abort();
+            cancelBtn.addEventListener(
+                "click",
+                async () => {
+                    document.removeEventListener("keydown", handleEscape);
+                    listenerController.abort();
 
-                if (typeof onCancel === "function") {
-                    try {
-                        await onCancel();
-                    } catch {
-                        /* ignore */
+                    if (typeof onCancel === "function") {
+                        try {
+                            await onCancel();
+                        } catch {
+                            /* ignore */
+                        }
+                    } else if (useServerFlag) {
+                        // Fallback if no external cancel hook is provided.
+                        try {
+                            await stopGyazoServerIfAvailable();
+                        } catch (error) {
+                            console.error(
+                                "Failed to stop OAuth server:",
+                                error
+                            );
+                        }
+                        safeStorageRemoveItem(
+                            "gyazo_oauth_state",
+                            __deps.getStorage
+                        );
                     }
-                } else if (useServerFlag) {
-                    // Fallback if no external cancel hook is provided.
-                    try {
-                        await stopGyazoServerIfAvailable();
-                    } catch (error) {
-                        console.error("Failed to stop OAuth server:", error);
-                    }
-                    safeStorageRemoveItem(
-                        "gyazo_oauth_state",
-                        __deps.getStorage
-                    );
-                }
 
-                overlay.remove();
-                reject(new Error("User cancelled authentication"));
-            }, listenerOptions);
+                    overlay.remove();
+                    reject(new Error("User cancelled authentication"));
+                },
+                listenerOptions
+            );
         }
         document.addEventListener("keydown", handleEscape, listenerOptions);
 
         // Click outside to close
-        overlay.addEventListener("click", async (e: MouseEvent) => {
-            if (e.target === overlay) {
-                document.removeEventListener("keydown", handleEscape);
-                listenerController.abort();
+        overlay.addEventListener(
+            "click",
+            async (e: MouseEvent) => {
+                if (e.target === overlay) {
+                    document.removeEventListener("keydown", handleEscape);
+                    listenerController.abort();
 
-                if (typeof onCancel === "function") {
-                    try {
-                        await onCancel();
-                    } catch {
-                        /* ignore */
+                    if (typeof onCancel === "function") {
+                        try {
+                            await onCancel();
+                        } catch {
+                            /* ignore */
+                        }
+                    } else if (useServer) {
+                        try {
+                            await stopGyazoServerIfAvailable();
+                        } catch (error) {
+                            console.error(
+                                "Failed to stop OAuth server:",
+                                error
+                            );
+                        }
+                        safeStorageRemoveItem(
+                            "gyazo_oauth_state",
+                            __deps.getStorage
+                        );
                     }
-                } else if (useServer) {
-                    try {
-                        await stopGyazoServerIfAvailable();
-                    } catch (error) {
-                        console.error("Failed to stop OAuth server:", error);
-                    }
-                    safeStorageRemoveItem(
-                        "gyazo_oauth_state",
-                        __deps.getStorage
-                    );
+
+                    overlay.remove();
+                    reject(new Error("User cancelled authentication"));
                 }
-
-                overlay.remove();
-                reject(new Error("User cancelled authentication"));
-            }
-        }, listenerOptions);
+            },
+            listenerOptions
+        );
 
         overlay.append(modal);
         return overlay;
@@ -1670,8 +1682,11 @@ export const exportUtils: ExportUtilsApi = {
      * @param {ChartJSInstance} chart - Chart.js instance
      * @param {string} filename - Download filename
      */
-    async downloadChartAsPNG(chart, filename = "chart.png") {
+    async downloadChartAsPNG(chart: ExportableChart, filename = "chart.png") {
         try {
+            if (!exportUtils.isValidChart(chart)) {
+                throw new Error("Invalid chart instance provided");
+            }
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 link = document.createElement("a");
             link.download = filename;
@@ -1694,7 +1709,10 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {Promise<GyazoTokenResponse>} Token data with access_token
      */
-    async exchangeGyazoCodeForToken(code, redirectUri) {
+    async exchangeGyazoCodeForToken(
+        code: string,
+        redirectUri: string
+    ): Promise<GyazoTokenResponse> {
         if (typeof code !== "string" || code.trim().length === 0) {
             throw new TypeError("Invalid authorization code");
         }
@@ -1737,7 +1755,7 @@ export const exportUtils: ExportUtilsApi = {
                 await response.json()
             );
             if (parsed.success) {
-                return /* @type {GyazoTokenResponse} */ (parsed.data);
+                return /* @type {GyazoTokenResponse} */ parsed.data;
             }
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
@@ -1754,7 +1772,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    async exportAllAsZip(charts) {
+    async exportAllAsZip(charts: ExportableChart[]) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
@@ -1765,6 +1783,9 @@ export const exportUtils: ExportUtilsApi = {
 
             // Add individual chart images
             for (const [i, chart] of charts.entries()) {
+                if (!exportUtils.isValidChart(chart)) {
+                    continue;
+                }
                 const // Add chart image
                     canvas = document.createElement("canvas"),
                     dataset = getFirstChartDataset(chart),
@@ -1851,6 +1872,9 @@ export const exportUtils: ExportUtilsApi = {
                 }
 
                 for (const [index, chart] of charts.entries()) {
+                    if (!exportUtils.isValidChart(chart)) {
+                        continue;
+                    }
                     const col = index % cols,
                         row = Math.floor(index / cols),
                         tempCanvas = document.createElement("canvas"),
@@ -1899,7 +1923,7 @@ export const exportUtils: ExportUtilsApi = {
 
             // Add combined JSON data
             const allChartsData = {
-                charts: charts.map((chart: ChartJSInstance, index: number) => {
+                charts: charts.map((chart: ExportableChart, index: number) => {
                     const dataset = getFirstChartDataset(chart);
                     return {
                         data: dataset?.data || [],
@@ -1943,8 +1967,8 @@ export const exportUtils: ExportUtilsApi = {
      * @param {string} filename - Download filename
      */
     async exportChartDataAsCSV(
-        chartData,
-        fieldName,
+        chartData: ChartDataPoint[],
+        fieldName: string,
         filename = "chart-data.csv"
     ) {
         try {
@@ -1979,8 +2003,8 @@ export const exportUtils: ExportUtilsApi = {
      * @param {string} filename - Download filename
      */
     async exportChartDataAsJSON(
-        chartData,
-        fieldName,
+        chartData: ChartDataPoint[],
+        fieldName: string,
         filename = "chart-data.json"
     ) {
         try {
@@ -2013,7 +2037,7 @@ export const exportUtils: ExportUtilsApi = {
      * @param {string} filename - Download filename
      */
     async exportCombinedChartsDataAsCSV(
-        charts,
+        charts: ExportableChart[],
         filename = "combined-charts-data.csv"
     ) {
         try {
@@ -2048,9 +2072,7 @@ export const exportUtils: ExportUtilsApi = {
                 const row = [String(timestamp)];
                 for (const chart of charts) {
                     const dataset = getFirstChartDataset(chart),
-                        point = dataset?.data?.find(
-                            (p) => p.x === timestamp
-                        );
+                        point = dataset?.data?.find((p) => p.x === timestamp);
                     row.push(point?.y == null ? "" : String(point.y));
                 }
                 rows.push(row.join(","));
@@ -2148,7 +2170,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {string | null} Access token or null if not found
      */
-    getGyazoAccessToken() {
+    getGyazoAccessToken(): string | null {
         return safeStorageGetItem("gyazo_access_token", __deps.getStorage);
     },
 
@@ -2160,7 +2182,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {GyazoConfig} Gyazo configuration object
      */
-    getGyazoConfig() {
+    getGyazoConfig(): GyazoConfig {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
         const GyazoAppData1 = [
@@ -2210,9 +2232,7 @@ export const exportUtils: ExportUtilsApi = {
             ],
             // Apply ROT13-like transformation as additional obfuscation layer
             transform = (arr: number[]) =>
-                arr
-                    .map((code: number) => String.fromCodePoint(code))
-                    .join(""),
+                arr.map((code: number) => String.fromCodePoint(code)).join(""),
             // Decode with multiple transformations
             defaultClientId = transform(GyazoAppData1),
             GyazoAppData2 = [
@@ -2310,7 +2330,7 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {boolean} True if authenticated, false otherwise
      */
-    isGyazoAuthenticated() {
+    isGyazoAuthenticated(): boolean {
         const token = exportUtils.getGyazoAccessToken();
         console.log(
             "[Gyazo] Checking authentication status. Token exists:",
@@ -2326,7 +2346,9 @@ export const exportUtils: ExportUtilsApi = {
      *
      * @returns {boolean} True if chart is valid, false otherwise
      */
-    isValidChart(chart) {
+    isValidChart(
+        chart: ExportableChart | null | undefined
+    ): chart is ValidChart {
         if (!chart) {
             console.warn("[exportUtils] Chart is null or undefined");
             return false;
@@ -2349,8 +2371,11 @@ export const exportUtils: ExportUtilsApi = {
         return true;
     },
 
-    async printChart(chart) {
+    async printChart(chart: ExportableChart) {
         try {
+            if (!exportUtils.isValidChart(chart)) {
+                throw new Error("Invalid chart instance provided");
+            }
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
                 canvas = document.createElement("canvas"),
@@ -2417,7 +2442,7 @@ img {
      *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    printCombinedCharts(charts) {
+    printCombinedCharts(charts: ExportableChart[]) {
         try {
             if (!charts || charts.length === 0) {
                 showNotification("No charts available to print", "warning");
@@ -2479,6 +2504,9 @@ body {
             }
 
             for (const [index, chart] of charts.entries()) {
+                if (!exportUtils.isValidChart(chart)) {
+                    continue;
+                }
                 const // Create canvas with theme background
                     canvas = document.createElement("canvas"),
                     dataset = getFirstChartDataset(chart),
@@ -2536,7 +2564,7 @@ body {
      *
      * @param {string} token - Access token to store
      */
-    setGyazoAccessToken(token) {
+    setGyazoAccessToken(token: string) {
         safeStorageSetItem("gyazo_access_token", token, __deps.getStorage);
     },
 
@@ -2546,7 +2574,7 @@ body {
      * @param {string} clientId - Gyazo client ID
      * @param {string} clientSecret - Gyazo client secret
      */
-    setGyazoConfig(clientId, clientSecret) {
+    setGyazoConfig(clientId: string, clientSecret: string) {
         safeStorageSetItem("gyazo_client_id", clientId, __deps.getStorage);
         safeStorageSetItem(
             "gyazo_client_secret",
@@ -2562,7 +2590,7 @@ body {
         showChartSelectionModal(
             "share URL",
             // Single chart callback
-            async (chart: ChartJSInstance) => {
+            async (chart: ExportableChart) => {
                 try {
                     if (!exportUtils.isValidChart(chart)) {
                         showNotification("Invalid chart provided", "error");
@@ -2642,7 +2670,7 @@ body {
                 }
             },
             // Combined charts callback
-            async (charts: ChartJSInstance[]) => {
+            async (charts: ExportableChart[]) => {
                 try {
                     if (!charts || charts.length === 0) {
                         showNotification(
@@ -2783,7 +2811,7 @@ body {
         showChartSelectionModal(
             "share to Gyazo",
             // Single chart callback
-            async (chart: ChartJSInstance) => {
+            async (chart: ExportableChart) => {
                 try {
                     if (!exportUtils.isValidChart(chart)) {
                         showNotification("Invalid chart provided", "error");
@@ -2833,9 +2861,11 @@ body {
                         "Error sharing single chart to Gyazo:",
                         error
                     );
-                    if (getErrorMessage(error).includes(
-                        "Gyazo access token not configured"
-                    )) {
+                    if (
+                        getErrorMessage(error).includes(
+                            "Gyazo access token not configured"
+                        )
+                    ) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
@@ -2849,7 +2879,7 @@ body {
                 }
             },
             // Combined charts callback
-            async (charts: ChartJSInstance[]) => {
+            async (charts: ExportableChart[]) => {
                 try {
                     if (!charts || charts.length === 0) {
                         showNotification(
@@ -2949,9 +2979,11 @@ body {
                         "Error sharing combined charts to Gyazo:",
                         error
                     );
-                    if (getErrorMessage(error).includes(
-                        "Gyazo access token not configured"
-                    )) {
+                    if (
+                        getErrorMessage(error).includes(
+                            "Gyazo access token not configured"
+                        )
+                    ) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
@@ -3017,7 +3049,8 @@ body {
             authStatus = document.createElement("span"),
             credsStatusWrap = document.createElement("div"),
             credsStatus = document.createElement("span");
-        statusSection.style.cssText = "margin-bottom: 20px; text-align: center;";
+        statusSection.style.cssText =
+            "margin-bottom: 20px; text-align: center;";
         authStatusWrap.style.cssText = "margin-bottom: 12px;";
         credsStatusWrap.style.cssText = "margin-bottom: 12px;";
         authStatus.id = "auth-status";
@@ -3227,90 +3260,104 @@ body {
 
         // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
         if (clientIdInput) {
-            /* @type {HTMLInputElement} */ (clientIdInput).value = String(
+            /* @type {HTMLInputElement} */ clientIdInput.value = String(
                 config.clientId ?? ""
             );
         }
         if (clientSecretInput) {
-            /* @type {HTMLInputElement} */ (clientSecretInput).value = String(
+            /* @type {HTMLInputElement} */ clientSecretInput.value = String(
                 config.clientSecret ?? ""
             );
         }
 
         // Save credentials
         if (saveCredsBtn) {
-            saveCredsBtn.addEventListener("click", () => {
-                const clientId = /* @type {HTMLInputElement} */ (
-                        clientIdInput
-                    )?.value.trim(),
-                    clientSecret = /* @type {HTMLInputElement} */ (
-                        clientSecretInput
-                    )?.value.trim();
+            saveCredsBtn.addEventListener(
+                "click",
+                () => {
+                    const clientId =
+                            /* @type {HTMLInputElement} */ clientIdInput?.value.trim(),
+                        clientSecret =
+                            /* @type {HTMLInputElement} */ clientSecretInput?.value.trim();
 
-                if (!clientId || !clientSecret) {
+                    if (!clientId || !clientSecret) {
+                        showNotification(
+                            "Please enter both Client ID and Client Secret",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    exportUtils.setGyazoConfig(clientId, clientSecret);
                     showNotification(
-                        "Please enter both Client ID and Client Secret",
-                        "error"
+                        "Gyazo credentials saved successfully!",
+                        "success"
                     );
-                    return;
-                }
 
-                exportUtils.setGyazoConfig(clientId, clientSecret);
-                showNotification(
-                    "Gyazo credentials saved successfully!",
-                    "success"
-                );
-
-                // Update the status in the current modal
-                exportUtils.updateGyazoAuthStatus(modal);
-            }, listenerOptions);
+                    // Update the status in the current modal
+                    exportUtils.updateGyazoAuthStatus(modal);
+                },
+                listenerOptions
+            );
         }
 
         // Connect to Gyazo
         if (connectBtn) {
-            connectBtn.addEventListener("click", async () => {
-                try {
-                    await exportUtils.authenticateWithGyazo();
-                    // Update the status in the current modal
-                    exportUtils.updateGyazoAuthStatus(modal);
-                    showNotification(
-                        "Gyazo account connected successfully!",
-                        "success"
-                    );
-                } catch (error) {
-                    showNotification(
-                        `Failed to connect Gyazo account: ${getErrorMessage(error)}`,
-                        "error"
-                    );
-                }
-            }, listenerOptions);
+            connectBtn.addEventListener(
+                "click",
+                async () => {
+                    try {
+                        await exportUtils.authenticateWithGyazo();
+                        // Update the status in the current modal
+                        exportUtils.updateGyazoAuthStatus(modal);
+                        showNotification(
+                            "Gyazo account connected successfully!",
+                            "success"
+                        );
+                    } catch (error) {
+                        showNotification(
+                            `Failed to connect Gyazo account: ${getErrorMessage(error)}`,
+                            "error"
+                        );
+                    }
+                },
+                listenerOptions
+            );
         }
 
         // Disconnect from Gyazo
         if (disconnectBtn) {
-            disconnectBtn.addEventListener("click", () => {
-                exportUtils.clearGyazoAccessToken();
-                // Update the status in the current modal
-                exportUtils.updateGyazoAuthStatus(modal);
-                showNotification("Gyazo account disconnected", "info");
-            }, listenerOptions);
+            disconnectBtn.addEventListener(
+                "click",
+                () => {
+                    exportUtils.clearGyazoAccessToken();
+                    // Update the status in the current modal
+                    exportUtils.updateGyazoAuthStatus(modal);
+                    showNotification("Gyazo account disconnected", "info");
+                },
+                listenerOptions
+            );
         }
 
         // Clear all data
         if (clearDataBtn) {
-            clearDataBtn.addEventListener("click", () => {
-                // Using native confirm dialog for critical destructive action is acceptable in this Electron context
-                // and avoids building a full modal UI here.
-                if (
-                    confirm(
-                        "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
-                    )
-                ) {
-                    exportUtils.clearGyazoConfig();
-                    closeOverlay();
-                    showNotification("All Gyazo data cleared", "info");
-                }
-            }, listenerOptions);
+            clearDataBtn.addEventListener(
+                "click",
+                () => {
+                    // Using native confirm dialog for critical destructive action is acceptable in this Electron context
+                    // and avoids building a full modal UI here.
+                    if (
+                        confirm(
+                            "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
+                        )
+                    ) {
+                        exportUtils.clearGyazoConfig();
+                        closeOverlay();
+                        showNotification("All Gyazo data cleared", "info");
+                    }
+                },
+                listenerOptions
+            );
         }
 
         // Close modal
@@ -3328,11 +3375,15 @@ body {
         document.addEventListener("keydown", handleEscape, listenerOptions);
 
         // Click outside to close
-        overlay.addEventListener("click", (e: MouseEvent) => {
-            if (e.target === overlay) {
-                closeOverlay();
-            }
-        }, listenerOptions);
+        overlay.addEventListener(
+            "click",
+            (e: MouseEvent) => {
+                if (e.target === overlay) {
+                    closeOverlay();
+                }
+            },
+            listenerOptions
+        );
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -3494,11 +3545,15 @@ body {
         };
         document.addEventListener("keydown", handleEscape, listenerOptions);
 
-        overlay.addEventListener("click", (e: MouseEvent) => {
-            if (e.target === overlay) {
-                closeOverlay();
-            }
-        }, listenerOptions);
+        overlay.addEventListener(
+            "click",
+            (e: MouseEvent) => {
+                if (e.target === overlay) {
+                    closeOverlay();
+                }
+            },
+            listenerOptions
+        );
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -3510,15 +3565,16 @@ body {
      * @param {HTMLElement} modal - The modal element containing status
      *   indicators
      */
-    updateGyazoAuthStatus(modal) {
+    updateGyazoAuthStatus(modal: HTMLElement) {
         const // Update auth status
             authStatus = modal.querySelector("#auth-status"),
             config = exportUtils.getGyazoConfig(),
             hasCredentials = Boolean(config.clientId && config.clientSecret),
             isAuthenticated = exportUtils.isGyazoAuthenticated();
         if (authStatus) {
-            /* @type {HTMLElement} */ (authStatus).style.background =
-                isAuthenticated ? "var(--color-success)" : "var(--color-error)";
+            (authStatus as HTMLElement).style.background = isAuthenticated
+                ? "var(--color-success)"
+                : "var(--color-error)";
             authStatus.textContent = isAuthenticated
                 ? "✅ Connected"
                 : "❌ Not Connected";
@@ -3527,10 +3583,9 @@ body {
         // Update credentials status
         const credsStatus = modal.querySelector("#creds-status");
         if (credsStatus) {
-            /* @type {HTMLElement} */ (credsStatus).style.background =
-                hasCredentials
-                    ? "var(--color-success)"
-                    : "var(--color-warning)";
+            (credsStatus as HTMLElement).style.background = hasCredentials
+                ? "var(--color-success)"
+                : "var(--color-warning)";
             credsStatus.textContent = hasCredentials
                 ? "🔑 Credentials Saved"
                 : "⚠️ Credentials Needed";
@@ -3541,13 +3596,14 @@ body {
             disconnectBtn = modal.querySelector("#gyazo-disconnect");
 
         if (connectBtn) {
-            /* @type {HTMLElement} */ (connectBtn).style.display =
+            (connectBtn as HTMLElement).style.display =
                 hasCredentials && !isAuthenticated ? "block" : "none";
         }
 
         if (disconnectBtn) {
-            /* @type {HTMLElement} */ (disconnectBtn).style.display =
-                isAuthenticated ? "block" : "none";
+            (disconnectBtn as HTMLElement).style.display = isAuthenticated
+                ? "block"
+                : "none";
         }
 
         console.log(
@@ -3565,7 +3621,7 @@ body {
      *
      * @returns {Promise<string>} Gyazo URL
      */
-    async uploadToGyazo(base64Image) {
+    async uploadToGyazo(base64Image: string): Promise<string> {
         let accessToken = exportUtils.getGyazoAccessToken();
 
         // If no access token, try to authenticate
@@ -3594,12 +3650,15 @@ body {
                 new Set(["upload.gyazo.com"])
             );
 
-            const uploadResponse = /* @type {GyazoUploadFetchResponse} */ (
-                await fetchWithTimeout(uploadUrl, 15_000, {
-                    body: formData,
-                    method: "POST",
-                })
-            );
+            const uploadResponse =
+                /* @type {GyazoUploadFetchResponse} */ await fetchWithTimeout(
+                    uploadUrl,
+                    15_000,
+                    {
+                        body: formData,
+                        method: "POST",
+                    }
+                );
 
             // Treat missing `ok` (common in test doubles) as success.
             // A real Fetch Response always has a boolean `ok`.
@@ -3626,8 +3685,7 @@ body {
             if (!parsed.success) {
                 throw new Error("Invalid Gyazo upload response");
             }
-            const data =
-                /* @type {GyazoUploadResponse} */ (parsed.data);
+            const data = /* @type {GyazoUploadResponse} */ parsed.data;
             if (data.permalink_url) {
                 return data.permalink_url;
             } else if (data.url) {
@@ -3658,7 +3716,7 @@ body {
      *
      * @returns {Object} Imgur configuration object
      */
-    getImgurConfig() {
+    getImgurConfig(): ImgurConfig {
         const defaultClientId = "0046ee9e30ac578"; // Placeholder for demo
 
         return {
@@ -3674,7 +3732,7 @@ body {
      *
      * @param {string} clientId - Imgur client ID
      */
-    setImgurConfig(clientId) {
+    setImgurConfig(clientId: string) {
         safeStorageSetItem("imgur_client_id", clientId, __deps.getStorage);
     },
 
@@ -3704,7 +3762,7 @@ body {
      *
      * @returns {Promise<string>} Imgur URL
      */
-    async uploadToImgur(base64Image) {
+    async uploadToImgur(base64Image: string): Promise<string> {
         const debugUploads =
             typeof process !== "undefined" &&
             Boolean(process.env) &&
@@ -3825,7 +3883,8 @@ body {
         const statusSection = document.createElement("div"),
             statusWrap = document.createElement("div"),
             statusElement = document.createElement("span");
-        statusSection.style.cssText = "margin-bottom: 20px; text-align: center;";
+        statusSection.style.cssText =
+            "margin-bottom: 20px; text-align: center;";
         statusWrap.style.cssText = "margin-bottom: 12px;";
         statusElement.id = "imgur-status";
         statusElement.style.cssText = `
@@ -3910,11 +3969,16 @@ body {
             setupGuideBtn = document.createElement("button"),
             clearBtn = document.createElement("button"),
             closeBtn = document.createElement("button");
-        actions.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
+        actions.style.cssText =
+            "display: flex; flex-direction: column; gap: 8px;";
         setupGuideBtn.id = "imgur-setup-guide";
         clearBtn.id = "clear-imgur-config";
         closeBtn.id = "imgur-close";
-        for (const button of [setupGuideBtn, clearBtn, closeBtn]) {
+        for (const button of [
+            setupGuideBtn,
+            clearBtn,
+            closeBtn,
+        ]) {
             button.style.cssText = `
                 width: 100%;
                 padding: 12px;
@@ -3954,42 +4018,58 @@ body {
 
         // Save configuration
         if (saveBtn && clientIdInput) {
-            saveBtn.addEventListener("click", () => {
-                const clientId = clientIdInput.value.trim();
-                if (clientId) {
-                    exportUtils.setImgurConfig(clientId);
-                    __deps.showNotification(
-                        "Imgur configuration saved",
-                        "success"
-                    );
-                    exportUtils.updateImgurStatus(modal);
-                } else {
-                    __deps.showNotification(
-                        "Please enter a valid Client ID",
-                        "error"
-                    );
-                }
-            }, listenerOptions);
+            saveBtn.addEventListener(
+                "click",
+                () => {
+                    const clientId = clientIdInput.value.trim();
+                    if (clientId) {
+                        exportUtils.setImgurConfig(clientId);
+                        __deps.showNotification(
+                            "Imgur configuration saved",
+                            "success"
+                        );
+                        exportUtils.updateImgurStatus(modal);
+                    } else {
+                        __deps.showNotification(
+                            "Please enter a valid Client ID",
+                            "error"
+                        );
+                    }
+                },
+                listenerOptions
+            );
         }
 
         // Show setup guide
         if (setupGuideBtn) {
-            setupGuideBtn.addEventListener("click", () => {
-                closeOverlay();
-                exportUtils.showImgurSetupGuide();
-            }, listenerOptions);
+            setupGuideBtn.addEventListener(
+                "click",
+                () => {
+                    closeOverlay();
+                    exportUtils.showImgurSetupGuide();
+                },
+                listenerOptions
+            );
         }
 
         // Clear configuration
         if (clearBtn) {
-            clearBtn.addEventListener("click", () => {
-                exportUtils.clearImgurConfig();
-                __deps.showNotification("Imgur configuration cleared", "info");
-                if (clientIdInput) {
-                    clientIdInput.value = exportUtils.getImgurConfig().clientId;
-                }
-                exportUtils.updateImgurStatus(modal);
-            }, listenerOptions);
+            clearBtn.addEventListener(
+                "click",
+                () => {
+                    exportUtils.clearImgurConfig();
+                    __deps.showNotification(
+                        "Imgur configuration cleared",
+                        "info"
+                    );
+                    if (clientIdInput) {
+                        clientIdInput.value =
+                            exportUtils.getImgurConfig().clientId;
+                    }
+                    exportUtils.updateImgurStatus(modal);
+                },
+                listenerOptions
+            );
         }
 
         // Close modal
@@ -4007,11 +4087,15 @@ body {
         document.addEventListener("keydown", handleEscape, listenerOptions);
 
         // Click outside to close
-        overlay.addEventListener("click", (e: MouseEvent) => {
-            if (e.target === overlay) {
-                closeOverlay();
-            }
-        }, listenerOptions);
+        overlay.addEventListener(
+            "click",
+            (e: MouseEvent) => {
+                if (e.target === overlay) {
+                    closeOverlay();
+                }
+            },
+            listenerOptions
+        );
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -4194,10 +4278,14 @@ body {
             overlay.remove();
         };
 
-        backBtn.addEventListener("click", () => {
-            closeOverlay();
-            exportUtils.showImgurAccountManager();
-        }, listenerOptions);
+        backBtn.addEventListener(
+            "click",
+            () => {
+                closeOverlay();
+                exportUtils.showImgurAccountManager();
+            },
+            listenerOptions
+        );
         closeBtn.addEventListener("click", closeOverlay, listenerOptions);
 
         // ESC key and click outside handlers
@@ -4209,11 +4297,15 @@ body {
         };
         document.addEventListener("keydown", handleEscape, listenerOptions);
 
-        overlay.addEventListener("click", (e: MouseEvent) => {
-            if (e.target === overlay) {
-                closeOverlay();
-            }
-        }, listenerOptions);
+        overlay.addEventListener(
+            "click",
+            (e: MouseEvent) => {
+                if (e.target === overlay) {
+                    closeOverlay();
+                }
+            },
+            listenerOptions
+        );
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -4225,12 +4317,12 @@ body {
      * @param {HTMLElement} modal - The modal element containing status
      *   indicators
      */
-    updateImgurStatus(modal) {
+    updateImgurStatus(modal: HTMLElement) {
         const isConfigured = exportUtils.isImgurConfigured();
         const statusElement = modal.querySelector("#imgur-status");
 
         if (statusElement) {
-            statusElement.style.background = isConfigured
+            (statusElement as HTMLElement).style.background = isConfigured
                 ? "var(--color-success)"
                 : "var(--color-warning)";
             statusElement.textContent = isConfigured
