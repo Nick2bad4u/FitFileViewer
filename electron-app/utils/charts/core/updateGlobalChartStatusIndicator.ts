@@ -2,8 +2,8 @@
  * Global chart status indicator updater for FitFileViewer.
  *
  * Updates the global chart status indicator in the UI by creating a new
- * indicator and replacing the existing one. Handles DOM manipulation with
- * error handling and fallback container logic.
+ * indicator and replacing the existing one. Handles DOM manipulation with error
+ * handling and fallback container logic.
  */
 
 import { createGlobalChartStatusIndicator } from "../components/createGlobalChartStatusIndicator.js";

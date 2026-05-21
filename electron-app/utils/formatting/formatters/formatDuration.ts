@@ -27,13 +27,13 @@ const THRESHOLDS = {
  * Null/undefined inputs return an empty string. Invalid inputs throw a
  * descriptive error, matching the legacy formatter behavior.
  *
- * @example
- *     formatDuration(30); // "30 sec"
- *     formatDuration(90); // "1 min 30 sec"
- *     formatDuration(3661); // "1 hr 1 min"
+ * @example FormatDuration(30); // "30 sec" formatDuration(90); // "1 min 30
+ * sec" formatDuration(3661); // "1 hr 1 min"
  *
  * @param seconds - The duration in seconds.
+ *
  * @returns The formatted duration string.
+ *
  * @throws Error If the input is not a finite number or is negative.
  */
 export function formatDuration(seconds: DurationInput): string {
@@ -61,7 +61,9 @@ export function formatDuration(seconds: DurationInput): string {
 }
 
 function formatHoursAndMinutes(seconds: number): string {
-    const hours = Math.floor(seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR);
+    const hours = Math.floor(
+        seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR
+    );
     const remainingSeconds = seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR;
     const minutes = Math.floor(
         remainingSeconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE
@@ -72,8 +74,11 @@ function formatHoursAndMinutes(seconds: number): string {
 }
 
 function formatMinutesAndSeconds(seconds: number): string {
-    const minutes = Math.floor(seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE);
-    const remainingSeconds = seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE;
+    const minutes = Math.floor(
+        seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
+    const remainingSeconds =
+        seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE;
     return `${minutes} min ${remainingSeconds} sec`;
 }
 

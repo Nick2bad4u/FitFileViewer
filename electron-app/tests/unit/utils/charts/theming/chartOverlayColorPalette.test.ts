@@ -31,7 +31,9 @@ describe(getChartOverlayColorPalette, () => {
     it("returns a deterministic palette for the same input order", () => {
         expect.assertions(1);
 
-        expect(getChartOverlayColorPalette(baseChartOverlayColors)).toStrictEqual(
+        expect(
+            getChartOverlayColorPalette(baseChartOverlayColors)
+        ).toStrictEqual(
             getChartOverlayColorPalette([...baseChartOverlayColors])
         );
     });

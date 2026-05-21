@@ -22,22 +22,39 @@ export function applyAccentColor(color, theme) {
         console.warn("[AccentColor] Invalid color, using default");
         resolvedColor = getDefaultAccentColor(resolvedTheme);
     }
-    const variations = generateAccentColorVariations(resolvedColor, resolvedTheme);
+    const variations = generateAccentColorVariations(
+        resolvedColor,
+        resolvedTheme
+    );
     for (const target of getAccentColorTargets()) {
         target.style.setProperty("--color-accent", variations.accent);
         target.style.setProperty("--color-accent-rgb", variations.accentRgb);
-        target.style.setProperty("--color-accent-secondary", variations.accentSecondary);
-        target.style.setProperty("--color-accent-hover", variations.accentHover);
+        target.style.setProperty(
+            "--color-accent-secondary",
+            variations.accentSecondary
+        );
+        target.style.setProperty(
+            "--color-accent-hover",
+            variations.accentHover
+        );
         target.style.setProperty("--color-btn-bg", variations.btnBg);
         target.style.setProperty("--color-btn-bg-solid", variations.btnBgSolid);
         target.style.setProperty("--color-btn-hover", variations.btnHover);
         target.style.setProperty("--color-hero-glow", variations.heroGlow);
-        target.style.setProperty("--color-hero-glow-strong", variations.heroGlowStrong);
+        target.style.setProperty(
+            "--color-hero-glow-strong",
+            variations.heroGlowStrong
+        );
         target.style.setProperty("--color-info", variations.info);
         target.style.setProperty("--color-modal-bg", variations.modalBg);
-        target.style.setProperty("--color-svg-icon-stroke", variations.svgIconStroke);
+        target.style.setProperty(
+            "--color-svg-icon-stroke",
+            variations.svgIconStroke
+        );
     }
-    console.log(`[AccentColor] Applied accent color: ${resolvedColor} for ${resolvedTheme} theme`);
+    console.log(
+        `[AccentColor] Applied accent color: ${resolvedColor} for ${resolvedTheme} theme`
+    );
 }
 /**
  * Clears the custom accent color.
@@ -48,8 +65,7 @@ export function clearAccentColor() {
     try {
         localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY);
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[AccentColor] Failed to clear accent color:", error);
         return false;
     }
@@ -59,12 +75,16 @@ export function clearAccentColor() {
  *
  * @param baseColor - Base accent color hex value.
  * @param theme - Current theme.
+ *
  * @returns Color variation map.
  */
 export function generateAccentColorVariations(baseColor, theme) {
-    const resolvedTheme = normalizeTheme(theme), resolvedBaseColor = isValidHexColor(baseColor)
-        ? baseColor
-        : getDefaultAccentColor(resolvedTheme), { b, g, r } = hexToRgb(resolvedBaseColor), isDark = resolvedTheme === "dark";
+    const resolvedTheme = normalizeTheme(theme),
+        resolvedBaseColor = isValidHexColor(baseColor)
+            ? baseColor
+            : getDefaultAccentColor(resolvedTheme),
+        { b, g, r } = hexToRgb(resolvedBaseColor),
+        isDark = resolvedTheme === "dark";
     return {
         accent: resolvedBaseColor,
         accentHover: `rgb(${r} ${g} ${b} / ${isDark ? "20%" : "15%"})`,
@@ -90,6 +110,7 @@ export function generateAccentColorVariations(baseColor, theme) {
  * Gets the default accent color for a theme.
  *
  * @param theme - Current theme.
+ *
  * @returns Default accent color hex value.
  */
 export function getDefaultAccentColor(theme) {
@@ -99,6 +120,7 @@ export function getDefaultAccentColor(theme) {
  * Gets the custom accent color or theme default.
  *
  * @param theme - Current theme.
+ *
  * @returns Effective accent color hex value.
  */
 export function getEffectiveAccentColor(theme) {
@@ -108,6 +130,7 @@ export function getEffectiveAccentColor(theme) {
  * Initializes accent color CSS variables for the current theme.
  *
  * @param theme - Current theme.
+ *
  * @returns Applied accent color hex value.
  */
 export function initializeAccentColor(theme) {
@@ -119,6 +142,7 @@ export function initializeAccentColor(theme) {
  * Checks whether a value is a six-digit hex color.
  *
  * @param color - Color candidate.
+ *
  * @returns True when the value is a valid hex color.
  */
 export function isValidHexColor(color) {
@@ -135,8 +159,7 @@ export function loadAccentColor() {
         if (isValidHexColor(saved)) {
             return saved;
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.warn("[AccentColor] Failed to load accent color:", error);
     }
     return null;
@@ -145,6 +168,7 @@ export function loadAccentColor() {
  * Resets the accent color to the current theme default.
  *
  * @param theme - Current theme.
+ *
  * @returns Default accent color hex value.
  */
 export function resetAccentColor(theme) {
@@ -157,6 +181,7 @@ export function resetAccentColor(theme) {
  * Saves the custom accent color to localStorage.
  *
  * @param color - Hex color to save.
+ *
  * @returns True when saved successfully.
  */
 export function saveAccentColor(color) {
@@ -167,8 +192,7 @@ export function saveAccentColor(color) {
     try {
         localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[AccentColor] Failed to save accent color:", error);
         return false;
     }
@@ -178,6 +202,7 @@ export function saveAccentColor(color) {
  *
  * @param color - New accent color hex value.
  * @param theme - Current theme.
+ *
  * @returns True when the value was saved and applied.
  */
 export function setAccentColor(color, theme) {
@@ -192,7 +217,11 @@ export function setAccentColor(color, theme) {
     return false;
 }
 function darkenColor(hex, percent) {
-    const { b, g, r } = hexToRgb(hex), amount = percent / 100, newR = r * (1 - amount), newG = g * (1 - amount), newB = b * (1 - amount);
+    const { b, g, r } = hexToRgb(hex),
+        amount = percent / 100,
+        newR = r * (1 - amount),
+        newG = g * (1 - amount),
+        newB = b * (1 - amount);
     return rgbToHex(newR, newG, newB);
 }
 function getAccentColorTargets() {
@@ -206,11 +235,18 @@ function getAccentColorTargets() {
     return targets;
 }
 function hexToRgb(hex) {
-    const cleaned = hex.replace("#", ""), r = Number.parseInt(cleaned.slice(0, 2), 16), g = Number.parseInt(cleaned.slice(2, 4), 16), b = Number.parseInt(cleaned.slice(4, 6), 16);
+    const cleaned = hex.replace("#", ""),
+        r = Number.parseInt(cleaned.slice(0, 2), 16),
+        g = Number.parseInt(cleaned.slice(2, 4), 16),
+        b = Number.parseInt(cleaned.slice(4, 6), 16);
     return { b, g, r };
 }
 function lightenColor(hex, percent) {
-    const { b, g, r } = hexToRgb(hex), amount = (percent / 100) * 255, newR = r + (255 - r) * (amount / 255), newG = g + (255 - g) * (amount / 255), newB = b + (255 - b) * (amount / 255);
+    const { b, g, r } = hexToRgb(hex),
+        amount = (percent / 100) * 255,
+        newR = r + (255 - r) * (amount / 255),
+        newG = g + (255 - g) * (amount / 255),
+        newB = b + (255 - b) * (amount / 255);
     return rgbToHex(newR, newG, newB);
 }
 function normalizeTheme(theme) {

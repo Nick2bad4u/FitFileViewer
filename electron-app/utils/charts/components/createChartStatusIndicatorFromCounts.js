@@ -17,15 +17,15 @@ function getStatusPresentation(counts, hasHiddenCharts, isAllVisible) {
     }
     return counts.available === 0
         ? {
-            icon: "❌",
-            title: "No charts are available",
-            valueColor: "var(--color-error)",
-        }
+              icon: "❌",
+              title: "No charts are available",
+              valueColor: "var(--color-error)",
+          }
         : {
-            icon: "❌",
-            title: "No charts are visible",
-            valueColor: "var(--color-error)",
-        };
+              icon: "❌",
+              title: "No charts are visible",
+              valueColor: "var(--color-error)",
+          };
 }
 function createStyledSpan(text, color) {
     const span = document.createElement("span");
@@ -39,7 +39,12 @@ function appendStatusText(statusText, counts, valueColor) {
         statusText.style.color = "var(--color-fg-muted)";
         return;
     }
-    statusText.append(createStyledSpan(String(counts.visible), valueColor), createStyledSpan(" / ", "var(--color-fg-muted)"), createStyledSpan(String(counts.available), "var(--color-fg)"), createStyledSpan(" charts visible", "var(--color-fg-muted)"));
+    statusText.append(
+        createStyledSpan(String(counts.visible), valueColor),
+        createStyledSpan(" / ", "var(--color-fg-muted)"),
+        createStyledSpan(String(counts.available), "var(--color-fg)"),
+        createStyledSpan(" charts visible", "var(--color-fg-muted)")
+    );
 }
 function createCategoryRow(icon, label, counts) {
     const row = document.createElement("div");
@@ -81,7 +86,12 @@ function createBreakdown(counts, hasHiddenCharts) {
         gap: 8px;
         font-size: 11px;
     `;
-    grid.append(createCategoryRow("📊", "Metrics", counts.categories.metrics), createCategoryRow("📈", "Analysis", counts.categories.analysis), createCategoryRow("🎯", "Zones", counts.categories.zones), createCategoryRow("🗺️", "GPS", counts.categories.gps));
+    grid.append(
+        createCategoryRow("📊", "Metrics", counts.categories.metrics),
+        createCategoryRow("📈", "Analysis", counts.categories.analysis),
+        createCategoryRow("🎯", "Zones", counts.categories.zones),
+        createCategoryRow("🗺️", "GPS", counts.categories.gps)
+    );
     breakdown.append(title, grid);
     if (hasHiddenCharts) {
         const hint = document.createElement("div");
@@ -120,9 +130,11 @@ function positionBreakdown(breakdown, event) {
     breakdown.style.top = `${y}px`;
 }
 /**
- * Clean up event listeners and detached tooltip state for a generated chart status indicator.
+ * Clean up event listeners and detached tooltip state for a generated chart
+ * status indicator.
  *
- * @param indicator - Indicator element returned from createChartStatusIndicatorFromCounts.
+ * @param indicator - Indicator element returned from
+ *   createChartStatusIndicatorFromCounts.
  */
 export function cleanupChartStatusIndicatorFromCounts(indicator) {
     indicatorCleanupCallbacks.get(indicator)?.();
@@ -132,6 +144,7 @@ export function cleanupChartStatusIndicatorFromCounts(indicator) {
  * Creates a chart status indicator element from precomputed chart counts.
  *
  * @param counts - Precomputed chart visibility and availability counts.
+ *
  * @returns The chart status indicator element.
  */
 export function createChartStatusIndicatorFromCounts(counts) {
@@ -152,8 +165,13 @@ export function createChartStatusIndicatorFromCounts(counts) {
             min-width: 200px;
         `;
         const hasHiddenCharts = counts.available > counts.visible;
-        const isAllVisible = counts.available > 0 && counts.visible === counts.available;
-        const presentation = getStatusPresentation(counts, hasHiddenCharts, isAllVisible);
+        const isAllVisible =
+            counts.available > 0 && counts.visible === counts.available;
+        const presentation = getStatusPresentation(
+            counts,
+            hasHiddenCharts,
+            isAllVisible
+        );
         const statusIcon = document.createElement("span");
         statusIcon.className = "status-icon";
         statusIcon.textContent = presentation.icon;
@@ -183,55 +201,73 @@ export function createChartStatusIndicatorFromCounts(counts) {
             breakdown.remove();
         };
         indicatorCleanupCallbacks.set(indicator, cleanup);
-        indicator.addEventListener("mouseenter", (event) => {
-            indicator.style.background = "var(--color-glass-border)";
-            indicator.style.transform = "translateY(-1px)";
-            positionBreakdown(breakdown, event);
-            breakdown.style.opacity = "1";
-            breakdown.style.visibility = "visible";
-        }, { signal });
-        indicator.addEventListener("mouseleave", () => {
-            indicator.style.background = "var(--color-glass)";
-            indicator.style.transform = "translateY(0)";
-            breakdown.style.opacity = "0";
-            breakdown.style.visibility = "hidden";
-        }, { signal });
-        indicator.addEventListener("mousemove", (event) => {
-            if (breakdown.style.visibility === "visible") {
+        indicator.addEventListener(
+            "mouseenter",
+            (event) => {
+                indicator.style.background = "var(--color-glass-border)";
+                indicator.style.transform = "translateY(-1px)";
                 positionBreakdown(breakdown, event);
-            }
-        }, { signal });
-        indicator.addEventListener("click", () => {
-            const fieldsSection = document.querySelector(".fields-section");
-            if (!(fieldsSection instanceof HTMLElement)) {
-                return;
-            }
-            fieldsSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-            fieldsSection.style.outline = "2px solid var(--color-accent)";
-            fieldsSection.style.outlineOffset = "4px";
-            const timerRef = {};
-            let didRun = false;
-            timerRef.id = setTimeout(() => {
-                didRun = true;
-                if (timerRef.id !== undefined) {
-                    highlightTimers.delete(timerRef.id);
+                breakdown.style.opacity = "1";
+                breakdown.style.visibility = "visible";
+            },
+            { signal }
+        );
+        indicator.addEventListener(
+            "mouseleave",
+            () => {
+                indicator.style.background = "var(--color-glass)";
+                indicator.style.transform = "translateY(0)";
+                breakdown.style.opacity = "0";
+                breakdown.style.visibility = "hidden";
+            },
+            { signal }
+        );
+        indicator.addEventListener(
+            "mousemove",
+            (event) => {
+                if (breakdown.style.visibility === "visible") {
+                    positionBreakdown(breakdown, event);
                 }
-                fieldsSection.style.outline = "none";
-                fieldsSection.style.outlineOffset = "0";
-            }, 2000);
-            if (!didRun) {
-                highlightTimers.add(timerRef.id);
-            }
-        }, { signal });
+            },
+            { signal }
+        );
+        indicator.addEventListener(
+            "click",
+            () => {
+                const fieldsSection = document.querySelector(".fields-section");
+                if (!(fieldsSection instanceof HTMLElement)) {
+                    return;
+                }
+                fieldsSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+                fieldsSection.style.outline = "2px solid var(--color-accent)";
+                fieldsSection.style.outlineOffset = "4px";
+                const timerRef = {};
+                let didRun = false;
+                timerRef.id = setTimeout(() => {
+                    didRun = true;
+                    if (timerRef.id !== undefined) {
+                        highlightTimers.delete(timerRef.id);
+                    }
+                    fieldsSection.style.outline = "none";
+                    fieldsSection.style.outlineOffset = "0";
+                }, 2000);
+                if (!didRun) {
+                    highlightTimers.add(timerRef.id);
+                }
+            },
+            { signal }
+        );
         indicator.append(statusIcon, statusText);
         document.body.append(breakdown);
         return indicator;
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error creating chart status indicator from counts:", error);
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error creating chart status indicator from counts:",
+            error
+        );
         const fallback = document.createElement("div");
         fallback.className = "chart-status-indicator";
         fallback.id = "chart-status-indicator";

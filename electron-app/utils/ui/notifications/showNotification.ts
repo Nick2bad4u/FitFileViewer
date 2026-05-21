@@ -99,13 +99,14 @@ export function clearAllNotifications(): void {
 }
 
 /**
- * Shows a queued renderer notification with animations, optional action buttons,
- * and per-type default durations.
+ * Shows a queued renderer notification with animations, optional action
+ * buttons, and per-type default durations.
  *
  * @param message - Message to display.
  * @param type - Notification variant. Unknown strings fall back to info.
  * @param duration - Duration in milliseconds, or null for the type default.
  * @param options - Additional display and interaction options.
+ *
  * @returns Promise that resolves when this notification becomes visible.
  */
 export async function showNotification(
@@ -447,21 +448,19 @@ export const notify = {
         options?: NotificationOptions
     ) => showNotification(message, "info", duration, options),
 
-    /** Shows a persistent notification that requires user interaction to dismiss. */
+    /**
+     * Shows a persistent notification that requires user interaction to
+     * dismiss.
+     */
     persistent: (
         message: string,
         type: NotificationType | string = "info",
         options: NotificationOptions = {}
     ) =>
-        showNotification(
-            message,
-            type,
-            undefined,
-            {
-                ...options,
-                persistent: true,
-            }
-        ),
+        showNotification(message, type, undefined, {
+            ...options,
+            persistent: true,
+        }),
 
     /** Shows a success notification. */
     success: (
@@ -484,16 +483,11 @@ export const notify = {
         actions: readonly NotificationAction[] = [],
         options: NotificationOptions = {}
     ) =>
-        showNotification(
-            message,
-            type,
-            undefined,
-            {
-                ...options,
-                actions,
-                persistent: true,
-            }
-        ),
+        showNotification(message, type, undefined, {
+            ...options,
+            actions,
+            persistent: true,
+        }),
 };
 
 function clearNotificationTimeout(timer: HideTimeout): void {

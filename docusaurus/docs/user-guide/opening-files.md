@@ -50,11 +50,13 @@ Access recently opened files:
 ### Garmin Devices
 
 When connected via USB:
+
 ```
 /Garmin/Activities/
 ```
 
 Common locations after sync:
+
 - **Garmin Express**: `~/Garmin/<Device>/Activities/`
 - **Garmin Connect**: Export from the web app
 
@@ -62,18 +64,18 @@ Common locations after sync:
 
 Most fitness platforms allow FIT exports:
 
-| Platform | Export Method |
-|----------|--------------|
+| Platform       | Export Method                          |
+| -------------- | -------------------------------------- |
 | Garmin Connect | Activity → Gear icon → Export Original |
-| Strava | Activity → ⋮ → Export GPX/FIT |
-| TrainingPeaks | File → Export |
+| Strava         | Activity → ⋮ → Export GPX/FIT          |
+| TrainingPeaks  | File → Export                          |
 
 ## Supported File Types
 
-| Extension | Format | Support |
-|-----------|--------|---------|
-| `.fit` | Garmin FIT | ✅ Full |
-| `.FIT` | Garmin FIT (uppercase) | ✅ Full |
+| Extension | Format                 | Support |
+| --------- | ---------------------- | ------- |
+| `.fit`    | Garmin FIT             | ✅ Full |
+| `.FIT`    | Garmin FIT (uppercase) | ✅ Full |
 
 :::note
 FitFileViewer currently only supports FIT files. GPX, TCX, and other formats are not supported.
@@ -90,20 +92,20 @@ When opening a file, FitFileViewer:
 
 ### Error Messages
 
-| Error | Cause | Solution |
-|-------|-------|----------|
+| Error              | Cause                     | Solution                  |
+| ------------------ | ------------------------- | ------------------------- |
 | "Invalid FIT file" | Corrupted or wrong format | Re-export or get new file |
-| "No GPS data" | Indoor activity | Map tab won't show route |
-| "File too large" | Very long activity | Wait for processing |
+| "No GPS data"      | Indoor activity           | Map tab won't show route  |
+| "File too large"   | Very long activity        | Wait for processing       |
 
 ## File Size Guidelines
 
-| File Size | Typical Content | Load Time |
-|-----------|----------------|-----------|
-| < 5 MB | 1-2 hour activity | Instant |
-| 5-20 MB | Long ride/run | 1-3 seconds |
-| 20-50 MB | Ultra event | 3-10 seconds |
-| 50+ MB | Multi-day event | 10+ seconds |
+| File Size | Typical Content   | Load Time    |
+| --------- | ----------------- | ------------ |
+| < 5 MB    | 1-2 hour activity | Instant      |
+| 5-20 MB   | Long ride/run     | 1-3 seconds  |
+| 20-50 MB  | Ultra event       | 3-10 seconds |
+| 50+ MB    | Multi-day event   | 10+ seconds  |
 
 ## Best Practices
 

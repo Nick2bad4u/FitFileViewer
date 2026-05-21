@@ -177,7 +177,10 @@ describe(updateChartAnimations, () => {
         updateChartAnimations(chart, "speed");
         chart.options.animation?.onComplete?.();
         chart.options.animation?.onProgress?.({ currentStep: 3, numSteps: 4 });
-        chart.options.animation?.onProgress?.({ currentStep: "3", numSteps: 4 });
+        chart.options.animation?.onProgress?.({
+            currentStep: "3",
+            numSteps: 4,
+        });
 
         expect(chart.options.animation?.duration).toBe(1200);
         expect(logSpy).toHaveBeenCalledWith(

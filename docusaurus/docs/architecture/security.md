@@ -46,22 +46,22 @@ Renderer JavaScript runs in an isolated context:
 ```javascript
 // main.js
 const mainWindow = new BrowserWindow({
-    webPreferences: {
-        contextIsolation: true,    // Separate contexts
-        nodeIntegration: false,    // No Node in renderer
-        sandbox: true,             // OS sandbox
-        preload: path.join(__dirname, 'preload.js')
-    }
+ webPreferences: {
+  contextIsolation: true, // Separate contexts
+  nodeIntegration: false, // No Node in renderer
+  sandbox: true, // OS sandbox
+  preload: path.join(__dirname, "preload.js"),
+ },
 });
 ```
 
 ### Why Context Isolation?
 
-| Without | With |
-|---------|------|
+| Without                  | With              |
+| ------------------------ | ----------------- |
 | Renderer can access Node | Renderer isolated |
-| Window object exposed | Window protected |
-| Easy to exploit | Secure by default |
+| Window object exposed    | Window protected  |
+| Easy to exploit          | Secure by default |
 
 ## IPC Security
 
@@ -71,16 +71,12 @@ Only specific, validated operations are exposed:
 
 ```javascript
 // preload.js
-const validChannels = [
-    'dialog:open-fit-file',
-    'file:read',
-    'app:get-version'
-];
+const validChannels = ["dialog:open-fit-file", "file:read", "app:get-version"];
 
-contextBridge.exposeInMainWorld('electronAPI', {
-    openFile: () => ipcRenderer.invoke('dialog:open-fit-file'),
-    getVersion: () => ipcRenderer.invoke('app:get-version'),
-    // No arbitrary channel access
+contextBridge.exposeInMainWorld("electronAPI", {
+ openFile: () => ipcRenderer.invoke("dialog:open-fit-file"),
+ getVersion: () => ipcRenderer.invoke("app:get-version"),
+ // No arbitrary channel access
 });
 ```
 
@@ -90,19 +86,19 @@ All inputs validated before processing:
 
 ```javascript
 // main.js
-ipcMain.handle('file:read', async (event, filePath) => {
-    // Validate file path
-    if (!isValidFilePath(filePath)) {
-        throw new Error('Invalid file path');
-    }
+ipcMain.handle("file:read", async (event, filePath) => {
+ // Validate file path
+ if (!isValidFilePath(filePath)) {
+  throw new Error("Invalid file path");
+ }
 
-    // Validate file extension
-    if (!filePath.endsWith('.fit')) {
-        throw new Error('Invalid file type');
-    }
+ // Validate file extension
+ if (!filePath.endsWith(".fit")) {
+  throw new Error("Invalid file type");
+ }
 
-    // Safe to proceed
-    return fs.promises.readFile(filePath);
+ // Safe to proceed
+ return fs.promises.readFile(filePath);
 });
 ```
 
@@ -112,20 +108,20 @@ ipcMain.handle('file:read', async (event, filePath) => {
 
 ```javascript
 function isValidFilePath(filePath) {
-    // Normalize path
-    const normalized = path.normalize(filePath);
+ // Normalize path
+ const normalized = path.normalize(filePath);
 
-    // Prevent directory traversal
-    if (normalized.includes('..')) {
-        return false;
-    }
+ // Prevent directory traversal
+ if (normalized.includes("..")) {
+  return false;
+ }
 
-    // Check file exists
-    if (!fs.existsSync(normalized)) {
-        return false;
-    }
+ // Check file exists
+ if (!fs.existsSync(normalized)) {
+  return false;
+ }
 
-    return true;
+ return true;
 }
 ```
 
@@ -134,11 +130,11 @@ function isValidFilePath(filePath) {
 Only FIT files are processed:
 
 ```javascript
-const allowedExtensions = ['.fit'];
+const allowedExtensions = [".fit"];
 
 function validateFileType(filePath) {
-    const ext = path.extname(filePath).toLowerCase();
-    return allowedExtensions.includes(ext);
+ const ext = path.extname(filePath).toLowerCase();
+ return allowedExtensions.includes(ext);
 }
 ```
 
@@ -149,12 +145,12 @@ function validateFileType(filePath) {
 ```javascript
 // Restrict content sources
 const csp = [
-    "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https://*.tile.openstreetmap.org",
-    "connect-src 'self' https://*.tile.openstreetmap.org"
-].join('; ');
+ "default-src 'self'",
+ "script-src 'self'",
+ "style-src 'self' 'unsafe-inline'",
+ "img-src 'self' data: https://*.tile.openstreetmap.org",
+ "connect-src 'self' https://*.tile.openstreetmap.org",
+].join("; ");
 ```
 
 ### What This Prevents
@@ -169,16 +165,16 @@ const csp = [
 
 ```javascript
 // main.js
-mainWindow.webContents.on('will-navigate', (event, url) => {
-    // Only allow same-origin navigation
-    if (!url.startsWith('file://')) {
-        event.preventDefault();
-    }
+mainWindow.webContents.on("will-navigate", (event, url) => {
+ // Only allow same-origin navigation
+ if (!url.startsWith("file://")) {
+  event.preventDefault();
+ }
 });
 
 mainWindow.webContents.setWindowOpenHandler(() => {
-    // Prevent new windows
-    return { action: 'deny' };
+ // Prevent new windows
+ return { action: "deny" };
 });
 ```
 
@@ -195,11 +191,11 @@ FitFileViewer processes all data locally:
 
 ### What's Stored
 
-| Data | Location | Purpose |
-|------|----------|---------|
-| Recent files | User data dir | Quick access |
-| Preferences | User data dir | Settings |
-| Theme | Local storage | UI preference |
+| Data         | Location      | Purpose       |
+| ------------ | ------------- | ------------- |
+| Recent files | User data dir | Quick access  |
+| Preferences  | User data dir | Settings      |
+| Theme        | Local storage | UI preference |
 
 ### What's NOT Stored
 

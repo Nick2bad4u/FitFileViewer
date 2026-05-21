@@ -31,7 +31,6 @@ const chartGlobal = globalThis as PerformanceAnalysisRuntimeGlobal;
 
 /**
  * Render performance analysis charts.
- *
  */
 export function renderPerformanceAnalysisCharts(
     container: HTMLElement,
@@ -44,8 +43,7 @@ export function renderPerformanceAnalysisCharts(
             typeof process !== "undefined" &&
             process.env?.["NODE_ENV"] === "development";
         const isDebugLoggingEnabled =
-            isDevEnvironment &&
-            Boolean(chartGlobal.__FFV_debugCharts);
+            isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderPerformanceAnalysisCharts called");
         }

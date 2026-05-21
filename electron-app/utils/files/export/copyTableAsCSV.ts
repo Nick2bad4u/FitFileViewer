@@ -44,12 +44,9 @@ type CopyCsvGlobal = typeof globalThis & {
  * stringifying them. It attempts to use the modern Clipboard API and falls back
  * to the legacy method if necessary.
  *
- * @example
- *     // Copy a DataTable to clipboard as CSV
- *     copyTableAsCSV(myDataTable);
+ * @example // Copy a DataTable to clipboard as CSV copyTableAsCSV(myDataTable);
  *
  * @throws When the input table cannot be normalized or clipboard copying fails.
- *
  */
 export async function copyTableAsCSV(table: unknown): Promise<void> {
     let rows: TableRow[] | null = null;

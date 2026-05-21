@@ -35,9 +35,7 @@ describe(buildGpxFromRecords, () => {
         expect(output).toContain('creator="Fit &amp; Viewer"');
         expect(output).toContain("<name>A &amp; B &lt;Ride&gt;</name>");
         expect(output).toContain("<desc>Morning &lt;test&gt;</desc>");
-        expect(output).toContain(
-            '<trkpt lat="45.0000000" lon="-90.0000000">'
-        );
+        expect(output).toContain('<trkpt lat="45.0000000" lon="-90.0000000">');
         expect(output).toContain("<ele>123.46</ele>");
         expect(output).toContain("<gpxtpx:hr>143</gpxtpx:hr>");
         expect(output).toContain("<gpxtpx:power>251</gpxtpx:power>");

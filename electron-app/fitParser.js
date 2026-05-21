@@ -23,23 +23,33 @@ const { Buffer } = require("node:buffer");
 
 /**
  * @typedef {import("./shared/fit").DecoderOptions} DecoderOptions
+ *
  * @typedef {import("./shared/fit").DecoderOptionsValidationResult} DecoderOptionsValidationResult
+ *
  * @typedef {import("./shared/fit").FitDecodeErrorPayload} FitDecodeErrorPayload
+ *
  * @typedef {import("./shared/fit").FitDecodeMetadata} FitDecodeMetadata
+ *
  * @typedef {import("./shared/fit").FitDecodeResult} FitDecodeResult
+ *
  * @typedef {import("./shared/fit").FitFieldValue} FitFieldValue
+ *
  * @typedef {import("./shared/fit").FitFileLoadedPayload} FitFileLoadedPayload
+ *
  * @typedef {import("./shared/fit").FitMessageRow} FitMessageRow
+ *
  * @typedef {import("./shared/fit").FitMessages} FitMessages
+ *
  * @typedef {import("./shared/fitSdk").FitSdkModule} FitSdkModule
+ *
  * @typedef {import("./shared/fitSdk").FitSdkReadResult} FitSdkReadResult
  */
 
 /**
  * @typedef {Object} SettingsStateManager
  *
- * @property {(category: string) => Partial<DecoderOptions> | null | undefined} getCategory Retrieve a settings
- *   category
+ * @property {(category: string) => Partial<DecoderOptions> | null | undefined} getCategory
+ *   Retrieve a settings category
  * @property {(
  *     category: string,
  *     value: Partial<DecoderOptions>,
@@ -55,8 +65,8 @@ const { Buffer } = require("node:buffer");
  *   progress percentage
  * @property {(error: Error) => void} handleFileLoadingError Record a loading
  *   error
- * @property {(payload: FitFileLoadedPayload) => void} handleFileLoaded
- *   Record successful load
+ * @property {(payload: FitFileLoadedPayload) => void} handleFileLoaded Record
+ *   successful load
  * @property {(messages: FitMessages) => number} getRecordCount Derive record
  *   count for metadata
  */
@@ -119,8 +129,9 @@ class FitDecodeError extends Error {
      * Create a FIT decode error
      *
      * @param {string} message - Error message
- * @param {FitFieldValue} details - Additional error details
- * @param {FitDecodeMetadata} [metadata] - Optional metadata for state management
+     * @param {FitFieldValue} details - Additional error details
+     * @param {FitDecodeMetadata} [metadata] - Optional metadata for state
+     *   management
      */
     constructor(message, details, metadata = {}) {
         super(message);
@@ -136,7 +147,8 @@ class FitDecodeError extends Error {
     /**
      * Convert error to JSON for state management
      *
- * @returns {FitDecodeErrorPayload & { name: string; stack?: string }} Serializable error object
+     * @returns {FitDecodeErrorPayload & { name: string; stack?: string }}
+     *   Serializable error object
      */
     toJSON() {
         return {
@@ -168,9 +180,7 @@ function getConf() {
 function describeError(error) {
     if (error instanceof Error) {
         const message =
-            error.message.length > 0
-                ? error.message
-                : "Failed to decode file";
+            error.message.length > 0 ? error.message : "Failed to decode file";
         return {
             message,
             stack: typeof error.stack === "string" ? error.stack : null,
@@ -442,7 +452,8 @@ function applyUnknownMessageLabels(messages) {
  *
  * @param {Buffer | Uint8Array} fileBuffer - The FIT file buffer to decode.
  * @param {Partial<DecoderOptions>} [options] - Optional decoder.read options.
- * @param {FitSdkModule | null} [fitsdk] - Optional fitsdk dependency for testing/mocking.
+ * @param {FitSdkModule | null} [fitsdk] - Optional fitsdk dependency for
+ *   testing/mocking.
  *
  * @returns {Promise<FitDecodeResult>} Decoded messages or error object.
  */

@@ -2,7 +2,12 @@
  * Application State Actions and Transitions Higher-level actions that
  * encapsulate common state changes
  */
-import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 const fitFileStateManagerLike = fitFileStateManager;
@@ -14,13 +19,17 @@ export const AppActions = {
      * Clear all data and reset to initial state
      */
     clearData() {
-        if (fitFileStateManagerLike &&
-            typeof fitFileStateManagerLike.clearFileState === "function") {
+        if (
+            fitFileStateManagerLike &&
+            typeof fitFileStateManagerLike.clearFileState === "function"
+        ) {
             try {
                 fitFileStateManagerLike.clearFileState();
-            }
-            catch (error) {
-                console.warn("[AppActions] Failed to clear fit file domain state", error);
+            } catch (error) {
+                console.warn(
+                    "[AppActions] Failed to clear fit file domain state",
+                    error
+                );
             }
         }
         setState("globalData", null, { source: "AppActions.clearData" });
@@ -42,27 +51,33 @@ export const AppActions = {
      * @param filePath - Path to the loaded file.
      */
     async loadFile(fileData, filePath) {
-        const manager = fitFileStateManagerLike &&
+        const manager =
+            fitFileStateManagerLike &&
             typeof fitFileStateManagerLike.handleFileLoaded === "function"
-            ? fitFileStateManagerLike
-            : null;
+                ? fitFileStateManagerLike
+                : null;
         if (manager) {
             const handleFileLoaded = manager.handleFileLoaded;
             if (typeof handleFileLoaded !== "function") {
                 return;
             }
-            const normalizedPath = typeof filePath === "string" && filePath.length > 0
-                ? filePath
-                : null;
-            if (normalizedPath &&
+            const normalizedPath =
+                typeof filePath === "string" && filePath.length > 0
+                    ? filePath
+                    : null;
+            if (
+                normalizedPath &&
                 typeof manager.startFileLoading === "function" &&
                 typeof manager.isLoading === "function" &&
-                !manager.isLoading()) {
+                !manager.isLoading()
+            ) {
                 try {
                     manager.startFileLoading(normalizedPath);
-                }
-                catch (error) {
-                    console.warn("[AppActions] Failed to start fit file loading state", error);
+                } catch (error) {
+                    console.warn(
+                        "[AppActions] Failed to start fit file loading state",
+                        error
+                    );
                 }
             }
             try {
@@ -70,9 +85,11 @@ export const AppActions = {
                     filePath: normalizedPath,
                     source: "AppActions.loadFile",
                 });
-            }
-            catch (error) {
-                console.error("[AppActions] Error delegating file load to fitFileStateManager", error);
+            } catch (error) {
+                console.error(
+                    "[AppActions] Error delegating file load to fitFileStateManager",
+                    error
+                );
                 showNotification("Failed to load file", "error");
                 setState("isLoading", false, { source: "AppActions.loadFile" });
                 throw error;
@@ -102,13 +119,11 @@ export const AppActions = {
             });
             showNotification("File loaded successfully", "success");
             console.log("[AppActions] File loaded:", filePath);
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[AppActions] Error loading file:", error);
             showNotification("Failed to load file", "error");
             throw error;
-        }
-        finally {
+        } finally {
             setState("isLoading", false, { source: "AppActions.loadFile" });
         }
     },
@@ -120,16 +135,26 @@ export const AppActions = {
      */
     renderChart(chartData, options = {}) {
         const startTime = performance.now();
-        updateState("charts", {
-            chartData,
-            chartOptions: options,
-            isRendered: true,
-        }, { source: "AppActions.renderChart" });
+        updateState(
+            "charts",
+            {
+                chartData,
+                chartOptions: options,
+                isRendered: true,
+            },
+            { source: "AppActions.renderChart" }
+        );
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            chart: renderTime,
-        }, { source: "AppActions.renderChart" });
-        console.log(`[AppActions] Chart rendered in ${renderTime.toFixed(2)}ms`);
+        updateState(
+            "performance.renderTimes",
+            {
+                chart: renderTime,
+            },
+            { source: "AppActions.renderChart" }
+        );
+        console.log(
+            `[AppActions] Chart rendered in ${renderTime.toFixed(2)}ms`
+        );
     },
     /**
      * Update map rendering state and center
@@ -139,15 +164,23 @@ export const AppActions = {
      */
     renderMap(center, zoom = 13) {
         const startTime = performance.now();
-        updateState("map", {
-            center,
-            isRendered: true,
-            zoom,
-        }, { source: "AppActions.renderMap" });
+        updateState(
+            "map",
+            {
+                center,
+                isRendered: true,
+                zoom,
+            },
+            { source: "AppActions.renderMap" }
+        );
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            map: renderTime,
-        }, { source: "AppActions.renderMap" });
+        updateState(
+            "performance.renderTimes",
+            {
+                map: renderTime,
+            },
+            { source: "AppActions.renderMap" }
+        );
         console.log(`[AppActions] Map rendered in ${renderTime.toFixed(2)}ms`);
     },
     /**
@@ -157,15 +190,25 @@ export const AppActions = {
      */
     renderTable(tableConfig = {}) {
         const startTime = performance.now();
-        updateState("tables", {
-            isRendered: true,
-            ...tableConfig,
-        }, { source: "AppActions.renderTable" });
+        updateState(
+            "tables",
+            {
+                isRendered: true,
+                ...tableConfig,
+            },
+            { source: "AppActions.renderTable" }
+        );
         const renderTime = performance.now() - startTime;
-        updateState("performance.renderTimes", {
-            table: renderTime,
-        }, { source: "AppActions.renderTable" });
-        console.log(`[AppActions] Table rendered in ${renderTime.toFixed(2)}ms`);
+        updateState(
+            "performance.renderTimes",
+            {
+                table: renderTime,
+            },
+            { source: "AppActions.renderTable" }
+        );
+        console.log(
+            `[AppActions] Table rendered in ${renderTime.toFixed(2)}ms`
+        );
     },
     /**
      * Select a lap on the map
@@ -245,7 +288,9 @@ export const AppActions = {
         setState("charts.controlsVisible", !currentState, {
             source: "AppActions.toggleChartControls",
         });
-        console.log(`[AppActions] Chart controls ${currentState ? "hidden" : "shown"}`);
+        console.log(
+            `[AppActions] Chart controls ${currentState ? "hidden" : "shown"}`
+        );
     },
     /**
      * Toggle map measurement mode
@@ -255,7 +300,9 @@ export const AppActions = {
         setState("map.measurementMode", !currentState, {
             source: "AppActions.toggleMeasurementMode",
         });
-        console.log(`[AppActions] Measurement mode ${currentState ? "disabled" : "enabled"}`);
+        console.log(
+            `[AppActions] Measurement mode ${currentState ? "disabled" : "enabled"}`
+        );
     },
     /**
      * Update window state
@@ -384,18 +431,23 @@ export class StateMiddleware {
      * @param value - New value.
      * @param oldValue - Old value.
      * @param options - Options.
+     *
      * @returns Potentially modified value.
      */
     apply(path, value, oldValue, options) {
         let modifiedValue = value;
         for (const middleware of this.middlewares) {
             try {
-                const result = middleware(path, modifiedValue, oldValue, options);
+                const result = middleware(
+                    path,
+                    modifiedValue,
+                    oldValue,
+                    options
+                );
                 if (result !== undefined) {
                     modifiedValue = result;
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[StateMiddleware] Error in middleware:", error);
             }
         }
@@ -429,8 +481,10 @@ stateMiddleware.use((path, value, oldValue) => {
  * dependencies.
  *
  * @typeParam T - Computed value type.
+ *
  * @param computeFn - Function to compute the value.
  * @param dependencies - Array of state paths to watch.
+ *
  * @returns Function that returns the computed value and exposes cleanup.
  */
 export function useComputed(computeFn, dependencies = []) {
@@ -438,18 +492,20 @@ export function useComputed(computeFn, dependencies = []) {
     let isValid = false;
     // Subscribe to dependency changes
     const getComputedValue = () => {
-        if (!isValid) {
-            cachedValue = computeFn();
-            isValid = true;
-        }
-        return cachedValue;
-    }, unsubscribers = dependencies.map((dep) => subscribe(dep, () => {
-        isValid = false;
-    }));
+            if (!isValid) {
+                cachedValue = computeFn();
+                isValid = true;
+            }
+            return cachedValue;
+        },
+        unsubscribers = dependencies.map((dep) =>
+            subscribe(dep, () => {
+                isValid = false;
+            })
+        );
     // Cleanup function
     getComputedValue.cleanup = () => {
-        for (const unsub of unsubscribers)
-            unsub();
+        for (const unsub of unsubscribers) unsub();
     };
     return getComputedValue;
 }
@@ -457,13 +513,16 @@ export function useComputed(computeFn, dependencies = []) {
  * Hook-like accessor for state values with a setter.
  *
  * @typeParam T - State value type.
+ *
  * @param path - State path to watch.
  * @param defaultValue - Default value if state is undefined.
+ *
  * @returns Value and setter tuple.
  */
 export function useState(path, defaultValue) {
-    const currentValue = getState(path) ?? defaultValue, setter = (newValue) => {
-        setState(path, newValue, { source: "useState" });
-    };
+    const currentValue = getState(path) ?? defaultValue,
+        setter = (newValue) => {
+            setState(path, newValue, { source: "useState" });
+        };
     return [currentValue, setter];
 }

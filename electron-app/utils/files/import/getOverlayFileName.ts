@@ -18,6 +18,7 @@ const ERROR_MESSAGES = {
  * data is unavailable.
  *
  * @example
+ *
  * ```ts
  * const filename = getOverlayFileName(0);
  * ```

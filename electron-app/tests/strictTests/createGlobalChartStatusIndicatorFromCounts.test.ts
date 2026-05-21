@@ -105,9 +105,8 @@ describe("createGlobalChartStatusIndicatorFromCounts strict behavior", () => {
                 .spyOn(console, "warn")
                 .mockReturnValue(undefined);
 
-            const indicator = createGlobalChartStatusIndicatorFromCounts(
-                createCounts()
-            );
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(createCounts());
 
             expect(indicator).toBeNull();
             expect(warnSpy).toHaveBeenCalledWith(

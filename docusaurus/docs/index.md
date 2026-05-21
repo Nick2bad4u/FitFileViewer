@@ -6,11 +6,11 @@ sidebar_position: 1
 slug: /
 description: Complete documentation for FitFileViewer - a cross-platform desktop application for viewing and analyzing .fit files from fitness devices.
 keywords:
-  - fitfileviewer
-  - fit file
-  - garmin
-  - fitness
-  - documentation
+ - fitfileviewer
+ - fit file
+ - garmin
+ - fitness
+ - documentation
 ---
 
 # FitFileViewer Documentation
@@ -38,14 +38,14 @@ FitFileViewer is a free, open-source application that lets you:
 
 ## 📚 Documentation Overview
 
-| Section | Description |
-|---------|-------------|
-| [🚀 Getting Started](/docs/category/getting-started) | Installation, system requirements, and quick start guide |
-| [👤 User Guide](/docs/category/user-guide) | How to use the application effectively |
-| [📊 Data Visualization](/docs/category/data-visualization) | Maps, charts, tables, and summary views |
-| [🏗️ Architecture](/docs/category/architecture) | Technical architecture and design patterns |
-| [🛠️ Development](/docs/category/development) | Development setup and contribution guidelines |
-| [🔧 API Reference](/docs/category/api-reference) | API documentation for developers |
+| Section                                                    | Description                                              |
+| ---------------------------------------------------------- | -------------------------------------------------------- |
+| [🚀 Getting Started](/docs/category/getting-started)       | Installation, system requirements, and quick start guide |
+| [👤 User Guide](/docs/category/user-guide)                 | How to use the application effectively                   |
+| [📊 Data Visualization](/docs/category/data-visualization) | Maps, charts, tables, and summary views                  |
+| [🏗️ Architecture](/docs/category/architecture)             | Technical architecture and design patterns               |
+| [🛠️ Development](/docs/category/development)               | Development setup and contribution guidelines            |
+| [🔧 API Reference](/docs/category/api-reference)           | API documentation for developers                         |
 
 ## 🚀 Quick Start
 
@@ -111,11 +111,11 @@ View your data with interactive Chart.js and Vega-Lite charts:
 
 ### Cross-Platform Support 💻
 
-| Platform | Supported Formats |
-|----------|------------------|
-| Windows | `.exe`, `.msi`, `.portable` |
-| macOS | `.dmg`, `.pkg`, `.zip` |
-| Linux | `.AppImage`, `.deb`, `.rpm`, `.snap` |
+| Platform | Supported Formats                    |
+| -------- | ------------------------------------ |
+| Windows  | `.exe`, `.msi`, `.portable`          |
+| macOS    | `.dmg`, `.pkg`, `.zip`               |
+| Linux    | `.AppImage`, `.deb`, `.rpm`, `.snap` |
 
 ## 🔧 Technical Details
 

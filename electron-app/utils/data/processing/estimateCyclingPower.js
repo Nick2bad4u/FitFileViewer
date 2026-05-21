@@ -15,7 +15,11 @@ const GRAVITY = 9.806_65;
  *
  * @returns Estimated power values and whether they were applied.
  */
-export function applyEstimatedPowerToRecords({ recordMesgs, sessionMesgs, settings, }) {
+export function applyEstimatedPowerToRecords({
+    recordMesgs,
+    sessionMesgs,
+    settings,
+}) {
     const s = normalizePowerEstimationSettings(settings);
     if (!s.enabled) {
         return { applied: false, estimatedPowerW: [] };
@@ -44,13 +48,16 @@ export function applyEstimatedPowerToRecords({ recordMesgs, sessionMesgs, settin
         const rawTime = ts
             ? ts.getTime() / 1000
             : toFiniteNumberOrNull(record["timestamp"]);
-        const timeSec = typeof rawTime === "number" && Number.isFinite(rawTime)
-            ? rawTime
-            : null;
-        const speed = toFiniteNumberOrNull(record["enhanced_speed"]) ??
+        const timeSec =
+            typeof rawTime === "number" && Number.isFinite(rawTime)
+                ? rawTime
+                : null;
+        const speed =
+            toFiniteNumberOrNull(record["enhanced_speed"]) ??
             toFiniteNumberOrNull(record["speed"]) ??
             0;
-        const altitude = toFiniteNumberOrNull(record["enhanced_altitude"]) ??
+        const altitude =
+            toFiniteNumberOrNull(record["enhanced_altitude"]) ??
             toFiniteNumberOrNull(record["altitude"]) ??
             0;
         const cumulative = resolveCumulativeDistance({
@@ -62,8 +69,12 @@ export function applyEstimatedPowerToRecords({ recordMesgs, sessionMesgs, settin
             speed,
             timeSec,
         });
-        const lat = toDegreesOrNull(record["position_lat"] ?? record["positionLat"]);
-        const lon = toDegreesOrNull(record["position_long"] ?? record["positionLong"]);
+        const lat = toDegreesOrNull(
+            record["position_lat"] ?? record["positionLat"]
+        );
+        const lon = toDegreesOrNull(
+            record["position_long"] ?? record["positionLong"]
+        );
         if (lat !== null && lon !== null) {
             lastLat = lat;
             lastLon = lon;
@@ -122,13 +133,25 @@ function getSessionSport(sessionMesgs) {
     const sport = session0?.["sport"];
     return typeof sport === "string" ? sport.toLowerCase() : "";
 }
-function resolveCumulativeDistance({ lastDist, lastLat, lastLon, lastTimeSec, record, speed, timeSec, }) {
+function resolveCumulativeDistance({
+    lastDist,
+    lastLat,
+    lastLon,
+    lastTimeSec,
+    record,
+    speed,
+    timeSec,
+}) {
     const distance = toFiniteNumberOrNull(record["distance"]);
     if (distance !== null && distance >= 0) {
         return Math.max(lastDist, distance);
     }
-    const lat = toDegreesOrNull(record["position_lat"] ?? record["positionLat"]);
-    const lon = toDegreesOrNull(record["position_long"] ?? record["positionLong"]);
+    const lat = toDegreesOrNull(
+        record["position_lat"] ?? record["positionLat"]
+    );
+    const lon = toDegreesOrNull(
+        record["position_long"] ?? record["positionLong"]
+    );
     if (lat !== null && lon !== null && lastLat !== null && lastLon !== null) {
         return lastDist + haversineDistanceM(lastLat, lastLon, lat, lon);
     }
@@ -167,45 +190,54 @@ function calculateAcceleration(tSec, vMps) {
 }
 function airDensityFromAltitude(altitudeM) {
     const rho0 = 1.225;
-    const rho = rho0 * Math.exp(-Math.max(-500, Math.min(9000, altitudeM)) / 8500);
+    const rho =
+        rho0 * Math.exp(-Math.max(-500, Math.min(9000, altitudeM)) / 8500);
     return Math.max(0.5, Math.min(1.3, rho));
 }
 function haversineDistanceM(lat1, lon1, lat2, lon2) {
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) ** 2 +
+    const a =
+        Math.sin(dLat / 2) ** 2 +
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return EARTH_RADIUS_M * c;
 }
 function normalizePowerEstimationSettings(settings) {
     return {
-        bikeWeightKg: Number.isFinite(settings.bikeWeightKg) && settings.bikeWeightKg > 0
-            ? settings.bikeWeightKg
-            : 10,
-        cda: Number.isFinite(settings.cda) && settings.cda > 0
-            ? settings.cda
-            : 0.32,
-        crr: Number.isFinite(settings.crr) && settings.crr > 0
-            ? settings.crr
-            : 0.004,
-        drivetrainEfficiency: Number.isFinite(settings.drivetrainEfficiency) &&
+        bikeWeightKg:
+            Number.isFinite(settings.bikeWeightKg) && settings.bikeWeightKg > 0
+                ? settings.bikeWeightKg
+                : 10,
+        cda:
+            Number.isFinite(settings.cda) && settings.cda > 0
+                ? settings.cda
+                : 0.32,
+        crr:
+            Number.isFinite(settings.crr) && settings.crr > 0
+                ? settings.crr
+                : 0.004,
+        drivetrainEfficiency:
+            Number.isFinite(settings.drivetrainEfficiency) &&
             settings.drivetrainEfficiency > 0 &&
             settings.drivetrainEfficiency <= 1
-            ? settings.drivetrainEfficiency
-            : 0.97,
+                ? settings.drivetrainEfficiency
+                : 0.97,
         enabled: settings.enabled === true,
-        gradeWindowMeters: Number.isFinite(settings.gradeWindowMeters) &&
+        gradeWindowMeters:
+            Number.isFinite(settings.gradeWindowMeters) &&
             settings.gradeWindowMeters >= 5
-            ? settings.gradeWindowMeters
-            : 35,
-        maxPowerW: Number.isFinite(settings.maxPowerW) && settings.maxPowerW > 100
-            ? settings.maxPowerW
-            : 2000,
-        riderWeightKg: Number.isFinite(settings.riderWeightKg) &&
+                ? settings.gradeWindowMeters
+                : 35,
+        maxPowerW:
+            Number.isFinite(settings.maxPowerW) && settings.maxPowerW > 100
+                ? settings.maxPowerW
+                : 2000,
+        riderWeightKg:
+            Number.isFinite(settings.riderWeightKg) &&
             settings.riderWeightKg > 20
-            ? settings.riderWeightKg
-            : 75,
+                ? settings.riderWeightKg
+                : 75,
         windSpeedMps: Number.isFinite(settings.windSpeedMps)
             ? settings.windSpeedMps
             : 0,

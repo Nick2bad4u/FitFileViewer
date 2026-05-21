@@ -74,24 +74,27 @@ describe(initQuickColorSwitcher, () => {
             initQuickColorSwitcher();
 
             const switcher = getRequiredElement<HTMLElement>(SWITCHER_SELECTOR);
-            const activeOption =
-                switcher.querySelector<HTMLButtonElement>(".color-option.active");
+            const activeOption = switcher.querySelector<HTMLButtonElement>(
+                ".color-option.active"
+            );
 
             expect(switcher.className).toBe("quick-color-switcher");
-            expect(document.querySelectorAll(SWITCHER_SELECTOR)).toHaveLength(1);
+            expect(document.querySelectorAll(SWITCHER_SELECTOR)).toHaveLength(
+                1
+            );
             expect(
                 document.querySelectorAll("#quick-color-switcher-styles")
             ).toHaveLength(1);
-            expect(switcher.querySelectorAll(COLOR_OPTION_SELECTOR)).toHaveLength(
-                8
-            );
+            expect(
+                switcher.querySelectorAll(COLOR_OPTION_SELECTOR)
+            ).toHaveLength(8);
             expect(activeOption?.dataset["color"]).toBe("#10b981");
 
             initQuickColorSwitcher();
 
-            expect(
-                document.getElementById("quick-color-switcher")
-            ).toBe(switcher);
+            expect(document.getElementById("quick-color-switcher")).toBe(
+                switcher
+            );
             expect(
                 document.getElementById("quick-color-switcher-styles")
                     ?.textContent
@@ -110,7 +113,8 @@ describe(initQuickColorSwitcher, () => {
             initQuickColorSwitcher();
 
             const dropdown = getRequiredElement<HTMLElement>(DROPDOWN_SELECTOR);
-            const toggle = getRequiredElement<HTMLButtonElement>(TOGGLE_SELECTOR);
+            const toggle =
+                getRequiredElement<HTMLButtonElement>(TOGGLE_SELECTOR);
 
             click(toggle);
 
@@ -176,8 +180,9 @@ describe(initQuickColorSwitcher, () => {
             initQuickColorSwitcher();
 
             const dropdown = getRequiredElement<HTMLElement>(DROPDOWN_SELECTOR);
-            const settingsButton =
-                getRequiredElement<HTMLButtonElement>(SETTINGS_BUTTON_SELECTOR);
+            const settingsButton = getRequiredElement<HTMLButtonElement>(
+                SETTINGS_BUTTON_SELECTOR
+            );
             dropdown.classList.add("open");
 
             click(settingsButton);
@@ -212,9 +217,9 @@ describe(updateSwitcherActiveColor, () => {
 
             expect([...redOption.classList]).toContain("active");
             expect([...greenOption.classList]).not.toContain("active");
-            expect(document.querySelectorAll(COLOR_OPTION_SELECTOR)).toHaveLength(
-                8
-            );
+            expect(
+                document.querySelectorAll(COLOR_OPTION_SELECTOR)
+            ).toHaveLength(8);
         } finally {
             cleanupFixture();
         }

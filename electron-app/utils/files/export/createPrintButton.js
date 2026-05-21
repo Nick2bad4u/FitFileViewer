@@ -1,4 +1,4 @@
-import { getThemeColors, } from "../../charts/theming/getThemeColors.js";
+import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 function getThemeColorToken(themeColors, key, fallback) {
@@ -23,7 +23,11 @@ export function createPrintButton() {
         svg.setAttribute("aria-hidden", "true");
         svg.setAttribute("focusable", "false");
         const primary = getThemeColorToken(themeColors, "primary", "#3b82f6");
-        const primaryAlpha = getThemeColorToken(themeColors, "primaryAlpha", "rgba(59, 130, 246, 0.2)");
+        const primaryAlpha = getThemeColorToken(
+            themeColors,
+            "primaryAlpha",
+            "rgba(59, 130, 246, 0.2)"
+        );
         const surface = getThemeColorToken(themeColors, "surface", "#ffffff");
         const rect1 = document.createElementNS(SVG_NAMESPACE, "rect");
         rect1.setAttribute("x", "3");
@@ -62,19 +66,27 @@ export function createPrintButton() {
         printBtn.title = "Print or export the current map view";
         printBtn.setAttribute("aria-label", "Print or export map");
         const printButtonController = new AbortController();
-        printBtn.addEventListener("click", () => {
-            try {
-                globalThis.print();
-            }
-            catch (error) {
-                console.error("[MapActions] Print failed:", error);
-                showNotification("Print failed. Please try again.", "error");
-            }
-        }, { signal: printButtonController.signal });
+        printBtn.addEventListener(
+            "click",
+            () => {
+                try {
+                    globalThis.print();
+                } catch (error) {
+                    console.error("[MapActions] Print failed:", error);
+                    showNotification(
+                        "Print failed. Please try again.",
+                        "error"
+                    );
+                }
+            },
+            { signal: printButtonController.signal }
+        );
         return printBtn;
-    }
-    catch (error) {
-        console.error("[MapActions][createPrintButton] Failed to create print button:", error);
+    } catch (error) {
+        console.error(
+            "[MapActions][createPrintButton] Failed to create print button:",
+            error
+        );
         throw error;
     }
 }

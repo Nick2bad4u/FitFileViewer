@@ -12,11 +12,10 @@ type SupplementalRenderDependencies = Parameters<
 >[0];
 type SupplementalRenderInput = Parameters<typeof renderSupplementalCharts>[1];
 
-interface RenderChartDataChartsDependencies
-    extends Omit<
-        PrimaryRenderDependencies,
-        "getFieldVisibility" | "chartContainer"
-    > {
+interface RenderChartDataChartsDependencies extends Omit<
+    PrimaryRenderDependencies,
+    "getFieldVisibility" | "chartContainer"
+> {
     readonly chartContainer: HTMLElement;
     readonly getFieldVisibility: (field: string) => unknown;
     readonly renderers: SupplementalRenderDependencies["renderers"];
@@ -47,8 +46,10 @@ interface RenderChartDataChartsInput {
 /**
  * Renders primary metric charts followed by supplemental chart families.
  *
- * @param dependencies - Runtime chart construction, state, visibility, and renderer hooks.
+ * @param dependencies - Runtime chart construction, state, visibility, and
+ *   renderer hooks.
  * @param input - Data, settings, labels, and theme-aware render options.
+ *
  * @returns Render-loop status and number of visible primary field charts.
  */
 export function renderChartDataCharts(

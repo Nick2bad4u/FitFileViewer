@@ -54,7 +54,11 @@ describe("chartNotificationState", () => {
 
         expect(previousChartState).toStrictEqual({
             chartCount: 4,
-            fieldsRendered: [true, true, true],
+            fieldsRendered: [
+                true,
+                true,
+                true,
+            ],
             lastRenderTimestamp: 9876,
         });
         expect(updateStateMock).toHaveBeenCalledWith(

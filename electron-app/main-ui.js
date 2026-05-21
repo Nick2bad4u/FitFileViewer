@@ -61,7 +61,10 @@ import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.
  *     chartTabIntegration?: { destroy?: () => void };
  *     devCleanup?: () => void;
  *     dragDropHandler?: unknown;
- *     injectMenu?: (theme?: string | null, fitFilePath?: string | null) => void;
+ *     injectMenu?: (
+ *         theme?: string | null,
+ *         fitFilePath?: string | null
+ *     ) => void;
  * }} MainUiGlobal
  */
 
@@ -272,10 +275,15 @@ if (
     globalThis.electronAPI.onOpenSummaryColumnSelector === undefined
 ) {
     globalThis.electronAPI.onOpenSummaryColumnSelector = (callback) => {
-        const electronAPI = /** @type {{
-            _summaryColListenerAdded?: boolean;
-            onIpc: (channel: string, callback: (...args: unknown[]) => void) => void;
-        }} */ (globalThis.electronAPI);
+        const electronAPI = /**
+         * @type {{
+         *     _summaryColListenerAdded?: boolean;
+         *     onIpc: (
+         *         channel: string,
+         *         callback: (...args: unknown[]) => void
+         *     ) => void;
+         * }}
+         */ (globalThis.electronAPI);
         if (electronAPI["_summaryColListenerAdded"] !== true) {
             electronAPI["_summaryColListenerAdded"] = true;
             electronAPI.onIpc("open-summary-column-selector", callback);

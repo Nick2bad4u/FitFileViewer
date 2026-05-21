@@ -45,12 +45,14 @@ type SummaryGlobal = typeof globalThis & {
     activeFitFileName?: string;
     aq?: ArqueroApi;
     globalData?: FitSummaryData & SummaryRecord;
-    window?: (Window &
-        typeof globalThis & {
-            activeFitFileName?: string;
-            aq?: ArqueroApi;
-            globalData?: FitSummaryData & SummaryRecord;
-        }) | null;
+    window?:
+        | (Window &
+              typeof globalThis & {
+                  activeFitFileName?: string;
+                  aq?: ArqueroApi;
+                  globalData?: FitSummaryData & SummaryRecord;
+              })
+        | null;
 };
 
 function isDateInput(value: unknown): value is Date | number | string {
@@ -81,7 +83,10 @@ export function isNumberedSummaryColumnKey(key: string): boolean {
     return /^\d+$/u.test(key);
 }
 
-/** Orders named columns before numbered-only columns while keeping relative order stable. */
+/**
+ * Orders named columns before numbered-only columns while keeping relative
+ * order stable.
+ */
 export function orderSummaryColumnsNamedFirst(
     keys: readonly string[]
 ): string[] {
@@ -306,9 +311,7 @@ export function renderTable({
                 if (filterValue === "All" || filterValue === "Summary") {
                     const summaryRows = getSummaryRows(data),
                         summary =
-                            summaryRows && summaryRows[0]
-                                ? summaryRows[0]
-                                : {};
+                            summaryRows && summaryRows[0] ? summaryRows[0] : {};
                     rows.push(
                         sortedVisible
                             .map((k) =>
@@ -351,14 +354,14 @@ export function renderTable({
                 }
                 const csvText = rows.join("\n");
                 // Prefer the Electron clipboard bridge to avoid permission denials in file:// contexts.
-                Promise.resolve(
-                    exportUtils.copyTextToClipboard(csvText)
-                ).catch((error) => {
-                    console.warn(
-                        "[renderSummary] Failed to copy summary CSV:",
-                        error
-                    );
-                });
+                Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch(
+                    (error) => {
+                        console.warn(
+                            "[renderSummary] Failed to copy summary CSV:",
+                            error
+                        );
+                    }
+                );
             } catch {
                 /* Ignore copy errors */
             }
@@ -506,7 +509,10 @@ function createLapRowElement(
     return lapRow;
 }
 
-/** Creates a spacer row used to represent off-screen rows in a virtualized tbody. */
+/**
+ * Creates a spacer row used to represent off-screen rows in a virtualized
+ * tbody.
+ */
 function createSpacerRow(colSpan: number): {
     cell: HTMLTableCellElement;
     row: HTMLTableRowElement;
@@ -653,7 +659,10 @@ export function saveColPrefs(
     }
 }
 
-/** Computes the single summary row from session messages or derived record stats. */
+/**
+ * Computes the single summary row from session messages or derived record
+ * stats.
+ */
 function getSummaryRows(data: FitSummaryData): SummaryRecord[] {
     if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
         const raw = { ...data.sessionMesgs[0] };

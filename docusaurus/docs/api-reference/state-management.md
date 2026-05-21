@@ -13,6 +13,7 @@ Reference for the application state management system.
 ## Overview
 
 FitFileViewer uses a centralized state management system for:
+
 - Current file data
 - User preferences
 - Theme settings
@@ -23,26 +24,29 @@ FitFileViewer uses a centralized state management system for:
 ### Basic Usage
 
 ```javascript
-import { stateManager } from './utils/state/stateManager.js';
+import { stateManager } from "./utils/state/stateManager.js";
 
 // Store a value
-stateManager.set('key', value);
+stateManager.set("key", value);
 
 // Retrieve a value
-const value = stateManager.get('key');
+const value = stateManager.get("key");
 
 // Remove a value
-stateManager.remove('key');
+stateManager.remove("key");
 ```
 
 ### Subscription Pattern
 
 ```javascript
 // Subscribe to changes
-const unsubscribe = stateManager.subscribe('currentFile', (newValue, oldValue) => {
-    console.log('File changed:', { newValue, oldValue });
-    updateVisualization(newValue);
-});
+const unsubscribe = stateManager.subscribe(
+ "currentFile",
+ (newValue, oldValue) => {
+  console.log("File changed:", { newValue, oldValue });
+  updateVisualization(newValue);
+ }
+);
 
 // Later: unsubscribe
 unsubscribe();
@@ -50,32 +54,32 @@ unsubscribe();
 
 ### State Keys
 
-| Key | Type | Description |
-|-----|------|-------------|
+| Key           | Type   | Description                |
+| ------------- | ------ | -------------------------- |
 | `currentFile` | object | Currently loaded file data |
-| `theme` | string | 'light' or 'dark' |
-| `recentFiles` | array | Recent file paths |
-| `preferences` | object | User preferences |
+| `theme`       | string | 'light' or 'dark'          |
+| `recentFiles` | array  | Recent file paths          |
+| `preferences` | object | User preferences           |
 
 ## ThemeManager
 
 ### Usage
 
 ```javascript
-import { themeManager } from './utils/state/themeManager.js';
+import { themeManager } from "./utils/state/themeManager.js";
 
 // Get current theme
 const theme = themeManager.getTheme();
 
 // Set theme
-themeManager.setTheme('dark');
+themeManager.setTheme("dark");
 
 // Toggle theme
 themeManager.toggleTheme();
 
 // Subscribe to changes
 themeManager.onChange((theme) => {
-    document.body.dataset.theme = theme;
+ document.body.dataset.theme = theme;
 });
 ```
 
@@ -84,7 +88,7 @@ themeManager.onChange((theme) => {
 ### Usage
 
 ```javascript
-import { fileStateManager } from './utils/state/fileStateManager.js';
+import { fileStateManager } from "./utils/state/fileStateManager.js";
 
 // Load file
 await fileStateManager.loadFile(filePath);
@@ -94,7 +98,7 @@ const file = fileStateManager.getCurrentFile();
 
 // Check if file is loaded
 if (fileStateManager.hasFile()) {
-    // File is loaded
+ // File is loaded
 }
 
 // Clear current file
@@ -127,12 +131,12 @@ State can be persisted to localStorage:
 ```javascript
 // Configure persistence
 stateManager.configurePersistence({
-    keys: ['theme', 'preferences', 'recentFiles'],
-    storage: localStorage
+ keys: ["theme", "preferences", "recentFiles"],
+ storage: localStorage,
 });
 
 // State automatically saved on change
-stateManager.set('theme', 'dark');
+stateManager.set("theme", "dark");
 // → Saved to localStorage
 
 // State loaded on init
@@ -141,12 +145,12 @@ stateManager.loadPersistedState();
 
 ### What Gets Persisted
 
-| Key | Persisted | Reason |
-|-----|-----------|--------|
-| `theme` | ✅ | User preference |
-| `preferences` | ✅ | User settings |
-| `recentFiles` | ✅ | Quick access |
-| `currentFile` | ❌ | Too large |
+| Key           | Persisted | Reason          |
+| ------------- | --------- | --------------- |
+| `theme`       | ✅        | User preference |
+| `preferences` | ✅        | User settings   |
+| `recentFiles` | ✅        | Quick access    |
+| `currentFile` | ❌        | Too large       |
 
 ## Best Practices
 
@@ -155,18 +159,18 @@ stateManager.loadPersistedState();
 ```javascript
 // ✅ Use typed keys
 const KEYS = {
-    THEME: 'theme',
-    FILE: 'currentFile'
+ THEME: "theme",
+ FILE: "currentFile",
 };
-stateManager.set(KEYS.THEME, 'dark');
+stateManager.set(KEYS.THEME, "dark");
 
 // ✅ Subscribe for specific keys
-stateManager.subscribe('theme', handleThemeChange);
+stateManager.subscribe("theme", handleThemeChange);
 
 // ✅ Clean up subscriptions
 useEffect(() => {
-    const unsub = stateManager.subscribe('key', handler);
-    return () => unsub();
+ const unsub = stateManager.subscribe("key", handler);
+ return () => unsub();
 }, []);
 ```
 
@@ -174,14 +178,14 @@ useEffect(() => {
 
 ```javascript
 // ❌ Store large data unnecessarily
-stateManager.set('rawBuffer', hugeArrayBuffer);
+stateManager.set("rawBuffer", hugeArrayBuffer);
 
 // ❌ Forget to unsubscribe
-stateManager.subscribe('key', handler);
+stateManager.subscribe("key", handler);
 // Never unsubscribed = memory leak
 
 // ❌ Use magic strings
-stateManager.get('crrntFile'); // Typo!
+stateManager.get("crrntFile"); // Typo!
 ```
 
 ---

@@ -19,9 +19,14 @@ const { approveFilePath } = require("../security/fileAccessPolicy");
 
 /**
  * @typedef {import("electron").OpenDialogOptions} OpenDialogOptions
+ *
  * @typedef {import("electron").OpenDialogReturnValue} OpenDialogReturnValue
  *
- * @typedef {{ showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue> }} DialogApi
+ * @typedef {{
+ *     showOpenDialog: (
+ *         options: OpenDialogOptions
+ *     ) => Promise<OpenDialogReturnValue>;
+ * }} DialogApi
  *
  * @typedef {{ isDirectory: () => boolean }} StatLike
  *

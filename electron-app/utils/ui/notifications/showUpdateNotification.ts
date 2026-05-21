@@ -41,22 +41,15 @@ const activeAutoHideTimers = new WeakMap<
 /**
  * Shows update notifications with enhanced features and error handling.
  *
- * @example
- *     // Basic notification
- *     showUpdateNotification("Update available", "info");
+ * @example // Basic notification showUpdateNotification("Update available",
+ * "info");
  *
- * @example
- *     // Update downloaded notification with restart option
- *     showUpdateNotification(
- *         "Update downloaded",
- *         "success",
- *         0,
- *         "update-downloaded"
- *     );
+ * @example // Update downloaded notification with restart option
+ * showUpdateNotification( "Update downloaded", "success", 0,
+ * "update-downloaded" );
  *
- * @example
- *     // Simple update available with action
- *     showUpdateNotification("Update ready", "info", 6000, true);
+ * @example // Simple update available with action
+ * showUpdateNotification("Update ready", "info", 6000, true);
  *
  * @param message - The notification message to display.
  * @param type - Notification type.
@@ -184,12 +177,12 @@ function createUpdateActionButton(notification: HTMLElement): void {
 function createUpdateDownloadedButtons(notification: HTMLElement): void {
     try {
         const laterBtn = createThemedButton(
-            BUTTON_TEXTS.LATER,
-            () => hideNotification(notification),
-            {
-                marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
-            }
-        ),
+                BUTTON_TEXTS.LATER,
+                () => hideNotification(notification),
+                {
+                    marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
+                }
+            ),
             restartBtn = createThemedButton(
                 BUTTON_TEXTS.RESTART_UPDATE,
                 handleUpdateInstall

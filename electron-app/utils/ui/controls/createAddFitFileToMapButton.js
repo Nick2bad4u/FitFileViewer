@@ -11,7 +11,8 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 export function createAddFitFileToMapButton() {
     try {
         const globalRef = globalThis;
-        const isTestEnvironment = globalRef.process !== undefined &&
+        const isTestEnvironment =
+            globalRef.process !== undefined &&
             Boolean(globalRef.process.env) &&
             globalRef.process.env?.NODE_ENV === "test";
         const addOverlayBtn = document.createElement("button");
@@ -28,9 +29,12 @@ export function createAddFitFileToMapButton() {
         svg.setAttribute("height", "18");
         const path = document.createElementNS(SVG_NS, "path");
         path.setAttribute("d", "M10 2v16M2 10h16");
-        path.setAttribute("stroke", typeof themeColors["primary"] === "string" && themeColors["primary"]
-            ? themeColors["primary"]
-            : "currentColor");
+        path.setAttribute(
+            "stroke",
+            typeof themeColors["primary"] === "string" && themeColors["primary"]
+                ? themeColors["primary"]
+                : "currentColor"
+        );
         path.setAttribute("stroke-width", "2");
         path.setAttribute("fill", "none");
         svg.append(path);
@@ -39,19 +43,30 @@ export function createAddFitFileToMapButton() {
         addOverlayBtn.replaceChildren(svg, label);
         addOverlayBtn.title =
             "Overlay one or more FIT files on the map (points and tooltips will be shown)";
-        addOverlayBtn.setAttribute("aria-label", "Add FIT files as map overlays");
+        addOverlayBtn.setAttribute(
+            "aria-label",
+            "Add FIT files as map overlays"
+        );
         const updateAvailability = () => {
             try {
                 const data = getState("globalData");
-                const recordMesgs = data && typeof data === "object"
-                    ? data.recordMesgs
-                    : undefined;
-                const hasMainFile = Boolean(Array.isArray(recordMesgs) && recordMesgs.length > 0);
+                const recordMesgs =
+                    data && typeof data === "object"
+                        ? data.recordMesgs
+                        : undefined;
+                const hasMainFile = Boolean(
+                    Array.isArray(recordMesgs) && recordMesgs.length > 0
+                );
                 addOverlayBtn.disabled = !hasMainFile;
-                addOverlayBtn.setAttribute("aria-disabled", String(!hasMainFile));
-            }
-            catch (error) {
-                console.warn("[MapActions] Unable to determine overlay availability:", error);
+                addOverlayBtn.setAttribute(
+                    "aria-disabled",
+                    String(!hasMainFile)
+                );
+            } catch (error) {
+                console.warn(
+                    "[MapActions] Unable to determine overlay availability:",
+                    error
+                );
                 addOverlayBtn.disabled = true;
                 addOverlayBtn.setAttribute("aria-disabled", "true");
             }
@@ -60,25 +75,32 @@ export function createAddFitFileToMapButton() {
         // Prevent subscription leaks: renderMap clears and recreates controls, so this button can be destroyed.
         // Install a single subscription and always point it at the current button's updater.
         globalRef.__ffvAddFitOverlayButtonUpdate = updateAvailability;
-        if (typeof globalRef.__ffvAddFitOverlayButtonUnsubscribe !== "function") {
-            globalRef.__ffvAddFitOverlayButtonUnsubscribe = subscribe("globalData", () => {
-                try {
-                    const fn = globalRef.__ffvAddFitOverlayButtonUpdate;
-                    if (typeof fn === "function") {
-                        fn();
+        if (
+            typeof globalRef.__ffvAddFitOverlayButtonUnsubscribe !== "function"
+        ) {
+            globalRef.__ffvAddFitOverlayButtonUnsubscribe = subscribe(
+                "globalData",
+                () => {
+                    try {
+                        const fn = globalRef.__ffvAddFitOverlayButtonUpdate;
+                        if (typeof fn === "function") {
+                            fn();
+                        }
+                    } catch {
+                        /* ignore */
                     }
                 }
-                catch {
-                    /* ignore */
-                }
-            });
+            );
         }
-        addOverlayBtn.addEventListener("click", () => {
-            void handleAddOverlayClick(addOverlayBtn, isTestEnvironment);
-        }, { signal: listenerController.signal });
+        addOverlayBtn.addEventListener(
+            "click",
+            () => {
+                void handleAddOverlayClick(addOverlayBtn, isTestEnvironment);
+            },
+            { signal: listenerController.signal }
+        );
         return addOverlayBtn;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[MapActions] Failed to create add file button:", error);
         throw error;
     }
@@ -86,12 +108,14 @@ export function createAddFitFileToMapButton() {
 async function handleAddOverlayClick(addOverlayBtn, isTestEnvironment) {
     try {
         if (addOverlayBtn.disabled) {
-            showNotification("Open a primary FIT file before adding overlays.", "info");
+            showNotification(
+                "Open a primary FIT file before adding overlays.",
+                "info"
+            );
             return;
         }
         await openFileSelector();
-    }
-    catch (error) {
+    } catch (error) {
         if (!isTestEnvironment) {
             console.error("[MapActions] Failed to open file selector:", error);
         }

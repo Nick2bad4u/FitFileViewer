@@ -49,12 +49,14 @@ export function createChartPoints(labels, values) {
     return Array.from({ length }, (_, index) => {
         const labelValue = labels?.[index];
         const yValue = values?.[index];
-        const x = typeof labelValue === "number" && Number.isFinite(labelValue)
-            ? labelValue
-            : index;
-        const y = typeof yValue === "number" && Number.isFinite(yValue)
-            ? yValue
-            : null;
+        const x =
+            typeof labelValue === "number" && Number.isFinite(labelValue)
+                ? labelValue
+                : index;
+        const y =
+            typeof yValue === "number" && Number.isFinite(yValue)
+                ? yValue
+                : null;
         return { x, y };
     });
 }
@@ -70,9 +72,10 @@ export function limitChartPoints(points, maxPoints) {
     if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
         return [...points];
     }
-    const limit = typeof maxPoints === "number"
-        ? maxPoints
-        : Number.parseInt(String(maxPoints), 10);
+    const limit =
+        typeof maxPoints === "number"
+            ? maxPoints
+            : Number.parseInt(String(maxPoints), 10);
     if (!Number.isFinite(limit) || limit <= 0 || points.length <= limit) {
         return [...points];
     }
@@ -92,9 +95,10 @@ export function normalizeMaxPointsValue(maxPoints) {
     if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
         return "all";
     }
-    const numeric = typeof maxPoints === "number"
-        ? maxPoints
-        : Number.parseInt(String(maxPoints), 10);
+    const numeric =
+        typeof maxPoints === "number"
+            ? maxPoints
+            : Number.parseInt(String(maxPoints), 10);
     if (!Number.isFinite(numeric) || numeric <= 0) {
         return "all";
     }

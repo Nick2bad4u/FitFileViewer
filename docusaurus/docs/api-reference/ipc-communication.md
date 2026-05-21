@@ -39,11 +39,11 @@ Opens file selection dialog.
 const result = await window.electronAPI.openFile();
 
 // Main handler
-ipcMain.handle('dialog:open-fit-file', async () => {
-    return dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [{ name: 'FIT Files', extensions: ['fit'] }]
-    });
+ipcMain.handle("dialog:open-fit-file", async () => {
+ return dialog.showOpenDialog({
+  properties: ["openFile"],
+  filters: [{ name: "FIT Files", extensions: ["fit"] }],
+ });
 });
 ```
 
@@ -56,8 +56,8 @@ Reads file contents.
 const buffer = await window.electronAPI.readFile(filePath);
 
 // Main handler
-ipcMain.handle('file:read', async (event, filePath) => {
-    return fs.promises.readFile(filePath);
+ipcMain.handle("file:read", async (event, filePath) => {
+ return fs.promises.readFile(filePath);
 });
 ```
 
@@ -72,8 +72,8 @@ Gets application version.
 const version = await window.electronAPI.getVersion();
 
 // Main handler
-ipcMain.handle('app:get-version', () => {
-    return app.getVersion();
+ipcMain.handle("app:get-version", () => {
+ return app.getVersion();
 });
 ```
 
@@ -83,20 +83,20 @@ ipcMain.handle('app:get-version', () => {
 
 ```javascript
 // preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld('electronAPI', {
-    // File operations
-    openFile: () => ipcRenderer.invoke('dialog:open-fit-file'),
-    readFile: (path) => ipcRenderer.invoke('file:read', path),
+contextBridge.exposeInMainWorld("electronAPI", {
+ // File operations
+ openFile: () => ipcRenderer.invoke("dialog:open-fit-file"),
+ readFile: (path) => ipcRenderer.invoke("file:read", path),
 
-    // App info
-    getVersion: () => ipcRenderer.invoke('app:get-version'),
+ // App info
+ getVersion: () => ipcRenderer.invoke("app:get-version"),
 
-    // Events
-    onFileOpened: (callback) => {
-        ipcRenderer.on('file:opened', (event, data) => callback(data));
-    }
+ // Events
+ onFileOpened: (callback) => {
+  ipcRenderer.on("file:opened", (event, data) => callback(data));
+ },
 });
 ```
 
@@ -106,14 +106,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 ```javascript
 // Main process
-mainWindow.webContents.send('file:opened', {
-    path: filePath,
-    data: fileData
+mainWindow.webContents.send("file:opened", {
+ path: filePath,
+ data: fileData,
 });
 
 // Renderer (via preload)
 window.electronAPI.onFileOpened((data) => {
-    console.log('File opened:', data.path);
+ console.log("File opened:", data.path);
 });
 ```
 
@@ -124,9 +124,9 @@ window.electronAPI.onFileOpened((data) => {
 const result = await window.electronAPI.openFile();
 
 // Main
-ipcMain.handle('dialog:open-fit-file', async (event) => {
-    // Handle request
-    return result;
+ipcMain.handle("dialog:open-fit-file", async (event) => {
+ // Handle request
+ return result;
 });
 ```
 
@@ -136,24 +136,24 @@ ipcMain.handle('dialog:open-fit-file', async (event) => {
 
 ```javascript
 // Always validate in main process
-ipcMain.handle('file:read', async (event, filePath) => {
-    // Validate path
-    if (typeof filePath !== 'string') {
-        throw new Error('Invalid path type');
-    }
+ipcMain.handle("file:read", async (event, filePath) => {
+ // Validate path
+ if (typeof filePath !== "string") {
+  throw new Error("Invalid path type");
+ }
 
-    // Validate extension
-    if (!filePath.endsWith('.fit')) {
-        throw new Error('Invalid file type');
-    }
+ // Validate extension
+ if (!filePath.endsWith(".fit")) {
+  throw new Error("Invalid file type");
+ }
 
-    // Validate path traversal
-    const normalized = path.normalize(filePath);
-    if (normalized.includes('..')) {
-        throw new Error('Path traversal detected');
-    }
+ // Validate path traversal
+ const normalized = path.normalize(filePath);
+ if (normalized.includes("..")) {
+  throw new Error("Path traversal detected");
+ }
 
-    return fs.promises.readFile(normalized);
+ return fs.promises.readFile(normalized);
 });
 ```
 

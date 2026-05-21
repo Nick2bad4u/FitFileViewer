@@ -97,9 +97,7 @@ type ThemeConfigLike = {
 /**
  * Type guard for elements that expose a custom _updateFromReset method
  */
-function isResettable(
-    el: Element | null | undefined
-): el is ResettableElement {
+function isResettable(el: Element | null | undefined): el is ResettableElement {
     if (!el || !isHTMLElement(el)) {
         return false;
     }
@@ -332,10 +330,7 @@ export function reRenderChartsAfterSettingChange(
             console.log(
                 `${LOG_PREFIX} Destroying ${chartInstances.length} existing chart instances`
             );
-            for (const [
-                index,
-                chart,
-            ] of chartInstances.entries()) {
+            for (const [index, chart] of chartInstances.entries()) {
                 if (isDestroyableChart(chart)) {
                     try {
                         chart.destroy();
@@ -822,8 +817,7 @@ function updateRangeSliderStyling(
             themeConfig.colors !== null
                 ? themeConfig.colors
                 : {};
-        const accentColor =
-            colors["accent"] || "var(--color-accent, #3b82f6)";
+        const accentColor = colors["accent"] || "var(--color-accent, #3b82f6)";
         const borderLight =
             colors["borderLight"] || "var(--color-border, #e5e7eb)";
         const max = typeof option.max === "number" ? option.max : 1;
@@ -862,7 +856,8 @@ function updateUIControl(
     try {
         switch (option.type) {
             case "range": {
-                let sliderEl = isInputElement(control) && control.type === "range"
+                let sliderEl =
+                    isInputElement(control) && control.type === "range"
                         ? control
                         : control.querySelector("input[type='range']");
                 if (!sliderEl) {
@@ -897,10 +892,9 @@ function updateUIControl(
             }
 
             case "select": {
-                let selectEl =
-                    isSelectElement(control)
-                        ? control
-                        : control.querySelector("select");
+                let selectEl = isSelectElement(control)
+                    ? control
+                    : control.querySelector("select");
                 if (!selectEl) {
                     const fallbackSelect = query(
                         `#chartjs-${option.id}-dropdown`

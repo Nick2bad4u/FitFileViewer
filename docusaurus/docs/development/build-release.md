@@ -54,24 +54,21 @@ npm run build-all
 
 ```json
 {
-    "appId": "com.example.fitfileviewer",
-    "productName": "Fit File Viewer",
-    "files": [
-        "**/*",
-        "!tests/**"
-    ],
-    "win": {
-        "target": ["nsis", "portable", "msi"],
-        "icon": "icons/favicon.ico"
-    },
-    "mac": {
-        "target": ["dmg", "pkg"],
-        "icon": "icons/favicon.icns"
-    },
-    "linux": {
-        "target": ["AppImage", "deb", "rpm"],
-        "icon": "icons/favicon.png"
-    }
+ "appId": "com.example.fitfileviewer",
+ "productName": "Fit File Viewer",
+ "files": ["**/*", "!tests/**"],
+ "win": {
+  "target": ["nsis", "portable", "msi"],
+  "icon": "icons/favicon.ico"
+ },
+ "mac": {
+  "target": ["dmg", "pkg"],
+  "icon": "icons/favicon.icns"
+ },
+ "linux": {
+  "target": ["AppImage", "deb", "rpm"],
+  "icon": "icons/favicon.png"
+ }
 }
 ```
 
@@ -79,15 +76,17 @@ npm run build-all
 
 ```json
 {
-    "build": {
-        "appId": "com.example.fitfileviewer",
-        "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
-        "publish": [{
-            "provider": "github",
-            "owner": "Nick2bad4u",
-            "repo": "FitFileViewer"
-        }]
-    }
+ "build": {
+  "appId": "com.example.fitfileviewer",
+  "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
+  "publish": [
+   {
+    "provider": "github",
+    "owner": "Nick2bad4u",
+    "repo": "FitFileViewer"
+   }
+  ]
+ }
 }
 ```
 
@@ -95,29 +94,29 @@ npm run build-all
 
 ### Windows
 
-| Format | Description |
-|--------|-------------|
-| NSIS | Standard installer |
-| MSI | Windows Installer |
-| Portable | No installation |
-| Squirrel | Auto-updating |
+| Format   | Description        |
+| -------- | ------------------ |
+| NSIS     | Standard installer |
+| MSI      | Windows Installer  |
+| Portable | No installation    |
+| Squirrel | Auto-updating      |
 
 ### macOS
 
-| Format | Description |
-|--------|-------------|
-| DMG | Disk image |
-| PKG | Installer package |
-| ZIP | Archive |
+| Format | Description       |
+| ------ | ----------------- |
+| DMG    | Disk image        |
+| PKG    | Installer package |
+| ZIP    | Archive           |
 
 ### Linux
 
-| Format | Description |
-|--------|-------------|
+| Format   | Description      |
+| -------- | ---------------- |
 | AppImage | Universal format |
-| DEB | Debian/Ubuntu |
-| RPM | Fedora/RHEL |
-| Snap | Snap package |
+| DEB      | Debian/Ubuntu    |
+| RPM      | Fedora/RHEL      |
+| Snap     | Snap package     |
 
 ## CI/CD Pipeline
 
@@ -127,22 +126,22 @@ Builds are automated via GitHub Actions:
 # .github/workflows/Build.yml
 name: Build
 on:
-  push:
-    branches: [main]
-  release:
-    types: [published]
+ push:
+  branches: [main]
+ release:
+  types: [published]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: npm install
-      - run: npm run build
+ build:
+  runs-on: ${{ matrix.os }}
+  strategy:
+   matrix:
+    os: [ubuntu-latest, windows-latest, macos-latest]
+  steps:
+   - uses: actions/checkout@v4
+   - uses: actions/setup-node@v4
+   - run: npm install
+   - run: npm run build
 ```
 
 ## Release Process
@@ -172,6 +171,7 @@ git push --tags
 ### 4. Verify Release
 
 Check GitHub Releases for:
+
 - All platform builds
 - Checksums
 - Release notes
@@ -181,24 +181,26 @@ Check GitHub Releases for:
 ### Windows
 
 Requires certificate:
+
 ```json
 {
-    "win": {
-        "certificateFile": "cert.pfx",
-        "certificatePassword": "${CSC_KEY_PASSWORD}"
-    }
+ "win": {
+  "certificateFile": "cert.pfx",
+  "certificatePassword": "${CSC_KEY_PASSWORD}"
+ }
 }
 ```
 
 ### macOS
 
 Requires Apple Developer ID:
+
 ```json
 {
-    "mac": {
-        "hardenedRuntime": true,
-        "gatekeeperAssess": true
-    }
+ "mac": {
+  "hardenedRuntime": true,
+  "gatekeeperAssess": true
+ }
 }
 ```
 
@@ -207,6 +209,7 @@ Requires Apple Developer ID:
 ### Common Issues
 
 **Build fails on Windows:**
+
 ```bash
 # Clear cache
 npm cache clean --force
@@ -215,10 +218,12 @@ npm install
 ```
 
 **macOS signing fails:**
+
 - Verify certificate in Keychain
 - Check code signing identity
 
 **Linux missing dependencies:**
+
 ```bash
 # Install build tools
 sudo apt-get install build-essential

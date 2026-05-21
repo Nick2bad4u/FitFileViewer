@@ -57,8 +57,7 @@ function parseDeveloperFields(developerFields) {
         return parsed && typeof parsed === "object" && !Array.isArray(parsed)
             ? parsed
             : undefined;
-    }
-    catch {
+    } catch {
         return;
     }
 }

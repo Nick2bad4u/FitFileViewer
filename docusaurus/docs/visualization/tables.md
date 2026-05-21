@@ -19,6 +19,7 @@ The Tables tab shows your raw activity data in sortable, searchable tables.
 ### Records Table
 
 Every data point from your activity:
+
 - Timestamp
 - GPS coordinates
 - Speed/pace
@@ -31,6 +32,7 @@ Every data point from your activity:
 ### Laps Table
 
 Summary of each lap:
+
 - Lap number
 - Start time
 - Duration
@@ -42,6 +44,7 @@ Summary of each lap:
 ### Sessions Table
 
 Overall session information:
+
 - Activity type
 - Total duration
 - Total distance
@@ -53,6 +56,7 @@ Overall session information:
 ### Sorting
 
 Click any column header to sort:
+
 - First click: Ascending ↑
 - Second click: Descending ↓
 - Third click: Default order
@@ -60,6 +64,7 @@ Click any column header to sort:
 ### Searching
 
 Use the search box to filter:
+
 - Type to search all columns
 - Instant filtering
 - Clear to show all
@@ -67,6 +72,7 @@ Use the search box to filter:
 ### Pagination
 
 Navigate large datasets:
+
 - Choose rows per page (10, 25, 50, 100)
 - Page navigation buttons
 - Jump to specific page
@@ -74,6 +80,7 @@ Navigate large datasets:
 ### Column Visibility
 
 Show/hide columns:
+
 - Click column selector
 - Toggle columns on/off
 - Customize your view
@@ -103,22 +110,23 @@ Show/hide columns:
 
 ### Common Columns
 
-| Column | Description | Unit |
-|--------|-------------|------|
-| timestamp | Record time | datetime |
-| position_lat | Latitude | semicircles/degrees |
-| position_long | Longitude | semicircles/degrees |
-| distance | Cumulative distance | meters |
-| speed | Current speed | m/s |
-| heart_rate | Heart rate | bpm |
-| altitude | Elevation | meters |
-| cadence | Steps/pedals per min | rpm |
-| power | Power output | watts |
-| temperature | Ambient temp | celsius |
+| Column        | Description          | Unit                |
+| ------------- | -------------------- | ------------------- |
+| timestamp     | Record time          | datetime            |
+| position_lat  | Latitude             | semicircles/degrees |
+| position_long | Longitude            | semicircles/degrees |
+| distance      | Cumulative distance  | meters              |
+| speed         | Current speed        | m/s                 |
+| heart_rate    | Heart rate           | bpm                 |
+| altitude      | Elevation            | meters              |
+| cadence       | Steps/pedals per min | rpm                 |
+| power         | Power output         | watts               |
+| temperature   | Ambient temp         | celsius             |
 
 ### Data Quality
 
 Missing values shown as:
+
 - Empty cell
 - `--` or `-`
 - `null`
@@ -150,6 +158,7 @@ Indicates sensor wasn't recording.
 ### Large Datasets
 
 For activities with 10,000+ records:
+
 - Use pagination (don't show all)
 - Search to filter
 - Sort loads visible page first

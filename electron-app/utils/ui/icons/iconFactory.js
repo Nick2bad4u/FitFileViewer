@@ -68,15 +68,31 @@ const ICON_NODE_SPECS = {
         { attrs: { d: "M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6" }, tag: "path" },
     ],
     file: [
-        { attrs: { d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" }, tag: "path" },
+        {
+            attrs: {
+                d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+            },
+            tag: "path",
+        },
         { attrs: { d: "M14 2v6h6" }, tag: "path" },
     ],
     folder: [
-        { attrs: { d: "M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }, tag: "path" },
+        {
+            attrs: {
+                d: "M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+            },
+            tag: "path",
+        },
     ],
     folderOpen: [
-        { attrs: { d: "M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v1" }, tag: "path" },
-        { attrs: { d: "M3 10h19l-2 8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" }, tag: "path" },
+        {
+            attrs: { d: "M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v1" },
+            tag: "path",
+        },
+        {
+            attrs: { d: "M3 10h19l-2 8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" },
+            tag: "path",
+        },
     ],
     gauge: [
         { attrs: { d: "m12 14 4-4" }, tag: "path" },
@@ -118,7 +134,12 @@ const ICON_NODE_SPECS = {
     ],
     settings: [
         { attrs: { cx: "12", cy: "12", r: "3" }, tag: "circle" },
-        { attrs: { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.14.31.22.65.22 1v.09A1.65 1.65 0 0 0 21 12c0 .35-.08.69-.22 1z" }, tag: "path" },
+        {
+            attrs: {
+                d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.14.31.22.65.22 1v.09A1.65 1.65 0 0 0 21 12c0 .35-.08.69-.22 1z",
+            },
+            tag: "path",
+        },
     ],
     table: [
         {
@@ -159,12 +180,15 @@ function escapeSvgAttribute(value) {
 }
 function serializeSvgChild(spec) {
     const attributes = Object.entries(spec.attrs)
-        .map(([name, value]) => `${name}="${escapeSvgAttribute(String(value))}"`)
+        .map(
+            ([name, value]) => `${name}="${escapeSvgAttribute(String(value))}"`
+        )
         .join(" ");
     return `<${spec.tag} ${attributes}></${spec.tag}>`;
 }
 function toBoundedNumber(value, fallback, bounds = {}) {
-    const n = typeof value === "number" && Number.isFinite(value) ? value : fallback;
+    const n =
+        typeof value === "number" && Number.isFinite(value) ? value : fallback;
     const { max = Number.POSITIVE_INFINITY, min = 0 } = bounds;
     return Math.min(Math.max(n, min), max);
 }
@@ -173,23 +197,28 @@ function toBoundedNumber(value, fallback, bounds = {}) {
  *
  * @param name - Icon name to render.
  * @param options - SVG sizing, class, stroke, and title options.
+ *
  * @returns Serialized SVG markup.
  */
 export function getAppIconSvg(name, options = {}) {
-    const className = typeof options.className === "string" &&
+    const className =
+        typeof options.className === "string" &&
         options.className.trim().length > 0
-        ? ` class="${escapeSvgAttribute(options.className.trim())}"`
-        : "";
+            ? ` class="${escapeSvgAttribute(options.className.trim())}"`
+            : "";
     const size = toBoundedNumber(options.size, 16, { min: 10, max: 48 });
     const strokeWidth = toBoundedNumber(options.strokeWidth, 2, {
         min: 1,
         max: 3,
     });
-    const title = typeof options.title === "string" && options.title.trim().length > 0
-        ? `<title>${escapeSvgText(options.title)}</title>`
-        : "";
+    const title =
+        typeof options.title === "string" && options.title.trim().length > 0
+            ? `<title>${escapeSvgText(options.title)}</title>`
+            : "";
     const iconSpecs = ICON_NODE_SPECS[name] || ICON_NODE_SPECS.target;
-    const iconMarkup = iconSpecs.map((spec) => serializeSvgChild(spec)).join("");
+    const iconMarkup = iconSpecs
+        .map((spec) => serializeSvgChild(spec))
+        .join("");
     return `<svg${className} xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${title}${iconMarkup}</svg>`;
 }
 /**
@@ -197,6 +226,7 @@ export function getAppIconSvg(name, options = {}) {
  *
  * @param name - Icon name to render.
  * @param options - SVG sizing, class, stroke, and title options.
+ *
  * @returns SVG element instance.
  */
 export function createAppIconElement(name, options = {}) {
@@ -206,8 +236,10 @@ export function createAppIconElement(name, options = {}) {
         min: 1,
         max: 3,
     });
-    if (typeof options.className === "string" &&
-        options.className.trim().length > 0) {
+    if (
+        typeof options.className === "string" &&
+        options.className.trim().length > 0
+    ) {
         icon.classList.add(...options.className.trim().split(/\s+/u));
     }
     icon.setAttribute("xmlns", SVG_NS);

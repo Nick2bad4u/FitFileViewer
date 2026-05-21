@@ -54,9 +54,12 @@ const THEME_CONSTANTS = {
  * listeners.
  *
  * @param applyTheme - Function that applies the selected theme.
- * @param listenForThemeChange - Optional callback registration for external theme changes.
+ * @param listenForThemeChange - Optional callback registration for external
+ *   theme changes.
  * @param options - Fallback and persistence options.
+ *
  * @returns Applied theme name.
+ *
  * @throws TypeError when applyTheme is not a function.
  */
 export async function setupTheme(
@@ -202,10 +205,7 @@ function applyAndTrackTheme(
 
         // Store in localStorage for persistence
         try {
-            localStorage.setItem(
-                THEME_CONSTANTS.STORAGE_KEY,
-                resolvedTheme
-            );
+            localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, resolvedTheme);
             // Clean up legacy key if present (best effort)
             if (
                 localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY) !==
@@ -309,6 +309,7 @@ function logWithContext(message: string, level: LogLevel = "info"): void {
  * Normalize theme values to the canonical set.
  *
  * @param theme - Raw value from storage, state, or IPC.
+ *
  * @returns Canonical theme value when supported.
  */
 function normalizeThemeValue(theme: unknown): ThemePreference | null {
@@ -325,12 +326,8 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
-function isSupportedThemePreference(
-    theme: string
-): theme is ThemePreference {
-    return THEME_CONSTANTS.SUPPORTED_THEMES.includes(
-        theme as ThemePreference
-    );
+function isSupportedThemePreference(theme: string): theme is ThemePreference {
+    return THEME_CONSTANTS.SUPPORTED_THEMES.includes(theme as ThemePreference);
 }
 
 function setupThemeChangeListener(
@@ -347,24 +344,21 @@ function setupThemeChangeListener(
         }
 
         // Set up state-based theme change listener
-        subscribe(
-            "ui.theme",
-            (newTheme) => {
-                if (
-                    typeof newTheme === "string" &&
-                    newTheme !== getState("ui.previousTheme")
-                ) {
-                    logWithContext(`State-driven theme change: ${newTheme}`);
-                    setState("ui.previousTheme", newTheme, {
-                        source: "setupTheme",
-                    });
+        subscribe("ui.theme", (newTheme) => {
+            if (
+                typeof newTheme === "string" &&
+                newTheme !== getState("ui.previousTheme")
+            ) {
+                logWithContext(`State-driven theme change: ${newTheme}`);
+                setState("ui.previousTheme", newTheme, {
+                    source: "setupTheme",
+                });
 
-                    if (typeof applyTheme === "function") {
-                        applyTheme(newTheme);
-                    }
+                if (typeof applyTheme === "function") {
+                    applyTheme(newTheme);
                 }
             }
-        );
+        });
 
         logWithContext("Theme change listeners registered");
     } catch (error) {

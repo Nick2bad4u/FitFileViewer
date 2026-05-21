@@ -27,10 +27,7 @@ export type MaxPointsOption = "all" | number;
 /**
  * Performance warning classifications for high max-points choices.
  */
-export type MaxPointsWarningLevel =
-    | "not-recommended"
-    | "slow"
-    | "very-slow";
+export type MaxPointsWarningLevel = "not-recommended" | "slow" | "very-slow";
 
 interface ChartOptionBase {
     description: string;
@@ -101,7 +98,8 @@ export const maxPointsOptions: readonly MaxPointsOption[] = [
 ];
 
 /**
- * Comprehensive chart customization options used by settings UI and chart rendering.
+ * Comprehensive chart customization options used by settings UI and chart
+ * rendering.
  */
 export const chartOptionsConfig: readonly ChartOption[] = [
     {
@@ -301,10 +299,7 @@ export function getOptionConfig(optionId: string): ChartOption | undefined {
 /**
  * Check whether a value is valid for a chart option.
  */
-export function isValidOptionValue(
-    optionId: string,
-    value: unknown
-): boolean {
+export function isValidOptionValue(optionId: string, value: unknown): boolean {
     const option = getOptionConfig(optionId);
 
     if (!option) {

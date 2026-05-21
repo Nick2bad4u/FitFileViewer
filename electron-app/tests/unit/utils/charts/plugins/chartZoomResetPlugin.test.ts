@@ -17,12 +17,14 @@ vi.mock(
 );
 
 vi.mock(import("../../../../../utils/theming/core/theme.js"), () => ({
-    getThemeConfig: vi.fn<() => {
-        colors: Record<string, string>;
-        isDark: boolean;
-        isLight: boolean;
-        theme: string;
-    }>(() => ({
+    getThemeConfig: vi.fn<
+        () => {
+            colors: Record<string, string>;
+            isDark: boolean;
+            isLight: boolean;
+            theme: string;
+        }
+    >(() => ({
         colors: {
             accent: "#667eea",
             textPrimary: "#ffffff",
@@ -91,15 +93,16 @@ function createMockContext(): MockCanvasContext {
             (x: number, y: number, width: number, height: number) => void
         >(),
         restore: vi.fn<() => void>(),
-        roundRect: vi.fn<
-            (
-                x: number,
-                y: number,
-                width: number,
-                height: number,
-                radius: number
-            ) => void
-        >(),
+        roundRect:
+            vi.fn<
+                (
+                    x: number,
+                    y: number,
+                    width: number,
+                    height: number,
+                    radius: number
+                ) => void
+            >(),
         save: vi.fn<() => void>(),
         stroke: vi.fn<() => void>(),
         strokeStyle: "",
@@ -165,12 +168,10 @@ async function loadPlugin(): Promise<{
     installRoundRectPolyfill: () => void;
     showNotification: Mock<typeof showNotificationFn>;
 }> {
-    const notificationModule = await import(
-            "../../../../../utils/ui/notifications/showNotification.js"
-        ),
-        pluginModule = await import(
-            "../../../../../utils/charts/plugins/chartZoomResetPlugin.js"
-        ),
+    const notificationModule =
+            await import("../../../../../utils/ui/notifications/showNotification.js"),
+        pluginModule =
+            await import("../../../../../utils/charts/plugins/chartZoomResetPlugin.js"),
         showNotification = vi.mocked(notificationModule.showNotification);
 
     showNotification.mockClear();
@@ -341,9 +342,10 @@ describe("installRoundRectPolyfill", () => {
         expect.assertions(5);
 
         const { installRoundRectPolyfill } = await loadPlugin();
-        const savedCtor = Reflect.get(globalThis, "CanvasRenderingContext2D") as
-                | typeof CanvasRenderingContext2D
-                | undefined,
+        const savedCtor = Reflect.get(
+                globalThis,
+                "CanvasRenderingContext2D"
+            ) as typeof CanvasRenderingContext2D | undefined,
             mockProto: Partial<CanvasRenderingContext2D> = {};
 
         expect(mockProto).not.toHaveProperty("roundRect");

@@ -19,8 +19,8 @@ Modules are loaded on-demand:
 ```javascript
 // Only load map when needed
 async function showMap() {
-    const { renderMap } = await import('./utils/maps/renderMap.js');
-    renderMap(container, data);
+ const { renderMap } = await import("./utils/maps/renderMap.js");
+ renderMap(container, data);
 }
 ```
 
@@ -30,7 +30,7 @@ Heavy libraries are split:
 
 ```javascript
 // Chart.js loaded only when charts tab is active
-const Chart = await import('chart.js');
+const Chart = await import("chart.js");
 ```
 
 ## Rendering Performance
@@ -41,10 +41,10 @@ For large data tables:
 
 ```javascript
 // DataTables handles pagination
-$('#dataTable').DataTable({
-    serverSide: false,
-    deferRender: true,  // Render visible rows only
-    pageLength: 50
+$("#dataTable").DataTable({
+ serverSide: false,
+ deferRender: true, // Render visible rows only
+ pageLength: 50,
 });
 ```
 
@@ -55,11 +55,11 @@ User inputs are debounced:
 ```javascript
 // Debounce search input
 const debouncedSearch = debounce((term) => {
-    filterTable(term);
+ filterTable(term);
 }, 300);
 
-searchInput.addEventListener('input', (e) => {
-    debouncedSearch(e.target.value);
+searchInput.addEventListener("input", (e) => {
+ debouncedSearch(e.target.value);
 });
 ```
 
@@ -69,9 +69,9 @@ Smooth animations:
 
 ```javascript
 function animateChart() {
-    requestAnimationFrame(() => {
-        chart.update('none'); // No animation
-    });
+ requestAnimationFrame(() => {
+  chart.update("none"); // No animation
+ });
 }
 ```
 
@@ -83,20 +83,20 @@ Components clean up resources:
 
 ```javascript
 class ChartManager {
-    constructor() {
-        this.charts = [];
-    }
+ constructor() {
+  this.charts = [];
+ }
 
-    createChart(config) {
-        const chart = new Chart(config);
-        this.charts.push(chart);
-        return chart;
-    }
+ createChart(config) {
+  const chart = new Chart(config);
+  this.charts.push(chart);
+  return chart;
+ }
 
-    cleanup() {
-        this.charts.forEach(chart => chart.destroy());
-        this.charts = [];
-    }
+ cleanup() {
+  this.charts.forEach((chart) => chart.destroy());
+  this.charts = [];
+ }
 }
 ```
 
@@ -107,21 +107,21 @@ class ChartManager {
 const listeners = new Map();
 
 function addListener(element, event, handler) {
-    element.addEventListener(event, handler);
+ element.addEventListener(event, handler);
 
-    if (!listeners.has(element)) {
-        listeners.set(element, []);
-    }
-    listeners.get(element).push({ event, handler });
+ if (!listeners.has(element)) {
+  listeners.set(element, []);
+ }
+ listeners.get(element).push({ event, handler });
 }
 
 function cleanup() {
-    listeners.forEach((handlers, element) => {
-        handlers.forEach(({ event, handler }) => {
-            element.removeEventListener(event, handler);
-        });
-    });
-    listeners.clear();
+ listeners.forEach((handlers, element) => {
+  handlers.forEach(({ event, handler }) => {
+   element.removeEventListener(event, handler);
+  });
+ });
+ listeners.clear();
 }
 ```
 
@@ -134,19 +134,19 @@ For large FIT files:
 ```javascript
 // Process in chunks
 async function parseInChunks(buffer, chunkSize = 1000) {
-    const records = [];
-    let offset = 0;
+ const records = [];
+ let offset = 0;
 
-    while (offset < buffer.byteLength) {
-        const chunk = await parseChunk(buffer, offset, chunkSize);
-        records.push(...chunk);
-        offset += chunkSize;
+ while (offset < buffer.byteLength) {
+  const chunk = await parseChunk(buffer, offset, chunkSize);
+  records.push(...chunk);
+  offset += chunkSize;
 
-        // Yield to UI
-        await new Promise(resolve => setTimeout(resolve, 0));
-    }
+  // Yield to UI
+  await new Promise((resolve) => setTimeout(resolve, 0));
+ }
 
-    return records;
+ return records;
 }
 ```
 
@@ -156,18 +156,18 @@ Show data as it's available:
 
 ```javascript
 async function loadAndRender(buffer) {
-    // Show loading state
-    showLoadingIndicator();
+ // Show loading state
+ showLoadingIndicator();
 
-    // Parse metadata first (fast)
-    const metadata = parseMetadata(buffer);
-    renderSummary(metadata);
+ // Parse metadata first (fast)
+ const metadata = parseMetadata(buffer);
+ renderSummary(metadata);
 
-    // Then parse full data
-    const fullData = await parseFullData(buffer);
-    renderAllViews(fullData);
+ // Then parse full data
+ const fullData = await parseFullData(buffer);
+ renderAllViews(fullData);
 
-    hideLoadingIndicator();
+ hideLoadingIndicator();
 }
 ```
 
@@ -179,9 +179,9 @@ Map tiles are cached:
 
 ```javascript
 // Leaflet handles caching automatically
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    // Tiles cached in browser
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+ maxZoom: 19,
+ // Tiles cached in browser
 });
 ```
 
@@ -192,8 +192,8 @@ Simplify routes for display:
 ```javascript
 // Reduce points for overview
 function simplifyRoute(points, tolerance = 0.0001) {
-    // Douglas-Peucker algorithm
-    return simplify(points, tolerance);
+ // Douglas-Peucker algorithm
+ return simplify(points, tolerance);
 }
 ```
 
@@ -204,17 +204,17 @@ function simplifyRoute(points, tolerance = 0.0001) {
 ```javascript
 // Measure operation time
 function measurePerformance(name, fn) {
-    const start = performance.now();
-    const result = fn();
-    const end = performance.now();
+ const start = performance.now();
+ const result = fn();
+ const end = performance.now();
 
-    console.log(`${name}: ${(end - start).toFixed(2)}ms`);
-    return result;
+ console.log(`${name}: ${(end - start).toFixed(2)}ms`);
+ return result;
 }
 
 // Usage
-const data = measurePerformance('Parse FIT file', () => {
-    return parseFitFile(buffer);
+const data = measurePerformance("Parse FIT file", () => {
+ return parseFitFile(buffer);
 });
 ```
 

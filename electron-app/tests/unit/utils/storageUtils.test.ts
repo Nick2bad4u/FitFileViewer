@@ -8,7 +8,9 @@ import {
     type StorageLike,
 } from "../../../utils/storage/storageUtils.js";
 
-function createStorage(initialValues: Record<string, string> = {}): StorageLike {
+function createStorage(
+    initialValues: Record<string, string> = {}
+): StorageLike {
     const values = new Map(Object.entries(initialValues));
 
     return {
@@ -65,7 +67,9 @@ describe("storage utilities", () => {
                 },
             }))
         ).toBeNull();
-        expect(resolveStorage(() => "not storage" as unknown as StorageLike)).toBeNull();
+        expect(
+            resolveStorage(() => "not storage" as unknown as StorageLike)
+        ).toBeNull();
     });
 
     it("ignores write and remove failures", () => {

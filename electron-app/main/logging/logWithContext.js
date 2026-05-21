@@ -25,13 +25,17 @@
         if (normalizedKey.includes("secret")) {
             return true;
         }
-        if (normalizedKey === "authorization" ||
+        if (
+            normalizedKey === "authorization" ||
             normalizedKey === "cookie" ||
             normalizedKey === "set-cookie" ||
-            normalizedKey.includes("password")) {
+            normalizedKey.includes("password")
+        ) {
             return true;
         }
-        return (normalizedKey.includes("token") && !normalizedKey.endsWith("url"));
+        return (
+            normalizedKey.includes("token") && !normalizedKey.endsWith("url")
+        );
     };
     const normalizeLogValue = (key, seen, value) => {
         try {
@@ -57,8 +61,7 @@
                 }
                 seen.add(value);
             }
-        }
-        catch {
+        } catch {
             return "[Unserializable]";
         }
         return value;
@@ -66,9 +69,10 @@
     const safeStringifyContext = (payload) => {
         const seen = new WeakSet();
         try {
-            return JSON.stringify(payload, (key, value) => normalizeLogValue(key, seen, value));
-        }
-        catch {
+            return JSON.stringify(payload, (key, value) =>
+                normalizeLogValue(key, seen, value)
+            );
+        } catch {
             return '"[Unserializable]"';
         }
     };
@@ -76,7 +80,10 @@
         const timestamp = new Date().toISOString();
         const log = getConsoleMethod(level);
         if (Object.keys(context).length > 0) {
-            log(`[${timestamp}] [main.js] ${message}`, safeStringifyContext(context));
+            log(
+                `[${timestamp}] [main.js] ${message}`,
+                safeStringifyContext(context)
+            );
             return;
         }
         log(`[${timestamp}] [main.js] ${message}`);

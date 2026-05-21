@@ -29,12 +29,12 @@
 
         return Boolean(
             electronLike &&
-                (electronLike.app ||
-                    electronLike.BrowserWindow ||
-                    electronLike.ipcMain ||
-                    electronLike.Menu ||
-                    electronLike.shell ||
-                    electronLike.dialog)
+            (electronLike.app ||
+                electronLike.BrowserWindow ||
+                electronLike.ipcMain ||
+                electronLike.Menu ||
+                electronLike.shell ||
+                electronLike.dialog)
         );
     };
 
@@ -97,9 +97,8 @@
     const browserWindowRef = ():
         | typeof import("electron").BrowserWindow
         | undefined => getElectron().BrowserWindow;
-    const clipboardRef = ():
-        | typeof import("electron").clipboard
-        | undefined => getElectron().clipboard;
+    const clipboardRef = (): typeof import("electron").clipboard | undefined =>
+        getElectron().clipboard;
     const dialogRef = (): typeof import("electron").dialog | undefined =>
         getElectron().dialog;
     const ipcMainRef = (): typeof import("electron").ipcMain | undefined =>

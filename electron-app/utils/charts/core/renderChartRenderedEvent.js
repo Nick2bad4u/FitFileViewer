@@ -22,8 +22,7 @@ export function emitChartsRenderedEvent(dependencies, summary) {
             },
         });
         dependencies.doc.dispatchEvent(chartsRenderedEvent);
-    }
-    catch {
+    } catch {
         /* ignore non-browser CustomEvent issues */
     }
 }

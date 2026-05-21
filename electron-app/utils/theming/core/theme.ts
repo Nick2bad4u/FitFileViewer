@@ -66,7 +66,6 @@ const LEGACY_THEME_STORAGE_KEYS = ["fitFileViewer_theme"];
  *
  * The codebase historically used both "auto" and "system" for the system theme.
  * For persistence and theme core logic we canonicalize to "auto".
- *
  */
 function normalizeThemePreference(
     theme: null | string | undefined
@@ -92,7 +91,6 @@ const themeTransitionTimers = new Set<ReturnType<typeof setTimeout>>();
 
 /**
  * Apply the given theme to the document body and persist it.
- *
  */
 export function applyTheme(theme: string, withTransition = true): void {
     const themePreference = normalizeThemePreference(theme);
@@ -167,7 +165,6 @@ export function applyTheme(theme: string, withTransition = true): void {
 
 /**
  * Get the effective theme (resolves 'auto' to actual theme)
- *
  */
 export function getEffectiveTheme(theme: null | string = null): EffectiveTheme {
     const currentTheme = normalizeThemePreference(theme || loadTheme());
@@ -176,7 +173,6 @@ export function getEffectiveTheme(theme: null | string = null): EffectiveTheme {
 
 /**
  * Get the system's preferred color scheme
- *
  */
 export function getSystemTheme(): EffectiveTheme {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
@@ -189,7 +185,6 @@ export function getSystemTheme(): EffectiveTheme {
 
 /**
  * Get theme preference for external libraries
- *
  */
 export function getThemeConfig(): ThemeConfig {
     const cssColors: Record<string, string> = {};
@@ -270,9 +265,8 @@ export function getThemeConfig(): ThemeConfig {
                 return "";
             }
             return (
-                getComputedStyle(body)
-                    .getPropertyValue(`--${name}`)
-                    ?.trim() || ""
+                getComputedStyle(body).getPropertyValue(`--${name}`)?.trim() ||
+                ""
             );
         } catch {
             return "";
@@ -427,7 +421,6 @@ export function initializeTheme(): (() => void) | undefined {
 
 /**
  * Listen for system theme changes and update if using auto theme
- *
  */
 export function listenForSystemThemeChange(): (() => void) | undefined {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
@@ -453,7 +446,10 @@ export function listenForSystemThemeChange(): (() => void) | undefined {
         return () => {
             listenerController.abort();
             if (mediaQuery.removeEventListener) {
-                mediaQuery.removeEventListener("change", handleSystemThemeChange);
+                mediaQuery.removeEventListener(
+                    "change",
+                    handleSystemThemeChange
+                );
             } else {
                 mediaQuery.removeListener(handleSystemThemeChange);
             }
@@ -467,7 +463,6 @@ export function listenForSystemThemeChange(): (() => void) | undefined {
 /**
  * Listen for theme change events from the Electron main process and apply the
  * theme.
- *
  */
 export function listenForThemeChange(
     onThemeChange: (theme: string) => void
@@ -499,7 +494,6 @@ export function listenForThemeChange(
 
 /**
  * Load the persisted theme from localStorage, defaulting to 'dark'.
- *
  */
 export function loadTheme(): ThemePreference {
     try {
@@ -532,7 +526,6 @@ export function loadTheme(): ThemePreference {
 
 /**
  * Toggle between light and dark themes
- *
  */
 export function toggleTheme(withTransition = true): void {
     const currentTheme = loadTheme(),
@@ -543,7 +536,6 @@ export function toggleTheme(withTransition = true): void {
 
 /**
  * Dispatch a custom theme change event
- *
  */
 function dispatchThemeChangeEvent(theme: ThemePreference): void {
     const detail: ThemeChangeEventDetail = {
@@ -610,7 +602,6 @@ function injectThemeTransitionCSS(): void {
 
 /**
  * Update the meta theme-color tag for mobile browsers
- *
  */
 function updateMetaThemeColor(theme: ThemePreference): void {
     const effectiveTheme = getEffectiveTheme(theme),

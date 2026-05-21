@@ -101,7 +101,8 @@ export class MainProcessStateClient {
     /**
      * Gets a value from main process state.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async get(path?: string): Promise<IpcSerializable> {
         const electronAPI = this.requireElectronAPI();
@@ -123,7 +124,11 @@ export class MainProcessStateClient {
         metrics: Metrics;
         operations: Record<string, Operation>;
     }> {
-        const [errors, operations, metrics] = await Promise.all([
+        const [
+            errors,
+            operations,
+            metrics,
+        ] = await Promise.all([
             this.getErrors(),
             this.getOperations(),
             this.getMetrics(),
@@ -135,7 +140,8 @@ export class MainProcessStateClient {
     /**
      * Gets recent state-manager errors.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async getErrors(limit = 50): Promise<ErrorEntry[]> {
         const electronAPI = this.requireElectronAPI();
@@ -177,7 +183,8 @@ export class MainProcessStateClient {
     /**
      * Gets performance metrics from the main process state manager.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async getMetrics(): Promise<Metrics> {
         const electronAPI = this.requireElectronAPI();
@@ -196,15 +203,16 @@ export class MainProcessStateClient {
     /**
      * Gets the status of a specific operation.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async getOperation(operationId: string): Promise<Operation | null> {
         const electronAPI = this.requireElectronAPI();
 
         try {
-            return (await electronAPI.getOperation(operationId)) as
-                | Operation
-                | null;
+            return (await electronAPI.getOperation(
+                operationId
+            )) as Operation | null;
         } catch (error) {
             console.error(
                 `[MainProcessStateClient] Error getting operation "${operationId}":`,
@@ -217,7 +225,8 @@ export class MainProcessStateClient {
     /**
      * Gets all tracked operations from the main process state manager.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async getOperations(): Promise<Record<string, Operation>> {
         const electronAPI = this.requireElectronAPI();
@@ -245,7 +254,8 @@ export class MainProcessStateClient {
      * Listens for changes to a specific main-process state path.
      *
      * @throws TypeError when callback is not a function.
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async listen(
         path: string,
@@ -263,7 +273,10 @@ export class MainProcessStateClient {
 
         this._listeners.get(path)?.add(callback);
 
-        await electronAPI.listenToMainState(path, callback as MainStateListener);
+        await electronAPI.listenToMainState(
+            path,
+            callback as MainStateListener
+        );
 
         return () => {
             const listeners = this._listeners.get(path);
@@ -279,7 +292,8 @@ export class MainProcessStateClient {
     /**
      * Sets a value in renderer-writable main process state.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     public async set(
         path: string,

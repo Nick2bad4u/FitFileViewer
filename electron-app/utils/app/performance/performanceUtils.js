@@ -22,8 +22,7 @@ export function batchOperations(callback, options = {}) {
         items.push(item);
         if (items.length >= maxItems) {
             flush();
-        }
-        else if (timeoutId === undefined) {
+        } else if (timeoutId === undefined) {
             timeoutId = setTimeout(flush, maxWait);
         }
     };
@@ -33,8 +32,10 @@ export function batchOperations(callback, options = {}) {
  * browser idle-callback API is unavailable.
  */
 export function cancelIdleCallback(id) {
-    if (typeof id === "number" &&
-        typeof globalThis.cancelIdleCallback === "function") {
+    if (
+        typeof id === "number" &&
+        typeof globalThis.cancelIdleCallback === "function"
+    ) {
         globalThis.cancelIdleCallback(id);
         return;
     }
@@ -54,10 +55,12 @@ export function debounce(func, wait, options = {}) {
     function shouldInvoke(time) {
         const timeSinceLastCall = time - (lastCallTime ?? 0);
         const timeSinceLastInvoke = time - lastInvokeTime;
-        return (lastCallTime === undefined ||
+        return (
+            lastCallTime === undefined ||
             timeSinceLastCall >= wait ||
             timeSinceLastCall < 0 ||
-            timeSinceLastInvoke >= wait);
+            timeSinceLastInvoke >= wait
+        );
     }
     function invokeFunc(time) {
         const args = lastArgs;
@@ -154,12 +157,15 @@ export function memoize(func, keyGenerator) {
  * Create a performance-optimized event handler.
  */
 export function optimizeEventHandler(handler, options = {}) {
-    const { debounce: debounceMs, passive = true, throttle: throttleMs, } = options;
+    const {
+        debounce: debounceMs,
+        passive = true,
+        throttle: throttleMs,
+    } = options;
     let optimizedHandler = handler;
     if (throttleMs !== undefined) {
         optimizedHandler = throttle(handler, throttleMs);
-    }
-    else if (debounceMs !== undefined) {
+    } else if (debounceMs !== undefined) {
         optimizedHandler = debounce(handler, debounceMs);
     }
     const handlerWithMetadata = optimizedHandler;

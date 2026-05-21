@@ -1,8 +1,10 @@
 import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
 function hasFunctionProperty(value, property) {
-    return (typeof value === "object" &&
+    return (
+        typeof value === "object" &&
         value !== null &&
-        typeof value[property] === "function");
+        typeof value[property] === "function"
+    );
 }
 function isDestroyableChart(value) {
     return hasFunctionProperty(value, "destroy");
@@ -79,14 +81,21 @@ class ResourceManager {
                     resource.cleanup();
                     this.resources.delete(id);
                     cleanedCount++;
-                    console.log(`[ResourceManager] Cleaned up ${resource.type} resource: ${id}`);
-                }
-                catch (error) {
-                    console.error(`[ResourceManager] Error cleaning up resource ${id}:`, error);
+                    console.log(
+                        `[ResourceManager] Cleaned up ${resource.type} resource: ${id}`
+                    );
+                } catch (error) {
+                    console.error(
+                        `[ResourceManager] Error cleaning up resource ${id}:`,
+                        error
+                    );
                 }
             }
         }
-        console.log(`[ResourceManager] Cleanup complete: ${cleanedCount} resources cleaned`, filter);
+        console.log(
+            `[ResourceManager] Cleanup complete: ${cleanedCount} resources cleaned`,
+            filter
+        );
         return cleanedCount;
     }
     /**
@@ -100,21 +109,29 @@ class ResourceManager {
         for (const [id, resource] of resources) {
             try {
                 resource.cleanup();
-                console.log(`[ResourceManager] Cleaned up ${resource.type} resource: ${id}`);
-            }
-            catch (error) {
-                console.error(`[ResourceManager] Error cleaning up resource ${id}:`, error);
+                console.log(
+                    `[ResourceManager] Cleaned up ${resource.type} resource: ${id}`
+                );
+            } catch (error) {
+                console.error(
+                    `[ResourceManager] Error cleaning up resource ${id}:`,
+                    error
+                );
             }
         }
         this.resources.clear();
         // Also cleanup event listeners managed by eventListenerManager
         try {
             cleanupEventListeners();
+        } catch (error) {
+            console.error(
+                "[ResourceManager] Error cleaning up event listeners:",
+                error
+            );
         }
-        catch (error) {
-            console.error("[ResourceManager] Error cleaning up event listeners:", error);
-        }
-        console.log(`[ResourceManager] Cleanup complete: ${count} resources cleaned`);
+        console.log(
+            `[ResourceManager] Cleanup complete: ${count} resources cleaned`
+        );
         return count;
     }
     /**
@@ -179,22 +196,32 @@ class ResourceManager {
             console.warn("[ResourceManager] Invalid chart instance");
             return "";
         }
-        return this.register("chart", () => {
-            try {
-                chart.destroy();
-            }
-            catch (error) {
-                console.error("[ResourceManager] Error destroying chart:", error);
-            }
-        }, { ...options, instance: chart });
+        return this.register(
+            "chart",
+            () => {
+                try {
+                    chart.destroy();
+                } catch (error) {
+                    console.error(
+                        "[ResourceManager] Error destroying chart:",
+                        error
+                    );
+                }
+            },
+            { ...options, instance: chart }
+        );
     }
     /**
      * Register an interval for automatic cleanup
      */
     registerInterval(intervalId, options = {}) {
-        return this.register("interval", () => {
-            clearInterval(intervalId);
-        }, { ...options, instance: intervalId });
+        return this.register(
+            "interval",
+            () => {
+                clearInterval(intervalId);
+            },
+            { ...options, instance: intervalId }
+        );
     }
     /**
      * Register a map for automatic cleanup
@@ -204,14 +231,20 @@ class ResourceManager {
             console.warn("[ResourceManager] Invalid map instance");
             return "";
         }
-        return this.register("map", () => {
-            try {
-                map.remove();
-            }
-            catch (error) {
-                console.error("[ResourceManager] Error removing map:", error);
-            }
-        }, { ...options, instance: map });
+        return this.register(
+            "map",
+            () => {
+                try {
+                    map.remove();
+                } catch (error) {
+                    console.error(
+                        "[ResourceManager] Error removing map:",
+                        error
+                    );
+                }
+            },
+            { ...options, instance: map }
+        );
     }
     /**
      * Register an observer for automatic cleanup
@@ -221,22 +254,32 @@ class ResourceManager {
             console.warn("[ResourceManager] Invalid observer instance");
             return "";
         }
-        return this.register("observer", () => {
-            try {
-                observer.disconnect();
-            }
-            catch (error) {
-                console.error("[ResourceManager] Error disconnecting observer:", error);
-            }
-        }, { ...options, instance: observer });
+        return this.register(
+            "observer",
+            () => {
+                try {
+                    observer.disconnect();
+                } catch (error) {
+                    console.error(
+                        "[ResourceManager] Error disconnecting observer:",
+                        error
+                    );
+                }
+            },
+            { ...options, instance: observer }
+        );
     }
     /**
      * Register a timer for automatic cleanup
      */
     registerTimer(timerId, options = {}) {
-        return this.register("timer", () => {
-            clearTimeout(timerId);
-        }, { ...options, instance: timerId });
+        return this.register(
+            "timer",
+            () => {
+                clearTimeout(timerId);
+            },
+            { ...options, instance: timerId }
+        );
     }
     /**
      * Register a web worker for automatic cleanup
@@ -246,14 +289,20 @@ class ResourceManager {
             console.warn("[ResourceManager] Invalid worker instance");
             return "";
         }
-        return this.register("worker", () => {
-            try {
-                worker.terminate();
-            }
-            catch (error) {
-                console.error("[ResourceManager] Error terminating worker:", error);
-            }
-        }, { ...options, instance: worker });
+        return this.register(
+            "worker",
+            () => {
+                try {
+                    worker.terminate();
+                } catch (error) {
+                    console.error(
+                        "[ResourceManager] Error terminating worker:",
+                        error
+                    );
+                }
+            },
+            { ...options, instance: worker }
+        );
     }
     /**
      * Remove a shutdown hook
@@ -272,14 +321,18 @@ class ResourceManager {
         this.isShuttingDown = true;
         console.log("[ResourceManager] Beginning shutdown sequence...");
         // Execute shutdown hooks first
-        await Promise.all(Array.from(this.shutdownHooks, async (hook) => {
-            try {
-                await hook();
-            }
-            catch (error) {
-                console.error("[ResourceManager] Error in shutdown hook:", error);
-            }
-        }));
+        await Promise.all(
+            Array.from(this.shutdownHooks, async (hook) => {
+                try {
+                    await hook();
+                } catch (error) {
+                    console.error(
+                        "[ResourceManager] Error in shutdown hook:",
+                        error
+                    );
+                }
+            })
+        );
         // Cleanup all resources
         this.cleanupAll();
         console.log("[ResourceManager] Shutdown complete");
@@ -294,10 +347,14 @@ class ResourceManager {
         }
         try {
             resource.cleanup();
-            console.log(`[ResourceManager] Cleaned up ${resource.type} resource: ${id}`);
-        }
-        catch (error) {
-            console.error(`[ResourceManager] Error cleaning up resource ${id}:`, error);
+            console.log(
+                `[ResourceManager] Cleaned up ${resource.type} resource: ${id}`
+            );
+        } catch (error) {
+            console.error(
+                `[ResourceManager] Error cleaning up resource ${id}:`,
+                error
+            );
         }
         this.resources.delete(id);
         return true;
@@ -306,16 +363,24 @@ class ResourceManager {
 // Create singleton instance
 const resourceManager = new ResourceManager();
 // Setup window cleanup handler (only when addEventListener is available)
-if (globalThis.window !== undefined &&
-    typeof globalThis.window.addEventListener === "function") {
+if (
+    globalThis.window !== undefined &&
+    typeof globalThis.window.addEventListener === "function"
+) {
     const beforeUnloadController = new AbortController();
-    globalThis.window.addEventListener("beforeunload", () => {
-        console.log("[ResourceManager] Window unload detected, cleaning up resources...");
-        resourceManager.cleanupAll();
-        beforeUnloadController.abort();
-    }, {
-        signal: beforeUnloadController.signal,
-    });
+    globalThis.window.addEventListener(
+        "beforeunload",
+        () => {
+            console.log(
+                "[ResourceManager] Window unload detected, cleaning up resources..."
+            );
+            resourceManager.cleanupAll();
+            beforeUnloadController.abort();
+        },
+        {
+            signal: beforeUnloadController.signal,
+        }
+    );
 }
 /**
  * Shared singleton that tracks app resources and centralizes cleanup.
@@ -324,7 +389,22 @@ export { resourceManager };
 /**
  * Bound resource manager helpers for legacy imports that use named functions.
  */
-export const { addShutdownHook, cleanup, cleanupAll, getStats, list, register, registerChart, registerInterval, registerMap, registerObserver, registerTimer, registerWorker, shutdown, unregister, } = resourceManager;
+export const {
+    addShutdownHook,
+    cleanup,
+    cleanupAll,
+    getStats,
+    list,
+    register,
+    registerChart,
+    registerInterval,
+    registerMap,
+    registerObserver,
+    registerTimer,
+    registerWorker,
+    shutdown,
+    unregister,
+} = resourceManager;
 // Make available globally for debugging
 if (typeof globalThis !== "undefined") {
     globalThis.resourceManager = resourceManager;

@@ -62,49 +62,57 @@ export function createExportGPXButton(): HTMLButtonElement {
     exportBtn.append(createExportIcon(primary), label);
     exportBtn.title = "Export the current track as a GPX file";
     const listenerController = new AbortController();
-    exportBtn.addEventListener("click", () => {
-        const windowCtx = getGpxExportGlobal();
-        const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
-            ? windowCtx.globalData.recordMesgs
-            : null;
+    exportBtn.addEventListener(
+        "click",
+        () => {
+            const windowCtx = getGpxExportGlobal();
+            const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
+                ? windowCtx.globalData.recordMesgs
+                : null;
 
-        if (!records || records.length === 0) {
-            showNotification("No data available for GPX export.", "info", 3000);
-            return;
-        }
+            if (!records || records.length === 0) {
+                showNotification(
+                    "No data available for GPX export.",
+                    "info",
+                    3000
+                );
+                return;
+            }
 
-        const trackName = resolveTrackNameFromLoadedFiles(
-            windowCtx?.loadedFitFiles
-        );
-        const gpx = buildGpxFromRecords(records, { trackName });
-        if (!gpx) {
-            showNotification(
-                "No valid coordinates found for GPX export.",
-                "info",
-                3000
+            const trackName = resolveTrackNameFromLoadedFiles(
+                windowCtx?.loadedFitFiles
             );
-            return;
-        }
+            const gpx = buildGpxFromRecords(records, { trackName });
+            if (!gpx) {
+                showNotification(
+                    "No valid coordinates found for GPX export.",
+                    "info",
+                    3000
+                );
+                return;
+            }
 
-        const downloadName = buildDownloadFilename(trackName, {
-            defaultExtension: "gpx",
-            fallbackBase: "track",
-        });
+            const downloadName = buildDownloadFilename(trackName, {
+                defaultExtension: "gpx",
+                fallbackBase: "track",
+            });
 
-        const blob = new Blob([gpx], {
-            type: "application/gpx+xml;charset=utf-8",
-        });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = downloadName;
-        document.body.append(link);
-        link.click();
-        const cleanupTimer = window.setTimeout(() => {
-            downloadCleanupTimers.delete(link);
-            URL.revokeObjectURL(link.href);
-            link.remove();
-        }, 100);
-        downloadCleanupTimers.set(link, cleanupTimer);
-    }, { signal: listenerController.signal });
+            const blob = new Blob([gpx], {
+                type: "application/gpx+xml;charset=utf-8",
+            });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = downloadName;
+            document.body.append(link);
+            link.click();
+            const cleanupTimer = window.setTimeout(() => {
+                downloadCleanupTimers.delete(link);
+                URL.revokeObjectURL(link.href);
+                link.remove();
+            }, 100);
+            downloadCleanupTimers.set(link, cleanupTimer);
+        },
+        { signal: listenerController.signal }
+    );
     return exportBtn;
 }

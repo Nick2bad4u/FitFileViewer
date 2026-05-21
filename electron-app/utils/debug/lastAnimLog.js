@@ -8,15 +8,17 @@
  */
 function isDevelopmentMode() {
     const globalScope = globalThis;
-    return ((globalScope.window !== undefined &&
-        Boolean(globalScope.__renderer_dev)) ||
+    return (
+        (globalScope.window !== undefined &&
+            Boolean(globalScope.__renderer_dev)) ||
         (typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "development"));
+            process.env["NODE_ENV"] === "development")
+    );
 }
 /**
  * Logs animation progress messages to the console at most once every 500ms to
- * prevent log flooding. Intended for development/debug logging
- * only, and disabled in production builds.
+ * prevent log flooding. Intended for development/debug logging only, and
+ * disabled in production builds.
  *
  * This utility uses a closure to maintain state and throttle log messages,
  * which is particularly useful for high-frequency events like animation frames
@@ -41,8 +43,7 @@ export const throttledAnimLog = (() => {
                 console.log(`[AnimDebug] ${message}`);
                 lastAnimLogTimestamp = now;
             }
-        }
-        catch {
+        } catch {
             // Silently fail if logging encounters an error
             // Don't use console.error to avoid potential recursion
         }
@@ -65,8 +66,7 @@ export const criticalAnimLog = (message) => {
     }
     try {
         console.log(`[AnimCritical] ${message}`);
-    }
-    catch {
+    } catch {
         // Silently fail if logging encounters an error
     }
 };
@@ -93,11 +93,12 @@ export const perfAnimLog = (() => {
                 const duration = startTime
                     ? ` (${(now - startTime).toFixed(2)}ms)`
                     : "";
-                console.log(`[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`);
+                console.log(
+                    `[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`
+                );
                 lastPerfLogTimestamp = now;
             }
-        }
-        catch {
+        } catch {
             // Silently fail if logging encounters an error
         }
     };

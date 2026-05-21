@@ -72,12 +72,11 @@ export class UIStateManager {
 
     /**
      * Apply theme to the UI
-     *
      */
     applyTheme(theme: string) {
-        const root = (
-            document.documentElement || document.body || ({})
-        ) as HTMLElement;
+        const root = (document.documentElement ||
+            document.body ||
+            {}) as HTMLElement;
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
@@ -149,16 +148,16 @@ export class UIStateManager {
         // Update theme toggle buttons
         const themeButtons = (() => {
             try {
-                return ([
-                    ...(document.querySelectorAll("[data-theme]") || []),
-                ]);
+                return [...(document.querySelectorAll("[data-theme]") || [])];
             } catch {
                 return [];
             }
         })();
         for (const button of themeButtons) {
             const buttonTheme =
-                button instanceof HTMLElement ? button.dataset["theme"] : undefined;
+                button instanceof HTMLElement
+                    ? button.dataset["theme"]
+                    : undefined;
             button.classList.toggle("active", buttonTheme === theme);
         }
 
@@ -205,7 +204,9 @@ export class UIStateManager {
         // Subscribe to active tab changes
         subscribe("ui.activeTab", (activeTab) => {
             const tabName =
-                typeof activeTab === "string" ? activeTab : String(activeTab ?? "");
+                typeof activeTab === "string"
+                    ? activeTab
+                    : String(activeTab ?? "");
             this.updateTabVisibility(tabName);
             this.updateTabButtons(tabName);
         });
@@ -222,7 +223,9 @@ export class UIStateManager {
 
         // Subscribe to file display updates
         subscribe("ui.fileInfo", (fileInfo) => {
-            this.updateFileDisplayUI(fileInfo as FileInfoState | null | undefined);
+            this.updateFileDisplayUI(
+                fileInfo as FileInfoState | null | undefined
+            );
         });
 
         // Subscribe to loading indicator progress
@@ -278,12 +281,10 @@ export class UIStateManager {
         // Safe helpers to guard against jsdom brand-check errors or replaced globals
         const safeQuerySelectorAll = (selector: string): Element[] => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
                     // Array.from guards non-iterables
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
             } catch {
                 // Swallow to keep tests stable if document was swapped or methods are from another realm
@@ -292,9 +293,7 @@ export class UIStateManager {
         };
         const safeGetById = (id: string): HTMLElement | null => {
             try {
-                return (
-                    getElementByIdFlexible(document, id)
-                );
+                return getElementByIdFlexible(document, id);
             } catch {
                 return null;
             }
@@ -305,17 +304,13 @@ export class UIStateManager {
          *
          * Some unit tests stub DOM nodes with plain objects; in production
          * these are real HTMLElements. Guard to avoid runtime crashes.
-         *
          */
         const safeAddClickListener = (
             el: ClickableElement | null | undefined,
             handler: () => void
         ): void => {
-            if (
-                el &&
-                typeof ((el).addEventListener) === "function"
-            ) {
-                (el).addEventListener("click", handler, {
+            if (el && typeof el.addEventListener === "function") {
+                el.addEventListener("click", handler, {
                     signal: this.eventListenerAbortController.signal,
                 });
             }
@@ -325,7 +320,9 @@ export class UIStateManager {
         const tabButtons = safeQuerySelectorAll("[data-tab]");
         for (const button of tabButtons) {
             const tabName =
-                button instanceof HTMLElement ? button.dataset["tab"] : undefined;
+                button instanceof HTMLElement
+                    ? button.dataset["tab"]
+                    : undefined;
             safeAddClickListener(button, () => {
                 if (tabName) {
                     AppActions.switchTab(tabName);
@@ -347,7 +344,9 @@ export class UIStateManager {
         );
         for (const button of themeButtons) {
             const theme =
-                button instanceof HTMLElement ? button.dataset["theme"] : undefined;
+                button instanceof HTMLElement
+                    ? button.dataset["theme"]
+                    : undefined;
             safeAddClickListener(button, () => {
                 if (theme) {
                     AppActions.switchTheme(theme);
@@ -372,7 +371,6 @@ export class UIStateManager {
 
     /**
      * Show a notification to the user
-     *
      */
     showNotification(notification: NotificationInput) {
         try {
@@ -423,13 +421,14 @@ export class UIStateManager {
                 "[UIStateManager] Failed to show notification:",
                 error
             );
-            console.log(`[Notification] ${getNotificationMessage(notification)}`);
+            console.log(
+                `[Notification] ${getNotificationMessage(notification)}`
+            );
         }
     }
 
     /**
      * Show/hide sidebar
-     *
      */
     toggleSidebar(collapsed?: boolean) {
         const currentState = getState("ui.sidebarCollapsed"),
@@ -453,7 +452,6 @@ export class UIStateManager {
 
     /**
      * Update chart controls UI
-     *
      */
     updateChartControlsUI(isVisible: boolean) {
         const wrapper = getChartSettingsWrapper(document);
@@ -472,14 +470,11 @@ export class UIStateManager {
     }
     /**
      * Update drop overlay visibility and related iframe pointer state
-     *
      */
     updateDropOverlayVisibility(isVisible: boolean) {
         const dropOverlay = (() => {
             try {
-                return (
-                    getElementByIdFlexible(document, "drop_overlay")
-                );
+                return getElementByIdFlexible(document, "drop_overlay");
             } catch {
                 return null;
             }
@@ -491,9 +486,7 @@ export class UIStateManager {
 
         const altFitIframe = (() => {
             try {
-                return (
-                    getElementByIdFlexible(document, "altfit_iframe")
-                );
+                return getElementByIdFlexible(document, "altfit_iframe");
             } catch {
                 return null;
             }
@@ -505,9 +498,7 @@ export class UIStateManager {
 
         const zwiftIframe = (() => {
             try {
-                return (
-                    getElementByIdFlexible(document, "zwift_iframe")
-                );
+                return getElementByIdFlexible(document, "zwift_iframe");
             } catch {
                 return null;
             }
@@ -628,12 +619,13 @@ export class UIStateManager {
     }
     /**
      * Update loading indicator visibility
-     *
      */
     updateLoadingIndicator(isLoading: boolean) {
         const loadingIndicator = (() => {
             try {
-                return document.querySelector<HTMLElement>("#loading-indicator");
+                return document.querySelector<HTMLElement>(
+                    "#loading-indicator"
+                );
             } catch {
                 return null;
             }
@@ -665,9 +657,11 @@ export class UIStateManager {
     /**
      * Update loading progress UI based on indicator state
      *
-     *   Loading indicator state
+     * Loading indicator state
      */
-    updateLoadingProgressUI(indicator: LoadingIndicatorState | null | undefined) {
+    updateLoadingProgressUI(
+        indicator: LoadingIndicatorState | null | undefined
+    ) {
         const progressValue =
                 typeof indicator?.progress === "number"
                     ? indicator.progress
@@ -695,7 +689,6 @@ export class UIStateManager {
     }
     /**
      * Update measurement mode UI
-     *
      */
     updateMeasurementModeUI(isActive: boolean) {
         const toggleBtn = (() => {
@@ -727,19 +720,14 @@ export class UIStateManager {
 
     /**
      * Update tab button states
-     *
      */
     updateTabButtons(activeTab: string) {
-        /**
-         *
-         */
+        /**/
         const safeQuerySelectorAll = (selector: string): Element[] => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
             } catch {
                 /* Ignore errors */
@@ -762,19 +750,14 @@ export class UIStateManager {
 
     /**
      * Update tab visibility based on active tab
-     *
      */
     updateTabVisibility(activeTab: string) {
-        /**
-         *
-         */
+        /**/
         const safeQuerySelectorAll = (selector: string): Element[] => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
             } catch {
                 /* Ignore errors */
@@ -801,7 +784,6 @@ export class UIStateManager {
 
     /**
      * Update unload button visibility
-     *
      */
     updateUnloadButtonVisibility(isVisible: boolean) {
         const unloadBtn = (() => {
@@ -848,7 +830,6 @@ export const uiStateManager = new UIStateManager();
 export const UIActions = {
     /**
      * Set theme
-     *
      */
     setTheme(theme: string) {
         AppActions.switchTheme(theme);
@@ -856,7 +837,6 @@ export const UIActions = {
 
     /**
      * Show a tab
-     *
      */
     showTab(tabName: string) {
         AppActions.switchTab(tabName);
@@ -878,7 +858,6 @@ export const UIActions = {
 
     /**
      * Toggle sidebar
-     *
      */
     toggleSidebar(collapsed?: boolean) {
         uiStateManager.toggleSidebar(collapsed);
@@ -896,17 +875,25 @@ export const UIActions = {
 if (globalThis.window !== undefined) {
     const windowListenerAbortController = new AbortController();
 
-    window.addEventListener("resize", () => {
-        UIActions.updateWindowState();
-    }, {
-        signal: windowListenerAbortController.signal,
-    });
+    window.addEventListener(
+        "resize",
+        () => {
+            UIActions.updateWindowState();
+        },
+        {
+            signal: windowListenerAbortController.signal,
+        }
+    );
 
     // Set up beforeunload to save state
-    window.addEventListener("beforeunload", () => {
-        UIActions.updateWindowState();
-        windowListenerAbortController.abort();
-    }, {
-        signal: windowListenerAbortController.signal,
-    });
+    window.addEventListener(
+        "beforeunload",
+        () => {
+            UIActions.updateWindowState();
+            windowListenerAbortController.abort();
+        },
+        {
+            signal: windowListenerAbortController.signal,
+        }
+    );
 }

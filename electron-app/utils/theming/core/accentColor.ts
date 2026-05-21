@@ -110,6 +110,7 @@ export function clearAccentColor(): boolean {
  *
  * @param baseColor - Base accent color hex value.
  * @param theme - Current theme.
+ *
  * @returns Color variation map.
  */
 export function generateAccentColorVariations(
@@ -149,6 +150,7 @@ export function generateAccentColorVariations(
  * Gets the default accent color for a theme.
  *
  * @param theme - Current theme.
+ *
  * @returns Default accent color hex value.
  */
 export function getDefaultAccentColor(theme: string): string {
@@ -159,6 +161,7 @@ export function getDefaultAccentColor(theme: string): string {
  * Gets the custom accent color or theme default.
  *
  * @param theme - Current theme.
+ *
  * @returns Effective accent color hex value.
  */
 export function getEffectiveAccentColor(theme: string): string {
@@ -169,6 +172,7 @@ export function getEffectiveAccentColor(theme: string): string {
  * Initializes accent color CSS variables for the current theme.
  *
  * @param theme - Current theme.
+ *
  * @returns Applied accent color hex value.
  */
 export function initializeAccentColor(theme: string): string {
@@ -181,6 +185,7 @@ export function initializeAccentColor(theme: string): string {
  * Checks whether a value is a six-digit hex color.
  *
  * @param color - Color candidate.
+ *
  * @returns True when the value is a valid hex color.
  */
 export function isValidHexColor(color: unknown): color is string {
@@ -208,6 +213,7 @@ export function loadAccentColor(): null | string {
  * Resets the accent color to the current theme default.
  *
  * @param theme - Current theme.
+ *
  * @returns Default accent color hex value.
  */
 export function resetAccentColor(theme: string): string {
@@ -221,6 +227,7 @@ export function resetAccentColor(theme: string): string {
  * Saves the custom accent color to localStorage.
  *
  * @param color - Hex color to save.
+ *
  * @returns True when saved successfully.
  */
 export function saveAccentColor(color: string): boolean {
@@ -243,6 +250,7 @@ export function saveAccentColor(color: string): boolean {
  *
  * @param color - New accent color hex value.
  * @param theme - Current theme.
+ *
  * @returns True when the value was saved and applied.
  */
 export function setAccentColor(color: string, theme: string): boolean {

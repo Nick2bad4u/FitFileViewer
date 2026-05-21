@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { createAppIconElement, } from "../../ui/icons/iconFactory.js";
+import { createAppIconElement } from "../../ui/icons/iconFactory.js";
 function getLapSelectorGlobal() {
     return globalThis;
 }
@@ -9,15 +9,18 @@ function getLapSelectorGlobal() {
 /**
  * Adds lap selector control to map
  *
- * @param _map - Leaflet map instance. Reserved for future map-specific behavior.
+ * @param _map - Leaflet map instance. Reserved for future map-specific
+ *   behavior.
  * @param container - Container element for the control.
  * @param mapDrawLaps - Function to draw laps on map.
  */
 export function addLapSelector(_map, container, mapDrawLaps) {
     const windowWithData = getLapSelectorGlobal();
-    if (!windowWithData.globalData ||
+    if (
+        !windowWithData.globalData ||
         !Array.isArray(windowWithData.globalData.lapMesgs) ||
-        windowWithData.globalData.lapMesgs.length === 0) {
+        windowWithData.globalData.lapMesgs.length === 0
+    ) {
         return;
     }
     const { lapMesgs } = windowWithData.globalData;
@@ -36,18 +39,26 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     const safeColors = {
         surface: sanitizeCssColorToken(themeColors["surface"], "#ffffff"),
         primary: sanitizeCssColorToken(themeColors["primary"], "#3b82f6"),
-        accent: sanitizeCssColorToken(themeColors["accent"] || themeColors["primary"], "#3b82f6"),
+        accent: sanitizeCssColorToken(
+            themeColors["accent"] || themeColors["primary"],
+            "#3b82f6"
+        ),
         text: sanitizeCssColorToken(themeColors["text"], "#0f172a"),
-        textSecondary: sanitizeCssColorToken(themeColors["textSecondary"] || "#888", "#888"),
+        textSecondary: sanitizeCssColorToken(
+            themeColors["textSecondary"] || "#888",
+            "#888"
+        ),
     };
     const createControlIcon = (iconName, size = 16) => {
         const icon = document.createElement("span");
         icon.className = "icon";
-        icon.append(createAppIconElement(iconName, {
-            className: "lap-control-icon",
-            size,
-            strokeWidth: 2,
-        }));
+        icon.append(
+            createAppIconElement(iconName, {
+                className: "lap-control-icon",
+                size,
+                strokeWidth: 2,
+            })
+        );
         return icon;
     };
     const bar = document.createElement("div");
@@ -139,31 +150,51 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             document.addEventListener("keydown", handleEscapeKey, { signal });
         }
     }
-    helpBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        if (tooltipPinned) {
-            hideHelpTooltip({ force: true });
-        }
-        else {
-            showHelpTooltip({ pinned: true });
-        }
-    }, { signal });
+    helpBtn.addEventListener(
+        "click",
+        (event) => {
+            event.stopPropagation();
+            if (tooltipPinned) {
+                hideHelpTooltip({ force: true });
+            } else {
+                showHelpTooltip({ pinned: true });
+            }
+        },
+        { signal }
+    );
     helpBtn.addEventListener("mouseenter", () => showHelpTooltip(), { signal });
     helpBtn.addEventListener("focus", () => showHelpTooltip(), { signal });
     helpBtn.addEventListener("mouseleave", () => hideHelpTooltip(), { signal });
-    helpBtn.addEventListener("blur", () => hideHelpTooltip({ force: true }), { signal });
+    helpBtn.addEventListener("blur", () => hideHelpTooltip({ force: true }), {
+        signal,
+    });
     helpTooltip.addEventListener("mouseenter", () => showHelpTooltip(), {
         signal,
     });
     helpTooltip.addEventListener("mouseleave", () => hideHelpTooltip(), {
         signal,
     });
-    bar.append(multiLapToggle, deselectAllBtn, label, lapSelect, helpBtn, helpTooltip);
+    bar.append(
+        multiLapToggle,
+        deselectAllBtn,
+        label,
+        lapSelect,
+        helpBtn,
+        helpTooltip
+    );
     lapControl.append(bar);
-    lapControl.addEventListener("mousedown", (event) => event.stopPropagation(), {
-        signal,
-    });
-    lapControl.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true, signal });
+    lapControl.addEventListener(
+        "mousedown",
+        (event) => event.stopPropagation(),
+        {
+            signal,
+        }
+    );
+    lapControl.addEventListener(
+        "touchstart",
+        (event) => event.stopPropagation(),
+        { passive: true, signal }
+    );
     container.append(lapControl);
     const deselectAllBtnEl = deselectAllBtn;
     const lapSelectEl = lapSelect;
@@ -194,8 +225,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             }
             renderToggleIcon(true);
             multiLapToggleEl.title = "Return to single-lap mode";
-        }
-        else {
+        } else {
             lapSelectEl.multiple = false;
             lapSelectEl.size = 1;
             multiLapToggleEl?.classList.remove("active");
@@ -207,90 +237,113 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             multiLapToggleEl.title =
                 "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
             // If more than one selected, reset to 'all'
-            if (lapSelectEl.selectedOptions.length > 1 ||
+            if (
+                lapSelectEl.selectedOptions.length > 1 ||
                 (lapSelectEl.selectedOptions.length === 1 &&
-                    lapSelectEl.selectedOptions[0]?.value !== "all")) {
+                    lapSelectEl.selectedOptions[0]?.value !== "all")
+            ) {
                 lapSelectEl.selectedIndex = 0;
                 lapSelectEl.dispatchEvent(new Event("change"));
             }
         }
     }
     if (deselectAllBtnEl) {
-        deselectAllBtnEl.addEventListener("click", () => {
-            for (const opt of lapSelectEl.options) {
-                opt.selected = false;
-            }
-            lapSelectEl.selectedIndex = 0;
-            lapSelectEl.dispatchEvent(new Event("change"));
-        }, { signal });
+        deselectAllBtnEl.addEventListener(
+            "click",
+            () => {
+                for (const opt of lapSelectEl.options) {
+                    opt.selected = false;
+                }
+                lapSelectEl.selectedIndex = 0;
+                lapSelectEl.dispatchEvent(new Event("change"));
+            },
+            { signal }
+        );
     }
     // Hide deselect button by default.
     deselectAllBtnEl.style.display = "none";
-    multiLapToggleEl.addEventListener("click", () => setMultiSelectMode(!multiSelectMode), { signal });
-    lapSelectEl.addEventListener("change", () => {
-        let selected = [...lapSelectEl.selectedOptions].map((opt) => opt.value);
-        if (multiSelectMode) {
-            if (selected.includes("all") && selected.length > 1) {
-                for (const opt of lapSelectEl.options) {
-                    opt.selected = opt.value === "all";
+    multiLapToggleEl.addEventListener(
+        "click",
+        () => setMultiSelectMode(!multiSelectMode),
+        { signal }
+    );
+    lapSelectEl.addEventListener(
+        "change",
+        () => {
+            let selected = [...lapSelectEl.selectedOptions].map(
+                (opt) => opt.value
+            );
+            if (multiSelectMode) {
+                if (selected.includes("all") && selected.length > 1) {
+                    for (const opt of lapSelectEl.options) {
+                        opt.selected = opt.value === "all";
+                    }
+                    selected = ["all"];
                 }
-                selected = ["all"];
-            }
-            if (selected.length === 0) {
-                lapSelectEl.selectedIndex = 0;
-                selected = ["all"];
-            }
-            if (selected.length === 1 && selected[0] === "all") {
+                if (selected.length === 0) {
+                    lapSelectEl.selectedIndex = 0;
+                    selected = ["all"];
+                }
+                if (selected.length === 1 && selected[0] === "all") {
+                    mapDrawLaps("all");
+                } else {
+                    mapDrawLaps(selected);
+                }
+            } else if ((selected[0] ?? "all") === "all") {
                 mapDrawLaps("all");
+            } else {
+                mapDrawLaps([selected[0] ?? "all"]);
             }
-            else {
-                mapDrawLaps(selected);
-            }
-        }
-        else if ((selected[0] ?? "all") === "all") {
-            mapDrawLaps("all");
-        }
-        else {
-            mapDrawLaps([selected[0] ?? "all"]);
-        }
-    }, { signal });
+        },
+        { signal }
+    );
     // Multi-lap mode: click to select/deselect laps (no hotkey needed)
     // Drag-to-select logic
-    let dragSelecting = false, dragSelectValue = null;
-    lapSelectEl.addEventListener("mousedown", (event) => {
-        const { target } = event;
-        if (multiSelectMode && target instanceof HTMLOptionElement) {
-            event.preventDefault();
-            dragSelecting = true;
-            dragSelectValue = !target.selected;
-            if (target.value === "all") {
-                for (const o of lapSelectEl.options) {
-                    o.selected = o.value === "all";
-                }
-            }
-            else {
-                target.selected = dragSelectValue;
-                if (lapSelectEl.options[0]) {
-                    lapSelectEl.options[0].selected = false;
-                }
-            }
-            lapSelectEl.dispatchEvent(new Event("change"));
-        }
-    }, { signal });
-    lapSelectEl.addEventListener("mouseover", (event) => {
-        const { target } = event;
-        if (multiSelectMode &&
-            dragSelecting &&
-            target instanceof HTMLOptionElement) {
-            if (target.value !== "all") {
-                target.selected = Boolean(dragSelectValue);
-                if (lapSelectEl.options[0]) {
-                    lapSelectEl.options[0].selected = false;
+    let dragSelecting = false,
+        dragSelectValue = null;
+    lapSelectEl.addEventListener(
+        "mousedown",
+        (event) => {
+            const { target } = event;
+            if (multiSelectMode && target instanceof HTMLOptionElement) {
+                event.preventDefault();
+                dragSelecting = true;
+                dragSelectValue = !target.selected;
+                if (target.value === "all") {
+                    for (const o of lapSelectEl.options) {
+                        o.selected = o.value === "all";
+                    }
+                } else {
+                    target.selected = dragSelectValue;
+                    if (lapSelectEl.options[0]) {
+                        lapSelectEl.options[0].selected = false;
+                    }
                 }
                 lapSelectEl.dispatchEvent(new Event("change"));
             }
-        }
-    }, { signal });
+        },
+        { signal }
+    );
+    lapSelectEl.addEventListener(
+        "mouseover",
+        (event) => {
+            const { target } = event;
+            if (
+                multiSelectMode &&
+                dragSelecting &&
+                target instanceof HTMLOptionElement
+            ) {
+                if (target.value !== "all") {
+                    target.selected = Boolean(dragSelectValue);
+                    if (lapSelectEl.options[0]) {
+                        lapSelectEl.options[0].selected = false;
+                    }
+                    lapSelectEl.dispatchEvent(new Event("change"));
+                }
+            }
+        },
+        { signal }
+    );
     // Avoid leaking document-level handlers if the map is re-rendered.
     const g = windowWithData;
     const mouseupKey = "__ffvLapSelectorMouseupHandler";
@@ -302,31 +355,42 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         dragSelectValue = null;
     };
     document.addEventListener("mouseup", g[mouseupKey], { signal });
-    signal.addEventListener("abort", () => {
-        if (g[mouseupKey]) {
-            document.removeEventListener("mouseup", g[mouseupKey]);
-            delete g[mouseupKey];
-        }
-        hideHelpTooltip({ force: true });
-    }, { once: true, signal });
+    signal.addEventListener(
+        "abort",
+        () => {
+            if (g[mouseupKey]) {
+                document.removeEventListener("mouseup", g[mouseupKey]);
+                delete g[mouseupKey];
+            }
+            hideHelpTooltip({ force: true });
+        },
+        { once: true, signal }
+    );
     // Add scroll wheel support for changing lap selection
-    lapSelectEl.addEventListener("wheel", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const options = [...lapSelectEl.options];
-        let idx = lapSelectEl.selectedIndex;
-        if (idx === -1) {
-            idx = 0;
-        }
-        if (event.deltaY > 0 && idx < options.length - 1) {
-            lapSelectEl.selectedIndex = idx + 1;
-        }
-        else if (event.deltaY < 0 && idx > 0) {
-            lapSelectEl.selectedIndex = idx - 1;
-        }
-        lapSelectEl.dispatchEvent(new Event("change"));
-    }, { passive: false, signal });
-    lapControl.addEventListener("ffv:map-lap-selector:dispose", () => eventController.abort(), { once: true, signal });
+    lapSelectEl.addEventListener(
+        "wheel",
+        (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const options = [...lapSelectEl.options];
+            let idx = lapSelectEl.selectedIndex;
+            if (idx === -1) {
+                idx = 0;
+            }
+            if (event.deltaY > 0 && idx < options.length - 1) {
+                lapSelectEl.selectedIndex = idx + 1;
+            } else if (event.deltaY < 0 && idx > 0) {
+                lapSelectEl.selectedIndex = idx - 1;
+            }
+            lapSelectEl.dispatchEvent(new Event("change"));
+        },
+        { passive: false, signal }
+    );
+    lapControl.addEventListener(
+        "ffv:map-lap-selector:dispose",
+        () => eventController.abort(),
+        { once: true, signal }
+    );
     // Initialize in single-select mode
     setMultiSelectMode(false);
 }

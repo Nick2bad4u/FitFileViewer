@@ -15,8 +15,7 @@ export function initFitBrowserFeatureGate() {
         try {
             const enabled = await api.isFitBrowserEnabled();
             applyBrowserTabVisibility(enabled === true);
-        }
-        catch {
+        } catch {
             // Fail closed: hide if we cannot determine.
             applyBrowserTabVisibility(false);
         }
@@ -24,10 +23,16 @@ export function initFitBrowserFeatureGate() {
     applyFromMainSetting().catch(() => {
         // Ignore startup races from preload teardown in tests.
     });
-    api.onIpc?.("fit-browser-enabled-changed", (eventOrEnabled, enabledMaybe) => {
-        const enabled = typeof eventOrEnabled === "boolean" ? eventOrEnabled : enabledMaybe;
-        applyBrowserTabVisibility(enabled === true);
-    });
+    api.onIpc?.(
+        "fit-browser-enabled-changed",
+        (eventOrEnabled, enabledMaybe) => {
+            const enabled =
+                typeof eventOrEnabled === "boolean"
+                    ? eventOrEnabled
+                    : enabledMaybe;
+            applyBrowserTabVisibility(enabled === true);
+        }
+    );
 }
 function applyBrowserTabVisibility(enabled) {
     const tabButton = document.getElementById(BROWSER_TAB_BUTTON_ID);
@@ -46,10 +51,11 @@ function applyBrowserTabVisibility(enabled) {
 }
 function getElectronAPI() {
     const api = globalThis.electronAPI;
-    if (api === null ||
+    if (
+        api === null ||
         typeof api !== "object" ||
-        typeof api.isFitBrowserEnabled !==
-            "function") {
+        typeof api.isFitBrowserEnabled !== "function"
+    ) {
         return null;
     }
     return api;

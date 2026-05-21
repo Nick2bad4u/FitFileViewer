@@ -15,21 +15,21 @@ Guide for updating or migrating the FIT file parser implementation.
 FitFileViewer uses the **Garmin FIT SDK** for JavaScript:
 
 ```javascript
-import { Decoder, Stream } from '@garmin/fitsdk';
+import { Decoder, Stream } from "@garmin/fitsdk";
 
 function parseFitFile(arrayBuffer) {
-    const stream = new Stream(arrayBuffer);
-    const decoder = new Decoder(stream);
+ const stream = new Stream(arrayBuffer);
+ const decoder = new Decoder(stream);
 
-    // Decode all messages
-    const { messages } = decoder.read();
+ // Decode all messages
+ const { messages } = decoder.read();
 
-    return {
-        records: messages.recordMesgs,
-        laps: messages.lapMesgs,
-        sessions: messages.sessionMesgs,
-        events: messages.eventMesgs
-    };
+ return {
+  records: messages.recordMesgs,
+  laps: messages.lapMesgs,
+  sessions: messages.sessionMesgs,
+  events: messages.eventMesgs,
+ };
 }
 ```
 
@@ -38,6 +38,7 @@ function parseFitFile(arrayBuffer) {
 ### When to Migrate
 
 Consider migration when:
+
 - New SDK version with breaking changes
 - Performance improvements needed
 - Bug fixes required
@@ -65,19 +66,19 @@ FIT SDK may add/change field names:
 ```javascript
 // Map old field names to new
 const fieldMapping = {
-    // Old SDK           New SDK
-    'positionLat':     'position_lat',
-    'positionLong':    'position_long',
-    'enhancedSpeed':   'enhanced_speed',
+ // Old SDK           New SDK
+ positionLat: "position_lat",
+ positionLong: "position_long",
+ enhancedSpeed: "enhanced_speed",
 };
 
 function normalizeRecord(record) {
-    const normalized = {};
-    for (const [key, value] of Object.entries(record)) {
-        const newKey = fieldMapping[key] || key;
-        normalized[newKey] = value;
-    }
-    return normalized;
+ const normalized = {};
+ for (const [key, value] of Object.entries(record)) {
+  const newKey = fieldMapping[key] || key;
+  normalized[newKey] = value;
+ }
+ return normalized;
 }
 ```
 
@@ -85,10 +86,10 @@ function normalizeRecord(record) {
 
 ```javascript
 // FIT timestamps are seconds from Dec 31, 1989
-const FIT_EPOCH = new Date('1989-12-31T00:00:00Z').getTime();
+const FIT_EPOCH = new Date("1989-12-31T00:00:00Z").getTime();
 
 function fitTimestampToDate(fitTimestamp) {
-    return new Date(FIT_EPOCH + (fitTimestamp * 1000));
+ return new Date(FIT_EPOCH + fitTimestamp * 1000);
 }
 ```
 
@@ -99,7 +100,7 @@ function fitTimestampToDate(fitTimestamp) {
 const SEMICIRCLES_TO_DEGREES = 180 / Math.pow(2, 31);
 
 function semicirclesToDegrees(semicircles) {
-    return semicircles * SEMICIRCLES_TO_DEGREES;
+ return semicircles * SEMICIRCLES_TO_DEGREES;
 }
 ```
 
@@ -108,43 +109,44 @@ function semicirclesToDegrees(semicircles) {
 ### Test Suite
 
 ```javascript
-import { describe, it, expect } from 'vitest';
-import { parseFitFile } from '../fitParser.js';
+import { describe, it, expect } from "vitest";
+import { parseFitFile } from "../fitParser.js";
 
-describe('FIT Parser Migration', () => {
-    it('should parse sample file correctly', async () => {
-        const buffer = await loadTestFile('sample.fit');
-        const result = parseFitFile(buffer);
+describe("FIT Parser Migration", () => {
+ it("should parse sample file correctly", async () => {
+  const buffer = await loadTestFile("sample.fit");
+  const result = parseFitFile(buffer);
 
-        expect(result.records).toBeDefined();
-        expect(result.records.length).toBeGreaterThan(0);
-    });
+  expect(result.records).toBeDefined();
+  expect(result.records.length).toBeGreaterThan(0);
+ });
 
-    it('should have correct field names', async () => {
-        const buffer = await loadTestFile('sample.fit');
-        const result = parseFitFile(buffer);
-        const record = result.records[0];
+ it("should have correct field names", async () => {
+  const buffer = await loadTestFile("sample.fit");
+  const result = parseFitFile(buffer);
+  const record = result.records[0];
 
-        expect(record.position_lat).toBeDefined();
-        expect(record.position_long).toBeDefined();
-        expect(record.timestamp).toBeDefined();
-    });
+  expect(record.position_lat).toBeDefined();
+  expect(record.position_long).toBeDefined();
+  expect(record.timestamp).toBeDefined();
+ });
 
-    it('should convert coordinates correctly', async () => {
-        const buffer = await loadTestFile('sample.fit');
-        const result = parseFitFile(buffer);
-        const record = result.records[0];
+ it("should convert coordinates correctly", async () => {
+  const buffer = await loadTestFile("sample.fit");
+  const result = parseFitFile(buffer);
+  const record = result.records[0];
 
-        // Latitude should be in degrees (-90 to 90)
-        expect(record.position_lat).toBeGreaterThan(-90);
-        expect(record.position_lat).toBeLessThan(90);
-    });
+  // Latitude should be in degrees (-90 to 90)
+  expect(record.position_lat).toBeGreaterThan(-90);
+  expect(record.position_lat).toBeLessThan(90);
+ });
 });
 ```
 
 ### Sample Files
 
 Use test files from:
+
 ```
 fit-test-files/
 ├── _Fenton_Michigan_*.fit
@@ -158,15 +160,15 @@ fit-test-files/
 
 ```javascript
 function detectSdkVersion() {
-    // Check for new features/fields
-    try {
-        const decoder = new Decoder();
-        if (typeof decoder.read === 'function') {
-            return '21.x';
-        }
-    } catch {
-        return 'unknown';
-    }
+ // Check for new features/fields
+ try {
+  const decoder = new Decoder();
+  if (typeof decoder.read === "function") {
+   return "21.x";
+  }
+ } catch {
+  return "unknown";
+ }
 }
 ```
 
@@ -174,17 +176,17 @@ function detectSdkVersion() {
 
 ```javascript
 function getRecords(messages) {
-    // Try new format first
-    if (messages.recordMesgs) {
-        return messages.recordMesgs;
-    }
+ // Try new format first
+ if (messages.recordMesgs) {
+  return messages.recordMesgs;
+ }
 
-    // Fall back to old format
-    if (messages.records) {
-        return messages.records;
-    }
+ // Fall back to old format
+ if (messages.records) {
+  return messages.records;
+ }
 
-    return [];
+ return [];
 }
 ```
 

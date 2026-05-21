@@ -86,9 +86,9 @@ describe(createMarkerCountSelector, () => {
             );
             expect(select.value).toBe("50");
             expect(getGlobal().mapMarkerCount).toBe(50);
-            expect([
-                ...select.options,
-            ].map((option) => option.value)).toStrictEqual([
+            expect(
+                [...select.options].map((option) => option.value)
+            ).toStrictEqual([
                 "10",
                 "25",
                 "50",
@@ -194,7 +194,9 @@ describe(createMarkerCountSelector, () => {
 
         resetFixture();
         const error = new Error("callback failed");
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const onChange = vi.fn<(count: number) => void>(() => {
             throw error;
         });
@@ -224,7 +226,9 @@ describe(createMarkerCountSelector, () => {
 
         resetFixture();
         const error = new Error("theme failed");
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         mocks.getThemeColors.mockImplementation(() => {
             throw error;
         });

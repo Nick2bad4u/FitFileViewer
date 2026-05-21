@@ -59,8 +59,10 @@ function getNodeEnvironment() {
     return typeof nodeEnvironment === "string" ? nodeEnvironment : undefined;
 }
 function isFileProtocolWindow() {
-    return (globalThis.window !== undefined &&
-        globalThis.location.protocol === "file:");
+    return (
+        globalThis.window !== undefined &&
+        globalThis.location.protocol === "file:"
+    );
 }
 function isDevelopmentRuntime() {
     return getNodeEnvironment() === "development" || isFileProtocolWindow();
@@ -82,14 +84,24 @@ async function loadVersionFromElectron() {
             if (electronAPI) {
                 const version = await electronAPI.getAppVersion();
                 CONSTANTS.VERSION = version || "unknown";
-                logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
+                logWithContext(
+                    "info",
+                    `Version loaded from Electron: ${CONSTANTS.VERSION}`
+                );
                 return CONSTANTS.VERSION;
             }
-            logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
-            logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
+            logWithContext(
+                "warn",
+                "electronAPI.getAppVersion not available, keeping default version"
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+            logWithContext(
+                "warn",
+                "Failed to load version from Electron API:",
+                { error: errorMessage }
+            );
         }
         return CONSTANTS.VERSION;
     })();
@@ -101,8 +113,7 @@ if (globalThis.window !== undefined) {
     if (getVersionElectronAPI()) {
         // Fire and forget - don't need to await
         void loadVersionFromElectron();
-    }
-    else {
+    } else {
         // Wait for electronAPI to be available
         const checkForElectronAPI = () => {
             if (versionLoadStarted) {
@@ -113,13 +124,18 @@ if (globalThis.window !== undefined) {
             if (getVersionElectronAPI()) {
                 // Fire and forget - don't need to await
                 void loadVersionFromElectron();
-            }
-            else {
+            } else {
                 // Keep checking periodically for a short time
-                electronAPICheckTimerId = globalThis.setTimeout(checkForElectronAPI, 100);
+                electronAPICheckTimerId = globalThis.setTimeout(
+                    checkForElectronAPI,
+                    100
+                );
             }
         };
-        electronAPICheckTimerId = globalThis.setTimeout(checkForElectronAPI, 100);
+        electronAPICheckTimerId = globalThis.setTimeout(
+            checkForElectronAPI,
+            100
+        );
     }
 }
 /**
@@ -130,12 +146,12 @@ if (globalThis.window !== undefined) {
  * @param context - Additional context.
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString(), logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
+    const timestamp = new Date().toISOString(),
+        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
     const logger = console[level] ?? console.log.bind(console);
     if (context && Object.keys(context).length > 0) {
         logger(logMessage, context);
-    }
-    else {
+    } else {
         logger(logMessage);
     }
 }
@@ -171,8 +187,10 @@ function recordCollision(results, name, newType, previousType, serious) {
     });
 }
 function isSameNamedFunction(existingValue, utility, utilityName) {
-    return (existingValue.name === utility.name &&
-        (existingValue.name === utilityName || existingValue.name === ""));
+    return (
+        existingValue.name === utility.name &&
+        (existingValue.name === utilityName || existingValue.name === "")
+    );
 }
 function handleUtilityCollision(results, utilityName, utility, existingValue) {
     if (existingValue === undefined || existingValue === null) {
@@ -188,11 +206,21 @@ function handleUtilityCollision(results, utilityName, utility, existingValue) {
             return false;
         }
         if (existingValue.toString() !== utility.toString()) {
-            logWithContext("info", `Function collision resolved for: ${utilityName}`, {
-                note: "Different implementations detected, using newer version",
-            });
+            logWithContext(
+                "info",
+                `Function collision resolved for: ${utilityName}`,
+                {
+                    note: "Different implementations detected, using newer version",
+                }
+            );
         }
-        recordCollision(results, utilityName, typeof utility, typeof existingValue, false);
+        recordCollision(
+            results,
+            utilityName,
+            typeof utility,
+            typeof existingValue,
+            false
+        );
         return false;
     }
     logWithContext("warn", `Type collision detected for: ${utilityName}`, {
@@ -200,28 +228,51 @@ function handleUtilityCollision(results, utilityName, utility, existingValue) {
         new: typeof utility,
         overwriting: true,
     });
-    recordCollision(results, utilityName, typeof utility, typeof existingValue, true);
+    recordCollision(
+        results,
+        utilityName,
+        typeof utility,
+        typeof existingValue,
+        true
+    );
     return false;
 }
 function attachUtilityToWindow(results, globalWindow, utilityName, utility) {
     results.total += 1;
     if (!validateFunction(utility, utilityName)) {
-        recordFailedAttachment(results, utilityName, CONSTANTS.ERRORS.INVALID_FUNCTION, typeof utility);
+        recordFailedAttachment(
+            results,
+            utilityName,
+            CONSTANTS.ERRORS.INVALID_FUNCTION,
+            typeof utility
+        );
         return;
     }
-    if (handleUtilityCollision(results, utilityName, utility, globalWindow[utilityName])) {
+    if (
+        handleUtilityCollision(
+            results,
+            utilityName,
+            utility,
+            globalWindow[utilityName]
+        )
+    ) {
         return;
     }
     try {
         globalWindow[utilityName] = utility;
         results.successful.push(utilityName);
-    }
-    catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
         logWithContext("error", `Failed to attach function: ${utilityName}`, {
             error: errorMessage,
         });
-        recordFailedAttachment(results, utilityName, errorMessage, typeof utility);
+        recordFailedAttachment(
+            results,
+            utilityName,
+            errorMessage,
+            typeof utility
+        );
     }
 }
 function logAttachmentResults(results) {
@@ -237,7 +288,9 @@ function logAttachmentResults(results) {
                 failed: results.failed,
             });
         }
-        const seriousCollisions = results.collisions.filter((collision) => collision.serious);
+        const seriousCollisions = results.collisions.filter(
+            (collision) => collision.serious
+        );
         if (seriousCollisions.length > 0) {
             logWithContext("warn", "Serious namespace collisions:", {
                 collisions: seriousCollisions,
@@ -260,9 +313,9 @@ function attachUtilitiesToWindow() {
         }
         logAttachmentResults(attachmentResults);
         return attachmentResults;
-    }
-    catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
         logWithContext("error", "Critical error during utility attachment:", {
             error: errorMessage,
         });
@@ -292,9 +345,9 @@ const FitFileViewerUtils = {
         for (const key of Object.keys(utils)) {
             try {
                 Reflect.deleteProperty(globalWindow, key);
-            }
-            catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            } catch (error) {
+                const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
                 logWithContext("error", `Failed to cleanup utility: ${key}`, {
                     error: errorMessage,
                 });
@@ -321,7 +374,8 @@ const FitFileViewerUtils = {
      *
      * @returns Whether the utility is available.
      */
-    isUtilAvailable: (name) => hasUtility(name) && validateFunction(utils[name], name),
+    isUtilAvailable: (name) =>
+        hasUtility(name) && validateFunction(utils[name], name),
     namespace: CONSTANTS.NAMESPACE,
     // Safe utility execution
     /**
@@ -333,13 +387,15 @@ const FitFileViewerUtils = {
     safeExecute: (utilName, ...args) => {
         const util = FitFileViewerUtils.getUtil(utilName);
         if (!util) {
-            throw new Error(`${CONSTANTS.ERRORS.FUNCTION_NOT_AVAILABLE}: ${utilName}`);
+            throw new Error(
+                `${CONSTANTS.ERRORS.FUNCTION_NOT_AVAILABLE}: ${utilName}`
+            );
         }
         try {
             return util(...args);
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
             logWithContext("error", `Error executing utility: ${utilName}`, {
                 args: args.length,
                 error: errorMessage,
@@ -355,8 +411,7 @@ const FitFileViewerUtils = {
         for (const [key, fn] of Object.entries(utils)) {
             if (validateFunction(fn, key)) {
                 results.valid.push(key);
-            }
-            else {
+            } else {
                 results.invalid.push(key);
             }
         }
@@ -376,7 +431,8 @@ attachUtilitiesTimerId = setTimeout(() => {
 // Expose the utils namespace for advanced usage
 globalThis.FitFileViewerUtils = FitFileViewerUtils;
 // Development mode enhancements
-const isDevelopment = getNodeEnvironment() === "development" || isFileProtocolWindow();
+const isDevelopment =
+    getNodeEnvironment() === "development" || isFileProtocolWindow();
 if (isDevelopment) {
     // Expose additional development helpers
     globalThis.devUtilsHelpers = {
@@ -386,10 +442,16 @@ if (isDevelopment) {
         reattachUtils: attachUtilitiesToWindow,
         validateUtils: FitFileViewerUtils.validateAllUtils,
     };
-    logWithContext("info", "Development helpers exposed on window.devUtilsHelpers");
+    logWithContext(
+        "info",
+        "Development helpers exposed on window.devUtilsHelpers"
+    );
 }
 // Report successful initialization
-logWithContext("info", `Utils module initialized successfully (v${CONSTANTS.VERSION})`);
+logWithContext(
+    "info",
+    `Utils module initialized successfully (v${CONSTANTS.VERSION})`
+);
 // Export for module usage (if needed)
 export default utils;
 export { FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };

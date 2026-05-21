@@ -1,6 +1,11 @@
 import { isHTMLElement } from "../../dom/index.js";
 import { getState } from "../../state/core/stateManager.js";
-import { getTabButtonIdentity, isOpenFileButton, safeComputedStyle, safeQueryTabButtons, } from "./enableTabButtonsHelpers.js";
+import {
+    getTabButtonIdentity,
+    isOpenFileButton,
+    safeComputedStyle,
+    safeQueryTabButtons,
+} from "./enableTabButtonsHelpers.js";
 const testClickRegistrations = new Set();
 /**
  * Debug function to manually test and fix tab button states.
@@ -21,8 +26,10 @@ export function debugTabButtons() {
             continue;
         }
         // Explicitly surface missing or throwing getComputedStyle in tests.
-        if (globalThis.window === undefined ||
-            typeof globalThis.getComputedStyle !== "function") {
+        if (
+            globalThis.window === undefined ||
+            typeof globalThis.getComputedStyle !== "function"
+        ) {
             throw new TypeError("getComputedStyle not available");
         }
         globalThis.getComputedStyle(button);
@@ -63,8 +70,7 @@ export function debugTabState() {
             hasGlobalData: Boolean(globalData),
             tabButtonsEnabled,
         });
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     for (const element of safeQueryTabButtons()) {
@@ -73,7 +79,8 @@ export function debugTabState() {
         }
         const button = element;
         const ariaSelected = button.getAttribute("aria-selected");
-        const buttonId = button.id ||
+        const buttonId =
+            button.id ||
             (typeof button.getAttribute === "function"
                 ? button.getAttribute("id")
                 : "") ||
@@ -108,11 +115,13 @@ export function testTabButtonClicks() {
             continue;
         }
         const testHandler = (event) => {
-            console.log(`[TabButtons] TEST CLICK DETECTED on ${buttonId}!`, event);
+            console.log(
+                `[TabButtons] TEST CLICK DETECTED on ${buttonId}!`,
+                event
+            );
             try {
                 console.log(`Clicked on ${buttonId}!`);
-            }
-            catch {
+            } catch {
                 /* Ignore errors */
             }
         };
@@ -128,7 +137,9 @@ export function testTabButtonClicks() {
             timer: setTimeout(() => {
                 testClickRegistrations.delete(registration);
                 removeTestClickRegistration(registration);
-                console.log(`[TabButtons] Removed test handler from: ${buttonId}`);
+                console.log(
+                    `[TabButtons] Removed test handler from: ${buttonId}`
+                );
             }, 30_000),
         };
         testClickRegistrations.add(registration);

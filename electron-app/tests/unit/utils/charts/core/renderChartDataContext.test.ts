@@ -87,9 +87,9 @@ describe(beginChartDataRenderContext, () => {
             isDevelopmentEnvironment: vi.fn<() => boolean>(() => true),
         });
 
-        expect(() =>
-            beginChartDataRenderContext(dependencies, {})
-        ).toThrow(expectedError);
+        expect(() => beginChartDataRenderContext(dependencies, {})).toThrow(
+            expectedError
+        );
         expect(dependencies.isDevelopmentEnvironment).not.toHaveBeenCalled();
     });
 });

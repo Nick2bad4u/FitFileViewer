@@ -1,6 +1,6 @@
 /**
- * DOM helper utilities used across renderer code to reduce repeated null
- * checks and implicit element property access.
+ * DOM helper utilities used across renderer code to reduce repeated null checks
+ * and implicit element property access.
  */
 
 type CheckedElement = HTMLElement & { checked: boolean };
@@ -14,10 +14,7 @@ const ELEMENT_NODE = 1;
  *
  * @throws Error if className is empty.
  */
-export function addClass(
-    el: unknown,
-    className: string
-): void {
+export function addClass(el: unknown, className: string): void {
     if (!className) {
         throw new Error(
             "Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty."
@@ -45,9 +42,7 @@ export function focus(el: unknown): void {
 }
 
 /** Get checked state for checkbox/radio-like elements if supported. */
-export function getChecked(
-    el: unknown
-): boolean | undefined {
+export function getChecked(el: unknown): boolean | undefined {
     if (isHTMLElement(el) && hasCheckedProperty(el)) {
         return Boolean(el.checked);
     }
@@ -55,10 +50,7 @@ export function getChecked(
 }
 
 /** Dataset convenience getter. */
-export function getData(
-    el: unknown,
-    key: string
-): string | undefined {
+export function getData(el: unknown, key: string): string | undefined {
     if (isHTMLElement(el) && el.dataset) {
         return el.dataset[key];
     }
@@ -164,10 +156,7 @@ export function queryAll(
  *
  * @throws Error if className is empty.
  */
-export function removeClass(
-    el: unknown,
-    className: string
-): void {
+export function removeClass(el: unknown, className: string): void {
     if (!className) {
         throw new Error(
             "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
@@ -195,42 +184,28 @@ export function requireElement(
 }
 
 /** Set checked state for checkbox/radio-like elements if supported. */
-export function setChecked(
-    el: unknown,
-    checked: unknown
-): void {
+export function setChecked(el: unknown, checked: unknown): void {
     if (isHTMLElement(el) && hasCheckedProperty(el)) {
         el.checked = Boolean(checked);
     }
 }
 
 /** Dataset convenience setter. */
-export function setData(
-    el: unknown,
-    key: string,
-    value: unknown
-): void {
+export function setData(el: unknown, key: string, value: unknown): void {
     if (isHTMLElement(el) && el.dataset) {
         el.dataset[key] = String(value);
     }
 }
 
 /** Toggle disabled flag for form controls that support it. */
-export function setDisabled(
-    el: unknown,
-    disabled: unknown
-): void {
+export function setDisabled(el: unknown, disabled: unknown): void {
     if (isHTMLElement(el) && hasDisabledProperty(el)) {
         el.disabled = Boolean(disabled);
     }
 }
 
 /** Apply a style property if possible. */
-export function setStyle(
-    el: unknown,
-    prop: string,
-    value: unknown
-): void {
+export function setStyle(el: unknown, prop: string, value: unknown): void {
     if (
         isHTMLElement(el) &&
         el.style &&

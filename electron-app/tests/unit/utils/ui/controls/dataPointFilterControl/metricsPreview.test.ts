@@ -43,7 +43,10 @@ describe("metricsPreview", () => {
 
         expect(buildSummaryText(null, null)).toBeNull();
         expect(
-            buildSummaryText(createMetricFilterResult({ isActive: false }), null)
+            buildSummaryText(
+                createMetricFilterResult({ isActive: false }),
+                null
+            )
         ).toBeNull();
         expect(
             buildSummaryText(
@@ -89,7 +92,11 @@ describe("metricsPreview", () => {
 
         try {
             testGlobal.globalData = {
-                recordMesgs: [{ speed: 10 }, { speed: 30 }, { speed: 20 }],
+                recordMesgs: [
+                    { speed: 10 },
+                    { speed: 30 },
+                    { speed: 20 },
+                ],
             };
 
             const result = previewFilterResult({

@@ -18,7 +18,8 @@ export async function completeChartDataRender(dependencies, input) {
         getComputedStateManager: dependencies.getComputedStateManager,
         getState: dependencies.getState,
         getThemeConfig: () => {
-            const globalGetThemeConfig = dependencies.chartGlobal.getThemeConfig;
+            const globalGetThemeConfig =
+                dependencies.chartGlobal.getThemeConfig;
             return typeof globalGetThemeConfig === "function"
                 ? globalGetThemeConfig()
                 : dependencies.getThemeConfig();
@@ -28,7 +29,8 @@ export async function completeChartDataRender(dependencies, input) {
         now: dependencies.now,
         nowPerformance: dependencies.nowPerformance,
         showRenderNotification: dependencies.showRenderNotification,
-        updateChartControlsUI: (enabled) => dependencies.getUIStateManager()?.updateChartControlsUI?.(enabled),
+        updateChartControlsUI: (enabled) =>
+            dependencies.getUIStateManager()?.updateChartControlsUI?.(enabled),
         updatePreviousChartState: dependencies.updatePreviousChartState,
         updateState: dependencies.updateState,
     };

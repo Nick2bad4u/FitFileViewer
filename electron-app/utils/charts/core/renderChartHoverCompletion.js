@@ -1,16 +1,17 @@
 async function applyHoverEffects(dependencies) {
     try {
         const hoverThemeConfig = await dependencies.getThemeConfig();
-        dependencies.addChartHoverEffects(dependencies.chartContainer, hoverThemeConfig);
-    }
-    catch {
+        dependencies.addChartHoverEffects(
+            dependencies.chartContainer,
+            hoverThemeConfig
+        );
+    } catch {
         /* ignore */
     }
     if (dependencies.isTestRuntime) {
         try {
             dependencies.addHoverEffectsToExistingCharts?.();
-        }
-        catch {
+        } catch {
             /* ignore */
         }
     }
@@ -27,8 +28,7 @@ export async function applyCompletedChartHoverEffects(dependencies, input) {
     }
     if (dependencies.isTestRuntime) {
         await applyHoverEffects(dependencies);
-    }
-    else {
+    } else {
         const schedule = dependencies.schedule ?? setTimeout;
         schedule(() => {
             applyHoverEffects(dependencies).catch(() => {

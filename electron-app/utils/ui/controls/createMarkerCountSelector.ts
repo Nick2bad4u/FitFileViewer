@@ -3,7 +3,16 @@ import { showNotification } from "../notifications/showNotification.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DEFAULT_MARKER_COUNT = 50;
-const MARKER_COUNT_OPTIONS = [10, 25, 50, 100, 200, 500, 1000, "all"] as const;
+const MARKER_COUNT_OPTIONS = [
+    10,
+    25,
+    50,
+    100,
+    200,
+    500,
+    1000,
+    "all",
+] as const;
 
 type MarkerCountOption = (typeof MARKER_COUNT_OPTIONS)[number];
 type NumericMarkerCountOption = Extract<MarkerCountOption, number>;
@@ -36,14 +45,8 @@ function createMarkerCountIcon(themeColors: ThemeColors): SVGSVGElement {
         rect.setAttribute("width", "2");
         rect.setAttribute("height", height);
         rect.setAttribute("rx", "1");
-        rect.setAttribute(
-            "fill",
-            getThemeColorValue(themeColors, "surface")
-        );
-        rect.setAttribute(
-            "stroke",
-            getThemeColorValue(themeColors, "primary")
-        );
+        rect.setAttribute("fill", getThemeColorValue(themeColors, "surface"));
+        rect.setAttribute("stroke", getThemeColorValue(themeColors, "primary"));
         rect.setAttribute("stroke-width", "1.5");
         icon.append(rect);
     }
@@ -63,8 +66,7 @@ function getThemeColorValue(colors: ThemeColors, key: string): string {
  *
  * Contract:
  *
- * - `onChange` is called with 0 to mean "all" markers, else the numeric
- *   limit.
+ * - `onChange` is called with 0 to mean "all" markers, else the numeric limit.
  * - Global `window.mapMarkerCount` is always kept in sync; 0 means all.
  * - Returned element is a container div with a label + select.
  *

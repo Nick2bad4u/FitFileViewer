@@ -9,18 +9,21 @@
  * Resolve an injected storage provider or the current global localStorage.
  *
  * @param getStorage - Optional storage provider.
+ *
  * @returns A usable storage object, or null when storage is unavailable.
  */
 export function resolveStorage(getStorage) {
     try {
         const scope = globalThis;
-        const storage = getStorage === undefined ? (scope.localStorage ?? null) : getStorage();
+        const storage =
+            getStorage === undefined
+                ? (scope.localStorage ?? null)
+                : getStorage();
         if (typeof storage !== "object" || storage === null) {
             return null;
         }
         return storage;
-    }
-    catch {
+    } catch {
         return null;
     }
 }
@@ -29,14 +32,14 @@ export function resolveStorage(getStorage) {
  *
  * @param key - Storage key.
  * @param getStorage - Optional storage provider.
+ *
  * @returns Stored value, or null when unavailable.
  */
 export function safeStorageGetItem(key, getStorage) {
     const storage = resolveStorage(getStorage);
     try {
         return storage?.getItem === undefined ? null : storage.getItem(key);
-    }
-    catch {
+    } catch {
         return null;
     }
 }
@@ -50,8 +53,7 @@ export function safeStorageRemoveItem(key, getStorage) {
     const storage = resolveStorage(getStorage);
     try {
         storage?.removeItem?.(key);
-    }
-    catch {
+    } catch {
         // Ignore unavailable or restricted storage.
     }
 }
@@ -66,8 +68,7 @@ export function safeStorageSetItem(key, value, getStorage) {
     const storage = resolveStorage(getStorage);
     try {
         storage?.setItem?.(key, value);
-    }
-    catch {
+    } catch {
         // Ignore unavailable or restricted storage.
     }
 }

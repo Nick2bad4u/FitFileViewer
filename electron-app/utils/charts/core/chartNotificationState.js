@@ -22,11 +22,15 @@ export function resetChartNotificationState() {
     ];
     previousChartState.lastRenderTimestamp =
         emptyPreviousChartState.lastRenderTimestamp;
-    updateState("charts.previousState", {
-        chartCount: 0,
-        timestamp: 0,
-        visibleFields: 0,
-    }, { silent: false, source: "resetChartNotificationState" });
+    updateState(
+        "charts.previousState",
+        {
+            chartCount: 0,
+            timestamp: 0,
+            visibleFields: 0,
+        },
+        { silent: false, source: "resetChartNotificationState" }
+    );
     console.log("[ChartJS] Chart notification state reset for new file");
 }
 /**
@@ -37,13 +41,23 @@ export function resetChartNotificationState() {
  * @param timestamp - Current render timestamp.
  */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
-    const normalizedVisibleFields = Math.max(0, Number.isFinite(visibleFields) ? Math.trunc(visibleFields) : 0);
+    const normalizedVisibleFields = Math.max(
+        0,
+        Number.isFinite(visibleFields) ? Math.trunc(visibleFields) : 0
+    );
     previousChartState.chartCount = chartCount;
-    previousChartState.fieldsRendered = Array.from({ length: normalizedVisibleFields }, () => true);
+    previousChartState.fieldsRendered = Array.from(
+        { length: normalizedVisibleFields },
+        () => true
+    );
     previousChartState.lastRenderTimestamp = timestamp;
-    updateState("charts.previousState", {
-        chartCount,
-        timestamp,
-        visibleFields,
-    }, { silent: false, source: "updatePreviousChartState" });
+    updateState(
+        "charts.previousState",
+        {
+            chartCount,
+            timestamp,
+            visibleFields,
+        },
+        { silent: false, source: "updatePreviousChartState" }
+    );
 }

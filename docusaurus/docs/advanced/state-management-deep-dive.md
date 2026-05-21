@@ -48,59 +48,59 @@ flowchart TB
 
 ```javascript
 class StateManager {
-    #state = new Map();
-    #subscribers = new Map();
-    #persistence = null;
+ #state = new Map();
+ #subscribers = new Map();
+ #persistence = null;
 
-    constructor() {
-        this.#loadInitialState();
-    }
+ constructor() {
+  this.#loadInitialState();
+ }
 
-    set(key, value) {
-        const oldValue = this.#state.get(key);
+ set(key, value) {
+  const oldValue = this.#state.get(key);
 
-        // Validate if validator exists
-        if (this.#validators.has(key)) {
-            const valid = this.#validators.get(key)(value);
-            if (!valid) throw new Error(`Invalid value for ${key}`);
-        }
+  // Validate if validator exists
+  if (this.#validators.has(key)) {
+   const valid = this.#validators.get(key)(value);
+   if (!valid) throw new Error(`Invalid value for ${key}`);
+  }
 
-        // Update state
-        this.#state.set(key, value);
+  // Update state
+  this.#state.set(key, value);
 
-        // Notify subscribers
-        this.#notify(key, value, oldValue);
+  // Notify subscribers
+  this.#notify(key, value, oldValue);
 
-        // Persist if configured
-        if (this.#shouldPersist(key)) {
-            this.#persist(key, value);
-        }
-    }
+  // Persist if configured
+  if (this.#shouldPersist(key)) {
+   this.#persist(key, value);
+  }
+ }
 
-    get(key) {
-        return this.#state.get(key);
-    }
+ get(key) {
+  return this.#state.get(key);
+ }
 
-    subscribe(key, callback) {
-        if (!this.#subscribers.has(key)) {
-            this.#subscribers.set(key, new Set());
-        }
-        this.#subscribers.get(key).add(callback);
+ subscribe(key, callback) {
+  if (!this.#subscribers.has(key)) {
+   this.#subscribers.set(key, new Set());
+  }
+  this.#subscribers.get(key).add(callback);
 
-        // Return unsubscribe function
-        return () => {
-            this.#subscribers.get(key).delete(callback);
-        };
-    }
+  // Return unsubscribe function
+  return () => {
+   this.#subscribers.get(key).delete(callback);
+  };
+ }
 
-    #notify(key, newValue, oldValue) {
-        const subscribers = this.#subscribers.get(key);
-        if (subscribers) {
-            subscribers.forEach(callback => {
-                callback(newValue, oldValue);
-            });
-        }
-    }
+ #notify(key, newValue, oldValue) {
+  const subscribers = this.#subscribers.get(key);
+  if (subscribers) {
+   subscribers.forEach((callback) => {
+    callback(newValue, oldValue);
+   });
+  }
+ }
 }
 ```
 
@@ -111,10 +111,10 @@ class StateManager {
 let instance = null;
 
 export function getStateManager() {
-    if (!instance) {
-        instance = new StateManager();
-    }
-    return instance;
+ if (!instance) {
+  instance = new StateManager();
+ }
+ return instance;
 }
 
 // Export for convenience
@@ -127,26 +127,26 @@ export const stateManager = getStateManager();
 
 ```javascript
 class LocalStoragePersistence {
-    constructor(prefix = 'fitfileviewer_') {
-        this.prefix = prefix;
-    }
+ constructor(prefix = "fitfileviewer_") {
+  this.prefix = prefix;
+ }
 
-    save(key, value) {
-        const storageKey = this.prefix + key;
-        const serialized = JSON.stringify(value);
-        localStorage.setItem(storageKey, serialized);
-    }
+ save(key, value) {
+  const storageKey = this.prefix + key;
+  const serialized = JSON.stringify(value);
+  localStorage.setItem(storageKey, serialized);
+ }
 
-    load(key) {
-        const storageKey = this.prefix + key;
-        const serialized = localStorage.getItem(storageKey);
-        return serialized ? JSON.parse(serialized) : undefined;
-    }
+ load(key) {
+  const storageKey = this.prefix + key;
+  const serialized = localStorage.getItem(storageKey);
+  return serialized ? JSON.parse(serialized) : undefined;
+ }
 
-    remove(key) {
-        const storageKey = this.prefix + key;
-        localStorage.removeItem(storageKey);
-    }
+ remove(key) {
+  const storageKey = this.prefix + key;
+  localStorage.removeItem(storageKey);
+ }
 }
 ```
 
@@ -154,21 +154,21 @@ class LocalStoragePersistence {
 
 ```javascript
 class ElectronStorePersistence {
-    constructor(store) {
-        this.store = store;
-    }
+ constructor(store) {
+  this.store = store;
+ }
 
-    save(key, value) {
-        this.store.set(key, value);
-    }
+ save(key, value) {
+  this.store.set(key, value);
+ }
 
-    load(key) {
-        return this.store.get(key);
-    }
+ load(key) {
+  return this.store.get(key);
+ }
 
-    remove(key) {
-        this.store.delete(key);
-    }
+ remove(key) {
+  this.store.delete(key);
+ }
 }
 ```
 
@@ -178,40 +178,41 @@ class ElectronStorePersistence {
 
 ```javascript
 class ThemeManager {
-    constructor(stateManager) {
-        this.stateManager = stateManager;
-        this.#initialize();
+ constructor(stateManager) {
+  this.stateManager = stateManager;
+  this.#initialize();
+ }
+
+ #initialize() {
+  // Load system preference
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = this.stateManager.get("theme");
+
+  this.setTheme(savedTheme || (prefersDark ? "dark" : "light"));
+
+  // Listen for system changes
+  window
+   .matchMedia("(prefers-color-scheme: dark)")
+   .addEventListener("change", (e) => {
+    if (!this.stateManager.get("theme")) {
+     this.setTheme(e.matches ? "dark" : "light");
     }
+   });
+ }
 
-    #initialize() {
-        // Load system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const savedTheme = this.stateManager.get('theme');
+ getTheme() {
+  return this.stateManager.get("theme");
+ }
 
-        this.setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+ setTheme(theme) {
+  this.stateManager.set("theme", theme);
+  document.documentElement.dataset.theme = theme;
+ }
 
-        // Listen for system changes
-        window.matchMedia('(prefers-color-scheme: dark)')
-            .addEventListener('change', (e) => {
-                if (!this.stateManager.get('theme')) {
-                    this.setTheme(e.matches ? 'dark' : 'light');
-                }
-            });
-    }
-
-    getTheme() {
-        return this.stateManager.get('theme');
-    }
-
-    setTheme(theme) {
-        this.stateManager.set('theme', theme);
-        document.documentElement.dataset.theme = theme;
-    }
-
-    toggleTheme() {
-        const current = this.getTheme();
-        this.setTheme(current === 'dark' ? 'light' : 'dark');
-    }
+ toggleTheme() {
+  const current = this.getTheme();
+  this.setTheme(current === "dark" ? "light" : "dark");
+ }
 }
 ```
 
@@ -222,31 +223,31 @@ class ThemeManager {
 ```javascript
 // In a UI component
 class MapComponent {
-    constructor() {
-        this.unsubscribers = [];
-    }
+ constructor() {
+  this.unsubscribers = [];
+ }
 
-    mount() {
-        // Subscribe to file changes
-        const unsub = stateManager.subscribe('currentFile', (file) => {
-            if (file) {
-                this.renderRoute(file.data.gpsPoints);
-            }
-        });
-        this.unsubscribers.push(unsub);
+ mount() {
+  // Subscribe to file changes
+  const unsub = stateManager.subscribe("currentFile", (file) => {
+   if (file) {
+    this.renderRoute(file.data.gpsPoints);
+   }
+  });
+  this.unsubscribers.push(unsub);
 
-        // Subscribe to theme changes
-        const themeUnsub = stateManager.subscribe('theme', (theme) => {
-            this.updateMapTheme(theme);
-        });
-        this.unsubscribers.push(themeUnsub);
-    }
+  // Subscribe to theme changes
+  const themeUnsub = stateManager.subscribe("theme", (theme) => {
+   this.updateMapTheme(theme);
+  });
+  this.unsubscribers.push(themeUnsub);
+ }
 
-    unmount() {
-        // Clean up all subscriptions
-        this.unsubscribers.forEach(unsub => unsub());
-        this.unsubscribers = [];
-    }
+ unmount() {
+  // Clean up all subscriptions
+  this.unsubscribers.forEach((unsub) => unsub());
+  this.unsubscribers = [];
+ }
 }
 ```
 
@@ -255,45 +256,43 @@ class MapComponent {
 ```javascript
 // Derive state from other state
 class ComputedState {
-    constructor(dependencies, compute) {
-        this.dependencies = dependencies;
-        this.compute = compute;
-        this.value = null;
+ constructor(dependencies, compute) {
+  this.dependencies = dependencies;
+  this.compute = compute;
+  this.value = null;
 
-        this.#setup();
-    }
+  this.#setup();
+ }
 
-    #setup() {
-        // Subscribe to all dependencies
-        this.dependencies.forEach(key => {
-            stateManager.subscribe(key, () => {
-                this.#recompute();
-            });
-        });
+ #setup() {
+  // Subscribe to all dependencies
+  this.dependencies.forEach((key) => {
+   stateManager.subscribe(key, () => {
+    this.#recompute();
+   });
+  });
 
-        // Initial computation
-        this.#recompute();
-    }
+  // Initial computation
+  this.#recompute();
+ }
 
-    #recompute() {
-        const values = this.dependencies.map(key =>
-            stateManager.get(key)
-        );
-        this.value = this.compute(...values);
-    }
+ #recompute() {
+  const values = this.dependencies.map((key) => stateManager.get(key));
+  this.value = this.compute(...values);
+ }
 
-    get() {
-        return this.value;
-    }
+ get() {
+  return this.value;
+ }
 }
 
 // Usage
 const formattedDistance = new ComputedState(
-    ['currentFile', 'preferences'],
-    (file, prefs) => {
-        if (!file) return null;
-        return formatDistance(file.totalDistance, prefs.units);
-    }
+ ["currentFile", "preferences"],
+ (file, prefs) => {
+  if (!file) return null;
+  return formatDistance(file.totalDistance, prefs.units);
+ }
 );
 ```
 

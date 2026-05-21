@@ -1,5 +1,11 @@
-import { isChartLibraryUnavailable, touchStringTargetContainer, } from "./renderChartPreflight.js";
-import { clearExistingCharts, startChartRendering, } from "./renderChartLifecycle.js";
+import {
+    isChartLibraryUnavailable,
+    touchStringTargetContainer,
+} from "./renderChartPreflight.js";
+import {
+    clearExistingCharts,
+    startChartRendering,
+} from "./renderChartLifecycle.js";
 /**
  * Starts a chart render session and validates runtime availability.
  *

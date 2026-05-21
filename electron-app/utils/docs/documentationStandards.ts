@@ -1,7 +1,10 @@
 /**
  * Documentation requirement map for one standards category.
  */
-export type DocumentationRequirementMap = Record<string, string | readonly string[]>;
+export type DocumentationRequirementMap = Record<
+    string,
+    string | readonly string[]
+>;
 
 /**
  * Documentation standards and requirements for consistency across the codebase.

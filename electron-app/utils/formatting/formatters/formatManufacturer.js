@@ -81,7 +81,9 @@ const MANUFACTURER_MAP = {
  */
 export function formatManufacturer(manufacturer) {
     if (manufacturer === null || manufacturer === undefined) {
-        console.warn("[formatManufacturer] Null or undefined manufacturer provided");
+        console.warn(
+            "[formatManufacturer] Null or undefined manufacturer provided"
+        );
         return MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
     try {
@@ -92,18 +94,22 @@ export function formatManufacturer(manufacturer) {
                 if (nameFromId && nameFromId !== String(manufacturer)) {
                     manufacturerName = nameFromId;
                 }
-            }
-            catch (error) {
-                console.warn(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`, error);
+            } catch (error) {
+                console.warn(
+                    `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.ID_LOOKUP_ERROR}`,
+                    error
+                );
             }
         }
         const normalizedName = String(manufacturerName).toLowerCase().trim();
         return isManufacturerMapKey(normalizedName)
             ? MANUFACTURER_MAP[normalizedName]
             : String(manufacturer);
-    }
-    catch (error) {
-        console.error(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`,
+            error
+        );
         return String(manufacturer) || MANUFACTURER_CONFIG.FALLBACK_NAME;
     }
 }
@@ -132,8 +138,10 @@ function isManufacturerMapKey(value) {
     return Object.hasOwn(MANUFACTURER_MAP, value);
 }
 function isNumericManufacturer(value) {
-    return (typeof value === "number" ||
+    return (
+        typeof value === "number" ||
         (typeof value === "string" &&
             value !== "" &&
-            !Number.isNaN(Number(value))));
+            !Number.isNaN(Number(value)))
+    );
 }

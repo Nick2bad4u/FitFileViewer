@@ -26,6 +26,7 @@ const CHART_CONTROLS_TOGGLE_SELECTOR = "#chart-controls-toggle";
  * Resolve the chart tab content container.
  *
  * @param doc - DOM root used for lookup.
+ *
  * @returns The chart content container, if found.
  */
 export function getChartContentContainer(
@@ -38,6 +39,7 @@ export function getChartContentContainer(
  * Resolve the main chart rendering container.
  *
  * @param doc - DOM root used for lookup.
+ *
  * @returns The chart render container, if found.
  */
 export function getChartRenderContainer(
@@ -50,6 +52,7 @@ export function getChartRenderContainer(
  * Resolve the chart background container.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart background container, if found.
  */
 export function getChartBackgroundContainer(
@@ -62,6 +65,7 @@ export function getChartBackgroundContainer(
  * Resolve the chart settings wrapper.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart settings wrapper, if found.
  */
 export function getChartSettingsWrapper(
@@ -74,6 +78,7 @@ export function getChartSettingsWrapper(
  * Resolve the chart controls toggle button.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart controls toggle, if found.
  */
 export function getChartControlsToggle(
@@ -87,6 +92,7 @@ export function getChartControlsToggle(
  *
  * @param doc - Document used for fallback lookup.
  * @param targetContainer - Element or ID supplied by callers.
+ *
  * @returns Resolved chart container, if found.
  */
 export function resolveChartContainer(

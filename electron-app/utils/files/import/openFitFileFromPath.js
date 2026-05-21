@@ -10,7 +10,11 @@
  * @throws Never intentionally; failures are reported through notifications and
  *   file-state error handling.
  */
-export async function openFitFileFromPath({ filePath, showNotification, openFileBtn, }) {
+export async function openFitFileFromPath({
+    filePath,
+    showNotification,
+    openFileBtn,
+}) {
     if (!isNonEmptyString(filePath)) {
         showNotification("Invalid file path.", "error");
         return false;
@@ -34,8 +38,10 @@ export async function openFitFileFromPath({ filePath, showNotification, openFile
     try {
         disableBtn();
         const arrayBuffer = await api.readFile(filePath);
-        if (!(arrayBuffer instanceof ArrayBuffer) ||
-            !isValidFitBuffer(arrayBuffer)) {
+        if (
+            !(arrayBuffer instanceof ArrayBuffer) ||
+            !isValidFitBuffer(arrayBuffer)
+        ) {
             throw new Error("Invalid or unsupported file buffer");
         }
         const data = unwrapParsedFitData(await api.parseFitFile(arrayBuffer));
@@ -47,28 +53,24 @@ export async function openFitFileFromPath({ filePath, showNotification, openFile
             if (typeof api.notifyFitFileLoaded === "function") {
                 api.notifyFitFileLoaded(filePath);
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         showNotification("File loaded successfully!", "success");
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         showNotification(`Failed to open file: ${message}`, "error", 8000);
         const mgr = resolveFitFileStateManager();
         if (mgr) {
             try {
                 mgr.handleFileLoadingError(new Error(message));
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
         }
         return false;
-    }
-    finally {
+    } finally {
         enableBtn();
     }
 }
@@ -87,8 +89,10 @@ function resolveFitFileElectronAPI() {
     if (!electronAPI || typeof electronAPI !== "object") {
         return undefined;
     }
-    if (typeof electronAPI.readFile !== "function" ||
-        typeof electronAPI.parseFitFile !== "function") {
+    if (
+        typeof electronAPI.readFile !== "function" ||
+        typeof electronAPI.parseFitFile !== "function"
+    ) {
         return undefined;
     }
     return electronAPI;

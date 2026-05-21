@@ -102,7 +102,10 @@ type HTMLDivElementExtended = HTMLDivElement & {
 type ExtendedExportUtils = typeof exportUtils & {
     copyChartToClipboard: (chart: ChartLike) => unknown;
     copyCombinedChartsToClipboard: (charts: ChartLike[]) => unknown;
-    createCombinedChartsImage: (charts: ChartLike[], filename: string) => unknown;
+    createCombinedChartsImage: (
+        charts: ChartLike[],
+        filename: string
+    ) => unknown;
     exportAllAsZip: (charts: ChartLike[]) => unknown;
     exportChartDataAsCSV: (
         data: unknown,
@@ -341,7 +344,9 @@ export function createExportSection(wrapper: HTMLElement): void {
                     (/* @type {any} */ chart) =>
                         extendedExportUtils.copyChartToClipboard(chart),
                     (/* @type {any} */ charts) =>
-                        extendedExportUtils.copyCombinedChartsToClipboard(charts)
+                        extendedExportUtils.copyCombinedChartsToClipboard(
+                            charts
+                        )
                 ),
             icon: "📋",
             text: "Copy Image",
@@ -390,19 +395,17 @@ export function createExportSection(wrapper: HTMLElement): void {
                     (charts) => {
                         const allChartsData = {
                                 charts: charts.map((chart, index) => {
-                                        const [dataset] = chart.data.datasets;
-                                        return {
-                                            data: dataset?.data || [],
-                                            field:
-                                                dataset?.label ||
-                                                `chart-${index}`,
-                                            totalPoints: dataset?.data
-                                                ? dataset.data.length
-                                                : 0,
-                                            type: chart.config?.type,
-                                        };
-                                    }
-                                ),
+                                    const [dataset] = chart.data.datasets;
+                                    return {
+                                        data: dataset?.data || [],
+                                        field:
+                                            dataset?.label || `chart-${index}`,
+                                        totalPoints: dataset?.data
+                                            ? dataset.data.length
+                                            : 0,
+                                        type: chart.config?.type,
+                                    };
+                                }),
                                 exportedAt: new Date().toISOString(),
                             },
                             blob = new Blob(
@@ -430,7 +433,8 @@ export function createExportSection(wrapper: HTMLElement): void {
             action: () =>
                 showChartSelectionModal(
                     "Print",
-                    (/* @type {any} */ chart) => extendedExportUtils.printChart(chart),
+                    (/* @type {any} */ chart) =>
+                        extendedExportUtils.printChart(chart),
                     (/* @type {any} */ charts) =>
                         extendedExportUtils.printCombinedCharts(charts)
                 ),
@@ -570,32 +574,56 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     const toggleButtonsSignal = toggleButtonsController.signal;
 
     // Add hover effects
-    enableAllBtn.addEventListener("mouseenter", () => {
-        enableAllBtn.style.opacity = "0.8";
-        enableAllBtn.style.transform = "translateY(-1px)";
-    }, { signal: toggleButtonsSignal });
-    enableAllBtn.addEventListener("mouseleave", () => {
-        enableAllBtn.style.opacity = "1";
-        enableAllBtn.style.transform = "translateY(0)";
-    }, { signal: toggleButtonsSignal });
+    enableAllBtn.addEventListener(
+        "mouseenter",
+        () => {
+            enableAllBtn.style.opacity = "0.8";
+            enableAllBtn.style.transform = "translateY(-1px)";
+        },
+        { signal: toggleButtonsSignal }
+    );
+    enableAllBtn.addEventListener(
+        "mouseleave",
+        () => {
+            enableAllBtn.style.opacity = "1";
+            enableAllBtn.style.transform = "translateY(0)";
+        },
+        { signal: toggleButtonsSignal }
+    );
 
-    disableAllBtn.addEventListener("mouseenter", () => {
-        disableAllBtn.style.opacity = "0.8";
-        disableAllBtn.style.transform = "translateY(-1px)";
-    }, { signal: toggleButtonsSignal });
-    disableAllBtn.addEventListener("mouseleave", () => {
-        disableAllBtn.style.opacity = "1";
-        disableAllBtn.style.transform = "translateY(0)";
-    }, { signal: toggleButtonsSignal });
+    disableAllBtn.addEventListener(
+        "mouseenter",
+        () => {
+            disableAllBtn.style.opacity = "0.8";
+            disableAllBtn.style.transform = "translateY(-1px)";
+        },
+        { signal: toggleButtonsSignal }
+    );
+    disableAllBtn.addEventListener(
+        "mouseleave",
+        () => {
+            disableAllBtn.style.opacity = "1";
+            disableAllBtn.style.transform = "translateY(0)";
+        },
+        { signal: toggleButtonsSignal }
+    );
 
     // Add click handlers
-    enableAllBtn.addEventListener("click", () => {
-        toggleAllFields(true);
-    }, { signal: toggleButtonsSignal });
+    enableAllBtn.addEventListener(
+        "click",
+        () => {
+            toggleAllFields(true);
+        },
+        { signal: toggleButtonsSignal }
+    );
 
-    disableAllBtn.addEventListener("click", () => {
-        toggleAllFields(false);
-    }, { signal: toggleButtonsSignal });
+    disableAllBtn.addEventListener(
+        "click",
+        () => {
+            toggleAllFields(false);
+        },
+        { signal: toggleButtonsSignal }
+    );
 
     toggleAllContainer.append(enableAllBtn);
     toggleAllContainer.append(disableAllBtn);
@@ -640,9 +668,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
-            const hrLapZones = lapZoneMsgs.filter(
-                (msg) => msg.timeInHrZone
-            );
+            const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
             if (hrLapZones.length > 0) {
                 const hrLapStackedToggle = createFieldToggle(
                     "hr_lap_zone_stacked"
@@ -676,21 +702,15 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     // Add event messages toggle if data exists
     if (
         getGlobalData()?.eventMesgs &&
-        Array.isArray(
-            getGlobalData().eventMesgs
-        ) &&
-        getGlobalData().eventMesgs
-            .length > 0
+        Array.isArray(getGlobalData().eventMesgs) &&
+        getGlobalData().eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.append(eventMessagesToggle);
     }
 
     // Add developer fields toggles if data exists
-    if (
-        getGlobalData() &&
-        getGlobalData().recordMesgs
-    ) {
+    if (getGlobalData() && getGlobalData().recordMesgs) {
         const devFields = extractDeveloperFieldsList(
             getGlobalData().recordMesgs
         );
@@ -904,18 +924,30 @@ export function showChartSelectionModal(
 			transition: var(--transition-smooth);
 		`;
 
-        chartItem.addEventListener("mouseenter", () => {
-            chartItem.style.background = "var(--color-accent-hover)";
-        }, { signal: modalAbortController.signal });
+        chartItem.addEventListener(
+            "mouseenter",
+            () => {
+                chartItem.style.background = "var(--color-accent-hover)";
+            },
+            { signal: modalAbortController.signal }
+        );
 
-        chartItem.addEventListener("mouseleave", () => {
-            chartItem.style.background = "var(--color-glass)";
-        }, { signal: modalAbortController.signal });
+        chartItem.addEventListener(
+            "mouseleave",
+            () => {
+                chartItem.style.background = "var(--color-glass)";
+            },
+            { signal: modalAbortController.signal }
+        );
 
-        chartItem.addEventListener("click", () => {
-            closeModal();
-            singleCallback(chart); // Pass the actual chart object, not the index
-        }, { signal: modalAbortController.signal });
+        chartItem.addEventListener(
+            "click",
+            () => {
+                closeModal();
+                singleCallback(chart); // Pass the actual chart object, not the index
+            },
+            { signal: modalAbortController.signal }
+        );
 
         chartList.append(chartItem);
     }
@@ -938,18 +970,30 @@ export function showChartSelectionModal(
 		transition: all 0.3s ease;
 	`;
 
-    combinedItem.addEventListener("mouseenter", () => {
-        combinedItem.style.background = "var(--color-accent-hover)";
-    }, { signal: modalAbortController.signal });
+    combinedItem.addEventListener(
+        "mouseenter",
+        () => {
+            combinedItem.style.background = "var(--color-accent-hover)";
+        },
+        { signal: modalAbortController.signal }
+    );
 
-    combinedItem.addEventListener("mouseleave", () => {
-        combinedItem.style.background = "var(--color-accent-hover)";
-    }, { signal: modalAbortController.signal });
+    combinedItem.addEventListener(
+        "mouseleave",
+        () => {
+            combinedItem.style.background = "var(--color-accent-hover)";
+        },
+        { signal: modalAbortController.signal }
+    );
 
-    combinedItem.addEventListener("click", () => {
-        closeModal();
-        combinedCallback(validCharts);
-    }, { signal: modalAbortController.signal });
+    combinedItem.addEventListener(
+        "click",
+        () => {
+            closeModal();
+            combinedCallback(validCharts);
+        },
+        { signal: modalAbortController.signal }
+    );
 
     // Cancel button
     const cancelButton = document.createElement("button");
@@ -966,9 +1010,13 @@ export function showChartSelectionModal(
 		transition: all 0.3s ease;
 	`;
 
-    cancelButton.addEventListener("click", () => {
-        closeModal();
-    }, { signal: modalAbortController.signal });
+    cancelButton.addEventListener(
+        "click",
+        () => {
+            closeModal();
+        },
+        { signal: modalAbortController.signal }
+    );
 
     // ESC key handler
     const handleEscape = (e: KeyboardEvent) => {
@@ -981,11 +1029,15 @@ export function showChartSelectionModal(
     });
 
     // Click outside to close
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-            closeModal();
-        }
-    }, { signal: modalAbortController.signal });
+    overlay.addEventListener(
+        "click",
+        (e) => {
+            if (e.target === overlay) {
+                closeModal();
+            }
+        },
+        { signal: modalAbortController.signal }
+    );
 
     // Assemble modal
     modal.append(title);
@@ -1034,17 +1086,25 @@ function createActionButton(
     const buttonController = new AbortController();
     const buttonSignal = buttonController.signal;
 
-    button.addEventListener("mouseenter", () => {
-        button.style.background = "var(--color-btn-hover)";
-        button.style.transform = "translateY(-1px)";
-        button.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: buttonSignal });
+    button.addEventListener(
+        "mouseenter",
+        () => {
+            button.style.background = "var(--color-btn-hover)";
+            button.style.transform = "translateY(-1px)";
+            button.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: buttonSignal }
+    );
 
-    button.addEventListener("mouseleave", () => {
-        button.style.background = "var(--color-btn-bg)";
-        button.style.transform = "translateY(0)";
-        button.style.boxShadow = "none";
-    }, { signal: buttonSignal });
+    button.addEventListener(
+        "mouseleave",
+        () => {
+            button.style.background = "var(--color-btn-bg)";
+            button.style.transform = "translateY(0)";
+            button.style.boxShadow = "none";
+        },
+        { signal: buttonSignal }
+    );
 
     button.addEventListener("click", onClick, { signal: buttonSignal });
     return button;
@@ -1074,17 +1134,25 @@ function createControlGroup(option: ChartOption): HTMLElement {
     const groupSignal = groupController.signal;
 
     // Add hover effect
-    group.addEventListener("mouseenter", () => {
-        group.style.background = "var(--color-glass-border)";
-        group.style.transform = "translateY(-2px)";
-        group.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: groupSignal });
+    group.addEventListener(
+        "mouseenter",
+        () => {
+            group.style.background = "var(--color-glass-border)";
+            group.style.transform = "translateY(-2px)";
+            group.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: groupSignal }
+    );
 
-    group.addEventListener("mouseleave", () => {
-        group.style.background = "var(--color-glass)";
-        group.style.transform = "translateY(0)";
-        group.style.boxShadow = "none";
-    }, { signal: groupSignal });
+    group.addEventListener(
+        "mouseleave",
+        () => {
+            group.style.background = "var(--color-glass)";
+            group.style.transform = "translateY(0)";
+            group.style.boxShadow = "none";
+        },
+        { signal: groupSignal }
+    );
 
     const label = document.createElement("label");
     label.textContent = option.label;
@@ -1141,11 +1209,9 @@ function createFieldToggle(field: string): HTMLDivElement {
     if (
         getGlobalData() &&
         getGlobalData().recordMesgs &&
-        getGlobalData().recordMesgs
-            .length > 0
+        getGlobalData().recordMesgs.length > 0
     ) {
-        const data = getGlobalData()
-            .recordMesgs;
+        const data = getGlobalData().recordMesgs;
 
         switch (field) {
             case "altitude_profile": {
@@ -1158,14 +1224,9 @@ function createFieldToggle(field: string): HTMLDivElement {
             }
             case "event_messages": {
                 hasValidData = Boolean(
-                    getGlobalData()
-                        ?.eventMesgs &&
-                    Array.isArray(
-                        getGlobalData()
-                            .eventMesgs
-                    ) &&
-                    getGlobalData()
-                        .eventMesgs.length > 0
+                    getGlobalData()?.eventMesgs &&
+                    Array.isArray(getGlobalData().eventMesgs) &&
+                    getGlobalData().eventMesgs.length > 0
                 );
 
                 break;
@@ -1252,9 +1313,8 @@ function createFieldToggle(field: string): HTMLDivElement {
                         return parseFiniteNumber(power) !== null;
                     });
                 } else if (
-                    /* @type {string[]} */ (
-                        /* @type {unknown} */ (formatChartFields)
-                    ).includes(field)
+                    /* @type {string[]} */ formatChartFields
+                        /* @type {unknown} */ .includes(field)
                 ) {
                     // Regular chart field
                     const numericData = data.map((row) => {
@@ -1368,7 +1428,7 @@ function createFieldToggle(field: string): HTMLDivElement {
         const storedColor = getChartSetting(`color_${field}`);
         const candidate =
             storedColor ||
-            /* @type {any} */ (fieldColors)[field] ||
+            /* @type {any} */ fieldColors[field] ||
             (themeConfig as { colors?: { accent?: string } }).colors?.accent;
         colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
         colorPicker.style.cssText = `
@@ -1379,71 +1439,89 @@ function createFieldToggle(field: string): HTMLDivElement {
 			cursor: pointer;
 			background: none;
 		`; // Event listeners for color picker
-        colorPicker.addEventListener("change", () => {
-            setChartSetting(`color_${field}`, colorPicker.value);
+        colorPicker.addEventListener(
+            "change",
+            () => {
+                setChartSetting(`color_${field}`, colorPicker.value);
 
-            // Dispatch custom event for color change
-            globalThis.dispatchEvent(
-                new CustomEvent("fieldToggleChanged", {
-                    detail: { field, type: "color", value: colorPicker.value },
-                })
-            );
+                // Dispatch custom event for color change
+                globalThis.dispatchEvent(
+                    new CustomEvent("fieldToggleChanged", {
+                        detail: {
+                            field,
+                            type: "color",
+                            value: colorPicker.value,
+                        },
+                    })
+                );
 
-            reRenderChartsAfterSettingChange(
-                `${field}_color`,
-                colorPicker.value
-            );
-        }, { signal: fieldToggleSignal });
+                reRenderChartsAfterSettingChange(
+                    `${field}_color`,
+                    colorPicker.value
+                );
+            },
+            { signal: fieldToggleSignal }
+        );
 
         container.append(toggle);
         container.append(label);
         container.append(colorPicker);
     } // Event listeners for toggle
     let statusUpdateTimer: ReturnType<typeof setTimeout> | undefined;
-    toggle.addEventListener("change", () => {
-        const visibility = toggle.checked ? "visible" : "hidden";
-        setChartFieldVisibility(field, visibility);
+    toggle.addEventListener(
+        "change",
+        () => {
+            const visibility = toggle.checked ? "visible" : "hidden";
+            setChartFieldVisibility(field, visibility);
 
-        // Dispatch custom event for field toggle change (for real-time updates)
-        globalThis.dispatchEvent(
-            new CustomEvent("fieldToggleChanged", {
-                detail: { field, visibility },
-            })
-        );
-
-        // Trigger chart re-render through modern state management
-        if (chartStateManager) {
-            chartStateManager.debouncedRender(`Field toggle: ${field}`);
-        } else {
-            // Fallback without importing renderChartJS to avoid circular deps
-            getChartDev()?.requestRerender?.(
-                "Field toggle fallback"
-            );
+            // Dispatch custom event for field toggle change (for real-time updates)
             globalThis.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", {
-                    detail: { reason: "field-toggle" },
+                new CustomEvent("fieldToggleChanged", {
+                    detail: { field, visibility },
                 })
             );
-        }
 
-        // Update status indicators after a short delay to allow charts to render
-        if (statusUpdateTimer) {
-            clearTimeout(statusUpdateTimer);
-        }
-        statusUpdateTimer = setTimeout(() => {
-            updateAllChartStatusIndicators();
-        }, 100);
-    }, { signal: fieldToggleSignal });
+            // Trigger chart re-render through modern state management
+            if (chartStateManager) {
+                chartStateManager.debouncedRender(`Field toggle: ${field}`);
+            } else {
+                // Fallback without importing renderChartJS to avoid circular deps
+                getChartDev()?.requestRerender?.("Field toggle fallback");
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "field-toggle" },
+                    })
+                );
+            }
+
+            // Update status indicators after a short delay to allow charts to render
+            if (statusUpdateTimer) {
+                clearTimeout(statusUpdateTimer);
+            }
+            statusUpdateTimer = setTimeout(() => {
+                updateAllChartStatusIndicators();
+            }, 100);
+        },
+        { signal: fieldToggleSignal }
+    );
     // Hover effects
-    container.addEventListener("mouseenter", () => {
-        container.style.background = "var(--color-glass-border)";
-        container.style.transform = "translateY(-1px)";
-    }, { signal: fieldToggleSignal });
+    container.addEventListener(
+        "mouseenter",
+        () => {
+            container.style.background = "var(--color-glass-border)";
+            container.style.transform = "translateY(-1px)";
+        },
+        { signal: fieldToggleSignal }
+    );
 
-    container.addEventListener("mouseleave", () => {
-        container.style.background = "var(--color-glass)";
-        container.style.transform = "translateY(0)";
-    }, { signal: fieldToggleSignal });
+    container.addEventListener(
+        "mouseleave",
+        () => {
+            container.style.background = "var(--color-glass)";
+            container.style.transform = "translateY(0)";
+        },
+        { signal: fieldToggleSignal }
+    );
 
     return container;
 }
@@ -1541,33 +1619,37 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
 		font-weight: 600;
 	`;
 
-    slider.addEventListener("input", (e) => {
-        const target = e.target as HTMLInputElement | null;
-        if (target) {
-            // input[type=range] should always produce a numeric string within min/max,
-            // but we clamp defensively in case of stored-state corruption or unexpected DOM.
-            const current = Number(target.value);
-            const safeCurrent = Number.isFinite(current)
-                ? Math.min(maxVal, Math.max(minVal, current))
-                : clamped;
-            const safeValue = String(safeCurrent);
+    slider.addEventListener(
+        "input",
+        (e) => {
+            const target = e.target as HTMLInputElement | null;
+            if (target) {
+                // input[type=range] should always produce a numeric string within min/max,
+                // but we clamp defensively in case of stored-state corruption or unexpected DOM.
+                const current = Number(target.value);
+                const safeCurrent = Number.isFinite(current)
+                    ? Math.min(maxVal, Math.max(minVal, current))
+                    : clamped;
+                const safeValue = String(safeCurrent);
 
-            valueDisplay.textContent = safeValue;
-            setChartSetting(option.id, safeCurrent);
+                valueDisplay.textContent = safeValue;
+                setChartSetting(option.id, safeCurrent);
 
-            // Update slider background
-            const range = maxVal - minVal;
-            const percentage =
-                range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
-            slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
+                // Update slider background
+                const range = maxVal - minVal;
+                const percentage =
+                    range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
+                slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
-            // Debounced re-render using the same approach as the reset button
-            clearTimeout(slider.timeout);
-            slider.timeout = setTimeout(() => {
-                reRenderChartsAfterSettingChange(option.id, safeValue);
-            }, 300);
-        }
-    }, { signal: rangeSignal });
+                // Debounced re-render using the same approach as the reset button
+                clearTimeout(slider.timeout);
+                slider.timeout = setTimeout(() => {
+                    reRenderChartsAfterSettingChange(option.id, safeValue);
+                }, 300);
+            }
+        },
+        { signal: rangeSignal }
+    );
 
     // Initialize slider background
     // Set initial background
@@ -1602,15 +1684,23 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
 		backdrop-filter: var(--backdrop-blur);
 	`;
 
-    select.addEventListener("focus", () => {
-        select.style.borderColor = "var(--color-accent)";
-        select.style.boxShadow = "0 0 0 2px var(--color-accent-secondary)";
-    }, { signal: selectSignal });
+    select.addEventListener(
+        "focus",
+        () => {
+            select.style.borderColor = "var(--color-accent)";
+            select.style.boxShadow = "0 0 0 2px var(--color-accent-secondary)";
+        },
+        { signal: selectSignal }
+    );
 
-    select.addEventListener("blur", () => {
-        select.style.borderColor = "var(--color-border)";
-        select.style.boxShadow = "none";
-    }, { signal: selectSignal });
+    select.addEventListener(
+        "blur",
+        () => {
+            select.style.borderColor = "var(--color-border)";
+            select.style.boxShadow = "none";
+        },
+        { signal: selectSignal }
+    );
 
     if (option.options)
         for (const val of option.options) {
@@ -1668,17 +1758,21 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
         );
     }
 
-    select.addEventListener("change", (e) => {
-        const target = e.target as HTMLSelectElement | null;
-        if (target) {
-            const nextValue =
-                option.id === "maxpoints" && target.value !== "all"
-                    ? Number(target.value)
-                    : target.value;
-            setChartSetting(option.id, nextValue);
-            reRenderChartsAfterSettingChange(option.id, nextValue);
-        }
-    }, { signal: selectSignal });
+    select.addEventListener(
+        "change",
+        (e) => {
+            const target = e.target as HTMLSelectElement | null;
+            if (target) {
+                const nextValue =
+                    option.id === "maxpoints" && target.value !== "all"
+                        ? Number(target.value)
+                        : target.value;
+                setChartSetting(option.id, nextValue);
+                reRenderChartsAfterSettingChange(option.id, nextValue);
+            }
+        },
+        { signal: selectSignal }
+    );
 
     return select;
 }
@@ -1772,19 +1866,23 @@ function createToggleControl(option: ChartOption): HTMLDivElementExtended {
 
     toggle.append(toggleThumb);
 
-    toggle.addEventListener("click", () => {
-        // Toggle the current state
-        isOn = !isOn;
+    toggle.addEventListener(
+        "click",
+        () => {
+            // Toggle the current state
+            isOn = !isOn;
 
-        // Store as string for consistency with existing system
-        setChartSetting(option.id, isOn);
+            // Store as string for consistency with existing system
+            setChartSetting(option.id, isOn);
 
-        // Update visual state
-        updateVisualState(isOn);
+            // Update visual state
+            updateVisualState(isOn);
 
-        // Re-render charts using the same approach as the reset button
-        reRenderChartsAfterSettingChange(option.id, isOn);
-    }, { signal: toggleSignal });
+            // Re-render charts using the same approach as the reset button
+            reRenderChartsAfterSettingChange(option.id, isOn);
+        },
+        { signal: toggleSignal }
+    );
 
     // Add method to update from external reset
     container._updateFromReset = function () {
@@ -1806,9 +1904,7 @@ function toggleAllFields(enable: boolean): void {
     try {
         const // Get all possible field keys
             allFields = [
-                .../* @type {string[]} */ (
-                    /* @type {unknown} */ (formatChartFields)
-                ),
+                .../* @type {string[]} */ /* @type {unknown} */ formatChartFields,
                 "gps_track",
                 "speed_vs_distance",
                 "power_vs_hr",
@@ -1824,13 +1920,9 @@ function toggleAllFields(enable: boolean): void {
             visibility = enable ? "visible" : "hidden";
 
         // Add developer fields if they exist
-        if (
-            getGlobalData() &&
-            getGlobalData().recordMesgs
-        ) {
+        if (getGlobalData() && getGlobalData().recordMesgs) {
             const devFields = extractDeveloperFieldsList(
-                getGlobalData()
-                    .recordMesgs
+                getGlobalData().recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields
@@ -1863,9 +1955,7 @@ function toggleAllFields(enable: boolean): void {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
-            getChartDev()?.requestRerender?.(
-                "Settings change fallback"
-            );
+            getChartDev()?.requestRerender?.("Settings change fallback");
             globalThis.dispatchEvent(
                 new CustomEvent("ffv:request-render-charts", {
                     detail: { reason: "settings-change" },

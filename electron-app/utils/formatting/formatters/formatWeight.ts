@@ -6,10 +6,10 @@ import { CONVERSION_FACTORS } from "../../config/index.js";
  * Invalid inputs return an empty string and log a warning, matching the legacy
  * renderer behavior.
  *
- * @example
- *     formatWeight(70); // "70 kg (154 lbs)"
+ * @example FormatWeight(70); // "70 kg (154 lbs)"
  *
  * @param kg - Weight in kilograms.
+ *
  * @returns Formatted weight string, or an empty string for invalid input.
  */
 export function formatWeight(kg: unknown): string {

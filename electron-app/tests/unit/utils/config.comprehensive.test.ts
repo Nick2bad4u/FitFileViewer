@@ -40,9 +40,7 @@ describe("config/index.js", () => {
         expect.assertions(2);
 
         expect(getConfig("UI_CONSTANTS.DEFAULT_THEME")).toBe("dark");
-        expect(getConfig("CONVERSION_FACTORS.METERS_PER_MILE")).toBe(
-            1609.344
-        );
+        expect(getConfig("CONVERSION_FACTORS.METERS_PER_MILE")).toBe(1609.344);
     });
 
     it("returns the provided default for missing config paths", () => {

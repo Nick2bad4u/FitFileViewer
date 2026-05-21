@@ -63,13 +63,17 @@ class StateMiddlewareManager {
                     currentContext = result;
                 }
                 if (result === false) {
-                    console.log(`[StateMiddleware] Execution stopped by middleware "${middlewareName}"`);
+                    console.log(
+                        `[StateMiddleware] Execution stopped by middleware "${middlewareName}"`
+                    );
                     break;
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 const err = toError(error);
-                console.error(`[StateMiddleware] Error in middleware "${middlewareName}" phase "${phase}":`, err);
+                console.error(
+                    `[StateMiddleware] Error in middleware "${middlewareName}" phase "${phase}":`,
+                    err
+                );
                 await this.executeErrorHandlers(err, {
                     context: currentContext,
                     middleware: middlewareName,
@@ -86,7 +90,8 @@ class StateMiddlewareManager {
             if (!middleware?.isEnabled) {
                 continue;
             }
-            const errorHandler = middleware.handlers[MIDDLEWARE_PHASES.ON_ERROR];
+            const errorHandler =
+                middleware.handlers[MIDDLEWARE_PHASES.ON_ERROR];
             if (!errorHandler) {
                 continue;
             }
@@ -95,13 +100,17 @@ class StateMiddlewareManager {
                     await (errorHandler.length >= 2
                         ? errorHandler(error, errorContext)
                         : errorHandler(error));
+                } catch (error_) {
+                    console.error(
+                        "[StateMiddleware] Error invoking error handler",
+                        error_
+                    );
                 }
-                catch (error_) {
-                    console.error("[StateMiddleware] Error invoking error handler", error_);
-                }
-            }
-            catch (handlerError) {
-                console.error(`[StateMiddleware] Error in error handler for "${middlewareName}":`, handlerError);
+            } catch (handlerError) {
+                console.error(
+                    `[StateMiddleware] Error in error handler for "${middlewareName}":`,
+                    handlerError
+                );
             }
         }
     }
@@ -122,7 +131,9 @@ class StateMiddlewareManager {
     /** Registers or replaces middleware. */
     register(name, middleware, priority = 100) {
         if (this.middleware.has(name)) {
-            console.warn(`[StateMiddleware] Middleware "${name}" already registered, replacing...`);
+            console.warn(
+                `[StateMiddleware] Middleware "${name}" already registered, replacing...`
+            );
         }
         const wrappedMiddleware = {
             handlers: {},
@@ -134,7 +145,11 @@ class StateMiddlewareManager {
         for (const phase of HANDLER_PHASES) {
             const original = middleware[phase];
             if (typeof original === "function") {
-                wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, original);
+                wrappedMiddleware.handlers[phase] = this.wrapHandler(
+                    name,
+                    phase,
+                    original
+                );
             }
         }
         if (typeof middleware.onError === "function") {
@@ -143,7 +158,9 @@ class StateMiddlewareManager {
         }
         this.middleware.set(name, wrappedMiddleware);
         this.updateExecutionOrder();
-        console.log(`[StateMiddleware] Registered middleware "${name}" with priority ${priority}`);
+        console.log(
+            `[StateMiddleware] Registered middleware "${name}" with priority ${priority}`
+        );
     }
     /** Enables or disables one middleware by name. */
     setEnabled(name, enabled) {
@@ -153,13 +170,17 @@ class StateMiddlewareManager {
             return false;
         }
         middleware.isEnabled = enabled;
-        console.log(`[StateMiddleware] Middleware "${name}" ${enabled ? "enabled" : "disabled"}`);
+        console.log(
+            `[StateMiddleware] Middleware "${name}" ${enabled ? "enabled" : "disabled"}`
+        );
         return true;
     }
     /** Enables or disables the whole middleware system. */
     setGlobalEnabled(enabled) {
         this.isEnabled = enabled;
-        console.log(`[StateMiddleware] Middleware system ${enabled ? "enabled" : "disabled"}`);
+        console.log(
+            `[StateMiddleware] Middleware system ${enabled ? "enabled" : "disabled"}`
+        );
     }
     /** Unregisters middleware by name. */
     unregister(name) {
@@ -187,17 +208,20 @@ class StateMiddlewareManager {
             try {
                 try {
                     return await handler(context);
-                }
-                finally {
+                } finally {
                     const duration = performance.now() - startTime;
                     if (duration > 5) {
-                        console.warn(`[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`);
+                        console.warn(
+                            `[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`
+                        );
                     }
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 const err = toError(error);
-                console.error(`[StateMiddleware] Handler error in "${middlewareName}.${phase}":`, err);
+                console.error(
+                    `[StateMiddleware] Handler error in "${middlewareName}.${phase}":`,
+                    err
+                );
                 throw err;
             }
         };
@@ -215,7 +239,10 @@ export const loggingMiddleware = {
     },
     beforeSet(context) {
         if (context.options?.["source"] !== "internal") {
-            console.log(`[StateLog] Setting "${context.path}" to:`, context.value);
+            console.log(
+                `[StateLog] Setting "${context.path}" to:`,
+                context.value
+            );
         }
         return context;
     },
@@ -234,19 +261,33 @@ export const loggingMiddleware = {
 /** Validates state changes before writes. */
 export const validationMiddleware = {
     beforeSet(context) {
-        if (context.value === undefined &&
-            context.options?.["allowUndefined"] !== true) {
-            console.warn(`[StateValidation] Preventing undefined value for "${context.path}"`);
+        if (
+            context.value === undefined &&
+            context.options?.["allowUndefined"] !== true
+        ) {
+            console.warn(
+                `[StateValidation] Preventing undefined value for "${context.path}"`
+            );
             return false;
         }
-        if (context.path === "app.initialized" &&
-            typeof context.value !== "boolean") {
-            console.error(`[StateValidation] app.initialized must be boolean, got:`, typeof context.value);
+        if (
+            context.path === "app.initialized" &&
+            typeof context.value !== "boolean"
+        ) {
+            console.error(
+                `[StateValidation] app.initialized must be boolean, got:`,
+                typeof context.value
+            );
             return false;
         }
-        if (context.path === "app.startTime" &&
-            (typeof context.value !== "number" || context.value <= 0)) {
-            console.error(`[StateValidation] app.startTime must be positive number, got:`, context.value);
+        if (
+            context.path === "app.startTime" &&
+            (typeof context.value !== "number" || context.value <= 0)
+        ) {
+            console.error(
+                `[StateValidation] app.startTime must be positive number, got:`,
+                context.value
+            );
             return false;
         }
         return context;
@@ -256,7 +297,10 @@ export const validationMiddleware = {
         version: "1.0.0",
     },
     onError(error) {
-        void showNotification(`State validation error: ${error.message}`, "error");
+        void showNotification(
+            `State validation error: ${error.message}`,
+            "error"
+        );
     },
 };
 /** Monitors state operation performance. */
@@ -265,7 +309,9 @@ export const performanceMiddleware = {
         if (context._startTime) {
             const duration = performance.now() - context._startTime;
             if (duration > 10) {
-                console.warn(`[StatePerf] Slow state operation "${context.path}": ${duration.toFixed(2)}ms`);
+                console.warn(
+                    `[StatePerf] Slow state operation "${context.path}": ${duration.toFixed(2)}ms`
+                );
             }
             const stateGlobal = globalThis;
             stateGlobal._statePerformance ??= [];
@@ -302,32 +348,42 @@ export const persistenceMiddleware = {
             try {
                 const key = `ffv_state_${context.path.replaceAll(".", "_")}`;
                 localStorage.setItem(key, JSON.stringify(context.value));
-                console.log(`[StatePersist] Saved "${context.path}" to localStorage`);
-            }
-            catch (error) {
-                console.error(`[StatePersist] Failed to save "${context.path}":`, error);
+                console.log(
+                    `[StatePersist] Saved "${context.path}" to localStorage`
+                );
+            } catch (error) {
+                console.error(
+                    `[StatePersist] Failed to save "${context.path}":`,
+                    error
+                );
             }
         }
         return context;
     },
     metadata: {
-        description: "Automatically persists certain state values to localStorage",
+        description:
+            "Automatically persists certain state values to localStorage",
         version: "1.0.0",
     },
 };
 /** Shows notifications for important state changes. */
 export const notificationMiddleware = {
     afterSet(context) {
-        if (context.path === "globalData" &&
+        if (
+            context.path === "globalData" &&
             isRecord(context.value) &&
-            Object.keys(context.value).length > 0) {
+            Object.keys(context.value).length > 0
+        ) {
             void showNotification("FIT file loaded successfully", "success");
         }
         if (context.path === "app.initialized" && context.value === true) {
             void showNotification("Application initialized", "success");
         }
         if (context.path === "system.error" && context.value) {
-            void showNotification(`System error: ${getMessage(context.value)}`, "error");
+            void showNotification(
+                `System error: ${getMessage(context.value)}`,
+                "error"
+            );
         }
         return context;
     },
@@ -357,7 +413,9 @@ let defaultMiddlewareInitialized = false;
 /** Initializes default middleware once. */
 export function initializeDefaultMiddleware() {
     if (defaultMiddlewareInitialized) {
-        console.log("[StateMiddleware] Default middleware already initialized, skipping...");
+        console.log(
+            "[StateMiddleware] Default middleware already initialized, skipping..."
+        );
         return;
     }
     console.log("[StateMiddleware] Initializing default middleware...");

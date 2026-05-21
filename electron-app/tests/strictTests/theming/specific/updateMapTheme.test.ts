@@ -14,7 +14,8 @@ vi.mock(
     })
 );
 
-type UpdateMapThemeModule = typeof import("../../../../utils/theming/specific/updateMapTheme.js");
+type UpdateMapThemeModule =
+    typeof import("../../../../utils/theming/specific/updateMapTheme.js");
 
 describe("updateMapTheme", () => {
     it("applies dark map theme only to tile panes", async () => {
@@ -105,7 +106,9 @@ describe("updateMapTheme", () => {
             mapThemeState.mapShouldBeDark = false;
             document.dispatchEvent(new CustomEvent("mapThemeChanged"));
 
-            expect({ filterAfterUninstall: tilePanes[0]?.style.filter }).toStrictEqual({
+            expect({
+                filterAfterUninstall: tilePanes[0]?.style.filter,
+            }).toStrictEqual({
                 filterAfterUninstall: darkFilter,
             });
         } finally {

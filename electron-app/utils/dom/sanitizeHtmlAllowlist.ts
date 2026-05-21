@@ -2,8 +2,8 @@
  * Allowlist-based HTML sanitizer.
  *
  * This module safely consumes small HTML fragments produced from
- * untrusted/derived sources. It is intentionally conservative and should not
- * be treated as a full HTML sanitizer replacement for arbitrary documents.
+ * untrusted/derived sources. It is intentionally conservative and should not be
+ * treated as a full HTML sanitizer replacement for arbitrary documents.
  */
 
 /**
@@ -142,10 +142,7 @@ export function sanitizeHtmlAllowlist(
 function getGlobalDomPurify(): DomPurifyLike | undefined {
     try {
         const globalPurifier = (globalThis as GlobalWithDomPurify).DOMPurify;
-        if (
-            globalPurifier &&
-            typeof globalPurifier.sanitize === "function"
-        ) {
+        if (globalPurifier && typeof globalPurifier.sanitize === "function") {
             return globalPurifier;
         }
     } catch {
@@ -182,10 +179,7 @@ function sanitizeFragment(
         allowedAttributesInput.map((a) => String(a).toLowerCase())
     );
 
-    const walker = document.createTreeWalker(
-        fragment,
-        NodeFilter.SHOW_ELEMENT
-    );
+    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
     const nodesToReplace: Element[] = [];
     const nodesToRemove: Element[] = [];
 
@@ -270,10 +264,7 @@ function replaceElementsWithText(elements: readonly Element[]): void {
 }
 
 function stripUnsafeStyleAttributes(fragment: DocumentFragment): void {
-    const walker = document.createTreeWalker(
-        fragment,
-        NodeFilter.SHOW_ELEMENT
-    );
+    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
     while (walker.nextNode()) {
         const el = walker.currentNode;
         if (!(el instanceof Element)) {
@@ -309,7 +300,11 @@ function decodeCssEscapesForScan(input: string): string {
     // Ref: CSS Syntax Level 3.
     return input.replaceAll(
         /\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu,
-        (_match: string, hex: string | undefined, single: string | undefined) => {
+        (
+            _match: string,
+            hex: string | undefined,
+            single: string | undefined
+        ) => {
             if (hex) {
                 const codePoint = Number.parseInt(hex, 16);
                 if (

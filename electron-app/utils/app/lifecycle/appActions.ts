@@ -515,6 +515,7 @@ export class StateMiddleware {
      * @param value - New value.
      * @param oldValue - Old value.
      * @param options - Options.
+     *
      * @returns Potentially modified value.
      */
     apply(
@@ -575,8 +576,10 @@ stateMiddleware.use((path, value, oldValue) => {
  * dependencies.
  *
  * @typeParam T - Computed value type.
+ *
  * @param computeFn - Function to compute the value.
  * @param dependencies - Array of state paths to watch.
+ *
  * @returns Function that returns the computed value and exposes cleanup.
  */
 export function useComputed<T>(
@@ -612,8 +615,10 @@ export function useComputed<T>(
  * Hook-like accessor for state values with a setter.
  *
  * @typeParam T - State value type.
+ *
  * @param path - State path to watch.
  * @param defaultValue - Default value if state is undefined.
+ *
  * @returns Value and setter tuple.
  */
 export function useState<T = unknown>(

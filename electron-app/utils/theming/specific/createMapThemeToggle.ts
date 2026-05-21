@@ -20,7 +20,12 @@ type MapThemeToggleGlobal = typeof globalThis & {
 };
 
 type MapThemeIconVariant = "moon" | "sun";
-type SvgRayCoordinates = readonly [string, string, string, string];
+type SvgRayCoordinates = readonly [
+    string,
+    string,
+    string,
+    string,
+];
 
 function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
     return globalThis as MapThemeToggleGlobal;
@@ -251,33 +256,37 @@ export function createMapThemeToggle(): HTMLElement {
 
         // Handle button click
         const listenerController = new AbortController();
-        button.addEventListener("click", () => {
-            try {
-                const currentInverted = getMapThemeInverted(),
-                    newInverted = !currentInverted;
+        button.addEventListener(
+            "click",
+            () => {
+                try {
+                    const currentInverted = getMapThemeInverted(),
+                        newInverted = !currentInverted;
 
-                setMapThemeInverted(newInverted);
-                updateButtonState();
+                    setMapThemeInverted(newInverted);
+                    updateButtonState();
 
-                // Apply the theme change immediately
-                if (appGlobal.updateMapTheme) {
-                    appGlobal.updateMapTheme();
+                    // Apply the theme change immediately
+                    if (appGlobal.updateMapTheme) {
+                        appGlobal.updateMapTheme();
+                    }
+
+                    const action = newInverted ? "dark" : "light";
+                    showNotification(`Map theme set to ${action}`, "success");
+
+                    console.log(
+                        `[createMapThemeToggle] Map theme toggled to: ${action}`
+                    );
+                } catch (error) {
+                    console.error(
+                        "[createMapThemeToggle] Error in button click:",
+                        error
+                    );
+                    showNotification("Failed to toggle map theme", "error");
                 }
-
-                const action = newInverted ? "dark" : "light";
-                showNotification(`Map theme set to ${action}`, "success");
-
-                console.log(
-                    `[createMapThemeToggle] Map theme toggled to: ${action}`
-                );
-            } catch (error) {
-                console.error(
-                    "[createMapThemeToggle] Error in button click:",
-                    error
-                );
-                showNotification("Failed to toggle map theme", "error");
-            }
-        }, { signal: listenerController.signal });
+            },
+            { signal: listenerController.signal }
+        );
 
         // Install global listeners once and register the updater for the currently-mounted toggle.
         // This avoids leaking document/body listeners when the map UI is re-rendered.

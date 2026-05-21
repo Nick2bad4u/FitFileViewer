@@ -7,25 +7,24 @@
 export function batchDOMReads(readCallback) {
     return new Promise((resolve) => {
         if (typeof globalThis.requestAnimationFrame === "function") {
-            const animationFrameHandle = globalThis.requestAnimationFrame(() => {
-                try {
-                    const results = readCallback();
-                    resolve(results);
+            const animationFrameHandle = globalThis.requestAnimationFrame(
+                () => {
+                    try {
+                        const results = readCallback();
+                        resolve(results);
+                    } catch (error) {
+                        console.error("[BatchDOMReads] Read error:", error);
+                        resolve([]);
+                    }
                 }
-                catch (error) {
-                    console.error("[BatchDOMReads] Read error:", error);
-                    resolve([]);
-                }
-            });
+            );
             void animationFrameHandle;
-        }
-        else {
+        } else {
             // Fallback to immediate execution
             try {
                 const results = readCallback();
                 resolve(results);
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[BatchDOMReads] Read error:", error);
                 resolve([]);
             }
@@ -38,25 +37,24 @@ export function batchDOMReads(readCallback) {
 export function batchDOMWrites(writeCallback) {
     return new Promise((resolve) => {
         if (typeof globalThis.requestAnimationFrame === "function") {
-            const animationFrameHandle = globalThis.requestAnimationFrame(() => {
-                try {
-                    writeCallback();
-                    resolve();
+            const animationFrameHandle = globalThis.requestAnimationFrame(
+                () => {
+                    try {
+                        writeCallback();
+                        resolve();
+                    } catch (error) {
+                        console.error("[BatchDOMWrites] Write error:", error);
+                        resolve();
+                    }
                 }
-                catch (error) {
-                    console.error("[BatchDOMWrites] Write error:", error);
-                    resolve();
-                }
-            });
+            );
             void animationFrameHandle;
-        }
-        else {
+        } else {
             // Fallback to immediate execution
             try {
                 writeCallback();
                 resolve();
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[BatchDOMWrites] Write error:", error);
                 resolve();
             }
@@ -74,18 +72,25 @@ export function createLazyRenderer(element, renderCallback, options = {}) {
         for (const entry of entries) {
             if (entry.isIntersecting && (!once || !hasRendered)) {
                 hasRendered = true;
-                console.log("[LazyRenderer] Element visible, triggering render");
+                console.log(
+                    "[LazyRenderer] Element visible, triggering render"
+                );
                 // Execute callback
                 try {
                     const result = renderCallback();
                     if (isPromiseLike(result)) {
                         void result.catch((error) => {
-                            console.error("[LazyRenderer] Render callback error:", error);
+                            console.error(
+                                "[LazyRenderer] Render callback error:",
+                                error
+                            );
                         });
                     }
-                }
-                catch (error) {
-                    console.error("[LazyRenderer] Render callback error:", error);
+                } catch (error) {
+                    console.error(
+                        "[LazyRenderer] Render callback error:",
+                        error
+                    );
                 }
                 // Disconnect if once=true
                 if (once && observer) {
@@ -97,11 +102,12 @@ export function createLazyRenderer(element, renderCallback, options = {}) {
     const observe = () => {
         if (typeof IntersectionObserver === "undefined") {
             // Fallback: immediately execute if IntersectionObserver not available
-            console.warn("[LazyRenderer] IntersectionObserver not available, rendering immediately");
+            console.warn(
+                "[LazyRenderer] IntersectionObserver not available, rendering immediately"
+            );
             try {
                 renderCallback();
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[LazyRenderer] Immediate render error:", error);
             }
             return;
@@ -130,21 +136,22 @@ export function deferUntilIdle(callback, options = {}) {
     const { timeout = 2000 } = options;
     const idleGlobal = globalThis;
     if (typeof idleGlobal.requestIdleCallback === "function") {
-        return idleGlobal.requestIdleCallback(() => {
-            try {
-                void callback();
-            }
-            catch (error) {
-                console.error("[DeferUntilIdle] Callback error:", error);
-            }
-        }, { timeout });
+        return idleGlobal.requestIdleCallback(
+            () => {
+                try {
+                    void callback();
+                } catch (error) {
+                    console.error("[DeferUntilIdle] Callback error:", error);
+                }
+            },
+            { timeout }
+        );
     }
     // Fallback to setTimeout
     return setTimeout(() => {
         try {
             void callback();
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[DeferUntilIdle] Callback error:", error);
         }
     }, 0);
@@ -157,17 +164,23 @@ export function isElementVisible(element, threshold = 0) {
         return false;
     }
     const rect = element.getBoundingClientRect();
-    const viewportHeight = globalThis.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth = globalThis.innerWidth || document.documentElement.clientWidth;
-    const verticalVisible = rect.bottom >= viewportHeight * threshold &&
+    const viewportHeight =
+        globalThis.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth =
+        globalThis.innerWidth || document.documentElement.clientWidth;
+    const verticalVisible =
+        rect.bottom >= viewportHeight * threshold &&
         rect.top <= viewportHeight * (1 - threshold);
-    const horizontalVisible = rect.right >= viewportWidth * threshold &&
+    const horizontalVisible =
+        rect.right >= viewportWidth * threshold &&
         rect.left <= viewportWidth * (1 - threshold);
     return verticalVisible && horizontalVisible;
 }
 function isPromiseLike(value) {
-    return (typeof value === "object" &&
+    return (
+        typeof value === "object" &&
         value !== null &&
         "catch" in value &&
-        typeof value.catch === "function");
+        typeof value.catch === "function"
+    );
 }

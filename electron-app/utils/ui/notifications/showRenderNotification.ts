@@ -13,6 +13,7 @@ const SIGNIFICANT_FIELD_COUNT_DELTA = 2;
  *
  * @param currentChartCount - Number of charts currently rendered.
  * @param currentVisibleFields - Number of visible fields.
+ *
  * @returns Whether to show a render notification.
  */
 export function showRenderNotification(

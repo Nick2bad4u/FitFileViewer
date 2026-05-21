@@ -3,7 +3,12 @@
  * new centralized system
  */
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getState, initializeStateManager, setState, subscribe, } from "../core/stateManager.js";
+import {
+    getState,
+    initializeStateManager,
+    setState,
+    subscribe,
+} from "../core/stateManager.js";
 import { uiStateManager } from "../domain/uiStateManager.js";
 const PERSISTED_STATE_KEY = "fitFileViewer_uiState";
 const PERSISTED_PATHS = [
@@ -36,8 +41,7 @@ export class StateMigrationHelper {
         for (const migration of this.migrations) {
             try {
                 await migration();
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("[StateMigration] Migration failed:", error);
             }
         }
@@ -49,7 +53,9 @@ export class StateMigrationHelper {
  * application startup
  */
 export function initializeAppState() {
-    console.log("[StateIntegration] Initializing application state management...");
+    console.log(
+        "[StateIntegration] Initializing application state management..."
+    );
     // Initialize core state manager
     initializeStateManager();
     // Initialize UI state manager
@@ -77,7 +83,8 @@ export function initializeCompleteStateSystem() {
  * Helper to integrate with existing renderer utilities
  */
 export function integrateWithRendererUtils() {
-    const integrationGlobal = getIntegrationGlobal(), rendererUtils = integrationGlobal.rendererUtils;
+    const integrationGlobal = getIntegrationGlobal(),
+        rendererUtils = integrationGlobal.rendererUtils;
     if (!rendererUtils) {
         return;
     }
@@ -105,9 +112,13 @@ export function migrateChartControlsState() {
         return;
     }
     console.log("[StateMigration] Migrating chartControlsState...");
-    setState("charts.controlsVisible", integrationGlobal.chartControlsState.isVisible, {
-        source: "migration",
-    });
+    setState(
+        "charts.controlsVisible",
+        integrationGlobal.chartControlsState.isVisible,
+        {
+            source: "migration",
+        }
+    );
     integrationGlobal.chartControlsState = {
         get isVisible() {
             return getState("charts.controlsVisible");
@@ -124,14 +135,17 @@ export function migrateChartControlsState() {
  * Set up performance monitoring for state changes
  */
 export function setupStatePerformanceMonitoring() {
-    let lastResetTime = Date.now(), stateChangeCount = 0;
+    let lastResetTime = Date.now(),
+        stateChangeCount = 0;
     // Monitor state change frequency
     subscribe("", () => {
         stateChangeCount += 1;
         // Reset counter every minute and log stats
         const now = Date.now();
         if (now - lastResetTime > 60_000) {
-            console.log(`[StatePerformance] ${stateChangeCount} state changes in the last minute`);
+            console.log(
+                `[StatePerformance] ${stateChangeCount} state changes in the last minute`
+            );
             stateChangeCount = 0;
             lastResetTime = now;
         }
@@ -148,11 +162,12 @@ export function setupStatePerformanceMonitoring() {
         clearInterval(integrationGlobal.__performanceMonitoringInterval);
     }
     integrationGlobal.__performanceMonitoringInterval = setInterval(() => {
-        const memory = perfMemory.memory, memoryInfo = {
-            limit: Math.round((memory?.jsHeapSizeLimit ?? 0) / 1024 / 1024),
-            total: Math.round((memory?.totalJSHeapSize ?? 0) / 1024 / 1024),
-            used: Math.round((memory?.usedJSHeapSize ?? 0) / 1024 / 1024),
-        };
+        const memory = perfMemory.memory,
+            memoryInfo = {
+                limit: Math.round((memory?.jsHeapSizeLimit ?? 0) / 1024 / 1024),
+                total: Math.round((memory?.totalJSHeapSize ?? 0) / 1024 / 1024),
+                used: Math.round((memory?.usedJSHeapSize ?? 0) / 1024 / 1024),
+            };
         setState("performance.memoryUsage", memoryInfo, {
             silent: true,
             source: "performanceMonitoring",
@@ -183,11 +198,18 @@ export function setupStatePersistence() {
                             setNestedValue(stateToSave, persistedPath, value);
                         }
                     }
-                    storage.setItem(PERSISTED_STATE_KEY, JSON.stringify(stateToSave));
-                    console.log("[StateIntegration] UI state persisted to localStorage");
-                }
-                catch (error) {
-                    console.error("[StateIntegration] Failed to persist state:", error);
+                    storage.setItem(
+                        PERSISTED_STATE_KEY,
+                        JSON.stringify(stateToSave)
+                    );
+                    console.log(
+                        "[StateIntegration] UI state persisted to localStorage"
+                    );
+                } catch (error) {
+                    console.error(
+                        "[StateIntegration] Failed to persist state:",
+                        error
+                    );
                 }
             }, 500);
         });
@@ -209,9 +231,11 @@ export function setupStatePersistence() {
             }
         }
         console.log("[StateIntegration] UI state loaded from localStorage");
-    }
-    catch (error) {
-        console.error("[StateIntegration] Failed to load persisted state:", error);
+    } catch (error) {
+        console.error(
+            "[StateIntegration] Failed to load persisted state:",
+            error
+        );
     }
 }
 /**
@@ -223,10 +247,18 @@ export function setupStatePersistence() {
 function isDevelopmentMode() {
     // Guarded access for jsdom/mocked environments
     try {
-        const integrationGlobal = getIntegrationGlobal(), loc = integrationGlobal.window === undefined
-            ? undefined
-            : integrationGlobal.location, hostname = typeof loc?.hostname === "string" ? loc.hostname : "", search = typeof loc?.search === "string" ? loc.search : "", hash = typeof loc?.hash === "string" ? loc.hash : "", protocol = typeof loc?.protocol === "string" ? loc.protocol : "", href = typeof loc?.href === "string" ? loc.href : "";
-        return (hostname === "localhost" ||
+        const integrationGlobal = getIntegrationGlobal(),
+            loc =
+                integrationGlobal.window === undefined
+                    ? undefined
+                    : integrationGlobal.location,
+            hostname = typeof loc?.hostname === "string" ? loc.hostname : "",
+            search = typeof loc?.search === "string" ? loc.search : "",
+            hash = typeof loc?.hash === "string" ? loc.hash : "",
+            protocol = typeof loc?.protocol === "string" ? loc.protocol : "",
+            href = typeof loc?.href === "string" ? loc.href : "";
+        return (
+            hostname === "localhost" ||
             hostname === "127.0.0.1" ||
             (hostname !== "" && hostname.includes("dev")) ||
             integrationGlobal.__DEVELOPMENT__ === true ||
@@ -238,9 +270,9 @@ function isDevelopmentMode() {
             protocol === "file:" ||
             (integrationGlobal.window !== undefined &&
                 integrationGlobal.electronAPI?.__devMode !== undefined) ||
-            (typeof console !== "undefined" && href.includes("electron")));
-    }
-    catch {
+            (typeof console !== "undefined" && href.includes("electron"))
+        );
+    } catch {
         // Default to non-dev on any unexpected error
         return false;
     }
@@ -316,14 +348,20 @@ function setupStateDebugging() {
         getState,
         logState(path) {
             const state = path ? getState(path) : getState("data");
-            console.log(`[StateDebug] Current state${path ? ` for ${path}` : ""}:`, state);
+            console.log(
+                `[StateDebug] Current state${path ? ` for ${path}` : ""}:`,
+                state
+            );
             return state;
         },
         setState,
         triggerAction(actionName, ...args) {
             const action = Reflect.get(AppActions, actionName);
             if (typeof action === "function") {
-                console.log(`[StateDebug] Triggering action: ${actionName}`, args);
+                console.log(
+                    `[StateDebug] Triggering action: ${actionName}`,
+                    args
+                );
                 return action(...args);
             }
             console.warn(`[StateDebug] Unknown action: ${actionName}`);

@@ -1,5 +1,10 @@
 import { getRecordValue } from "./renderChartModuleHelpers.js";
-import { calculateAxisRanges, createChartPoints, getMaxPointCacheKey, limitChartPoints, } from "./renderChartPointUtils.js";
+import {
+    calculateAxisRanges,
+    createChartPoints,
+    getMaxPointCacheKey,
+    limitChartPoints,
+} from "./renderChartPointUtils.js";
 import { resolveRecordFieldKey } from "./renderChartRecordKeyUtils.js";
 let fieldSeriesCache = new WeakMap();
 const chartSeriesCacheStats = { hits: 0, misses: 0 };
@@ -21,8 +26,7 @@ function ensureFieldSeriesCache(recordMesgs) {
             readKeys: new Map(),
         };
         fieldSeriesCache.set(recordMesgs, cache);
-    }
-    else if (!(cache.readKeys instanceof Map)) {
+    } else if (!(cache.readKeys instanceof Map)) {
         cache.readKeys = new Map();
     }
     return cache;
@@ -34,7 +38,9 @@ export function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
     if (!labelCache) {
         const basePoints = createChartPoints(labels, entry.values);
         const baseAxisRange = calculateAxisRanges(basePoints);
-        const baseHasValidData = basePoints.some(({ y }) => typeof y === "number" && Number.isFinite(y));
+        const baseHasValidData = basePoints.some(
+            ({ y }) => typeof y === "number" && Number.isFinite(y)
+        );
         labelCache = {
             baseAxisRange,
             baseHasValidData,
@@ -50,15 +56,20 @@ export function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
         return cached;
     }
     chartSeriesCacheStats.misses += 1;
-    const points = maxPointsValue === "all"
-        ? labelCache.basePoints
-        : limitChartPoints(labelCache.basePoints, maxPointsValue);
-    const hasValidData = maxPointsValue === "all"
-        ? labelCache.baseHasValidData
-        : points.some(({ y }) => typeof y === "number" && Number.isFinite(y));
-    const axisRanges = maxPointsValue === "all"
-        ? labelCache.baseAxisRange
-        : calculateAxisRanges(points) ?? labelCache.baseAxisRange;
+    const points =
+        maxPointsValue === "all"
+            ? labelCache.basePoints
+            : limitChartPoints(labelCache.basePoints, maxPointsValue);
+    const hasValidData =
+        maxPointsValue === "all"
+            ? labelCache.baseHasValidData
+            : points.some(
+                  ({ y }) => typeof y === "number" && Number.isFinite(y)
+              );
+    const axisRanges =
+        maxPointsValue === "all"
+            ? labelCache.baseAxisRange
+            : (calculateAxisRanges(points) ?? labelCache.baseAxisRange);
     const series = {
         axisRanges,
         hasValidData,
@@ -68,7 +79,12 @@ export function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
     return series;
 }
 /** Returns converted numeric values for a record field and settings signature. */
-export function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert) {
+export function getFieldSeriesEntry(
+    recordMesgs,
+    field,
+    dataSettingsSignature,
+    convert
+) {
     const cache = ensureFieldSeriesCache(recordMesgs);
     let fieldMap = cache.fields.get(field);
     if (!fieldMap) {
@@ -92,8 +108,7 @@ export function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, c
             }
             try {
                 numeric = convert(numeric, field);
-            }
-            catch {
+            } catch {
                 // Keep the original numeric value if unit conversion fails.
             }
             if (!Number.isFinite(numeric)) {
@@ -121,8 +136,7 @@ export function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, c
             values,
         };
         fieldMap.set(dataSettingsSignature, entry);
-    }
-    else {
+    } else {
         entry.pointCache ??= new WeakMap();
     }
     return entry;

@@ -1,5 +1,10 @@
-import { getThemeConfig, } from "../../theming/core/theme.js";
-const LEGEND_BOX_FILL_ALPHA = 0.14, LEGEND_BOX_HIDDEN_FILL_ALPHA = 0.06, LEGEND_BOX_HIDDEN_STROKE_ALPHA = 0.2, LEGEND_BOX_PADDING = 6, LEGEND_BOX_RADIUS = 10, LEGEND_BOX_STROKE_ALPHA = 0.4;
+import { getThemeConfig } from "../../theming/core/theme.js";
+const LEGEND_BOX_FILL_ALPHA = 0.14,
+    LEGEND_BOX_HIDDEN_FILL_ALPHA = 0.06,
+    LEGEND_BOX_HIDDEN_STROKE_ALPHA = 0.2,
+    LEGEND_BOX_PADDING = 6,
+    LEGEND_BOX_RADIUS = 10,
+    LEGEND_BOX_STROKE_ALPHA = 0.4;
 function resolveLegendColor(item, colors) {
     if (typeof item?.fillStyle === "string") {
         return item.fillStyle;
@@ -26,7 +31,8 @@ export const chartLegendItemBoxPlugin = {
         if (!legend || legend.options?.display === false) {
             return;
         }
-        const hitBoxes = legend.legendHitBoxes, items = legend.legendItems;
+        const hitBoxes = legend.legendHitBoxes,
+            items = legend.legendItems;
         if (!hitBoxes || !items || hitBoxes.length === 0) {
             return;
         }
@@ -41,11 +47,18 @@ export const chartLegendItemBoxPlugin = {
             if (!box) {
                 continue;
             }
-            const item = items[i], color = resolveLegendColor(item, colors), fillAlpha = item?.hidden
-                ? LEGEND_BOX_HIDDEN_FILL_ALPHA
-                : LEGEND_BOX_FILL_ALPHA, height = box.height + LEGEND_BOX_PADDING * 2, strokeAlpha = item?.hidden
-                ? LEGEND_BOX_HIDDEN_STROKE_ALPHA
-                : LEGEND_BOX_STROKE_ALPHA, width = box.width + LEGEND_BOX_PADDING * 2, x = box.left - LEGEND_BOX_PADDING, y = box.top - LEGEND_BOX_PADDING;
+            const item = items[i],
+                color = resolveLegendColor(item, colors),
+                fillAlpha = item?.hidden
+                    ? LEGEND_BOX_HIDDEN_FILL_ALPHA
+                    : LEGEND_BOX_FILL_ALPHA,
+                height = box.height + LEGEND_BOX_PADDING * 2,
+                strokeAlpha = item?.hidden
+                    ? LEGEND_BOX_HIDDEN_STROKE_ALPHA
+                    : LEGEND_BOX_STROKE_ALPHA,
+                width = box.width + LEGEND_BOX_PADDING * 2,
+                x = box.left - LEGEND_BOX_PADDING,
+                y = box.top - LEGEND_BOX_PADDING;
             ctx.save();
             ctx.globalAlpha = fillAlpha;
             ctx.fillStyle = color;
@@ -57,8 +70,7 @@ export const chartLegendItemBoxPlugin = {
                 ctx.fill();
                 ctx.globalAlpha = strokeAlpha;
                 ctx.stroke();
-            }
-            else {
+            } else {
                 ctx.fillRect(x, y, width, height);
                 ctx.globalAlpha = strokeAlpha;
                 ctx.strokeRect(x, y, width, height);

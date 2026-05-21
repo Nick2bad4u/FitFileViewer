@@ -34,29 +34,31 @@ utils/
 
 /**
  * Power formatting utilities.
+ *
  * @module formatPower
  */
 
 /**
  * Formats power value for display.
  *
+ * @example
+ *  formatPower(250); // "250 W"
+ *  formatPower(1500); // "1.5 kW"
+ *
  * @param {number} watts - Power in watts
  * @param {Object} [options] - Formatting options
- * @param {number} [options.decimals=0] - Decimal places
- * @returns {string} Formatted power string
+ * @param {number} [options.decimals=0] - Decimal places. Default is `0`
  *
- * @example
- * formatPower(250); // "250 W"
- * formatPower(1500); // "1.5 kW"
+ * @returns {string} Formatted power string
  */
 export function formatPower(watts, options = {}) {
-    const { decimals = 0 } = options;
+ const { decimals = 0 } = options;
 
-    if (watts >= 1000) {
-        return `${(watts / 1000).toFixed(1)} kW`;
-    }
+ if (watts >= 1000) {
+  return `${(watts / 1000).toFixed(1)} kW`;
+ }
 
-    return `${watts.toFixed(decimals)} W`;
+ return `${watts.toFixed(decimals)} W`;
 }
 
 /**
@@ -64,13 +66,14 @@ export function formatPower(watts, options = {}) {
  *
  * @param {number} watts - Power in watts
  * @param {number} weightKg - Weight in kilograms
+ *
  * @returns {number} Watts per kilogram
  */
 export function powerToWkg(watts, weightKg) {
-    if (weightKg <= 0) {
-        throw new Error('Weight must be positive');
-    }
-    return watts / weightKg;
+ if (weightKg <= 0) {
+  throw new Error("Weight must be positive");
+ }
+ return watts / weightKg;
 }
 ```
 
@@ -79,31 +82,31 @@ export function powerToWkg(watts, weightKg) {
 ```javascript
 // tests/unit/formatPower.test.js
 
-import { describe, it, expect } from 'vitest';
-import { formatPower, powerToWkg } from '../../utils/formatting/formatPower.js';
+import { describe, it, expect } from "vitest";
+import { formatPower, powerToWkg } from "../../utils/formatting/formatPower.js";
 
-describe('formatPower', () => {
-    it('should format watts', () => {
-        expect(formatPower(250)).toBe('250 W');
-    });
+describe("formatPower", () => {
+ it("should format watts", () => {
+  expect(formatPower(250)).toBe("250 W");
+ });
 
-    it('should format kilowatts for large values', () => {
-        expect(formatPower(1500)).toBe('1.5 kW');
-    });
+ it("should format kilowatts for large values", () => {
+  expect(formatPower(1500)).toBe("1.5 kW");
+ });
 
-    it('should handle zero', () => {
-        expect(formatPower(0)).toBe('0 W');
-    });
+ it("should handle zero", () => {
+  expect(formatPower(0)).toBe("0 W");
+ });
 });
 
-describe('powerToWkg', () => {
-    it('should calculate watts per kg', () => {
-        expect(powerToWkg(300, 75)).toBe(4);
-    });
+describe("powerToWkg", () => {
+ it("should calculate watts per kg", () => {
+  expect(powerToWkg(300, 75)).toBe(4);
+ });
 
-    it('should throw for zero weight', () => {
-        expect(() => powerToWkg(300, 0)).toThrow();
-    });
+ it("should throw for zero weight", () => {
+  expect(() => powerToWkg(300, 0)).toThrow();
+ });
 });
 ```
 
@@ -113,19 +116,19 @@ If your category has an index file:
 
 ```javascript
 // utils/formatting/index.js
-export { formatDistance } from './formatDistance.js';
-export { formatDuration } from './formatDuration.js';
-export { formatPower, powerToWkg } from './formatPower.js';  // Add
+export { formatDistance } from "./formatDistance.js";
+export { formatDuration } from "./formatDuration.js";
+export { formatPower, powerToWkg } from "./formatPower.js"; // Add
 ```
 
 ### 5. Import and Use
 
 ```javascript
 // In other modules
-import { formatPower } from '../utils/formatting/formatPower.js';
+import { formatPower } from "../utils/formatting/formatPower.js";
 
 // Or from index
-import { formatPower } from '../utils/formatting/index.js';
+import { formatPower } from "../utils/formatting/index.js";
 ```
 
 ## Module Template
@@ -133,35 +136,37 @@ import { formatPower } from '../utils/formatting/index.js';
 ```javascript
 /**
  * [Module Description]
- * @module [moduleName]
+ *
+ * @module {undefined} moduleName
  */
 
 // Constants
 const DEFAULT_OPTIONS = {
-    // Default values
+ // Default values
 };
 
 /**
  * [Function description]
  *
+ * @example
+ *  // Usage example
+ *
  * @param {type} paramName - Parameter description
  * @param {Object} [options] - Options object
- * @returns {type} Return description
  *
- * @example
- * // Usage example
+ * @returns {type} Return description
  */
 export function functionName(param, options = {}) {
-    // Merge options with defaults
-    const opts = { ...DEFAULT_OPTIONS, ...options };
+ // Merge options with defaults
+ const opts = { ...DEFAULT_OPTIONS, ...options };
 
-    // Validate inputs
-    if (!isValid(param)) {
-        throw new Error('Invalid parameter');
-    }
+ // Validate inputs
+ if (!isValid(param)) {
+  throw new Error("Invalid parameter");
+ }
 
-    // Implementation
-    return result;
+ // Implementation
+ return result;
 }
 ```
 
@@ -192,8 +197,8 @@ Transform data for display:
 
 ```javascript
 export function formatValue(value) {
-    // Transform to display string
-    return displayString;
+ // Transform to display string
+ return displayString;
 }
 ```
 
@@ -203,8 +208,8 @@ General-purpose helpers:
 
 ```javascript
 export function calculateMetric(data) {
-    // Compute and return result
-    return result;
+ // Compute and return result
+ return result;
 }
 ```
 
@@ -214,8 +219,8 @@ Handle user interface:
 
 ```javascript
 export function setupComponent(element) {
-    // Attach event listeners
-    // Update DOM
+ // Attach event listeners
+ // Update DOM
 }
 ```
 

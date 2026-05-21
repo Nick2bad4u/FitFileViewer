@@ -69,13 +69,8 @@ describe(createPanelController, () => {
     it("opens and positions the panel beside the toggle button", () => {
         expect.assertions(8);
 
-        const {
-            cleanup,
-            container,
-            metricSelect,
-            panel,
-            toggleButton,
-        } = createFixture();
+        const { cleanup, container, metricSelect, panel, toggleButton } =
+            createFixture();
         setRect(toggleButton, {
             bottom: 120,
             height: 40,
@@ -116,13 +111,8 @@ describe(createPanelController, () => {
     it("closes the panel and clears transient positioning state", () => {
         expect.assertions(7);
 
-        const {
-            cleanup,
-            container,
-            metricSelect,
-            panel,
-            toggleButton,
-        } = createFixture();
+        const { cleanup, container, metricSelect, panel, toggleButton } =
+            createFixture();
         setRect(toggleButton, {
             bottom: 120,
             left: 100,
@@ -155,9 +145,7 @@ describe(createPanelController, () => {
             expect(panel.style.top).toBe("");
             expect(panel.style.opacity).toBe("");
             expect(
-                panel.style.getPropertyValue(
-                    "--data-point-filter-arrow-offset"
-                )
+                panel.style.getPropertyValue("--data-point-filter-arrow-offset")
             ).toBe("");
         } finally {
             cleanup();
@@ -167,13 +155,8 @@ describe(createPanelController, () => {
     it("does not close when clicks stay inside the panel", () => {
         expect.assertions(2);
 
-        const {
-            cleanup,
-            container,
-            metricSelect,
-            panel,
-            toggleButton,
-        } = createFixture();
+        const { cleanup, container, metricSelect, panel, toggleButton } =
+            createFixture();
         setRect(toggleButton, {
             bottom: 120,
             left: 100,
@@ -195,9 +178,7 @@ describe(createPanelController, () => {
             });
 
             openPanel();
-            panel.dispatchEvent(
-                new MouseEvent("mousedown", { bubbles: true })
-            );
+            panel.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
 
             expect(panel.hidden ? "hidden" : "visible").toBe("visible");
             expect(toggleButton.getAttribute("aria-expanded")).toBe("true");
@@ -209,13 +190,8 @@ describe(createPanelController, () => {
     it("closes when clicking outside the panel and container", () => {
         expect.assertions(2);
 
-        const {
-            cleanup,
-            container,
-            metricSelect,
-            panel,
-            toggleButton,
-        } = createFixture();
+        const { cleanup, container, metricSelect, panel, toggleButton } =
+            createFixture();
         setRect(toggleButton, {
             bottom: 120,
             left: 100,

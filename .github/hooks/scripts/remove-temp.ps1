@@ -9,17 +9,19 @@
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
-param ()
+param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$tempPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..\..\..\temp'))
+$tempPath = [System.IO.Path]::GetFullPath(
+    (Join-Path -Path $PSScriptRoot -ChildPath '..\..\..\temp')
+)
 
 if (Test-Path -LiteralPath $tempPath) {
     Write-Verbose "Removing contents of: $tempPath"
-    Get-ChildItem -LiteralPath $tempPath -Force |
-        Remove-Item -Recurse -Force -WhatIf:$WhatIfPreference
+    Get-ChildItem -LiteralPath $tempPath -Force
+    Remove-Item -Recurse -Force -WhatIf:$WhatIfPreference
     Write-Verbose 'Temp directory cleaned successfully.'
 } else {
     Write-Verbose "Temp directory not found, nothing to clean: $tempPath"

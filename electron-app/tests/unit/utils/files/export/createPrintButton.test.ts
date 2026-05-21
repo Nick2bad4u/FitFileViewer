@@ -7,9 +7,12 @@ const mocks = vi.hoisted(() => ({
     showNotification: vi.fn<(message: string, type?: string) => void>(),
 }));
 
-vi.mock(import("../../../../../utils/charts/theming/getThemeColors.js"), () => ({
-    getThemeColors: mocks.getThemeColors,
-}));
+vi.mock(
+    import("../../../../../utils/charts/theming/getThemeColors.js"),
+    () => ({
+        getThemeColors: mocks.getThemeColors,
+    })
+);
 
 vi.mock(
     import("../../../../../utils/ui/notifications/showNotification.js"),
@@ -28,9 +31,8 @@ describe("createPrintButton", () => {
             surface: "#eeeeee",
         });
 
-        const { createPrintButton } = await import(
-            "../../../../../utils/files/export/createPrintButton.js"
-        );
+        const { createPrintButton } =
+            await import("../../../../../utils/files/export/createPrintButton.js");
 
         const button = createPrintButton();
         const svg = button.querySelector("svg");
@@ -54,9 +56,8 @@ describe("createPrintButton", () => {
 
         try {
             vi.stubGlobal("print", print);
-            const { createPrintButton } = await import(
-                "../../../../../utils/files/export/createPrintButton.js"
-            );
+            const { createPrintButton } =
+                await import("../../../../../utils/files/export/createPrintButton.js");
 
             const button = createPrintButton();
             button.click();
@@ -78,9 +79,8 @@ describe("createPrintButton", () => {
             vi.stubGlobal("print", () => {
                 throw new Error("print failed");
             });
-            const { createPrintButton } = await import(
-                "../../../../../utils/files/export/createPrintButton.js"
-            );
+            const { createPrintButton } =
+                await import("../../../../../utils/files/export/createPrintButton.js");
 
             expect(() => createPrintButton().click()).not.toThrow();
             expect(mocks.showNotification).toHaveBeenCalledWith(

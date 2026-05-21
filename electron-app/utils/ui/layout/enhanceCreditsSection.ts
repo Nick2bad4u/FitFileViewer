@@ -15,7 +15,6 @@ let cleanupCallbacks: (() => void)[] = [];
  * applies marquee styling when necessary. The marquee animation pauses on hover
  * and adapts to window resizes or content changes via
  * ResizeObserver/MutationObserver fallbacks.
- *
  */
 export function setupCreditsMarquee(): void {
     teardownCreditsMarquee();

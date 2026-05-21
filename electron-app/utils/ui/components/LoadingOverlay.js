@@ -108,7 +108,6 @@ export const LoadingOverlay = {
     },
     /**
      * Shows a loading overlay with progress text
-     *
      */
     show(progressText, fileName = "") {
         let overlay = document.querySelector("#fitfile-loading-overlay");

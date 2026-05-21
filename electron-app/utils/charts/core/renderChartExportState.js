@@ -1,7 +1,9 @@
 function getExportFormatLabel(format) {
-    if (format !== null &&
+    if (
+        format !== null &&
         format !== undefined &&
-        typeof format.toUpperCase === "function") {
+        typeof format.toUpperCase === "function"
+    ) {
         const label = format.toUpperCase();
         if (label) {
             return String(label);
@@ -19,9 +21,13 @@ function getExportFormatLabel(format) {
 export function createExportChartsWithState(dependencies) {
     return async (format = "png") => {
         const isRendered = Boolean(dependencies.getState("charts.isRendered"));
-        const instances = dependencies.getChartInstances(dependencies.chartGlobal._chartjsInstances);
+        const instances = dependencies.getChartInstances(
+            dependencies.chartGlobal._chartjsInstances
+        );
         if (!isRendered && instances.length === 0) {
-            void Promise.resolve().then(() => dependencies.notify("No charts available for export", "warning"));
+            void Promise.resolve().then(() =>
+                dependencies.notify("No charts available for export", "warning")
+            );
             return false;
         }
         try {
@@ -29,14 +35,17 @@ export function createExportChartsWithState(dependencies) {
                 silent: false,
                 source: "exportChartsWithState",
             });
-        }
-        catch {
+        } catch {
             // Export success should not depend on non-critical state updates.
         }
         try {
-            void Promise.resolve().then(() => dependencies.notify(`Charts exported as ${getExportFormatLabel(format)}`, "success"));
-        }
-        catch {
+            void Promise.resolve().then(() =>
+                dependencies.notify(
+                    `Charts exported as ${getExportFormatLabel(format)}`,
+                    "success"
+                )
+            );
+        } catch {
             // Export success should not depend on non-critical notifications.
         }
         try {
@@ -44,8 +53,7 @@ export function createExportChartsWithState(dependencies) {
                 silent: false,
                 source: "exportChartsWithState",
             });
-        }
-        catch {
+        } catch {
             // Export success should not depend on non-critical state updates.
         }
         return true;

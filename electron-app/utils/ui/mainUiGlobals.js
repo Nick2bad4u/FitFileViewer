@@ -11,7 +11,10 @@ function getLegacyRendererGlobal() {
  */
 export function defineGlobalDataProperty() {
     try {
-        const existing = Object.getOwnPropertyDescriptor(globalThis, "globalData");
+        const existing = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "globalData"
+        );
         if (!existing || existing.configurable) {
             Object.defineProperty(globalThis, "globalData", {
                 configurable: true,
@@ -27,15 +30,20 @@ export function defineGlobalDataProperty() {
                 },
             });
         }
-    }
-    catch {
+    } catch {
         /* Ignore redefinition issues */
     }
 }
 /**
  * Register legacy globals expected by older renderers/scripts.
  */
-export function registerLegacyGlobals({ showFitData, renderChartJS, cleanupEventListeners, validateElement, constants, }) {
+export function registerLegacyGlobals({
+    showFitData,
+    renderChartJS,
+    cleanupEventListeners,
+    validateElement,
+    constants,
+}) {
     const legacyGlobal = getLegacyRendererGlobal();
     // Expose essential functions to window for backward compatibility
     legacyGlobal.showFitData = showFitData;
@@ -59,27 +67,29 @@ export function registerLegacyGlobals({ showFitData, renderChartJS, cleanupEvent
                     const base64 = convertArrayBufferToBase64(arrayBuffer);
                     const targetOrigin = globalThis.location.origin;
                     /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron loads the Alt FIT iframe from the same app origin; location.origin is the strict same-origin target for the current runtime. */
-                    iframe.contentWindow.postMessage({ base64, type: "fit-file" }, targetOrigin);
+                    iframe.contentWindow.postMessage(
+                        { base64, type: "fit-file" },
+                        targetOrigin
+                    );
                     /* eslint-enable sdl/no-postmessage-without-origin-allowlist */
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.error("Error posting message to iframe:", error);
             }
         };
-        if (!iframe.src ||
-            !iframe.src.includes(constants.IFRAME_PATHS.ALT_FIT)) {
+        if (
+            !iframe.src ||
+            !iframe.src.includes(constants.IFRAME_PATHS.ALT_FIT)
+        ) {
             const abortController = new AbortController();
             iframe.src = constants.IFRAME_PATHS.ALT_FIT;
             iframe.addEventListener("load", postToIframe, {
                 once: true,
                 signal: abortController.signal,
             });
-        }
-        else if (iframe.contentWindow && iframe.src) {
+        } else if (iframe.contentWindow && iframe.src) {
             postToIframe();
-        }
-        else {
+        } else {
             const abortController = new AbortController();
             iframe.addEventListener("load", postToIframe, {
                 once: true,

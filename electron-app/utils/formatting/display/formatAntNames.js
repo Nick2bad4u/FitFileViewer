@@ -10,7 +10,8 @@ import { dataAntProductIds } from "../../data/lookups/dataAntProductIds.js";
  */
 export function getManufacturerAndProduct(manufacturerId, productId = null) {
     const manufacturerName = getManufacturerName(manufacturerId);
-    const productName = productId === null ? null : getProductName(manufacturerId, productId);
+    const productName =
+        productId === null ? null : getProductName(manufacturerId, productId);
     return {
         manufacturerName,
         productName,
@@ -61,9 +62,10 @@ export function getManufacturerIdFromName(manufacturerName) {
  * @returns Manufacturer name, or the original value if not found.
  */
 export function getManufacturerName(manufacturerId) {
-    const id = typeof manufacturerId === "string"
-        ? Number.parseInt(manufacturerId, 10)
-        : manufacturerId;
+    const id =
+        typeof manufacturerId === "string"
+            ? Number.parseInt(manufacturerId, 10)
+            : manufacturerId;
     return typeof id === "number" && Object.hasOwn(dataAntManufacturerIDs, id)
         ? dataAntManufacturerIDs[id]
         : manufacturerId;
@@ -79,15 +81,19 @@ export function getManufacturerName(manufacturerId) {
  * @returns Product name, or the original product ID if not found.
  */
 export function getProductName(manufacturerId, productId) {
-    const manufacturerKey = typeof manufacturerId === "string"
-        ? Number.parseInt(manufacturerId, 10)
-        : manufacturerId;
-    const productKey = typeof productId === "string"
-        ? Number.parseInt(productId, 10)
-        : productId;
-    if (typeof manufacturerKey !== "number" ||
+    const manufacturerKey =
+        typeof manufacturerId === "string"
+            ? Number.parseInt(manufacturerId, 10)
+            : manufacturerId;
+    const productKey =
+        typeof productId === "string"
+            ? Number.parseInt(productId, 10)
+            : productId;
+    if (
+        typeof manufacturerKey !== "number" ||
         typeof productKey !== "number" ||
-        !Object.hasOwn(dataAntProductIds, manufacturerKey)) {
+        !Object.hasOwn(dataAntProductIds, manufacturerKey)
+    ) {
         return productId;
     }
     const manufacturerProducts = dataAntProductIds[manufacturerKey];

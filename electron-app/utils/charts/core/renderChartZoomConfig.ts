@@ -47,7 +47,9 @@ function getThemeColor(
 /**
  * Creates the shared chart zoom plugin configuration.
  *
- * @param themeConfig - Theme configuration object from the renderer theme layer.
+ * @param themeConfig - Theme configuration object from the renderer theme
+ *   layer.
+ *
  * @returns Chart.js zoom plugin configuration.
  */
 export function createChartZoomPluginConfig(

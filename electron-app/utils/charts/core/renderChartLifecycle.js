@@ -31,17 +31,28 @@ export function clearExistingCharts(dependencies) {
                 if (hasDestroy(chart)) {
                     chart.destroy();
                 }
-            }
-            catch (error) {
-                console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+            } catch (error) {
+                console.warn(
+                    `[ChartJS] Error destroying chart ${index}:`,
+                    error
+                );
             }
         }
     }
     dependencies.chartGlobal._chartjsInstances = [];
-    dependencies.updateState("charts", { chartData: null, isRendered: false, renderedCount: 0 }, { silent: false, source: "renderChartJS.clear" });
+    dependencies.updateState(
+        "charts",
+        { chartData: null, isRendered: false, renderedCount: 0 },
+        { silent: false, source: "renderChartJS.clear" }
+    );
 }
 /** Completes chart rendering through global actions or the safe fallback. */
-export function completeChartRendering(dependencies, success, chartCount, renderTime) {
+export function completeChartRendering(
+    dependencies,
+    success,
+    chartCount,
+    renderTime
+) {
     try {
         const actions = dependencies.getGlobalChartActions();
         if (actions?.completeRendering) {
@@ -49,8 +60,7 @@ export function completeChartRendering(dependencies, success, chartCount, render
             return;
         }
         dependencies.safeCompleteRendering(success);
-    }
-    catch {
+    } catch {
         dependencies.safeCompleteRendering(success);
     }
 }

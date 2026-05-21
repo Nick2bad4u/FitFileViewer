@@ -5,10 +5,10 @@ sidebar_label: ⚡ Quick Start
 sidebar_position: 2
 description: Get up and running with FitFileViewer in just a few minutes.
 keywords:
-  - quick start
-  - tutorial
-  - getting started
-  - first use
+ - quick start
+ - tutorial
+ - getting started
+ - first use
 ---
 
 # Quick Start Guide
@@ -44,10 +44,11 @@ Press `Ctrl+O` (Windows/Linux) or `Cmd+O` (macOS) to open the file dialog.
 
 :::tip Where are my FIT files?
 FIT files are typically synced from your device to:
+
 - **Garmin Connect**: Check your Garmin folder or export from the web app
 - **Strava/Other**: Export activities as FIT files from the service
 - **Direct USB**: Connect your device and navigate to the `Activities` folder
-:::
+  :::
 
 ## Step 3: Explore Your Data
 
@@ -74,6 +75,7 @@ Analyze your performance data:
 - **Power/Cadence**: For cycling activities
 
 **Interactions:**
+
 - **Zoom**: Scroll to zoom in/out
 - **Pan**: Click and drag to move
 - **Reset**: Double-click to reset view
@@ -124,14 +126,14 @@ FitFileViewer automatically detects your preferred units from your device. You c
 
 ## Common Actions
 
-| Action | Windows/Linux | macOS |
-|--------|--------------|-------|
-| Open File | `Ctrl+O` | `Cmd+O` |
-| Reload | `Ctrl+R` | `Cmd+R` |
-| Toggle Theme | `Ctrl+T` | `Cmd+T` |
-| Fullscreen | `F11` | `Ctrl+Cmd+F` |
-| Zoom In | `Ctrl+=` | `Cmd+=` |
-| Zoom Out | `Ctrl+-` | `Cmd+-` |
+| Action       | Windows/Linux | macOS        |
+| ------------ | ------------- | ------------ |
+| Open File    | `Ctrl+O`      | `Cmd+O`      |
+| Reload       | `Ctrl+R`      | `Cmd+R`      |
+| Toggle Theme | `Ctrl+T`      | `Cmd+T`      |
+| Fullscreen   | `F11`         | `Ctrl+Cmd+F` |
+| Zoom In      | `Ctrl+=`      | `Cmd+=`      |
+| Zoom Out     | `Ctrl+-`      | `Cmd+-`      |
 
 ## What's Next?
 

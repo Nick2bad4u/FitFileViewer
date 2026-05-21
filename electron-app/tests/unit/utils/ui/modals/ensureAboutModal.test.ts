@@ -1,14 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-    addEventListenerWithCleanup: vi.fn<
-        (
-            element: EventTarget | null | undefined,
-            eventType: string,
-            handler: EventListener | null | undefined,
-            options?: AddEventListenerOptions | boolean
-        ) => () => void
-    >(),
+    addEventListenerWithCleanup:
+        vi.fn<
+            (
+                element: EventTarget | null | undefined,
+                eventType: string,
+                handler: EventListener | null | undefined,
+                options?: AddEventListenerOptions | boolean
+            ) => () => void
+        >(),
     contentElement: document.createElement("section"),
     handleEscapeKey: vi.fn<(event: KeyboardEvent) => void>(),
     injectModalStyles: vi.fn<() => void>(),
@@ -22,9 +23,12 @@ vi.mock(
     })
 );
 
-vi.mock(import("../../../../../utils/ui/events/eventListenerManager.js"), () => ({
-    addEventListenerWithCleanup: mocks.addEventListenerWithCleanup,
-}));
+vi.mock(
+    import("../../../../../utils/ui/events/eventListenerManager.js"),
+    () => ({
+        addEventListenerWithCleanup: mocks.addEventListenerWithCleanup,
+    })
+);
 
 vi.mock(import("../../../../../utils/ui/modals/aboutModal.js"), () => ({
     createAboutModalContentElement: () => mocks.contentElement,
@@ -35,9 +39,8 @@ vi.mock(import("../../../../../utils/ui/modals/injectModalStyles.js"), () => ({
     injectModalStyles: mocks.injectModalStyles,
 }));
 
-const { ensureAboutModal } = await import(
-    "../../../../../utils/ui/modals/ensureAboutModal.js"
-);
+const { ensureAboutModal } =
+    await import("../../../../../utils/ui/modals/ensureAboutModal.js");
 
 describe(ensureAboutModal, () => {
     it("creates the hidden About modal and performs one-time setup", () => {
@@ -61,7 +64,9 @@ describe(ensureAboutModal, () => {
             mocks.contentElement
         );
         expect(document.body.lastElementChild).toBe(modal);
-        expect(mocks.addEventListenerWithCleanup).toHaveBeenCalledExactlyOnceWith(
+        expect(
+            mocks.addEventListenerWithCleanup
+        ).toHaveBeenCalledExactlyOnceWith(
             document,
             "keydown",
             mocks.handleEscapeKey,

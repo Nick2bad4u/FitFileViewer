@@ -48,7 +48,13 @@ describe(getChartCounts, () => {
         expect.assertions(1);
 
         resetGlobals();
-        testGlobal.globalData = { recordMesgs: [null, ["bad"], "bad"] };
+        testGlobal.globalData = {
+            recordMesgs: [
+                null,
+                ["bad"],
+                "bad",
+            ],
+        };
 
         expect(getChartCounts()).toStrictEqual({
             available: 0,
@@ -144,7 +150,9 @@ describe(getChartCounts, () => {
         expect.assertions(2);
 
         resetGlobals();
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {}),
+        const errorSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {}),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         testGlobal.globalData = {
             recordMesgs: [

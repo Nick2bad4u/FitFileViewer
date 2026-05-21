@@ -13,7 +13,8 @@ function asRecord(value) {
         : {};
 }
 function asChartFieldVisibilityMap(value) {
-    const record = asRecord(value), visibility = {};
+    const record = asRecord(value),
+        visibility = {};
     for (const [key, setting] of Object.entries(record)) {
         if (setting === "visible" || setting === "hidden") {
             visibility[key] = setting;
@@ -23,11 +24,12 @@ function asChartFieldVisibilityMap(value) {
 }
 /**
  * Normalize chart settings payloads to ensure consistent shapes.
- *
- *
  */
 function normalizeChartSettings(settings) {
-    const safeSettings = asRecord(settings), fieldVisibility = asChartFieldVisibilityMap(safeSettings[CHART_FIELD_VISIBILITY_KEY]);
+    const safeSettings = asRecord(settings),
+        fieldVisibility = asChartFieldVisibilityMap(
+            safeSettings[CHART_FIELD_VISIBILITY_KEY]
+        );
     return {
         ...safeSettings,
         [CHART_FIELD_VISIBILITY_KEY]: {
@@ -37,15 +39,15 @@ function normalizeChartSettings(settings) {
 }
 /**
  * Read legacy per-field visibility preferences stored as individual keys.
- *
- *
  */
 function readLegacyChartFieldVisibility(fieldKey) {
     const storage = globalThis?.localStorage;
     if (!storage) {
         return undefined;
     }
-    const storedValue = storage.getItem(`${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`);
+    const storedValue = storage.getItem(
+        `${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`
+    );
     if (storedValue === "visible" || storedValue === "hidden") {
         return storedValue;
     }
@@ -53,7 +55,6 @@ function readLegacyChartFieldVisibility(fieldKey) {
 }
 /**
  * Remove legacy per-field visibility keys after migration.
- *
  */
 function removeLegacyChartFieldVisibility(fieldKey) {
     const storage = globalThis?.localStorage;
@@ -64,7 +65,6 @@ function removeLegacyChartFieldVisibility(fieldKey) {
 }
 /**
  * Export all settings.
- *
  */
 export function exportAllSettings() {
     return settingsStateManager.exportSettings();
@@ -73,10 +73,12 @@ export function exportAllSettings() {
  * Read field visibility from settings, migrating legacy localStorage keys if
  * present.
  *
- *   `"visible"`
- *
+ * `"visible"`
  */
-export function getChartFieldVisibility(fieldKey, defaultVisibility = "visible") {
+export function getChartFieldVisibility(
+    fieldKey,
+    defaultVisibility = "visible"
+) {
     const settings = getChartSettings();
     const fieldVisibility = settings[CHART_FIELD_VISIBILITY_KEY] || {};
     const currentValue = fieldVisibility[fieldKey];
@@ -97,75 +99,68 @@ export function getChartFieldVisibility(fieldKey, defaultVisibility = "visible")
 }
 /**
  * Get chart setting.
- *
- *
  */
 export function getChartSetting(key) {
     return settingsStateManager.getSetting("chart", key);
 }
 /**
  * Return normalized chart settings with default field visibility map.
- *
  */
 export function getChartSettings() {
     return normalizeChartSettings(settingsStateManager.getSetting("chart"));
 }
 /**
  * Get map theme setting.
- *
  */
 export function getMapThemeSetting() {
     return Boolean(settingsStateManager.getSetting("mapTheme"));
 }
 /**
  * Get power estimation setting.
- *
  */
 export function getPowerEstimationSetting(key) {
     return settingsStateManager.getSetting("powerEstimation", key);
 }
 /**
  * Get theme setting.
- *
  */
 export function getThemeSetting() {
     return String(settingsStateManager.getSetting("theme"));
 }
 /**
  * Convenience wrapper for chart renderers to access user chart settings.
- *
  */
 export function getUserChartSettings() {
     return getChartSettings();
 }
 /**
  * Import settings from data.
- *
- *
  */
 export function importAllSettings(settingsData) {
     return settingsStateManager.importSettings(settingsData);
 }
 /**
  * Remove a chart setting (chartjs_* key) and update state.
- *
- *
  */
 export function removeChartSetting(key) {
     if (typeof key !== "string" || !key.trim()) {
-        console.warn("[SettingsState] removeChartSetting called with invalid key", key);
+        console.warn(
+            "[SettingsState] removeChartSetting called with invalid key",
+            key
+        );
         return false;
     }
     try {
         const storageKey = `${SETTINGS_SCHEMA.chart.key}${key}`;
         localStorage.removeItem(storageKey);
         const rootState = getState("settings");
-        const currentSettings = rootState &&
+        const currentSettings =
+            rootState &&
             typeof rootState === "object" &&
             rootState["chart"] &&
             typeof rootState["chart"] === "object"
-            ? rootState["chart"]
-            : {};
+                ? rootState["chart"]
+                : {};
         if (currentSettings && Object.hasOwn(currentSettings, key)) {
             const nextSettings = { ...currentSettings };
             delete nextSettings[key];
@@ -177,8 +172,7 @@ export function removeChartSetting(key) {
             source: "SettingsStateManager.removeChartSetting",
         });
         return true;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[SettingsState] Error removing chart setting:", error);
         return false;
     }
@@ -191,8 +185,6 @@ export function resetChartSettings(options = {}) {
 }
 /**
  * Update visibility for a single chart field.
- *
- *
  */
 export function setChartFieldVisibility(fieldKey, visibility) {
     const settings = getChartSettings();
@@ -207,54 +199,49 @@ export function setChartFieldVisibility(fieldKey, visibility) {
 }
 /**
  * Set chart setting.
- *
  */
 export function setChartSetting(key, value) {
     return settingsStateManager.setSetting("chart", value, key);
 }
 /**
  * Set map theme setting.
- *
  */
 export function setMapThemeSetting(inverted) {
     return settingsStateManager.setSetting("mapTheme", inverted);
 }
 /**
  * Set power estimation setting.
- *
  */
 export function setPowerEstimationSetting(key, value) {
     return settingsStateManager.setSetting("powerEstimation", value, key);
 }
 /**
  * Set theme setting.
- *
  */
 export function setThemeSetting(theme) {
     return settingsStateManager.setSetting("theme", theme);
 }
 /**
  * Subscribe to chart settings updates.
- *
- *
  */
 export function subscribeToChartSettings(callback) {
     return subscribe("settings.chart", (nextValue, previousValue) => {
-        callback(normalizeChartSettings(nextValue), normalizeChartSettings(previousValue));
+        callback(
+            normalizeChartSettings(nextValue),
+            normalizeChartSettings(previousValue)
+        );
     });
 }
 /**
  * Update chart settings by merging new values into existing settings.
- *
- *
  */
 export function updateChartSettings(updates) {
     const current = getChartSettings();
     const nextFieldVisibility = updates?.[CHART_FIELD_VISIBILITY_KEY]
         ? {
-            ...current[CHART_FIELD_VISIBILITY_KEY],
-            ...updates[CHART_FIELD_VISIBILITY_KEY],
-        }
+              ...current[CHART_FIELD_VISIBILITY_KEY],
+              ...updates[CHART_FIELD_VISIBILITY_KEY],
+          }
         : current[CHART_FIELD_VISIBILITY_KEY];
     const nextSettings = {
         ...current,

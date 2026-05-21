@@ -16,10 +16,7 @@ type MenuIpcCallback = (...args: unknown[]) => unknown;
 type Unsubscribe = () => void;
 
 type MenuElectronApi = {
-    onIpc: (
-        channel: MenuIpcChannel,
-        callback: MenuIpcCallback
-    ) => Unsubscribe;
+    onIpc: (channel: MenuIpcChannel, callback: MenuIpcCallback) => Unsubscribe;
     send: (channel: MenuSendChannel) => void;
 };
 
@@ -93,9 +90,8 @@ function registerTestMenuListeners(): {
     });
     const debugMenuLog = vi.fn<(...args: unknown[]) => void>();
     const showAboutModal = vi.fn<(html?: string) => void>();
-    const showNotification = vi.fn<
-        (message: string, type?: string, durationMs?: number) => void
-    >();
+    const showNotification =
+        vi.fn<(message: string, type?: string, durationMs?: number) => void>();
     const trackUnsubscribe = vi.fn<(maybeUnsubscribe: unknown) => void>();
 
     getTestGlobal().electronAPI = {

@@ -34,19 +34,23 @@ describe("html allowlist sanitization", () => {
             const fragment = sanitizeHtmlAllowlist(
                 '<p class="ok" onclick="alert(1)" href="file:///x" style="color:red">safe</p><em>kept</em><script>alert(1)</script>',
                 {
-                    allowedAttributes: ["class", "href", "style"],
+                    allowedAttributes: [
+                        "class",
+                        "href",
+                        "style",
+                    ],
                     allowedTags: ["p"],
                 }
             );
             const paragraph = fragment.querySelector("p");
 
             expect(paragraph?.getAttribute("class")).toBe("ok");
-            expect(paragraph?.hasAttribute("onclick") ? "present" : "missing").toBe(
-                "missing"
-            );
-            expect(paragraph?.hasAttribute("href") ? "present" : "missing").toBe(
-                "missing"
-            );
+            expect(
+                paragraph?.hasAttribute("onclick") ? "present" : "missing"
+            ).toBe("missing");
+            expect(
+                paragraph?.hasAttribute("href") ? "present" : "missing"
+            ).toBe("missing");
             expect(fragment.querySelector("script")).toBeNull();
             expect(serializeFragment(fragment)).toBe("safekept");
         } finally {
@@ -70,9 +74,9 @@ describe("html allowlist sanitization", () => {
             );
             const paragraph = fragment.querySelector("p");
 
-            expect(paragraph?.hasAttribute("style") ? "present" : "missing").toBe(
-                "missing"
-            );
+            expect(
+                paragraph?.hasAttribute("style") ? "present" : "missing"
+            ).toBe("missing");
             expect(paragraph?.textContent).toBe("safe");
         } finally {
             globalRef.DOMPurify = previousPurifier;
@@ -116,7 +120,10 @@ describe("html allowlist sanitization", () => {
                 receivedHtml = html;
                 const fragment = document.createDocumentFragment();
                 const span = document.createElement("span");
-                span.setAttribute("style", "background:url(https://example.test/x)");
+                span.setAttribute(
+                    "style",
+                    "background:url(https://example.test/x)"
+                );
                 span.textContent = "purified";
                 fragment.append(span);
                 return fragment;

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-type AddFullScreenButtonModule = typeof import("../../../../../utils/ui/controls/addFullScreenButton.js");
+type AddFullScreenButtonModule =
+    typeof import("../../../../../utils/ui/controls/addFullScreenButton.js");
 
 type ScreenfullChangeHandler = (event: Event) => void;
 
@@ -53,8 +54,7 @@ vi.mock(
 vi.mock(
     import("../../../../../utils/ui/controls/removeExitFullscreenOverlay.js"),
     () => ({
-        removeExitFullscreenOverlay:
-            controlMocks.removeExitFullscreenOverlay,
+        removeExitFullscreenOverlay: controlMocks.removeExitFullscreenOverlay,
     })
 );
 

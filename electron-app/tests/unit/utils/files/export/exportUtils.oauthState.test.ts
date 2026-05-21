@@ -40,9 +40,7 @@ describe("exportUtils OAuth state generation", () => {
                 globalThis,
                 "electronAPI"
             ),
-            startGyazoServer = vi.fn<
-                TestElectronAPI["startGyazoServer"]
-            >(),
+            startGyazoServer = vi.fn<TestElectronAPI["startGyazoServer"]>(),
             testElectronAPI: TestElectronAPI = {
                 onIpc: vi.fn<TestElectronAPI["onIpc"]>(() => () => {}),
                 startGyazoServer,

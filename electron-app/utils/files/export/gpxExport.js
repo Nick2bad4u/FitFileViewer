@@ -11,7 +11,8 @@ const GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
 // eslint-disable-next-line sdl/no-insecure-url -- The XML Schema Instance namespace URI is fixed by the spec.
 const GPX_XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
 const GPX_SCHEMA_LOCATION = `${GPX_NAMESPACE} ${GPX_NAMESPACE}/gpx.xsd`;
-const GPX_TRACKPOINT_EXTENSION_NAMESPACE = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"; // eslint-disable-line sdl/no-insecure-url -- Garmin TrackPointExtension uses this namespace URI.
+const GPX_TRACKPOINT_EXTENSION_NAMESPACE =
+    "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"; // eslint-disable-line sdl/no-insecure-url -- Garmin TrackPointExtension uses this namespace URI.
 const SEMICIRCLE_TO_DEGREES = 180 / 2_147_483_648; // 2 ** 31 per FIT protocol
 const FIT_EPOCH_OFFSET_SECONDS = 631_065_600; // 1989-12-31T00:00:00Z
 /**
@@ -31,7 +32,6 @@ const XML_ESCAPE_MAP = Object.freeze({
  * rate, cadence, temperature, and power when available. When no valid
  * coordinates exist the function returns null, allowing callers to surface
  * user-friendly notifications.
- *
  */
 export function buildGpxFromRecords(records, options = {}) {
     if (!Array.isArray(records) || records.length === 0) {
@@ -49,35 +49,45 @@ export function buildGpxFromRecords(records, options = {}) {
         }
         const lat = semicirclesToDegrees(record.positionLat);
         const lon = semicirclesToDegrees(record.positionLong);
-        if (lat === null ||
+        if (
+            lat === null ||
             lon === null ||
             Math.abs(lat) > 90 ||
-            Math.abs(lon) > 180) {
+            Math.abs(lon) > 180
+        ) {
             continue;
         }
-        const elevation = typeof record.enhancedAltitude === "number"
-            ? record.enhancedAltitude
-            : record.altitude;
+        const elevation =
+            typeof record.enhancedAltitude === "number"
+                ? record.enhancedAltitude
+                : record.altitude;
         const timestampIso = toIsoTimestamp(record.timestamp);
         if (!firstTimestamp && timestampIso) {
             firstTimestamp = timestampIso;
         }
-        const elevationLines = typeof elevation === "number" && Number.isFinite(elevation)
-            ? [`  <ele>${formatElevation(elevation)}</ele>`]
-            : [];
+        const elevationLines =
+            typeof elevation === "number" && Number.isFinite(elevation)
+                ? [`  <ele>${formatElevation(elevation)}</ele>`]
+                : [];
         const timeLines = timestampIso
             ? [`  <time>${timestampIso}</time>`]
             : [];
         let extensionLines = [];
         if (includeExtensions) {
             const hr = normalizeMetric(record.heartRate);
-            const cadence = normalizeMetric(record.cadence ??
-                record["cadenceRunning"] ??
-                record["cadenceCycling"]);
-            const temperature = normalizeMetric(record["temperature"] ??
-                record["bodyTemperature"] ??
-                record["ambientTemperature"]);
-            const power = normalizeMetric(record.power ?? record["instantPower"] ?? record["avgPower"]);
+            const cadence = normalizeMetric(
+                record.cadence ??
+                    record["cadenceRunning"] ??
+                    record["cadenceCycling"]
+            );
+            const temperature = normalizeMetric(
+                record["temperature"] ??
+                    record["bodyTemperature"] ??
+                    record["ambientTemperature"]
+            );
+            const power = normalizeMetric(
+                record.power ?? record["instantPower"] ?? record["avgPower"]
+            );
             const extensionValues = [
                 ...(hr ? [`    <gpxtpx:hr>${hr}</gpxtpx:hr>`] : []),
                 ...(cadence ? [`    <gpxtpx:cad>${cadence}</gpxtpx:cad>`] : []),
@@ -117,12 +127,15 @@ export function buildGpxFromRecords(records, options = {}) {
         `xsi:schemaLocation="${GPX_SCHEMA_LOCATION}"`,
     ];
     if (extensionsPresent && includeExtensions) {
-        rootAttributes.push(`xmlns:gpxtpx="${GPX_TRACKPOINT_EXTENSION_NAMESPACE}"`);
+        rootAttributes.push(
+            `xmlns:gpxtpx="${GPX_TRACKPOINT_EXTENSION_NAMESPACE}"`
+        );
     }
-    const description = typeof options.description === "string" &&
+    const description =
+        typeof options.description === "string" &&
         options.description.trim().length > 0
-        ? options.description.trim()
-        : "";
+            ? options.description.trim()
+            : "";
     const metadataLines = [
         "  <metadata>",
         `    <name>${trackName}</name>`,
@@ -149,26 +162,31 @@ export function buildGpxFromRecords(records, options = {}) {
 }
 /**
  * Resolves a user-friendly track name based on loaded FIT file context.
- *
  */
-export function resolveTrackNameFromLoadedFiles(loadedFitFiles, fallback = "Exported Track") {
+export function resolveTrackNameFromLoadedFiles(
+    loadedFitFiles,
+    fallback = "Exported Track"
+) {
     if (!Array.isArray(loadedFitFiles) || loadedFitFiles.length === 0) {
         return fallback;
     }
     const [primary] = loadedFitFiles;
     const baseCandidates = [primary?.displayName, primary?.name];
-    const fileName = typeof primary?.filePath === "string"
-        ? (primary.filePath
-            .split(/[/\\]/)
-            .pop()
-            ?.replace(/\.[^.]+$/u, "") ?? "")
-        : "";
-    const resolved = [...baseCandidates, fileName].find((candidate) => typeof candidate === "string" && candidate.trim().length > 0);
+    const fileName =
+        typeof primary?.filePath === "string"
+            ? (primary.filePath
+                  .split(/[/\\]/)
+                  .pop()
+                  ?.replace(/\.[^.]+$/u, "") ?? "")
+            : "";
+    const resolved = [...baseCandidates, fileName].find(
+        (candidate) =>
+            typeof candidate === "string" && candidate.trim().length > 0
+    );
     return resolved ? resolved.trim() : fallback;
 }
 /**
  * Escapes XML special characters within a string.
- *
  */
 function escapeXml(value) {
     return value.replaceAll(/["&'<>]/g, (char) => XML_ESCAPE_MAP[char] ?? char);
@@ -176,21 +194,18 @@ function escapeXml(value) {
 /**
  * Formats a number as a coordinate string with 7 decimal places (≈1cm
  * precision).
- *
  */
 function formatCoordinate(value) {
     return value.toFixed(7);
 }
 /**
  * Formats an elevation measurement in metres using two decimal places.
- *
  */
 function formatElevation(value) {
     return value.toFixed(2);
 }
 /**
  * Normalizes a potential track name or creator string into safe XML content.
- *
  */
 function normalizeLabel(value, fallback) {
     if (typeof value !== "string" || value.trim().length === 0) {
@@ -200,7 +215,6 @@ function normalizeLabel(value, fallback) {
 }
 /**
  * Normalizes a numeric metric (e.g., HR, cadence) into an integer string.
- *
  */
 function normalizeMetric(value) {
     if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -210,7 +224,6 @@ function normalizeMetric(value) {
 }
 /**
  * Converts FIT semicircle coordinates to decimal degrees.
- *
  */
 function semicirclesToDegrees(raw) {
     if (typeof raw !== "number" || !Number.isFinite(raw)) {
@@ -226,7 +239,6 @@ function semicirclesToDegrees(raw) {
  * Attempts to coerce a timestamp-like value into an ISO 8601 string for GPX
  * output. Supports Date instances, ISO8601 strings, UNIX epoch
  * seconds/milliseconds, and FIT epoch seconds (seconds since 1989-12-31).
- *
  */
 function toIsoTimestamp(value) {
     if (!value) {
@@ -248,7 +260,9 @@ function toIsoTimestamp(value) {
             return new Date(value * 1000).toISOString();
         }
         if (value > 0) {
-            return new Date((value + FIT_EPOCH_OFFSET_SECONDS) * 1000).toISOString();
+            return new Date(
+                (value + FIT_EPOCH_OFFSET_SECONDS) * 1000
+            ).toISOString();
         }
     }
     return null;

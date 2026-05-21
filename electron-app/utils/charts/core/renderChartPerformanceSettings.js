@@ -8,30 +8,36 @@ export function clearPerformanceSettingsCache() {
     performanceSettingsCache.clear();
 }
 /** Resolves performance tuning options for a chart render. */
-export function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature) {
+export function resolvePerformanceSettings(
+    totalPoints,
+    settings,
+    dataSettingsSignature
+) {
     const key = `${totalPoints}|${settings?.chartType || "line"}|${dataSettingsSignature}`;
     const cached = performanceSettingsCache.get(key);
     if (cached) {
         return cached;
     }
-    const allowDecimation = (!settings?.chartType ||
-        [
-            "area",
-            "line",
-            "radar",
-        ].includes(String(settings.chartType))) &&
+    const allowDecimation =
+        (!settings?.chartType ||
+            [
+                "area",
+                "line",
+                "radar",
+            ].includes(String(settings.chartType))) &&
         totalPoints > DECIMATION_THRESHOLD;
     const decimation = allowDecimation
         ? {
-            algorithm: "min-max",
-            enabled: true,
-            samples: 4,
-            threshold: 1000,
-        }
+              algorithm: "min-max",
+              enabled: true,
+              samples: 4,
+              threshold: 1000,
+          }
         : { enabled: false };
-    const tickSampleSize = totalPoints > MAX_TICK_TARGET
-        ? Math.ceil(totalPoints / MAX_TICK_TARGET)
-        : undefined;
+    const tickSampleSize =
+        totalPoints > MAX_TICK_TARGET
+            ? Math.ceil(totalPoints / MAX_TICK_TARGET)
+            : undefined;
     const enableSpanGaps = totalPoints > DECIMATION_THRESHOLD;
     const result = { decimation, enableSpanGaps, tickSampleSize };
     performanceSettingsCache.set(key, result);

@@ -15,13 +15,22 @@ function getEmptyChartMessage(totalChartsRendered, visibleFieldCount) {
  *
  * @param dependencies - Chart instance and empty-state rendering dependencies.
  * @param input - Render-visible metric count.
+ *
  * @returns Resolved render result state.
  */
 export function resolveChartRenderResultState(dependencies, input) {
-    const totalChartsRendered = getRenderedChartCount(dependencies.chartInstances);
-    const emptyChartMessage = getEmptyChartMessage(totalChartsRendered, input.visibleFieldCount);
+    const totalChartsRendered = getRenderedChartCount(
+        dependencies.chartInstances
+    );
+    const emptyChartMessage = getEmptyChartMessage(
+        totalChartsRendered,
+        input.visibleFieldCount
+    );
     if (emptyChartMessage !== null) {
-        dependencies.renderNoDataMessage(dependencies.chartContainer, emptyChartMessage);
+        dependencies.renderNoDataMessage(
+            dependencies.chartContainer,
+            emptyChartMessage
+        );
     }
     return { totalChartsRendered };
 }

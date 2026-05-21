@@ -52,9 +52,8 @@ describe(initUnifiedControlBar, () => {
 
             vi.advanceTimersByTime(1);
 
-            const toolbar = document.querySelector<HTMLElement>(
-                ".app-control-bar"
-            );
+            const toolbar =
+                document.querySelector<HTMLElement>(".app-control-bar");
 
             expect(toolbar).toBeInstanceOf(HTMLElement);
             expect(toolbar?.getAttribute("role")).toBe("toolbar");
@@ -93,9 +92,8 @@ describe(initUnifiedControlBar, () => {
 
             vi.advanceTimersByTime(100);
 
-            const toolbar = document.querySelector<HTMLElement>(
-                ".app-control-bar"
-            );
+            const toolbar =
+                document.querySelector<HTMLElement>(".app-control-bar");
 
             expect(toolbar).toBeInstanceOf(HTMLElement);
             expect(toolbar?.children[0]).toBe(colorSwitcher);

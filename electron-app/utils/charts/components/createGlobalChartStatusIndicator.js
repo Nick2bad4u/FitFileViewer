@@ -17,8 +17,7 @@ function logWithContext(level, message, context = {}) {
         case "error": {
             if (hasContext) {
                 console.error(logMessage, context);
-            }
-            else {
+            } else {
                 console.error(logMessage);
             }
             break;
@@ -26,8 +25,7 @@ function logWithContext(level, message, context = {}) {
         case "info": {
             if (hasContext) {
                 console.info(logMessage, context);
-            }
-            else {
+            } else {
                 console.info(logMessage);
             }
             break;
@@ -35,8 +33,7 @@ function logWithContext(level, message, context = {}) {
         case "warn": {
             if (hasContext) {
                 console.warn(logMessage, context);
-            }
-            else {
+            } else {
                 console.warn(logMessage);
             }
             break;
@@ -44,8 +41,7 @@ function logWithContext(level, message, context = {}) {
         default: {
             if (hasContext) {
                 console.log(logMessage, context);
-            }
-            else {
+            } else {
                 console.log(logMessage);
             }
         }
@@ -68,16 +64,17 @@ function insertIndicatorIntoDom(globalIndicator, chartTabContent) {
         const chartContainer = getChartContainer();
         if (chartContainer) {
             chartContainer.before(globalIndicator);
-        }
-        else {
+        } else {
             chartTabContent.append(globalIndicator);
             logWithContext("warn", "Chart container not found", {
                 id: "chartjs_chart_container",
             });
         }
-        logWithContext("info", "Global chart status indicator inserted into DOM");
-    }
-    catch (error) {
+        logWithContext(
+            "info",
+            "Global chart status indicator inserted into DOM"
+        );
+    } catch (error) {
         logWithContext("error", "Failed to insert indicator into DOM", {
             ...getErrorContext(error),
         });
@@ -86,7 +83,8 @@ function insertIndicatorIntoDom(globalIndicator, chartTabContent) {
 /**
  * Creates a persistent global chart status indicator for the chart tab.
  *
- * @returns The created or existing indicator element, or null when chart content is unavailable.
+ * @returns The created or existing indicator element, or null when chart
+ *   content is unavailable.
  */
 export function createGlobalChartStatusIndicator() {
     try {
@@ -100,24 +98,35 @@ export function createGlobalChartStatusIndicator() {
         }
         const existingIndicator = getExistingIndicator();
         if (existingIndicator) {
-            logWithContext("info", "Global chart status indicator already exists");
+            logWithContext(
+                "info",
+                "Global chart status indicator already exists"
+            );
             return existingIndicator;
         }
         const counts = getChartCounts();
         logWithContext("info", "Chart status calculated", { counts });
-        const globalIndicator = createGlobalChartStatusIndicatorFromCounts(counts);
+        const globalIndicator =
+            createGlobalChartStatusIndicatorFromCounts(counts);
         if (!globalIndicator) {
             return null;
         }
         insertIndicatorIntoDom(globalIndicator, chartTabContent);
-        logWithContext("info", "Global chart status indicator created successfully", {
-            available: counts.available,
-            visible: counts.visible,
-        });
+        logWithContext(
+            "info",
+            "Global chart status indicator created successfully",
+            {
+                available: counts.available,
+                visible: counts.visible,
+            }
+        );
         return globalIndicator;
-    }
-    catch (error) {
-        logWithContext("error", "Failed to create global chart status indicator", getErrorContext(error));
+    } catch (error) {
+        logWithContext(
+            "error",
+            "Failed to create global chart status indicator",
+            getErrorContext(error)
+        );
         return null;
     }
 }

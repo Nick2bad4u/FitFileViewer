@@ -1,17 +1,30 @@
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 function getThemeColor(themeConfig, colorName, fallback) {
-    return sanitizeCssColorToken(getRecordValue(getRecordValue(themeConfig, "colors"), colorName), fallback);
+    return sanitizeCssColorToken(
+        getRecordValue(getRecordValue(themeConfig, "colors"), colorName),
+        fallback
+    );
 }
 /**
  * Creates the shared chart zoom plugin configuration.
  *
- * @param themeConfig - Theme configuration object from the renderer theme layer.
+ * @param themeConfig - Theme configuration object from the renderer theme
+ *   layer.
+ *
  * @returns Chart.js zoom plugin configuration.
  */
 export function createChartZoomPluginConfig(themeConfig) {
-    const zoomDragBackgroundColor = getThemeColor(themeConfig, "primaryAlpha", "rgba(59, 130, 246, 0.2)");
-    const zoomDragBorderColor = getThemeColor(themeConfig, "primary", "rgba(59, 130, 246, 0.8)");
+    const zoomDragBackgroundColor = getThemeColor(
+        themeConfig,
+        "primaryAlpha",
+        "rgba(59, 130, 246, 0.2)"
+    );
+    const zoomDragBorderColor = getThemeColor(
+        themeConfig,
+        "primary",
+        "rgba(59, 130, 246, 0.8)"
+    );
     return {
         limits: {
             x: {

@@ -334,11 +334,12 @@ describe("chartStatusIndicator.js", () => {
             );
 
             // Assert that global indicator was created
-            const globalIndicatorModule = await import(
-                "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js"
-            );
+            const globalIndicatorModule =
+                await import("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js");
             expect(
-                vi.mocked(globalIndicatorModule.createGlobalChartStatusIndicator)
+                vi.mocked(
+                    globalIndicatorModule.createGlobalChartStatusIndicator
+                )
             ).toHaveBeenCalled();
 
             // Verify globalData property was modified
@@ -370,9 +371,8 @@ describe("chartStatusIndicator.js", () => {
             // Check that the event listeners were registered
             expect(fieldToggleHandlerCall).toBeTruthy();
             expect(chartsRenderedHandlerCall).toBeTruthy();
-            const settingsStateManager = await import(
-                "../../../../../utils/state/domain/settingsStateManager.js"
-            );
+            const settingsStateManager =
+                await import("../../../../../utils/state/domain/settingsStateManager.js");
             expect(
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalled();

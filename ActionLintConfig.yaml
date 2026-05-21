@@ -29,4 +29,3 @@ paths:
     .github/workflows/summary.yml:
         ignore:
             - "unknown permission scope"
-

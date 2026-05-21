@@ -5,16 +5,21 @@ import { showNotification } from "./notifications/showNotification.js";
  *
  * @param options - Current cleanup state and setter.
  */
-export function setupExternalLinkHandlers({ cleanupExternalLinkHandlers, setCleanup, }) {
+export function setupExternalLinkHandlers({
+    cleanupExternalLinkHandlers,
+    setCleanup,
+}) {
     try {
         cleanupExternalLinkHandlers?.();
-    }
-    catch {
+    } catch {
         // Ignore stale cleanup failures during renderer reinitialization.
     }
     const cleanup = attachExternalLinkHandlers({
         onOpenExternalError: () => {
-            void showNotification("Failed to open link in your browser.", "error");
+            void showNotification(
+                "Failed to open link in your browser.",
+                "error"
+            );
         },
         root: document,
     });

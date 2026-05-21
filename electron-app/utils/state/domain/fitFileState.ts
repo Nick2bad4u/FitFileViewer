@@ -424,7 +424,8 @@ export class FitFileStateManager {
             : null;
         const currentFile = stateCore.getState("fitFile.currentFile");
         const resolvedPath =
-            providedPath ?? (typeof currentFile === "string" ? currentFile : null);
+            providedPath ??
+            (typeof currentFile === "string" ? currentFile : null);
 
         stateCore.setState("globalData", safeData, { source });
         stateCore.setState("currentFile", resolvedPath, { source });
@@ -639,7 +640,10 @@ export class FitFileStateManager {
                 validation.warnings.push("No file ID information");
             }
 
-            if (Array.isArray(data.recordMesgs) && data.recordMesgs.length === 0) {
+            if (
+                Array.isArray(data.recordMesgs) &&
+                data.recordMesgs.length === 0
+            ) {
                 validation.errors.push("File contains no activity records");
                 validation.isValid = false;
             }

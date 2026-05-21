@@ -15,7 +15,9 @@ type TabButtonElement = HTMLElement & {
  *
  * @param id - The ID of the button element.
  * @param handler - The event handler function to be executed on click.
- * @returns Cleanup function to remove the event listener, or void if setup failed.
+ *
+ * @returns Cleanup function to remove the event listener, or void if setup
+ *   failed.
  */
 export function setupTabButton(
     id: unknown,
@@ -72,7 +74,11 @@ export function setupTabButton(
     }
 
     // Use centralized event listener manager for automatic cleanup tracking
-    const cleanup = addEventListenerWithCleanup(tabButton, "click", clickHandler);
+    const cleanup = addEventListenerWithCleanup(
+        tabButton,
+        "click",
+        clickHandler
+    );
 
     // Store cleanup function for potential manual cleanup
     tabButton._setupTabButtonCleanup = cleanup;
@@ -82,7 +88,6 @@ export function setupTabButton(
 
 /**
  * Internal cache map for button elements keyed by id.
- *
  */
 // Initialize the cache property definition so TypeScript (checkJs) recognizes it
 Object.assign(setupTabButton, {

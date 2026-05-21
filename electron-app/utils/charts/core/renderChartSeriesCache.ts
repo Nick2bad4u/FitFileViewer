@@ -125,7 +125,7 @@ export function getCachedSeriesForSettings(
     const axisRanges =
         maxPointsValue === "all"
             ? labelCache.baseAxisRange
-            : calculateAxisRanges(points) ?? labelCache.baseAxisRange;
+            : (calculateAxisRanges(points) ?? labelCache.baseAxisRange);
 
     const series = {
         axisRanges,

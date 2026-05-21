@@ -39,6 +39,7 @@ export interface ChartRenderCacheApi {
  * Creates the public cache API exported by renderChartJS.
  *
  * @param dependencies - Cache manager, settings manager, and prewarm worker.
+ *
  * @returns Cache facade preserving the renderChartJS public API.
  */
 export function createChartRenderCacheApi(

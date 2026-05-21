@@ -12,7 +12,8 @@ export const TEMPERATURE_UNITS = {
 } as const;
 
 /**
- * Supported temperature unit string values accepted by {@link convertTemperatureUnits}.
+ * Supported temperature unit string values accepted by
+ * {@link convertTemperatureUnits}.
  */
 export type TemperatureUnit =
     (typeof TEMPERATURE_UNITS)[keyof typeof TEMPERATURE_UNITS];
@@ -22,12 +23,14 @@ export type TemperatureUnit =
  *
  * Unknown units preserve legacy behavior by warning and returning Celsius.
  *
- * @example
- *     const tempF = convertTemperatureUnits(25, TEMPERATURE_UNITS.FAHRENHEIT); // 77
+ * @example Const tempF = convertTemperatureUnits(25,
+ * TEMPERATURE_UNITS.FAHRENHEIT); // 77
  *
  * @param celsius - Temperature in Celsius.
  * @param targetUnit - Target unit: celsius or fahrenheit.
+ *
  * @returns Converted temperature value.
+ *
  * @throws TypeError If celsius is not a number or is NaN.
  */
 export function convertTemperatureUnits(

@@ -27,9 +27,12 @@ vi.mock(
     })
 );
 
-vi.mock(import("../../../../utils/ui/notifications/showNotification.js"), () => ({
-    showNotification: h.showNotification,
-}));
+vi.mock(
+    import("../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: h.showNotification,
+    })
+);
 
 function encodedConfig(value: unknown): string {
     return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
@@ -52,9 +55,8 @@ describe("loadSharedConfiguration", () => {
 
         resetTestState();
 
-        const { loadSharedConfiguration } = await import(
-            "../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         expect(() => loadSharedConfiguration()).not.toThrow();
 
@@ -87,9 +89,8 @@ describe("loadSharedConfiguration", () => {
             )}`
         );
 
-        const { loadSharedConfiguration } = await import(
-            "../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         expect(() => loadSharedConfiguration()).not.toThrow();
 
@@ -132,9 +133,8 @@ describe("loadSharedConfiguration", () => {
             `/?chartConfig=${encodeURIComponent(encodedConfig(["bad"]))}`
         );
 
-        const { loadSharedConfiguration } = await import(
-            "../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         expect(() => loadSharedConfiguration()).not.toThrow();
 

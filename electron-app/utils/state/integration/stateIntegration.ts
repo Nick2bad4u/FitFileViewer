@@ -245,15 +245,9 @@ export function setupStatePerformanceMonitoring(): void {
     integrationGlobal.__performanceMonitoringInterval = setInterval(() => {
         const memory = perfMemory.memory,
             memoryInfo = {
-                limit: Math.round(
-                    (memory?.jsHeapSizeLimit ?? 0) / 1024 / 1024
-                ),
-                total: Math.round(
-                    (memory?.totalJSHeapSize ?? 0) / 1024 / 1024
-                ),
-                used: Math.round(
-                    (memory?.usedJSHeapSize ?? 0) / 1024 / 1024
-                ),
+                limit: Math.round((memory?.jsHeapSizeLimit ?? 0) / 1024 / 1024),
+                total: Math.round((memory?.totalJSHeapSize ?? 0) / 1024 / 1024),
+                used: Math.round((memory?.usedJSHeapSize ?? 0) / 1024 / 1024),
             };
 
         setState("performance.memoryUsage", memoryInfo, {

@@ -19,9 +19,12 @@ export type PowerZoneVisibilitySettings = {
  * Creates the power zone controls section by extracting existing controls.
  *
  * @param parentContainer - Parent container to append controls to.
+ *
  * @returns The created power zone controls section.
  */
-export function createPowerZoneControls(parentContainer: HTMLElement): HTMLElement {
+export function createPowerZoneControls(
+    parentContainer: HTMLElement
+): HTMLElement {
     // Check if power zone controls already exist
     const existingControls = document.querySelector("#power-zone-controls");
     if (existingControls instanceof HTMLElement) {
@@ -100,14 +103,18 @@ export function createPowerZoneControls(parentContainer: HTMLElement): HTMLEleme
     updateCollapseState();
 
     const listenerController = new AbortController();
-    collapseBtn.addEventListener("click", () => {
-        isCollapsed = !isCollapsed;
-        localStorage.setItem(
-            "power-zone-controls-collapsed",
-            isCollapsed.toString()
-        );
-        updateCollapseState();
-    }, { signal: listenerController.signal });
+    collapseBtn.addEventListener(
+        "click",
+        () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem(
+                "power-zone-controls-collapsed",
+                isCollapsed.toString()
+            );
+            updateCollapseState();
+        },
+        { signal: listenerController.signal }
+    );
 
     function updateCollapseState(): void {
         if (isCollapsed) {
@@ -130,15 +137,23 @@ export function createPowerZoneControls(parentContainer: HTMLElement): HTMLEleme
     powerZoneSection.append(content);
 
     // Add hover effects
-    powerZoneSection.addEventListener("mouseenter", () => {
-        powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
-        powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: listenerController.signal });
+    powerZoneSection.addEventListener(
+        "mouseenter",
+        () => {
+            powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
+            powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: listenerController.signal }
+    );
 
-    powerZoneSection.addEventListener("mouseleave", () => {
-        powerZoneSection.style.borderColor = "var(--color-border)";
-        powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: listenerController.signal });
+    powerZoneSection.addEventListener(
+        "mouseleave",
+        () => {
+            powerZoneSection.style.borderColor = "var(--color-border)";
+            powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: listenerController.signal }
+    );
 
     parentContainer.append(powerZoneSection);
     return powerZoneSection;

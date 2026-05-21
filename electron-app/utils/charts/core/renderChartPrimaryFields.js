@@ -1,12 +1,17 @@
 import { fieldLabels } from "../../formatting/display/formatChartFields.js";
 import { safeAppend } from "./renderChartDomHelpers.js";
 import { shouldUseSpanGaps } from "./renderChartPerformanceSettings.js";
-import { getCachedSeriesForSettings, getFieldSeriesEntry, } from "./renderChartSeriesCache.js";
+import {
+    getCachedSeriesForSettings,
+    getFieldSeriesEntry,
+} from "./renderChartSeriesCache.js";
 function toStringRecord(value) {
     if (value === null || typeof value !== "object" || Array.isArray(value)) {
         return undefined;
     }
-    const entries = Object.entries(value).filter((entry) => typeof entry[1] === "string");
+    const entries = Object.entries(value).filter(
+        (entry) => typeof entry[1] === "string"
+    );
     return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 function toReadonlyRecord(value) {
@@ -28,7 +33,9 @@ export function renderPrimaryChartFields(dependencies, options) {
         if (!dependencies.isTestRuntime && !dependencies.skipTabAbort) {
             const currentTab = dependencies.getActiveTab();
             if (currentTab !== "chart" && currentTab !== "chartjs") {
-                console.log(`[ChartJS] Aborting render loop - tab switched to ${String(currentTab)}`);
+                console.log(
+                    `[ChartJS] Aborting render loop - tab switched to ${String(currentTab)}`
+                );
                 return { aborted: true, visibleFieldCount };
             }
         }
@@ -39,15 +46,32 @@ export function renderPrimaryChartFields(dependencies, options) {
             }
             continue;
         }
-        const seriesEntry = getFieldSeriesEntry(options.recordMesgs, field, options.dataSettingsSignature, options.convert);
+        const seriesEntry = getFieldSeriesEntry(
+            options.recordMesgs,
+            field,
+            options.dataSettingsSignature,
+            options.convert
+        );
         const rawValueCount = seriesEntry.values.length;
-        const { axisRanges, hasValidData, points: limitedPoints, } = getCachedSeriesForSettings(seriesEntry, options.labels, options.normalizedMaxPoints);
+        const {
+            axisRanges,
+            hasValidData,
+            points: limitedPoints,
+        } = getCachedSeriesForSettings(
+            seriesEntry,
+            options.labels,
+            options.normalizedMaxPoints
+        );
         if (dependencies.isDebugLoggingEnabled) {
-            console.log(`[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${String(visibility)}`);
+            console.log(
+                `[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${String(visibility)}`
+            );
         }
         if (!hasValidData) {
             if (dependencies.isDebugLoggingEnabled) {
-                console.log(`[ChartJS] Skipping field ${field} - no valid data after memoization`);
+                console.log(
+                    `[ChartJS] Skipping field ${field} - no valid data after memoization`
+                );
             }
             continue;
         }
@@ -55,14 +79,19 @@ export function renderPrimaryChartFields(dependencies, options) {
         const canvas = dependencies.createChartCanvas(field, visibleFieldCount);
         safeAppend(dependencies.chartContainer, canvas);
         const customColors = toStringRecord(options.customColors);
-        const decimation = toReadonlyRecord(options.performanceTuning.decimation);
+        const decimation = toReadonlyRecord(
+            options.performanceTuning.decimation
+        );
         const { tickSampleSize } = options.performanceTuning;
         const createChartOptions = {
             animationStyle: options.animationStyle,
             chartData: limitedPoints,
             chartType: options.chartType,
             distanceUnits: options.distanceUnits,
-            enableSpanGaps: shouldUseSpanGaps(options.performanceTuning, seriesEntry),
+            enableSpanGaps: shouldUseSpanGaps(
+                options.performanceTuning,
+                seriesEntry
+            ),
             field,
             fieldLabels,
             interpolation: options.interpolation,

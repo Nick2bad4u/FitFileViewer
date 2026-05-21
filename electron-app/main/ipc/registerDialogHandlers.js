@@ -1,9 +1,15 @@
 /**
  * @typedef {import("electron").BrowserWindow} BrowserWindow
+ *
  * @typedef {import("electron").OpenDialogOptions} OpenDialogOptions
+ *
  * @typedef {import("electron").OpenDialogReturnValue} OpenDialogReturnValue
  *
- * @typedef {{ showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue> }} DialogApi
+ * @typedef {{
+ *     showOpenDialog: (
+ *         options: OpenDialogOptions
+ *     ) => Promise<OpenDialogReturnValue>;
+ * }} DialogApi
  *
  * @typedef {{ getFocusedWindow?: () => BrowserWindow | null }} BrowserWindowApi
  *
@@ -74,8 +80,14 @@ function registerDialogHandlers({
     // This prevents arbitrary file disclosure via IPC if the renderer is compromised.
     /**
      * @type {null | {
-     *     approveFilePath: (p: unknown, options?: { source?: string }) => string;
-     *     approveFilePaths: (p: unknown, options?: { source?: string }) => void;
+     *     approveFilePath: (
+     *         p: unknown,
+     *         options?: { source?: string }
+     *     ) => string;
+     *     approveFilePaths: (
+     *         p: unknown,
+     *         options?: { source?: string }
+     *     ) => void;
      * }}
      */
     let fileAccessPolicy = null;

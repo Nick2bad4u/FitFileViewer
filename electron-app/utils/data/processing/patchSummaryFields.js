@@ -108,16 +108,17 @@ export function patchSummaryFields(obj, options = {}) {
             patchTimestamps(obj);
             patchDecimals(obj);
             return obj;
-        }
-        catch (error) {
+        } catch (error) {
             if (backup) {
                 Object.assign(obj, backup);
             }
             throw error;
         }
-    }
-    catch (error) {
-        logWithContext(`Error patching summary fields: ${getErrorMessage(error)}`, "error");
+    } catch (error) {
+        logWithContext(
+            `Error patching summary fields: ${getErrorMessage(error)}`,
+            "error"
+        );
         throw error;
     }
 }
@@ -145,7 +146,9 @@ function formatArray(value, digits = PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT) {
 function formatSpeed(value) {
     const mps = Number(value);
     const kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-    const mph = (mps * 2.236_94).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    const mph = (mps * 2.236_94).toFixed(
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
     return `${kmh} km/h / ${mph} mph`;
 }
 function logWithContext(message, level = "info") {
@@ -164,8 +167,7 @@ function logWithContext(message, level = "info") {
                 console.log(`${prefix} ${message}`);
             }
         }
-    }
-    catch {
+    } catch {
         // Logging must never block summary rendering.
     }
 }
@@ -185,23 +187,42 @@ function patchArrays(obj) {
         if (value != null) {
             try {
                 if (Array.isArray(value) || typeof value === "string") {
-                    obj[field] = formatArray(value, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+                    obj[field] = formatArray(
+                        value,
+                        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+                    );
                 }
-            }
-            catch (error) {
-                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
+            } catch (error) {
+                logWithContext(
+                    `Error formatting array field '${field}': ${getErrorMessage(error)}`,
+                    "error"
+                );
             }
         }
     }
 }
 function patchCadenceModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.CADENCE, PATCH_CONSTANTS.DECIMAL_PLACES.CADENCE);
+    patchDecimalFields(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.CADENCE,
+        PATCH_CONSTANTS.DECIMAL_PLACES.CADENCE
+    );
 }
 function patchDecimalFields(obj, fieldNames, decimalPlaces) {
-    patchFieldsWithFormatter(obj, fieldNames, (value) => Number(value.toFixed(decimalPlaces)), `decimal (${decimalPlaces} places)`);
+    patchFieldsWithFormatter(
+        obj,
+        fieldNames,
+        (value) => Number(value.toFixed(decimalPlaces)),
+        `decimal (${decimalPlaces} places)`
+    );
 }
 function patchDistance(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.DISTANCE, formatDistance, "distance");
+    patchFieldsWithFormatter(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.DISTANCE,
+        formatDistance,
+        "distance"
+    );
 }
 function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
     for (const fieldName of fieldNames) {
@@ -211,42 +232,77 @@ function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
             if (value !== null) {
                 try {
                     obj[fieldName] = formatter(value);
-                }
-                catch (error) {
-                    logWithContext(`Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`, "error");
+                } catch (error) {
+                    logWithContext(
+                        `Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`,
+                        "error"
+                    );
                 }
             }
         }
     }
 }
 function patchHeartRateModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.HEART_RATE, PATCH_CONSTANTS.DECIMAL_PLACES.HEART_RATE);
+    patchDecimalFields(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.HEART_RATE,
+        PATCH_CONSTANTS.DECIMAL_PLACES.HEART_RATE
+    );
 }
 function patchPowerModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.POWER, PATCH_CONSTANTS.DECIMAL_PLACES.POWER);
+    patchDecimalFields(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.POWER,
+        PATCH_CONSTANTS.DECIMAL_PLACES.POWER
+    );
 }
 function patchSpeed(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.SPEED, formatSpeed, "speed");
+    patchFieldsWithFormatter(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.SPEED,
+        formatSpeed,
+        "speed"
+    );
 }
 function patchTemperatureModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TEMPERATURE, PATCH_CONSTANTS.DECIMAL_PLACES.TEMPERATURE);
+    patchDecimalFields(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.TEMPERATURE,
+        PATCH_CONSTANTS.DECIMAL_PLACES.TEMPERATURE
+    );
 }
 function patchTime(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
+    patchFieldsWithFormatter(
+        obj,
+        PATCH_CONSTANTS.FIELD_MAPPINGS.TIME,
+        formatDuration,
+        "time"
+    );
 }
 function patchCalories(obj) {
     const calorieFields = ["total_calories", "totalCalories"];
-    patchDecimalFields(obj, calorieFields, PATCH_CONSTANTS.DECIMAL_PLACES.CALORIES);
+    patchDecimalFields(
+        obj,
+        calorieFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.CALORIES
+    );
 }
 function patchDecimals(obj) {
     try {
-        for (const key of Object.keys(obj).filter((candidate) => typeof obj[candidate] === "number" &&
-            !Number.isInteger(obj[candidate]))) {
-            obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+        for (const key of Object.keys(obj).filter(
+            (candidate) =>
+                typeof obj[candidate] === "number" &&
+                !Number.isInteger(obj[candidate])
+        )) {
+            obj[key] = Number(obj[key]).toFixed(
+                PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+            );
         }
-    }
-    catch (error) {
-        logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
+    } catch (error) {
+        logWithContext(
+            `Error formatting decimal fields: ${getErrorMessage(error)}`,
+            "error"
+        );
     }
 }
 function safeToNumber(value, fieldName = "value") {
@@ -265,7 +321,11 @@ function patchFractionalCadence(obj) {
         "avg_fractional_cadence",
         "avgFractionalCadence",
     ];
-    patchDecimalFields(obj, fractionalCadenceFields, PATCH_CONSTANTS.DECIMAL_PLACES.HIGH_PRECISION);
+    patchDecimalFields(
+        obj,
+        fractionalCadenceFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.HIGH_PRECISION
+    );
 }
 function patchGritFlow(obj) {
     const gritFlowFields = [
@@ -274,7 +334,11 @@ function patchGritFlow(obj) {
         "avg_grit",
         "avgGrit",
     ];
-    patchDecimalFields(obj, gritFlowFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    patchDecimalFields(
+        obj,
+        gritFlowFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
 }
 function patchPCO(obj) {
     const pcoFields = [
@@ -294,7 +358,11 @@ function patchRespirationRate(obj) {
         "enhanced_min_respiration_rate",
         "enhancedMinRespirationRate",
     ];
-    patchDecimalFields(obj, respirationFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    patchDecimalFields(
+        obj,
+        respirationFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
 }
 function patchStrokes(obj) {
     const strokeFields = [
@@ -303,7 +371,11 @@ function patchStrokes(obj) {
         "avg_stroke_distance",
         "avgStrokeDistance",
     ];
-    patchDecimalFields(obj, strokeFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    patchDecimalFields(
+        obj,
+        strokeFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
 }
 function patchTimestamps(obj) {
     const timestampFields = [
@@ -315,9 +387,11 @@ function patchTimestamps(obj) {
         if (obj[field] != null && typeof obj[field] === "number") {
             try {
                 obj[field] = new Date(obj[field] * 1000).toString();
-            }
-            catch (error) {
-                logWithContext(`Error formatting timestamp field '${field}': ${getErrorMessage(error)}`, "error");
+            } catch (error) {
+                logWithContext(
+                    `Error formatting timestamp field '${field}': ${getErrorMessage(error)}`,
+                    "error"
+                );
             }
         }
     }
@@ -329,9 +403,17 @@ function patchTorquePedal(obj) {
         "avg_right_torque_effectiveness",
         "avgRightTorqueEffectiveness",
     ];
-    patchDecimalFields(obj, torqueFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    patchDecimalFields(
+        obj,
+        torqueFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
 }
 function patchTrainingLoad(obj) {
     const trainingLoadFields = ["training_stress_score", "trainingStressScore"];
-    patchDecimalFields(obj, trainingLoadFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    patchDecimalFields(
+        obj,
+        trainingLoadFields,
+        PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT
+    );
 }

@@ -325,34 +325,44 @@ function setupStateAwareEventHandlers(): void {
     const { signal } = stateAwareEventHandlersAbortController;
 
     // Tab switching (if not handled by UIStateManager)
-    document.addEventListener("click", (event) => {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target) {
-            return;
-        }
-        const tabButton = target.closest("[data-tab]");
-        if (tabButton instanceof HTMLElement) {
-            const tabName = tabButton.dataset["tab"];
-            if (tabName) {
-                AppActions.switchTab(tabName);
+    document.addEventListener(
+        "click",
+        (event) => {
+            const target =
+                event.target instanceof Element ? event.target : null;
+            if (!target) {
+                return;
             }
-        }
-    }, { signal });
+            const tabButton = target.closest("[data-tab]");
+            if (tabButton instanceof HTMLElement) {
+                const tabName = tabButton.dataset["tab"];
+                if (tabName) {
+                    AppActions.switchTab(tabName);
+                }
+            }
+        },
+        { signal }
+    );
 
     // Theme switching
-    document.addEventListener("click", (event) => {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target) {
-            return;
-        }
-        const themeButton = target.closest("[data-theme]");
-        if (themeButton instanceof HTMLElement) {
-            const theme = themeButton.dataset["theme"];
-            if (theme) {
-                AppActions.switchTheme(theme);
+    document.addEventListener(
+        "click",
+        (event) => {
+            const target =
+                event.target instanceof Element ? event.target : null;
+            if (!target) {
+                return;
             }
-        }
-    }, { signal });
+            const themeButton = target.closest("[data-theme]");
+            if (themeButton instanceof HTMLElement) {
+                const theme = themeButton.dataset["theme"];
+                if (theme) {
+                    AppActions.switchTheme(theme);
+                }
+            }
+        },
+        { signal }
+    );
 }
 
 /**

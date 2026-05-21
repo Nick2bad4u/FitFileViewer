@@ -11,7 +11,13 @@ export interface ChartColorScheme {
  */
 export const chartColorSchemes = {
     autumn: {
-        hr: ["#ffb347", "#ff6961", "#fdfd96", "#77dd77", "#aec6cf"],
+        hr: [
+            "#ffb347",
+            "#ff6961",
+            "#fdfd96",
+            "#77dd77",
+            "#aec6cf",
+        ],
         power: [
             "#c23b22",
             "#ff7f50",
@@ -23,7 +29,13 @@ export const chartColorSchemes = {
         ],
     },
     classic: {
-        hr: ["#4facfe", "#00b7ff", "#00a6ff", "#0095ff", "#0084ff"],
+        hr: [
+            "#4facfe",
+            "#00b7ff",
+            "#00a6ff",
+            "#0095ff",
+            "#0084ff",
+        ],
         power: [
             "#ffeb3b",
             "#ffc107",
@@ -35,7 +47,13 @@ export const chartColorSchemes = {
         ],
     },
     cycling: {
-        hr: ["#b3e5fc", "#81d4fa", "#4fc3f7", "#0288d1", "#ffb300"],
+        hr: [
+            "#b3e5fc",
+            "#81d4fa",
+            "#4fc3f7",
+            "#0288d1",
+            "#ffb300",
+        ],
         power: [
             "#b3e5fc",
             "#81d4fa",
@@ -47,7 +65,13 @@ export const chartColorSchemes = {
         ],
     },
     dark: {
-        hr: ["#22223b", "#4a4e69", "#9a8c98", "#c9ada7", "#f2e9e4"],
+        hr: [
+            "#22223b",
+            "#4a4e69",
+            "#9a8c98",
+            "#c9ada7",
+            "#f2e9e4",
+        ],
         power: [
             "#23272e",
             "#393e46",
@@ -59,7 +83,13 @@ export const chartColorSchemes = {
         ],
     },
     earth: {
-        hr: ["#a0522d", "#cd853f", "#deb887", "#f5deb3", "#fff8dc"],
+        hr: [
+            "#a0522d",
+            "#cd853f",
+            "#deb887",
+            "#f5deb3",
+            "#fff8dc",
+        ],
         power: [
             "#556b2f",
             "#6b8e23",
@@ -71,11 +101,29 @@ export const chartColorSchemes = {
         ],
     },
     exercise: {
-        hr: ["#aed581", "#fff176", "#ffd54f", "#ffb74d", "#e57373"],
-        power: ["#aed581", "#fff176", "#ffd54f", "#ffb74d", "#e57373"],
+        hr: [
+            "#aed581",
+            "#fff176",
+            "#ffd54f",
+            "#ffb74d",
+            "#e57373",
+        ],
+        power: [
+            "#aed581",
+            "#fff176",
+            "#ffd54f",
+            "#ffb74d",
+            "#e57373",
+        ],
     },
     fire: {
-        hr: ["#ff6f00", "#ff8f00", "#ffa000", "#ffb300", "#ffc107"],
+        hr: [
+            "#ff6f00",
+            "#ff8f00",
+            "#ffa000",
+            "#ffb300",
+            "#ffc107",
+        ],
         power: [
             "#d84315",
             "#ff7043",
@@ -87,7 +135,13 @@ export const chartColorSchemes = {
         ],
     },
     forest: {
-        hr: ["#2e7d32", "#388e3c", "#43a047", "#66bb6a", "#81c784"],
+        hr: [
+            "#2e7d32",
+            "#388e3c",
+            "#43a047",
+            "#66bb6a",
+            "#81c784",
+        ],
         power: [
             "#1b5e20",
             "#388e3c",
@@ -99,7 +153,13 @@ export const chartColorSchemes = {
         ],
     },
     grayscale: {
-        hr: ["#f8f9fa", "#e9ecef", "#dee2e6", "#adb5bd", "#495057"],
+        hr: [
+            "#f8f9fa",
+            "#e9ecef",
+            "#dee2e6",
+            "#adb5bd",
+            "#495057",
+        ],
         power: [
             "#212529",
             "#343a40",
@@ -111,7 +171,13 @@ export const chartColorSchemes = {
         ],
     },
     monochrome: {
-        hr: ["#bdbdbd", "#9e9e9e", "#757575", "#616161", "#424242"],
+        hr: [
+            "#bdbdbd",
+            "#9e9e9e",
+            "#757575",
+            "#616161",
+            "#424242",
+        ],
         power: [
             "#f5f5f5",
             "#eeeeee",
@@ -123,7 +189,13 @@ export const chartColorSchemes = {
         ],
     },
     neon: {
-        hr: ["#39ff14", "#faff00", "#00f0ff", "#ff073a", "#ff61f6"],
+        hr: [
+            "#39ff14",
+            "#faff00",
+            "#00f0ff",
+            "#ff073a",
+            "#ff61f6",
+        ],
         power: [
             "#fe019a",
             "#fdff00",
@@ -135,7 +207,13 @@ export const chartColorSchemes = {
         ],
     },
     ocean: {
-        hr: ["#0077b6", "#00b4d8", "#48cae4", "#90e0ef", "#caf0f8"],
+        hr: [
+            "#0077b6",
+            "#00b4d8",
+            "#48cae4",
+            "#90e0ef",
+            "#caf0f8",
+        ],
         power: [
             "#03045e",
             "#0077b6",
@@ -147,7 +225,13 @@ export const chartColorSchemes = {
         ],
     },
     pastel: {
-        hr: ["#a3cef1", "#b6e2d3", "#f6d6ad", "#f7a072", "#eec6e6"],
+        hr: [
+            "#a3cef1",
+            "#b6e2d3",
+            "#f6d6ad",
+            "#f7a072",
+            "#eec6e6",
+        ],
         power: [
             "#f9c6c9",
             "#f7e3af",
@@ -159,7 +243,13 @@ export const chartColorSchemes = {
         ],
     },
     rainbow: {
-        hr: ["#ff0000", "#ff7f00", "#ffff00", "#00ff00", "#0000ff"],
+        hr: [
+            "#ff0000",
+            "#ff7f00",
+            "#ffff00",
+            "#00ff00",
+            "#0000ff",
+        ],
         power: [
             "#9400d3",
             "#4b0082",
@@ -171,11 +261,29 @@ export const chartColorSchemes = {
         ],
     },
     runner: {
-        hr: ["#b2dfdb", "#4dd0e1", "#26a69a", "#ffb74d", "#ef5350"],
-        power: ["#b2dfdb", "#4dd0e1", "#26a69a", "#ffb74d", "#ef5350"],
+        hr: [
+            "#b2dfdb",
+            "#4dd0e1",
+            "#26a69a",
+            "#ffb74d",
+            "#ef5350",
+        ],
+        power: [
+            "#b2dfdb",
+            "#4dd0e1",
+            "#26a69a",
+            "#ffb74d",
+            "#ef5350",
+        ],
     },
     spring: {
-        hr: ["#f6e3b4", "#b4f6c1", "#b4d8f6", "#e3b4f6", "#f6b4d8"],
+        hr: [
+            "#f6e3b4",
+            "#b4f6c1",
+            "#b4d8f6",
+            "#e3b4f6",
+            "#f6b4d8",
+        ],
         power: [
             "#b4f6c1",
             "#b4d8f6",
@@ -187,7 +295,13 @@ export const chartColorSchemes = {
         ],
     },
     sunset: {
-        hr: ["#ffb347", "#ffcc33", "#ff6666", "#ff9966", "#ffb366"],
+        hr: [
+            "#ffb347",
+            "#ffcc33",
+            "#ff6666",
+            "#ff9966",
+            "#ffb366",
+        ],
         power: [
             "#ff5e62",
             "#ff9966",
@@ -199,7 +313,13 @@ export const chartColorSchemes = {
         ],
     },
     vibrant: {
-        hr: ["#ff6b6b", "#ffa726", "#ffee58", "#66bb6a", "#42a5f5"],
+        hr: [
+            "#ff6b6b",
+            "#ffa726",
+            "#ffee58",
+            "#66bb6a",
+            "#42a5f5",
+        ],
         power: [
             "#9c27b0",
             "#673ab7",

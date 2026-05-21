@@ -1,39 +1,39 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
         <meta
             content="width=device-width, initial-scale=1"
             name="viewport"
-        >
+        />
         <meta
             content="default-src 'self' file:; script-src 'self' file: 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
             http-equiv="Content-Security-Policy"
-        >
+        />
         <meta
             content="Desktop application for viewing and analyzing FIT files from fitness devices with data visualization, mapping, and export capabilities"
             name="description"
-        >
+        />
         <meta
             content="FIT file viewer, fitness data, GPS tracks, cycling, running, sports analytics, data visualization"
             name="keywords"
-        >
+        />
         <meta
             content="Fit File Viewer"
             property="og:title"
-        >
+        />
         <meta
             content="website"
             property="og:type"
-        >
+        />
         <meta
             content="https://nick2bad4u.github.io/FitFileViewer/"
             property="og:url"
-        >
+        />
         <meta
             content="icons/mascot-kitty.png"
             property="og:image"
-        >
+        />
         <title>Fit File Viewer</title>
         <!-- App/Website Icons -->
         <link
@@ -41,70 +41,70 @@
             href="icons/favicon-96x96.png"
             rel="icon"
             sizes="96x96"
-        >
+        />
         <link
             type="image/svg+xml"
             href="icons/favicon.svg"
             rel="icon"
-        >
+        />
         <link
             href="icons/favicon.ico"
             rel="shortcut icon"
-        >
+        />
         <link
             href="icons/apple-touch-icon.png"
             rel="apple-touch-icon"
             sizes="180x180"
-        >
+        />
         <meta
             content="FitFileViewer"
             name="apple-mobile-web-app-title"
-        >
+        />
         <link
             href="icons/site.webmanifest"
             rel="manifest"
-        >
+        />
         <!-- Load third-party libraries directly from node_modules -->
         <link
             href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet/dist/leaflet.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet-draw/dist/leaflet.draw.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/maplibre-gl/dist/maplibre-gl.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet.markercluster/dist/MarkerCluster.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css"
             rel="stylesheet"
-        >
+        />
         <link
             href="node_modules/leaflet-measure/dist/leaflet-measure.css"
             rel="stylesheet"
-        >
+        />
         <!-- DOMPurify is loaded as a classic script (global DOMPurify) to avoid bare-module specifier issues under file:// in Electron. -->
         <script
             defer
@@ -208,7 +208,7 @@
         <link
             href="style.css"
             rel="stylesheet"
-        >
+        />
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
         <script
             type="module"
@@ -256,7 +256,7 @@
                             loading="eager"
                             src="icons/mascot-kitty.png"
                             width="1536"
-                        >
+                        />
                     </figure>
                     <div
                         class="hero-floating-card hero-floating-card-left"
@@ -666,7 +666,7 @@
                             loading="eager"
                             src="data:image/png;base64,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"
                             width="14"
-                        >
+                        />
                     </a>
                 </span>
 
@@ -687,7 +687,7 @@
                             loading="eager"
                             src="data:image/png;base64,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"
                             width="14"
-                        >
+                        />
                     </a>
                 </span>
 

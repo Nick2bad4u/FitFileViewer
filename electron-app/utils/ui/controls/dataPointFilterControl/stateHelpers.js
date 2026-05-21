@@ -1,4 +1,4 @@
-import { computeMetricStatistics, } from "../../../maps/filters/mapMetricFilter.js";
+import { computeMetricStatistics } from "../../../maps/filters/mapMetricFilter.js";
 /** Clamps a top-percent filter value to the supported integer range. */
 export function clampPercent(value) {
     if (!Number.isFinite(value) || Number.isNaN(value) || value < 1) {
@@ -35,12 +35,14 @@ export function computeRangeState(metricKey, currentRangeValues, options = {}) {
             return { stats: null, rangeValues: null, sliderValues: null };
         }
         const preserveSelection = Boolean(options.preserveSelection);
-        let minValue = preserveSelection && currentRangeValues?.min !== undefined
-            ? currentRangeValues.min
-            : stats.min;
-        let maxValue = preserveSelection && currentRangeValues?.max !== undefined
-            ? currentRangeValues.max
-            : stats.max;
+        let minValue =
+            preserveSelection && currentRangeValues?.min !== undefined
+                ? currentRangeValues.min
+                : stats.min;
+        let maxValue =
+            preserveSelection && currentRangeValues?.max !== undefined
+                ? currentRangeValues.max
+                : stats.max;
         minValue = clampRangeValue(minValue, stats);
         maxValue = clampRangeValue(maxValue, stats);
         if (minValue > maxValue) {
@@ -55,17 +57,20 @@ export function computeRangeState(metricKey, currentRangeValues, options = {}) {
                 max: toSliderString(maxValue, stats.decimals),
             },
         };
-    }
-    catch (error) {
-        console.error("[dataPointFilter] Failed to compute metric statistics", error);
+    } catch (error) {
+        console.error(
+            "[dataPointFilter] Failed to compute metric statistics",
+            error
+        );
         return { stats: null, rangeValues: null, sliderValues: null };
     }
 }
 /** Formats a metric value with a stable decimal count. */
 export function formatMetricValue(value, stats, decimalsOverride) {
-    const decimalsRaw = typeof decimalsOverride === "number"
-        ? decimalsOverride
-        : (stats?.decimals ?? (Number.isInteger(value) ? 0 : 2));
+    const decimalsRaw =
+        typeof decimalsOverride === "number"
+            ? decimalsOverride
+            : (stats?.decimals ?? (Number.isInteger(value) ? 0 : 2));
     const decimals = Math.min(4, Math.max(0, decimalsRaw));
     const formatter = new Intl.NumberFormat(undefined, {
         maximumFractionDigits: decimals,
@@ -94,13 +99,18 @@ export function getGlobalRecords() {
 export function resolveInitialConfig(defaultMetric, defaultPercent) {
     const win = globalThis;
     const existing = win.mapDataPointFilter;
-    const metricKey = typeof existing?.metric === "string" ? existing.metric : defaultMetric;
+    const metricKey =
+        typeof existing?.metric === "string" ? existing.metric : defaultMetric;
     const mode = existing?.mode === "valueRange" ? "valueRange" : "topPercent";
-    const percentValue = clampPercent(typeof existing?.percent === "number"
-        ? existing.percent
-        : Number.parseInt(defaultPercent, 10) || 10);
-    const minValue = typeof existing?.minValue === "number" ? existing.minValue : undefined;
-    const maxValue = typeof existing?.maxValue === "number" ? existing.maxValue : undefined;
+    const percentValue = clampPercent(
+        typeof existing?.percent === "number"
+            ? existing.percent
+            : Number.parseInt(defaultPercent, 10) || 10
+    );
+    const minValue =
+        typeof existing?.minValue === "number" ? existing.minValue : undefined;
+    const maxValue =
+        typeof existing?.maxValue === "number" ? existing.maxValue : undefined;
     return {
         enabled: Boolean(existing?.enabled),
         maxValue,

@@ -1,6 +1,11 @@
 /**
- * @typedef {{ get: (key: string) => unknown; set: (key: string, value: unknown) => void }} FitParserSettingsConf
+ * @typedef {{
+ *     get: (key: string) => unknown;
+ *     set: (key: string, value: unknown) => void;
+ * }} FitParserSettingsConf
+ *
  * @typedef {Record<string, unknown>} StateUpdateOptions
+ *
  * @typedef {{
  *     cleanupEventHandlers: () => void;
  *     get: (statePath: string) => unknown;
@@ -47,7 +52,8 @@ function getAppState(statePath) {
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
  *
- * @returns {FitParserSettingsConf | null} Electron-conf instance or null when unavailable.
+ * @returns {FitParserSettingsConf | null} Electron-conf instance or null when
+ *   unavailable.
  */
 function resolveFitParserSettingsConf() {
     if (fitParserSettingsConf !== undefined) {

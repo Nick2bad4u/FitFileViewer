@@ -79,9 +79,7 @@ export function clampRangeValue(
 }
 
 /** Computes statistics for the active global record set. */
-export function computeMetricStats(
-    metricKey: string
-): MetricStatistics | null {
+export function computeMetricStats(metricKey: string): MetricStatistics | null {
     const records = getGlobalRecords();
     return computeMetricStatistics(records, metricKey);
 }

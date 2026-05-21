@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 const apiDir = path.resolve(__dirname, "../docs/api");
 
 /**
- * Optional explicit label overrides for specific API module directories.
- * Falls back to a generic prettifier when not present.
+ * Optional explicit label overrides for specific API module directories. Falls
+ * back to a generic prettifier when not present.
  */
 /** @type {Map<string, string>} */
 const LABEL_OVERRIDES = new Map([
@@ -32,6 +32,7 @@ const LABEL_OVERRIDES = new Map([
  * human-friendly label.
  *
  * @param {string} dirName
+ *
  * @returns {string}
  */
 function prettifyLabel(dirName) {
@@ -61,6 +62,7 @@ function prettifyLabel(dirName) {
  *
  * @param {string} dirPath
  * @param {string} label
+ *
  * @returns {Promise<void>}
  */
 async function generateCategoryFile(dirPath, label) {
@@ -92,5 +94,8 @@ async function main() {
 main().catch((error) => {
     // Log but do not hard-crash the build; sidebar labels falling back to
     // defaults is better than failing the entire docs build.
-    console.error("[generate-api-categories] Failed to generate category files:", error);
+    console.error(
+        "[generate-api-categories] Failed to generate category files:",
+        error
+    );
 });

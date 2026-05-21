@@ -19,6 +19,7 @@ const DEFAULT_TAB_NAMES = [
  * Normalize a tab name for matching.
  *
  * @param rawName - Tab name candidate.
+ *
  * @returns Normalized tab name.
  */
 export function normalizeTabName(rawName) {
@@ -30,6 +31,7 @@ export function normalizeTabName(rawName) {
  * Normalize a tab name derived from content IDs, mapping chartjs to chart.
  *
  * @param rawName - Content-derived tab name candidate.
+ *
  * @returns Normalized content tab name.
  */
 export function normalizeContentTabName(rawName) {
@@ -41,6 +43,7 @@ export function normalizeContentTabName(rawName) {
  *
  * @param tabId - Tab button ID.
  * @param options - Optional known tab names for guarded underscore parsing.
+ *
  * @returns Extracted tab name, or the original ID when it cannot be mapped.
  */
 export function extractTabNameFromButtonId(tabId, options = {}) {
@@ -74,6 +77,7 @@ export function extractTabNameFromButtonId(tabId, options = {}) {
  *
  * @param buttonId - Button ID to resolve.
  * @param tabConfigMap - Known tab configuration map.
+ *
  * @returns Resolved tab name, or null when no match exists.
  */
 export function resolveTabNameFromButtonId(buttonId, tabConfigMap) {
@@ -107,11 +111,15 @@ export function resolveTabNameFromButtonId(buttonId, tabConfigMap) {
  * Extract tab name from a content element ID.
  *
  * @param contentId - Content element ID.
+ *
  * @returns Extracted tab name, or null when no pattern matches.
  */
 export function extractTabNameFromContentId(contentId) {
     if (!contentId || typeof contentId !== "string") {
-        console.warn("extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:", contentId);
+        console.warn(
+            "extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:",
+            contentId
+        );
         return null;
     }
     const patterns = [
@@ -133,6 +141,7 @@ export function extractTabNameFromContentId(contentId) {
  * Get content ID from tab name.
  *
  * @param tabName - Tab name.
+ *
  * @returns Content element ID.
  */
 export function getContentIdFromTabName(tabName) {

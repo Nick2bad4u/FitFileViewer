@@ -48,7 +48,8 @@ export * from "./theming/getThemeColors.js";
 export default {
     addChartHoverEffects: () => import("./plugins/addChartHoverEffects.js"),
     // Plugins.
-    chartBackgroundColorPlugin: () => import("./plugins/chartBackgroundColorPlugin.js"),
+    chartBackgroundColorPlugin: () =>
+        import("./plugins/chartBackgroundColorPlugin.js"),
     chartColorSchemes: () => import("./theming/chartColorSchemes.js"),
     // Core.
     chartStateManager: () => import("./core/chartStateManager.js"),
@@ -60,9 +61,11 @@ export default {
     createChartCanvas: () => import("./components/createChartCanvas.js"),
     createEnhancedChart: () => import("./components/createEnhancedChart.js"),
     // Rendering.
-    renderAltitudeProfileChart: () => import("./rendering/renderAltitudeProfileChart.js"),
+    renderAltitudeProfileChart: () =>
+        import("./rendering/renderAltitudeProfileChart.js"),
     renderChartJS: () => import("./core/renderChartJS.js"),
-    renderEventMessagesChart: () => import("./rendering/renderEventMessagesChart.js"),
+    renderEventMessagesChart: () =>
+        import("./rendering/renderEventMessagesChart.js"),
     renderGPSTimeChart: () => import("./rendering/renderGPSTimeChart.js"),
     renderGPSTrackChart: () => import("./rendering/renderGPSTrackChart.js"),
     renderLapZoneChart: () => import("./rendering/renderLapZoneChart.js"),

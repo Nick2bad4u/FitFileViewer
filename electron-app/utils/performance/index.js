@@ -2,5 +2,8 @@
 /**
  * Re-exports performance monitoring utilities.
  */
-export { PerformanceMonitor, performanceMonitor, } from "./performanceMonitor.js";
+export {
+    PerformanceMonitor,
+    performanceMonitor,
+} from "./performanceMonitor.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

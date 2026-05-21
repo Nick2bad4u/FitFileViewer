@@ -40,6 +40,7 @@ function getEmptyChartMessage(
  *
  * @param dependencies - Chart instance and empty-state rendering dependencies.
  * @param input - Render-visible metric count.
+ *
  * @returns Resolved render result state.
  */
 export function resolveChartRenderResultState(

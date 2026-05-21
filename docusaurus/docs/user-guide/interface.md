@@ -36,45 +36,45 @@ A complete guide to the FitFileViewer interface and navigation.
 
 ### File Menu
 
-| Item | Shortcut | Description |
-|------|----------|-------------|
-| Open FIT File | `Ctrl/Cmd + O` | Open file dialog |
-| Recent Files | - | List of recent files |
-| Reload | `Ctrl/Cmd + R` | Reload current file |
-| Exit | `Alt + F4` | Close application |
+| Item          | Shortcut       | Description          |
+| ------------- | -------------- | -------------------- |
+| Open FIT File | `Ctrl/Cmd + O` | Open file dialog     |
+| Recent Files  | -              | List of recent files |
+| Reload        | `Ctrl/Cmd + R` | Reload current file  |
+| Exit          | `Alt + F4`     | Close application    |
 
 ### Edit Menu
 
-| Item | Shortcut | Description |
-|------|----------|-------------|
-| Copy | `Ctrl/Cmd + C` | Copy selected data |
-| Select All | `Ctrl/Cmd + A` | Select all items |
-| Preferences | `Ctrl/Cmd + ,` | Open settings |
+| Item        | Shortcut       | Description        |
+| ----------- | -------------- | ------------------ |
+| Copy        | `Ctrl/Cmd + C` | Copy selected data |
+| Select All  | `Ctrl/Cmd + A` | Select all items   |
+| Preferences | `Ctrl/Cmd + ,` | Open settings      |
 
 ### View Menu
 
-| Item | Shortcut | Description |
-|------|----------|-------------|
-| Toggle Theme | `Ctrl/Cmd + T` | Light/Dark mode |
-| Zoom In | `Ctrl/Cmd + =` | Increase zoom |
-| Zoom Out | `Ctrl/Cmd + -` | Decrease zoom |
-| Fullscreen | `F11` | Toggle fullscreen |
+| Item         | Shortcut       | Description       |
+| ------------ | -------------- | ----------------- |
+| Toggle Theme | `Ctrl/Cmd + T` | Light/Dark mode   |
+| Zoom In      | `Ctrl/Cmd + =` | Increase zoom     |
+| Zoom Out     | `Ctrl/Cmd + -` | Decrease zoom     |
+| Fullscreen   | `F11`          | Toggle fullscreen |
 
 ### Tools Menu
 
-| Item | Description |
-|------|-------------|
+| Item             | Description               |
+| ---------------- | ------------------------- |
 | Measure Distance | Activate measurement tool |
-| Export Data | Export current view |
-| Print | Print current view |
+| Export Data      | Export current view       |
+| Print            | Print current view        |
 
 ### Help Menu
 
-| Item | Description |
-|------|-------------|
-| Documentation | Open docs website |
-| About | App version info |
-| Report Issue | Open GitHub issues |
+| Item          | Description        |
+| ------------- | ------------------ |
+| Documentation | Open docs website  |
+| About         | App version info   |
+| Report Issue  | Open GitHub issues |
 
 ## Tab Navigation
 
@@ -88,11 +88,11 @@ The tab bar sits below the menu:
 
 Click any tab to switch views, or use keyboard shortcuts:
 
-| Tab | Shortcut |
-|-----|----------|
-| Map | `Ctrl/Cmd + 1` |
-| Charts | `Ctrl/Cmd + 2` |
-| Tables | `Ctrl/Cmd + 3` |
+| Tab     | Shortcut       |
+| ------- | -------------- |
+| Map     | `Ctrl/Cmd + 1` |
+| Charts  | `Ctrl/Cmd + 2` |
+| Tables  | `Ctrl/Cmd + 3` |
 | Summary | `Ctrl/Cmd + 4` |
 
 ### Map Tab 🗺️
@@ -148,6 +148,7 @@ Status: File loaded successfully    📄 activity.fit    12,345 records
 ```
 
 Shows:
+
 - Current status
 - Loaded filename
 - Record count

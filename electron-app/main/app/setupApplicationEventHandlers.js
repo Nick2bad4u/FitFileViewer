@@ -23,19 +23,30 @@ const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
 
 /**
  * @typedef {import("electron").BrowserWindow} ElectronBrowserWindow
+ *
  * @typedef {import("electron").PermissionCheckHandlerHandlerDetails} ElectronPermissionCheckDetails
- * @typedef {import("electron").PermissionRequest |
- *     import("electron").FilesystemPermissionRequest |
- *     import("electron").MediaAccessPermissionRequest |
- *     import("electron").OpenExternalPermissionRequest} ElectronPermissionRequestDetails
+ *
+ * @typedef {import("electron").PermissionRequest
+ *     | import("electron").FilesystemPermissionRequest
+ *     | import("electron").MediaAccessPermissionRequest
+ *     | import("electron").OpenExternalPermissionRequest} ElectronPermissionRequestDetails
+ *
  * @typedef {import("electron").Session} ElectronSession
+ *
  * @typedef {import("electron").WebContents} ElectronWebContents
+ *
  * @typedef {{ preventDefault?: () => void }} PreventableEvent
- * @typedef {ElectronPermissionCheckDetails | ElectronPermissionRequestDetails | {
- *     requestingOrigin?: string;
- *     requestingURL?: string;
- *     requestingUrl?: string;
- * } | null | undefined} PermissionDetailsLike
+ *
+ * @typedef {ElectronPermissionCheckDetails
+ *     | ElectronPermissionRequestDetails
+ *     | {
+ *           requestingOrigin?: string;
+ *           requestingURL?: string;
+ *           requestingUrl?: string;
+ *       }
+ *     | null
+ *     | undefined} PermissionDetailsLike
+ *
  * @typedef {ElectronSession | null | undefined} SessionLike
  */
 

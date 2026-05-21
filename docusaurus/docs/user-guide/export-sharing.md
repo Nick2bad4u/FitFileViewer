@@ -14,20 +14,20 @@ Export your fitness data in various formats for backup, sharing, or further anal
 
 ### Data Export
 
-| Format | Use Case | How To |
-|--------|----------|--------|
-| CSV | Spreadsheet analysis | Tables → Copy as CSV |
-| Image | Share visuals | Right-click → Save as Image |
-| Print | Physical copy | File → Print |
+| Format | Use Case             | How To                      |
+| ------ | -------------------- | --------------------------- |
+| CSV    | Spreadsheet analysis | Tables → Copy as CSV        |
+| Image  | Share visuals        | Right-click → Save as Image |
+| Print  | Physical copy        | File → Print                |
 
 ### What Can Be Exported
 
 | Content | CSV | Image | Print |
-|---------|-----|-------|-------|
-| Tables | ✅ | ❌ | ✅ |
-| Charts | ❌ | ✅ | ✅ |
-| Maps | ❌ | ✅ | ✅ |
-| Summary | ❌ | ✅ | ✅ |
+| ------- | --- | ----- | ----- |
+| Tables  | ✅  | ❌    | ✅    |
+| Charts  | ❌  | ✅    | ✅    |
+| Maps    | ❌  | ✅    | ✅    |
+| Summary | ❌  | ✅    | ✅    |
 
 ## Exporting Tables
 
@@ -55,10 +55,10 @@ Export your fitness data in various formats for backup, sharing, or further anal
 
 ### Chart Export Quality
 
-| Format | Quality | File Size | Use Case |
-|--------|---------|-----------|----------|
-| PNG | High | Medium | General sharing |
-| JPEG | Medium | Small | Quick sharing |
+| Format | Quality | File Size | Use Case        |
+| ------ | ------- | --------- | --------------- |
+| PNG    | High    | Medium    | General sharing |
+| JPEG   | Medium  | Small     | Quick sharing   |
 
 ## Exporting Maps
 

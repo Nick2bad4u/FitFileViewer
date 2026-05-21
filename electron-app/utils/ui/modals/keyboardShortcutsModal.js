@@ -116,7 +116,12 @@ function ensureKeyboardShortcutsModal() {
     document.body.append(modal);
     console.log("Modal element created and appended to body");
     // Add global event listeners
-    addEventListenerWithCleanup(document, "keydown", handleShortcutsEscapeKey, true); // Inject enhanced styles
+    addEventListenerWithCleanup(
+        document,
+        "keydown",
+        handleShortcutsEscapeKey,
+        true
+    ); // Inject enhanced styles
     injectKeyboardShortcutsModalStyles();
     console.log("Modal styles injected");
     // Setup event handlers
@@ -179,7 +184,10 @@ function createKeyboardIcon() {
     keyboardBody.setAttribute("stroke", "currentColor");
     keyboardBody.setAttribute("stroke-width", "2");
     const keys = document.createElementNS(SVG_NS, "path");
-    keys.setAttribute("d", "M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10");
+    keys.setAttribute(
+        "d",
+        "M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"
+    );
     keys.setAttribute("stroke", "currentColor");
     keys.setAttribute("stroke-width", "2");
     keys.setAttribute("stroke-linecap", "round");
@@ -593,7 +601,11 @@ function setupKeyboardShortcutsModalHandlers(modal) {
     // Close button handler
     const closeBtn = modal.querySelector("#shortcuts-modal-close");
     if (closeBtn) {
-        addEventListenerWithCleanup(closeBtn, "click", closeKeyboardShortcutsModal);
+        addEventListenerWithCleanup(
+            closeBtn,
+            "click",
+            closeKeyboardShortcutsModal
+        );
     }
     // Click outside to close
     addEventListenerWithCleanup(modal, "click", (event) => {
@@ -613,7 +625,9 @@ export function showKeyboardShortcutsModal() {
     const modal = document.querySelector("#keyboard-shortcuts-modal");
     console.log("Modal element found:", modal);
     if (!modal) {
-        console.error("Modal element not found after ensureKeyboardShortcutsModal");
+        console.error(
+            "Modal element not found after ensureKeyboardShortcutsModal"
+        );
         return;
     }
     // Store the currently focused element
@@ -639,9 +653,10 @@ export function showKeyboardShortcutsModal() {
             applyShowClass();
             console.log("Ensured show class via animation frame");
         });
-    }
-    else {
-        console.warn("requestAnimationFrame not available; applying show class synchronously");
+    } else {
+        console.warn(
+            "requestAnimationFrame not available; applying show class synchronously"
+        );
     }
     applyShowClass();
     // Focus management
@@ -649,8 +664,7 @@ export function showKeyboardShortcutsModal() {
     if (closeBtn) {
         closeBtn.focus();
         console.log("Focus set to close button");
-    }
-    else {
+    } else {
         console.warn("Close button not found");
     }
     // Trap focus within modal
@@ -665,7 +679,11 @@ export function showKeyboardShortcutsModal() {
  * @param modal - Modal element to contain focus.
  */
 function trapFocusInModal(modal) {
-    const focusableElements = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((element) => {
+    const focusableElements = Array.from(
+        modal.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+    ).filter((element) => {
         if (!(element instanceof HTMLElement)) {
             return false;
         }
@@ -682,9 +700,10 @@ function trapFocusInModal(modal) {
             return;
         }
         const focusCycle = focusableElements;
-        const currentActive = document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : null;
+        const currentActive =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
         const currentIndex = currentActive
             ? focusCycle.indexOf(currentActive)
             : -1;
@@ -695,19 +714,20 @@ function trapFocusInModal(modal) {
                     configurable: true,
                     value: true,
                 });
-            }
-            catch {
+            } catch {
                 // Ignore environments where defaultPrevented is read-only
             }
         }
         if (event.shiftKey) {
-            const targetIndex = currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
+            const targetIndex =
+                currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
             focusCycle[targetIndex]?.focus();
             return;
         }
-        const targetIndex = currentIndex === -1 || currentIndex === focusCycle.length - 1
-            ? 0
-            : currentIndex + 1;
+        const targetIndex =
+            currentIndex === -1 || currentIndex === focusCycle.length - 1
+                ? 0
+                : currentIndex + 1;
         focusCycle[targetIndex]?.focus();
     }
     addEventListenerWithCleanup(modal, "keydown", handleTabKey, true);

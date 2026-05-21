@@ -2,15 +2,19 @@
  * FIT file state management for loading, validation, and derived file metrics.
  */
 import { showNotification } from "../../app/initialization/rendererUtils.js";
-import { getAuxHeartRateValue, resolveFieldDescriptionMessages, } from "../../data/processing/auxHeartRateUtils.js";
+import {
+    getAuxHeartRateValue,
+    resolveFieldDescriptionMessages,
+} from "../../data/processing/auxHeartRateUtils.js";
 import * as stateCore from "../core/stateManager.js";
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
 function emptyUnsubscribe() {
     // No-op fallback when the state manager API is unavailable in a test mock.
 }
-const subscribe = (...args) => typeof stateCore.subscribe === "function"
-    ? stateCore.subscribe(...args)
-    : emptyUnsubscribe;
+const subscribe = (...args) =>
+    typeof stateCore.subscribe === "function"
+        ? stateCore.subscribe(...args)
+        : emptyUnsubscribe;
 function isNonEmptyString(value) {
     return typeof value === "string" && value.trim().length > 0;
 }
@@ -18,10 +22,12 @@ function getErrorMessage(error) {
     if (isNonEmptyString(error)) {
         return error;
     }
-    if (error !== null &&
+    if (
+        error !== null &&
         typeof error === "object" &&
         "message" in error &&
-        isNonEmptyString(error.message)) {
+        isNonEmptyString(error.message)
+    ) {
         return error.message;
     }
     return "Unknown error";
@@ -101,7 +107,9 @@ export class FitFileStateManager {
             }
         }
         const basicDataCount = Math.max(gpsCount, hrCount, auxHrCount, 1);
-        quality.completeness = Math.round((basicDataCount / totalRecords) * 100);
+        quality.completeness = Math.round(
+            (basicDataCount / totalRecords) * 100
+        );
         quality.coverage = {
             altitude: Math.round((altitudeCount / totalRecords) * 100),
             auxHeartRate: Math.round((auxHrCount / totalRecords) * 100),
@@ -155,9 +163,11 @@ export class FitFileStateManager {
      * Extract activity information.
      */
     extractActivityInfo(data) {
-        if (!isRawFitData(data) ||
+        if (
+            !isRawFitData(data) ||
             !Array.isArray(data.activities) ||
-            data.activities.length === 0) {
+            data.activities.length === 0
+        ) {
             return null;
         }
         const [activity] = data.activities;
@@ -175,9 +185,11 @@ export class FitFileStateManager {
      * Extract device information.
      */
     extractDeviceInfo(data) {
-        if (!isRawFitData(data) ||
+        if (
+            !isRawFitData(data) ||
             !Array.isArray(data.device_infos) ||
-            data.device_infos.length === 0) {
+            data.device_infos.length === 0
+        ) {
             return null;
         }
         const [device] = data.device_infos;
@@ -196,9 +208,11 @@ export class FitFileStateManager {
      * Extract session information.
      */
     extractSessionInfo(data) {
-        if (!isRawFitData(data) ||
+        if (
+            !isRawFitData(data) ||
             !Array.isArray(data.sessionMesgs) ||
-            data.sessionMesgs.length === 0) {
+            data.sessionMesgs.length === 0
+        ) {
             return null;
         }
         const [session] = data.sessionMesgs;
@@ -234,7 +248,9 @@ export class FitFileStateManager {
             ? options.filePath
             : null;
         const currentFile = stateCore.getState("fitFile.currentFile");
-        const resolvedPath = providedPath ?? (typeof currentFile === "string" ? currentFile : null);
+        const resolvedPath =
+            providedPath ??
+            (typeof currentFile === "string" ? currentFile : null);
         stateCore.setState("globalData", safeData, { source });
         stateCore.setState("currentFile", resolvedPath, { source });
         stateCore.setState("fitFile.currentFile", resolvedPath, { source });
@@ -267,7 +283,10 @@ export class FitFileStateManager {
             });
         }
         showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
-        console.error("[FitFileState] File loading failed:", error instanceof Error ? error : message);
+        console.error(
+            "[FitFileState] File loading failed:",
+            error instanceof Error ? error : message
+        );
     }
     /**
      * Initialize FIT file state subscriptions.
@@ -294,12 +313,15 @@ export class FitFileStateManager {
                 source: "FitFileStateManager.processFileData",
             });
             console.log("[FitFileState] Data processed successfully");
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[FitFileState] Error processing data:", error);
-            stateCore.setState("fitFile.processingError", getErrorMessage(error), {
-                source: "FitFileStateManager.processFileData",
-            });
+            stateCore.setState(
+                "fitFile.processingError",
+                getErrorMessage(error),
+                {
+                    source: "FitFileStateManager.processFileData",
+                }
+            );
         }
     }
     /**
@@ -312,9 +334,11 @@ export class FitFileStateManager {
             }
         });
         subscribe("fitFile.processedData", (processedData) => {
-            this.updateFileMetrics(processedData === null || processedData === undefined
-                ? null
-                : processedData);
+            this.updateFileMetrics(
+                processedData === null || processedData === undefined
+                    ? null
+                    : processedData
+            );
         });
     }
     /**
@@ -322,7 +346,9 @@ export class FitFileStateManager {
      */
     setupFileLoadingListeners() {
         subscribe("fitFile.loadingProgress", (progress) => {
-            this.updateLoadingProgress(typeof progress === "number" ? progress : 0);
+            this.updateLoadingProgress(
+                typeof progress === "number" ? progress : 0
+            );
         });
         subscribe("fitFile.loaded", (fileData) => {
             this.handleFileLoaded(fileData);
@@ -360,13 +386,17 @@ export class FitFileStateManager {
         if (!processedData) {
             return;
         }
-        stateCore.updateState("fitFile.metrics", {
-            dataQualityScore: processedData.dataQuality.completeness,
-            hasDevice: Boolean(processedData.deviceInfo),
-            hasSession: Boolean(processedData.sessionInfo),
-            lastUpdated: Date.now(),
-            recordCount: processedData.recordCount,
-        }, { source: "FitFileStateManager.updateFileMetrics" });
+        stateCore.updateState(
+            "fitFile.metrics",
+            {
+                dataQualityScore: processedData.dataQuality.completeness,
+                hasDevice: Boolean(processedData.deviceInfo),
+                hasSession: Boolean(processedData.sessionInfo),
+                lastUpdated: Date.now(),
+                recordCount: processedData.recordCount,
+            },
+            { source: "FitFileStateManager.updateFileMetrics" }
+        );
     }
     /**
      * Update file loading progress.
@@ -379,7 +409,9 @@ export class FitFileStateManager {
         stateCore.updateState("ui.loadingIndicator", indicatorState, {
             source: "FitFileStateManager.updateLoadingProgress",
         });
-        console.log(`[FitFileState] Loading progress state updated: ${progress}%`);
+        console.log(
+            `[FitFileState] Loading progress state updated: ${progress}%`
+        );
     }
     /**
      * Validate file data.
@@ -401,12 +433,14 @@ export class FitFileStateManager {
             if (!data.fileIdMesgs) {
                 validation.warnings.push("No file ID information");
             }
-            if (Array.isArray(data.recordMesgs) && data.recordMesgs.length === 0) {
+            if (
+                Array.isArray(data.recordMesgs) &&
+                data.recordMesgs.length === 0
+            ) {
                 validation.errors.push("File contains no activity records");
                 validation.isValid = false;
             }
-        }
-        else {
+        } else {
             validation.isValid = false;
             validation.errors.push("No data provided");
         }
@@ -414,10 +448,15 @@ export class FitFileStateManager {
             source: "FitFileStateManager.validateFileData",
         });
         if (!validation.isValid) {
-            showNotification(`File validation failed: ${validation.errors.join(", ")}`, "error");
-        }
-        else if (validation.warnings.length > 0) {
-            showNotification(`File loaded with warnings: ${validation.warnings.join(", ")}`, "warning");
+            showNotification(
+                `File validation failed: ${validation.errors.join(", ")}`,
+                "error"
+            );
+        } else if (validation.warnings.length > 0) {
+            showNotification(
+                `File loaded with warnings: ${validation.warnings.join(", ")}`,
+                "warning"
+            );
         }
         console.log("[FitFileState] File validation completed:", validation);
     }
@@ -444,9 +483,7 @@ export const FitFileSelectors = {
     },
     getMetrics() {
         const metrics = stateCore.getState("fitFile.metrics");
-        return metrics === null || metrics === undefined
-            ? null
-            : metrics;
+        return metrics === null || metrics === undefined ? null : metrics;
     },
     getProcessedData() {
         const processedData = stateCore.getState("fitFile.processedData");

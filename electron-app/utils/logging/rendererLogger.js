@@ -9,7 +9,11 @@
 export function createRendererLogger(scope) {
     const scopedPrefix = scope ? `${scope}:` : "";
     return (level, message, context = {}) => {
-        logWithRendererContext(level, `${scopedPrefix} ${message}`.trim(), context);
+        logWithRendererContext(
+            level,
+            `${scopedPrefix} ${message}`.trim(),
+            context
+        );
     };
 }
 /**
@@ -20,7 +24,8 @@ export function createRendererLogger(scope) {
  * @param context - Optional context payload.
  */
 export function logWithRendererContext(level, message, context = {}) {
-    const hasContext = context &&
+    const hasContext =
+        context &&
         typeof context === "object" &&
         Object.keys(context).length > 0;
     const timestamp = new Date().toISOString();
@@ -28,8 +33,7 @@ export function logWithRendererContext(level, message, context = {}) {
     const logger = console[level];
     if (hasContext) {
         logger(`${prefix} ${message}`, JSON.stringify(context));
-    }
-    else {
+    } else {
         logger(`${prefix} ${message}`);
     }
 }

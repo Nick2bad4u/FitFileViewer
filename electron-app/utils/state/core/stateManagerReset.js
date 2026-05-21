@@ -10,8 +10,7 @@ import { AppState, createResetAppState } from "./stateManagerDefaults.js";
 export function resetState(path) {
     if (path) {
         resetStatePath(path);
-    }
-    else {
+    } else {
         resetAllState();
     }
     console.log(`[StateManager] State reset: ${path || "all"}`);

@@ -14,11 +14,11 @@ Get started contributing to FitFileViewer.
 
 ### Required Software
 
-| Software | Version | Purpose |
-|----------|---------|---------|
-| Node.js | 18+ | Runtime |
-| npm | 9+ | Package manager |
-| Git | Latest | Version control |
+| Software | Version | Purpose         |
+| -------- | ------- | --------------- |
+| Node.js  | 18+     | Runtime         |
+| npm      | 9+      | Package manager |
+| Git      | Latest  | Version control |
 
 ### Recommended
 
@@ -76,6 +76,7 @@ npm start
 ```
 
 This will:
+
 - Launch Electron with hot reload
 - Enable DevTools
 - Show console output
@@ -155,7 +156,7 @@ npm run build-all
 ```javascript
 // eslint.config.mjs
 export default [
-    // Configuration
+ // Configuration
 ];
 ```
 
@@ -164,9 +165,9 @@ export default [
 ```json
 // .prettierrc
 {
-    "tabWidth": 4,
-    "useTabs": true,
-    "singleQuote": true
+ "tabWidth": 4,
+ "useTabs": true,
+ "singleQuote": true
 }
 ```
 
@@ -175,10 +176,10 @@ export default [
 ```json
 // tsconfig.json
 {
-    "compilerOptions": {
-        "checkJs": true,
-        "allowJs": true
-    }
+ "compilerOptions": {
+  "checkJs": true,
+  "allowJs": true
+ }
 }
 ```
 
@@ -196,10 +197,10 @@ fit-test-files/
 
 ## Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `NODE_ENV` | development/production |
-| `ELECTRON_IS_DEV` | Enable dev features |
+| Variable          | Purpose                |
+| ----------------- | ---------------------- |
+| `NODE_ENV`        | development/production |
+| `ELECTRON_IS_DEV` | Enable dev features    |
 
 ## Debugging
 
@@ -207,17 +208,17 @@ fit-test-files/
 
 ```json
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Debug Main Process",
-            "type": "node",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/electron-app",
-            "runtimeExecutable": "${workspaceFolder}/electron-app/node_modules/.bin/electron",
-            "args": ["."]
-        }
-    ]
+ "version": "0.2.0",
+ "configurations": [
+  {
+   "name": "Debug Main Process",
+   "type": "node",
+   "request": "launch",
+   "cwd": "${workspaceFolder}/electron-app",
+   "runtimeExecutable": "${workspaceFolder}/electron-app/node_modules/.bin/electron",
+   "args": ["."]
+  }
+ ]
 }
 ```
 

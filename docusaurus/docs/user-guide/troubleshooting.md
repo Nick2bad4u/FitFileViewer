@@ -15,6 +15,7 @@ Solutions to common issues in FitFileViewer.
 ### File Won't Open
 
 **Symptoms:**
+
 - Error message when opening file
 - Application shows blank screen
 - File appears corrupted
@@ -37,16 +38,17 @@ Solutions to common issues in FitFileViewer.
 ### No GPS Data Shown
 
 **Symptoms:**
+
 - Map tab shows "No GPS data"
 - Route doesn't appear on map
 
 **Causes & Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Indoor activity | GPS wasn't recorded - normal behavior |
-| GPS disabled | Enable GPS on device for future activities |
-| Data corruption | Re-export or recover from device |
+| Cause           | Solution                                   |
+| --------------- | ------------------------------------------ |
+| Indoor activity | GPS wasn't recorded - normal behavior      |
+| GPS disabled    | Enable GPS on device for future activities |
+| Data corruption | Re-export or recover from device           |
 
 ### Application Won't Start
 
@@ -78,11 +80,13 @@ Solutions to common issues in FitFileViewer.
 **Linux Solutions:**
 
 1. **Make executable**
+
    ```bash
    chmod +x FitFileViewer*.AppImage
    ```
 
 2. **Install dependencies**
+
    ```bash
    # Ubuntu/Debian
    sudo apt-get install libgtk-3-0 libnotify4 libnss3
@@ -94,6 +98,7 @@ Solutions to common issues in FitFileViewer.
 ### Performance Issues
 
 **Symptoms:**
+
 - Slow loading
 - Laggy interface
 - High memory usage
@@ -115,6 +120,7 @@ Solutions to common issues in FitFileViewer.
 ### Display Issues
 
 **Symptoms:**
+
 - UI appears too small/large
 - Text is blurry
 - Colors look wrong
@@ -134,6 +140,7 @@ Solutions to common issues in FitFileViewer.
 ### Charts Not Rendering
 
 **Symptoms:**
+
 - Blank chart area
 - Charts not interactive
 
@@ -156,6 +163,7 @@ Solutions to common issues in FitFileViewer.
 The file is corrupted or not a FIT file.
 
 **Solutions:**
+
 - Re-export from original device
 - Try different file
 - Check file extension is `.fit`
@@ -165,6 +173,7 @@ The file is corrupted or not a FIT file.
 The FIT file structure is unexpected.
 
 **Solutions:**
+
 - Update FitFileViewer to latest version
 - Report issue with sample file
 
@@ -173,6 +182,7 @@ The FIT file structure is unexpected.
 The file is too large for available memory.
 
 **Solutions:**
+
 - Close other applications
 - Increase system virtual memory
 - Try smaller file segments

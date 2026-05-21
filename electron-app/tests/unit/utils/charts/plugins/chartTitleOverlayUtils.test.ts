@@ -11,9 +11,7 @@ describe(escapeHtml, () => {
 
         const escaped = escapeHtml(`A&B <tag attr="value">'`);
 
-        expect(escaped).toBe(
-            "A&amp;B &lt;tag attr=&quot;value&quot;&gt;&#39;"
-        );
+        expect(escaped).toBe("A&amp;B &lt;tag attr=&quot;value&quot;&gt;&#39;");
         expect(escaped).not.toContain("<tag");
     });
 });
@@ -28,7 +26,13 @@ describe(resolveChartTitleIconName, () => {
             resolveChartTitleIconName("Distance Grade"),
             resolveChartTitleIconName("Elapsed Time"),
             resolveChartTitleIconName("Route Map"),
-        ]).toStrictEqual(["activity", "gauge", "ruler", "timer", "route"]);
+        ]).toStrictEqual([
+            "activity",
+            "gauge",
+            "ruler",
+            "timer",
+            "route",
+        ]);
         expect(resolveChartTitleIconName("Power Output")).not.toBe("table");
     });
 

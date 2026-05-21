@@ -1,6 +1,9 @@
 import { CONVERSION_FACTORS } from "../../config/index.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
-import { convertTimeUnits, TIME_UNITS, } from "../converters/convertTimeUnits.js";
+import {
+    convertTimeUnits,
+    TIME_UNITS,
+} from "../converters/convertTimeUnits.js";
 const TIME_FORMAT_CONSTANTS = {
     FALLBACK_VALUE: "0:00",
     PAD_CHAR: "0",
@@ -33,8 +36,10 @@ export function formatTime(seconds, useUserUnits = false) {
 }
 function formatAsTimeString(seconds) {
     const hours = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_HOUR);
-    const minutes = Math.floor((seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) /
-        CONVERSION_FACTORS.SECONDS_PER_MINUTE);
+    const minutes = Math.floor(
+        (seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) /
+            CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
     const secs = Math.floor(seconds % CONVERSION_FACTORS.SECONDS_PER_MINUTE);
     if (hours > 0) {
         return `${hours}:${padTimePart(minutes)}:${padTimePart(secs)}`;
@@ -47,8 +52,7 @@ function formatTimeInternal(seconds, useUserUnits) {
             return formatWithUserUnits(seconds);
         }
         return formatAsTimeString(seconds);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[formatTime] Time formatting failed:", error);
         return TIME_FORMAT_CONSTANTS.FALLBACK_VALUE;
     }
@@ -68,8 +72,7 @@ function formatWithUserUnits(seconds) {
                 return formatAsTimeString(seconds);
             }
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[formatTime] Error in convertTimeUnits:", error);
         throw error;
     }
@@ -77,12 +80,17 @@ function formatWithUserUnits(seconds) {
 function padTimePart(value) {
     return value
         .toString()
-        .padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR);
+        .padStart(
+            TIME_FORMAT_CONSTANTS.PAD_LENGTH,
+            TIME_FORMAT_CONSTANTS.PAD_CHAR
+        );
 }
 function resolveTimeUnits(value) {
-    if (value === TIME_UNITS.MINUTES ||
+    if (
+        value === TIME_UNITS.MINUTES ||
         value === TIME_UNITS.HOURS ||
-        value === TIME_UNITS.SECONDS) {
+        value === TIME_UNITS.SECONDS
+    ) {
         return value;
     }
     return TIME_UNITS.SECONDS;

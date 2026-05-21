@@ -80,9 +80,9 @@ class MainProcessState {
             (typeof process !== "undefined" &&
                 process.env &&
                 process.env["NODE_ENV"] === "development") ||
-                (typeof process !== "undefined" &&
-                    Array.isArray(process.argv) &&
-                    process.argv.includes("--dev"));
+            (typeof process !== "undefined" &&
+                Array.isArray(process.argv) &&
+                process.argv.includes("--dev"));
         /* @type {boolean} */
         this._ipcHandlersRegistered = false;
         /*
@@ -159,15 +159,18 @@ class MainProcessState {
      * @param {Object} [result]
      */
     completeOperation(operationId, result = {}) {
-        const operation = asLooseRecordOrNull(this.get(`operations.${operationId}`));
+        const operation = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!operation) {
             return;
         }
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
-        const duration = typeof operation["startTimePerf"] === "number"
-            ? Math.max(0, endTimePerf - operation["startTimePerf"])
-            : Math.max(0, endTime - getNumberField(operation, "startTime"));
+        const duration =
+            typeof operation["startTimePerf"] === "number"
+                ? Math.max(0, endTimePerf - operation["startTimePerf"])
+                : Math.max(0, endTime - getNumberField(operation, "startTime"));
         const completedOp = {
             ...operation,
             duration,
@@ -203,29 +206,34 @@ class MainProcessState {
      * @param {Error | string} error
      */
     failOperation(operationId, error) {
-        const operation = asLooseRecordOrNull(this.get(`operations.${operationId}`));
+        const operation = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!operation) {
             return;
         }
         const endTime = Date.now();
         const endTimePerf = monotonicNowMs();
-        const duration = typeof operation["startTimePerf"] === "number"
-            ? Math.max(0, endTimePerf - operation["startTimePerf"])
-            : Math.max(0, endTime - getNumberField(operation, "startTime"));
-        const errorObj = error instanceof Error
-            ? {
-                message: error.message,
-                name: error.name,
-                stack: error.stack,
-            }
-            : { message: String(error) }, failedOp = {
-            ...operation,
-            duration,
-            endTime,
-            endTimePerf,
-            error: errorObj,
-            status: "failed",
-        };
+        const duration =
+            typeof operation["startTimePerf"] === "number"
+                ? Math.max(0, endTimePerf - operation["startTimePerf"])
+                : Math.max(0, endTime - getNumberField(operation, "startTime"));
+        const errorObj =
+                error instanceof Error
+                    ? {
+                          message: error.message,
+                          name: error.name,
+                          stack: error.stack,
+                      }
+                    : { message: String(error) },
+            failedOp = {
+                ...operation,
+                duration,
+                endTime,
+                endTimePerf,
+                error: errorObj,
+                status: "failed",
+            };
         this.set(`operations.${operationId}`, failedOp);
         this.notifyRenderers("operation-failed", {
             operation: failedOp,
@@ -287,9 +295,14 @@ class MainProcessState {
      */
     getDevInfo() {
         const metrics = asLooseRecord(this.get("metrics"));
-        const uptime = typeof metrics["startTimePerf"] === "number"
-            ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
-            : Math.max(0, Date.now() - getNumberField(metrics, "startTime", Date.now()));
+        const uptime =
+            typeof metrics["startTimePerf"] === "number"
+                ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
+                : Math.max(
+                      0,
+                      Date.now() -
+                          getNumberField(metrics, "startTime", Date.now())
+                  );
         return {
             errors: asArray(this.get("errors")).length,
             eventHandlers: asHandlerInfoMap(this.get("eventHandlers")).size,
@@ -300,25 +313,25 @@ class MainProcessState {
         };
     }
     /*
-     * @param {any} sender
+     * @param {unknown} sender
      *
      * @returns {number}
      */
     getSenderId(sender) {
-        const id = sender &&
+        const id =
+            sender &&
             typeof sender === "object" &&
             "id" in sender &&
             typeof sender.id === "number"
-            ? sender.id
-            : 0;
+                ? sender.id
+                : 0;
         if (Number.isFinite(id) && id > 0) {
             return id;
         }
         // Fallback for tests/mocks that omit sender.id
         if (sender && typeof sender === "object") {
             const existing = this._senderFallbackIds.get(sender);
-            if (existing)
-                return existing;
+            if (existing) return existing;
             const next = this._nextSenderFallbackId++;
             this._senderFallbackIds.set(sender, next);
             return next;
@@ -332,15 +345,22 @@ class MainProcessState {
      */
     getSerializableMetrics() {
         const metrics = asLooseRecord(this.get("metrics"));
-        const operationTimes = metrics && typeof metrics === "object"
-            ? metrics["operationTimes"]
-            : null;
-        const operationTimesObj = operationTimes instanceof Map
-            ? Object.fromEntries([...operationTimes.entries()].filter((entry) => Array.isArray(entry) &&
-                typeof entry[0] === "string" &&
-                entry[0].length > 0 &&
-                entry[0].length <= 128))
-            : {};
+        const operationTimes =
+            metrics && typeof metrics === "object"
+                ? metrics["operationTimes"]
+                : null;
+        const operationTimesObj =
+            operationTimes instanceof Map
+                ? Object.fromEntries(
+                      [...operationTimes.entries()].filter(
+                          (entry) =>
+                              Array.isArray(entry) &&
+                              typeof entry[0] === "string" &&
+                              entry[0].length > 0 &&
+                              entry[0].length <= 128
+                      )
+                  )
+                : {};
         return {
             ...metrics,
             operationTimes: operationTimesObj,
@@ -394,9 +414,11 @@ class MainProcessState {
             return data;
         }
         // Handle primitive types
-        if (typeof data === "boolean" ||
+        if (
+            typeof data === "boolean" ||
             typeof data === "number" ||
-            typeof data === "string") {
+            typeof data === "string"
+        ) {
             return data;
         }
         if (typeof data === "bigint") {
@@ -414,16 +436,19 @@ class MainProcessState {
         const { BrowserWindow } = safeElectron();
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
-            const isBrowserWindow = typeof BrowserWindow === "function" &&
+            const isBrowserWindow =
+                typeof BrowserWindow === "function" &&
                 value instanceof BrowserWindow;
-            if (typeof value === "function" ||
+            if (
+                typeof value === "function" ||
                 isBrowserWindow ||
                 value instanceof Map ||
                 value instanceof Set ||
                 (value &&
                     typeof value === "object" &&
                     value.constructor &&
-                    value.constructor.name === "Server")) {
+                    value.constructor.name === "Server")
+            ) {
                 // Skip these non-serializable values
                 continue;
             }
@@ -436,7 +461,7 @@ class MainProcessState {
         return serializable;
     }
     /*
-     * @param {any} sender
+     * @param {unknown} sender
      * @param {string} path
      *
      * @returns {string}
@@ -459,8 +484,7 @@ class MainProcessState {
             for (const callback of pathListeners) {
                 try {
                     callback(change);
-                }
-                catch (error) {
+                } catch (error) {
                     logWithContext("error", "Error in state change listener", {
                         error: getErrorMessage(error),
                     });
@@ -473,9 +497,12 @@ class MainProcessState {
             for (const callback of wildcardListeners) {
                 try {
                     callback(change);
-                }
-                catch (error) {
-                    logWithContext("error", "Error in wildcard state change listener", { error: getErrorMessage(error) });
+                } catch (error) {
+                    logWithContext(
+                        "error",
+                        "Error in wildcard state change listener",
+                        { error: getErrorMessage(error) }
+                    );
                 }
             }
         }
@@ -486,38 +513,45 @@ class MainProcessState {
      * Notify all renderer processes of an event
      *
      * @param {string} channel - IPC channel
-     * @param {any} data - Data to send
+     * @param {unknown} data - Data to send
      */
     /*
      * @param {string} channel
-     * @param {any} data
+     * @param {unknown} data
      */
     notifyRenderers(channel, data) {
         // Filter out non-serializable data for IPC
         const serializableData = this.makeSerializable(data);
         try {
             const { BrowserWindow } = safeElectron();
-            const allWins = BrowserWindow &&
+            const allWins =
+                BrowserWindow &&
                 typeof BrowserWindow.getAllWindows === "function"
-                ? BrowserWindow.getAllWindows() || []
-                : [];
+                    ? BrowserWindow.getAllWindows() || []
+                    : [];
             for (const win of allWins) {
                 if (validateWindow(win)) {
                     try {
                         win.webContents.send(channel, serializableData);
-                    }
-                    catch (error) {
-                        logWithContext("warn", "Failed to send IPC message to renderer", {
-                            channel,
-                            error: getErrorMessage(error),
-                        });
+                    } catch (error) {
+                        logWithContext(
+                            "warn",
+                            "Failed to send IPC message to renderer",
+                            {
+                                channel,
+                                error: getErrorMessage(error),
+                            }
+                        );
                     }
                 }
             }
-        }
-        catch (error) {
+        } catch (error) {
             // Handle cases where BrowserWindow API is unavailable or throws
-            logWithContext("warn", "BrowserWindow not available during notifyRenderers", { error: getErrorMessage(error) });
+            logWithContext(
+                "warn",
+                "BrowserWindow not available during notifyRenderers",
+                { error: getErrorMessage(error) }
+            );
         }
     }
     /*
@@ -533,9 +567,12 @@ class MainProcessState {
      * @param {Object} [metadata]
      */
     recordMetric(metric, value, metadata = {}) {
-        const metrics = asLooseRecord(this.get("metrics")), operationTimesValue = metrics["operationTimes"], operationTimes = operationTimesValue instanceof Map
-            ? operationTimesValue
-            : new Map();
+        const metrics = asLooseRecord(this.get("metrics")),
+            operationTimesValue = metrics["operationTimes"],
+            operationTimes =
+                operationTimesValue instanceof Map
+                    ? operationTimesValue
+                    : new Map();
         // Avoid in-place mutation so oldValue/newValue snapshots are meaningful.
         const nextOperationTimes = new Map(operationTimes);
         nextOperationTimes.set(metric, {
@@ -565,7 +602,8 @@ class MainProcessState {
      * @returns {string}
      */
     registerEventHandler(emitter, event, handler, handlerId) {
-        const id = handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
+        const id =
+            handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
         emitter.on?.(event, handler);
         const eventHandlers = asHandlerInfoMap(this.get("eventHandlers"));
         eventHandlers.set(id, { emitter, event, handler });
@@ -579,27 +617,30 @@ class MainProcessState {
      * Ensure we clean up any subscriptions when a renderer/webContents is
      * destroyed.
      *
-     * @param {any} sender
+     * @param {unknown} sender
      *
      * @returns {void}
      */
     registerSenderCleanup(sender) {
         const senderId = this.getSenderId(sender);
-        if (this.senderCleanupRegistered.has(senderId))
-            return;
+        if (this.senderCleanupRegistered.has(senderId)) return;
         this.senderCleanupRegistered.add(senderId);
         // Electron WebContents emits 'destroyed'. In tests/mocks this may not exist.
-        if (sender &&
+        if (
+            sender &&
             typeof sender === "object" &&
             "once" in sender &&
-            typeof sender.once === "function") {
+            typeof sender.once === "function"
+        ) {
             sender.once("destroyed", () => {
-                for (const [key, unsubscribe,] of this.ipcSubscriptions.entries()) {
+                for (const [
+                    key,
+                    unsubscribe,
+                ] of this.ipcSubscriptions.entries()) {
                     if (key.startsWith(`${senderId}:`)) {
                         try {
                             unsubscribe();
-                        }
-                        catch {
+                        } catch {
                             /* ignore */
                         }
                         this.ipcSubscriptions.delete(key);
@@ -634,12 +675,12 @@ class MainProcessState {
      * Set state value by path
      *
      * @param {string} path - Dot notation path
-     * @param {any} value - Value to set
+     * @param {unknown} value - Value to set
      * @param {Object} options - Options for the update
      */
     /*
      * @param {string} path
-     * @param {any} value
+     * @param {unknown} value
      * @param {Object} [options]
      */
     set(path, value, options = {}) {
@@ -665,7 +706,7 @@ class MainProcessState {
     /*
      * @param {Object} obj
      * @param {string} path
-     * @param {any} value
+     * @param {unknown} value
      */
     setByPath(obj, path, value) {
         if (!path) {
@@ -675,13 +716,13 @@ class MainProcessState {
         if (!isSafeDotPath(path)) {
             try {
                 logWithContext("warn", "Blocked unsafe state path", { path });
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
             return;
         }
-        const keys = path.split("."), lastKey = keys.pop();
+        const keys = path.split("."),
+            lastKey = keys.pop();
         let target = obj;
         for (const key of keys) {
             const next = target[key];
@@ -706,7 +747,10 @@ class MainProcessState {
         // If not running under Electron (e.g., unit tests without mocks), no-op safely
         if (!ipcMain || typeof ipcMain.handle !== "function") {
             // Handlers will be set once Electron's app is ready (see deferral at module end)
-            logWithContext("debug", "ipcMain not yet available; deferring IPC handler setup");
+            logWithContext(
+                "debug",
+                "ipcMain not yet available; deferring IPC handler setup"
+            );
             return;
         }
         // Get main process state
@@ -742,11 +786,16 @@ class MainProcessState {
             }
             // Security: deny unsafe dot paths (prototype pollution hardening)
             if (!isSafeDotPath(safePath)) {
-                logWithContext("warn", "Renderer attempted to set unsafe path", { path: safePath });
+                logWithContext(
+                    "warn",
+                    "Renderer attempted to set unsafe path",
+                    { path: safePath }
+                );
                 return false;
             }
             // Only allow certain paths to be set from renderer
-            const allowedRoots = ["loadedFitFilePath", "operations"], rootPath = safePath.split(".")[0] || "";
+            const allowedRoots = ["loadedFitFilePath", "operations"],
+                rootPath = safePath.split(".")[0] || "";
             if (allowedRoots.includes(rootPath)) {
                 this.set(safePath, value, {
                     ...options,
@@ -754,7 +803,11 @@ class MainProcessState {
                 });
                 return true;
             }
-            logWithContext("warn", "Renderer attempted to set restricted path", { path: safePath });
+            logWithContext(
+                "warn",
+                "Renderer attempted to set restricted path",
+                { path: safePath }
+            );
             return false;
         });
         // Listen to main process state changes
@@ -763,28 +816,42 @@ class MainProcessState {
                 return false;
             }
             const sender = event?.sender;
-            if (!sender)
-                return false;
+            if (!sender) return false;
             const safePath = typeof path === "string" ? path.trim() : "";
             const normalizedPath = safePath.length === 0 ? "*" : safePath;
             // Security: refuse subscriptions to unsafe dot paths.
             if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
-                logWithContext("warn", "Blocked main-state:listen for unsafe path", { path: normalizedPath });
+                logWithContext(
+                    "warn",
+                    "Blocked main-state:listen for unsafe path",
+                    { path: normalizedPath }
+                );
                 return false;
             }
-            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
+            const subscriptionKey = this.makeSubscriptionKey(
+                sender,
+                normalizedPath
+            );
             if (!this.ipcSubscriptions.has(subscriptionKey)) {
                 this.registerSenderCleanup(sender);
                 const unsubscribe = this.listen(normalizedPath, (change) => {
                     try {
-                        if (typeof sender.isDestroyed === "function" &&
-                            sender.isDestroyed()) {
+                        if (
+                            typeof sender.isDestroyed === "function" &&
+                            sender.isDestroyed()
+                        ) {
                             return;
                         }
-                        sender.send("main-state-change", this.makeSerializable(change));
-                    }
-                    catch (error) {
-                        logWithContext("warn", "Failed to emit state change to renderer", { error: getErrorMessage(error) });
+                        sender.send(
+                            "main-state-change",
+                            this.makeSerializable(change)
+                        );
+                    } catch (error) {
+                        logWithContext(
+                            "warn",
+                            "Failed to emit state change to renderer",
+                            { error: getErrorMessage(error) }
+                        );
                     }
                 });
                 if (typeof unsubscribe === "function") {
@@ -798,21 +865,21 @@ class MainProcessState {
                 return false;
             }
             const sender = event?.sender;
-            if (!sender)
-                return false;
+            if (!sender) return false;
             const safePath = typeof path === "string" ? path.trim() : "";
             const normalizedPath = safePath.length === 0 ? "*" : safePath;
             if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
                 return false;
             }
-            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
+            const subscriptionKey = this.makeSubscriptionKey(
+                sender,
+                normalizedPath
+            );
             const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
-            if (!unsubscribe)
-                return false;
+            if (!unsubscribe) return false;
             try {
                 unsubscribe();
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
             this.ipcSubscriptions.delete(subscriptionKey);
@@ -823,13 +890,18 @@ class MainProcessState {
             if (!validate(event)) {
                 return undefined;
             }
-            const safeOperationId = typeof operationId === "string" ? operationId.trim() : "";
-            if (!safeOperationId ||
-                safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH) {
+            const safeOperationId =
+                typeof operationId === "string" ? operationId.trim() : "";
+            if (
+                !safeOperationId ||
+                safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH
+            ) {
                 return;
             }
-            if (!DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) ||
-                FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)) {
+            if (
+                !DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) ||
+                FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)
+            ) {
                 return;
             }
             const val = this.get(`operations.${safeOperationId}`);
@@ -838,8 +910,7 @@ class MainProcessState {
         // Get all operations
         ipcMain.handle("main-state:operations", () => {
             const ops = this.get("operations");
-            if (!ops)
-                return {};
+            if (!ops) return {};
             // Convert Map to plain object if needed
             if (ops instanceof Map) {
                 return Object.fromEntries(ops.entries());
@@ -853,14 +924,17 @@ class MainProcessState {
             }
             const errors = asArray(this.get("errors"));
             const max = 100;
-            const n = typeof limit === "number" && Number.isFinite(limit)
-                ? Math.floor(limit)
-                : 50;
+            const n =
+                typeof limit === "number" && Number.isFinite(limit)
+                    ? Math.floor(limit)
+                    : 50;
             const clamped = Math.max(0, Math.min(max, n));
             return errors.slice(0, clamped);
         });
         // Get metrics
-        ipcMain.handle("main-state:metrics", () => this.makeSerializable(this.getSerializableMetrics()));
+        ipcMain.handle("main-state:metrics", () =>
+            this.makeSerializable(this.getSerializableMetrics())
+        );
         this._ipcHandlersRegistered = true;
     }
     /*
@@ -895,7 +969,8 @@ class MainProcessState {
      * @param {string} handlerId
      */
     unregisterEventHandler(handlerId) {
-        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers")), handlerInfo = eventHandlers.get(handlerId);
+        const eventHandlers = asHandlerInfoMap(this.get("eventHandlers")),
+            handlerInfo = eventHandlers.get(handlerId);
         if (handlerInfo) {
             const { emitter, event, handler } = handlerInfo;
             emitter.removeListener?.(event, handler);
@@ -915,7 +990,7 @@ class MainProcessState {
      * @param {Object} options - Update options
      */
     /*
-     * @param {Record<string, any>} updates
+     * @param {Record<string, unknown>} updates
      * @param {Object} [options]
      */
     update(updates, options = {}) {
@@ -932,8 +1007,7 @@ class MainProcessState {
                 ...options,
             });
         }
-        for (const change of changes)
-            this.notifyChange(change);
+        for (const change of changes) this.notifyChange(change);
         if (this.devMode) {
             logWithContext("info", "Batch state update", {
                 changes: changes.length,
@@ -952,7 +1026,9 @@ class MainProcessState {
      * @param {OperationUpdate} updates
      */
     updateOperation(operationId, updates) {
-        const currentOp = asLooseRecordOrNull(this.get(`operations.${operationId}`));
+        const currentOp = asLooseRecordOrNull(
+            this.get(`operations.${operationId}`)
+        );
         if (!currentOp) {
             return;
         }
@@ -982,23 +1058,16 @@ class MainProcessState {
  * @returns {path is string}
  */
 function isSafeDotPath(path) {
-    if (typeof path !== "string")
-        return false;
+    if (typeof path !== "string") return false;
     const trimmed = path.trim();
-    if (!trimmed)
-        return false;
-    if (trimmed.length > MAX_DOT_PATH_LENGTH)
-        return false;
+    if (!trimmed) return false;
+    if (trimmed.length > MAX_DOT_PATH_LENGTH) return false;
     const parts = trimmed.split(".");
     for (const part of parts) {
-        if (!part)
-            return false;
-        if (part.length > MAX_DOT_PATH_SEGMENT_LENGTH)
-            return false;
-        if (FORBIDDEN_DOT_PATH_SEGMENTS.has(part))
-            return false;
-        if (!DOT_PATH_SEGMENT_PATTERN.test(part))
-            return false;
+        if (!part) return false;
+        if (part.length > MAX_DOT_PATH_SEGMENT_LENGTH) return false;
+        if (FORBIDDEN_DOT_PATH_SEGMENTS.has(part)) return false;
+        if (!DOT_PATH_SEGMENT_PATTERN.test(part)) return false;
     }
     return true;
 }
@@ -1006,9 +1075,14 @@ function isSafeDotPath(path) {
  * Log with consistent prefix & optional JSON context
  */
 function logWithContext(level, message, context = {}) {
-    const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "", timestamp = new Date().toISOString();
+    const contextStr =
+            Object.keys(context).length > 0 ? JSON.stringify(context) : "",
+        timestamp = new Date().toISOString();
     // Narrowed level union keeps TS happy accessing console methods
-    console[level](`[${timestamp}] [mainProcessStateManager] ${message}`, contextStr);
+    console[level](
+        `[${timestamp}] [mainProcessStateManager] ${message}`,
+        contextStr
+    );
 }
 /*
  * Monotonic time source for measuring durations. Uses performance.now when
@@ -1017,8 +1091,10 @@ function logWithContext(level, message, context = {}) {
  * @returns {number}
  */
 function monotonicNowMs() {
-    if (globalThis.performance &&
-        typeof globalThis.performance.now === "function") {
+    if (
+        globalThis.performance &&
+        typeof globalThis.performance.now === "function"
+    ) {
         return globalThis.performance.now();
     }
     return Date.now();
@@ -1030,68 +1106,71 @@ function getErrorMessage(error) {
 function safeElectron() {
     let mod;
     const unwrap = (m) => {
-        if (!isObjectRecord(m))
-            return {};
+        if (!isObjectRecord(m)) return {};
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
-        if (hasElectronApis(m))
-            return m;
+        if (hasElectronApis(m)) return m;
         const def = m["default"];
-        if (hasElectronApis(def))
-            return def;
+        if (hasElectronApis(def)) return def;
         return m;
     };
     try {
         // Only clear cache in tests to pick up per-test mocks
-        if (typeof process !== "undefined" &&
+        if (
+            typeof process !== "undefined" &&
             process.env &&
-            process.env["NODE_ENV"] === "test") {
+            process.env["NODE_ENV"] === "test"
+        ) {
             try {
-                const key = typeof require.resolve === "function"
-                    ? require.resolve("electron")
-                    : undefined;
+                const key =
+                    typeof require.resolve === "function"
+                        ? require.resolve("electron")
+                        : undefined;
                 if (key && require.cache && require.cache[key]) {
                     delete require.cache[key];
                 }
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
         }
         mod = require("electron");
-    }
-    catch {
+    } catch {
         mod = undefined;
     }
     let resolved = unwrap(mod);
     // If module-scoped require didn't yield a usable ipcMain, try global shim
-    if (!resolved ||
+    if (
+        !resolved ||
         !resolved.ipcMain ||
-        typeof resolved.ipcMain.handle !== "function") {
+        typeof resolved.ipcMain.handle !== "function"
+    ) {
         try {
-            const hasGlobal = typeof globalThis === "object" && globalThis !== null;
-            const gReq = hasGlobal &&
+            const hasGlobal =
+                typeof globalThis === "object" && globalThis !== null;
+            const gReq =
+                hasGlobal &&
                 "require" in globalThis &&
                 typeof globalThis.require === "function"
-                ? globalThis.require
-                : undefined;
+                    ? globalThis.require
+                    : undefined;
             if (typeof gReq === "function") {
                 resolved = unwrap(gReq("electron"));
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
     }
     return resolved || {};
 }
 function hasElectronApis(value) {
-    return (isObjectRecord(value) &&
+    return (
+        isObjectRecord(value) &&
         ("app" in value ||
             "ipcMain" in value ||
             "BrowserWindow" in value ||
             "Menu" in value ||
             "shell" in value ||
-            "dialog" in value));
+            "dialog" in value)
+    );
 }
 function isObjectRecord(value) {
     return typeof value === "object" && value !== null;
@@ -1121,8 +1200,7 @@ function validate(event) {
         logWithContext("warn", "Blocked IPC request without sender");
         return false;
     }
-    if (typeof sender.isDestroyed === "function" &&
-        sender.isDestroyed()) {
+    if (typeof sender.isDestroyed === "function" && sender.isDestroyed()) {
         logWithContext("warn", "Blocked IPC request from destroyed sender");
         return false;
     }
@@ -1141,17 +1219,23 @@ function validate(event) {
  */
 function validateWindow(win) {
     if (!win || typeof win !== "object") {
-        console.warn("[mainProcessStateManager] Window is not usable or destroyed");
+        console.warn(
+            "[mainProcessStateManager] Window is not usable or destroyed"
+        );
         return false;
     }
     const candidate = win;
     const webContents = candidate.webContents;
-    if (typeof candidate.isDestroyed !== "function" ||
+    if (
+        typeof candidate.isDestroyed !== "function" ||
         candidate.isDestroyed() ||
         !webContents ||
         typeof webContents.isDestroyed !== "function" ||
-        webContents.isDestroyed()) {
-        console.warn("[mainProcessStateManager] Window is not usable or destroyed");
+        webContents.isDestroyed()
+    ) {
+        console.warn(
+            "[mainProcessStateManager] Window is not usable or destroyed"
+        );
         return false;
     }
     return true;
@@ -1162,8 +1246,7 @@ const mainProcessState = new MainProcessState();
 // 'ipcMain' may appear unavailable extremely early in process bootstrap.
 (function ensureIpcHandlersReadyOnce() {
     const state = ensureIpcHandlersReadyOnce;
-    if (state.done)
-        return;
+    if (state.done) return;
     // In the renderer, this file can be loaded as a browser module/script where CommonJS globals
     // (module/require) do not exist. In that environment, IPC handler registration is impossible
     // and should not spam the console with retry warnings.
@@ -1171,7 +1254,8 @@ const mainProcessState = new MainProcessState();
         state.done = true;
         return;
     }
-    const isRendererProcess = typeof process !== "undefined" && process.type === "renderer";
+    const isRendererProcess =
+        typeof process !== "undefined" && process.type === "renderer";
     if (isRendererProcess) {
         state.done = true;
         return;
@@ -1186,8 +1270,7 @@ const mainProcessState = new MainProcessState();
             // Re-run setup now that ipcMain is available
             try {
                 mainProcessState.setupIPCHandlers();
-            }
-            catch {
+            } catch {
                 // no-op
             }
             state.done = true;
@@ -1195,30 +1278,27 @@ const mainProcessState = new MainProcessState();
         }
         return false;
     };
-    if (trySetup())
-        return;
+    if (trySetup()) return;
     try {
         const { app } = safeElectron();
         if (app && typeof app.whenReady === "function") {
             app.whenReady()
                 .then(() => {
-                if (!state.done)
-                    trySetup();
-            })
+                    if (!state.done) trySetup();
+                })
                 .catch(() => {
-                // Fallback to small retry loop if whenReady rejects for any reason
-                let attempts = 0;
-                const tick = () => {
-                    if (!state.done && !trySetup() && attempts++ < 50) {
-                        state.retryTimer = setTimeout(tick, 50);
-                    }
-                };
-                state.retryTimer = setTimeout(tick, 10);
-            });
+                    // Fallback to small retry loop if whenReady rejects for any reason
+                    let attempts = 0;
+                    const tick = () => {
+                        if (!state.done && !trySetup() && attempts++ < 50) {
+                            state.retryTimer = setTimeout(tick, 50);
+                        }
+                    };
+                    state.retryTimer = setTimeout(tick, 10);
+                });
             return;
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Final fallback: small bounded retry loop
@@ -1231,9 +1311,10 @@ const mainProcessState = new MainProcessState();
     if (!state.logged) {
         state.logged = true;
         try {
-            console.warn("[mainProcessStateManager] Deferring IPC handler setup until Electron is ready");
-        }
-        catch {
+            console.warn(
+                "[mainProcessStateManager] Deferring IPC handler setup until Electron is ready"
+            );
+        } catch {
             /* ignore */
         }
     }
@@ -1247,14 +1328,17 @@ if (typeof module !== "undefined" && module && module.exports) {
 // Also attach to a global shim so ESM barrels in renderer can recover without touching module
 try {
     if (typeof globalThis !== "undefined") {
-        Object.defineProperty(globalThis, "__FFV_mainProcessStateManagerExports", {
-            configurable: true,
-            enumerable: false,
-            value: __mpExports,
-            writable: true,
-        });
+        Object.defineProperty(
+            globalThis,
+            "__FFV_mainProcessStateManagerExports",
+            {
+                configurable: true,
+                enumerable: false,
+                value: __mpExports,
+                writable: true,
+            }
+        );
     }
-}
-catch {
+} catch {
     /* ignore */
 }

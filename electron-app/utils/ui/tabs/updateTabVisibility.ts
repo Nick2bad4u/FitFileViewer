@@ -291,8 +291,7 @@ export function initializeTabVisibilityState(): void {
             noDataSwitchTimer = null;
 
             const latestData = getStateMgr().getState("globalData");
-            const stillNoData =
-                latestData === null || latestData === undefined;
+            const stillNoData = latestData === null || latestData === undefined;
             const isLoading = Boolean(getStateMgr().getState("isLoading"));
             const latestTab = getStringState("ui.activeTab") ?? "summary";
 

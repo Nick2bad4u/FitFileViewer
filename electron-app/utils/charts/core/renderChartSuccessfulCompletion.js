@@ -15,6 +15,7 @@ function renderNoDataForContainer(chartContainer, message) {
  *
  * @param dependencies - Runtime, state, notification, and DOM dependencies.
  * @param input - Render timing and visible field summary.
+ *
  * @returns Final render duration and chart count.
  */
 export async function completeSuccessfulChartRender(dependencies, input) {
@@ -32,42 +33,56 @@ export async function completeSuccessfulChartRender(dependencies, input) {
         hoverDependencies.updateChartControlsUI =
             dependencies.updateChartControlsUI;
     }
-    const { totalChartsRendered } = resolveChartRenderResultState({
-        chartContainer: dependencies.chartContainer,
-        chartInstances: dependencies.chartInstances,
-        renderNoDataMessage: renderNoDataForContainer,
-    }, { visibleFieldCount: input.visibleFieldCount });
+    const { totalChartsRendered } = resolveChartRenderResultState(
+        {
+            chartContainer: dependencies.chartContainer,
+            chartInstances: dependencies.chartInstances,
+            renderNoDataMessage: renderNoDataForContainer,
+        },
+        { visibleFieldCount: input.visibleFieldCount }
+    );
     const renderTime = dependencies.nowPerformance() - input.renderStartTime;
-    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`);
-    updateChartRenderPerformanceState({
-        getState: dependencies.getState,
-        updateState: dependencies.updateState,
-    }, { renderTime, totalChartsRendered });
-    handleChartRenderNotification({
-        getState: dependencies.getState,
-        isTestRuntime: dependencies.isTestRuntime,
-        notify: dependencies.notify,
-        showRenderNotification: dependencies.showRenderNotification,
-        updateState: dependencies.updateState,
-    }, {
-        totalChartsRendered,
-        visibleFieldCount: input.visibleFieldCount,
-    });
+    console.log(
+        `[ChartJS] Rendered ${totalChartsRendered} charts (sync) in ${renderTime.toFixed(2)}ms`
+    );
+    updateChartRenderPerformanceState(
+        {
+            getState: dependencies.getState,
+            updateState: dependencies.updateState,
+        },
+        { renderTime, totalChartsRendered }
+    );
+    handleChartRenderNotification(
+        {
+            getState: dependencies.getState,
+            isTestRuntime: dependencies.isTestRuntime,
+            notify: dependencies.notify,
+            showRenderNotification: dependencies.showRenderNotification,
+            updateState: dependencies.updateState,
+        },
+        {
+            totalChartsRendered,
+            visibleFieldCount: input.visibleFieldCount,
+        }
+    );
     await applyCompletedChartHoverEffects(hoverDependencies, {
         totalChartsRendered,
     });
-    completeChartRenderState({
-        CustomEventConstructor: dependencies.CustomEventConstructor,
-        doc: dependencies.doc,
-        emitChartsRenderedEvent,
-        getComputedStateManager: dependencies.getComputedStateManager,
-        getState: dependencies.getState,
-        now: dependencies.now,
-        updatePreviousChartState: dependencies.updatePreviousChartState,
-    }, {
-        renderTime,
-        totalChartsRendered,
-        visibleFieldCount: input.visibleFieldCount,
-    });
+    completeChartRenderState(
+        {
+            CustomEventConstructor: dependencies.CustomEventConstructor,
+            doc: dependencies.doc,
+            emitChartsRenderedEvent,
+            getComputedStateManager: dependencies.getComputedStateManager,
+            getState: dependencies.getState,
+            now: dependencies.now,
+            updatePreviousChartState: dependencies.updatePreviousChartState,
+        },
+        {
+            renderTime,
+            totalChartsRendered,
+            visibleFieldCount: input.visibleFieldCount,
+        }
+    );
     return { renderTime, totalChartsRendered };
 }

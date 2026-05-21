@@ -17,16 +17,17 @@ const SPEED_FORMAT_CONFIG = {
 const FALLBACK_SPEED_TOOLTIP = "0.00 m/s (0.00 km/h, 0.00 mph)";
 
 /**
- * Formats speed with meters per second, kilometers per hour, and miles per hour.
+ * Formats speed with meters per second, kilometers per hour, and miles per
+ * hour.
  *
  * Invalid inputs preserve legacy display behavior by warning and returning a
  * zeroed tooltip string.
  *
- * @example
- *     const speedTooltip = formatSpeedTooltip(5.5);
- *     // "5.50 m/s (19.80 km/h, 12.30 mph)"
+ * @example Const speedTooltip = formatSpeedTooltip(5.5); // "5.50 m/s (19.80
+ * km/h, 12.30 mph)"
  *
  * @param mps - Speed in meters per second.
+ *
  * @returns Formatted speed string with all units.
  */
 export function formatSpeedTooltip(mps: unknown): string {

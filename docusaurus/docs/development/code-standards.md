@@ -24,18 +24,18 @@ Guidelines for writing clean, maintainable code.
 
 ```javascript
 // Variables and functions: camelCase
-const userName = 'John';
-function formatDistance() { }
+const userName = "John";
+function formatDistance() {}
 
 // Constants: UPPER_SNAKE_CASE
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
 // Classes: PascalCase
-class StateManager { }
+class StateManager {}
 
 // Files: camelCase or kebab-case
-formatDistance.js
-map-utils.js
+formatDistance.js;
+map - utils.js;
 ```
 
 ### Function Style
@@ -46,17 +46,19 @@ const add = (a, b) => a + b;
 
 // Use regular functions for methods and complex logic
 function processFileData(data) {
-    // Complex logic
+ // Complex logic
 }
 
 // Always document functions
 /**
  * Formats a distance value.
+ *
  * @param {number} meters - Distance in meters
+ *
  * @returns {string} Formatted distance
  */
 function formatDistance(meters) {
-    return `${(meters / 1000).toFixed(2)} km`;
+ return `${(meters / 1000).toFixed(2)} km`;
 }
 ```
 
@@ -65,16 +67,16 @@ function formatDistance(meters) {
 ```javascript
 // Always handle errors
 try {
-    const data = await loadFile(path);
-    processData(data);
+ const data = await loadFile(path);
+ processData(data);
 } catch (error) {
-    console.error('Failed to load file:', error);
-    showErrorToUser('Unable to load file');
+ console.error("Failed to load file:", error);
+ showErrorToUser("Unable to load file");
 }
 
 // Throw meaningful errors
 if (!isValid(input)) {
-    throw new Error(`Invalid input: expected number, got ${typeof input}`);
+ throw new Error(`Invalid input: expected number, got ${typeof input}`);
 }
 ```
 
@@ -87,24 +89,24 @@ Each module should do one thing:
 ```javascript
 // ✅ Good: Single responsibility
 // formatDistance.js
-export function formatDistance(meters) { }
-export function convertToMiles(meters) { }
+export function formatDistance(meters) {}
+export function convertToMiles(meters) {}
 
 // ❌ Bad: Multiple responsibilities
 // utils.js
-export function formatDistance() { }
-export function renderMap() { }  // Unrelated
+export function formatDistance() {}
+export function renderMap() {} // Unrelated
 ```
 
 ### Clear Exports
 
 ```javascript
 // Named exports for multiple functions
-export function formatDistance(meters) { }
-export function formatDuration(seconds) { }
+export function formatDistance(meters) {}
+export function formatDuration(seconds) {}
 
 // Default export for main functionality
-export default function formatDistance(meters) { }
+export default function formatDistance(meters) {}
 ```
 
 ### Documentation
@@ -112,25 +114,27 @@ export default function formatDistance(meters) { }
 ```javascript
 /**
  * Module description.
+ *
  * @module formatDistance
  */
 
 /**
  * Formats a distance for display.
  *
+ * @example
+ *  formatDistance(5000); // "5.00 km"
+ *  formatDistance(5000, { unit: "mi" }); // "3.11 mi"
+ *
  * @param {number} meters - The distance in meters
  * @param {Object} options - Formatting options
  * @param {string} options.unit - Target unit ('km' or 'mi')
  * @param {number} options.decimals - Decimal places
- * @returns {string} Formatted distance string
  *
- * @example
- * formatDistance(5000); // "5.00 km"
- * formatDistance(5000, { unit: 'mi' }); // "3.11 mi"
+ * @returns {string} Formatted distance string
  */
 export function formatDistance(meters, options = {}) {
-    const { unit = 'km', decimals = 2 } = options;
-    // Implementation
+ const { unit = "km", decimals = 2 } = options;
+ // Implementation
 }
 ```
 
@@ -142,13 +146,18 @@ Use BEM or descriptive names:
 
 ```css
 /* BEM style */
-.chart-container { }
-.chart-container__header { }
-.chart-container--fullscreen { }
+.chart-container {
+}
+.chart-container__header {
+}
+.chart-container--fullscreen {
+}
 
 /* Descriptive */
-.main-map-view { }
-.data-table-wrapper { }
+.main-map-view {
+}
+.data-table-wrapper {
+}
 ```
 
 ### Organization
@@ -157,13 +166,18 @@ Use BEM or descriptive names:
 /* Group by component */
 
 /* Map styles */
-.map-container { }
-.map-controls { }
-.map-fullscreen { }
+.map-container {
+}
+.map-controls {
+}
+.map-fullscreen {
+}
 
 /* Chart styles */
-.chart-container { }
-.chart-legend { }
+.chart-container {
+}
+.chart-legend {
+}
 ```
 
 ## Testing Standards
@@ -171,22 +185,22 @@ Use BEM or descriptive names:
 ### Test Structure
 
 ```javascript
-describe('formatDistance', () => {
-    describe('basic formatting', () => {
-        it('should format meters to kilometers', () => {
-            expect(formatDistance(5000)).toBe('5.00 km');
-        });
+describe("formatDistance", () => {
+ describe("basic formatting", () => {
+  it("should format meters to kilometers", () => {
+   expect(formatDistance(5000)).toBe("5.00 km");
+  });
 
-        it('should handle zero', () => {
-            expect(formatDistance(0)).toBe('0.00 km');
-        });
-    });
+  it("should handle zero", () => {
+   expect(formatDistance(0)).toBe("0.00 km");
+  });
+ });
 
-    describe('unit conversion', () => {
-        it('should convert to miles', () => {
-            expect(formatDistance(5000, { unit: 'mi' })).toBe('3.11 mi');
-        });
-    });
+ describe("unit conversion", () => {
+  it("should convert to miles", () => {
+   expect(formatDistance(5000, { unit: "mi" })).toBe("3.11 mi");
+  });
+ });
 });
 ```
 
@@ -209,6 +223,7 @@ type(scope): description
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation
@@ -218,6 +233,7 @@ Types:
 - `chore`: Maintenance
 
 Examples:
+
 ```
 feat(maps): add measurement tool
 fix(charts): correct elevation calculation

@@ -5,10 +5,11 @@
  * re-defining values.
  */
 {
-    const freezeDialogFilter = (filter) => Object.freeze({
-        extensions: Object.freeze([...filter.extensions]),
-        name: filter.name,
-    });
+    const freezeDialogFilter = (filter) =>
+        Object.freeze({
+            extensions: Object.freeze([...filter.extensions]),
+            name: filter.name,
+        });
     const CONSTANTS = Object.freeze({
         DEFAULT_THEME: "dark",
         DIALOG_FILTERS: Object.freeze({
@@ -21,7 +22,10 @@
                     extensions: ["csv"],
                     name: "CSV (Summary Table)",
                 }),
-                freezeDialogFilter({ extensions: ["gpx"], name: "GPX (Track)" }),
+                freezeDialogFilter({
+                    extensions: ["gpx"],
+                    name: "GPX (Track)",
+                }),
                 freezeDialogFilter({ extensions: ["*"], name: "All Files" }),
             ]),
             FIT_FILES: Object.freeze([

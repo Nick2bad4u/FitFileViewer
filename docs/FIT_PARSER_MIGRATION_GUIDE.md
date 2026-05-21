@@ -113,11 +113,11 @@ In the current architecture, `electron-app/main/ipc/setupIPCHandlers.js` is resp
 
 ```javascript
 registerIpcHandle("fit:parse", async (_event, arrayBuffer) => {
-    // ... calls fitParser.decodeFitFile(buffer)
+ // ... calls fitParser.decodeFitFile(buffer)
 });
 
 registerIpcHandle("fit:decode", async (_event, arrayBuffer) => {
-    // ... calls fitParser.decodeFitFile(buffer)
+ // ... calls fitParser.decodeFitFile(buffer)
 });
 ```
 
@@ -130,9 +130,15 @@ The canonical renderer API is exposed via `preload.js` through the `electronAPI`
 ```javascript
 // In preload.js
 const electronAPI = {
-    decodeFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_DECODE, "decodeFitFile"),
-    parseFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_PARSE, "parseFitFile"),
-    // ...
+ decodeFitFile: createSafeInvokeHandler(
+  CONSTANTS.CHANNELS.FIT_DECODE,
+  "decodeFitFile"
+ ),
+ parseFitFile: createSafeInvokeHandler(
+  CONSTANTS.CHANNELS.FIT_PARSE,
+  "parseFitFile"
+ ),
+ // ...
 };
 ```
 

@@ -12,30 +12,122 @@ function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
     icon.setAttribute("viewBox", "0 0 22 22");
     icon.setAttribute("fill", "none");
 
-    const rects: Array<readonly [string, string, string, string]> =
+    const rects: Array<
+        readonly [
+            string,
+            string,
+            string,
+            string,
+        ]
+    > =
         state === "enter"
             ? [
-                  ["3", "3", "5", "2"],
-                  ["3", "3", "2", "5"],
-                  ["14", "3", "5", "2"],
-                  ["17", "3", "2", "5"],
-                  ["3", "17", "5", "2"],
-                  ["3", "14", "2", "5"],
-                  ["14", "17", "5", "2"],
-                  ["17", "14", "2", "5"],
+                  [
+                      "3",
+                      "3",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "3",
+                      "3",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "14",
+                      "3",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "17",
+                      "3",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "3",
+                      "17",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "3",
+                      "14",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "14",
+                      "17",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "17",
+                      "14",
+                      "2",
+                      "5",
+                  ],
               ]
             : [
-                  ["7", "3", "2", "5"],
-                  ["3", "7", "5", "2"],
-                  ["14", "3", "2", "5"],
-                  ["15", "7", "5", "2"],
-                  ["3", "14", "5", "2"],
-                  ["7", "15", "2", "5"],
-                  ["15", "15", "2", "5"],
-                  ["15", "15", "5", "2"],
+                  [
+                      "7",
+                      "3",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "3",
+                      "7",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "14",
+                      "3",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "15",
+                      "7",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "3",
+                      "14",
+                      "5",
+                      "2",
+                  ],
+                  [
+                      "7",
+                      "15",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "15",
+                      "15",
+                      "2",
+                      "5",
+                  ],
+                  [
+                      "15",
+                      "15",
+                      "5",
+                      "2",
+                  ],
               ];
 
-    for (const [x, y, width, height] of rects) {
+    for (const [
+        x,
+        y,
+        width,
+        height,
+    ] of rects) {
         const rect = document.createElementNS(SVG_NS, "rect");
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
@@ -94,38 +186,48 @@ export function addFullscreenControl(map: LeafletMap): void {
             map.invalidateSize();
         }, 300);
     };
-    button.addEventListener("click", () => {
-        const isFullscreen = mapDiv.classList.toggle("fullscreen");
-        button.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
-        setFullscreenButtonIcon(button, isFullscreen ? "exit" : "enter");
-        if (isFullscreen) {
-            if (mapDiv.requestFullscreen) {
-                void mapDiv.requestFullscreen();
+    button.addEventListener(
+        "click",
+        () => {
+            const isFullscreen = mapDiv.classList.toggle("fullscreen");
+            button.title = isFullscreen
+                ? "Exit Fullscreen"
+                : "Enter Fullscreen";
+            setFullscreenButtonIcon(button, isFullscreen ? "exit" : "enter");
+            if (isFullscreen) {
+                if (mapDiv.requestFullscreen) {
+                    void mapDiv.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    void document.exitFullscreen();
+                }
             }
-        } else {
-            if (document.exitFullscreen) {
-                void document.exitFullscreen();
-            }
-        }
-        scheduleInvalidateSize();
-    }, { signal: listenerController.signal });
+            scheduleInvalidateSize();
+        },
+        { signal: listenerController.signal }
+    );
 
-    document.addEventListener("fullscreenchange", () => {
-        const isNowFullscreen = document.fullscreenElement === mapDiv;
-        if (!isNowFullscreen) {
-            mapDiv.classList.remove("fullscreen");
-            button.title = "Enter Fullscreen";
-            setFullscreenButtonIcon(button, "enter");
-            // Only call invalidateSize if map is still valid and map container is in the DOM
-            if (
-                map &&
-                map._container &&
-                document.body.contains(map._container)
-            ) {
-                scheduleInvalidateSize();
+    document.addEventListener(
+        "fullscreenchange",
+        () => {
+            const isNowFullscreen = document.fullscreenElement === mapDiv;
+            if (!isNowFullscreen) {
+                mapDiv.classList.remove("fullscreen");
+                button.title = "Enter Fullscreen";
+                setFullscreenButtonIcon(button, "enter");
+                // Only call invalidateSize if map is still valid and map container is in the DOM
+                if (
+                    map &&
+                    map._container &&
+                    document.body.contains(map._container)
+                ) {
+                    scheduleInvalidateSize();
+                }
             }
-        }
-    }, { signal: listenerController.signal });
+        },
+        { signal: listenerController.signal }
+    );
 
     // Remove old fullscreen button from map-controls if present
     const oldFullscreenBtn = document.querySelector(

@@ -19,9 +19,12 @@ export type HRZoneVisibilitySettings = {
  * Creates the heart rate zone controls section by extracting existing controls.
  *
  * @param parentContainer - Parent container to append controls to.
+ *
  * @returns The created heart rate zone controls section.
  */
-export function createHRZoneControls(parentContainer: HTMLElement): HTMLElement {
+export function createHRZoneControls(
+    parentContainer: HTMLElement
+): HTMLElement {
     // Check if HR zone controls already exist
     const existingControls = document.querySelector("#hr-zone-controls");
     if (existingControls instanceof HTMLElement) {
@@ -100,14 +103,18 @@ export function createHRZoneControls(parentContainer: HTMLElement): HTMLElement 
     updateCollapseState();
 
     const listenerController = new AbortController();
-    collapseBtn.addEventListener("click", () => {
-        isCollapsed = !isCollapsed;
-        localStorage.setItem(
-            "hr-zone-controls-collapsed",
-            isCollapsed.toString()
-        );
-        updateCollapseState();
-    }, { signal: listenerController.signal });
+    collapseBtn.addEventListener(
+        "click",
+        () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem(
+                "hr-zone-controls-collapsed",
+                isCollapsed.toString()
+            );
+            updateCollapseState();
+        },
+        { signal: listenerController.signal }
+    );
 
     function updateCollapseState(): void {
         if (isCollapsed) {
@@ -130,15 +137,23 @@ export function createHRZoneControls(parentContainer: HTMLElement): HTMLElement 
     hrZoneSection.append(content);
 
     // Add hover effects
-    hrZoneSection.addEventListener("mouseenter", () => {
-        hrZoneSection.style.borderColor = "var(--color-primary-alpha)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: listenerController.signal });
+    hrZoneSection.addEventListener(
+        "mouseenter",
+        () => {
+            hrZoneSection.style.borderColor = "var(--color-primary-alpha)";
+            hrZoneSection.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: listenerController.signal }
+    );
 
-    hrZoneSection.addEventListener("mouseleave", () => {
-        hrZoneSection.style.borderColor = "var(--color-border)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: listenerController.signal });
+    hrZoneSection.addEventListener(
+        "mouseleave",
+        () => {
+            hrZoneSection.style.borderColor = "var(--color-border)";
+            hrZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: listenerController.signal }
+    );
 
     parentContainer.append(hrZoneSection);
     return hrZoneSection;

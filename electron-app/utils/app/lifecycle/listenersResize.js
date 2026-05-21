@@ -4,11 +4,13 @@ function getChartResizeGlobal() {
 }
 function getFullscreenElement() {
     const doc = document;
-    return (document.fullscreenElement ||
+    return (
+        document.fullscreenElement ||
         doc.webkitFullscreenElement ||
         doc.mozFullScreenElement ||
         doc.msFullscreenElement ||
-        null);
+        null
+    );
 }
 function isResizableChart(value) {
     if (typeof value !== "object" || value === null) {
@@ -23,7 +25,7 @@ function getLegacyCanvasChart(canvas) {
 /**
  * Registers the window resize listener for chart redraws.
  */
-export function registerChartResizeListener({ cleanupCallbacks, }) {
+export function registerChartResizeListener({ cleanupCallbacks }) {
     const resizeListenerController = new AbortController();
     let chartRenderTimeout = null;
     let resizeCleanup;
@@ -31,8 +33,10 @@ export function registerChartResizeListener({ cleanupCallbacks, }) {
         const chartTab = querySelectorByIdFlexible(document, "#tab_chart");
         const chartJsTab = querySelectorByIdFlexible(document, "#tab_chartjs");
         const fullscreenElement = getFullscreenElement();
-        if (chartTab?.classList.contains("active") ||
-            chartJsTab?.classList.contains("active")) {
+        if (
+            chartTab?.classList.contains("active") ||
+            chartJsTab?.classList.contains("active")
+        ) {
             if (chartRenderTimeout) {
                 clearTimeout(chartRenderTimeout);
             }
@@ -47,14 +51,14 @@ export function registerChartResizeListener({ cleanupCallbacks, }) {
             chartRenderTimeout = setTimeout(() => {
                 const chartGlobal = getChartResizeGlobal();
                 // Use modern chart state management for resize handling
-                if (chartGlobal.ChartUpdater &&
-                    chartGlobal.ChartUpdater.updateCharts) {
+                if (
+                    chartGlobal.ChartUpdater &&
+                    chartGlobal.ChartUpdater.updateCharts
+                ) {
                     chartGlobal.ChartUpdater.updateCharts("window-resize");
-                }
-                else if (chartGlobal.renderChartJS) {
+                } else if (chartGlobal.renderChartJS) {
                     void chartGlobal.renderChartJS();
-                }
-                else if (chartGlobal.renderChart) {
+                } else if (chartGlobal.renderChart) {
                     // Legacy fallback for older renderer bundles.
                     chartGlobal.renderChart();
                 }
@@ -67,15 +71,13 @@ export function registerChartResizeListener({ cleanupCallbacks, }) {
     cleanupCallbacks.push(() => {
         try {
             resizeListenerController.abort();
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         if (chartRenderTimeout) {
             try {
                 clearTimeout(chartRenderTimeout);
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
             chartRenderTimeout = null;
@@ -98,9 +100,10 @@ function resizeExistingCharts() {
                 continue;
             }
             const chartRef = getChartResizeGlobal().Chart;
-            const chart = chartRef && typeof chartRef.getChart === "function"
-                ? chartRef.getChart(canvas)
-                : getLegacyCanvasChart(canvas);
+            const chart =
+                chartRef && typeof chartRef.getChart === "function"
+                    ? chartRef.getChart(canvas)
+                    : getLegacyCanvasChart(canvas);
             if (isResizableChart(chart)) {
                 chart.resize();
             }
@@ -116,26 +119,25 @@ function scheduleExistingChartResizes() {
     };
     if (typeof globalThis.requestAnimationFrame === "function") {
         animationFrameHandle = globalThis.requestAnimationFrame(resizeAll);
-    }
-    else {
+    } else {
         timerHandles.push(setTimeout(resizeAll, 0));
     }
     timerHandles.push(setTimeout(resizeAll, 120));
     return () => {
-        if (animationFrameHandle !== undefined &&
-            typeof globalThis.cancelAnimationFrame === "function") {
+        if (
+            animationFrameHandle !== undefined &&
+            typeof globalThis.cancelAnimationFrame === "function"
+        ) {
             try {
                 globalThis.cancelAnimationFrame(animationFrameHandle);
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
         }
         for (const timerHandle of timerHandles) {
             try {
                 clearTimeout(timerHandle);
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
         }

@@ -6,40 +6,41 @@ let __electronCached = null;
 function getElectron() {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
     try {
-        const hoisted = typeof globalThis === "undefined"
-            ? null
-            : getMenuGlobal().__electronHoistedMock;
+        const hoisted =
+            typeof globalThis === "undefined"
+                ? null
+                : getMenuGlobal().__electronHoistedMock;
         if (hoisted) {
             __electronCached = hoisted;
             return hoisted;
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
-    if (__electronCached &&
+    if (
+        __electronCached &&
         (__electronCached["Menu"] ||
             __electronCached["app"] ||
-            __electronCached["BrowserWindow"])) {
+            __electronCached["BrowserWindow"])
+    ) {
         return __electronCached;
     }
     try {
         const e = require("electron");
         __electronCached = e;
         return e;
-    }
-    catch {
+    } catch {
         try {
             // Fallback to hoisted mock if available
-            const hoisted2 = typeof globalThis === "undefined"
-                ? null
-                : getMenuGlobal().__electronHoistedMock;
+            const hoisted2 =
+                typeof globalThis === "undefined"
+                    ? null
+                    : getMenuGlobal().__electronHoistedMock;
             if (hoisted2) {
                 __electronCached = hoisted2;
                 return hoisted2;
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         return {};
@@ -48,14 +49,12 @@ function getElectron() {
 // Lazily initialize configuration to avoid import-time side effects in tests
 let __confInstance = null;
 function getConf() {
-    if (__confInstance)
-        return __confInstance;
+    if (__confInstance) return __confInstance;
     try {
         const { Conf } = require("electron-conf");
         __confInstance = new Conf({ name: "settings" });
         return __confInstance;
-    }
-    catch {
+    } catch {
         // Fallback simple in-memory store for non-Electron/test environments
         const fallback = {
             _store: {},
@@ -76,14 +75,15 @@ let mainMenu = null;
 // Determine if verbose createAppMenu debug logging should be enabled.
 function shouldLogMenuDebug() {
     try {
-        const envFlag = typeof process !== "undefined" &&
+        const envFlag =
+            typeof process !== "undefined" &&
             Boolean(process.env) &&
             process.env["FFV_DEBUG_MENU"] === "1";
-        const globalFlag = typeof globalThis !== "undefined" &&
+        const globalFlag =
+            typeof globalThis !== "undefined" &&
             Boolean(getMenuGlobal().__FFV_debugMenu);
         return envFlag || globalFlag;
-    }
-    catch {
+    } catch {
         return false;
     }
 }
@@ -96,7 +96,9 @@ function shouldLogMenuDebug() {
 function safeOpenExternal(url) {
     try {
         // Local module, no Electron dependency.
-        const { validateExternalUrl, } = require("../../../main/security/externalUrlPolicy");
+        const {
+            validateExternalUrl,
+        } = require("../../../main/security/externalUrlPolicy");
         const validated = validateExternalUrl(url);
         const { shell: sh } = getElectron();
         if (sh && typeof sh.openExternal === "function") {
@@ -104,8 +106,7 @@ function safeOpenExternal(url) {
                 /* ignore */
             });
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }
@@ -123,15 +124,21 @@ const decoderOptionDefaults = {
  * File, Edit, View, Window, and Settings menus, with support for opening files,
  * displaying a list of recent files, and standard menu roles.
  */
-function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
+function createAppMenu(
+    mainWindow,
+    currentTheme = null,
+    loadedFitFilePath = null
+) {
     const el = getElectron();
     try {
         if (!el || !el["Menu"]) {
             // Provide visibility into why Menu isn't present in CI
-            console.warn("[createAppMenu] Debug: electron module keys:", Object.keys(el || {}));
+            console.warn(
+                "[createAppMenu] Debug: electron module keys:",
+                Object.keys(el || {})
+            );
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     const { app, BrowserWindow, Menu, shell, clipboard } = el;
@@ -139,8 +146,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
         if (!candidate) {
             return false;
         }
-        if (typeof candidate.isDestroyed === "function" &&
-            candidate.isDestroyed()) {
+        if (
+            typeof candidate.isDestroyed === "function" &&
+            candidate.isDestroyed()
+        ) {
             return false;
         }
         return true;
@@ -149,8 +158,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
         if (isUsableWindow(mainWindow)) {
             return mainWindow;
         }
-        if (BrowserWindow &&
-            typeof BrowserWindow.getFocusedWindow === "function") {
+        if (
+            BrowserWindow &&
+            typeof BrowserWindow.getFocusedWindow === "function"
+        ) {
             const focused = BrowserWindow.getFocusedWindow();
             if (isUsableWindow(focused)) {
                 return focused;
@@ -172,28 +183,28 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     let injectedRecentFiles = [];
     let hasInjectedRecentFiles = false;
     try {
-        const gf = typeof globalThis === "undefined"
-            ? undefined
-            : getMenuGlobal().__mockRecentFiles;
+        const gf =
+            typeof globalThis === "undefined"
+                ? undefined
+                : getMenuGlobal().__mockRecentFiles;
         if (Array.isArray(gf)) {
-            injectedRecentFiles = gf.filter((entry) => typeof entry === "string");
+            injectedRecentFiles = gf.filter(
+                (entry) => typeof entry === "string"
+            );
             hasInjectedRecentFiles = true;
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     // Lazy import recent files utils to ensure vi.mock hooks correctly
     let recentUtils;
     try {
         recentUtils = require("../../../utils/files/recent/recentFiles");
-    }
-    catch {
+    } catch {
         // Some builds may have a different relative path
         try {
             recentUtils = require("../../../utils/files/recent/recentFiles");
-        }
-        catch {
+        } catch {
             recentUtils = {
                 getShortRecentName: (p) => p,
                 loadRecentFiles: () => [],
@@ -210,42 +221,44 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     // can be authorized after a user clicks a recent file menu item.
     let fileAccessPolicy = null;
     try {
-        fileAccessPolicy =
-            require("../../../main/security/fileAccessPolicy");
-    }
-    catch {
+        fileAccessPolicy = require("../../../main/security/fileAccessPolicy");
+    } catch {
         fileAccessPolicy = null;
     }
     // If (!app.isPackaged) {
     //     Console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     // }
     const decoderOptionEmojis = {
-        applyScaleAndOffset: "📏",
-        convertDateTimesToDates: "📅",
-        convertTypesToStrings: "🔤",
-        expandComponents: "🔗",
-        expandSubFields: "🧩",
-        includeUnknownData: "❓",
-        mergeHeartRates: "❤️",
-    }, decoderOptions = getDecoderOptions(), recentMenuItems = recentFiles.length > 0
-        ? recentFiles.map((file) => ({
-            click: () => {
-                try {
-                    fileAccessPolicy?.approveFilePath(file, {
-                        source: "menu:openRecent",
-                    });
-                }
-                catch {
-                    // Non-fatal: if approval fails, the renderer may not be able to read
-                    // the file depending on security policy.
-                }
-                if (!sendToRenderer("open-recent-file", file)) {
-                    console.warn("[createAppMenu] No active window available to open recent file.");
-                }
-            },
-            label: recentUtils.getShortRecentName(file),
-        }))
-        : [{ enabled: false, label: "No Recent Files" }];
+            applyScaleAndOffset: "📏",
+            convertDateTimesToDates: "📅",
+            convertTypesToStrings: "🔤",
+            expandComponents: "🔗",
+            expandSubFields: "🧩",
+            includeUnknownData: "❓",
+            mergeHeartRates: "❤️",
+        },
+        decoderOptions = getDecoderOptions(),
+        recentMenuItems =
+            recentFiles.length > 0
+                ? recentFiles.map((file) => ({
+                      click: () => {
+                          try {
+                              fileAccessPolicy?.approveFilePath(file, {
+                                  source: "menu:openRecent",
+                              });
+                          } catch {
+                              // Non-fatal: if approval fails, the renderer may not be able to read
+                              // the file depending on security policy.
+                          }
+                          if (!sendToRenderer("open-recent-file", file)) {
+                              console.warn(
+                                  "[createAppMenu] No active window available to open recent file."
+                              );
+                          }
+                      },
+                      label: recentUtils.getShortRecentName(file),
+                  }))
+                : [{ enabled: false, label: "No Recent Files" }];
     const clearRecentMenuItem = {
         click: () => {
             const win = resolveTargetWindow();
@@ -254,12 +267,18 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 if (app && typeof app.clearRecentDocuments === "function") {
                     app.clearRecentDocuments();
                 }
-            }
-            catch (error) {
-                console.warn("[createAppMenu] Failed to clear native recent documents:", error);
+            } catch (error) {
+                console.warn(
+                    "[createAppMenu] Failed to clear native recent documents:",
+                    error
+                );
             }
             if (win && win.webContents) {
-                win.webContents.send("show-notification", "Recent files cleared.", "info");
+                win.webContents.send(
+                    "show-notification",
+                    "Recent files cleared.",
+                    "info"
+                );
                 win.webContents.send("unload-fit-file");
             }
             createAppMenu(win, getTheme());
@@ -267,27 +286,35 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
         enabled: recentFiles.length > 0,
         label: "🧹 Clear Recent Files",
     };
-    const recentSubmenuItems = recentFiles.length > 0
-        ? [
-            ...recentMenuItems,
-            { type: "separator" },
-            clearRecentMenuItem,
-        ]
-        : [...recentMenuItems, clearRecentMenuItem];
-    const revealLabel = process.platform === "darwin"
-        ? "Reveal in Finder"
-        : process.platform === "linux"
-            ? "Reveal in File Manager"
-            : "Reveal in File Explorer";
-    function createDecoderOptionMenuItems(_decoderOptions, _decoderOptionEmojis, _mainWindow) {
+    const recentSubmenuItems =
+        recentFiles.length > 0
+            ? [
+                  ...recentMenuItems,
+                  { type: "separator" },
+                  clearRecentMenuItem,
+              ]
+            : [...recentMenuItems, clearRecentMenuItem];
+    const revealLabel =
+        process.platform === "darwin"
+            ? "Reveal in Finder"
+            : process.platform === "linux"
+              ? "Reveal in File Manager"
+              : "Reveal in File Explorer";
+    function createDecoderOptionMenuItems(
+        _decoderOptions,
+        _decoderOptionEmojis,
+        _mainWindow
+    ) {
         return Object.keys(decoderOptionDefaults).map((key) => ({
             checked: Boolean(_decoderOptions[key]),
             click: (menuItem) => {
-                const newOptions = setDecoderOption(key, menuItem["checked"]), win = _mainWindow ||
-                    (BrowserWindow &&
+                const newOptions = setDecoderOption(key, menuItem["checked"]),
+                    win =
+                        _mainWindow ||
+                        (BrowserWindow &&
                         typeof BrowserWindow.getFocusedWindow === "function"
-                        ? BrowserWindow.getFocusedWindow()
-                        : null);
+                            ? BrowserWindow.getFocusedWindow()
+                            : null);
                 if (win && win.webContents) {
                     win.webContents.send("decoder-options-changed", newOptions);
                 }
@@ -298,13 +325,18 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     }
     const decoderOptionsMenu = {
         label: "💿 Decoder Options",
-        submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+        submenu: createDecoderOptionMenuItems(
+            decoderOptions,
+            decoderOptionEmojis,
+            mainWindow
+        ),
     };
     // Experimental: folder-based FIT browser tab.
     // This is disabled by default and must be explicitly enabled by the user.
     const FIT_BROWSER_ENABLED_KEY = "fitBrowser.enabled";
     // Default ON (user can disable). This feature is still marked experimental in the UI.
-    const isFitBrowserEnabled = getConf().get(FIT_BROWSER_ENABLED_KEY, true) === true;
+    const isFitBrowserEnabled =
+        getConf().get(FIT_BROWSER_ENABLED_KEY, true) === true;
     const isMac = process.platform === "darwin";
     const fileMenuItems = [
         {
@@ -344,15 +376,26 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 try {
                     if (shell && typeof shell.showItemInFolder === "function") {
                         shell.showItemInFolder(loadedFitFilePath);
+                    } else {
+                        console.warn(
+                            "[createAppMenu] shell.showItemInFolder unavailable."
+                        );
+                        sendToRenderer(
+                            "show-notification",
+                            "Unable to reveal file location on this platform.",
+                            "warning"
+                        );
                     }
-                    else {
-                        console.warn("[createAppMenu] shell.showItemInFolder unavailable.");
-                        sendToRenderer("show-notification", "Unable to reveal file location on this platform.", "warning");
-                    }
-                }
-                catch (error) {
-                    console.error("[createAppMenu] Failed to reveal file in folder:", error);
-                    sendToRenderer("show-notification", "Failed to reveal file in folder.", "error");
+                } catch (error) {
+                    console.error(
+                        "[createAppMenu] Failed to reveal file in folder:",
+                        error
+                    );
+                    sendToRenderer(
+                        "show-notification",
+                        "Failed to reveal file in folder.",
+                        "error"
+                    );
                 }
             },
             enabled: Boolean(loadedFitFilePath),
@@ -365,19 +408,36 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                     return;
                 }
                 try {
-                    if (clipboard &&
-                        typeof clipboard.writeText === "function") {
+                    if (
+                        clipboard &&
+                        typeof clipboard.writeText === "function"
+                    ) {
                         clipboard.writeText(loadedFitFilePath);
-                        sendToRenderer("show-notification", "File path copied to clipboard.", "success");
+                        sendToRenderer(
+                            "show-notification",
+                            "File path copied to clipboard.",
+                            "success"
+                        );
+                    } else {
+                        console.warn(
+                            "[createAppMenu] clipboard.writeText unavailable."
+                        );
+                        sendToRenderer(
+                            "show-notification",
+                            loadedFitFilePath,
+                            "info"
+                        );
                     }
-                    else {
-                        console.warn("[createAppMenu] clipboard.writeText unavailable.");
-                        sendToRenderer("show-notification", loadedFitFilePath, "info");
-                    }
-                }
-                catch (error) {
-                    console.error("[createAppMenu] Failed to copy file path:", error);
-                    sendToRenderer("show-notification", "Failed to copy file path.", "error");
+                } catch (error) {
+                    console.error(
+                        "[createAppMenu] Failed to copy file path:",
+                        error
+                    );
+                    sendToRenderer(
+                        "show-notification",
+                        "Failed to copy file path.",
+                        "error"
+                    );
                 }
             },
             enabled: Boolean(loadedFitFilePath),
@@ -412,9 +472,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
             accelerator: "CmdOrCtrl+W",
             click: () => {
                 const { BrowserWindow: BW } = getElectron();
-                const win = BW && typeof BW.getFocusedWindow === "function"
-                    ? BW.getFocusedWindow()
-                    : null;
+                const win =
+                    BW && typeof BW.getFocusedWindow === "function"
+                        ? BW.getFocusedWindow()
+                        : null;
                 if (win && typeof win.close === "function") {
                     win.close();
                 }
@@ -424,7 +485,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     ];
     if (!isMac) {
         const quitLabel = process.platform === "win32" ? "❎ Exit" : "❎ Quit";
-        fileMenuItems.push({ type: "separator" }, { label: quitLabel, role: "quit" });
+        fileMenuItems.push(
+            { type: "separator" },
+            { label: quitLabel, role: "quit" }
+        );
     }
     const template = [
         ...getPlatformAppMenu(mainWindow),
@@ -456,90 +520,115 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                             label: "🔡 Font Size",
                             submenu: [
                                 {
-                                    checked: getConf().get("fontSize", "medium") ===
+                                    checked:
+                                        getConf().get("fontSize", "medium") ===
                                         "xsmall",
                                     click: () => {
                                         getConf().set("fontSize", "xsmall");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-font-size", "xsmall");
+                                            win.webContents.send(
+                                                "set-font-size",
+                                                "xsmall"
+                                            );
                                         }
                                     },
                                     label: "🅰️ Extra Small",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("fontSize", "medium") ===
+                                    checked:
+                                        getConf().get("fontSize", "medium") ===
                                         "small",
                                     click: () => {
                                         getConf().set("fontSize", "small");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-font-size", "small");
+                                            win.webContents.send(
+                                                "set-font-size",
+                                                "small"
+                                            );
                                         }
                                     },
                                     label: "🔠 Small",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("fontSize", "medium") ===
+                                    checked:
+                                        getConf().get("fontSize", "medium") ===
                                         "medium",
                                     click: () => {
                                         getConf().set("fontSize", "medium");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-font-size", "medium");
+                                            win.webContents.send(
+                                                "set-font-size",
+                                                "medium"
+                                            );
                                         }
                                     },
                                     label: "🔤 Medium",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("fontSize", "medium") ===
+                                    checked:
+                                        getConf().get("fontSize", "medium") ===
                                         "large",
                                     click: () => {
                                         getConf().set("fontSize", "large");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-font-size", "large");
+                                            win.webContents.send(
+                                                "set-font-size",
+                                                "large"
+                                            );
                                         }
                                     },
                                     label: "🔡 Large",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("fontSize", "medium") ===
+                                    checked:
+                                        getConf().get("fontSize", "medium") ===
                                         "xlarge",
                                     click: () => {
                                         getConf().set("fontSize", "xlarge");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-font-size", "xlarge");
+                                            win.webContents.send(
+                                                "set-font-size",
+                                                "xlarge"
+                                            );
                                         }
                                     },
                                     label: "🅰️ Extra Large",
@@ -551,69 +640,101 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                             label: "🎨 High Contrast Mode",
                             submenu: [
                                 {
-                                    checked: getConf().get("highContrast", "black") === "black",
+                                    checked:
+                                        getConf().get(
+                                            "highContrast",
+                                            "black"
+                                        ) === "black",
                                     click: () => {
                                         getConf().set("highContrast", "black");
-                                        const win = mainWindow ||
+                                        const win =
+                                            mainWindow ||
                                             (BrowserWindow &&
-                                                typeof BrowserWindow.getFocusedWindow ===
-                                                    "function"
+                                            typeof BrowserWindow.getFocusedWindow ===
+                                                "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-high-contrast", "black");
+                                            win.webContents.send(
+                                                "set-high-contrast",
+                                                "black"
+                                            );
                                         }
                                     },
                                     label: "⬛ Black (Default)",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("highContrast", "black") === "white",
+                                    checked:
+                                        getConf().get(
+                                            "highContrast",
+                                            "black"
+                                        ) === "white",
                                     click: () => {
                                         getConf().set("highContrast", "white");
-                                        const { BrowserWindow: BW } = getElectron();
-                                        const win = (BW &&
+                                        const { BrowserWindow: BW } =
+                                            getElectron();
+                                        const win =
+                                            (BW &&
                                             typeof BW.getFocusedWindow ===
                                                 "function"
-                                            ? BW.getFocusedWindow()
-                                            : null) || mainWindow;
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-high-contrast", "white");
+                                            win.webContents.send(
+                                                "set-high-contrast",
+                                                "white"
+                                            );
                                         }
                                     },
                                     label: "⬜ White",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("highContrast", "black") === "yellow",
+                                    checked:
+                                        getConf().get(
+                                            "highContrast",
+                                            "black"
+                                        ) === "yellow",
                                     click: () => {
                                         getConf().set("highContrast", "yellow");
-                                        const { BrowserWindow: BW } = getElectron();
-                                        const win = (BW &&
+                                        const { BrowserWindow: BW } =
+                                            getElectron();
+                                        const win =
+                                            (BW &&
                                             typeof BW.getFocusedWindow ===
                                                 "function"
-                                            ? BW.getFocusedWindow()
-                                            : null) || mainWindow;
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-high-contrast", "yellow");
+                                            win.webContents.send(
+                                                "set-high-contrast",
+                                                "yellow"
+                                            );
                                         }
                                     },
                                     label: "🟨 Yellow",
                                     type: "radio",
                                 },
                                 {
-                                    checked: getConf().get("highContrast", "off") ===
+                                    checked:
+                                        getConf().get("highContrast", "off") ===
                                         "off",
                                     click: () => {
                                         getConf().set("highContrast", "off");
-                                        const { BrowserWindow: BW } = getElectron();
-                                        const win = (BW &&
+                                        const { BrowserWindow: BW } =
+                                            getElectron();
+                                        const win =
+                                            (BW &&
                                             typeof BW.getFocusedWindow ===
                                                 "function"
-                                            ? BW.getFocusedWindow()
-                                            : null) || mainWindow;
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
                                         if (win && win.webContents) {
-                                            win.webContents.send("set-high-contrast", "off");
+                                            win.webContents.send(
+                                                "set-high-contrast",
+                                                "off"
+                                            );
                                         }
                                     },
                                     label: "🚫 Off",
@@ -636,10 +757,11 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                             checked: usingPassedTheme ? theme === "dark" : true,
                             click: () => {
                                 setTheme("dark");
-                                const win = mainWindow ||
+                                const win =
+                                    mainWindow ||
                                     (BrowserWindow &&
-                                        typeof BrowserWindow.getFocusedWindow ===
-                                            "function"
+                                    typeof BrowserWindow.getFocusedWindow ===
+                                        "function"
                                         ? BrowserWindow.getFocusedWindow()
                                         : null);
                                 if (win && win.webContents) {
@@ -655,10 +777,11 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                                 : false,
                             click: () => {
                                 setTheme("light");
-                                const win = mainWindow ||
+                                const win =
+                                    mainWindow ||
                                     (BrowserWindow &&
-                                        typeof BrowserWindow.getFocusedWindow ===
-                                            "function"
+                                    typeof BrowserWindow.getFocusedWindow ===
+                                        "function"
                                         ? BrowserWindow.getFocusedWindow()
                                         : null);
                                 if (win && win.webContents) {
@@ -672,9 +795,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 },
                 {
                     click: () => {
-                        const win = mainWindow ||
+                        const win =
+                            mainWindow ||
                             (BrowserWindow &&
-                                typeof BrowserWindow.getFocusedWindow === "function"
+                            typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
                         if (win && win.webContents) {
@@ -685,13 +809,16 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 },
                 {
                     click: () => {
-                        const win = mainWindow ||
+                        const win =
+                            mainWindow ||
                             (BrowserWindow &&
-                                typeof BrowserWindow.getFocusedWindow === "function"
+                            typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
                         if (win && win.webContents) {
-                            win.webContents.send("open-summary-column-selector");
+                            win.webContents.send(
+                                "open-summary-column-selector"
+                            );
                         }
                     },
                     enabled: Boolean(loadedFitFilePath),
@@ -701,14 +828,23 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 {
                     checked: isFitBrowserEnabled,
                     click: (menuItem) => {
-                        const nextEnabled = Boolean(menuItem && menuItem["checked"]);
+                        const nextEnabled = Boolean(
+                            menuItem && menuItem["checked"]
+                        );
                         getConf().set(FIT_BROWSER_ENABLED_KEY, nextEnabled);
                         const win = resolveTargetWindow() || mainWindow;
                         if (win && win.webContents) {
-                            win.webContents.send("fit-browser-enabled-changed", nextEnabled);
-                            win.webContents.send("show-notification", nextEnabled
-                                ? "Browser tab enabled (experimental)."
-                                : "Browser tab disabled (experimental).", "info");
+                            win.webContents.send(
+                                "fit-browser-enabled-changed",
+                                nextEnabled
+                            );
+                            win.webContents.send(
+                                "show-notification",
+                                nextEnabled
+                                    ? "Browser tab enabled (experimental)."
+                                    : "Browser tab disabled (experimental).",
+                                "info"
+                            );
                         }
                         // Refresh the menu so the checked state is consistent everywhere.
                         createAppMenu(win, getTheme(), loadedFitFilePath);
@@ -718,9 +854,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 },
                 {
                     click: () => {
-                        const win = mainWindow ||
+                        const win =
+                            mainWindow ||
                             (BrowserWindow &&
-                                typeof BrowserWindow.getFocusedWindow === "function"
+                            typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
                         if (win && win.webContents) {
@@ -737,9 +874,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 {
                     click: () => {
                         const { BrowserWindow: BW } = getElectron();
-                        const win = (BW && typeof BW.getFocusedWindow === "function"
-                            ? BW.getFocusedWindow()
-                            : null) || mainWindow;
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function"
+                                ? BW.getFocusedWindow()
+                                : null) || mainWindow;
                         if (win && win.webContents) {
                             win.webContents.send("menu-about");
                         }
@@ -749,19 +887,25 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 { type: "separator" },
                 {
                     click: () => {
-                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer#readme");
+                        safeOpenExternal(
+                            "https://github.com/Nick2bad4u/FitFileViewer#readme"
+                        );
                     },
                     label: "📖 Documentation",
                 },
                 {
                     click: () => {
-                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer");
+                        safeOpenExternal(
+                            "https://github.com/Nick2bad4u/FitFileViewer"
+                        );
                     },
                     label: "🌐 GitHub Repository",
                 },
                 {
                     click: () => {
-                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer/issues");
+                        safeOpenExternal(
+                            "https://github.com/Nick2bad4u/FitFileViewer/issues"
+                        );
                     },
                     label: "❗Report an Issue",
                 },
@@ -769,9 +913,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 {
                     click: () => {
                         const { BrowserWindow: BW } = getElectron();
-                        const win = (BW && typeof BW.getFocusedWindow === "function"
-                            ? BW.getFocusedWindow()
-                            : null) || mainWindow;
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function"
+                                ? BW.getFocusedWindow()
+                                : null) || mainWindow;
                         if (win && win.webContents) {
                             win.webContents.send("menu-keyboard-shortcuts");
                         }
@@ -781,9 +926,10 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                 {
                     click: () => {
                         const { BrowserWindow: BW } = getElectron();
-                        const win = (BW && typeof BW.getFocusedWindow === "function"
-                            ? BW.getFocusedWindow()
-                            : null) || mainWindow;
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function"
+                                ? BW.getFocusedWindow()
+                                : null) || mainWindow;
                         if (win && win.webContents) {
                             win.webContents.send("menu-restart-update");
                         }
@@ -798,22 +944,31 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     if ((!app || !app.isPackaged) && shouldLogMenuDebug()) {
         // Log only the menu labels for debugging, avoid full serialization
         const menuLabels = template.map((item) => item["label"]);
-        console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
+        console.log(
+            "[createAppMenu] Setting application menu. Menu labels:",
+            menuLabels
+        );
         try {
-            console.log("[createAppMenu] Debug: recentFiles loaded:", Array.isArray(recentFiles) ? [...recentFiles] : recentFiles);
-        }
-        catch {
+            console.log(
+                "[createAppMenu] Debug: recentFiles loaded:",
+                Array.isArray(recentFiles) ? [...recentFiles] : recentFiles
+            );
+        } catch {
             /* Ignore errors */
         }
     }
     if (!Array.isArray(template) || template.length === 0) {
-        console.warn("[createAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.");
+        console.warn(
+            "[createAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
+        );
         return;
     }
     try {
-        if (Menu &&
+        if (
+            Menu &&
             typeof Menu.buildFromTemplate === "function" &&
-            typeof Menu.setApplicationMenu === "function") {
+            typeof Menu.setApplicationMenu === "function"
+        ) {
             mainMenu = Menu.buildFromTemplate(template);
             Menu.setApplicationMenu(mainMenu);
             return;
@@ -823,18 +978,20 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
             const menuGlobal = getMenuGlobal();
             if (!menuGlobal.__lastBuiltMenuTemplate) {
                 menuGlobal.__lastBuiltMenuTemplate = template;
-            }
-            else if (globalThis) {
+            } else if (globalThis) {
                 menuGlobal.__lastBuiltMenuTemplate = template;
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
-        console.warn("[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests.");
-    }
-    catch (error) {
-        console.error("[createAppMenu] ERROR: Failed to set application menu:", error);
+        console.warn(
+            "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
+        );
+    } catch (error) {
+        console.error(
+            "[createAppMenu] ERROR: Failed to set application menu:",
+            error
+        );
     }
 }
 function getDecoderOptions() {
@@ -853,10 +1010,11 @@ function getPlatformAppMenu(mainWindow) {
                 submenu: [
                     {
                         click: () => {
-                            const win = mainWindow ||
+                            const win =
+                                mainWindow ||
                                 (BrowserWindow &&
-                                    typeof BrowserWindow.getFocusedWindow ===
-                                        "function"
+                                typeof BrowserWindow.getFocusedWindow ===
+                                    "function"
                                     ? BrowserWindow.getFocusedWindow()
                                     : null);
                             if (win && win.webContents) {
@@ -870,10 +1028,11 @@ function getPlatformAppMenu(mainWindow) {
                     {
                         accelerator: "CmdOrCtrl+,",
                         click: () => {
-                            const win = mainWindow ||
+                            const win =
+                                mainWindow ||
                                 (BrowserWindow &&
-                                    typeof BrowserWindow.getFocusedWindow ===
-                                        "function"
+                                typeof BrowserWindow.getFocusedWindow ===
+                                    "function"
                                     ? BrowserWindow.getFocusedWindow()
                                     : null);
                             if (win && win.webContents) {
@@ -920,8 +1079,7 @@ if (typeof globalThis !== "undefined") {
             value: createAppMenuExports,
             writable: true,
         });
-    }
-    catch {
+    } catch {
         // Fallback if defineProperty fails (e.g., frozen globalThis)
         getMenuGlobal().__FFV_createAppMenuExports = createAppMenuExports;
     }

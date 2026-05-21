@@ -10,9 +10,9 @@ describe("filename component sanitization", () => {
     it("replaces reserved characters and control codes with underscores", () => {
         expect.assertions(1);
 
-        expect(sanitizeFilenameComponent("My:\u0000Bad?Name*", "fallback")).toBe(
-            "My_Bad_Name"
-        );
+        expect(
+            sanitizeFilenameComponent("My:\u0000Bad?Name*", "fallback")
+        ).toBe("My_Bad_Name");
     });
 
     it("removes leading or trailing periods and collapses whitespace", () => {
@@ -32,9 +32,9 @@ describe("filename component sanitization", () => {
     it("falls back to a sanitised default when input is unusable", () => {
         expect.assertions(1);
 
-        expect(sanitizeFilenameComponent("\u0000\u0001", "*fallback name*")).toBe(
-            "fallback_name"
-        );
+        expect(
+            sanitizeFilenameComponent("\u0000\u0001", "*fallback name*")
+        ).toBe("fallback_name");
     });
 
     it("limits output length while preserving code-point boundaries", () => {

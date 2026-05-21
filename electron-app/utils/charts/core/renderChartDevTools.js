@@ -1,7 +1,9 @@
 function getAllFieldVisibility(fields, chartSettingsManager) {
     const result = {};
     for (const field of fields) {
-        result[field] = String(chartSettingsManager.getFieldVisibility(field) ?? "visible");
+        result[field] = String(
+            chartSettingsManager.getFieldVisibility(field) ?? "visible"
+        );
     }
     return result;
 }
@@ -12,7 +14,14 @@ export function exposeChartDevTools(dependencies) {
     if (!dependencies.isWindowAvailable) {
         return;
     }
-    const { chartActions, chartGlobal, chartPerformanceMonitor, chartSettingsManager, getComputedStateManager, getState, } = dependencies;
+    const {
+        chartActions,
+        chartGlobal,
+        chartPerformanceMonitor,
+        chartSettingsManager,
+        getComputedStateManager,
+        getState,
+    } = dependencies;
     chartGlobal.addHoverEffectsToExistingCharts =
         dependencies.addHoverEffectsToExistingCharts;
     if (chartGlobal.__chartjs_dev) {
@@ -37,8 +46,13 @@ export function exposeChartDevTools(dependencies) {
         exportCharts: dependencies.exportChartsWithState,
         fieldVisibility: {
             get: (field) => chartSettingsManager.getFieldVisibility(field),
-            getAll: () => getAllFieldVisibility(dependencies.formatChartFields, chartSettingsManager),
-            set: (field, visibility) => chartSettingsManager.setFieldVisibility(field, visibility),
+            getAll: () =>
+                getAllFieldVisibility(
+                    dependencies.formatChartFields,
+                    chartSettingsManager
+                ),
+            set: (field, visibility) =>
+                chartSettingsManager.setFieldVisibility(field, visibility),
         },
         getChartInstances: () => chartGlobal._chartjsInstances || [],
         getChartSettings: () => chartSettingsManager.getSettings(),
@@ -53,10 +67,11 @@ export function exposeChartDevTools(dependencies) {
         refreshCharts: dependencies.refreshChartsIfNeeded,
         requestRerender: chartActions.requestRerender,
         resetNotificationState: dependencies.resetChartNotificationState,
-        setState: (path, value) => dependencies.setState(path, value, {
-            silent: false,
-            source: "dev-tools",
-        }),
+        setState: (path, value) =>
+            dependencies.setState(path, value, {
+                silent: false,
+                source: "dev-tools",
+            }),
         settings: chartSettingsManager,
         subscribe: (path, callback) => dependencies.subscribe(path, callback),
         testDebounce: (delay = 1000) => {
@@ -66,10 +81,14 @@ export function exposeChartDevTools(dependencies) {
         },
         testStateSynchronization: () => {
             console.log("[ChartJS Dev] Testing state synchronization...");
-            console.log("[ChartJS Dev] State access available for manual testing");
+            console.log(
+                "[ChartJS Dev] State access available for manual testing"
+            );
         },
     };
     chartGlobal.__chartjs_dev = devTools;
-    console.log("[ChartJS] Enhanced development tools available at chartGlobal.__chartjs_dev");
+    console.log(
+        "[ChartJS] Enhanced development tools available at chartGlobal.__chartjs_dev"
+    );
     console.log("[ChartJS] Available commands:", Object.keys(devTools));
 }

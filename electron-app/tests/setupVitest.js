@@ -1360,9 +1360,12 @@ function installDocumentGuards(doc) {
     if (!doc) return;
     // Derive natives from the document's own realm to prevent cross-realm brand check failures
     /**
-     * @type {
-     *     | {
-     *           createElement?: (this: Document, tag: string, options?: any) => any;
+     * @type {{
+     *           createElement?: (
+     *               this: Document,
+     *               tag: string,
+     *               options?: any
+     *           ) => any;
      *           createTextNode?: (this: Document, data: string) => any;
      *           createDocumentFragment?: (this: Document) => any;
      *           querySelector?: (this: Document, sel: string) => any;

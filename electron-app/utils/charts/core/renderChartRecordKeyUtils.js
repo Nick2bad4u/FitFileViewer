@@ -1,4 +1,7 @@
-/** Resolves which record-message key should be read for a configured chart field. */
+/**
+ * Resolves which record-message key should be read for a configured chart
+ * field.
+ */
 export function resolveRecordFieldKey(cache, recordMesgs, field) {
     if (cache?.readKeys instanceof Map) {
         const cached = cache.readKeys.get(field);
@@ -8,7 +11,10 @@ export function resolveRecordFieldKey(cache, recordMesgs, field) {
     }
     const snake = field.replaceAll(/([A-Z])/g, "_$1").toLowerCase();
     let resolved = field;
-    const limit = Math.min(50, Array.isArray(recordMesgs) ? recordMesgs.length : 0);
+    const limit = Math.min(
+        50,
+        Array.isArray(recordMesgs) ? recordMesgs.length : 0
+    );
     for (let i = 0; i < limit; i += 1) {
         const row = recordMesgs[i];
         if (!row || typeof row !== "object") {

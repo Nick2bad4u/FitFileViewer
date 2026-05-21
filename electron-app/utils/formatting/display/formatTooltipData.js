@@ -1,4 +1,7 @@
-import { getAuxHeartRateValue, resolveFieldDescriptionMessages, } from "../../data/processing/auxHeartRateUtils.js";
+import {
+    getAuxHeartRateValue,
+    resolveFieldDescriptionMessages,
+} from "../../data/processing/auxHeartRateUtils.js";
 import { getState } from "../../state/core/stateManager.js";
 const FORMATTING_CONSTANTS = {
     CONVERSION_FACTORS: {
@@ -34,11 +37,13 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             return "No data available";
         }
         const record = row;
-        const recordMesgs = recordMesgsOverride ??
+        const recordMesgs =
+            recordMesgsOverride ??
             getRecordMessagesFromState() ??
             getRecordMessagesFromGlobal();
         const globalData = getGlobalData();
-        const fieldDescriptionMesgs = resolveFieldDescriptionMessages(globalData);
+        const fieldDescriptionMesgs =
+            resolveFieldDescriptionMessages(globalData);
         const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
         const dateStr = record.timestamp
             ? new Date(record.timestamp).toLocaleString()
@@ -51,7 +56,9 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         if (recordMesgs) {
             auxHeartRateOptions.recordMesgs = recordMesgs;
         }
-        const auxHeartRate = formatHeartRate(getAuxHeartRateValue(record, auxHeartRateOptions));
+        const auxHeartRate = formatHeartRate(
+            getAuxHeartRateValue(record, auxHeartRateOptions)
+        );
         const speed = formatSpeed(record.speed ?? null);
         const power = formatPower(record.power ?? null);
         const cadence = formatCadence(record.cadence ?? null);
@@ -62,7 +69,9 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             tooltipParts.push(`<b>Elapsed Time:</b> ${rideTime}`);
         }
         if (distance) {
-            tooltipParts.push(`<b>Distance:</b> ${distance.replace("<br>", "")}`);
+            tooltipParts.push(
+                `<b>Distance:</b> ${distance.replace("<br>", "")}`
+            );
         }
         if (altitude) {
             tooltipParts.push(`<b>Alt:</b> ${altitude}`);
@@ -78,16 +87,16 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         }
         if (isFiniteNumber(record.power)) {
             tooltipParts.push(`<b>Power:</b> ${power}`);
-        }
-        else if (isFiniteNumber(record.estimatedPower)) {
-            tooltipParts.push(`<b>Est. Power:</b> ${record.estimatedPower.toFixed(0)} W`);
+        } else if (isFiniteNumber(record.estimatedPower)) {
+            tooltipParts.push(
+                `<b>Est. Power:</b> ${record.estimatedPower.toFixed(0)} W`
+            );
         }
         if (cadence) {
             tooltipParts.push(`<b>Cadence:</b> ${cadence}`);
         }
         return tooltipParts.join("<br>");
-    }
-    catch (error) {
+    } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         logWithContext(`Error formatting tooltip data: ${errorMsg}`, "error");
         return `Error loading data (Index: ${idx || "unknown"})`;
@@ -98,7 +107,8 @@ function formatAltitude(altitude) {
     if (altMeters === null) {
         return "";
     }
-    const { ALTITUDE_FEET, ALTITUDE_METERS } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
+    const { ALTITUDE_FEET, ALTITUDE_METERS } =
+        FORMATTING_CONSTANTS.DECIMAL_PLACES;
     const { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
     const altFeet = altMeters * METERS_TO_FEET;
     return `${altMeters.toFixed(ALTITUDE_METERS)} m / ${altFeet.toFixed(ALTITUDE_FEET)} ft`;
@@ -116,7 +126,8 @@ function formatDistance(distance) {
         return "";
     }
     const { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
-    const { KM_TO_MILES, METERS_TO_KM } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
+    const { KM_TO_MILES, METERS_TO_KM } =
+        FORMATTING_CONSTANTS.CONVERSION_FACTORS;
     const km = meters / METERS_TO_KM;
     const mi = km * KM_TO_MILES;
     return `${km.toFixed(DISTANCE_KM)} km / ${mi.toFixed(DISTANCE_MI)} mi<br>`;
@@ -147,13 +158,19 @@ function formatRideTime(timestamp, recordMesgs) {
         const currTime = new Date(timestamp).getTime();
         const firstTime = new Date(first.timestamp).getTime();
         if (Number.isNaN(firstTime) || Number.isNaN(currTime)) {
-            logWithContext("Invalid timestamp in ride time calculation", "warn");
+            logWithContext(
+                "Invalid timestamp in ride time calculation",
+                "warn"
+            );
             return "";
         }
-        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS;
+        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } =
+            FORMATTING_CONSTANTS.TIME_UNITS;
         const diff = Math.max(0, Math.floor((currTime - firstTime) / 1000));
         const hours = Math.floor(diff / SECONDS_PER_HOUR);
-        const minutes = Math.floor((diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+        const minutes = Math.floor(
+            (diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+        );
         const seconds = Math.floor(diff % SECONDS_PER_MINUTE);
         const parts = [];
         if (hours > 0) {
@@ -166,8 +183,7 @@ function formatRideTime(timestamp, recordMesgs) {
             parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
         }
         return parts.join(", ");
-    }
-    catch (error) {
+    } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         logWithContext(`Error calculating ride time: ${errorMsg}`, "error");
         return "";
@@ -227,8 +243,7 @@ function logWithContext(message, level = "info") {
                 console.log(`${prefix} ${message}`);
             }
         }
-    }
-    catch {
+    } catch {
         // Ignore logging failures.
     }
 }

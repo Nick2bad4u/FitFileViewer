@@ -212,4 +212,5 @@ parsers:
 # Modern Slack integration
 slack_app: false # Set to true to enable Codecov Slack App notifications
 
+
 # Enhanced component management for FitFileViewer Electron app

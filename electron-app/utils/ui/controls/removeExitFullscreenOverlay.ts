@@ -23,9 +23,8 @@ const overlayCache = new WeakMap<HTMLElement, HTMLElement>();
  * removal methods. Automatically cleans up cache entries when overlays are
  * removed.
  *
- * @example
- *     // Remove exit fullscreen overlay from a chart container
- *     removeExitFullscreenOverlay(document.getElementById("chart-container"));
+ * @example // Remove exit fullscreen overlay from a chart container
+ * removeExitFullscreenOverlay(document.getElementById("chart-container"));
  *
  * @throws TypeError If container is not a valid DOM element.
  */

@@ -13,20 +13,20 @@ type VersionInfoGlobal = typeof globalThis & {
     electronAPI?: VersionInfoElectronAPI;
 };
 
-type LoadVersionInfoModule = typeof import("../../../../utils/app/initialization/loadVersionInfo.js");
+type LoadVersionInfoModule =
+    typeof import("../../../../utils/app/initialization/loadVersionInfo.js");
 
 const h = vi.hoisted(() => ({
-    getErrorInfo:
-        vi.fn<
-            (error: unknown) => {
-                message: string;
-                stack?: string;
-            }
-        >((error) =>
-            error instanceof Error
-                ? { message: error.message, stack: error.stack }
-                : { message: String(error) }
-        ),
+    getErrorInfo: vi.fn<
+        (error: unknown) => {
+            message: string;
+            stack?: string;
+        }
+    >((error) =>
+        error instanceof Error
+            ? { message: error.message, stack: error.stack }
+            : { message: String(error) }
+    ),
     logWithLevel:
         vi.fn<
             (
@@ -38,9 +38,12 @@ const h = vi.hoisted(() => ({
     updateSystemInfo: vi.fn<(info: unknown) => boolean>(() => true),
 }));
 
-vi.mock(import("../../../../utils/app/initialization/updateSystemInfo.js"), () => ({
-    updateSystemInfo: h.updateSystemInfo,
-}));
+vi.mock(
+    import("../../../../utils/app/initialization/updateSystemInfo.js"),
+    () => ({
+        updateSystemInfo: h.updateSystemInfo,
+    })
+);
 
 vi.mock(import("../../../../utils/logging/index.js"), () => ({
     getErrorInfo: h.getErrorInfo,
@@ -81,9 +84,9 @@ describe("loadVersionInfo", () => {
 
         resetTestState();
         setElectronAPI({
-            getAppVersion: vi.fn<() => Promise<string>>().mockResolvedValue(
-                "1.2.3"
-            ),
+            getAppVersion: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("1.2.3"),
             getChromeVersion: vi
                 .fn<() => Promise<string>>()
                 .mockResolvedValue("128.0.0.0"),

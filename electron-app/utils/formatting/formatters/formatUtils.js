@@ -10,17 +10,22 @@ const FORMATTING_CONSTANTS = {
  * the legacy behavior that removes trailing zeroes. Comma-separated strings use
  * `toFixed`, preserving fixed decimal places.
  *
- * @example
- *     formatArray([1.234, 2.567]); // "1.23, 2.57"
- *     formatArray("1.234,2.567", 1); // "1.2, 2.6"
+ * @example FormatArray([1.234, 2.567]); // "1.23, 2.57"
+ * formatArray("1.234,2.567", 1); // "1.2, 2.6"
  *
  * @param val - Value to format.
  * @param digits - Decimal digits to use for numeric values.
  * @param options - Formatting options.
+ *
  * @returns Formatted values, or the original value when it is not processable.
+ *
  * @throws Error when strict validation is enabled and a value is invalid.
  */
-export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_DIGITS, options = {}) {
+export function formatArray(
+    val,
+    digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_DIGITS,
+    options = {}
+) {
     const config = {
         separator: FORMATTING_CONSTANTS.SEPARATOR,
         strictValidation: true,
@@ -34,42 +39,44 @@ export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_D
             return formatCommaSeparatedString(val, digits, config);
         }
         return val;
-    }
-    catch (error) {
-        logWithContext(`Error formatting array: ${getLegacyErrorMessage(error)}`, "error");
+    } catch (error) {
+        logWithContext(
+            `Error formatting array: ${getLegacyErrorMessage(error)}`,
+            "error"
+        );
         throw error;
     }
 }
 function formatArrayInput(values, digits, config) {
     return values
         .map((value) => {
-        if (!isValidNumber(value)) {
-            const error = `Invalid number: ${value}`;
-            if (config.strictValidation) {
-                throw new Error(error);
+            if (!isValidNumber(value)) {
+                const error = `Invalid number: ${value}`;
+                if (config.strictValidation) {
+                    throw new Error(error);
+                }
+                logWithContext(error, "warn");
+                return String(value);
             }
-            logWithContext(error, "warn");
-            return String(value);
-        }
-        return Number.parseFloat(Number(value).toFixed(digits));
-    })
+            return Number.parseFloat(Number(value).toFixed(digits));
+        })
         .join(config.separator);
 }
 function formatCommaSeparatedString(value, digits, config) {
     return value
         .split(",")
         .map((entry) => {
-        const trimmed = entry.trim();
-        if (!isValidNumber(trimmed)) {
-            const error = `Invalid number in string: ${trimmed}`;
-            if (config.strictValidation) {
-                throw new Error(error);
+            const trimmed = entry.trim();
+            if (!isValidNumber(trimmed)) {
+                const error = `Invalid number in string: ${trimmed}`;
+                if (config.strictValidation) {
+                    throw new Error(error);
+                }
+                logWithContext(error, "warn");
+                return trimmed;
             }
-            logWithContext(error, "warn");
-            return trimmed;
-        }
-        return Number(trimmed).toFixed(digits);
-    })
+            return Number(trimmed).toFixed(digits);
+        })
         .join(config.separator);
 }
 function isValidNumber(value) {
@@ -92,8 +99,7 @@ function logWithContext(message, level = "info") {
                 console.log(`${prefix} ${message}`);
             }
         }
-    }
-    catch {
+    } catch {
         // Logging failures must not break formatting paths.
     }
 }

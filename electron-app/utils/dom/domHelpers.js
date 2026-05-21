@@ -1,6 +1,6 @@
 /**
- * DOM helper utilities used across renderer code to reduce repeated null
- * checks and implicit element property access.
+ * DOM helper utilities used across renderer code to reduce repeated null checks
+ * and implicit element property access.
  */
 const ELEMENT_NODE = 1;
 /**
@@ -10,7 +10,9 @@ const ELEMENT_NODE = 1;
  */
 export function addClass(el, className) {
     if (!className) {
-        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
+        throw new Error(
+            "Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty."
+        );
     }
     if (isHTMLElement(el)) {
         el.classList.add(className);
@@ -82,7 +84,9 @@ export function on(el, type, handler) {
 export function query(selector, root = document) {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior: throw on empty/invalid selector input.
-        throw new Error('Failed to execute "querySelector" on "Document": The provided selector is empty.');
+        throw new Error(
+            'Failed to execute "querySelector" on "Document": The provided selector is empty.'
+        );
     }
     const el = root.querySelector(selector);
     return isHTMLElement(el) ? el : null;
@@ -95,7 +99,9 @@ export function query(selector, root = document) {
 export function queryAll(selector, root = document) {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior and test expectation to throw on invalid selectors.
-        throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
+        throw new Error(
+            'Failed to execute "querySelectorAll" on "Document": The provided selector is empty.'
+        );
     }
     const list = queryAllSafely(root, selector);
     if (!list) {
@@ -103,8 +109,7 @@ export function queryAll(selector, root = document) {
     }
     try {
         return Array.from(list).filter((element) => isHTMLElement(element));
-    }
-    catch {
+    } catch {
         const result = [];
         const length = readArrayLikeLength(list);
         for (let i = 0; i < length; i++) {
@@ -123,7 +128,9 @@ export function queryAll(selector, root = document) {
  */
 export function removeClass(el, className) {
     if (!className) {
-        throw new Error("Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty.");
+        throw new Error(
+            "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
+        );
     }
     if (isHTMLElement(el)) {
         el.classList.remove(className);
@@ -161,9 +168,11 @@ export function setDisabled(el, disabled) {
 }
 /** Apply a style property if possible. */
 export function setStyle(el, prop, value) {
-    if (isHTMLElement(el) &&
+    if (
+        isHTMLElement(el) &&
         el.style &&
-        typeof el.style.setProperty === "function") {
+        typeof el.style.setProperty === "function"
+    ) {
         el.style.setProperty(prop, String(value));
     }
 }
@@ -193,8 +202,7 @@ function queryAllSafely(root, selector) {
         if (typeof root.querySelectorAll === "function") {
             return root.querySelectorAll(selector);
         }
-    }
-    catch {
+    } catch {
         // If a mocked implementation throws, return empty list for safety.
     }
     return undefined;

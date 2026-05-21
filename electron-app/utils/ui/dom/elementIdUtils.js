@@ -13,9 +13,20 @@ export function buildIdVariants(id) {
     addVariant(variants, raw);
     addVariant(variants, raw.replaceAll("_", "-"));
     addVariant(variants, raw.replaceAll("-", "_"));
-    addVariant(variants, raw.replaceAll(/[-_]+(.)/gu, (_match, character) => character.toUpperCase()));
-    addVariant(variants, raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2").toLowerCase());
-    addVariant(variants, raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1-$2").toLowerCase());
+    addVariant(
+        variants,
+        raw.replaceAll(/[-_]+(.)/gu, (_match, character) =>
+            character.toUpperCase()
+        )
+    );
+    addVariant(
+        variants,
+        raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2").toLowerCase()
+    );
+    addVariant(
+        variants,
+        raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1-$2").toLowerCase()
+    );
     return Array.from(variants);
 }
 /**
@@ -76,7 +87,9 @@ function addVariant(variants, value) {
     }
 }
 function canGetById(root) {
-    return "getElementById" in root && typeof root.getElementById === "function";
+    return (
+        "getElementById" in root && typeof root.getElementById === "function"
+    );
 }
 function canQuery(root) {
     return typeof root.querySelector === "function";

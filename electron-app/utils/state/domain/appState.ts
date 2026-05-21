@@ -204,7 +204,10 @@ function getRecordCount(data: unknown): number {
     return Array.isArray(recordMesgs) ? recordMesgs.length : 0;
 }
 
-function createErrorEntry(error: Error | string, context: string): ErrorStateEntry {
+function createErrorEntry(
+    error: Error | string,
+    context: string
+): ErrorStateEntry {
     const entry: ErrorStateEntry = {
         context,
         message: error instanceof Error ? error.message : String(error),
@@ -405,7 +408,8 @@ class AppStateManager {
 
     /** Adds an event listener and returns a cleanup function. */
     public on(event: string, callback: StateListener): Unsubscribe {
-        const eventListeners = this.listeners.get(event) ?? new Set<StateListener>();
+        const eventListeners =
+            this.listeners.get(event) ?? new Set<StateListener>();
         eventListeners.add(callback);
         this.listeners.set(event, eventListeners);
 

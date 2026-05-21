@@ -18,6 +18,7 @@ function wait(waitMs) {
  * Creates a stateful timing gate for rapid render calls.
  *
  * @param waitMs - Minimum interval before calls are treated as non-rapid.
+ *
  * @returns Render timing gate.
  */
 export function createRenderTimingGate(waitMs = RENDER_DEBOUNCE_MS) {

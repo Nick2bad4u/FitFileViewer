@@ -21,31 +21,41 @@ export function getChartUpdateSystemStatus() {
  * @returns Whether the modern chart state manager can accept render requests.
  */
 export function isModernChartSystemAvailable() {
-    return (Boolean(chartStateManager) &&
+    return (
+        Boolean(chartStateManager) &&
         typeof chartStateManager.debouncedRender === "function" &&
-        chartStateManager.isInitialized === true);
+        chartStateManager.isInitialized === true
+    );
 }
 /**
  * Unified interface for triggering chart updates.
  *
  * @param reason - Reason for the chart update.
  * @param container - Optional chart container element.
+ *
  * @returns Whether the update request was accepted or rendered.
+ *
  * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateCharts(reason, container) {
     try {
         console.log(`[ChartUpdate] Triggering chart update: ${reason}`);
-        if (chartStateManager &&
-            typeof chartStateManager.debouncedRender === "function") {
+        if (
+            chartStateManager &&
+            typeof chartStateManager.debouncedRender === "function"
+        ) {
             chartStateManager.debouncedRender(reason);
             return true;
         }
-        console.warn("[ChartUpdate] chartStateManager not available, using fallback");
+        console.warn(
+            "[ChartUpdate] chartStateManager not available, using fallback"
+        );
         return await renderChartJS(container);
-    }
-    catch (error) {
-        console.error(`[ChartUpdate] Error updating charts for reason "${reason}":`, error);
+    } catch (error) {
+        console.error(
+            `[ChartUpdate] Error updating charts for reason "${reason}":`,
+            error
+        );
         throw error;
     }
 }
@@ -53,6 +63,7 @@ export async function updateCharts(reason, container) {
  * Handle data changes with proper chart updates.
  *
  * @param newData - New data object.
+ *
  * @returns Whether the update request was accepted.
  */
 export async function updateChartsForDataChange(newData) {
@@ -65,9 +76,14 @@ export async function updateChartsForDataChange(newData) {
  * @param settingName - Name of the changed setting.
  * @param newValue - New setting value.
  * @param container - Optional chart container element.
+ *
  * @returns Whether the update request was accepted.
  */
-export async function updateChartsForSettingChange(settingName, newValue, container) {
+export async function updateChartsForSettingChange(
+    settingName,
+    newValue,
+    container
+) {
     const reason = `Setting change: ${settingName} = ${String(newValue)}`;
     return await updateCharts(reason, container);
 }
@@ -83,36 +99,48 @@ export async function updateChartsForTabActivation() {
  * Handle theme changes with proper chart updates.
  *
  * @param newTheme - The new theme name.
+ *
  * @returns Whether the update request was accepted or rendered.
+ *
  * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateChartsForThemeChange(newTheme) {
     try {
         console.log(`[ChartUpdate] Handling theme change to: ${newTheme}`);
-        if (chartStateManager &&
-            typeof chartStateManager.handleThemeChange === "function") {
+        if (
+            chartStateManager &&
+            typeof chartStateManager.handleThemeChange === "function"
+        ) {
             chartStateManager.handleThemeChange(newTheme);
             return true;
         }
-        console.warn("[ChartUpdate] chartStateManager not available for theme change, using fallback");
-        if (Array.isArray(chartGlobal._chartjsInstances) &&
-            chartGlobal._chartjsInstances.length > 0) {
+        console.warn(
+            "[ChartUpdate] chartStateManager not available for theme change, using fallback"
+        );
+        if (
+            Array.isArray(chartGlobal._chartjsInstances) &&
+            chartGlobal._chartjsInstances.length > 0
+        ) {
             for (const chart of chartGlobal._chartjsInstances) {
                 if (typeof chart.destroy === "function") {
                     try {
                         chart.destroy();
-                    }
-                    catch (error) {
-                        console.warn("[ChartUpdate] Error destroying chart:", error);
+                    } catch (error) {
+                        console.warn(
+                            "[ChartUpdate] Error destroying chart:",
+                            error
+                        );
                     }
                 }
             }
             chartGlobal._chartjsInstances = [];
         }
         return await renderChartJS();
-    }
-    catch (error) {
-        console.error(`[ChartUpdate] Error updating charts for theme change to "${newTheme}":`, error);
+    } catch (error) {
+        console.error(
+            `[ChartUpdate] Error updating charts for theme change to "${newTheme}":`,
+            error
+        );
         throw error;
     }
 }

@@ -28,31 +28,36 @@ const clipboardExportUtils = exportUtils;
 const FEATURE_ITEMS = [
     {
         color: "#4ade80",
-        description: "View detailed FIT file data in interactive tables with sorting and filtering",
+        description:
+            "View detailed FIT file data in interactive tables with sorting and filtering",
         icon: "📊",
         title: "Data Analysis",
     },
     {
         color: "#60a5fa",
-        description: "Interactive maps with route visualization, elevation profiles, and GPX export",
+        description:
+            "Interactive maps with route visualization, elevation profiles, and GPX export",
         icon: "🗺️",
         title: "GPS Mapping",
     },
     {
         color: "#f472b6",
-        description: "Advanced charts and graphs for analyzing performance trends",
+        description:
+            "Advanced charts and graphs for analyzing performance trends",
         icon: "📈",
         title: "Performance Metrics",
     },
     {
         color: "#34d399",
-        description: "Export data to CSV, GPX, and other formats for further analysis",
+        description:
+            "Export data to CSV, GPX, and other formats for further analysis",
         icon: "💾",
         title: "Data Export",
     },
     {
         color: "#fbbf24",
-        description: "Repair corrupted FIT files for import into Garmin Connect, Strava, etc.",
+        description:
+            "Repair corrupted FIT files for import into Garmin Connect, Strava, etc.",
         icon: "🔧",
         title: "File Recovery",
     },
@@ -159,7 +164,17 @@ export function createAboutModalContentElement() {
     header.append(iconWrapper, closeButton);
     const body = document.createElement("div");
     body.className = "modal-body";
-    body.append(createAboutTitle(), createTextElement("p", "modal-subtitle", "Advanced FIT file analysis and visualization tool"), createAboutSplit(), createEmptyAboutBody(), createAboutFooter());
+    body.append(
+        createAboutTitle(),
+        createTextElement(
+            "p",
+            "modal-subtitle",
+            "Advanced FIT file analysis and visualization tool"
+        ),
+        createAboutSplit(),
+        createEmptyAboutBody(),
+        createAboutFooter()
+    );
     content.append(header, body);
     backdrop.append(content);
     return backdrop;
@@ -181,14 +196,21 @@ function createCloseIcon() {
 function createAboutTitle() {
     const title = document.createElement("h1");
     title.className = "modal-title";
-    title.append(createTextElement("span", "title-gradient", "Fit File Viewer"), createVersionBadge());
+    title.append(
+        createTextElement("span", "title-gradient", "Fit File Viewer"),
+        createVersionBadge()
+    );
     return title;
 }
 function createVersionBadge() {
     const badge = document.createElement("span");
     badge.className = "version-badge";
     const prefix = createTextElement("span", "version-prefix", "v");
-    const version = createTextElement("span", "version-number", CONSTANTS.DEFAULT_VALUES.VERSION);
+    const version = createTextElement(
+        "span",
+        "version-number",
+        CONSTANTS.DEFAULT_VALUES.VERSION
+    );
     version.id = "version-number";
     badge.append(prefix, version);
     return badge;
@@ -203,7 +225,10 @@ function createAboutSplit() {
     const systemPanel = document.createElement("section");
     systemPanel.className = "about-panel about-panel--system";
     systemPanel.setAttribute("aria-label", "System information");
-    systemPanel.append(createSystemInfoPanelHeader(), createSystemInfoSection());
+    systemPanel.append(
+        createSystemInfoPanelHeader(),
+        createSystemInfoSection()
+    );
     split.append(featuresPanel, systemPanel);
     return split;
 }
@@ -228,7 +253,10 @@ function createFeatureItem(item) {
     icon.style.color = item.color;
     const content = document.createElement("div");
     content.className = "features-content-item";
-    content.append(createTextElement("h4", "features-item-title", item.title), createTextElement("p", "features-item-description", item.description));
+    content.append(
+        createTextElement("h4", "features-item-title", item.title),
+        createTextElement("p", "features-item-description", item.description)
+    );
     listItem.append(icon, content);
     return listItem;
 }
@@ -244,7 +272,10 @@ function createSystemInfoPanelHeader() {
     button.type = "button";
     button.tabIndex = 0;
     button.setAttribute("aria-label", "Copy system information to clipboard");
-    button.append(createTextElement("span", "btn-icon", "📋"), createTextElement("span", "btn-text", "Copy"));
+    button.append(
+        createTextElement("span", "btn-icon", "📋"),
+        createTextElement("span", "btn-text", "Copy")
+    );
     header.append(title, button);
     return header;
 }
@@ -266,7 +297,14 @@ function createSystemInfoGridElement() {
 function createSystemInfoItem(item) {
     const wrapper = document.createElement("div");
     wrapper.className = "system-info-item";
-    wrapper.append(createTextElement("span", "system-info-label", item.label), createTextElement("span", `system-info-value ${item.valueClass}`, CONSTANTS.DEFAULT_VALUES[item.valueKey]));
+    wrapper.append(
+        createTextElement("span", "system-info-label", item.label),
+        createTextElement(
+            "span",
+            `system-info-value ${item.valueClass}`,
+            CONSTANTS.DEFAULT_VALUES[item.valueKey]
+        )
+    );
     return wrapper;
 }
 function createEmptyAboutBody() {
@@ -293,7 +331,10 @@ function createTechBadgeLink(badge) {
     link.dataset["externalLink"] = "";
     const wrapper = document.createElement("span");
     wrapper.className = "tech-badge";
-    wrapper.append(createTextElement("span", "tech-icon", badge.icon), createTextElement("span", "", badge.label));
+    wrapper.append(
+        createTextElement("span", "tech-icon", badge.icon),
+        createTextElement("span", "", badge.label)
+    );
     link.append(wrapper);
     return link;
 }
@@ -324,7 +365,9 @@ export function showAboutModal(html = "") {
     ensureAboutModal();
     const modal = document.querySelector("#about-modal");
     if (modal) {
-        const body = document.querySelector("#about-modal-body"), closeBtn = document.querySelector("#about-modal-close"), copyBtn = document.querySelector("#about-copy-system-info");
+        const body = document.querySelector("#about-modal-body"),
+            closeBtn = document.querySelector("#about-modal-close"),
+            copyBtn = document.querySelector("#about-copy-system-info");
         if (body && closeBtn) {
             // Set content
             body.replaceChildren();
@@ -352,8 +395,10 @@ export function showAboutModal(html = "") {
                 hideAboutModal();
             });
             addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
-                if (e instanceof KeyboardEvent &&
-                    (e.key === "Enter" || e.key === " ")) {
+                if (
+                    e instanceof KeyboardEvent &&
+                    (e.key === "Enter" || e.key === " ")
+                ) {
                     e.preventDefault();
                     hideAboutModal();
                 }
@@ -361,9 +406,14 @@ export function showAboutModal(html = "") {
             if (copyBtn) {
                 const runCopy = async () => {
                     const text = buildSystemInfoClipboardText();
-                    const ok = await clipboardExportUtils.copyTextToClipboard?.(text);
+                    const ok =
+                        await clipboardExportUtils.copyTextToClipboard?.(text);
                     if (ok) {
-                        showNotification("System info copied to clipboard", "success", 2500);
+                        showNotification(
+                            "System info copied to clipboard",
+                            "success",
+                            2500
+                        );
                         // Brief UX feedback on the button itself.
                         try {
                             const btnText = copyBtn.querySelector(".btn-text");
@@ -378,13 +428,15 @@ export function showAboutModal(html = "") {
                                     btnText.textContent = prev || "Copy";
                                 }, 1200);
                             }
-                        }
-                        catch {
+                        } catch {
                             /* ignore */
                         }
-                    }
-                    else {
-                        showNotification("Failed to copy system info", "error", 3000);
+                    } else {
+                        showNotification(
+                            "Failed to copy system info",
+                            "error",
+                            3000
+                        );
                     }
                 };
                 addEventListenerWithCleanup(copyBtn, "click", (e) => {
@@ -392,8 +444,10 @@ export function showAboutModal(html = "") {
                     void runCopy();
                 });
                 addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
-                    if (e instanceof KeyboardEvent &&
-                        (e.key === "Enter" || e.key === " ")) {
+                    if (
+                        e instanceof KeyboardEvent &&
+                        (e.key === "Enter" || e.key === " ")
+                    ) {
                         e.preventDefault();
                         void runCopy();
                     }
@@ -403,7 +457,8 @@ export function showAboutModal(html = "") {
             // Handle external links to open in user's default browser.
             // NOTE: The modal content container stops propagation to prevent backdrop-closing.
             // Attach handlers to .modal-content so delegated link clicks are still observed.
-            const modalContentForLinks = modal.querySelector(".modal-content") ?? modal;
+            const modalContentForLinks =
+                modal.querySelector(".modal-content") ?? modal;
             attachExternalLinkHandlers({ root: modalContentForLinks });
             // Close on backdrop click
             addEventListenerWithCleanup(modal, "click", (e) => {
@@ -429,9 +484,11 @@ export function showAboutModal(html = "") {
             // Load version information after modal is displayed
             try {
                 loadVersionInfo();
-            }
-            catch (error) {
-                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
+            } catch (error) {
+                console.warn(
+                    `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,
+                    error
+                );
             }
             // Sound functionality removed as requested
         }
@@ -448,7 +505,9 @@ function buildSystemInfoClipboardText() {
         if (versionNumber && versionNumber.textContent) {
             lines.push(`App Version: ${versionNumber.textContent.trim()}`);
         }
-        const items = document.querySelectorAll("#info-toggle-section .system-info-item");
+        const items = document.querySelectorAll(
+            "#info-toggle-section .system-info-item"
+        );
         for (const item of Array.from(items)) {
             const labelEl = item.querySelector(".system-info-label");
             const valueEl = item.querySelector(".system-info-value");
@@ -463,8 +522,7 @@ function buildSystemInfoClipboardText() {
             }
         }
         return lines.join("\n");
-    }
-    catch {
+    } catch {
         return "Fit File Viewer – System Info";
     }
 }
@@ -562,8 +620,10 @@ function sanitizeAboutBodyHtml(html) {
         // Force safe external links to be handled by the modal.
         if (el instanceof HTMLElement && el.tagName === "A") {
             const href = el.getAttribute("href");
-            if (href &&
-                (href.startsWith("https://") || href.startsWith("mailto:"))) {
+            if (
+                href &&
+                (href.startsWith("https://") || href.startsWith("mailto:"))
+            ) {
                 el.dataset["externalLink"] = "";
                 el.setAttribute("rel", "noopener noreferrer");
             }
@@ -593,10 +653,11 @@ const devHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
-    * Reset all styles and recreate modal
-    */
+     * Reset all styles and recreate modal
+     */
     reset: () => {
-        const existingModal = document.querySelector("#about-modal"), existingStyles = document.querySelector("#about-modal-styles");
+        const existingModal = document.querySelector("#about-modal"),
+            existingStyles = document.querySelector("#about-modal-styles");
         if (existingModal) {
             existingModal.remove();
         }
@@ -636,9 +697,11 @@ const devHelpers = {
     },
 };
 // Export development helpers in development mode
-if (typeof process !== "undefined" &&
+if (
+    typeof process !== "undefined" &&
     process.env &&
-    process.env["NODE_ENV"] === "development") {
+    process.env["NODE_ENV"] === "development"
+) {
     globalThis.aboutModalDevHelpers = devHelpers;
 }
 // Initialize modal styles when module loads
@@ -647,8 +710,7 @@ if (typeof document !== "undefined" && document.readyState === "loading") {
         // Pre-initialize styles for better performance
         injectModalStyles();
     });
-}
-else if (typeof document !== "undefined") {
+} else if (typeof document !== "undefined") {
     // Document already loaded, initialize immediately
     injectModalStyles();
 }

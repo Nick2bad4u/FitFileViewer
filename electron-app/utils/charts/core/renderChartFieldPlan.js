@@ -11,14 +11,27 @@ import { getLabelsForRecords } from "./renderChartLabelCache.js";
  */
 export function resolveChartFieldRenderPlan(input) {
     const labels = getLabelsForRecords(input.recordMesgs, input.startTime);
-    const fieldsToRender = resolveRenderableChartFields(input.renderableFields, input.recordMesgs);
+    const fieldsToRender = resolveRenderableChartFields(
+        input.renderableFields,
+        input.recordMesgs
+    );
     if (input.isDebugLoggingEnabled) {
-        console.log(`[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`);
+        console.log(
+            `[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`
+        );
     }
-    const { effectiveAnimationStyle, estimatedChartCount } = resolveChartAnimationTuning(input.animationStyle, fieldsToRender.length);
-    if (input.isDebugLoggingEnabled &&
-        effectiveAnimationStyle !== input.animationStyle) {
-        console.log(`[ChartJS] Auto-tuned animation from ${String(input.animationStyle)} to ${String(effectiveAnimationStyle)} (estimatedCharts=${estimatedChartCount})`);
+    const { effectiveAnimationStyle, estimatedChartCount } =
+        resolveChartAnimationTuning(
+            input.animationStyle,
+            fieldsToRender.length
+        );
+    if (
+        input.isDebugLoggingEnabled &&
+        effectiveAnimationStyle !== input.animationStyle
+    ) {
+        console.log(
+            `[ChartJS] Auto-tuned animation from ${String(input.animationStyle)} to ${String(effectiveAnimationStyle)} (estimatedCharts=${estimatedChartCount})`
+        );
     }
     return {
         effectiveAnimationStyle,

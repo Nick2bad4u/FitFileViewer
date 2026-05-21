@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 
-type ShowRenderNotificationModule = typeof import("../../utils/ui/notifications/showRenderNotification.js");
+type ShowRenderNotificationModule =
+    typeof import("../../utils/ui/notifications/showRenderNotification.js");
 
 const chartStateMock = vi.hoisted(() => ({
     previousChartState: {
@@ -10,11 +11,7 @@ const chartStateMock = vi.hoisted(() => ({
         lastRenderTimestamp: 0,
     },
     updatePreviousChartState: vi.fn<
-        (
-            chartCount: number,
-            visibleFields: number,
-            timestamp: number
-        ) => void
+        (chartCount: number, visibleFields: number, timestamp: number) => void
     >((chartCount, visibleFields, timestamp) => {
         chartStateMock.previousChartState.chartCount = chartCount;
         chartStateMock.previousChartState.fieldsRendered = Array.from(
@@ -54,11 +51,9 @@ describe("showRenderNotification strict", () => {
                 ],
                 lastRenderTimestamp: 20_000,
             });
-            expect(chartStateMock.updatePreviousChartState).toHaveBeenCalledWith(
-                5,
-                3,
-                20_000
-            );
+            expect(
+                chartStateMock.updatePreviousChartState
+            ).toHaveBeenCalledWith(5, 3, 20_000);
             expect(logSpy).toHaveBeenCalledWith(
                 "[ChartJS] Showing notification due to time gap since last render"
             );
@@ -111,9 +106,9 @@ describe("showRenderNotification strict", () => {
             expect({
                 shouldShow: showRenderNotification(5, 6),
             }).toStrictEqual({ shouldShow: true });
-            expect(chartStateMock.previousChartState.fieldsRendered).toHaveLength(
-                6
-            );
+            expect(
+                chartStateMock.previousChartState.fieldsRendered
+            ).toHaveLength(6);
         } finally {
             logSpy.mockRestore();
             nowSpy.mockRestore();
@@ -173,9 +168,9 @@ describe("showRenderNotification strict", () => {
             expect(outcome).toStrictEqual({ shouldShow: false });
             expect(outcome).not.toStrictEqual({ shouldShow: true });
             expect(chartStateMock.previousChartState.chartCount).toBe(6);
-            expect(chartStateMock.previousChartState.fieldsRendered).toHaveLength(
-                4
-            );
+            expect(
+                chartStateMock.previousChartState.fieldsRendered
+            ).toHaveLength(4);
             expect(logSpy).toHaveBeenCalledWith(
                 "[ChartJS] Suppressing notification - minor re-render detected"
             );

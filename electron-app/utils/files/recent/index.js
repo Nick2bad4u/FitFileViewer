@@ -17,7 +17,10 @@ export function addRecentFile(filePath) {
 /** Returns a display-safe basename for a recent file path. */
 export function getShortRecentName(file) {
     const mod = loadRecentModule();
-    if (typeof file === "string" && typeof mod?.getShortRecentName === "function") {
+    if (
+        typeof file === "string" &&
+        typeof mod?.getShortRecentName === "function"
+    ) {
         return mod.getShortRecentName(file);
     }
     if (typeof file !== "string") {
@@ -56,8 +59,7 @@ function loadRecentModule() {
                 return recentModule;
             }
         }
-    }
-    catch {
+    } catch {
         // Ignore renderer environments without CommonJS access.
     }
     return null;

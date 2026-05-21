@@ -58,8 +58,6 @@ function asChartFieldVisibilityMap(value: unknown): ChartFieldVisibilityMap {
 
 /**
  * Normalize chart settings payloads to ensure consistent shapes.
- *
- *
  */
 function normalizeChartSettings(settings: unknown): NormalizedChartSettings {
     const safeSettings = asRecord(settings),
@@ -77,8 +75,6 @@ function normalizeChartSettings(settings: unknown): NormalizedChartSettings {
 
 /**
  * Read legacy per-field visibility preferences stored as individual keys.
- *
- *
  */
 function readLegacyChartFieldVisibility(
     fieldKey: string
@@ -99,7 +95,6 @@ function readLegacyChartFieldVisibility(
 
 /**
  * Remove legacy per-field visibility keys after migration.
- *
  */
 function removeLegacyChartFieldVisibility(fieldKey: string): void {
     const storage = globalThis?.localStorage;
@@ -112,7 +107,6 @@ function removeLegacyChartFieldVisibility(fieldKey: string): void {
 
 /**
  * Export all settings.
- *
  */
 export function exportAllSettings(): ExportedSettings | null {
     return settingsStateManager.exportSettings();
@@ -122,8 +116,7 @@ export function exportAllSettings(): ExportedSettings | null {
  * Read field visibility from settings, migrating legacy localStorage keys if
  * present.
  *
- *   `"visible"`
- *
+ * `"visible"`
  */
 export function getChartFieldVisibility(
     fieldKey: string,
@@ -155,8 +148,6 @@ export function getChartFieldVisibility(
 
 /**
  * Get chart setting.
- *
- *
  */
 export function getChartSetting(key: string): unknown {
     return settingsStateManager.getSetting("chart", key);
@@ -164,7 +155,6 @@ export function getChartSetting(key: string): unknown {
 
 /**
  * Return normalized chart settings with default field visibility map.
- *
  */
 export function getChartSettings(): NormalizedChartSettings {
     return normalizeChartSettings(settingsStateManager.getSetting("chart"));
@@ -172,7 +162,6 @@ export function getChartSettings(): NormalizedChartSettings {
 
 /**
  * Get map theme setting.
- *
  */
 export function getMapThemeSetting(): boolean {
     return Boolean(settingsStateManager.getSetting("mapTheme"));
@@ -180,7 +169,6 @@ export function getMapThemeSetting(): boolean {
 
 /**
  * Get power estimation setting.
- *
  */
 export function getPowerEstimationSetting(key: string): unknown {
     return settingsStateManager.getSetting("powerEstimation", key);
@@ -188,7 +176,6 @@ export function getPowerEstimationSetting(key: string): unknown {
 
 /**
  * Get theme setting.
- *
  */
 export function getThemeSetting(): string {
     return String(settingsStateManager.getSetting("theme"));
@@ -196,7 +183,6 @@ export function getThemeSetting(): string {
 
 /**
  * Convenience wrapper for chart renderers to access user chart settings.
- *
  */
 export function getUserChartSettings(): NormalizedChartSettings {
     return getChartSettings();
@@ -204,8 +190,6 @@ export function getUserChartSettings(): NormalizedChartSettings {
 
 /**
  * Import settings from data.
- *
- *
  */
 export function importAllSettings(settingsData: unknown): boolean {
     return settingsStateManager.importSettings(settingsData);
@@ -213,8 +197,6 @@ export function importAllSettings(settingsData: unknown): boolean {
 
 /**
  * Remove a chart setting (chartjs_* key) and update state.
- *
- *
  */
 export function removeChartSetting(key: string): boolean {
     if (typeof key !== "string" || !key.trim()) {
@@ -270,8 +252,6 @@ export function resetChartSettings(
 
 /**
  * Update visibility for a single chart field.
- *
- *
  */
 export function setChartFieldVisibility(
     fieldKey: string,
@@ -292,7 +272,6 @@ export function setChartFieldVisibility(
 
 /**
  * Set chart setting.
- *
  */
 export function setChartSetting(key: string, value: unknown): boolean {
     return settingsStateManager.setSetting("chart", value, key);
@@ -300,7 +279,6 @@ export function setChartSetting(key: string, value: unknown): boolean {
 
 /**
  * Set map theme setting.
- *
  */
 export function setMapThemeSetting(inverted: boolean): boolean {
     return settingsStateManager.setSetting("mapTheme", inverted);
@@ -308,7 +286,6 @@ export function setMapThemeSetting(inverted: boolean): boolean {
 
 /**
  * Set power estimation setting.
- *
  */
 export function setPowerEstimationSetting(
     key: string,
@@ -319,7 +296,6 @@ export function setPowerEstimationSetting(
 
 /**
  * Set theme setting.
- *
  */
 export function setThemeSetting(theme: string): boolean {
     return settingsStateManager.setSetting("theme", theme);
@@ -327,8 +303,6 @@ export function setThemeSetting(theme: string): boolean {
 
 /**
  * Subscribe to chart settings updates.
- *
- *
  */
 export function subscribeToChartSettings(
     callback: (
@@ -346,8 +320,6 @@ export function subscribeToChartSettings(
 
 /**
  * Update chart settings by merging new values into existing settings.
- *
- *
  */
 export function updateChartSettings(
     updates: ChartSettings

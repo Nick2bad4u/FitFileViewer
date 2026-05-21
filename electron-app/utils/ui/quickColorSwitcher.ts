@@ -203,9 +203,7 @@ export function updateSwitcherActiveColor(color: string): void {
 }
 
 function createSwitcherElement(): QuickColorSwitcherElement {
-    const switcher = document.createElement(
-        "div"
-    ) as QuickColorSwitcherElement;
+    const switcher = document.createElement("div") as QuickColorSwitcherElement;
     switcher.id = SWITCHER_ID;
     switcher.className = "quick-color-switcher";
 
@@ -459,55 +457,72 @@ function setupSwitcherListeners(switcher: QuickColorSwitcherElement): void {
     );
     const colorOptions =
         switcher.querySelectorAll<HTMLButtonElement>(".color-option");
-    const settingsBtn =
-        switcher.querySelector<HTMLButtonElement>("#open-full-settings");
+    const settingsBtn = switcher.querySelector<HTMLButtonElement>(
+        "#open-full-settings"
+    );
 
     if (toggle) {
-        toggle.addEventListener("click", (e) => {
-            e.stopPropagation();
-            dropdown?.classList.toggle("open");
-        }, { signal: listenerController.signal });
+        toggle.addEventListener(
+            "click",
+            (e) => {
+                e.stopPropagation();
+                dropdown?.classList.toggle("open");
+            },
+            { signal: listenerController.signal }
+        );
     }
 
     // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-        if (e.target instanceof Node && !switcher.contains(e.target)) {
-            dropdown?.classList.remove("open");
-        }
-    }, { signal: listenerController.signal });
+    document.addEventListener(
+        "click",
+        (e) => {
+            if (e.target instanceof Node && !switcher.contains(e.target)) {
+                dropdown?.classList.remove("open");
+            }
+        },
+        { signal: listenerController.signal }
+    );
 
     // Color option click
     for (const option of colorOptions) {
-        option.addEventListener("click", () => {
-            const color = option.dataset["color"];
-            if (color) {
-                const currentTheme = loadTheme();
-                const effectiveTheme = getEffectiveTheme(currentTheme);
-                setAccentColor(color, effectiveTheme);
+        option.addEventListener(
+            "click",
+            () => {
+                const color = option.dataset["color"];
+                if (color) {
+                    const currentTheme = loadTheme();
+                    const effectiveTheme = getEffectiveTheme(currentTheme);
+                    setAccentColor(color, effectiveTheme);
 
-                // Update active state
-                for (const opt of colorOptions) {
-                    opt.classList.remove("active");
-                }
-                option.classList.add("active");
+                    // Update active state
+                    for (const opt of colorOptions) {
+                        opt.classList.remove("active");
+                    }
+                    option.classList.add("active");
 
-                // Close dropdown after short delay
-                if (state.closeTimer) {
-                    clearTimeout(state.closeTimer);
+                    // Close dropdown after short delay
+                    if (state.closeTimer) {
+                        clearTimeout(state.closeTimer);
+                    }
+                    state.closeTimer = setTimeout(() => {
+                        state.closeTimer = null;
+                        dropdown?.classList.remove("open");
+                    }, SWITCHER_CLOSE_DELAY_MS);
                 }
-                state.closeTimer = setTimeout(() => {
-                    state.closeTimer = null;
-                    dropdown?.classList.remove("open");
-                }, SWITCHER_CLOSE_DELAY_MS);
-            }
-        }, { signal: listenerController.signal });
+            },
+            { signal: listenerController.signal }
+        );
     }
 
     // Open full settings modal
     if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            void openSettingsModal(dropdown);
-        }, { signal: listenerController.signal });
+        settingsBtn.addEventListener(
+            "click",
+            () => {
+                void openSettingsModal(dropdown);
+            },
+            { signal: listenerController.signal }
+        );
     }
 }
 

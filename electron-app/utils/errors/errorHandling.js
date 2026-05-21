@@ -24,10 +24,12 @@ function isValidationObject(value) {
     return typeof value === "object" && value !== null && "isValid" in value;
 }
 function isPromiseLike(value) {
-    return (typeof value === "object" &&
+    return (
+        typeof value === "object" &&
         value !== null &&
         "then" in value &&
-        typeof value.then === "function");
+        typeof value.then === "function"
+    );
 }
 /**
  * Enhanced Error class with additional context.
@@ -94,25 +96,31 @@ export function createErrorHandler(options = {}) {
         ...options,
     };
     return function handleError(error, context = {}) {
-        const err = error instanceof Error
-            ? error
-            : new AppError(getUnknownErrorMessage(error), context);
+        const err =
+            error instanceof Error
+                ? error
+                : new AppError(getUnknownErrorMessage(error), context);
         if (!(err instanceof AppError) && Object.keys(context).length > 0) {
             Object.assign(err, { context });
         }
         if (config.logError) {
-            const message = err instanceof AppError
-                ? err.getFormattedMessage()
-                : err.message;
+            const message =
+                err instanceof AppError
+                    ? err.getFormattedMessage()
+                    : err.message;
             console[config.logLevel](`[ErrorHandler] ${message}`, err);
         }
-        if (config.notify &&
-            typeof globalRef.showNotification === "function") {
+        if (config.notify && typeof globalRef.showNotification === "function") {
             try {
-                globalRef.showNotification(err.message, config.notificationType);
-            }
-            catch (notificationError) {
-                console.warn("[ErrorHandler] Failed to show notification:", notificationError);
+                globalRef.showNotification(
+                    err.message,
+                    config.notificationType
+                );
+            } catch (notificationError) {
+                console.warn(
+                    "[ErrorHandler] Failed to show notification:",
+                    notificationError
+                );
             }
         }
         if (config.failSafe) {
@@ -139,8 +147,7 @@ export function validateInput(value, validatorsToRun, fieldName = "input") {
                     result.isValid = false;
                     result.errors.push(`Invalid ${fieldName}`);
                 }
-            }
-            else if (isValidationObject(validationResult)) {
+            } else if (isValidationObject(validationResult)) {
                 if (!validationResult.isValid) {
                     result.isValid = false;
                 }
@@ -148,15 +155,15 @@ export function validateInput(value, validatorsToRun, fieldName = "input") {
                 result.warnings.push(...(validationResult.warnings ?? []));
                 if (validationResult.validatedValue !== undefined) {
                     result.validatedValue = validationResult.validatedValue;
-                }
-                else if (validationResult.value !== undefined) {
+                } else if (validationResult.value !== undefined) {
                     result.validatedValue = validationResult.value;
                 }
             }
-        }
-        catch (error) {
+        } catch (error) {
             result.isValid = false;
-            result.errors.push(`Validation error for ${fieldName}: ${getUnknownErrorMessage(error)}`);
+            result.errors.push(
+                `Validation error for ${fieldName}: ${getUnknownErrorMessage(error)}`
+            );
         }
     }
     return result;
@@ -171,14 +178,15 @@ export function withErrorHandling(fn, options = {}) {
         try {
             const result = fn(...args);
             if (isPromiseLike(result)) {
-                return Promise.resolve(result).catch((error) => handleError(error, {
-                    input: args,
-                    operation: functionName,
-                }));
+                return Promise.resolve(result).catch((error) =>
+                    handleError(error, {
+                        input: args,
+                        operation: functionName,
+                    })
+                );
             }
             return result;
-        }
-        catch (error) {
+        } catch (error) {
             return handleError(error, {
                 input: args,
                 operation: functionName,
@@ -234,9 +242,10 @@ export const validators = {
     },
     isRequired(value, fieldName) {
         return {
-            errors: value === null || value === undefined
-                ? [`${fieldName} is required`]
-                : [],
+            errors:
+                value === null || value === undefined
+                    ? [`${fieldName} is required`]
+                    : [],
             isValid: value !== null && value !== undefined,
             value,
         };
@@ -252,19 +261,30 @@ export function initializeErrorHandling(_options = {}) {
         const listenerOptions = {
             signal: globalErrorListenerAbortController.signal,
         };
-        globalRef.addEventListener("error", (event) => {
-            logError(event.error ?? new Error(event.message), {
-                operation: "global-error-handler",
-                path: `${event.filename}:${event.lineno}:${event.colno}`,
-            });
-        }, listenerOptions);
-        globalRef.addEventListener("unhandledrejection", (event) => {
-            logError(event.reason instanceof Error
-                ? event.reason
-                : new Error(String(event.reason)), {
-                operation: "unhandled-rejection",
-            });
-        }, listenerOptions);
+        globalRef.addEventListener(
+            "error",
+            (event) => {
+                logError(event.error ?? new Error(event.message), {
+                    operation: "global-error-handler",
+                    path: `${event.filename}:${event.lineno}:${event.colno}`,
+                });
+            },
+            listenerOptions
+        );
+        globalRef.addEventListener(
+            "unhandledrejection",
+            (event) => {
+                logError(
+                    event.reason instanceof Error
+                        ? event.reason
+                        : new Error(String(event.reason)),
+                    {
+                        operation: "unhandled-rejection",
+                    }
+                );
+            },
+            listenerOptions
+        );
     }
     console.log("[ErrorHandling] Error handling system initialized");
 }
@@ -283,9 +303,11 @@ export function logError(error, context = {}, level = "error") {
     console[level](`[${timestamp}] Error:`, errorInfo);
     if (globalRef.performanceMonitor?.recordError !== undefined) {
         try {
-            globalRef.performanceMonitor.recordError(error, context.operation ?? "unknown");
-        }
-        catch {
+            globalRef.performanceMonitor.recordError(
+                error,
+                context.operation ?? "unknown"
+            );
+        } catch {
             // Ignore secondary telemetry failures.
         }
     }
@@ -303,7 +325,8 @@ export function makeResilient(fn, fallback, options = {}) {
     });
 }
 /**
- * Create a fail-safe function wrapper that returns null when the function fails.
+ * Create a fail-safe function wrapper that returns null when the function
+ * fails.
  */
 export function makeSafe(fn, options = {}) {
     const { logErrors = true } = options;

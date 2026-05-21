@@ -1,10 +1,12 @@
 function isDocumentLike(candidate) {
-    return (candidate !== null &&
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "getElementById" in candidate &&
         typeof candidate.getElementById === "function" &&
         "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function");
+        typeof candidate.querySelectorAll === "function"
+    );
 }
 /**
  * Safely return a DOM document, preferring an effective Vitest realm when
@@ -14,12 +16,13 @@ export function getDoc() {
     const candidates = [];
     // Prefer Vitest effective document, if present
     try {
-        if (typeof __vitest_effective_document__ !== "undefined" &&
-            __vitest_effective_document__) {
+        if (
+            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__
+        ) {
             candidates.push(__vitest_effective_document__);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Local realm document (JSDOM/Electron)
@@ -27,19 +30,19 @@ export function getDoc() {
         if (typeof document !== "undefined" && document) {
             candidates.push(document);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Global document (other realms)
     try {
-        if (typeof globalThis !== "undefined" &&
+        if (
+            typeof globalThis !== "undefined" &&
             "document" in globalThis &&
-            globalThis.document) {
+            globalThis.document
+        ) {
             candidates.push(globalThis.document);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     for (const candidate of candidates) {

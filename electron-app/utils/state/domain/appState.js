@@ -82,7 +82,9 @@ function getPathSegments(path) {
     return path.split(".").filter(Boolean);
 }
 function isVolatilePath(path) {
-    return PERSISTENCE_CONFIG.VOLATILE_KEYS.some((volatilePath) => volatilePath === path);
+    return PERSISTENCE_CONFIG.VOLATILE_KEYS.some(
+        (volatilePath) => volatilePath === path
+    );
 }
 function isRecord(value) {
     return value !== null && typeof value === "object";
@@ -143,9 +145,11 @@ class AppStateManager {
         for (const callback of eventListeners) {
             try {
                 callback(data);
-            }
-            catch (error) {
-                console.error(`[AppState] Error in event listener for ${event}:`, error);
+            } catch (error) {
+                console.error(
+                    `[AppState] Error in event listener for ${event}:`,
+                    error
+                );
             }
         }
     }
@@ -169,13 +173,11 @@ class AppStateManager {
             case "data.globalData": {
                 if (newValue && !oldValue) {
                     this.emit(STATE_EVENTS.DATA_LOADED, { data: newValue });
-                }
-                else if (!newValue && oldValue) {
+                } else if (!newValue && oldValue) {
                     this.emit(STATE_EVENTS.DATA_CLEARED, {
                         previousData: oldValue,
                     });
-                }
-                else if (newValue !== oldValue) {
+                } else if (newValue !== oldValue) {
                     this.emit(STATE_EVENTS.DATA_CHANGED, {
                         data: newValue,
                         previousData: oldValue,
@@ -247,15 +249,19 @@ class AppStateManager {
                     try {
                         const value = JSON.parse(stored);
                         this.set(path, value);
-                        console.log(`[AppState] Loaded persisted state for ${path}:`, value);
-                    }
-                    catch (parseError) {
-                        console.warn(`[AppState] Failed to parse persisted state for ${path}:`, parseError);
+                        console.log(
+                            `[AppState] Loaded persisted state for ${path}:`,
+                            value
+                        );
+                    } catch (parseError) {
+                        console.warn(
+                            `[AppState] Failed to parse persisted state for ${path}:`,
+                            parseError
+                        );
                     }
                 }
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[AppState] Error loading persisted state:", error);
         }
     }
@@ -294,9 +300,11 @@ class AppStateManager {
             if (value !== undefined) {
                 storage.setItem(key, JSON.stringify(value));
             }
-        }
-        catch (error) {
-            console.error(`[AppState] Error persisting state for ${path}:`, error);
+        } catch (error) {
+            console.error(
+                `[AppState] Error persisting state for ${path}:`,
+                error
+            );
         }
     }
     /** Clears persisted state and resets runtime state to defaults. */
@@ -332,8 +340,7 @@ class AppStateManager {
                 setProperty(current, finalKey, value);
             }
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error(`[AppState] Error setting ${path}:`, error);
             return false;
         }
@@ -373,8 +380,7 @@ class AppStateManager {
                 oldState,
                 updates,
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[AppState] Error in batch update:", error);
         }
     }
@@ -409,7 +415,10 @@ class AppStateManager {
                 const oldValue = value;
                 const validator = this.validators.get(path);
                 if (validator && !validator(newValue, oldValue)) {
-                    console.warn(`[AppState] Validation failed for ${path}:`, newValue);
+                    console.warn(
+                        `[AppState] Validation failed for ${path}:`,
+                        newValue
+                    );
                     return;
                 }
                 value = newValue;
@@ -441,8 +450,7 @@ if (stateGlobal.window !== undefined) {
                 },
             });
         }
-    }
-    catch {
+    } catch {
         // Ignore global compatibility wiring failures.
     }
     stateGlobal.__appState = appState;

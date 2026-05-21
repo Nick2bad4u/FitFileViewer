@@ -1,8 +1,5 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
-import {
-    type SystemInfoField,
-    updateSystemInfo,
-} from "./updateSystemInfo.js";
+import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
 
 type VersionSystemInfo = Record<SystemInfoField, string>;
 

@@ -39,9 +39,7 @@ describe("css color token sanitization", () => {
         expect(sanitizeCssColorToken("url(https://example.test/x)")).toBe(
             "#000000"
         );
-        expect(sanitizeCssColorToken("red; background: blue")).toBe(
-            "#000000"
-        );
+        expect(sanitizeCssColorToken("red; background: blue")).toBe("#000000");
         expect(sanitizeCssColorToken("javascript:alert(1)")).toBe("#000000");
     });
 

@@ -141,7 +141,6 @@ export const LoadingOverlay = {
 
     /**
      * Shows a loading overlay with progress text
-     *
      */
     show(progressText: string, fileName = ""): void {
         let overlay = document.querySelector<HTMLDivElement>(

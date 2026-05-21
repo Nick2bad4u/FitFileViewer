@@ -6,7 +6,8 @@ type StateListener = (
     path: string
 ) => void;
 
-type RendererUtilsModule = typeof import("../../../../utils/app/initialization/rendererUtils.js");
+type RendererUtilsModule =
+    typeof import("../../../../utils/app/initialization/rendererUtils.js");
 
 const stateMock = vi.hoisted(() => {
     const listeners = new Map<string, Set<StateListener>>();
@@ -40,17 +41,17 @@ const stateMock = vi.hoisted(() => {
                 listener(value, previousValue, path);
             }
         }),
-        subscribe: vi.fn<
-            (path: string, callback: StateListener) => () => void
-        >((path, callback) => {
-            const pathListeners = listeners.get(path) ?? new Set();
-            pathListeners.add(callback);
-            listeners.set(path, pathListeners);
+        subscribe: vi.fn<(path: string, callback: StateListener) => () => void>(
+            (path, callback) => {
+                const pathListeners = listeners.get(path) ?? new Set();
+                pathListeners.add(callback);
+                listeners.set(path, pathListeners);
 
-            return () => {
-                pathListeners.delete(callback);
-            };
-        }),
+                return () => {
+                    pathListeners.delete(callback);
+                };
+            }
+        ),
     };
 });
 
@@ -168,9 +169,7 @@ describe("rendererUtils", () => {
         const { setLoading } = await importRendererUtils();
         const overlay = requireHTMLElement("loadingOverlay");
         const openButton = requireHTMLElement("openFileBtn");
-        const otherButton = requireHTMLElement(
-            "otherBtn"
-        ) as HTMLButtonElement;
+        const otherButton = requireHTMLElement("otherBtn") as HTMLButtonElement;
         const input = requireHTMLElement("someInput") as HTMLInputElement;
 
         setLoading(true);

@@ -18,14 +18,14 @@ describe("documentation standards", () => {
     it("keeps required checklist fields available", () => {
         expect.assertions(3);
 
-        expect(DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.required_fields).toContain(
-            "@fileoverview"
-        );
-        expect(DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.required_fields).not.toContain(
-            "@private"
-        );
-        expect(DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.best_practices).toContain(
-            "Document side effects"
-        );
+        expect(
+            DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.required_fields
+        ).toContain("@fileoverview");
+        expect(
+            DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.required_fields
+        ).not.toContain("@private");
+        expect(
+            DOCUMENTATION_STANDARDS.QUALITY_CHECKLIST.best_practices
+        ).toContain("Document side effects");
     });
 });

@@ -4,10 +4,7 @@
         checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
         feedURL?: unknown;
         logger?: unknown;
-        on?: (
-            event: string,
-            listener: (...args: unknown[]) => void
-        ) => unknown;
+        on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
     }
 
     interface AutoUpdaterModuleLike {
@@ -38,8 +35,8 @@
     }
 
     /**
-     * Resolves electron-updater synchronously supporting both CJS and ESM default
-     * exports.
+     * Resolves electron-updater synchronously supporting both CJS and ESM
+     * default exports.
      */
     function resolveAutoUpdaterSync(): AutoUpdaterLike | null {
         if (cachedMockedAutoUpdater) {
@@ -133,9 +130,9 @@
     }
 
     /**
-     * Safely reads module namespace properties. Vitest mock namespaces can throw
-     * when probing missing exports, and electron-updater's lazy getters can throw
-     * before Electron's app object exists.
+     * Safely reads module namespace properties. Vitest mock namespaces can
+     * throw when probing missing exports, and electron-updater's lazy getters
+     * can throw before Electron's app object exists.
      */
     function asObjectProperty(value: unknown, property: string): unknown {
         if (

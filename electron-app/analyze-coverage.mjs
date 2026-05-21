@@ -2,17 +2,18 @@
  * Analyzes code coverage statistics from a coverage-final.json file.
  *
  * @remarks
- *   This script reads the Istanbul coverage-final.json file from the coverage
- *   directory, analyzes statement, function, and branch coverage for each file,
- *   and prints a summary of files with the lowest coverage. It is intended to
- *   help developers identify files that need more tests.
+ * This script reads the Istanbul coverage-final.json file from the coverage
+ * directory, analyzes statement, function, and branch coverage for each file,
+ * and prints a summary of files with the lowest coverage. It is intended to
+ * help developers identify files that need more tests.
  *
- * @example
- *     Run this script from the project root using Node.js:
+ * @example Run this script from the project root using Node.js:
  *
- *     ```bash
- *     node scripts/analyze-coverage.mjs
- *     ```
+ * ```
+ * ```bash
+ * node scripts/analyze-coverage.mjs
+ * ```;
+ * ```
  *
  * @param input - Coverage/coverage-final.json: Istanbul JSON coverage report.
  *

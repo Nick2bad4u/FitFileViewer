@@ -10,11 +10,12 @@ const ESTIMATED_NON_METRIC_CHARTS = 12;
  */
 export function resolveChartAnimationTuning(animationStyle, metricChartCount) {
     const estimatedChartCount = metricChartCount + ESTIMATED_NON_METRIC_CHARTS;
-    const effectiveAnimationStyle = animationStyle === "normal" && estimatedChartCount >= 20
-        ? "none"
-        : animationStyle === "normal" && estimatedChartCount >= 12
-            ? "fast"
-            : animationStyle;
+    const effectiveAnimationStyle =
+        animationStyle === "normal" && estimatedChartCount >= 20
+            ? "none"
+            : animationStyle === "normal" && estimatedChartCount >= 12
+              ? "fast"
+              : animationStyle;
     return {
         effectiveAnimationStyle,
         estimatedChartCount,

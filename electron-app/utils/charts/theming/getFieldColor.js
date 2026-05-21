@@ -36,11 +36,14 @@ export function getAllFieldColors() {
  * Get the standardized color for a chart field.
  *
  * @param field - Field name to get a color for.
+ *
  * @returns Mapped field color, or the default color for unknown fields.
  */
 export function getFieldColor(field) {
     if (typeof field !== "string") {
-        console.warn(`[getFieldColor] Field must be a string, received ${typeof field}`);
+        console.warn(
+            `[getFieldColor] Field must be a string, received ${typeof field}`
+        );
         return DEFAULT_FIELD_COLOR;
     }
     if (!field.trim()) {
@@ -51,7 +54,9 @@ export function getFieldColor(field) {
         ? FIELD_COLOR_MAP[field]
         : DEFAULT_FIELD_COLOR;
     if (color === DEFAULT_FIELD_COLOR) {
-        console.debug(`[getFieldColor] Using default color for unmapped field: ${field}`);
+        console.debug(
+            `[getFieldColor] Using default color for unmapped field: ${field}`
+        );
     }
     return color;
 }
@@ -59,9 +64,9 @@ export function getFieldColor(field) {
  * Check if a field has a defined color mapping.
  *
  * @param field - Field name to check.
+ *
  * @returns Whether the field has a defined color.
  */
 export function hasFieldColor(field) {
-    return (typeof field === "string" &&
-        Object.hasOwn(FIELD_COLOR_MAP, field));
+    return typeof field === "string" && Object.hasOwn(FIELD_COLOR_MAP, field);
 }

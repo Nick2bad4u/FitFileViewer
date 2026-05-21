@@ -19,7 +19,10 @@ const SENSOR_FORMAT_CONFIG = {
  */
 export function formatSensorName(sensor) {
     if (!isSensorInfo(sensor)) {
-        console.warn(`[formatSensorName] ${SENSOR_FORMAT_CONFIG.ERROR_MESSAGES.INVALID_SENSOR}`, sensor);
+        console.warn(
+            `[formatSensorName] ${SENSOR_FORMAT_CONFIG.ERROR_MESSAGES.INVALID_SENSOR}`,
+            sensor
+        );
         return SENSOR_FORMAT_CONFIG.FALLBACK_NAME;
     }
     try {
@@ -33,16 +36,20 @@ export function formatSensorName(sensor) {
             return formatManufacturer(sensor.manufacturer);
         }
         return SENSOR_FORMAT_CONFIG.FALLBACK_NAME;
-    }
-    catch (error) {
-        console.error(`[formatSensorName] ${SENSOR_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[formatSensorName] ${SENSOR_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`,
+            error
+        );
         return SENSOR_FORMAT_CONFIG.FALLBACK_NAME;
     }
 }
 function formatGarminProduct(garminProduct) {
     return String(garminProduct)
         .split(SENSOR_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
         .join(SENSOR_FORMAT_CONFIG.FORMATTED_SEPARATOR);
 }
 function formatManufacturerProduct(sensor) {
@@ -54,10 +61,12 @@ function formatManufacturerProduct(sensor) {
     return `${manufacturerName}${SENSOR_FORMAT_CONFIG.NAME_SEPARATOR}${productName}`;
 }
 function hasManufacturerAndProduct(sensor) {
-    return (sensor.manufacturer !== null &&
+    return (
+        sensor.manufacturer !== null &&
         sensor.manufacturer !== undefined &&
         sensor.product !== null &&
-        sensor.product !== undefined);
+        sensor.product !== undefined
+    );
 }
 function isSensorInfo(value) {
     return typeof value === "object" && value !== null;

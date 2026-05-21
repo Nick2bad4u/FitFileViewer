@@ -35,11 +35,23 @@ describe("renderSummaryHelpers", () => {
     it("orders named columns before numeric-only columns", () => {
         expect.assertions(3);
 
-        expect(["12", "speed"].map((key) => isNumberedSummaryColumnKey(key)))
-            .toStrictEqual([true, false]);
+        expect(
+            ["12", "speed"].map((key) => isNumberedSummaryColumnKey(key))
+        ).toStrictEqual([true, false]);
 
-        expect(orderSummaryColumnsNamedFirst(["2", "speed", "1", "distance"]))
-            .toStrictEqual(["speed", "distance", "2", "1"]);
+        expect(
+            orderSummaryColumnsNamedFirst([
+                "2",
+                "speed",
+                "1",
+                "distance",
+            ])
+        ).toStrictEqual([
+            "speed",
+            "distance",
+            "2",
+            "1",
+        ]);
 
         expect(getRowLabel(2, true)).toBe("Lap 3");
     });
@@ -63,10 +75,7 @@ describe("renderSummaryHelpers", () => {
 
             saveColPrefs(fileKey, ["speed", "distance"]);
 
-            expect(loadColPrefs(fileKey)).toStrictEqual([
-                "speed",
-                "distance",
-            ]);
+            expect(loadColPrefs(fileKey)).toStrictEqual(["speed", "distance"]);
 
             localStorage.setItem(fileKey, JSON.stringify(["speed", 123]));
 
@@ -117,12 +126,21 @@ describe("renderSummaryHelpers", () => {
             );
 
             expect(
-                container.querySelector(".summary-filter-bar")?.firstElementChild
+                container.querySelector(".summary-filter-bar")
+                    ?.firstElementChild
             ).toBe(gearBtn);
 
-            expect(headings).toStrictEqual(["Type", "speed", "timestamp"]);
+            expect(headings).toStrictEqual([
+                "Type",
+                "speed",
+                "timestamp",
+            ]);
 
-            expect(rows[0]).toStrictEqual(["Summary", "10 mph", ""]);
+            expect(rows[0]).toStrictEqual([
+                "Summary",
+                "10 mph",
+                "",
+            ]);
 
             expect(rows[1]).toStrictEqual([
                 "Lap 1",

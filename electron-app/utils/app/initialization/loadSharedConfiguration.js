@@ -1,6 +1,9 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
-import { setChartFieldVisibility, setChartSetting, } from "../../state/domain/settingsStateManager.js";
+import {
+    setChartFieldVisibility,
+    setChartSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 let sharedConfigurationRefreshTimeout;
 function isRecord(value) {
@@ -56,8 +59,7 @@ export function loadSharedConfiguration() {
         applySharedConfiguration(parseSharedConfiguration(configParam));
         showNotification("Chart configuration loaded from URL", "success");
         scheduleChartRefresh();
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error loading shared configuration:", error);
         showNotification("Failed to load shared configuration", "warning");
     }

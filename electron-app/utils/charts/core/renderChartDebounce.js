@@ -1,7 +1,7 @@
 /** Returns a function that invokes callback only after calls stop for waitMs. */
 export function debounce(callback, waitMs) {
     let timeoutId;
-    const debounced = ((...args) => {
+    const debounced = (...args) => {
         if (timeoutId !== undefined) {
             clearTimeout(timeoutId);
         }
@@ -9,7 +9,7 @@ export function debounce(callback, waitMs) {
             timeoutId = undefined;
             callback(...args);
         }, waitMs);
-    });
+    };
     debounced.cancel = () => {
         if (timeoutId !== undefined) {
             clearTimeout(timeoutId);

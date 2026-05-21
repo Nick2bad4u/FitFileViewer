@@ -1,4 +1,4 @@
-import { getErrorInfo as getErrorInfoImpl, } from "./getErrorInfo.js";
+import { getErrorInfo as getErrorInfoImpl } from "./getErrorInfo.js";
 import { logWithLevel as logWithLevelImpl } from "./logWithLevel.js";
 /**
  * Extracts normalized error information.

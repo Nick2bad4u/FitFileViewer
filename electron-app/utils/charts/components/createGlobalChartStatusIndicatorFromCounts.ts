@@ -1,4 +1,7 @@
-import type { ChartCategoryCounts, ChartCounts } from "../core/getChartCounts.js";
+import type {
+    ChartCategoryCounts,
+    ChartCounts,
+} from "../core/getChartCounts.js";
 import {
     getChartContentContainer,
     getChartControlsToggle,
@@ -118,7 +121,10 @@ function createQuickAction(
     return quickAction;
 }
 
-function createBreakdown(counts: ChartCounts, hasHiddenCharts: boolean): HTMLDivElement {
+function createBreakdown(
+    counts: ChartCounts,
+    hasHiddenCharts: boolean
+): HTMLDivElement {
     const globalBreakdown = document.createElement("div");
     globalBreakdown.className = "status-breakdown global-breakdown";
     globalBreakdown.style.cssText = `
@@ -206,7 +212,8 @@ function scheduleFieldSectionScroll(
 /**
  * Clean up event listeners and delayed work for a global status indicator.
  *
- * @param indicator - Indicator returned from createGlobalChartStatusIndicatorFromCounts.
+ * @param indicator - Indicator returned from
+ *   createGlobalChartStatusIndicatorFromCounts.
  */
 export function cleanupGlobalChartStatusIndicatorFromCounts(
     indicator: HTMLElement
@@ -216,10 +223,13 @@ export function cleanupGlobalChartStatusIndicatorFromCounts(
 }
 
 /**
- * Creates a global chart status indicator element from precomputed chart counts.
+ * Creates a global chart status indicator element from precomputed chart
+ * counts.
  *
  * @param counts - Precomputed chart visibility and availability counts.
- * @returns The global chart status indicator element, or null when chart content is unavailable.
+ *
+ * @returns The global chart status indicator element, or null when chart
+ *   content is unavailable.
  */
 export function createGlobalChartStatusIndicatorFromCounts(
     counts: ChartCounts
@@ -328,8 +338,7 @@ export function createGlobalChartStatusIndicatorFromCounts(
             quickAction.addEventListener(
                 "mouseenter",
                 () => {
-                    quickAction.style.background =
-                        "var(--color-accent-hover)";
+                    quickAction.style.background = "var(--color-accent-hover)";
                     quickAction.style.transform = "translateY(-1px)";
                 },
                 { signal }

@@ -1,7 +1,7 @@
 /**
  * Minimal p-limit compatible concurrency limiter.
  *
- * The upstream `p-limit@7` requires Node \>= 20. FitFileViewer still keeps
+ * The upstream `p-limit@7` requires Node >= 20. FitFileViewer still keeps
  * legacy Electron/Windows compatibility paths, so this module provides only the
  * subset the app uses: `pLimitCompat(concurrency)` returns a `limit(factory)`
  * function that caps concurrent executions.
@@ -23,6 +23,7 @@ export type LimitFunction = <T>(factory: AsyncFactory<T>) => Promise<T>;
  * Create a dependency-free concurrency limiter.
  *
  * @param concurrency - Maximum number of factories to run at once.
+ *
  * @returns Function that schedules factories and resolves with their result.
  */
 export default function pLimitCompat(concurrency: number): LimitFunction {

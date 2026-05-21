@@ -11,12 +11,14 @@ function normalizeZoneData(zoneData) {
     return zoneData
         .filter((zone) => zone !== null && typeof zone === "object")
         .map((zone) => ({
-        color: typeof zone["color"] === "string" ? zone["color"] : undefined,
-        label: typeof zone["label"] === "string"
-            ? zone["label"]
-            : String(zone["label"]),
-        value: toFiniteNumber(zone["value"]),
-    }));
+            color:
+                typeof zone["color"] === "string" ? zone["color"] : undefined,
+            label:
+                typeof zone["label"] === "string"
+                    ? zone["label"]
+                    : String(zone["label"]),
+            value: toFiniteNumber(zone["value"]),
+        }));
 }
 /**
  * Renders a single power zone bar (e.g., for a summary or lap).
@@ -38,9 +40,13 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
         }
         const theme = detectCurrentTheme();
         console.log("[renderSinglePowerZoneBar] Detected theme:", theme);
-        const savedColors = getChartZoneColors("power", normalizedZoneData.length);
+        const savedColors = getChartZoneColors(
+            "power",
+            normalizedZoneData.length
+        );
         const datasets = normalizedZoneData.map((zone, index) => ({
-            backgroundColor: zone.color ??
+            backgroundColor:
+                zone.color ??
                 savedColors[index] ??
                 (theme === "dark" ? "#f59e42" : "#fbbf24"),
             borderColor: theme === "dark" ? "#333" : "#fff",
@@ -57,7 +63,8 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                 maintainAspectRatio: false,
                 plugins: {
                     chartBackgroundColorPlugin: {
-                        backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor:
+                            theme === "dark" ? "#181c24" : "#ffffff",
                         borderColor: theme === "dark" ? "#fff" : "#000",
                         color: theme === "dark" ? "#fff" : "#000",
                         display: true,
@@ -68,7 +75,8 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                         text: "chart background plugin",
                     },
                     legend: {
-                        backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor:
+                            theme === "dark" ? "#181c24" : "#ffffff",
                         borderColor: theme === "dark" ? "#fff" : "#000",
                         color: theme === "dark" ? "#fff" : "#000",
                         display: true,
@@ -85,7 +93,8 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                         title: "",
                     },
                     title: {
-                        backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor:
+                            theme === "dark" ? "#181c24" : "#ffffff",
                         borderColor: theme === "dark" ? "#fff" : "#000",
                         color: theme === "dark" ? "#fff" : "#000",
                         display: Boolean(options.title),
@@ -102,7 +111,10 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                         borderWidth: 1,
                         callbacks: {
                             label(context) {
-                                const timeFormatted = formatTime(toFiniteNumber(context.parsed.y), true);
+                                const timeFormatted = formatTime(
+                                    toFiniteNumber(context.parsed.y),
+                                    true
+                                );
                                 return `${context.dataset.label}: ${timeFormatted}`;
                             },
                         },
@@ -144,9 +156,10 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                 scales: {
                     x: {
                         grid: {
-                            color: theme === "dark"
-                                ? "rgba(255,255,255,0.1)"
-                                : "rgba(0,0,0,0.1)",
+                            color:
+                                theme === "dark"
+                                    ? "rgba(255,255,255,0.1)"
+                                    : "rgba(0,0,0,0.1)",
                         },
                         ticks: {
                             color: theme === "dark" ? "#fff" : "#000",
@@ -160,9 +173,10 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: theme === "dark"
-                                ? "rgba(255,255,255,0.1)"
-                                : "rgba(0,0,0,0.1)",
+                            color:
+                                theme === "dark"
+                                    ? "rgba(255,255,255,0.1)"
+                                    : "rgba(0,0,0,0.1)",
                         },
                         ticks: {
                             callback(value) {
@@ -182,10 +196,12 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
             type: "bar",
         };
         return new chartGlobal.Chart(canvas, chartConfig);
-    }
-    catch (error) {
+    } catch (error) {
         if (chartGlobal.showNotification) {
-            chartGlobal.showNotification("Failed to render power zone bar", "error");
+            chartGlobal.showNotification(
+                "Failed to render power zone bar",
+                "error"
+            );
         }
         console.error("[renderSinglePowerZoneBar] Error:", error);
         return null;

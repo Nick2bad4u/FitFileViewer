@@ -1,6 +1,9 @@
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
-import { createAboutModalContentElement, handleEscapeKey } from "./aboutModal.js";
+import {
+    createAboutModalContentElement,
+    handleEscapeKey,
+} from "./aboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 /**
  * Enhanced modal initialization with modern styling and smooth animations

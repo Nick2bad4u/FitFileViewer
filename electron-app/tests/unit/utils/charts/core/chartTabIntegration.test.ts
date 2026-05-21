@@ -27,9 +27,7 @@ const clearChartStateMock = vi.hoisted(() => vi.fn<() => void>());
 const debouncedRenderMock = vi.hoisted(() =>
     vi.fn<(reason?: string) => void>()
 );
-const forceRenderMock = vi.hoisted(() =>
-    vi.fn<(reason?: string) => void>()
-);
+const forceRenderMock = vi.hoisted(() => vi.fn<(reason?: string) => void>());
 const getChartInfoMock = vi.hoisted(() =>
     vi.fn<() => object>(() => ({ isRendered: false }))
 );
@@ -48,14 +46,17 @@ vi.mock(import("../../../../../utils/state/core/stateManager.js"), () => ({
     subscribe: subscribeMock,
 }));
 
-vi.mock(import("../../../../../utils/charts/core/chartStateManager.js"), () => ({
-    chartStateManager: {
-        clearChartState: clearChartStateMock,
-        debouncedRender: debouncedRenderMock,
-        forceRender: forceRenderMock,
-        getChartInfo: getChartInfoMock,
-    },
-}));
+vi.mock(
+    import("../../../../../utils/charts/core/chartStateManager.js"),
+    () => ({
+        chartStateManager: {
+            clearChartState: clearChartStateMock,
+            debouncedRender: debouncedRenderMock,
+            forceRender: forceRenderMock,
+            getChartInfo: getChartInfoMock,
+        },
+    })
+);
 
 vi.mock(import("../../../../../utils/ui/tabs/tabStateManager.js"), () => ({
     tabStateManager: {
@@ -155,10 +156,16 @@ describe(ChartTabIntegration, () => {
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
         integration.initialize();
-        stateListeners
-            .get("globalData")
-            ?.({ recordMesgs: [{}] }, { recordMesgs: [] }, "globalData");
-        stateListeners.get("app.isOpeningFile")?.(false, true, "app.isOpeningFile");
+        stateListeners.get("globalData")?.(
+            { recordMesgs: [{}] },
+            { recordMesgs: [] },
+            "globalData"
+        );
+        stateListeners.get("app.isOpeningFile")?.(
+            false,
+            true,
+            "app.isOpeningFile"
+        );
 
         const firstSubscribeCall = subscribeMock.mock.calls[0],
             secondSubscribeCall = subscribeMock.mock.calls[1];

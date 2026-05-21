@@ -3,44 +3,44 @@ import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 // Constants for better maintainability
 const BUTTON_TEXTS = {
-    LATER: "Later",
-    RESTART_UPDATE: "Restart & Update",
-}, LOG_SCOPE = "ShowUpdateNotification", NOTIFICATION_CONSTANTS = {
-    BUTTON_CLASS: "themed-btn",
-    BUTTON_MARGIN: "10px",
-    DEFAULT_DURATION: 6000,
-    DEFAULT_TYPE: "info",
-    NOTIFICATION_ID: "notification",
-    UPDATE_DOWNLOADED: "update-downloaded",
-};
+        LATER: "Later",
+        RESTART_UPDATE: "Restart & Update",
+    },
+    LOG_SCOPE = "ShowUpdateNotification",
+    NOTIFICATION_CONSTANTS = {
+        BUTTON_CLASS: "themed-btn",
+        BUTTON_MARGIN: "10px",
+        DEFAULT_DURATION: 6000,
+        DEFAULT_TYPE: "info",
+        NOTIFICATION_ID: "notification",
+        UPDATE_DOWNLOADED: "update-downloaded",
+    };
 const log = createRendererLogger(LOG_SCOPE);
 const activeAutoHideTimers = new WeakMap();
 /**
  * Shows update notifications with enhanced features and error handling.
  *
- * @example
- *     // Basic notification
- *     showUpdateNotification("Update available", "info");
+ * @example // Basic notification showUpdateNotification("Update available",
+ * "info");
  *
- * @example
- *     // Update downloaded notification with restart option
- *     showUpdateNotification(
- *         "Update downloaded",
- *         "success",
- *         0,
- *         "update-downloaded"
- *     );
+ * @example // Update downloaded notification with restart option
+ * showUpdateNotification( "Update downloaded", "success", 0,
+ * "update-downloaded" );
  *
- * @example
- *     // Simple update available with action
- *     showUpdateNotification("Update ready", "info", 6000, true);
+ * @example // Simple update available with action
+ * showUpdateNotification("Update ready", "info", 6000, true);
  *
  * @param message - The notification message to display.
  * @param type - Notification type.
  * @param duration - Auto-hide duration in milliseconds; 0 means no auto-hide.
  * @param withAction - Action type: false, true, or "update-downloaded".
  */
-export function showUpdateNotification(message, type = NOTIFICATION_CONSTANTS.DEFAULT_TYPE, duration = NOTIFICATION_CONSTANTS.DEFAULT_DURATION, withAction = false) {
+export function showUpdateNotification(
+    message,
+    type = NOTIFICATION_CONSTANTS.DEFAULT_TYPE,
+    duration = NOTIFICATION_CONSTANTS.DEFAULT_DURATION,
+    withAction = false
+) {
     try {
         log("info", "Showing update notification", {
             duration,
@@ -65,8 +65,7 @@ export function showUpdateNotification(message, type = NOTIFICATION_CONSTANTS.DE
         // Handle different action types
         if (withAction === NOTIFICATION_CONSTANTS.UPDATE_DOWNLOADED) {
             createUpdateDownloadedButtons(notification);
-        }
-        else if (withAction) {
+        } else if (withAction) {
             createUpdateActionButton(notification);
         }
         // Set up auto-hide if needed
@@ -74,8 +73,7 @@ export function showUpdateNotification(message, type = NOTIFICATION_CONSTANTS.DE
             setupAutoHide(notification, duration);
         }
         log("info", "Update notification displayed successfully");
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to show update notification", {
             duration,
             error: getErrorMessage(error),
@@ -91,8 +89,7 @@ function clearNotificationContent(notification) {
         while (notification.firstChild) {
             notification.firstChild.remove();
         }
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to clear notification content", {
             error: getErrorMessage(error),
         });
@@ -112,8 +109,7 @@ function createThemedButton(text, clickHandler, styles = {}) {
         // Apply additional styles
         Object.assign(button.style, styles);
         return button;
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to create themed button", {
             error: getErrorMessage(error),
             text,
@@ -124,13 +120,15 @@ function createThemedButton(text, clickHandler, styles = {}) {
 /** Create simple update action button. */
 function createUpdateActionButton(notification) {
     try {
-        const button = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
+        const button = createThemedButton(
+            BUTTON_TEXTS.RESTART_UPDATE,
+            handleUpdateInstall
+        );
         if (button) {
             notification.append(button);
             log("info", "Update action button created");
         }
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to create update action button", {
             error: getErrorMessage(error),
         });
@@ -139,16 +137,23 @@ function createUpdateActionButton(notification) {
 /** Create update downloaded action buttons. */
 function createUpdateDownloadedButtons(notification) {
     try {
-        const laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
-            marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
-        }), restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
+        const laterBtn = createThemedButton(
+                BUTTON_TEXTS.LATER,
+                () => hideNotification(notification),
+                {
+                    marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
+                }
+            ),
+            restartBtn = createThemedButton(
+                BUTTON_TEXTS.RESTART_UPDATE,
+                handleUpdateInstall
+            );
         if (restartBtn && laterBtn) {
             notification.append(restartBtn);
             notification.append(laterBtn);
             log("info", "Update downloaded buttons created");
         }
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to create update downloaded buttons", {
             error: getErrorMessage(error),
         });
@@ -160,7 +165,9 @@ function createUpdateDownloadedButtons(notification) {
  * @returns Notification element or null if not found.
  */
 function getNotificationElement() {
-    const notification = document.getElementById(NOTIFICATION_CONSTANTS.NOTIFICATION_ID);
+    const notification = document.getElementById(
+        NOTIFICATION_CONSTANTS.NOTIFICATION_ID
+    );
     if (!notification) {
         log("error", "Notification element not found in DOM");
         return null;
@@ -174,12 +181,10 @@ function handleUpdateInstall() {
             const installUpdate = getInstallUpdate();
             log("info", "Initiating update installation");
             installUpdate?.();
-        }
-        else {
+        } else {
             log("error", "Cannot install update - electronAPI not available");
         }
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to install update", {
             error: getErrorMessage(error),
         });
@@ -193,8 +198,7 @@ function hideNotification(notification) {
             notification.style.display = "none";
             log("info", "Notification hidden");
         }
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to hide notification", {
             error: getErrorMessage(error),
         });
@@ -212,8 +216,7 @@ function setupAutoHide(notification, duration) {
         }, duration);
         activeAutoHideTimers.set(notification, timeoutHandle);
         log("info", "Auto-hide timeout set", { duration });
-    }
-    catch (error) {
+    } catch (error) {
         log("error", "Failed to setup auto-hide", {
             duration,
             error: getErrorMessage(error),
@@ -233,7 +236,9 @@ function validateElectronAPI() {
     return hasAPI;
 }
 function getInstallUpdate() {
-    const appGlobal = globalThis, electronAPI = appGlobal.electronAPI ?? appGlobal.window?.electronAPI, installUpdate = electronAPI?.installUpdate;
+    const appGlobal = globalThis,
+        electronAPI = appGlobal.electronAPI ?? appGlobal.window?.electronAPI,
+        installUpdate = electronAPI?.installUpdate;
     return typeof installUpdate === "function" ? installUpdate : null;
 }
 function clearAutoHideTimer(notification) {

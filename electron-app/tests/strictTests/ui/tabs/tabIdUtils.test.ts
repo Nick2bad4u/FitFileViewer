@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-type TabIdUtilsModule = typeof import("../../../../utils/ui/tabs/tabIdUtils.js");
+type TabIdUtilsModule =
+    typeof import("../../../../utils/ui/tabs/tabIdUtils.js");
 
 describe("tabIdUtils", () => {
     it("normalizes tab names and content tab aliases", async () => {
@@ -27,9 +28,7 @@ describe("tabIdUtils", () => {
         expect(extractTabNameFromButtonId("summary-tab")).toBe("summary");
         expect(extractTabNameFromButtonId("btn-map")).toBe("map");
         expect(extractTabNameFromButtonId("map_btn")).toBe("map");
-        expect(extractTabNameFromButtonId("tab_unknown")).toBe(
-            "tab_unknown"
-        );
+        expect(extractTabNameFromButtonId("tab_unknown")).toBe("tab_unknown");
     });
 
     it("resolves configured tab names from direct variants and parsed names", async () => {
@@ -47,7 +46,9 @@ describe("tabIdUtils", () => {
         expect(resolveTabNameFromButtonId("btnChart", tabConfigMap)).toBe(
             "chart"
         );
-        expect(resolveTabNameFromButtonId("not-a-tab", tabConfigMap)).toBeNull();
+        expect(
+            resolveTabNameFromButtonId("not-a-tab", tabConfigMap)
+        ).toBeNull();
         expect(resolveTabNameFromButtonId(null, tabConfigMap)).toBeNull();
     });
 

@@ -3,6 +3,7 @@
  *
  * @param obj - Source object.
  * @param path - Dot-notation path.
+ *
  * @returns Value at the path, or undefined when the path cannot be resolved.
  */
 export function getNestedValue(obj, path) {
@@ -43,9 +44,11 @@ export function setNestedValue(obj, path, value) {
             continue;
         }
         const nextValue = target[key];
-        if (nextValue === null ||
+        if (
+            nextValue === null ||
             typeof nextValue !== "object" ||
-            Array.isArray(nextValue)) {
+            Array.isArray(nextValue)
+        ) {
             target[key] = {};
         }
         target = target[key];

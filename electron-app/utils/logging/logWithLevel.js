@@ -17,8 +17,7 @@ export function logWithLevel(level, message, context) {
             case "error": {
                 if (payload) {
                     console.error(base, payload);
-                }
-                else {
+                } else {
                     console.error(base);
                 }
                 break;
@@ -26,8 +25,7 @@ export function logWithLevel(level, message, context) {
             case "info": {
                 if (payload) {
                     console.info(base, payload);
-                }
-                else {
+                } else {
                     console.info(base);
                 }
                 break;
@@ -35,8 +33,7 @@ export function logWithLevel(level, message, context) {
             case "warn": {
                 if (payload) {
                     console.warn(base, payload);
-                }
-                else {
+                } else {
                     console.warn(base);
                 }
                 break;
@@ -44,27 +41,24 @@ export function logWithLevel(level, message, context) {
             default: {
                 if (payload) {
                     console.log(base, payload);
-                }
-                else {
+                } else {
                     console.log(base);
                 }
             }
         }
-    }
-    catch {
+    } catch {
         try {
             console.log("[FFV][logWithLevel] Logging failure");
-        }
-        catch {
+        } catch {
             // Nothing else can be done if console itself is unavailable.
         }
-    }
-    finally {
+    } finally {
         setObjectKeysThrowFlag(false);
     }
 }
 function createLogPayload(context) {
-    const isPlainObject = context !== null &&
+    const isPlainObject =
+        context !== null &&
         context !== undefined &&
         typeof context === "object" &&
         !Array.isArray(context);
@@ -79,8 +73,7 @@ function createLogPayload(context) {
             try {
                 clone[key] = context[key];
                 hasAny = true;
-            }
-            catch {
+            } catch {
                 // Skip keys with throwing getters.
             }
         }
@@ -90,8 +83,7 @@ function createLogPayload(context) {
 function setObjectKeysThrowFlag(value) {
     try {
         globalThis.__vitest_object_keys_allow_throw = value;
-    }
-    catch {
+    } catch {
         // Ignore test-hook cleanup failures.
     }
 }

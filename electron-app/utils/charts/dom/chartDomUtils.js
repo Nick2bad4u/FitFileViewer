@@ -5,7 +5,11 @@
  * ID fallbacks across chart-related modules.
  */
 import { isHTMLElement } from "../../dom/domHelpers.js";
-import { getElementByIdFlexible, getElementByIdFlexibleList, querySelectorByIdFlexible, } from "../../ui/dom/elementIdUtils.js";
+import {
+    getElementByIdFlexible,
+    getElementByIdFlexibleList,
+    querySelectorByIdFlexible,
+} from "../../ui/dom/elementIdUtils.js";
 const CHART_CONTENT_IDS = ["content_chartjs", "content_chart"];
 const CHART_RENDER_CONTAINER_IDS = [
     "chartjs_chart_container",
@@ -19,6 +23,7 @@ const CHART_CONTROLS_TOGGLE_SELECTOR = "#chart-controls-toggle";
  * Resolve the chart tab content container.
  *
  * @param doc - DOM root used for lookup.
+ *
  * @returns The chart content container, if found.
  */
 export function getChartContentContainer(doc) {
@@ -28,6 +33,7 @@ export function getChartContentContainer(doc) {
  * Resolve the main chart rendering container.
  *
  * @param doc - DOM root used for lookup.
+ *
  * @returns The chart render container, if found.
  */
 export function getChartRenderContainer(doc) {
@@ -37,6 +43,7 @@ export function getChartRenderContainer(doc) {
  * Resolve the chart background container.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart background container, if found.
  */
 export function getChartBackgroundContainer(doc) {
@@ -46,6 +53,7 @@ export function getChartBackgroundContainer(doc) {
  * Resolve the chart settings wrapper.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart settings wrapper, if found.
  */
 export function getChartSettingsWrapper(doc) {
@@ -55,6 +63,7 @@ export function getChartSettingsWrapper(doc) {
  * Resolve the chart controls toggle button.
  *
  * @param doc - Document used for lookup.
+ *
  * @returns The chart controls toggle, if found.
  */
 export function getChartControlsToggle(doc) {
@@ -65,6 +74,7 @@ export function getChartControlsToggle(doc) {
  *
  * @param doc - Document used for fallback lookup.
  * @param targetContainer - Element or ID supplied by callers.
+ *
  * @returns Resolved chart container, if found.
  */
 export function resolveChartContainer(doc, targetContainer) {

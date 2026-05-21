@@ -107,7 +107,11 @@ describe(isValidOptionValue, () => {
             isValidOptionValue("smoothing", 0),
             isValidOptionValue("smoothing", 0.4),
             isValidOptionValue("smoothing", 1),
-        ]).toStrictEqual([true, true, true]);
+        ]).toStrictEqual([
+            true,
+            true,
+            true,
+        ]);
     });
 
     it("rejects out-of-bounds and invalid values for range type", () => {
@@ -118,7 +122,12 @@ describe(isValidOptionValue, () => {
             isValidOptionValue("smoothing", 1.1),
             isValidOptionValue("smoothing", Number.POSITIVE_INFINITY),
             isValidOptionValue("smoothing", "0.5"),
-        ]).toStrictEqual([false, false, false, false]);
+        ]).toStrictEqual([
+            false,
+            false,
+            false,
+            false,
+        ]);
     });
 
     it("validates select type membership", () => {
@@ -129,7 +138,12 @@ describe(isValidOptionValue, () => {
             isValidOptionValue("chartType", "scatter"),
             isValidOptionValue("chartType", "area"),
             isValidOptionValue("chartType", "nope"),
-        ]).toStrictEqual([true, true, true, false]);
+        ]).toStrictEqual([
+            true,
+            true,
+            true,
+            false,
+        ]);
     });
 
     it("validates toggle type boolean", () => {
@@ -139,7 +153,11 @@ describe(isValidOptionValue, () => {
             isValidOptionValue("showLegend", true),
             isValidOptionValue("showLegend", false),
             isValidOptionValue("showLegend", 1),
-        ]).toStrictEqual([true, true, false]);
+        ]).toStrictEqual([
+            true,
+            true,
+            false,
+        ]);
     });
 
     it("returns false for unknown optionId", () => {
@@ -167,7 +185,11 @@ describe(getMaxPointsWarningLevel, () => {
             getMaxPointsWarningLevel(1),
             getMaxPointsWarningLevel(5),
             getMaxPointsWarningLevel(Number.NaN),
-        ]).toStrictEqual([null, null, null]);
+        ]).toStrictEqual([
+            null,
+            null,
+            null,
+        ]);
         expect(getMaxPointsWarningLevel(5)).not.toBe("slow");
     });
 
@@ -198,7 +220,12 @@ describe(getMaxPointsWarningLevel, () => {
             maxPointsOptions.includes(100_000),
             maxPointsOptions.includes(1_000_000),
             maxPointsOptions.includes("all"),
-        ]).toStrictEqual([true, true, true, true]);
+        ]).toStrictEqual([
+            true,
+            true,
+            true,
+            true,
+        ]);
         expect(maxPointsOptions).not.toContain(0);
     });
 });

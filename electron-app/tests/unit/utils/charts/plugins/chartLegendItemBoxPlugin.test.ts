@@ -21,7 +21,9 @@ vi.mock(import("../../../../../utils/theming/core/theme.js"), () => ({
 interface MockCanvasContext {
     beginPath: ReturnType<typeof vi.fn<() => void>>;
     fill: ReturnType<typeof vi.fn<() => void>>;
-    fillRect: ReturnType<typeof vi.fn<(x: number, y: number, w: number, h: number) => void>>;
+    fillRect: ReturnType<
+        typeof vi.fn<(x: number, y: number, w: number, h: number) => void>
+    >;
     fillStyle: CanvasRenderingContext2D["fillStyle"];
     globalAlpha: number;
     lineWidth: number;
@@ -39,7 +41,9 @@ interface MockCanvasContext {
     >;
     save: ReturnType<typeof vi.fn<() => void>>;
     stroke: ReturnType<typeof vi.fn<() => void>>;
-    strokeRect: ReturnType<typeof vi.fn<(x: number, y: number, w: number, h: number) => void>>;
+    strokeRect: ReturnType<
+        typeof vi.fn<(x: number, y: number, w: number, h: number) => void>
+    >;
     strokeStyle: CanvasRenderingContext2D["strokeStyle"];
 }
 
@@ -52,18 +56,23 @@ function createMockContext(): MockCanvasContext {
         globalAlpha: 1,
         lineWidth: 0,
         restore: vi.fn<() => void>(),
-        roundRect: vi.fn<
-            (
-                x: number,
-                y: number,
-                w: number,
-                h: number,
-                radii?: number | DOMPointInit | Iterable<number | DOMPointInit>
-            ) => void
-        >(),
+        roundRect:
+            vi.fn<
+                (
+                    x: number,
+                    y: number,
+                    w: number,
+                    h: number,
+                    radii?:
+                        | number
+                        | DOMPointInit
+                        | Iterable<number | DOMPointInit>
+                ) => void
+            >(),
         save: vi.fn<() => void>(),
         stroke: vi.fn<() => void>(),
-        strokeRect: vi.fn<(x: number, y: number, w: number, h: number) => void>(),
+        strokeRect:
+            vi.fn<(x: number, y: number, w: number, h: number) => void>(),
         strokeStyle: "",
     };
 }

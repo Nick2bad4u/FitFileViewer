@@ -29,7 +29,8 @@ const noopCreateAppMenu: CreateAppMenuCallable = () => {
 const resolvedCreateAppMenu = getGlobalCreateAppMenu() ?? noopCreateAppMenu;
 
 /**
- * Creates and installs the Electron application menu when the legacy bridge is available.
+ * Creates and installs the Electron application menu when the legacy bridge is
+ * available.
  */
 export const createAppMenu = resolvedCreateAppMenu;
 

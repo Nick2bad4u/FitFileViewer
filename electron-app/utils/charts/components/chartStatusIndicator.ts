@@ -87,10 +87,7 @@ function setupGlobalDataObserver(): void {
         "globalData"
     );
 
-    if (
-        existingDescriptor?.set &&
-        existingDescriptor.configurable !== true
-    ) {
+    if (existingDescriptor?.set && existingDescriptor.configurable !== true) {
         return;
     }
 
@@ -183,8 +180,9 @@ export function updateAllChartStatusIndicators(): void {
     try {
         const counts = getChartCounts();
 
-        replaceIndicator("#chart-status-indicator", () =>
-            createChartStatusIndicatorFromCounts(counts),
+        replaceIndicator(
+            "#chart-status-indicator",
+            () => createChartStatusIndicatorFromCounts(counts),
             cleanupChartStatusIndicatorFromCounts
         );
 
@@ -219,7 +217,11 @@ export function updateChartStatusIndicator(
         }
 
         const newIndicator = createChartStatusIndicator();
-        if (newIndicator && target instanceof HTMLElement && target.parentNode) {
+        if (
+            newIndicator &&
+            target instanceof HTMLElement &&
+            target.parentNode
+        ) {
             cleanupChartStatusIndicatorFromCounts(target);
             target.replaceWith(newIndicator);
         }

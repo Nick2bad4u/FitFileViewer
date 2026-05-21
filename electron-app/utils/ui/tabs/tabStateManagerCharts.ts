@@ -9,7 +9,6 @@ import { getDoc } from "./tabStateManagerDoc.js";
 /**
  * Attach any pre-rendered chart canvas from the background container into the
  * visible chart container.
- *
  */
 export function attachPreRenderedCharts(): boolean {
     const doc = getDoc();

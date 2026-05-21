@@ -9,8 +9,12 @@ function readInjectedGlobalData(dependencies) {
     for (const id of STATE_MANAGER_MODULE_IDS) {
         try {
             const moduleValue = dependencies.getInjectedModule(id);
-            const defaultExport = dependencies.getRecordValue(moduleValue, "default");
-            const getState = dependencies.getRecordFunction(moduleValue, "getState") ??
+            const defaultExport = dependencies.getRecordValue(
+                moduleValue,
+                "default"
+            );
+            const getState =
+                dependencies.getRecordFunction(moduleValue, "getState") ??
                 dependencies.getRecordFunction(defaultExport, "getState");
             if (getState) {
                 const value = getState("globalData");
@@ -18,15 +22,16 @@ function readInjectedGlobalData(dependencies) {
                     return value;
                 }
             }
-        }
-        catch {
+        } catch {
             // Try the next injected module id.
         }
     }
     return undefined;
 }
 function hasModuleInjection(dependencies) {
-    return Boolean(dependencies.getInjectedModule("../../state/core/stateManager.js"));
+    return Boolean(
+        dependencies.getInjectedModule("../../state/core/stateManager.js")
+    );
 }
 function resolveHasValidData(dependencies) {
     let data = dependencies.getState("globalData");
@@ -36,8 +41,7 @@ function resolveHasValidData(dependencies) {
             if (injectedData !== undefined) {
                 data = injectedData;
             }
-        }
-        catch {
+        } catch {
             // Keep the original state value.
         }
     }
@@ -56,15 +60,20 @@ function resolveRenderableFields(state, dependencies) {
     const fields = dependencies.getFormatChartFields();
     return Array.isArray(fields)
         ? fields
-            .filter((field) => typeof field === "string")
-            .filter((field) => (dependencies.getFieldVisibility(field) || "visible") !==
-            "hidden")
+              .filter((field) => typeof field === "string")
+              .filter(
+                  (field) =>
+                      (dependencies.getFieldVisibility(field) || "visible") !==
+                      "hidden"
+              )
         : [];
 }
 /**
  * Creates the read-only chart state view backed by the centralized state store.
  *
- * @param dependencies - State and formatting accessors supplied by renderChartJS.
+ * @param dependencies - State and formatting accessors supplied by
+ *   renderChartJS.
+ *
  * @returns A live chart state view.
  */
 export function createChartStateView(dependencies) {

@@ -71,7 +71,8 @@ const sidebars: SidebarsConfig = {
             ],
             label: "📊 Data Visualization",
             link: {
-                description: "Interactive maps, charts, tables, and summary views.",
+                description:
+                    "Interactive maps, charts, tables, and summary views.",
                 title: "Data Visualization",
                 type: "generated-index",
             },
@@ -90,7 +91,8 @@ const sidebars: SidebarsConfig = {
             ],
             label: "🏗️ Architecture",
             link: {
-                description: "Technical architecture, design patterns, and internal workings.",
+                description:
+                    "Technical architecture, design patterns, and internal workings.",
                 title: "Architecture",
                 type: "generated-index",
             },
@@ -109,7 +111,8 @@ const sidebars: SidebarsConfig = {
             ],
             label: "🛠️ Development",
             link: {
-                description: "Development setup, standards, and contribution guidelines.",
+                description:
+                    "Development setup, standards, and contribution guidelines.",
                 title: "Development",
                 type: "generated-index",
             },
@@ -137,7 +140,8 @@ const sidebars: SidebarsConfig = {
             ],
             label: "🔧 API Reference",
             link: {
-                description: "API documentation for FitFileViewer modules and utilities.",
+                description:
+                    "API documentation for FitFileViewer modules and utilities.",
                 title: "API Reference",
                 type: "generated-index",
             },
@@ -166,19 +170,20 @@ const sidebars: SidebarsConfig = {
             customProps: { badge: "blog" },
             items: [
                 {
-                        href: "/blog",
+                    href: "/blog",
                     label: "📰 Blog Home",
                     type: "link",
                 },
                 {
-                        href: "/blog/tags",
-                        label: "🏷️ Tags",
-                        type: "link",
+                    href: "/blog/tags",
+                    label: "🏷️ Tags",
+                    type: "link",
                 },
             ],
             label: "📰 Blog",
             link: {
-                description: "Development updates, deep dives, and release notes.",
+                description:
+                    "Development updates, deep dives, and release notes.",
                 title: "Blog",
                 type: "generated-index",
             },

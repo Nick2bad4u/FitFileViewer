@@ -7,7 +7,14 @@ import { showNotification } from "../notifications/showNotification.js";
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { TAB_CONFIG as TAB_CONFIG_DEFINITIONS } from "./tabStateManagerConfig.js";
-import { handleAltFitTab as handleAltFitTabImpl, handleBrowserTab as handleBrowserTabImpl, handleChartTab as handleChartTabImpl, handleDataTab as handleDataTabImpl, handleMapTab as handleMapTabImpl, handleSummaryTab as handleSummaryTabImpl, } from "./tabStateManagerHandlers.js";
+import {
+    handleAltFitTab as handleAltFitTabImpl,
+    handleBrowserTab as handleBrowserTabImpl,
+    handleChartTab as handleChartTabImpl,
+    handleDataTab as handleDataTabImpl,
+    handleMapTab as handleMapTabImpl,
+    handleSummaryTab as handleSummaryTabImpl,
+} from "./tabStateManagerHandlers.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 const TAB_CONFIG = TAB_CONFIG_DEFINITIONS;
 function asActivityData(value) {
@@ -35,12 +42,15 @@ export class TabStateManager {
         // Stable click handler reference to prevent accumulating listeners
         this._buttonClickHandler = (event) => {
             try {
-                const target = event.currentTarget instanceof Element
-                    ? event.currentTarget
-                    : null;
-                console.log(`[TabStateManager] Click detected on button: ${target?.id || ""}`, event);
-            }
-            catch {
+                const target =
+                    event.currentTarget instanceof Element
+                        ? event.currentTarget
+                        : null;
+                console.log(
+                    `[TabStateManager] Click detected on button: ${target?.id || ""}`,
+                    event
+                );
+            } catch {
                 /* Ignore errors */
             }
             this.handleTabButtonClick(event);
@@ -55,31 +65,33 @@ export class TabStateManager {
     cleanup() {
         // Unsubscribe state listeners
         try {
-            if (Array.isArray(this._unsubscribes) &&
-                this._unsubscribes.length > 0) {
+            if (
+                Array.isArray(this._unsubscribes) &&
+                this._unsubscribes.length > 0
+            ) {
                 for (const unsub of this._unsubscribes.splice(0)) {
                     try {
                         if (typeof unsub === "function") {
                             unsub();
                         }
-                    }
-                    catch {
+                    } catch {
                         /* Ignore errors */
                     }
                 }
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         // Remove document DOMContentLoaded handler if previously added
         try {
             if (this._setupHandlersFn) {
-                getDoc().removeEventListener("DOMContentLoaded", this._setupHandlersFn);
+                getDoc().removeEventListener(
+                    "DOMContentLoaded",
+                    this._setupHandlersFn
+                );
                 this._setupHandlersFn = null;
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         // Detach click handlers from current tab buttons
@@ -87,14 +99,15 @@ export class TabStateManager {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
             for (const button of tabButtons) {
                 try {
-                    button.removeEventListener("click", this._buttonClickHandler);
-                }
-                catch {
+                    button.removeEventListener(
+                        "click",
+                        this._buttonClickHandler
+                    );
+                } catch {
                     /* Ignore errors */
                 }
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         // Mark uninitialized so tests can re-init if they re-import or call setup explicitly
@@ -105,6 +118,7 @@ export class TabStateManager {
      * Extract tab name from button ID
      *
      * @param buttonId - Button element ID.
+     *
      * @returns Tab name or null.
      */
     extractTabName(buttonId) {
@@ -117,7 +131,8 @@ export class TabStateManager {
      */
     getActiveTabInfo() {
         const activeTab = getStateMgr().getState("ui.activeTab");
-        const config = typeof activeTab === "string" ? getTabConfig(activeTab) : undefined;
+        const config =
+            typeof activeTab === "string" ? getTabConfig(activeTab) : undefined;
         return {
             config,
             contentElement: config
@@ -180,15 +195,21 @@ export class TabStateManager {
      * @param event - Click event.
      */
     handleTabButtonClick = (event) => {
-        const button = event.currentTarget instanceof HTMLElement
-            ? event.currentTarget
-            : null, tabId = button?.id || "";
+        const button =
+                event.currentTarget instanceof HTMLElement
+                    ? event.currentTarget
+                    : null,
+            tabId = button?.id || "";
         // Check if button is disabled
-        if (!button ||
+        if (
+            !button ||
             (isDisableableElement(button) && button.disabled === true) ||
             button.hasAttribute("disabled") ||
-            button.classList.contains("tab-disabled")) {
-            console.log(`[TabStateManager] Ignoring click on disabled button: ${tabId}`);
+            button.classList.contains("tab-disabled")
+        ) {
+            console.log(
+                `[TabStateManager] Ignoring click on disabled button: ${tabId}`
+            );
             event.preventDefault();
             event.stopPropagation();
             return;
@@ -196,7 +217,9 @@ export class TabStateManager {
         // Extract tab name from button ID
         const tabName = this.extractTabName(tabId);
         if (!tabName) {
-            console.warn(`[TabStateManager] Could not extract tab name from ID: ${tabId}`);
+            console.warn(
+                `[TabStateManager] Could not extract tab name from ID: ${tabId}`
+            );
             return;
         }
         // Prevent switching if already active
@@ -206,7 +229,9 @@ export class TabStateManager {
         // Check if tab requires data
         const tabConfig = getTabConfig(tabName);
         if (tabConfig?.requiresData) {
-            const globalData = asActivityData(getStateMgr().getState("globalData"));
+            const globalData = asActivityData(
+                getStateMgr().getState("globalData")
+            );
             if (!globalData || !globalData.recordMesgs) {
                 showNotification("Please load a FIT file first", "info");
                 return;
@@ -275,12 +300,16 @@ export class TabStateManager {
                     break;
                 }
                 default: {
-                    console.log(`[TabStateManager] No specific handler for tab: ${tabName}`);
+                    console.log(
+                        `[TabStateManager] No specific handler for tab: ${tabName}`
+                    );
                 }
             }
-        }
-        catch (error) {
-            console.error(`[TabStateManager] Error handling tab ${tabName}:`, error);
+        } catch (error) {
+            console.error(
+                `[TabStateManager] Error handling tab ${tabName}:`,
+                error
+            );
             showNotification(`Error loading ${tabConfig.label} tab`, "error");
         }
     }
@@ -288,6 +317,7 @@ export class TabStateManager {
      * Generate a simple hash for data comparison.
      *
      * @param data - Activity data to summarize.
+     *
      * @returns Stable summary hash.
      */
     hashData(data) {
@@ -305,17 +335,22 @@ export class TabStateManager {
      */
     initializeSubscriptions() {
         // Subscribe to active tab changes
-        const unsubActive = getStateMgr().subscribe("ui.activeTab", (newTab, oldTab) => {
-            if (typeof newTab === "string" && newTab !== oldTab) {
-                this.handleTabChange(newTab, typeof oldTab === "string" ? oldTab : null);
+        const unsubActive = getStateMgr().subscribe(
+            "ui.activeTab",
+            (newTab, oldTab) => {
+                if (typeof newTab === "string" && newTab !== oldTab) {
+                    this.handleTabChange(
+                        newTab,
+                        typeof oldTab === "string" ? oldTab : null
+                    );
+                }
             }
-        });
+        );
         if (typeof unsubActive === "function")
             this._unsubscribes.push(() => {
                 try {
                     unsubActive();
-                }
-                catch {
+                } catch {
                     /* Ignore errors */
                 }
             });
@@ -327,8 +362,7 @@ export class TabStateManager {
             this._unsubscribes.push(() => {
                 try {
                     unsubData();
-                }
-                catch {
+                } catch {
                     /* Ignore errors */
                 }
             });
@@ -344,26 +378,33 @@ export class TabStateManager {
             for (const button of tabButtons) {
                 // Add stable listener with automatic cleanup tracking
                 try {
-                    addEventListenerWithCleanup(button, "click", this._buttonClickHandler);
-                }
-                catch {
+                    addEventListenerWithCleanup(
+                        button,
+                        "click",
+                        this._buttonClickHandler
+                    );
+                } catch {
                     /* Ignore errors */
                 }
             }
-            console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
+            console.log(
+                `[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`
+            );
         };
         const doc = getDoc();
         if (doc.readyState === "loading") {
             // Store reference so we can remove it during cleanup
             this._setupHandlersFn = setupHandlers;
             try {
-                addEventListenerWithCleanup(doc, "DOMContentLoaded", this._setupHandlersFn);
-            }
-            catch {
+                addEventListenerWithCleanup(
+                    doc,
+                    "DOMContentLoaded",
+                    this._setupHandlersFn
+                );
+            } catch {
                 /* Ignore errors */
             }
-        }
-        else {
+        } else {
             setupHandlers();
         }
     }
@@ -395,13 +436,19 @@ export class TabStateManager {
         }
         // Hide all content areas
         for (const config of Object.values(TAB_CONFIG)) {
-            const contentElement = getElementByIdFlexible(getDoc(), config.contentId);
+            const contentElement = getElementByIdFlexible(
+                getDoc(),
+                config.contentId
+            );
             if (contentElement) {
                 contentElement.style.display = "none";
             }
         }
         // Show active content area
-        const activeContent = getElementByIdFlexible(getDoc(), tabConfig.contentId);
+        const activeContent = getElementByIdFlexible(
+            getDoc(),
+            tabConfig.contentId
+        );
         if (activeContent) {
             activeContent.style.display = "block";
         }
@@ -427,8 +474,7 @@ export class TabStateManager {
                     }
                     try {
                         button.classList.toggle("disabled", !hasData);
-                    }
-                    catch {
+                    } catch {
                         /* Ignore errors */
                     }
                 }
@@ -444,19 +490,24 @@ export class TabStateManager {
         const tabButtons = getDoc().querySelectorAll(".tab-button");
         for (const button of tabButtons) {
             try {
-                const tabName = this.extractTabName(button.id), isActive = tabName === activeTab;
+                const tabName = this.extractTabName(button.id),
+                    isActive = tabName === activeTab;
                 // Defensive: ensure classList exists
-                if (button &&
+                if (
+                    button &&
                     button.classList &&
-                    typeof button.classList.toggle === "function") {
+                    typeof button.classList.toggle === "function"
+                ) {
                     button.classList.toggle("active", isActive);
                 }
                 // Always set aria-selected for both active and inactive to maintain consistency
                 if (button && typeof button.setAttribute === "function") {
-                    button.setAttribute("aria-selected", isActive ? "true" : "false");
+                    button.setAttribute(
+                        "aria-selected",
+                        isActive ? "true" : "false"
+                    );
                 }
-            }
-            catch {
+            } catch {
                 // Ignore individual button failures to keep others updated
             }
         }

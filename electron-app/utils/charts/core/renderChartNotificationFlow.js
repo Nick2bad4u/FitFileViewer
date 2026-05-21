@@ -13,9 +13,22 @@ function createRenderSuccessMessage(totalChartsRendered) {
  * @param input - Render counts and optional scheduler override.
  */
 export function handleChartRenderNotification(dependencies, input) {
-    const { getState, isTestRuntime, notify: notifySuccess, showRenderNotification, updateState: updateChartState, } = dependencies;
-    const { schedule = (callback, delay) => setTimeout(callback, delay), totalChartsRendered, visibleFieldCount, } = input;
-    const shouldShowNotification = showRenderNotification(totalChartsRendered, visibleFieldCount);
+    const {
+        getState,
+        isTestRuntime,
+        notify: notifySuccess,
+        showRenderNotification,
+        updateState: updateChartState,
+    } = dependencies;
+    const {
+        schedule = (callback, delay) => setTimeout(callback, delay),
+        totalChartsRendered,
+        visibleFieldCount,
+    } = input;
+    const shouldShowNotification = showRenderNotification(
+        totalChartsRendered,
+        visibleFieldCount
+    );
     if (shouldShowNotification && totalChartsRendered > 0) {
         const activeTab = getState("ui.activeTab");
         if (isChartTabActive(activeTab, isTestRuntime)) {
@@ -24,23 +37,34 @@ export function handleChartRenderNotification(dependencies, input) {
             schedule(() => {
                 const currentTab = getState("ui.activeTab");
                 if (isChartTabActive(currentTab, isTestRuntime)) {
-                    Promise.resolve().then(() => notifySuccess(message, "success"));
-                }
-                else {
-                    console.log(`[ChartJS] Notification cancelled - tab switched to ${currentTab}`);
+                    Promise.resolve().then(() =>
+                        notifySuccess(message, "success")
+                    );
+                } else {
+                    console.log(
+                        `[ChartJS] Notification cancelled - tab switched to ${currentTab}`
+                    );
                 }
             }, 100);
-            updateChartState("ui", {
-                lastNotification: {
-                    message,
-                    timestamp: Date.now(),
-                    type: "success",
+            updateChartState(
+                "ui",
+                {
+                    lastNotification: {
+                        message,
+                        timestamp: Date.now(),
+                        type: "success",
+                    },
                 },
-            }, { merge: true, source: "renderChartsWithData" });
+                { merge: true, source: "renderChartsWithData" }
+            );
             return;
         }
-        console.log(`[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`);
+        console.log(
+            `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
+        );
         return;
     }
-    console.log(`[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`);
+    console.log(
+        `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
+    );
 }

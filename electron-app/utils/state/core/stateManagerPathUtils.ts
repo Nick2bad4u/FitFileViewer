@@ -5,6 +5,7 @@ type UnknownRecord = Record<string, unknown>;
  *
  * @param obj - Source object.
  * @param path - Dot-notation path.
+ *
  * @returns Value at the path, or undefined when the path cannot be resolved.
  */
 export function getNestedValue(obj: unknown, path: string): unknown {

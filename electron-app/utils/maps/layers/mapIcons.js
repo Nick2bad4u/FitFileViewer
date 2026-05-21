@@ -7,8 +7,10 @@ function isLeafletIconFactory(value) {
         return false;
     }
     const candidate = value;
-    return (typeof candidate["divIcon"] === "function" &&
-        typeof candidate["icon"] === "function");
+    return (
+        typeof candidate["divIcon"] === "function" &&
+        typeof candidate["icon"] === "function"
+    );
 }
 function getLeaflet() {
     const leaflet = globalThis.L;

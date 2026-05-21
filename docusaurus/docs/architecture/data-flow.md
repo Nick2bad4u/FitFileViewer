@@ -52,6 +52,7 @@ sequenceDiagram
 ### 1. File Input
 
 User provides FIT file via:
+
 - Drag and drop
 - File dialog
 - Recent files
@@ -75,6 +76,7 @@ const records = decoder.getRecords();
 ### 4. Data Extraction
 
 Parsed data organized into:
+
 - Records (GPS points, metrics)
 - Laps (segment summaries)
 - Sessions (activity summary)
@@ -84,10 +86,10 @@ Parsed data organized into:
 ```javascript
 // Process and normalize data
 const processedData = {
-    records: normalizeRecords(rawRecords),
-    laps: extractLaps(rawLaps),
-    summary: calculateSummary(rawSession),
-    gpsPoints: extractGpsTrack(rawRecords)
+ records: normalizeRecords(rawRecords),
+ laps: extractLaps(rawLaps),
+ summary: calculateSummary(rawSession),
+ gpsPoints: extractGpsTrack(rawRecords),
 };
 ```
 
@@ -95,8 +97,8 @@ const processedData = {
 
 ```javascript
 // Store in state manager
-stateManager.set('currentFile', processedData);
-stateManager.set('metadata', fileMetadata);
+stateManager.set("currentFile", processedData);
+stateManager.set("metadata", fileMetadata);
 ```
 
 ### 7. View Updates
@@ -105,13 +107,13 @@ Each visualization component subscribes to state:
 
 ```javascript
 // Maps component
-stateManager.subscribe('currentFile', (data) => {
-    renderMapRoute(data.gpsPoints);
+stateManager.subscribe("currentFile", (data) => {
+ renderMapRoute(data.gpsPoints);
 });
 
 // Charts component
-stateManager.subscribe('currentFile', (data) => {
-    renderCharts(data.records);
+stateManager.subscribe("currentFile", (data) => {
+ renderCharts(data.records);
 });
 ```
 
@@ -204,13 +206,13 @@ flowchart TD
 
 ```javascript
 try {
-    const buffer = await readFile(path);
-    const records = await parseFile(buffer);
-    const processed = processData(records);
-    updateState(processed);
+ const buffer = await readFile(path);
+ const records = await parseFile(buffer);
+ const processed = processData(records);
+ updateState(processed);
 } catch (error) {
-    handleError(error, 'file-processing');
-    showUserError('Failed to load file');
+ handleError(error, "file-processing");
+ showUserError("Failed to load file");
 }
 ```
 

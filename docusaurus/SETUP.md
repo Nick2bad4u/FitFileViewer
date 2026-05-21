@@ -144,8 +144,9 @@ Document your code with JSDoc:
 /**
  * Formats a distance value for display.
  *
- * @example FormatDistance(5000); // "5.00 km" formatDistance(5000, 'mi'); //
- * "3.11 mi"
+ * @example
+ *  FormatDistance(5000); // "5.00 km" formatDistance(5000, 'mi'); //
+ *  ("3.11 mi");
  *
  * @param {number} meters - Distance in meters
  * @param {string} [unit='km'] - Target unit ('km' or 'mi'). Default is `'km'`

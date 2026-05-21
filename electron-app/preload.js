@@ -86,8 +86,7 @@ const // Constants for better maintainability
      * via explicit wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC
      * helpers should prefer JSON-like payloads.
      *
-     * @typedef {
-     *     | null
+     * @typedef {null
      *     | boolean
      *     | number
      *     | string
@@ -96,9 +95,13 @@ const // Constants for better maintainability
      */
     /**
      * @typedef {import("./shared/ipc").GenericInvokeChannel} GenericInvokeChannel
+     *
      * @typedef {import("./shared/ipc").GenericSendChannel} GenericSendChannel
+     *
      * @typedef {import("./shared/ipc").IpcRequestPayload} IpcRequestPayload
+     *
      * @typedef {import("./shared/ipc").IpcResponsePayload} IpcResponsePayload
+     *
      * @typedef {import("./shared/ipc").MainStateChange} MainStateChange
      */
     /**
@@ -152,7 +155,10 @@ const // Constants for better maintainability
      *     ...args: IpcSerializable[]
      * ) => Promise<IpcSerializable | ArrayBuffer>} invoke
      * @property {(filePath: string | null) => void} notifyFitFileLoaded
-     * @property {(theme?: string | null, fitFilePath?: string | null) => Promise<boolean>} injectMenu
+     * @property {(
+     *     theme?: string | null,
+     *     fitFilePath?: string | null
+     * ) => Promise<boolean>} injectMenu
      * @property {(path?: string) => Promise<IpcSerializable>} getMainState
      * @property {(
      *     path: string,
@@ -488,7 +494,8 @@ const IS_ELECTRON_RUNTIME =
     Boolean(process?.versions) &&
     typeof (
         /** @type {Record<string, string | undefined>} */ (process.versions)
-    ).electron === "string";
+            .electron
+    ) === "string";
 
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
@@ -1304,7 +1311,8 @@ const electronAPI = {
      * @param {string} path - Path to the state property to set (e.g.,
      *   'loadedFitFilePath')
      * @param {IpcSerializable} value - The value to set
-     * @param {IpcSerializable} [options] - Optional metadata for the state change
+     * @param {IpcSerializable} [options] - Optional metadata for the state
+     *   change
      *
      * @returns {Promise<boolean>} True if successful, false if path is
      *   restricted

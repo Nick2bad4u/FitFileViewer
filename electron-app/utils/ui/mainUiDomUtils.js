@@ -14,17 +14,18 @@ export function addEventListenerWithCleanup(element, type, handler, options) {
                 capture: options,
                 signal: abortController.signal,
             });
-        }
-        else {
+        } else {
             element.addEventListener(type, handler, {
                 ...options,
                 signal: abortController.signal,
             });
         }
         eventListeners.push({ abortController, element, handler, type });
-    }
-    catch (error) {
-        console.warn(`[main-ui] Failed to add event listener for ${type}`, error);
+    } catch (error) {
+        console.warn(
+            `[main-ui] Failed to add event listener for ${type}`,
+            error
+        );
     }
 }
 /**
@@ -34,8 +35,7 @@ export function cleanupEventListeners() {
     for (const entry of eventListeners) {
         try {
             entry.abortController.abort();
-        }
-        catch {
+        } catch {
             /* ignore */
         }
     }

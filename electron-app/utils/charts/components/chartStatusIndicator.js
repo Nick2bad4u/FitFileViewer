@@ -1,9 +1,15 @@
 import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
-import { cleanupChartStatusIndicatorFromCounts, createChartStatusIndicatorFromCounts, } from "./createChartStatusIndicatorFromCounts.js";
+import {
+    cleanupChartStatusIndicatorFromCounts,
+    createChartStatusIndicatorFromCounts,
+} from "./createChartStatusIndicatorFromCounts.js";
 import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
-import { cleanupGlobalChartStatusIndicatorFromCounts, createGlobalChartStatusIndicatorFromCounts, } from "./createGlobalChartStatusIndicatorFromCounts.js";
+import {
+    cleanupGlobalChartStatusIndicatorFromCounts,
+    createGlobalChartStatusIndicatorFromCounts,
+} from "./createGlobalChartStatusIndicatorFromCounts.js";
 const chartStatusGlobal = globalThis;
 const pendingStatusTimeouts = new Set();
 let setupController = null;
@@ -23,8 +29,7 @@ function scheduleChartStatusWork(delayMs, errorMessage, callback) {
         }
         try {
             callback();
-        }
-        catch (error) {
+        } catch (error) {
             console.error(errorMessage, error);
         }
     }, delayMs);
@@ -37,24 +42,32 @@ function scheduleIndicatorRefresh(errorMessage, delayMs = 50) {
         updateAllChartStatusIndicators();
     });
 }
-function replaceIndicator(selector, createReplacement, cleanupCurrentIndicator) {
+function replaceIndicator(
+    selector,
+    createReplacement,
+    cleanupCurrentIndicator
+) {
     const currentIndicator = document.querySelector(selector);
     if (!currentIndicator) {
         return false;
     }
     const newIndicator = createReplacement();
-    if (newIndicator &&
+    if (
+        newIndicator &&
         currentIndicator instanceof HTMLElement &&
-        currentIndicator.parentNode) {
+        currentIndicator.parentNode
+    ) {
         cleanupCurrentIndicator?.(currentIndicator);
         currentIndicator.replaceWith(newIndicator);
     }
     return true;
 }
 function setupGlobalDataObserver() {
-    const existingDescriptor = Object.getOwnPropertyDescriptor(globalThis, "globalData");
-    if (existingDescriptor?.set &&
-        existingDescriptor.configurable !== true) {
+    const existingDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        "globalData"
+    );
+    if (existingDescriptor?.set && existingDescriptor.configurable !== true) {
         return;
     }
     try {
@@ -67,15 +80,20 @@ function setupGlobalDataObserver() {
             },
             set(value) {
                 chartStatusGlobal.___ffv_globalData = value;
-                scheduleIndicatorRefresh("[ChartStatus] Error in globalData setter:", 100);
+                scheduleIndicatorRefresh(
+                    "[ChartStatus] Error in globalData setter:",
+                    100
+                );
             },
         });
         if (currentValue !== undefined) {
             chartStatusGlobal.___ffv_globalData = currentValue;
         }
-    }
-    catch (propertyError) {
-        console.warn("[ChartStatus] Could not redefine globalData property, using fallback approach:", propertyError);
+    } catch (propertyError) {
+        console.warn(
+            "[ChartStatus] Could not redefine globalData property, using fallback approach:",
+            propertyError
+        );
     }
 }
 /**
@@ -88,21 +106,41 @@ export function setupChartStatusUpdates() {
         setupController = new AbortController();
         const { signal } = setupController;
         subscribeToChartSettings(() => {
-            scheduleIndicatorRefresh("[ChartStatus] Error in chart settings handler:");
+            scheduleIndicatorRefresh(
+                "[ChartStatus] Error in chart settings handler:"
+            );
         });
-        globalThis.addEventListener("fieldToggleChanged", () => {
-            scheduleIndicatorRefresh("[ChartStatus] Error in fieldToggleChanged handler:");
-        }, { signal });
-        document.addEventListener("chartsRendered", () => {
-            scheduleIndicatorRefresh("[ChartStatus] Error in chartsRendered handler:");
-        }, { signal });
+        globalThis.addEventListener(
+            "fieldToggleChanged",
+            () => {
+                scheduleIndicatorRefresh(
+                    "[ChartStatus] Error in fieldToggleChanged handler:"
+                );
+            },
+            { signal }
+        );
+        document.addEventListener(
+            "chartsRendered",
+            () => {
+                scheduleIndicatorRefresh(
+                    "[ChartStatus] Error in chartsRendered handler:"
+                );
+            },
+            { signal }
+        );
         setupGlobalDataObserver();
-        scheduleChartStatusWork(100, "[ChartStatus] Error creating initial global indicator:", () => {
-            createGlobalChartStatusIndicator();
-        });
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error setting up chart status updates:", error);
+        scheduleChartStatusWork(
+            100,
+            "[ChartStatus] Error creating initial global indicator:",
+            () => {
+                createGlobalChartStatusIndicator();
+            }
+        );
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error setting up chart status updates:",
+            error
+        );
     }
 }
 /**
@@ -111,14 +149,24 @@ export function setupChartStatusUpdates() {
 export function updateAllChartStatusIndicators() {
     try {
         const counts = getChartCounts();
-        replaceIndicator("#chart-status-indicator", () => createChartStatusIndicatorFromCounts(counts), cleanupChartStatusIndicatorFromCounts);
-        const didUpdateGlobalIndicator = replaceIndicator("#global-chart-status", () => createGlobalChartStatusIndicatorFromCounts(counts), cleanupGlobalChartStatusIndicatorFromCounts);
+        replaceIndicator(
+            "#chart-status-indicator",
+            () => createChartStatusIndicatorFromCounts(counts),
+            cleanupChartStatusIndicatorFromCounts
+        );
+        const didUpdateGlobalIndicator = replaceIndicator(
+            "#global-chart-status",
+            () => createGlobalChartStatusIndicatorFromCounts(counts),
+            cleanupGlobalChartStatusIndicatorFromCounts
+        );
         if (!didUpdateGlobalIndicator) {
             createGlobalChartStatusIndicator();
         }
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error updating all chart status indicators:", error);
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error updating all chart status indicators:",
+            error
+        );
     }
 }
 /**
@@ -126,17 +174,24 @@ export function updateAllChartStatusIndicators() {
  */
 export function updateChartStatusIndicator(indicator = null) {
     try {
-        const target = indicator ?? document.querySelector("#chart-status-indicator");
+        const target =
+            indicator ?? document.querySelector("#chart-status-indicator");
         if (!target) {
             return;
         }
         const newIndicator = createChartStatusIndicator();
-        if (newIndicator && target instanceof HTMLElement && target.parentNode) {
+        if (
+            newIndicator &&
+            target instanceof HTMLElement &&
+            target.parentNode
+        ) {
             cleanupChartStatusIndicatorFromCounts(target);
             target.replaceWith(newIndicator);
         }
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error updating chart status indicator:", error);
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error updating chart status indicator:",
+            error
+        );
     }
 }

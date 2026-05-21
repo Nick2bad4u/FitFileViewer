@@ -279,12 +279,12 @@ const MODULE_EXPORTS = {
 /**
  * Get a configuration value by dot-notation path.
  *
- * @example
- *     getConfig("UI_CONSTANTS.DEFAULT_THEME"); // "dark"
- *     getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // 1609.344
+ * @example GetConfig("UI_CONSTANTS.DEFAULT_THEME"); // "dark"
+ * getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // 1609.344
  *
  * @param path - Dot-notation path to a configuration value.
  * @param defaultValue - Value returned when the path does not exist.
+ *
  * @returns Configuration value, or the provided default value.
  */
 export function getConfig(path, defaultValue) {
@@ -293,14 +293,12 @@ export function getConfig(path, defaultValue) {
         for (const part of path.split(".")) {
             if (isRecord(current) && part in current) {
                 current = current[part];
-            }
-            else {
+            } else {
                 return defaultValue;
             }
         }
         return current;
-    }
-    catch {
+    } catch {
         return defaultValue;
     }
 }
@@ -312,8 +310,13 @@ export function getConfig(path, defaultValue) {
 export function initializeConfig() {
     const validation = validateConfig();
     if (!validation.isValid) {
-        console.error("[Config] Configuration validation failed:", validation.errors);
-        throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`);
+        console.error(
+            "[Config] Configuration validation failed:",
+            validation.errors
+        );
+        throw new Error(
+            `Configuration validation failed: ${validation.errors.join(", ")}`
+        );
     }
     if (validation.warnings.length > 0) {
         console.warn("[Config] Configuration warnings:", validation.warnings);
@@ -326,7 +329,8 @@ export function initializeConfig() {
  * @returns Current configuration validation result.
  */
 export function validateConfig() {
-    const errors = [], warnings = [];
+    const errors = [],
+        warnings = [];
     for (const path of [
         "CONVERSION_FACTORS.METERS_PER_KILOMETER",
         "UI_CONSTANTS.DEFAULT_THEME",
@@ -340,7 +344,9 @@ export function validateConfig() {
         errors.push("METERS_PER_KILOMETER should be 1000");
     }
     if (!themeExists(UI_CONSTANTS.DEFAULT_THEME)) {
-        warnings.push(`Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`);
+        warnings.push(
+            `Default theme '${UI_CONSTANTS.DEFAULT_THEME}' not found in THEMES`
+        );
     }
     return {
         errors,

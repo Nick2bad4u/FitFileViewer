@@ -2,7 +2,10 @@
  * @typedef {{
  *     executeJavaScript?: (script: string) => Promise<unknown>;
  *     isDestroyed?: () => boolean;
- *     on: (event: "did-finish-load", listener: () => void | Promise<void>) => void;
+ *     on: (
+ *         event: "did-finish-load",
+ *         listener: () => void | Promise<void>
+ *     ) => void;
  *     send?: (channel: string, ...args: unknown[]) => void;
  * }} WebContentsLike
  *
@@ -30,7 +33,11 @@
  * ) => void} options.logWithContext
  *
  * @typedef {{
- *     browserWindowRef: () => BrowserWindowApi | BrowserWindowConstructor | null | undefined;
+ *     browserWindowRef: () =>
+ *         | BrowserWindowApi
+ *         | BrowserWindowConstructor
+ *         | null
+ *         | undefined;
  *     getAppState: (key: string) => AppStateValue;
  *     setAppState: (key: string, value: AppStateValue) => void;
  *     safeCreateAppMenu: (

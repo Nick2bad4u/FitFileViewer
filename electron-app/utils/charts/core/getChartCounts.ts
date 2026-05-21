@@ -202,7 +202,11 @@ function countLapZoneCharts(
     }
 
     if (lapZoneMessages.some((message) => message["timeInHrZone"])) {
-        addAvailableChart(counts, "zones", LAP_ZONE_CHART_VISIBILITY_KEYS.hrStacked);
+        addAvailableChart(
+            counts,
+            "zones",
+            LAP_ZONE_CHART_VISIBILITY_KEYS.hrStacked
+        );
         addAvailableChart(
             counts,
             "zones",

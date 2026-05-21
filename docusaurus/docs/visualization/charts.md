@@ -15,6 +15,7 @@ Analyze your fitness data with interactive charts powered by Chart.js and Vega-L
 ### Speed/Pace
 
 Shows your velocity throughout the activity:
+
 - **Speed**: km/h or mph
 - **Pace**: min/km or min/mile
 - Identify fast/slow sections
@@ -23,6 +24,7 @@ Shows your velocity throughout the activity:
 ### Heart Rate
 
 Monitor your effort levels:
+
 - Heart rate over time
 - Zone indicators
 - Average and max HR
@@ -31,6 +33,7 @@ Monitor your effort levels:
 ### Elevation
 
 View terrain profile:
+
 - Altitude changes
 - Climbing sections
 - Descent analysis
@@ -39,6 +42,7 @@ View terrain profile:
 ### Power (Cycling)
 
 For activities with power meter:
+
 - Watts over time
 - Average power
 - Normalized power (if available)
@@ -47,6 +51,7 @@ For activities with power meter:
 ### Cadence
 
 Step or pedal frequency:
+
 - Running: steps per minute
 - Cycling: RPM
 - Optimal cadence analysis
@@ -55,11 +60,11 @@ Step or pedal frequency:
 
 ### Zoom
 
-| Method | Action |
-|--------|--------|
-| Mouse wheel | Zoom in/out |
+| Method       | Action              |
+| ------------ | ------------------- |
+| Mouse wheel  | Zoom in/out         |
 | Click + drag | Select area to zoom |
-| Double-click | Reset zoom |
+| Double-click | Reset zoom          |
 
 ### Pan
 
@@ -69,6 +74,7 @@ Step or pedal frequency:
 ### Hover
 
 Mouse over any point to see:
+
 - Exact value
 - Timestamp
 - Additional metrics
@@ -76,6 +82,7 @@ Mouse over any point to see:
 ### Select Range
 
 Click and drag to select a time range:
+
 - Shows detailed stats for selection
 - Compare different segments
 
@@ -84,6 +91,7 @@ Click and drag to select a time range:
 ### Multiple Data Series
 
 Some charts show multiple metrics:
+
 - Toggle series in legend
 - Click legend item to show/hide
 - Compare trends
@@ -91,6 +99,7 @@ Some charts show multiple metrics:
 ### Smoothing
 
 For noisy data:
+
 - Apply smoothing filters
 - See underlying trends
 - Original data preserved
@@ -98,6 +107,7 @@ For noisy data:
 ### Time vs Distance
 
 Choose X-axis:
+
 - **Time**: See duration-based view
 - **Distance**: See distance-based view
 
@@ -106,16 +116,19 @@ Choose X-axis:
 ### Identifying Patterns
 
 **Consistent pace:**
+
 ```
 Speed ────────────────────
 ```
 
 **Variable pace:**
+
 ```
 Speed ∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿
 ```
 
 **Intervals:**
+
 ```
 Speed ▄▂▄▂▄▂▄▂▄▂▄▂▄▂▄▂▄▂
 ```
@@ -123,6 +136,7 @@ Speed ▄▂▄▂▄▂▄▂▄▂▄▂▄▂▄▂▄▂
 ### Correlating Data
 
 Compare multiple charts:
+
 - Speed drops as elevation rises
 - HR increases with effort
 - Cadence affects speed
@@ -147,6 +161,7 @@ Compare multiple charts:
 ### Chart Colors
 
 Charts automatically adapt to:
+
 - Light/dark theme
 - Data type (HR = red, speed = blue)
 - User preferences
@@ -154,6 +169,7 @@ Charts automatically adapt to:
 ### Axis Labels
 
 Units match your preferences:
+
 - Metric: km/h, km, meters
 - Imperial: mph, miles, feet
 
@@ -162,6 +178,7 @@ Units match your preferences:
 ### Large Activities
 
 For long activities:
+
 - Initial render may take time
 - Zoom in for detail
 - Use time range selection
@@ -169,6 +186,7 @@ For long activities:
 ### Multiple Charts
 
 When viewing multiple charts:
+
 - Synchronized X-axis
 - Hover shows all values
 - Compare at same time point

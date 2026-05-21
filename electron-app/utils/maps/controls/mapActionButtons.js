@@ -62,8 +62,10 @@ function _centerMapOnMainFile() {
         const w = getMapActionButtonsGlobal();
         const MAX_ATTEMPTS = 8;
         const clearRetryTimer = () => {
-            if (w.__centerRetryHandle &&
-                typeof globalThis.clearTimeout === "function") {
+            if (
+                w.__centerRetryHandle &&
+                typeof globalThis.clearTimeout === "function"
+            ) {
                 globalThis.clearTimeout(w.__centerRetryHandle);
             }
             w.__centerRetryHandle = null;
@@ -75,26 +77,28 @@ function _centerMapOnMainFile() {
                     w.__centerRetryHandle = null;
                     _centerMapOnMainFile();
                 }, 150);
-            }
-            else {
+            } else {
                 queueMicrotask(() => {
                     _centerMapOnMainFile();
                 });
             }
         };
-        const attempts = typeof w.__centerMainAttempts === "number" &&
+        const attempts =
+            typeof w.__centerMainAttempts === "number" &&
             Number.isInteger(w.__centerMainAttempts)
-            ? w.__centerMainAttempts
-            : 0;
+                ? w.__centerMainAttempts
+                : 0;
         let mainPolyline = w._mainPolyline;
         if (!mainPolyline && w._overlayPolylines) {
             const overlayCollection = w._overlayPolylines;
             mainPolyline =
                 overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
         }
-        const hasValidBounds = Boolean(w._mainPolylineOriginalBounds &&
+        const hasValidBounds = Boolean(
+            w._mainPolylineOriginalBounds &&
             typeof w._mainPolylineOriginalBounds.isValid === "function" &&
-            w._mainPolylineOriginalBounds.isValid());
+            w._mainPolylineOriginalBounds.isValid()
+        );
         if (!mainPolyline) {
             if (attempts === 0) {
                 w.__centerStatusNotified = Date.now();
@@ -126,18 +130,17 @@ function _centerMapOnMainFile() {
         polyline.bringToFront?.();
         // Bring associated markers to front
         const circleMarker = w.L?.CircleMarker;
-        if (circleMarker &&
-            polyline?._map &&
-            polyline._map._layers) {
+        if (circleMarker && polyline?._map && polyline._map._layers) {
             for (const layer of Object.values(polyline._map._layers)) {
                 try {
-                    if (layer instanceof circleMarker &&
+                    if (
+                        layer instanceof circleMarker &&
                         isMapLayer(layer) &&
-                        layer.options?.color === polyline.options?.color) {
+                        layer.options?.color === polyline.options?.color
+                    ) {
                         layer.bringToFront?.();
                     }
-                }
-                catch {
+                } catch {
                     // Ignore bringToFront issues
                 }
             }
@@ -161,40 +164,51 @@ function _centerMapOnMainFile() {
             let bounds;
             if (hasValidBounds) {
                 bounds = w._mainPolylineOriginalBounds;
-                console.log("[mapActionButtons] Using stored main polyline bounds");
-            }
-            else if (polyline.getBounds) {
+                console.log(
+                    "[mapActionButtons] Using stored main polyline bounds"
+                );
+            } else if (polyline.getBounds) {
                 bounds = polyline.getBounds();
-                console.warn("[mapActionButtons] Using polyline getBounds as fallback");
+                console.warn(
+                    "[mapActionButtons] Using polyline getBounds as fallback"
+                );
             }
             if (bounds?.isValid?.()) {
                 console.log("[mapActionButtons] Fitting map to bounds");
                 w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
                 scheduleMapActionTimeout(() => {
                     try {
-                        const center = w._leafletMapInstance?.getCenter?.(), zoom = w._leafletMapInstance?.getZoom?.();
-                        console.log(`[mapActionButtons] Map centered at ${center?.lat}, ${center?.lng}, zoom: ${zoom}`);
-                    }
-                    catch {
-                        console.warn("[mapActionButtons] Error getting map state after centering (details suppressed)");
+                        const center = w._leafletMapInstance?.getCenter?.(),
+                            zoom = w._leafletMapInstance?.getZoom?.();
+                        console.log(
+                            `[mapActionButtons] Map centered at ${center?.lat}, ${center?.lng}, zoom: ${zoom}`
+                        );
+                    } catch {
+                        console.warn(
+                            "[mapActionButtons] Error getting map state after centering (details suppressed)"
+                        );
                     }
                 }, 200);
-            }
-            else {
-                console.warn("[mapActionButtons] No valid bounds found for main polyline");
+            } else {
+                console.warn(
+                    "[mapActionButtons] No valid bounds found for main polyline"
+                );
                 showNotification("Could not determine track bounds", "warning");
             }
-        }
-        else {
-            console.warn("[mapActionButtons] Leaflet map instance not available");
+        } else {
+            console.warn(
+                "[mapActionButtons] Leaflet map instance not available"
+            );
             showNotification("Map not ready for centering", "warning");
         }
         if (statusPending) {
             showNotification("Centered on main track.", "success");
         }
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error centering map on main file:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error centering map on main file:",
+            error
+        );
         showNotification("Failed to center map on main file", "error");
     }
 }
@@ -209,9 +223,14 @@ function _centerMapOnMainFile() {
  */
 function setupActiveFileNameMapActions() {
     try {
-        const activeFileName = querySelectorByIdFlexible(document, "#active_file_name");
+        const activeFileName = querySelectorByIdFlexible(
+            document,
+            "#active_file_name"
+        );
         if (!activeFileName) {
-            console.log("[mapActionButtons] #active_file_name not found in DOM");
+            console.log(
+                "[mapActionButtons] #active_file_name not found in DOM"
+            );
             return;
         }
         // Configure element appearance and behavior
@@ -224,94 +243,127 @@ function setupActiveFileNameMapActions() {
         activeFileName.__ffvMapActionCleanup?.();
         const cleanupCallbacks = [];
         // Click handler - center map on main file
-        cleanupCallbacks.push(addEventListenerWithCleanup(activeFileName, "click", () => {
-            try {
-                console.log("[mapActionButtons] Active file name clicked");
-                // Always switch to map tab (even if already active, to ensure map is visible)
-                const mapTabBtn = querySelectorByIdFlexible(document, "#tab_map");
-                if (mapTabBtn instanceof HTMLElement) {
-                    console.log("[mapActionButtons] Switching to map tab");
-                    mapTabBtn.click();
-                    // Center on main file with a slight delay to ensure tab switch completes
-                    scheduleMapActionTimeout(() => {
+        cleanupCallbacks.push(
+            addEventListenerWithCleanup(activeFileName, "click", () => {
+                try {
+                    console.log("[mapActionButtons] Active file name clicked");
+                    // Always switch to map tab (even if already active, to ensure map is visible)
+                    const mapTabBtn = querySelectorByIdFlexible(
+                        document,
+                        "#tab_map"
+                    );
+                    if (mapTabBtn instanceof HTMLElement) {
+                        console.log("[mapActionButtons] Switching to map tab");
+                        mapTabBtn.click();
+                        // Center on main file with a slight delay to ensure tab switch completes
+                        scheduleMapActionTimeout(() => {
+                            _centerMapOnMainFile();
+                        }, 100);
+                    } else {
+                        // If map tab button not found, still try to center
+                        console.warn(
+                            "[mapActionButtons] Map tab button not found, attempting to center anyway"
+                        );
                         _centerMapOnMainFile();
-                    }, 100);
+                    }
+                } catch (error) {
+                    console.error(
+                        "[mapActionButtons] Error in active filename click:",
+                        error
+                    );
+                    // Correct argument order: (message, type)
+                    showNotification("Failed to center map on file", "error");
                 }
-                else {
-                    // If map tab button not found, still try to center
-                    console.warn("[mapActionButtons] Map tab button not found, attempting to center anyway");
-                    _centerMapOnMainFile();
-                }
-            }
-            catch (error) {
-                console.error("[mapActionButtons] Error in active filename click:", error);
-                // Correct argument order: (message, type)
-                showNotification("Failed to center map on file", "error");
-            }
-        }));
+            })
+        );
         // Hover handlers for visual feedback using CSS classes
-        cleanupCallbacks.push(addEventListenerWithCleanup(activeFileName, "mouseenter", () => {
-            try {
-                console.log("[mapActionButtons] Active file name hover");
-                activeFileName.classList.add("highlighted");
-                const w = getMapActionButtonsGlobal();
-                w._highlightedOverlayIdx = 0;
-                if (w.updateOverlayHighlights) {
-                    w.updateOverlayHighlights();
+        cleanupCallbacks.push(
+            addEventListenerWithCleanup(activeFileName, "mouseenter", () => {
+                try {
+                    console.log("[mapActionButtons] Active file name hover");
+                    activeFileName.classList.add("highlighted");
+                    const w = getMapActionButtonsGlobal();
+                    w._highlightedOverlayIdx = 0;
+                    if (w.updateOverlayHighlights) {
+                        w.updateOverlayHighlights();
+                    }
+                } catch (error) {
+                    console.error(
+                        "[mapActionButtons] Error in mouseenter:",
+                        error
+                    );
                 }
-            }
-            catch (error) {
-                console.error("[mapActionButtons] Error in mouseenter:", error);
-            }
-        }));
-        cleanupCallbacks.push(addEventListenerWithCleanup(activeFileName, "mouseleave", () => {
-            try {
-                console.log("[mapActionButtons] Active file name unhover");
-                activeFileName.classList.remove("highlighted");
-                const w = getMapActionButtonsGlobal();
-                w._highlightedOverlayIdx = null;
-                if (w.updateOverlayHighlights) {
-                    w.updateOverlayHighlights();
+            })
+        );
+        cleanupCallbacks.push(
+            addEventListenerWithCleanup(activeFileName, "mouseleave", () => {
+                try {
+                    console.log("[mapActionButtons] Active file name unhover");
+                    activeFileName.classList.remove("highlighted");
+                    const w = getMapActionButtonsGlobal();
+                    w._highlightedOverlayIdx = null;
+                    if (w.updateOverlayHighlights) {
+                        w.updateOverlayHighlights();
+                    }
+                } catch (error) {
+                    console.error(
+                        "[mapActionButtons] Error in mouseleave:",
+                        error
+                    );
                 }
-            }
-            catch (error) {
-                console.error("[mapActionButtons] Error in mouseleave:", error);
-            }
-        }));
+            })
+        );
         activeFileName.__ffvMapActionCleanup = () => {
             for (const cleanup of cleanupCallbacks) {
                 cleanup();
             }
             delete activeFileName.__ffvMapActionCleanup;
         };
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error setting up active filename actions:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error setting up active filename actions:",
+            error
+        );
     }
 }
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName() {
     try {
-        const targetElement = querySelectorByIdFlexible(document, "#active_file_name"), parent = targetElement?.parentNode;
+        const targetElement = querySelectorByIdFlexible(
+                document,
+                "#active_file_name"
+            ),
+            parent = targetElement?.parentNode;
         if (!parent) {
-            console.log("[mapActionButtons] Active filename parent not found for observer");
+            console.log(
+                "[mapActionButtons] Active filename parent not found for observer"
+            );
             // Try again after DOM loads
             if (document.readyState === "loading") {
-                addEventListenerWithCleanup(document, "DOMContentLoaded", initializeActiveFileName, { once: true });
+                addEventListenerWithCleanup(
+                    document,
+                    "DOMContentLoaded",
+                    initializeActiveFileName,
+                    { once: true }
+                );
             }
             return;
         }
         // Set up mutation observer to handle dynamic content changes
         const observer = new MutationObserver(() => {
-            console.log("[mapActionButtons] Active filename element changed, reapplying setup");
+            console.log(
+                "[mapActionButtons] Active filename element changed, reapplying setup"
+            );
             setupActiveFileNameMapActions();
         });
         observer.observe(parent, { childList: true, subtree: false });
         // Initial setup
         setupActiveFileNameMapActions();
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error initializing active filename:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error initializing active filename:",
+            error
+        );
     }
 })();
 // Export setup function for external use
@@ -321,22 +373,29 @@ getMapActionButtonsGlobal()._setupActiveFileNameMapActions =
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
     try {
-        const w = getMapActionButtonsGlobal(), origUpdateShownFilesList = w.updateShownFilesList;
+        const w = getMapActionButtonsGlobal(),
+            origUpdateShownFilesList = w.updateShownFilesList;
         w.updateShownFilesList = function (...args) {
             try {
                 if (typeof origUpdateShownFilesList === "function") {
                     Reflect.apply(origUpdateShownFilesList, this, args);
                 }
-                console.log("[mapActionButtons] Files list updated, reapplying active filename setup");
+                console.log(
+                    "[mapActionButtons] Files list updated, reapplying active filename setup"
+                );
                 setupActiveFileNameMapActions();
-            }
-            catch (error) {
-                console.error("[mapActionButtons] Error in patched updateShownFilesList:", error);
+            } catch (error) {
+                console.error(
+                    "[mapActionButtons] Error in patched updateShownFilesList:",
+                    error
+                );
             }
         };
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error patching updateShownFilesList:",
+            error
+        );
     }
 })();
 /**

@@ -31,7 +31,7 @@ const version = await window.electronAPI.getVersion();
 ```javascript
 // Listen for file opened
 window.electronAPI.onFileOpened((event, fileData) => {
-    // fileData: { path: string, buffer: ArrayBuffer }
+ // fileData: { path: string, buffer: ArrayBuffer }
 });
 ```
 
@@ -40,7 +40,7 @@ window.electronAPI.onFileOpened((event, fileData) => {
 ### Basic Usage
 
 ```javascript
-import { parseFitFile } from './fitParser.js';
+import { parseFitFile } from "./fitParser.js";
 
 const fitData = await parseFitFile(arrayBuffer);
 // Returns: FitData object
@@ -50,44 +50,44 @@ const fitData = await parseFitFile(arrayBuffer);
 
 ```typescript
 interface FitData {
-    records: Record[];
-    laps: Lap[];
-    sessions: Session[];
-    events: Event[];
-    deviceInfo: DeviceInfo;
+ records: Record[];
+ laps: Lap[];
+ sessions: Session[];
+ events: Event[];
+ deviceInfo: DeviceInfo;
 }
 
 interface Record {
-    timestamp: Date;
-    position_lat?: number;
-    position_long?: number;
-    distance?: number;
-    speed?: number;
-    heart_rate?: number;
-    altitude?: number;
-    cadence?: number;
-    power?: number;
+ timestamp: Date;
+ position_lat?: number;
+ position_long?: number;
+ distance?: number;
+ speed?: number;
+ heart_rate?: number;
+ altitude?: number;
+ cadence?: number;
+ power?: number;
 }
 
 interface Lap {
-    start_time: Date;
-    total_elapsed_time: number;
-    total_distance: number;
-    avg_speed: number;
-    max_speed: number;
-    avg_heart_rate?: number;
-    max_heart_rate?: number;
+ start_time: Date;
+ total_elapsed_time: number;
+ total_distance: number;
+ avg_speed: number;
+ max_speed: number;
+ avg_heart_rate?: number;
+ max_heart_rate?: number;
 }
 
 interface Session {
-    sport: string;
-    start_time: Date;
-    total_elapsed_time: number;
-    total_distance: number;
-    avg_speed: number;
-    max_speed: number;
-    total_ascent?: number;
-    total_descent?: number;
+ sport: string;
+ start_time: Date;
+ total_elapsed_time: number;
+ total_distance: number;
+ avg_speed: number;
+ max_speed: number;
+ total_ascent?: number;
+ total_descent?: number;
 }
 ```
 
@@ -97,16 +97,17 @@ interface Session {
 
 ```javascript
 // renderer.js
-import { initializeApp } from './main-ui.js';
+import { initializeApp } from "./main-ui.js";
 
-document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
+document.addEventListener("DOMContentLoaded", () => {
+ initializeApp();
 });
 ```
 
 ### initializeApp()
 
 Initializes the application:
+
 - Sets up tab navigation
 - Loads user preferences
 - Registers event listeners

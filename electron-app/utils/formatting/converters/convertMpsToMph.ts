@@ -5,11 +5,12 @@ const SPEED_CONVERSIONS = {
 /**
  * Converts speed from meters per second to miles per hour.
  *
- * @example
- *     const speedMph = convertMpsToMph(10); // ~22.37
+ * @example Const speedMph = convertMpsToMph(10); // ~22.37
  *
  * @param mps - Speed in meters per second.
+ *
  * @returns Speed in miles per hour.
+ *
  * @throws TypeError If mps is not a number or is NaN.
  */
 export function convertMpsToMph(mps: unknown): number {

@@ -1,4 +1,8 @@
-import { getState, setState, subscribe, } from "../../state/core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+} from "../../state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 let notificationHideTimeout;
 /**
@@ -6,7 +10,10 @@ let notificationHideTimeout;
  */
 export function clearNotification() {
     clearNotificationHideTimeout();
-    const notificationElement = querySelectorByIdFlexible(document, "#notification");
+    const notificationElement = querySelectorByIdFlexible(
+        document,
+        "#notification"
+    );
     if (notificationElement) {
         notificationElement.style.display = "none";
     }
@@ -71,7 +78,10 @@ export function showInfo(message, timeout = 4000) {
  * Displays a notification message in the UI with state tracking.
  */
 export function showNotification(message, type = "error", timeout = 5000) {
-    const notificationElement = querySelectorByIdFlexible(document, "#notification");
+    const notificationElement = querySelectorByIdFlexible(
+        document,
+        "#notification"
+    );
     if (!notificationElement) {
         console.warn("[RendererUtils] Notification element not found");
         return;
@@ -80,11 +90,15 @@ export function showNotification(message, type = "error", timeout = 5000) {
     notificationElement.textContent = message;
     notificationElement.className = `notification ${type}`;
     notificationElement.style.display = "block";
-    setState("ui.currentNotification", {
-        message,
-        timestamp: Date.now(),
-        type,
-    }, { source: "showNotification" });
+    setState(
+        "ui.currentNotification",
+        {
+            message,
+            timestamp: Date.now(),
+            type,
+        },
+        { source: "showNotification" }
+    );
     if (timeout > 0) {
         notificationHideTimeout = setTimeout(() => {
             notificationHideTimeout = undefined;
@@ -122,7 +136,9 @@ function updateLoadingUI(loading) {
     }
     document.body.style.cursor = loading ? "wait" : "";
     document.body.setAttribute("aria-busy", String(loading));
-    const interactiveElements = document.querySelectorAll("button, input, select, textarea");
+    const interactiveElements = document.querySelectorAll(
+        "button, input, select, textarea"
+    );
     for (const element of interactiveElements) {
         if (element.id === "open_file_btn") {
             continue;
@@ -134,8 +150,7 @@ function updateLoadingUI(loading) {
             if (loading) {
                 element.dataset["wasDisabled"] = String(element.disabled);
                 element.disabled = true;
-            }
-            else {
+            } else {
                 element.disabled = element.dataset["wasDisabled"] === "true";
                 delete element.dataset["wasDisabled"];
             }
@@ -143,7 +158,10 @@ function updateLoadingUI(loading) {
     }
 }
 function updateNotificationUI(notification) {
-    const notificationElement = querySelectorByIdFlexible(document, "#notification");
+    const notificationElement = querySelectorByIdFlexible(
+        document,
+        "#notification"
+    );
     if (!notificationElement) {
         return;
     }
@@ -158,31 +176,37 @@ function normalizeNotification(value) {
         return null;
     }
     const candidate = value;
-    if (typeof candidate["message"] === "string" &&
-        isNotificationType(candidate["type"])) {
+    if (
+        typeof candidate["message"] === "string" &&
+        isNotificationType(candidate["type"])
+    ) {
         const timestamp = candidate["timestamp"];
         return typeof timestamp === "number"
             ? {
-                message: candidate["message"],
-                timestamp,
-                type: candidate["type"],
-            }
+                  message: candidate["message"],
+                  timestamp,
+                  type: candidate["type"],
+              }
             : {
-                message: candidate["message"],
-                type: candidate["type"],
-            };
+                  message: candidate["message"],
+                  type: candidate["type"],
+              };
     }
     return null;
 }
 function isNotificationType(value) {
-    return (value === "error" ||
+    return (
+        value === "error" ||
         value === "info" ||
         value === "success" ||
-        value === "warning");
+        value === "warning"
+    );
 }
 function isDisableableFormControl(element) {
-    return (element instanceof HTMLButtonElement ||
+    return (
+        element instanceof HTMLButtonElement ||
         element instanceof HTMLInputElement ||
         element instanceof HTMLSelectElement ||
-        element instanceof HTMLTextAreaElement);
+        element instanceof HTMLTextAreaElement
+    );
 }

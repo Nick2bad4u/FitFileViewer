@@ -36,7 +36,10 @@ export type {
     NotificationType,
     RendererNotification,
 } from "./initialization/rendererUtils.js";
-export { cleanup as cleanupWindow, setupWindow } from "./initialization/setupWindow.js";
+export {
+    cleanup as cleanupWindow,
+    setupWindow,
+} from "./initialization/setupWindow.js";
 export {
     clearSystemInfoCache,
     updateSystemInfo,

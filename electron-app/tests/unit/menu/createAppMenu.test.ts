@@ -1267,7 +1267,11 @@ describe("createAppMenu - additional robust branches", () => {
             expect(typeof mod.createAppMenu).toBe("function");
             const defineMock = defineSpy as unknown as Mock;
             const calls = defineMock.mock.calls as Array<
-                [any, PropertyKey, PropertyDescriptor]
+                [
+                    any,
+                    PropertyKey,
+                    PropertyDescriptor,
+                ]
             >;
             expect(calls.length).toBeGreaterThan(0);
             const targetedIndex = calls.findIndex(

@@ -181,7 +181,9 @@ function clearPendingTestClickTimers(): void {
     testClickRegistrations.clear();
 }
 
-function removeTestClickRegistration(registration: TestClickRegistration): void {
+function removeTestClickRegistration(
+    registration: TestClickRegistration
+): void {
     registration.abortController.abort();
     registration.button.removeEventListener("click", registration.handler);
 }

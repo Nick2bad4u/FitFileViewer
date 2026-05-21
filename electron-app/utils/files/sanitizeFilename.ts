@@ -83,8 +83,8 @@ export function buildDownloadFilename(
 
 /**
  * Normalises file extensions by removing leading dots/whitespace and characters
- * that are not alphanumeric, dashes or underscores. Extensions are
- * lower-cased for consistency.
+ * that are not alphanumeric, dashes or underscores. Extensions are lower-cased
+ * for consistency.
  */
 export function sanitizeFileExtension(
     extension: string,
@@ -114,7 +114,8 @@ export function sanitizeFileExtension(
 /**
  * Safely transforms an arbitrary string into a file-system friendly segment.
  * Reserved Windows characters, ASCII control codes (0x00-0x1F), trailing dots
- * and leading periods are stripped. Whitespace collapses to single underscores.
+ * and leading periods are stripped. Whitespace collapses to single
+ * underscores.
  */
 export function sanitizeFilenameComponent(
     value: string,

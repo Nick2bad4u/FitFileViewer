@@ -4,12 +4,13 @@ const CHUNK_SIZE = 0x80_00; // 32KB chunks to prevent stack overflow
  * Converts an ArrayBuffer to a Base64-encoded string. Uses chunked processing
  * to handle large buffers efficiently and avoid stack overflow.
  *
- * @example
- *     // Convert FIT file buffer to base64
- *     const base64String = convertArrayBufferToBase64(fitFileBuffer);
+ * @example // Convert FIT file buffer to base64 const base64String =
+ * convertArrayBufferToBase64(fitFileBuffer);
  *
  * @param buffer - The ArrayBuffer to convert.
+ *
  * @returns The Base64-encoded string representation of the input buffer.
+ *
  * @throws TypeError If buffer is not an ArrayBuffer.
  */
 export function convertArrayBufferToBase64(buffer: ArrayBuffer): string {

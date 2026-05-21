@@ -28,13 +28,18 @@ type GlobalWithStorage = typeof globalThis & {
  * Resolve an injected storage provider or the current global localStorage.
  *
  * @param getStorage - Optional storage provider.
+ *
  * @returns A usable storage object, or null when storage is unavailable.
  */
-export function resolveStorage(getStorage?: StorageProvider): null | StorageLike {
+export function resolveStorage(
+    getStorage?: StorageProvider
+): null | StorageLike {
     try {
         const scope = globalThis as GlobalWithStorage;
         const storage =
-            getStorage === undefined ? (scope.localStorage ?? null) : getStorage();
+            getStorage === undefined
+                ? (scope.localStorage ?? null)
+                : getStorage();
 
         if (typeof storage !== "object" || storage === null) {
             return null;
@@ -51,6 +56,7 @@ export function resolveStorage(getStorage?: StorageProvider): null | StorageLike
  *
  * @param key - Storage key.
  * @param getStorage - Optional storage provider.
+ *
  * @returns Stored value, or null when unavailable.
  */
 export function safeStorageGetItem(

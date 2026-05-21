@@ -12,26 +12,42 @@ const registeredListeners = new Set();
  *
  * @param handlers - Object containing drag and drop event handlers.
  * @param target - The target element; defaults to window.
+ *
  * @returns Cleanup function to remove all drag and drop listeners.
  */
 export function addDragDropListeners(handlers, target = globalThis.window) {
     const cleanupFunctions = [];
     if (handlers.onDragEnter) {
-        cleanupFunctions.push(addEventListenerWithCleanup(target, "dragenter", handlers.onDragEnter));
+        cleanupFunctions.push(
+            addEventListenerWithCleanup(
+                target,
+                "dragenter",
+                handlers.onDragEnter
+            )
+        );
     }
     if (handlers.onDragLeave) {
-        cleanupFunctions.push(addEventListenerWithCleanup(target, "dragleave", handlers.onDragLeave));
+        cleanupFunctions.push(
+            addEventListenerWithCleanup(
+                target,
+                "dragleave",
+                handlers.onDragLeave
+            )
+        );
     }
     if (handlers.onDragOver) {
-        cleanupFunctions.push(addEventListenerWithCleanup(target, "dragover", handlers.onDragOver));
+        cleanupFunctions.push(
+            addEventListenerWithCleanup(target, "dragover", handlers.onDragOver)
+        );
     }
     if (handlers.onDrop) {
-        cleanupFunctions.push(addEventListenerWithCleanup(target, "drop", handlers.onDrop));
+        cleanupFunctions.push(
+            addEventListenerWithCleanup(target, "drop", handlers.onDrop)
+        );
     }
     // Return a function that cleans up all the drag and drop listeners
     return () => {
-        for (const cleanup of cleanupFunctions)
-            cleanup();
+        for (const cleanup of cleanupFunctions) cleanup();
     };
 }
 /**
@@ -41,16 +57,26 @@ export function addDragDropListeners(handlers, target = globalThis.window) {
  * @param eventType - The type of event to listen for.
  * @param handler - The event handler function.
  * @param options - Optional parameters for addEventListener.
+ *
  * @returns A function to remove this specific event listener.
  */
-export function addEventListenerWithCleanup(element, eventType, handler, options = false) {
+export function addEventListenerWithCleanup(
+    element,
+    eventType,
+    handler,
+    options = false
+) {
     if (!element || typeof element.addEventListener !== "function") {
-        console.warn("[EventListenerManager] Invalid element provided to addEventListenerWithCleanup");
-        return () => { }; // Return a no-op cleanup function
+        console.warn(
+            "[EventListenerManager] Invalid element provided to addEventListenerWithCleanup"
+        );
+        return () => {}; // Return a no-op cleanup function
     }
     if (typeof handler !== "function") {
-        console.warn("[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup");
-        return () => { }; // Return a no-op cleanup function
+        console.warn(
+            "[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup"
+        );
+        return () => {}; // Return a no-op cleanup function
     }
     const abortController = new AbortController();
     // Add the event listener
@@ -59,8 +85,7 @@ export function addEventListenerWithCleanup(element, eventType, handler, options
             capture: options,
             signal: abortController.signal,
         });
-    }
-    else {
+    } else {
         element.addEventListener(eventType, handler, {
             ...options,
             signal: abortController.signal,
@@ -71,9 +96,11 @@ export function addEventListenerWithCleanup(element, eventType, handler, options
         try {
             abortController.abort();
             registeredListeners.delete(cleanup);
-        }
-        catch (error) {
-            console.warn("[EventListenerManager] Error removing event listener:", error);
+        } catch (error) {
+            console.warn(
+                "[EventListenerManager] Error removing event listener:",
+                error
+            );
         }
     };
     // Track this listener for global cleanup
@@ -92,14 +119,15 @@ export function cleanupEventListeners() {
         try {
             cleanup();
             cleanedCount++;
-        }
-        catch (error) {
+        } catch (error) {
             console.warn("[EventListenerManager] Error during cleanup:", error);
         }
     }
     // Clear the set after cleanup
     registeredListeners.clear();
-    console.log(`[EventListenerManager] Cleaned up ${cleanedCount} event listeners`);
+    console.log(
+        `[EventListenerManager] Cleaned up ${cleanedCount} event listeners`
+    );
 }
 /**
  * Gets the current number of tracked event listeners

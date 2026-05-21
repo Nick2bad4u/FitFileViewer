@@ -161,6 +161,7 @@ export class TabStateManager {
      * Extract tab name from button ID
      *
      * @param buttonId - Button element ID.
+     *
      * @returns Tab name or null.
      */
     extractTabName(buttonId: string): null | string {
@@ -389,6 +390,7 @@ export class TabStateManager {
      * Generate a simple hash for data comparison.
      *
      * @param data - Activity data to summarize.
+     *
      * @returns Stable summary hash.
      */
     hashData(data: ActivityData | null | undefined): string {

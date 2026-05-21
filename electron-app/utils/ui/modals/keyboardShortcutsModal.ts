@@ -182,10 +182,7 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
     closeButton.className = "modal-close";
     closeButton.type = "button";
     closeButton.tabIndex = 0;
-    closeButton.setAttribute(
-        "aria-label",
-        "Close Keyboard Shortcuts dialog"
-    );
+    closeButton.setAttribute("aria-label", "Close Keyboard Shortcuts dialog");
     closeButton.append(createCloseIcon());
 
     header.append(iconWrapper, closeButton);
@@ -740,9 +737,7 @@ export function showKeyboardShortcutsModal(): void {
     applyShowClass();
 
     // Focus management
-    const closeBtn = modal.querySelector<HTMLElement>(
-        "#shortcuts-modal-close"
-    );
+    const closeBtn = modal.querySelector<HTMLElement>("#shortcuts-modal-close");
     if (closeBtn) {
         closeBtn.focus();
         console.log("Focus set to close button");

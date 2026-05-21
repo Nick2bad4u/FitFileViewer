@@ -46,9 +46,12 @@ export async function loadSingleOverlayFile(file) {
             };
         }
         return { data: fitData, success: true };
-    }
-    catch (error) {
-        console.error("[loadSingleOverlayFile] Error processing file:", getOverlayFileName(file), error);
+    } catch (error) {
+        console.error(
+            "[loadSingleOverlayFile] Error processing file:",
+            getOverlayFileName(file),
+            error
+        );
         return {
             error: getErrorMessage(error),
             success: false,
@@ -60,9 +63,11 @@ function validateOverlayFilePreflight(file) {
     if (!isFitName(name)) {
         return "Only .fit files can be loaded as overlays";
     }
-    if (typeof size === "number" &&
+    if (
+        typeof size === "number" &&
         Number.isFinite(size) &&
-        size > MAX_FIT_FILE_BYTES) {
+        size > MAX_FIT_FILE_BYTES
+    ) {
         return "File size exceeds 100MB limit";
     }
     return "";
@@ -92,8 +97,7 @@ async function readOverlayArrayBuffer(file) {
         if (typeof Response !== "undefined") {
             try {
                 return await new Response(file).arrayBuffer();
-            }
-            catch {
+            } catch {
                 // Fall back to FileReader below.
             }
         }
@@ -105,16 +109,26 @@ function readFileWithFileReader(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         const controller = new AbortController();
-        reader.addEventListener("load", () => {
-            controller.abort();
-            resolve(reader.result instanceof ArrayBuffer
-                ? reader.result
-                : undefined);
-        }, { signal: controller.signal });
-        reader.addEventListener("error", () => {
-            controller.abort();
-            reject(new Error("Failed to read file"));
-        }, { signal: controller.signal });
+        reader.addEventListener(
+            "load",
+            () => {
+                controller.abort();
+                resolve(
+                    reader.result instanceof ArrayBuffer
+                        ? reader.result
+                        : undefined
+                );
+            },
+            { signal: controller.signal }
+        );
+        reader.addEventListener(
+            "error",
+            () => {
+                controller.abort();
+                reject(new Error("Failed to read file"));
+            },
+            { signal: controller.signal }
+        );
         reader.readAsArrayBuffer(file);
     });
 }

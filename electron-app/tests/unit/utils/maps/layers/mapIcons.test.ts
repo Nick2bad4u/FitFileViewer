@@ -17,9 +17,8 @@ describe("map marker icons", () => {
                 icon,
             });
 
-            const { createEndIcon, createStartIcon } = await import(
-                "../../../../../utils/maps/layers/mapIcons.js"
-            );
+            const { createEndIcon, createStartIcon } =
+                await import("../../../../../utils/maps/layers/mapIcons.js");
 
             expect(createStartIcon()).toStrictEqual({
                 options: {
@@ -49,9 +48,8 @@ describe("map marker icons", () => {
 
         vi.resetModules();
         vi.unstubAllGlobals();
-        const { createEndIcon, createStartIcon } = await import(
-            "../../../../../utils/maps/layers/mapIcons.js"
-        );
+        const { createEndIcon, createStartIcon } =
+            await import("../../../../../utils/maps/layers/mapIcons.js");
 
         expect(createStartIcon()).toStrictEqual({});
         expect(createEndIcon()).toStrictEqual({});

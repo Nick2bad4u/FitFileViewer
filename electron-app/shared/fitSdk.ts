@@ -1,9 +1,5 @@
 import type { Buffer } from "node:buffer";
-import type {
-    FitFieldValue,
-    FitMessages,
-    PartialDecoderOptions,
-} from "./fit";
+import type { FitFieldValue, FitMessages, PartialDecoderOptions } from "./fit";
 
 /** Callback invoked by the Garmin SDK after decoding one message. */
 export type FitSdkMessageListener = (

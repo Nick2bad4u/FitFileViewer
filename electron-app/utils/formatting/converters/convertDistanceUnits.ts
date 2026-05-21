@@ -11,8 +11,7 @@ export const DISTANCE_UNITS = CONFIG_DISTANCE_UNITS;
 /**
  * Supported distance unit string values.
  */
-export type DistanceUnit =
-    (typeof DISTANCE_UNITS)[keyof typeof DISTANCE_UNITS];
+export type DistanceUnit = (typeof DISTANCE_UNITS)[keyof typeof DISTANCE_UNITS];
 
 /**
  * Converts distance from meters to the requested unit.
@@ -20,12 +19,14 @@ export type DistanceUnit =
  * Unknown target units preserve legacy behavior by warning and returning the
  * input meters value unchanged.
  *
- * @example
- *     const kilometers = convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS); // 1
+ * @example Const kilometers = convertDistanceUnits(1000,
+ * DISTANCE_UNITS.KILOMETERS); // 1
  *
  * @param meters - Distance in meters.
  * @param targetUnit - Target unit: meters, kilometers, feet, or miles.
+ *
  * @returns Converted distance value.
+ *
  * @throws TypeError If meters is not a number or is NaN.
  */
 export function convertDistanceUnits(

@@ -1,17 +1,41 @@
-import { getCurrentSettings, getDefaultSettings, } from "../../app/initialization/getCurrentSettings.js";
+import {
+    getCurrentSettings,
+    getDefaultSettings,
+} from "../../app/initialization/getCurrentSettings.js";
 import { setupChartStatusUpdates } from "../../charts/components/chartStatusIndicator.js";
-import { getChartControlsToggle, getChartRenderContainer, getChartSettingsWrapper, resolveChartContainer, } from "../../charts/dom/chartDomUtils.js";
+import {
+    getChartControlsToggle,
+    getChartRenderContainer,
+    getChartSettingsWrapper,
+    resolveChartContainer,
+} from "../../charts/dom/chartDomUtils.js";
 import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
-import { getState, setState, updateState, } from "../../state/core/stateManager.js";
-import { createHRZoneControls, moveHRZoneControlsToSection, } from "../controls/createHRZoneControls.js";
-import { createPowerZoneControls, movePowerZoneControlsToSection, } from "../controls/createPowerZoneControls.js";
+import {
+    getState,
+    setState,
+    updateState,
+} from "../../state/core/stateManager.js";
+import {
+    createHRZoneControls,
+    moveHRZoneControlsToSection,
+} from "../controls/createHRZoneControls.js";
+import {
+    createPowerZoneControls,
+    movePowerZoneControlsToSection,
+} from "../controls/createPowerZoneControls.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
-import { createControlsSection, createExportSection, createFieldTogglesSection, createSettingsHeader, } from "./createSettingsHeader.js";
+import {
+    createControlsSection,
+    createExportSection,
+    createFieldTogglesSection,
+    createSettingsHeader,
+} from "./createSettingsHeader.js";
 const deferredZoneControlTimers = new Set();
 /**
  * Ensures chart settings dropdowns exist and applies styling.
  *
  * @param targetContainer - Container element or ID.
+ *
  * @returns Current settings object.
  */
 export function ensureChartSettingsDropdowns(targetContainer) {
@@ -26,9 +50,10 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         return getDefaultSettings();
     }
     // Create toggle button if it doesn't exist
-    const toggleParent = chartContainer.parentNode instanceof HTMLElement
-        ? chartContainer.parentNode
-        : document.body;
+    const toggleParent =
+        chartContainer.parentNode instanceof HTMLElement
+            ? chartContainer.parentNode
+            : document.body;
     createControlsToggleButton(toggleParent);
     // Create main settings wrapper only if it doesn't exist
     let wrapper = getChartSettingsWrapper(document);
@@ -41,8 +66,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         const toggleBtn = getChartControlsToggle(document);
         if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
-        }
-        else if (chartContainer.parentNode instanceof HTMLElement) {
+        } else if (chartContainer.parentNode instanceof HTMLElement) {
             chartContainer.parentNode.insertBefore(wrapper, chartContainer);
         } // Initialize settings sections only once
         createSettingsHeader(wrapper);
@@ -58,10 +82,14 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         // Setup chart status indicator automatic updates
         setupChartStatusUpdates();
         // Update state management system instead of chartControlsState
-        updateState("charts", {
-            controlsInitialized: true,
-            controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
-        }, { merge: true, source: "ensureChartSettingsDropdowns" });
+        updateState(
+            "charts",
+            {
+                controlsInitialized: true,
+                controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
+            },
+            { merge: true, source: "ensureChartSettingsDropdowns" }
+        );
         console.log("[ChartJS] Controls panel created and hidden by default");
     }
     // Ensure state synchronization - sync internal state with actual DOM state
@@ -72,6 +100,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
  * Creates a toggle button for the chart controls panel.
  *
  * @param container - Container for fallback insertion.
+ *
  * @returns Existing or newly created toggle button.
  */
 function createControlsToggleButton(container) {
@@ -106,14 +135,22 @@ function createControlsToggleButton(container) {
 	`;
     // Add hover and focus effects
     const listenerController = new AbortController();
-    toggleBtn.addEventListener("mouseenter", () => {
-        toggleBtn.style.transform = "translateY(-2px)";
-        toggleBtn.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
-    }, { signal: listenerController.signal });
-    toggleBtn.addEventListener("mouseleave", () => {
-        toggleBtn.style.transform = "translateY(0)";
-        toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
-    }, { signal: listenerController.signal });
+    toggleBtn.addEventListener(
+        "mouseenter",
+        () => {
+            toggleBtn.style.transform = "translateY(-2px)";
+            toggleBtn.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
+        },
+        { signal: listenerController.signal }
+    );
+    toggleBtn.addEventListener(
+        "mouseleave",
+        () => {
+            toggleBtn.style.transform = "translateY(0)";
+            toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
+        },
+        { signal: listenerController.signal }
+    );
     toggleBtn.addEventListener("click", toggleChartControls, {
         signal: listenerController.signal,
     });
@@ -121,8 +158,7 @@ function createControlsToggleButton(container) {
     const chartContainer = getChartRenderContainer(document);
     if (chartContainer && chartContainer.parentNode) {
         chartContainer.parentNode.insertBefore(toggleBtn, chartContainer);
-    }
-    else {
+    } else {
         container.append(toggleBtn);
     }
     return toggleBtn;
@@ -152,7 +188,8 @@ function toggleChartControls() {
     // First sync to ensure we're starting from the correct state
     updateControlsState();
     // Use state management system to toggle controls visibility
-    const currentVisibility = getState("charts.controlsVisible"), newVisibility = !currentVisibility;
+    const currentVisibility = getState("charts.controlsVisible"),
+        newVisibility = !currentVisibility;
     setState("charts.controlsVisible", newVisibility, {
         source: "toggleChartControls",
     });
@@ -165,5 +202,7 @@ function toggleChartControls() {
             : "▶ Show Controls";
         toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
     }
-    console.log(`[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`);
+    console.log(
+        `[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`
+    );
 }

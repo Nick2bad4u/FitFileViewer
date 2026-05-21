@@ -19,35 +19,28 @@ const rendererMocks = vi.hoisted(() => ({
 }));
 
 vi.mock(
-    import(
-        "../../../../../utils/charts/rendering/renderAltitudeProfileChart.js"
-    ),
+    import("../../../../../utils/charts/rendering/renderAltitudeProfileChart.js"),
     () => ({
         renderAltitudeProfileChart: rendererMocks.renderAltitudeProfileChart,
     })
 );
 
 vi.mock(
-    import(
-        "../../../../../utils/charts/rendering/renderPowerVsHeartRateChart.js"
-    ),
+    import("../../../../../utils/charts/rendering/renderPowerVsHeartRateChart.js"),
     () => ({
         renderPowerVsHeartRateChart: rendererMocks.renderPowerVsHeartRateChart,
     })
 );
 
 vi.mock(
-    import(
-        "../../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js"
-    ),
+    import("../../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js"),
     () => ({
         renderSpeedVsDistanceChart: rendererMocks.renderSpeedVsDistanceChart,
     })
 );
 
-const { renderPerformanceAnalysisCharts } = await import(
-    "../../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js"
-);
+const { renderPerformanceAnalysisCharts } =
+    await import("../../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
 const chartData = [
     {
@@ -73,7 +66,11 @@ describe(renderPerformanceAnalysisCharts, () => {
         expect.assertions(6);
 
         const container = document.createElement("div");
-        const labels = [0, 60, 120];
+        const labels = [
+            0,
+            60,
+            120,
+        ];
 
         renderPerformanceAnalysisCharts(
             container,

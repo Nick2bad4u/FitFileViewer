@@ -9,13 +9,17 @@ let mapInvalidationFrameId;
 let mapInvalidationSecondFrameId;
 let mapInvalidationTimeoutId;
 function clearPendingMapInvalidation() {
-    if (mapInvalidationFrameId !== undefined &&
-        typeof cancelAnimationFrame === "function") {
+    if (
+        mapInvalidationFrameId !== undefined &&
+        typeof cancelAnimationFrame === "function"
+    ) {
         cancelAnimationFrame(mapInvalidationFrameId);
         mapInvalidationFrameId = undefined;
     }
-    if (mapInvalidationSecondFrameId !== undefined &&
-        typeof cancelAnimationFrame === "function") {
+    if (
+        mapInvalidationSecondFrameId !== undefined &&
+        typeof cancelAnimationFrame === "function"
+    ) {
         cancelAnimationFrame(mapInvalidationSecondFrameId);
         mapInvalidationSecondFrameId = undefined;
     }
@@ -31,10 +35,12 @@ function hasRenderedFlag(value) {
     return value !== null && typeof value === "object" && "isRendered" in value;
 }
 function isIframeLike(element) {
-    return (element !== null &&
+    return (
+        element !== null &&
         element.tagName.toUpperCase() === "IFRAME" &&
         "src" in element &&
-        typeof element.src === "string");
+        typeof element.src === "string"
+    );
 }
 function getTimestamp(record) {
     return record?.timestamp || 0;
@@ -58,8 +64,7 @@ export async function handleBrowserTab() {
         if (mod && typeof mod.renderFileBrowserTab === "function") {
             await mod.renderFileBrowserTab();
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[TabStateManager] Failed to render Browser tab", error);
     }
 }
@@ -71,30 +76,37 @@ export async function handleChartTab(globalData) {
         console.warn("[TabStateManager] No chart data available");
         return;
     }
-    await tabRenderingManager.executeRenderOperation("chart", async (token) => {
-        if (token.isCancelled) {
-            return null;
-        }
-        const movedPreRendered = attachPreRenderedCharts();
-        const chartState = getStateMgr().getState("charts");
-        if (hasRenderedFlag(chartState) && chartState.isRendered) {
-            console.log("[TabStateManager] Chart tab activated - charts already rendered");
-            getStateMgr().setState("charts.tabActive", true, {
-                source: "TabStateManager.handleChartTab",
-            });
-        }
-        else {
-            console.log("[TabStateManager] Chart tab activated - triggering initial render through state system");
-            getStateMgr().setState("charts.tabActive", true, {
-                source: "TabStateManager.handleChartTab",
-            });
-        }
-        if (token.isCancelled) {
-            console.log("[TabStateManager] Chart tab rendering cancelled");
-            return null;
-        }
-        return movedPreRendered ? "preRendered" : true;
-    }, { debounce: true, skipIfRecent: true });
+    await tabRenderingManager.executeRenderOperation(
+        "chart",
+        async (token) => {
+            if (token.isCancelled) {
+                return null;
+            }
+            const movedPreRendered = attachPreRenderedCharts();
+            const chartState = getStateMgr().getState("charts");
+            if (hasRenderedFlag(chartState) && chartState.isRendered) {
+                console.log(
+                    "[TabStateManager] Chart tab activated - charts already rendered"
+                );
+                getStateMgr().setState("charts.tabActive", true, {
+                    source: "TabStateManager.handleChartTab",
+                });
+            } else {
+                console.log(
+                    "[TabStateManager] Chart tab activated - triggering initial render through state system"
+                );
+                getStateMgr().setState("charts.tabActive", true, {
+                    source: "TabStateManager.handleChartTab",
+                });
+            }
+            if (token.isCancelled) {
+                console.log("[TabStateManager] Chart tab rendering cancelled");
+                return null;
+            }
+            return movedPreRendered ? "preRendered" : true;
+        },
+        { debounce: true, skipIfRecent: true }
+    );
 }
 /**
  * Handle data tables tab activation.
@@ -104,18 +116,25 @@ export async function handleDataTab(globalData) {
     if (!globalData || !rendererGlobal.createTables) {
         return;
     }
-    const bgContainer = querySelectorByIdFlexible(getDoc(), "#background_data_container");
-    const visibleContainer = querySelectorByIdFlexible(getDoc(), "#content_data");
-    if (bgContainer &&
+    const bgContainer = querySelectorByIdFlexible(
+        getDoc(),
+        "#background_data_container"
+    );
+    const visibleContainer = querySelectorByIdFlexible(
+        getDoc(),
+        "#content_data"
+    );
+    if (
+        bgContainer &&
         bgContainer.childNodes &&
         bgContainer.childNodes.length > 0 &&
-        visibleContainer) {
+        visibleContainer
+    ) {
         visibleContainer.replaceChildren();
         while (bgContainer.firstChild) {
             visibleContainer.append(bgContainer.firstChild);
         }
-    }
-    else {
+    } else {
         console.log("[TabStateManager] Creating data tables");
         rendererGlobal.createTables(globalData);
     }
@@ -129,7 +148,8 @@ export async function handleMapTab(globalData) {
     }
     const rendererGlobal = getRendererGlobal();
     const mapState = getStateMgr().getState("map");
-    const isMapRendered = hasRenderedFlag(mapState) && mapState.isRendered === true;
+    const isMapRendered =
+        hasRenderedFlag(mapState) && mapState.isRendered === true;
     if (!isMapRendered && rendererGlobal.renderMap) {
         console.log("[TabStateManager] Rendering map for first time");
         rendererGlobal.renderMap();
@@ -144,11 +164,14 @@ export async function handleMapTab(globalData) {
         return;
     }
     const executeInvalidation = () => {
-        const container = typeof mapInstance.getContainer === "function"
-            ? mapInstance.getContainer()
-            : null;
+        const container =
+            typeof mapInstance.getContainer === "function"
+                ? mapInstance.getContainer()
+                : null;
         if (!container || !container.isConnected) {
-            console.warn("[TabStateManager] Map container missing; re-rendering map instance");
+            console.warn(
+                "[TabStateManager] Map container missing; re-rendering map instance"
+            );
             if (typeof renderMapFn === "function") {
                 renderMapFn();
                 getStateMgr().setState("map.isRendered", true, {
@@ -159,10 +182,14 @@ export async function handleMapTab(globalData) {
         }
         try {
             mapInstance.invalidateSize({ pan: false });
-            console.log("[TabStateManager] Map size invalidated to fix grey tiles");
-        }
-        catch (error) {
-            console.warn("[TabStateManager] Map invalidation failed; re-rendering map", error);
+            console.log(
+                "[TabStateManager] Map size invalidated to fix grey tiles"
+            );
+        } catch (error) {
+            console.warn(
+                "[TabStateManager] Map invalidation failed; re-rendering map",
+                error
+            );
             if (typeof renderMapFn === "function") {
                 renderMapFn();
                 getStateMgr().setState("map.isRendered", true, {
@@ -180,8 +207,7 @@ export async function handleMapTab(globalData) {
                 executeInvalidation();
             });
         });
-    }
-    else {
+    } else {
         clearPendingMapInvalidation();
         mapInvalidationTimeoutId = setTimeout(() => {
             mapInvalidationTimeoutId = undefined;

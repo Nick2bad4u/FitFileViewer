@@ -41,7 +41,12 @@ describe("async concurrency limiter", () => {
         let activeCount = 0;
         let maxActiveCount = 0;
 
-        const tasks = [30, 10, 20, 5].map((delayMs, index) =>
+        const tasks = [
+            30,
+            10,
+            20,
+            5,
+        ].map((delayMs, index) =>
             limit(async () => {
                 activeCount++;
                 maxActiveCount = Math.max(maxActiveCount, activeCount);
@@ -51,7 +56,12 @@ describe("async concurrency limiter", () => {
             })
         );
 
-        await expect(Promise.all(tasks)).resolves.toStrictEqual([0, 1, 2, 3]);
+        await expect(Promise.all(tasks)).resolves.toStrictEqual([
+            0,
+            1,
+            2,
+            3,
+        ]);
         expect(maxActiveCount).toBe(2);
         expect(activeCount).toBe(0);
     });
@@ -72,7 +82,11 @@ describe("async concurrency limiter", () => {
             })
         );
 
-        await expect(Promise.all(tasks)).resolves.toStrictEqual([0, 1, 2]);
+        await expect(Promise.all(tasks)).resolves.toStrictEqual([
+            0,
+            1,
+            2,
+        ]);
         expect(maxActiveCount).toBe(1);
     });
 
@@ -108,9 +122,9 @@ describe("network utilities", () => {
         const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(response);
         globalRef.fetch = fetchSpy;
 
-        await expect(fetchWithTimeout("https://example.test", 100)).resolves.toBe(
-            response
-        );
+        await expect(
+            fetchWithTimeout("https://example.test", 100)
+        ).resolves.toBe(response);
 
         expect(fetchSpy).toHaveBeenCalledWith(
             "https://example.test",

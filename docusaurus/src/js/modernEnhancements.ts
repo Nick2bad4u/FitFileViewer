@@ -1,8 +1,8 @@
 /**
  * Modern Enhancements Module
  *
- * This module provides client-side enhancements for the documentation site.
- * It runs after the initial page load to add interactive features and improve UX.
+ * This module provides client-side enhancements for the documentation site. It
+ * runs after the initial page load to add interactive features and improve UX.
  *
  * @module modernEnhancements
  */
@@ -18,19 +18,22 @@ function addSmoothScrolling(): void {
     }
 
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener("click", function handleClick(this: HTMLAnchorElement, event: Event) {
-            const href = this.getAttribute("href");
-            if (href && href !== "#") {
-                const target = document.querySelector(href);
-                if (target) {
-                    event.preventDefault();
-                    target.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                    });
+        anchor.addEventListener(
+            "click",
+            function handleClick(this: HTMLAnchorElement, event: Event) {
+                const href = this.getAttribute("href");
+                if (href && href !== "#") {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        event.preventDefault();
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
                 }
             }
-        });
+        );
     });
 }
 
@@ -52,7 +55,10 @@ function enhanceExternalLinks(): void {
         link.setAttribute("target", "_blank");
 
         // Add visual indicator if not already present
-        if (!link.querySelector(".external-link-icon") && !link.classList.contains("no-external-icon")) {
+        if (
+            !link.querySelector(".external-link-icon") &&
+            !link.classList.contains("no-external-icon")
+        ) {
             const icon = document.createElement("span");
             icon.className = "external-link-icon";
             icon.textContent = " ↗";
@@ -130,8 +136,7 @@ function addScrollRevealAnimations(): void {
 
     // Support both global classes (e.g. .scroll-reveal) and CSS-module classes
     // (e.g. .scrollRevealLeft_xxx) by matching on the class name substring.
-    const scrollRevealSelector =
-        ".scroll-reveal, [class*=\"scrollReveal\"]";
+    const scrollRevealSelector = '.scroll-reveal, [class*="scrollReveal"]';
 
     document.querySelectorAll(scrollRevealSelector).forEach((el) => {
         observer.observe(el);
@@ -139,7 +144,8 @@ function addScrollRevealAnimations(): void {
 }
 
 /**
- * Hides the copy-page button on the homepage while keeping it visible on docs pages.
+ * Hides the copy-page button on the homepage while keeping it visible on docs
+ * pages.
  */
 function toggleCopyPageButtonVisibility(): void {
     if (!ExecutionEnvironment.canUseDOM) {
@@ -147,7 +153,9 @@ function toggleCopyPageButtonVisibility(): void {
     }
 
     const isHome = window.location.pathname === "/";
-    const container = document.querySelector<HTMLElement>(".copy-page-button__container");
+    const container = document.querySelector<HTMLElement>(
+        ".copy-page-button__container"
+    );
 
     if (container) {
         // Hide on home, reset on other pages

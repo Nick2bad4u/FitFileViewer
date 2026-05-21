@@ -16,7 +16,9 @@ let stateAwareEventHandlersAbortController;
  */
 export function exampleStateUsage() {
     // Getting state
-    const activeTab = getState("ui.activeTab"), currentTheme = getState("ui.theme"), isLoading = getState("isLoading");
+    const activeTab = getState("ui.activeTab"),
+        currentTheme = getState("ui.theme"),
+        isLoading = getState("isLoading");
     console.log("Current state:", { activeTab, currentTheme, isLoading });
     // Setting state
     setState("ui.theme", "dark", { silent: false, source: "exampleFunction" });
@@ -160,11 +162,9 @@ async function loadChartTab() {
         // Const chartOptions = getChartOptions();
         // AppActions.renderChart(chartData, chartOptions);
         console.log("[Renderer] Chart tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading chart tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadChartTab" });
     }
 }
@@ -183,11 +183,9 @@ async function loadMapTab() {
         // Const mapZoom = getOptimalZoom(globalData);
         // AppActions.renderMap(mapCenter, mapZoom);
         console.log("[Renderer] Map tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading map tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadMapTab" });
     }
 }
@@ -208,11 +206,9 @@ async function loadTableTab() {
         // };
         // AppActions.renderTable(tableConfig);
         console.log("[Renderer] Table tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading table tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadTableTab" });
     }
 }
@@ -263,33 +259,43 @@ function setupStateAwareEventHandlers() {
     stateAwareEventHandlersAbortController = new AbortController();
     const { signal } = stateAwareEventHandlersAbortController;
     // Tab switching (if not handled by UIStateManager)
-    document.addEventListener("click", (event) => {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target) {
-            return;
-        }
-        const tabButton = target.closest("[data-tab]");
-        if (tabButton instanceof HTMLElement) {
-            const tabName = tabButton.dataset["tab"];
-            if (tabName) {
-                AppActions.switchTab(tabName);
+    document.addEventListener(
+        "click",
+        (event) => {
+            const target =
+                event.target instanceof Element ? event.target : null;
+            if (!target) {
+                return;
             }
-        }
-    }, { signal });
+            const tabButton = target.closest("[data-tab]");
+            if (tabButton instanceof HTMLElement) {
+                const tabName = tabButton.dataset["tab"];
+                if (tabName) {
+                    AppActions.switchTab(tabName);
+                }
+            }
+        },
+        { signal }
+    );
     // Theme switching
-    document.addEventListener("click", (event) => {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target) {
-            return;
-        }
-        const themeButton = target.closest("[data-theme]");
-        if (themeButton instanceof HTMLElement) {
-            const theme = themeButton.dataset["theme"];
-            if (theme) {
-                AppActions.switchTheme(theme);
+    document.addEventListener(
+        "click",
+        (event) => {
+            const target =
+                event.target instanceof Element ? event.target : null;
+            if (!target) {
+                return;
             }
-        }
-    }, { signal });
+            const themeButton = target.closest("[data-theme]");
+            if (themeButton instanceof HTMLElement) {
+                const theme = themeButton.dataset["theme"];
+                if (theme) {
+                    AppActions.switchTheme(theme);
+                }
+            }
+        },
+        { signal }
+    );
 }
 /**
  * Update all components when new data is loaded

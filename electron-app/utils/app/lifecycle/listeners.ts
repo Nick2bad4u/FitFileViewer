@@ -89,10 +89,7 @@ type LifecycleElectronAPI = {
 type LifecycleGlobal = typeof globalThis & {
     ChartUpdater?: { updateCharts?: (reason?: string) => unknown };
     __ffvLifecycleListenersCleanup?: () => void;
-    copyTableAsCSV?: (options: {
-        container: Element;
-        data: FitData;
-    }) => string;
+    copyTableAsCSV?: (options: { container: Element; data: FitData }) => string;
     electronAPI?: LifecycleElectronAPI;
     globalData?: FitData | null;
     loadedFitFiles?: LoadedFitFileDescriptor[];
@@ -243,9 +240,7 @@ export function setupListeners({
                     // - Main process menu clicks *usually* approve paths already, but this keeps
                     //   behavior consistent across entrypoints (menu vs. context menu) and
                     //   prevents failures if menu approval is unavailable.
-                    if (
-                        typeof electronAPI.approveRecentFile === "function"
-                    ) {
+                    if (typeof electronAPI.approveRecentFile === "function") {
                         const ok =
                             await electronAPI.approveRecentFile(filePathString);
                         if (!ok) {
@@ -307,7 +302,10 @@ export function setupListeners({
                         if (lifecycleGlobal.showFitData) {
                             // Extract data using the same logic as handleOpenFile.js
                             const dataToShow = result.data || result;
-                            lifecycleGlobal.showFitData(dataToShow, filePathString);
+                            lifecycleGlobal.showFitData(
+                                dataToShow,
+                                filePathString
+                            );
                         }
 
                         if (
@@ -365,7 +363,8 @@ export function setupListeners({
                         lifecycleGlobal.globalData &&
                         lifecycleGlobal.globalData.cachedFilePath
                     ) {
-                        const filePath = lifecycleGlobal.globalData.cachedFilePath;
+                        const filePath =
+                            lifecycleGlobal.globalData.cachedFilePath;
                         setLoading(true);
                         if (
                             typeof electronAPI.readFile !== "function" ||
@@ -392,7 +391,10 @@ export function setupListeners({
                                         "error"
                                     );
                                 } else if (result) {
-                                    lifecycleGlobal.showFitData?.(result, filePath);
+                                    lifecycleGlobal.showFitData?.(
+                                        result,
+                                        filePath
+                                    );
                                 }
                             })
                             .catch((error: unknown) => {
@@ -413,7 +415,8 @@ export function setupListeners({
                     if (!lifecycleGlobal.globalData) {
                         return;
                     }
-                    const safePath = typeof filePath === "string" ? filePath : "";
+                    const safePath =
+                        typeof filePath === "string" ? filePath : "";
                     const ext = sanitizeFileExtension(
                         safePath.split(".").pop() ?? ""
                     );
@@ -559,12 +562,9 @@ export function setupListeners({
                 4000
             );
         });
-        electronAPI.onUpdateEvent(
-            "update-error",
-            (err: unknown) => {
-                showUpdateNotification(`Update error: ${err}`, "error", 7000);
-            }
-        );
+        electronAPI.onUpdateEvent("update-error", (err: unknown) => {
+            showUpdateNotification(`Update error: ${err}`, "error", 7000);
+        });
         electronAPI.onUpdateEvent(
             "update-download-progress",
             (progress: unknown) => {

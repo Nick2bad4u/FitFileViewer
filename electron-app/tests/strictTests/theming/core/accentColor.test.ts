@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-type AccentColorModule = typeof import("../../../../utils/theming/core/accentColor.js");
+type AccentColorModule =
+    typeof import("../../../../utils/theming/core/accentColor.js");
 
 describe("accentColor", () => {
     it("generates deterministic dark-theme color variations", async () => {

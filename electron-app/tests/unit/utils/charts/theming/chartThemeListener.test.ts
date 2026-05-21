@@ -16,16 +16,17 @@ const { mockedChartStateManager } = vi.hoisted(() => ({
     },
 }));
 
-vi.mock(import("../../../../../utils/charts/core/chartStateManager.js"), () => ({
-    chartStateManager: mockedChartStateManager,
-}));
+vi.mock(
+    import("../../../../../utils/charts/core/chartStateManager.js"),
+    () => ({
+        chartStateManager: mockedChartStateManager,
+    })
+);
 
 async function importModule(): Promise<
     typeof import("../../../../../utils/charts/theming/chartThemeListener.js")
 > {
-    return await import(
-        "../../../../../utils/charts/theming/chartThemeListener.js"
-    );
+    return await import("../../../../../utils/charts/theming/chartThemeListener.js");
 }
 
 function testWindow(): TestWindow {
@@ -81,14 +82,7 @@ function buildSettingsDOM(): HTMLElement {
     const statusOff = document.createElement("span");
     statusOff.textContent = "Off";
 
-    settings.append(
-        slider1,
-        slider2,
-        toggleOn,
-        statusOn,
-        toggleOff,
-        statusOff
-    );
+    settings.append(slider1, slider2, toggleOn, statusOn, toggleOff, statusOff);
     document.body.append(settings);
 
     return settings;

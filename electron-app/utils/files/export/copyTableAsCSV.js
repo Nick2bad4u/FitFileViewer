@@ -25,27 +25,21 @@ const CSV_CONFIG = {
  * stringifying them. It attempts to use the modern Clipboard API and falls back
  * to the legacy method if necessary.
  *
- * @example
- *     // Copy a DataTable to clipboard as CSV
- *     copyTableAsCSV(myDataTable);
+ * @example // Copy a DataTable to clipboard as CSV copyTableAsCSV(myDataTable);
  *
  * @throws When the input table cannot be normalized or clipboard copying fails.
- *
  */
 export async function copyTableAsCSV(table) {
     let rows = null;
     if (isTableRowArray(table)) {
         rows = table;
-    }
-    else if (isRowsTable(table)) {
+    } else if (isRowsTable(table)) {
         rows = table.rows;
-    }
-    else if (isObjectsTable(table)) {
+    } else if (isObjectsTable(table)) {
         // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
         try {
             rows = table.objects();
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[copyTableAsCSV] Failed to copy table:", error);
             throw error;
         }
@@ -66,8 +60,7 @@ export async function copyTableAsCSV(table) {
         });
         // Attempt clipboard copy
         await copyToClipboard(csvString);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
     }
@@ -96,8 +89,10 @@ async function copyToClipboard(text) {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
         const { electronAPI } = getCopyCsvGlobal();
-        if (electronAPI &&
-            typeof electronAPI.writeClipboardText === "function") {
+        if (
+            electronAPI &&
+            typeof electronAPI.writeClipboardText === "function"
+        ) {
             const { writeClipboardText } = electronAPI;
             const ok = Boolean(await writeClipboardText(text));
             if (ok) {
@@ -106,12 +101,13 @@ async function copyToClipboard(text) {
             }
             // If we have the Electron bridge but it failed, skip navigator.clipboard (commonly denied)
             // and use the legacy fallback directly.
-            console.error("[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback.");
+            console.error(
+                "[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback."
+            );
             copyToClipboardFallback(text);
             return;
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Try modern Clipboard API.
@@ -121,8 +117,7 @@ async function copyToClipboard(text) {
             await clipboard.writeText(text);
             console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
             return;
-        }
-        catch {
+        } catch {
             // Do not treat as a hard error; permissions are commonly denied in non-secure contexts.
         }
     }
@@ -146,17 +141,19 @@ function copyToClipboardFallback(text) {
     try {
         const successful = document.execCommand("copy");
         if (successful) {
-            console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`);
-        }
-        else {
+            console.log(
+                `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`
+            );
+        } else {
             throw new Error("execCommand('copy') returned false");
         }
-    }
-    catch (error) {
-        console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`,
+            error
+        );
         throw error;
-    }
-    finally {
+    } finally {
         textarea.remove();
     }
 }
@@ -215,14 +212,12 @@ function processTableRows(rows) {
                 // Use cache to avoid re-serializing identical objects
                 if (cache.has(cell)) {
                     processedRow[key] = cache.get(cell);
-                }
-                else {
+                } else {
                     const serialized = JSON.stringify(cell);
                     cache.set(cell, serialized);
                     processedRow[key] = serialized;
                 }
-            }
-            else {
+            } else {
                 processedRow[key] = cell;
             }
         }

@@ -31,9 +31,8 @@ const ICON_PATHS = [
  * the app's theme. Uses CSS classes for consistent styling and handles
  * fullscreen API errors gracefully.
  *
- * @example
- *     // Add exit fullscreen overlay to a chart container
- *     addExitFullscreenOverlay(document.getElementById("chart-container"));
+ * @example // Add exit fullscreen overlay to a chart container
+ * addExitFullscreenOverlay(document.getElementById("chart-container"));
  *
  * @throws TypeError If container is not a valid DOM element.
  */
@@ -43,17 +42,23 @@ export function addExitFullscreenOverlay(container) {
         throw new TypeError("Container must be a valid DOM element");
     }
     // Prevent duplicate overlays
-    const existingOverlay = container.querySelector(`.${FULLSCREEN_CONFIG.CSS_CLASSES.OVERLAY}`);
+    const existingOverlay = container.querySelector(
+        `.${FULLSCREEN_CONFIG.CSS_CLASSES.OVERLAY}`
+    );
     if (existingOverlay) {
-        console.debug("[addExitFullscreenOverlay] Overlay already exists, skipping creation");
+        console.debug(
+            "[addExitFullscreenOverlay] Overlay already exists, skipping creation"
+        );
         return;
     }
     try {
         const exitButton = createExitButton();
         container.append(exitButton);
-    }
-    catch (error) {
-        console.error("[addExitFullscreenOverlay] Failed to create overlay:", error);
+    } catch (error) {
+        console.error(
+            "[addExitFullscreenOverlay] Failed to create overlay:",
+            error
+        );
         throw error;
     }
 }
@@ -119,15 +124,21 @@ function handleExitFullscreen(event) {
             void document.exitFullscreen().catch((error) => {
                 logExitError(error);
             });
+        } else {
+            console.warn(
+                `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.NO_FULLSCREEN_WARNING}`
+            );
         }
-        else {
-            console.warn(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.NO_FULLSCREEN_WARNING}`);
-        }
-    }
-    catch (error) {
-        console.error(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`,
+            error
+        );
     }
 }
 function logExitError(error) {
-    console.error(`[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`, error);
+    console.error(
+        `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`,
+        error
+    );
 }

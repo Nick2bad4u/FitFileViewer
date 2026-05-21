@@ -13,6 +13,7 @@ FitFileViewer provides powerful map visualization using Leaflet.js.
 ## Overview
 
 The Map tab displays your GPS route with:
+
 - Interactive route visualization
 - Multiple map layer options
 - Lap and waypoint markers
@@ -23,12 +24,12 @@ The Map tab displays your GPS route with:
 
 ### Zoom
 
-| Method | Action |
-|--------|--------|
-| Mouse wheel | Scroll up/down |
-| Buttons | Click +/- |
-| Keyboard | `+` or `-` keys |
-| Double-click | Zoom to point |
+| Method       | Action          |
+| ------------ | --------------- |
+| Mouse wheel  | Scroll up/down  |
+| Buttons      | Click +/-       |
+| Keyboard     | `+` or `-` keys |
+| Double-click | Zoom to point   |
 
 ### Pan
 
@@ -46,33 +47,35 @@ The Map tab displays your GPS route with:
 
 Click the layers button (🗂️) to choose:
 
-| Layer | Description | Best For |
-|-------|-------------|----------|
-| OpenStreetMap | Detailed street map | Urban routes |
-| Satellite | Aerial imagery | Trail visualization |
-| Terrain | Elevation shading | Mountain activities |
-| Dark | Dark-themed map | Night viewing |
+| Layer         | Description         | Best For            |
+| ------------- | ------------------- | ------------------- |
+| OpenStreetMap | Detailed street map | Urban routes        |
+| Satellite     | Aerial imagery      | Trail visualization |
+| Terrain       | Elevation shading   | Mountain activities |
+| Dark          | Dark-themed map     | Night viewing       |
 
 ## Route Display
 
 ### Route Line
 
 Your GPS track is shown as a colored line:
+
 - **Green section**: Start of route
 - **Blue section**: Middle of route
 - **Red section**: End of route
 
 ### Markers
 
-| Marker | Color | Meaning |
-|--------|-------|---------|
-| Start | 🟢 Green | Activity start point |
-| End | 🔴 Red | Activity end point |
-| Laps | 🔵 Blue | Lap split points |
+| Marker | Color    | Meaning              |
+| ------ | -------- | -------------------- |
+| Start  | 🟢 Green | Activity start point |
+| End    | 🔴 Red   | Activity end point   |
+| Laps   | 🔵 Blue  | Lap split points     |
 
 ### Hover Information
 
 Mouse over the route to see:
+
 - Distance from start
 - Elapsed time
 - Current speed
@@ -99,14 +102,15 @@ Measure distances on the map:
 2. Click points on the map to build a measurement path
 3. See **per-segment** distances and the **total** distance as you add points
 4. Finish the measurement using any of these gestures:
-	- **Double-click**
-	- **Right-click**
-	- **Click an existing point** on the measurement path
+   - **Double-click**
+   - **Right-click**
+   - **Click an existing point** on the measurement path
 5. Results are shown in **both metric and imperial units**
 
 ### Fullscreen
 
 Expand map to full window:
+
 - Click fullscreen button (⛶)
 - Press `F11`
 - Click again to exit
@@ -114,6 +118,7 @@ Expand map to full window:
 ### Mini Map
 
 A small overview map in the corner:
+
 - Shows your location on larger area
 - Click to navigate
 - Can be collapsed
@@ -123,6 +128,7 @@ A small overview map in the corner:
 ### Route Colors
 
 The route automatically uses colors based on:
+
 - Speed (faster = warmer colors)
 - Heart rate zones
 - Elevation changes
@@ -130,6 +136,7 @@ The route automatically uses colors based on:
 ### Map Style
 
 Match your theme:
+
 - Light theme → Standard map
 - Dark theme → Dark map style
 
@@ -138,6 +145,7 @@ Match your theme:
 ### Large Routes
 
 For activities with many GPS points:
+
 - Zoom in for detail
 - Use route simplification
 - Give time for initial render
@@ -145,6 +153,7 @@ For activities with many GPS points:
 ### Offline Maps
 
 Previously viewed areas are cached:
+
 - Works offline for cached areas
 - Blank tiles for new areas offline
 
@@ -153,11 +162,13 @@ Previously viewed areas are cached:
 ### No Route Displayed
 
 **Causes:**
+
 - Indoor activity (no GPS)
 - GPS data not recorded
 - File parsing error
 
 **Solutions:**
+
 - Check if activity has GPS data
 - Try reloading file
 - Verify FIT file isn't corrupted
@@ -165,11 +176,13 @@ Previously viewed areas are cached:
 ### Slow Map Loading
 
 **Causes:**
+
 - Large activity file
 - Slow internet for tiles
 - Many map layers
 
 **Solutions:**
+
 - Wait for initial load
 - Zoom to specific area
 - Use cached tiles
@@ -177,6 +190,7 @@ Previously viewed areas are cached:
 ### Inaccurate Route
 
 **Causes:**
+
 - Poor GPS signal during activity
 - Indoor/tunnel sections
 - Device GPS issues

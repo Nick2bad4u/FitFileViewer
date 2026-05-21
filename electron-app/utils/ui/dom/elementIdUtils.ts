@@ -120,7 +120,9 @@ function addVariant(variants: Set<string>, value: string): void {
 }
 
 function canGetById(root: FlexibleLookupRoot): root is Document {
-    return "getElementById" in root && typeof root.getElementById === "function";
+    return (
+        "getElementById" in root && typeof root.getElementById === "function"
+    );
 }
 
 function canQuery(root: FlexibleLookupRoot): root is ParentNode {

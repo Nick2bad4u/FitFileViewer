@@ -23,7 +23,10 @@ export interface ZoneData {
 }
 
 type ZoneType = "hr" | "power";
-type ColorSchemes = Record<string, Partial<Record<ZoneType, readonly string[]>>>;
+type ColorSchemes = Record<
+    string,
+    Partial<Record<ZoneType, readonly string[]>>
+>;
 
 function isZoneType(value: string): value is ZoneType {
     return value === "hr" || value === "power";
@@ -71,8 +74,7 @@ const getChartColorSchemeKey = (chartField: string): string =>
 const getChartSpecificZoneColorKey = (
     chartField: string,
     zoneIndex: number
-): string =>
-    `${chartField}_zone_${zoneIndex + 1}_color`;
+): string => `${chartField}_zone_${zoneIndex + 1}_color`;
 const getZoneColorKey = (zoneType: string, zoneIndex: number): string =>
     `${zoneType}_zone_${zoneIndex + 1}_color`;
 
@@ -257,7 +259,9 @@ function getDefaultZoneColors(zoneType: ZoneType): string[] {
     const hrColors = Array.isArray(colors["heartRateZoneColors"])
         ? colors["heartRateZoneColors"]
         : null;
-    return hrColors && hrColors.length ? [...hrColors] : FALLBACK_HR_ZONE_COLORS;
+    return hrColors && hrColors.length
+        ? [...hrColors]
+        : FALLBACK_HR_ZONE_COLORS;
 }
 
 /**
@@ -301,7 +305,7 @@ export function applyZoneColors(
 /**
  * Gets the saved color for a specific zone and chart type or returns default
  *
- *   "power_lap_zone_stacked")
+ * "power_lap_zone_stacked")
  */
 export function getChartSpecificZoneColor(
     chartField: string,
@@ -328,7 +332,7 @@ export function getChartSpecificZoneColor(
 /**
  * Gets an array of colors for all zones of a specific chart type
  *
- *   "power_lap_zone_stacked")
+ * "power_lap_zone_stacked")
  */
 export function getChartSpecificZoneColors(
     chartField: string,
@@ -483,7 +487,7 @@ export function removeZoneColor(zoneType: string, zoneIndex: number): void {
 /**
  * Resets all zone colors for a specific chart type to defaults
  *
- *   "power_lap_zone_stacked")
+ * "power_lap_zone_stacked")
  */
 export function resetChartSpecificZoneColors(
     chartField: string,
@@ -526,7 +530,7 @@ export function resetZoneColors(zoneType: string, zoneCount: number): void {
 /**
  * Saves a zone color for a specific chart type to localStorage
  *
- *   "power_lap_zone_stacked")
+ * "power_lap_zone_stacked")
  */
 export function saveChartSpecificZoneColor(
     chartField: string,

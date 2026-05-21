@@ -1,13 +1,22 @@
 /**
  * @typedef {import("../../types/main/window/bootstrapMainWindow").AppStateValue} AppStateValue
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").AutoUpdaterLike} AutoUpdaterLike
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").BrowserWindowApi} BrowserWindowApi
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").BrowserWindowConstructor} BrowserWindowConstructor
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").LogWithContext} LogWithContext
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
  *
  * @typedef {{
- *     browserWindowRef: () => BrowserWindowApi | BrowserWindowConstructor | null | undefined;
+ *     browserWindowRef: () =>
+ *         | BrowserWindowApi
+ *         | BrowserWindowConstructor
+ *         | null
+ *         | undefined;
  *     getAppState: (key: string) => AppStateValue;
  *     setAppState: (key: string, value: AppStateValue) => void;
  *     safeCreateAppMenu: (

@@ -3,6 +3,7 @@
  *
  * @param field - Data field name for the chart.
  * @param index - Index of the chart instance.
+ *
  * @returns Configured canvas element for the chart.
  */
 export function createChartCanvas(field, index) {

@@ -15,14 +15,15 @@ Reference for utility modules.
 ### formatDistance
 
 ```javascript
-import { formatDistance } from './utils/formatting/formatDistance.js';
+import { formatDistance } from "./utils/formatting/formatDistance.js";
 
-formatDistance(5000);           // "5.00 km"
-formatDistance(5000, 'mi');     // "3.11 mi"
-formatDistance(5000, 'km', 1);  // "5.0 km"
+formatDistance(5000); // "5.00 km"
+formatDistance(5000, "mi"); // "3.11 mi"
+formatDistance(5000, "km", 1); // "5.0 km"
 ```
 
 **Parameters:**
+
 - `meters` (number) - Distance in meters
 - `unit` (string) - 'km' or 'mi' (default: 'km')
 - `decimals` (number) - Decimal places (default: 2)
@@ -32,14 +33,15 @@ formatDistance(5000, 'km', 1);  // "5.0 km"
 ### formatDuration
 
 ```javascript
-import { formatDuration } from './utils/formatting/formatDuration.js';
+import { formatDuration } from "./utils/formatting/formatDuration.js";
 
-formatDuration(3661);    // "1:01:01"
-formatDuration(125);     // "2:05"
-formatDuration(45);      // "0:45"
+formatDuration(3661); // "1:01:01"
+formatDuration(125); // "2:05"
+formatDuration(45); // "0:45"
 ```
 
 **Parameters:**
+
 - `seconds` (number) - Duration in seconds
 
 **Returns:** Formatted string (HH:MM:SS or MM:SS)
@@ -47,14 +49,15 @@ formatDuration(45);      // "0:45"
 ### formatSpeed
 
 ```javascript
-import { formatSpeed } from './utils/formatting/formatSpeed.js';
+import { formatSpeed } from "./utils/formatting/formatSpeed.js";
 
-formatSpeed(4.17);              // "15.0 km/h"
-formatSpeed(4.17, 'mph');       // "9.3 mph"
-formatSpeed(4.17, 'pace');      // "4:00 /km"
+formatSpeed(4.17); // "15.0 km/h"
+formatSpeed(4.17, "mph"); // "9.3 mph"
+formatSpeed(4.17, "pace"); // "4:00 /km"
 ```
 
 **Parameters:**
+
 - `metersPerSecond` (number) - Speed in m/s
 - `format` (string) - 'kmh', 'mph', or 'pace'
 
@@ -65,15 +68,16 @@ formatSpeed(4.17, 'pace');      // "4:00 /km"
 ### renderMap
 
 ```javascript
-import { renderMap } from './utils/maps/renderMap.js';
+import { renderMap } from "./utils/maps/renderMap.js";
 
-const map = renderMap('map-container', {
-    center: [51.505, -0.09],
-    zoom: 13
+const map = renderMap("map-container", {
+ center: [51.505, -0.09],
+ zoom: 13,
 });
 ```
 
 **Parameters:**
+
 - `containerId` (string) - DOM element ID
 - `options` (object) - Leaflet map options
 
@@ -82,15 +86,16 @@ const map = renderMap('map-container', {
 ### drawRoute
 
 ```javascript
-import { drawRoute } from './utils/maps/mapDrawLaps.js';
+import { drawRoute } from "./utils/maps/mapDrawLaps.js";
 
 drawRoute(map, gpsPoints, {
-    color: 'blue',
-    weight: 3
+ color: "blue",
+ weight: 3,
 });
 ```
 
 **Parameters:**
+
 - `map` (L.Map) - Leaflet map instance
 - `points` (array) - Array of [lat, lng] points
 - `options` (object) - Polyline options
@@ -100,16 +105,17 @@ drawRoute(map, gpsPoints, {
 ### renderChart
 
 ```javascript
-import { renderChart } from './utils/charts/renderChartJS.js';
+import { renderChart } from "./utils/charts/renderChartJS.js";
 
-const chart = renderChart('chart-container', {
-    type: 'line',
-    data: chartData,
-    options: chartOptions
+const chart = renderChart("chart-container", {
+ type: "line",
+ data: chartData,
+ options: chartOptions,
 });
 ```
 
 **Parameters:**
+
 - `containerId` (string) - Canvas element ID
 - `config` (object) - Chart.js configuration
 
@@ -118,12 +124,13 @@ const chart = renderChart('chart-container', {
 ### createChartSpec
 
 ```javascript
-import { createChartSpec } from './utils/charts/chartSpec.js';
+import { createChartSpec } from "./utils/charts/chartSpec.js";
 
-const spec = createChartSpec('speed', data);
+const spec = createChartSpec("speed", data);
 ```
 
 **Parameters:**
+
 - `type` (string) - Chart type ('speed', 'heartRate', 'elevation')
 - `data` (array) - Record data
 
@@ -134,21 +141,22 @@ const spec = createChartSpec('speed', data);
 ### StateManager
 
 ```javascript
-import { stateManager } from './utils/state/stateManager.js';
+import { stateManager } from "./utils/state/stateManager.js";
 
 // Set value
-stateManager.set('currentFile', fileData);
+stateManager.set("currentFile", fileData);
 
 // Get value
-const file = stateManager.get('currentFile');
+const file = stateManager.get("currentFile");
 
 // Subscribe to changes
-stateManager.subscribe('currentFile', (newValue) => {
-    console.log('File changed:', newValue);
+stateManager.subscribe("currentFile", (newValue) => {
+ console.log("File changed:", newValue);
 });
 ```
 
 **Methods:**
+
 - `set(key, value)` - Store a value
 - `get(key)` - Retrieve a value
 - `subscribe(key, callback)` - Listen for changes

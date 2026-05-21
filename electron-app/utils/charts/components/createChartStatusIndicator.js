@@ -15,9 +15,11 @@ function createFallbackIndicator() {
 export function createChartStatusIndicator() {
     try {
         return createChartStatusIndicatorFromCounts(getChartCounts());
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error creating chart status indicator:", error);
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error creating chart status indicator:",
+            error
+        );
         return createFallbackIndicator();
     }
 }

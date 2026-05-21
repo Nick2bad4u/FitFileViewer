@@ -74,14 +74,14 @@ flowchart TB
 
 ## Technology Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Framework | Electron | Cross-platform desktop |
-| UI | HTML/CSS/JS | User interface |
-| Charts | Chart.js, Vega-Lite | Data visualization |
-| Maps | Leaflet | Geographic display |
-| Tables | DataTables | Data grid |
-| Parser | Garmin FIT SDK | FIT file parsing |
+| Layer     | Technology          | Purpose                |
+| --------- | ------------------- | ---------------------- |
+| Framework | Electron            | Cross-platform desktop |
+| UI        | HTML/CSS/JS         | User interface         |
+| Charts    | Chart.js, Vega-Lite | Data visualization     |
+| Maps      | Leaflet             | Geographic display     |
+| Tables    | DataTables          | Data grid              |
+| Parser    | Garmin FIT SDK      | FIT file parsing       |
 
 ## Component Layers
 
@@ -124,11 +124,11 @@ flowchart TB
 
 FitFileViewer uses Electron's multi-process architecture:
 
-| Process | Responsibilities |
-|---------|-----------------|
-| **Main** | App lifecycle, window management, file system, IPC |
-| **Renderer** | UI rendering, user interaction, visualization |
-| **Preload** | Secure bridge between main and renderer |
+| Process      | Responsibilities                                   |
+| ------------ | -------------------------------------------------- |
+| **Main**     | App lifecycle, window management, file system, IPC |
+| **Renderer** | UI rendering, user interaction, visualization      |
+| **Preload**  | Secure bridge between main and renderer            |
 
 ## Module Organization
 
@@ -173,9 +173,9 @@ All communication between processes uses validated channels:
 
 ```javascript
 // Preload - Exposed API
-contextBridge.exposeInMainWorld('electronAPI', {
-    openFile: () => ipcRenderer.invoke('dialog:open-fit-file'),
-    // Only specific, validated operations
+contextBridge.exposeInMainWorld("electronAPI", {
+ openFile: () => ipcRenderer.invoke("dialog:open-fit-file"),
+ // Only specific, validated operations
 });
 ```
 

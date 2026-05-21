@@ -3,6 +3,7 @@ const CACHE_LOG_PREFIX = "[ChartJS Cache]";
  * Creates the chart render cache manager used by renderChartJS orchestration.
  *
  * @param dependencies - Cache stores, listener registry, and environment hooks.
+ *
  * @returns Cache invalidation and signature helper facade.
  */
 export function createChartRenderCacheManager(dependencies) {
@@ -14,7 +15,10 @@ export function createChartRenderCacheManager(dependencies) {
         dependencies.clearChartLabelsCache();
         dependencies.clearPerformanceSettingsCache();
         dependencies.clearDataSettingsSignatureCache();
-        dependencies.notifyInvalidateChartRenderCacheListeners(reason, CACHE_LOG_PREFIX);
+        dependencies.notifyInvalidateChartRenderCacheListeners(
+            reason,
+            CACHE_LOG_PREFIX
+        );
     };
     return {
         addInvalidateChartRenderCacheListener(listener) {

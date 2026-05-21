@@ -67,8 +67,14 @@ type StateListener = (change: StateChange) => void;
 
 type HandlerInfo = {
     emitter: {
-        off?: (event: string, handler: (...args: IpcHandlerArgs) => void) => void;
-        on?: (event: string, handler: (...args: IpcHandlerArgs) => void) => void;
+        off?: (
+            event: string,
+            handler: (...args: IpcHandlerArgs) => void
+        ) => void;
+        on?: (
+            event: string,
+            handler: (...args: IpcHandlerArgs) => void
+        ) => void;
         removeListener?: (
             event: string,
             handler: (...args: IpcHandlerArgs) => void
@@ -444,7 +450,8 @@ class MainProcessState {
                 ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
                 : Math.max(
                       0,
-                      Date.now() - getNumberField(metrics, "startTime", Date.now())
+                      Date.now() -
+                          getNumberField(metrics, "startTime", Date.now())
                   );
         return {
             errors: asArray(this.get("errors")).length,
@@ -1485,10 +1492,7 @@ function validate(
         return false;
     }
 
-    if (
-        typeof sender.isDestroyed === "function" &&
-        sender.isDestroyed()
-    ) {
+    if (typeof sender.isDestroyed === "function" && sender.isDestroyed()) {
         logWithContext("warn", "Blocked IPC request from destroyed sender");
         return false;
     }

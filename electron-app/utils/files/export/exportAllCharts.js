@@ -23,11 +23,13 @@ export function exportAllCharts() {
     }
     try {
         for (const [index, chart] of chartInstances.entries()) {
-            exportUtils.downloadChartAsPNG(chart, getChartExportFilename(chart, index));
+            exportUtils.downloadChartAsPNG(
+                chart,
+                getChartExportFilename(chart, index)
+            );
         }
         showNotification(`Exported ${chartInstances.length} charts`, "success");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error exporting all charts:", error);
         showNotification("Failed to export charts", "error");
     }

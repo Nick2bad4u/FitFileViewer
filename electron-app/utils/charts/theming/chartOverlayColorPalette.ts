@@ -1,7 +1,11 @@
 /**
  * RGB tuple derived from a CSS hex color token.
  */
-type RgbColor = readonly [number, number, number];
+type RgbColor = readonly [
+    number,
+    number,
+    number,
+];
 
 const DEFAULT_SHUFFLE_SEED = 42;
 const MINIMUM_COLOR_DISTANCE = 80;
@@ -20,7 +24,11 @@ function hexToRgb(hex: string): RgbColor {
     }
 
     if (!/^[\da-f]{6}$/.test(cleaned)) {
-        return [0, 0, 0];
+        return [
+            0,
+            0,
+            0,
+        ];
     }
 
     const numericColor = Number.parseInt(cleaned, 16);
@@ -33,8 +41,16 @@ function hexToRgb(hex: string): RgbColor {
 }
 
 function colorDistance(firstColor: string, secondColor: string): number {
-    const [firstRed, firstGreen, firstBlue] = hexToRgb(firstColor);
-    const [secondRed, secondGreen, secondBlue] = hexToRgb(secondColor);
+    const [
+        firstRed,
+        firstGreen,
+        firstBlue,
+    ] = hexToRgb(firstColor);
+    const [
+        secondRed,
+        secondGreen,
+        secondBlue,
+    ] = hexToRgb(secondColor);
 
     return Math.hypot(
         firstRed - secondRed,

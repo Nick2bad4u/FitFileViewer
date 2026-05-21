@@ -52,12 +52,15 @@ describe("mapLapSelector", () => {
 
         addLapSelector({}, container, vi.fn<DrawLaps>());
 
-        const select = container.querySelector<HTMLSelectElement>("#lap-select");
+        const select =
+            container.querySelector<HTMLSelectElement>("#lap-select");
         const labels = [...(select?.options ?? [])].map(
             (option) => option.textContent
         );
 
-        expect(container.querySelectorAll(".custom-lap-control-container")).toHaveLength(1);
+        expect(
+            container.querySelectorAll(".custom-lap-control-container")
+        ).toHaveLength(1);
         expect(select?.options).toHaveLength(4);
         expect(labels).toStrictEqual([
             "All",
@@ -86,8 +89,10 @@ describe("mapLapSelector", () => {
 
         addLapSelector({}, container, mapDrawLaps);
 
-        const select = container.querySelector<HTMLSelectElement>("#lap-select");
-        const toggle = container.querySelector<HTMLButtonElement>("#multi-lap-toggle");
+        const select =
+            container.querySelector<HTMLSelectElement>("#lap-select");
+        const toggle =
+            container.querySelector<HTMLButtonElement>("#multi-lap-toggle");
 
         expect(select?.getAttribute("multiple") ?? "missing").toBe("missing");
 
@@ -102,10 +107,7 @@ describe("mapLapSelector", () => {
         select!.dispatchEvent(new Event("change"));
 
         expect(select?.getAttribute("multiple") ?? "missing").toBe("");
-        expect(mapDrawLaps).toHaveBeenCalledWith([
-            "0",
-            "1",
-        ]);
+        expect(mapDrawLaps).toHaveBeenCalledWith(["0", "1"]);
         expect(mapDrawLaps).not.toHaveBeenCalledWith(["3"]);
 
         removeContainer(container);

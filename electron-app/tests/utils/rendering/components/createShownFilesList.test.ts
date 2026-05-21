@@ -1400,10 +1400,7 @@ describe("createShownFilesList", () => {
         });
 
         it("prevents memory leaks by aborting event listeners", () => {
-            const addEventListenerSpy = vi.spyOn(
-                window,
-                "addEventListener"
-            );
+            const addEventListenerSpy = vi.spyOn(window, "addEventListener");
 
             const container = createShownFilesList();
             (global.window as any).loadedFitFiles = [

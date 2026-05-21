@@ -33,9 +33,10 @@
         }
         if (options.source && process.env["NODE_ENV"] !== "production") {
             try {
-                console.log(`[FileAccessPolicy] Approved: ${validated} (source=${options.source})`);
-            }
-            catch {
+                console.log(
+                    `[FileAccessPolicy] Approved: ${validated} (source=${options.source})`
+                );
+            } catch {
                 /* ignore */
             }
         }
@@ -51,8 +52,7 @@
         for (const entry of filePaths) {
             try {
                 approveFilePath(entry, options);
-            }
-            catch {
+            } catch {
                 // Callers generally already validated via dialog filters.
             }
         }
@@ -74,8 +74,10 @@
     }
     function getState() {
         const g = globalThis;
-        if (!g.__ffvFileAccessPolicyState ||
-            typeof g.__ffvFileAccessPolicyState !== "object") {
+        if (
+            !g.__ffvFileAccessPolicyState ||
+            typeof g.__ffvFileAccessPolicyState !== "object"
+        ) {
             Object.defineProperty(g, "__ffvFileAccessPolicyState", {
                 configurable: true,
                 enumerable: false,
@@ -95,8 +97,7 @@
                 return false;
             }
             return getState().approved.has(normalizeKey(validated));
-        }
-        catch {
+        } catch {
             return false;
         }
     }
@@ -114,15 +115,16 @@
         try {
             const validated = validateFilePathInput(filePath);
             return hasFitExtension(validated);
-        }
-        catch {
+        } catch {
             return false;
         }
     }
     function isWindowsStylePath(filePath) {
-        return (/^[A-Za-z]:[/\\]/u.test(filePath) ||
+        return (
+            /^[A-Za-z]:[/\\]/u.test(filePath) ||
             /^\\\\/u.test(filePath) ||
-            /^\/\//u.test(filePath));
+            /^\/\//u.test(filePath)
+        );
     }
     function normalizeKey(filePath) {
         const resolver = isWindowsStylePath(filePath) ? path.win32 : path.posix;
@@ -131,24 +133,27 @@
         try {
             const { fs } = nodeModules;
             if (fs && typeof fs.realpathSync === "function") {
-                const realpathFn = typeof fs.realpathSync.native === "function"
-                    ? fs.realpathSync.native
-                    : fs.realpathSync;
+                const realpathFn =
+                    typeof fs.realpathSync.native === "function"
+                        ? fs.realpathSync.native
+                        : fs.realpathSync;
                 const realpath = realpathFn(resolved);
                 if (typeof realpath === "string" && realpath.length > 0) {
                     canonical = realpath;
                 }
             }
-        }
-        catch {
+        } catch {
             // Common in tests: the path does not exist. Fall back to the resolved path.
         }
-        return isWindowsStylePath(filePath) ? canonical.toLowerCase() : canonical;
+        return isWindowsStylePath(filePath)
+            ? canonical.toLowerCase()
+            : canonical;
     }
     /**
      * Validate and normalize an IPC-provided file path.
      *
-     * @throws Error when the value is not an acceptable absolute filesystem path.
+     * @throws Error when the value is not an acceptable absolute filesystem
+     *   path.
      */
     function validateFilePathInput(filePath) {
         if (!isNonEmptyString(filePath)) {
@@ -161,13 +166,16 @@
         if (trimmed.includes("\0")) {
             throw new Error("Invalid file path provided");
         }
-        if (/^\\\\\?\\/u.test(trimmed) ||
+        if (
+            /^\\\\\?\\/u.test(trimmed) ||
             /^\\\\\.\\/u.test(trimmed) ||
             /^\/\/\?\//u.test(trimmed) ||
-            /^\/\/\.\//u.test(trimmed)) {
+            /^\/\/\.\//u.test(trimmed)
+        ) {
             throw new Error("Invalid file path provided");
         }
-        const isAbsolute = path.posix.isAbsolute(trimmed) || path.win32.isAbsolute(trimmed);
+        const isAbsolute =
+            path.posix.isAbsolute(trimmed) || path.win32.isAbsolute(trimmed);
         if (!isAbsolute) {
             throw new Error("Only absolute file paths are allowed");
         }

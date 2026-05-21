@@ -551,7 +551,9 @@ export function openZoneColorPicker(field: string): void {
                 // Trigger chart re-render through state management instead of direct call
                 if (chartStateManager) {
                     chartStateManager.debouncedRender("Zone colors reset");
-                } else if (typeof zoneColorGlobal.renderChartJS === "function") {
+                } else if (
+                    typeof zoneColorGlobal.renderChartJS === "function"
+                ) {
                     zoneColorGlobal.renderChartJS(); // Fallback for compatibility
                 }
 

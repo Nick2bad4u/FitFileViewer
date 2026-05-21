@@ -138,7 +138,8 @@ describe(setupCreditsMarquee, () => {
         const originalResizeObserver = globalThis.ResizeObserver;
         const addSpy = vi.spyOn(window, "addEventListener");
         const removeSpy = vi.spyOn(window, "removeEventListener");
-        globalThis.ResizeObserver = undefined as unknown as ResizeObserverConstructor;
+        globalThis.ResizeObserver =
+            undefined as unknown as ResizeObserverConstructor;
         createCreditsSection();
 
         try {
@@ -168,7 +169,8 @@ describe(setupCreditsMarquee, () => {
 
         resetFixture();
         const originalResizeObserver = globalThis.ResizeObserver;
-        globalThis.ResizeObserver = undefined as unknown as ResizeObserverConstructor;
+        globalThis.ResizeObserver =
+            undefined as unknown as ResizeObserverConstructor;
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const error = new Error("cleanup failed");
         vi.spyOn(window, "removeEventListener").mockImplementation(() => {

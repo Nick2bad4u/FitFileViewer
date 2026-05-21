@@ -5,13 +5,13 @@
  * rendering code. Passing `null` as the options object still throws when the
  * input is a string, matching the legacy destructuring behavior.
  *
- * @example
- *     formatCapitalize("hello world"); // "Hello world"
- *     formatCapitalize("FIT"); // "Fit"
- *     formatCapitalize("mcdonald", \{ lowercaseRest: false \}); // "Mcdonald"
+ * @example FormatCapitalize("hello world"); // "Hello world"
+ * formatCapitalize("FIT"); // "Fit" formatCapitalize("mcdonald", {
+ * lowercaseRest: false }); // "Mcdonald"
  *
  * @param value - Value to capitalize when it is a string.
  * @param options - Capitalization options.
+ *
  * @returns Capitalized string, or the original non-string value.
  */
 export function formatCapitalize(value, options = {}) {

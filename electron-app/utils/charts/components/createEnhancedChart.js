@@ -10,7 +10,13 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 import { getFieldColor } from "../theming/getFieldColor.js";
 const chartGlobal = globalThis;
-function getLocalUnitSymbol(field, type, timeUnits, distanceUnits, temperatureUnits) {
+function getLocalUnitSymbol(
+    field,
+    type,
+    timeUnits,
+    distanceUnits,
+    temperatureUnits
+) {
     if (type === "time") {
         switch (timeUnits) {
             case "hours": {
@@ -24,9 +30,11 @@ function getLocalUnitSymbol(field, type, timeUnits, distanceUnits, temperatureUn
             }
         }
     }
-    if (field === "distance" ||
+    if (
+        field === "distance" ||
         field === "altitude" ||
-        field === "enhancedAltitude") {
+        field === "enhancedAltitude"
+    ) {
         switch (distanceUnits) {
             case "miles": {
                 return "mi";
@@ -107,9 +115,7 @@ function normalizeChartType(chartType) {
     return chartType === "area" ? "line" : chartType;
 }
 function buildAxisRange(range, floorAtZero) {
-    if (!range ||
-        !Number.isFinite(range.min) ||
-        !Number.isFinite(range.max)) {
+    if (!range || !Number.isFinite(range.min) || !Number.isFinite(range.max)) {
         return {};
     }
     if (range.min === range.max) {
@@ -123,7 +129,12 @@ function buildAxisRange(range, floorAtZero) {
         min: range.min,
     };
 }
-function convertDisplayValueToRaw(value, field, distanceUnits, temperatureUnits) {
+function convertDisplayValueToRaw(
+    value,
+    field,
+    distanceUnits,
+    temperatureUnits
+) {
     switch (field) {
         case "altitude":
         case "distance":
@@ -166,12 +177,38 @@ function getNumericTickValue(value) {
  * Creates a Chart.js chart with FitFileViewer display settings.
  */
 export function createEnhancedChart(canvas, options) {
-    const { animationStyle = "normal", axisRanges, chartData, chartType, customColors = {}, decimation = { enabled: false }, distanceUnits = "kilometers", enableSpanGaps = false, field, fieldLabels = {}, interpolation = "linear", showFill = false, showGrid = false, showLegend = false, showPoints = false, showTitle = false, smoothing = 0, temperatureUnits = "celsius", theme, tickSampleSize, timeUnits = "seconds", zoomPluginConfig = {}, } = options;
+    const {
+        animationStyle = "normal",
+        axisRanges,
+        chartData,
+        chartType,
+        customColors = {},
+        decimation = { enabled: false },
+        distanceUnits = "kilometers",
+        enableSpanGaps = false,
+        field,
+        fieldLabels = {},
+        interpolation = "linear",
+        showFill = false,
+        showGrid = false,
+        showLegend = false,
+        showPoints = false,
+        showTitle = false,
+        smoothing = 0,
+        temperatureUnits = "celsius",
+        theme,
+        tickSampleSize,
+        timeUnits = "seconds",
+        zoomPluginConfig = {},
+    } = options;
     try {
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
-        const isDevEnvironment = typeof process !== "undefined" &&
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
             process.env?.["NODE_ENV"] === "development";
-        const isDebugLoggingEnabled = isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
+        const isDebugLoggingEnabled =
+            isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] Theme debugging for field:", field);
             console.log("[ChartJS] - theme param:", theme);
@@ -197,13 +234,15 @@ export function createEnhancedChart(canvas, options) {
             pointRadius: showPoints ? 3 : 0,
             spanGaps: enableSpanGaps,
             stepped: interpolationConfig.stepped,
-            tension: interpolation === "linear" ? smoothing / 100 : interpolationConfig.tension,
+            tension:
+                interpolation === "linear"
+                    ? smoothing / 100
+                    : interpolationConfig.tension,
         };
         if (chartType === "bar") {
             dataset.backgroundColor = fieldColor;
             dataset.borderWidth = 1;
-        }
-        else if (chartType === "scatter") {
+        } else if (chartType === "scatter") {
             dataset.showLine = false;
             dataset.pointRadius = 4;
         }
@@ -266,7 +305,12 @@ export function createEnhancedChart(canvas, options) {
                         borderWidth: 1,
                         callbacks: {
                             label(context) {
-                                const rawValue = convertDisplayValueToRaw(context.parsed.y, field, distanceUnits, temperatureUnits);
+                                const rawValue = convertDisplayValueToRaw(
+                                    context.parsed.y,
+                                    field,
+                                    distanceUnits,
+                                    temperatureUnits
+                                );
                                 return `${context.dataset.label ?? field}: ${formatTooltipWithUnits(rawValue, field)}`;
                             },
                             title(context) {
@@ -291,7 +335,10 @@ export function createEnhancedChart(canvas, options) {
                         ticks: {
                             callback(value) {
                                 const numericValue = getNumericTickValue(value);
-                                const convertedValue = convertTimeUnits(numericValue, timeUnits);
+                                const convertedValue = convertTimeUnits(
+                                    numericValue,
+                                    timeUnits
+                                );
                                 if (timeUnits === "hours") {
                                     return `${convertedValue.toFixed(2)}h`;
                                 }
@@ -346,8 +393,15 @@ export function createEnhancedChart(canvas, options) {
         canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
         const ChartConstructor = chartGlobal.Chart;
         if (!ChartConstructor) {
-            console.error(`[ChartJS] Error creating chart for ${field}:`, "Chart.js constructor is unavailable");
-            showNotification(`Error creating chart for ${field}`, "error", 5000);
+            console.error(
+                `[ChartJS] Error creating chart for ${field}:`,
+                "Chart.js constructor is unavailable"
+            );
+            showNotification(
+                `Error creating chart for ${field}`,
+                "error",
+                5000
+            );
             return null;
         }
         const chart = new ChartConstructor(canvas, config);
@@ -355,8 +409,7 @@ export function createEnhancedChart(canvas, options) {
             updateChartAnimations(chart, field);
         }
         return chart;
-    }
-    catch (error) {
+    } catch (error) {
         console.error(`[ChartJS] Error creating chart for ${field}:`, error);
         showNotification(`Error creating chart for ${field}`, "error", 5000);
         return null;

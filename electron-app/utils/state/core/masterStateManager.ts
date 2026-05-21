@@ -46,9 +46,7 @@ type ComponentState = {
 
 type DevToolsComponentName = `dev${"Tools"}`;
 
-const DEV_TOOLS_COMPONENT = ["dev", "Tools"].join(
-    ""
-) as DevToolsComponentName;
+const DEV_TOOLS_COMPONENT = ["dev", "Tools"].join("") as DevToolsComponentName;
 
 type ComponentName =
     | "computed"
@@ -693,41 +691,52 @@ export class MasterStateManager {
 
         // Resolve state API dynamically in handlers to respect test-time mocks
         // Global error handler
-        globalThis.addEventListener("error", (event) => {
-            const stateAPI = getStateManagerAPI();
-            stateAPI.setState(
-                "system.lastError",
-                {
-                    colno: event.colno,
-                    filename: event.filename,
-                    lineno: event.lineno,
-                    message: event.error?.message || "Unknown error",
-                    stack: event.error?.stack,
-                    timestamp: Date.now(),
-                },
-                { source: "globalErrorHandler" }
-            );
+        globalThis.addEventListener(
+            "error",
+            (event) => {
+                const stateAPI = getStateManagerAPI();
+                stateAPI.setState(
+                    "system.lastError",
+                    {
+                        colno: event.colno,
+                        filename: event.filename,
+                        lineno: event.lineno,
+                        message: event.error?.message || "Unknown error",
+                        stack: event.error?.stack,
+                        timestamp: Date.now(),
+                    },
+                    { source: "globalErrorHandler" }
+                );
 
-            console.error("[MasterState] Global error caught:", event.error);
-        }, { signal });
+                console.error(
+                    "[MasterState] Global error caught:",
+                    event.error
+                );
+            },
+            { signal }
+        );
 
         // Unhandled promise rejection handler
-        globalThis.addEventListener("unhandledrejection", (event) => {
-            const stateAPI = getStateManagerAPI();
-            stateAPI.setState(
-                "system.lastPromiseRejection",
-                {
-                    reason: event.reason?.message || event.reason,
-                    timestamp: Date.now(),
-                },
-                { source: "promiseRejectionHandler" }
-            );
+        globalThis.addEventListener(
+            "unhandledrejection",
+            (event) => {
+                const stateAPI = getStateManagerAPI();
+                stateAPI.setState(
+                    "system.lastPromiseRejection",
+                    {
+                        reason: event.reason?.message || event.reason,
+                        timestamp: Date.now(),
+                    },
+                    { source: "promiseRejectionHandler" }
+                );
 
-            console.error(
-                "[MasterState] Unhandled promise rejection:",
-                event.reason
-            );
-        }, { signal });
+                console.error(
+                    "[MasterState] Unhandled promise rejection:",
+                    event.reason
+                );
+            },
+            { signal }
+        );
 
         console.log("[MasterState] Error handling set up");
     }
@@ -738,48 +747,37 @@ export class MasterStateManager {
     setupIntegrations() {
         const stateAPI = getStateManagerAPI();
         // Integrate file operations with UI state
-        stateAPI.subscribe(
-            "globalData",
-            (data: unknown) => {
-                if (data) {
-                    // Enable tabs when data is loaded
-                    const { UIActions: dynUI } = getUIStateModule();
-                    dynUI.showTab("summary");
-                } else {
-                    // Disable tabs when no data
-                    const { UIActions: dynUI } = getUIStateModule();
-                    dynUI.showTab("summary");
-                }
+        stateAPI.subscribe("globalData", (data: unknown) => {
+            if (data) {
+                // Enable tabs when data is loaded
+                const { UIActions: dynUI } = getUIStateModule();
+                dynUI.showTab("summary");
+            } else {
+                // Disable tabs when no data
+                const { UIActions: dynUI } = getUIStateModule();
+                dynUI.showTab("summary");
             }
-        );
+        });
 
         // Integrate loading state with UI
-        stateAPI.subscribe(
-            "isLoading",
-            (isLoading: unknown) => {
-                // Update UI elements based on loading state
-                const elements =
-                    document.querySelectorAll<HTMLElement>(
-                        ".loading-sensitive"
-                    );
-                for (const el of elements) {
-                    const isLoadingActive = Boolean(isLoading);
-                    el.style.pointerEvents = isLoadingActive ? "none" : "auto";
-                    el.style.opacity = isLoadingActive ? "0.5" : "1";
-                }
+        stateAPI.subscribe("isLoading", (isLoading: unknown) => {
+            // Update UI elements based on loading state
+            const elements =
+                document.querySelectorAll<HTMLElement>(".loading-sensitive");
+            for (const el of elements) {
+                const isLoadingActive = Boolean(isLoading);
+                el.style.pointerEvents = isLoadingActive ? "none" : "auto";
+                el.style.opacity = isLoadingActive ? "0.5" : "1";
             }
-        );
+        });
 
         // Integrate theme changes with maps and charts
-        stateAPI.subscribe(
-            "ui.theme",
-            (theme: unknown) => {
-                // Notify other components about theme changes
-                globalThis.dispatchEvent(
-                    new CustomEvent("themeChanged", { detail: { theme } })
-                );
-            }
-        );
+        stateAPI.subscribe("ui.theme", (theme: unknown) => {
+            // Notify other components about theme changes
+            globalThis.dispatchEvent(
+                new CustomEvent("themeChanged", { detail: { theme } })
+            );
+        });
 
         console.log("[MasterState] Component integrations set up");
     }
@@ -790,48 +788,52 @@ export class MasterStateManager {
     setupKeyboardShortcuts() {
         const { signal } = this.eventController;
 
-        document.addEventListener("keydown", (event) => {
-            const stateAPI = getStateManagerAPI();
-            // Ctrl/Cmd + O - Open file
-            if ((event.ctrlKey || event.metaKey) && event.key === "o") {
-                event.preventDefault();
-                getMasterGlobal().electronAPI?.openFileDialog?.();
-            }
+        document.addEventListener(
+            "keydown",
+            (event) => {
+                const stateAPI = getStateManagerAPI();
+                // Ctrl/Cmd + O - Open file
+                if ((event.ctrlKey || event.metaKey) && event.key === "o") {
+                    event.preventDefault();
+                    getMasterGlobal().electronAPI?.openFileDialog?.();
+                }
 
-            // Ctrl/Cmd + T - Toggle theme
-            if ((event.ctrlKey || event.metaKey) && event.key === "t") {
-                event.preventDefault();
-                const currentTheme = stateAPI.getState("ui.theme"),
-                    newTheme = currentTheme === "light" ? "dark" : "light";
-                const { UIActions: dynUI } = getUIStateModule();
-                dynUI.setTheme(newTheme);
-            }
+                // Ctrl/Cmd + T - Toggle theme
+                if ((event.ctrlKey || event.metaKey) && event.key === "t") {
+                    event.preventDefault();
+                    const currentTheme = stateAPI.getState("ui.theme"),
+                        newTheme = currentTheme === "light" ? "dark" : "light";
+                    const { UIActions: dynUI } = getUIStateModule();
+                    dynUI.setTheme(newTheme);
+                }
 
-            // Ctrl/Cmd + 1-4 - Switch tabs
-            if (
-                (event.ctrlKey || event.metaKey) &&
-                event.key >= "1" &&
-                event.key <= "4"
-            ) {
-                event.preventDefault();
-                const tabIndex = Number.parseInt(event.key) - 1,
-                    tabNames = [
-                        "summary",
-                        "chart",
-                        "map",
-                        "data",
-                    ];
-                if (tabNames[tabIndex] && AppSelectors.hasData()) {
-                    const {
-                        AppActions: dynAppActions,
-                        AppSelectors: dynAppSelectors,
-                    } = getAppLifecycleModule();
-                    if (dynAppSelectors.hasData()) {
-                        dynAppActions.switchTab(tabNames[tabIndex]);
+                // Ctrl/Cmd + 1-4 - Switch tabs
+                if (
+                    (event.ctrlKey || event.metaKey) &&
+                    event.key >= "1" &&
+                    event.key <= "4"
+                ) {
+                    event.preventDefault();
+                    const tabIndex = Number.parseInt(event.key) - 1,
+                        tabNames = [
+                            "summary",
+                            "chart",
+                            "map",
+                            "data",
+                        ];
+                    if (tabNames[tabIndex] && AppSelectors.hasData()) {
+                        const {
+                            AppActions: dynAppActions,
+                            AppSelectors: dynAppSelectors,
+                        } = getAppLifecycleModule();
+                        if (dynAppSelectors.hasData()) {
+                            dynAppActions.switchTab(tabNames[tabIndex]);
+                        }
                     }
                 }
-            }
-        }, { signal });
+            },
+            { signal }
+        );
 
         console.log("[MasterState] Keyboard shortcuts set up");
     }
@@ -880,9 +882,7 @@ export class MasterStateManager {
                                       1024
                               ),
                               used: Math.round(
-                                  performanceMemory.usedJSHeapSize /
-                                      1024 /
-                                      1024
+                                  performanceMemory.usedJSHeapSize / 1024 / 1024
                               ),
                           }
                         : null,
@@ -909,33 +909,49 @@ export class MasterStateManager {
         const { signal } = this.eventController;
 
         // Window resize
-        window.addEventListener("resize", () => {
-            const { UIActions: dynUI } = getUIStateModule();
-            dynUI.updateWindowState();
-        }, { signal });
+        window.addEventListener(
+            "resize",
+            () => {
+                const { UIActions: dynUI } = getUIStateModule();
+                dynUI.updateWindowState();
+            },
+            { signal }
+        );
 
         // Window focus/blur
-        window.addEventListener("focus", () => {
-            const stateAPI = getStateManagerAPI();
-            stateAPI.setState("ui.windowFocused", true, {
-                source: "windowEventListener",
-            });
-        }, { signal });
+        window.addEventListener(
+            "focus",
+            () => {
+                const stateAPI = getStateManagerAPI();
+                stateAPI.setState("ui.windowFocused", true, {
+                    source: "windowEventListener",
+                });
+            },
+            { signal }
+        );
 
-        window.addEventListener("blur", () => {
-            const stateAPI = getStateManagerAPI();
-            stateAPI.setState("ui.windowFocused", false, {
-                source: "windowEventListener",
-            });
-        }, { signal });
+        window.addEventListener(
+            "blur",
+            () => {
+                const stateAPI = getStateManagerAPI();
+                stateAPI.setState("ui.windowFocused", false, {
+                    source: "windowEventListener",
+                });
+            },
+            { signal }
+        );
 
         // Before unload
-        window.addEventListener("beforeunload", () => {
-            const stateAPI = getStateManagerAPI();
-            stateAPI.setState("system.unloading", true, {
-                source: "windowEventListener",
-            });
-        }, { signal });
+        window.addEventListener(
+            "beforeunload",
+            () => {
+                const stateAPI = getStateManagerAPI();
+                stateAPI.setState("system.unloading", true, {
+                    source: "windowEventListener",
+                });
+            },
+            { signal }
+        );
     }
 }
 
@@ -982,10 +998,7 @@ function getCjsRequire(): CjsRequire | null {
     }
     // Fall back to native require when present (CommonJS context)
     try {
-        if (
-            typeof require !== "undefined" &&
-            (require as CjsRequire).cache
-        ) {
+        if (typeof require !== "undefined" && (require as CjsRequire).cache) {
             return require as CjsRequire;
         }
     } catch {
@@ -1037,7 +1050,9 @@ function getControlsHelperModule(): {
         "/utils/rendering/helpers/updatecontrolsstate.js"
     );
     if (hasFunction(mocked, "initializeControlsState")) {
-        return mocked as { initializeControlsState: typeof initializeControlsState };
+        return mocked as {
+            initializeControlsState: typeof initializeControlsState;
+        };
     }
     return { initializeControlsState };
 }
@@ -1059,7 +1074,9 @@ function getEnableTabButtonsModule(): {
 // Obtain the global Node module cache directly; compatible with require.cache mutations in tests
 // Generic helper to read a mocked module's exports from require.cache by path suffix
 // Supports Windows paths by normalizing to forward slashes and lowercasing
-function getModuleExportsFromCache(pathSuffixLower: string): DynamicModule | null {
+function getModuleExportsFromCache(
+    pathSuffixLower: string
+): DynamicModule | null {
     try {
         // Prefer an explicit global mocks registry if tests provided one
         const globalMocks = getMasterGlobal().__FFV_MOCKS__;

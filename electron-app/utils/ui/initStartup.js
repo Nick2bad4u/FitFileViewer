@@ -7,7 +7,10 @@
 import { initFitBrowserFeatureGate } from "./browser/initFitBrowserFeatureGate.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { initQuickColorSwitcher } from "./quickColorSwitcher.js";
-import { initFilenameAutoScroll, initUnifiedControlBar, } from "./unifiedControlBar.js";
+import {
+    initFilenameAutoScroll,
+    initUnifiedControlBar,
+} from "./unifiedControlBar.js";
 /**
  * Run the renderer startup initializers that are safe after DOMContentLoaded.
  */
@@ -17,4 +20,8 @@ export function runStartupInitializers() {
     initFilenameAutoScroll();
     initFitBrowserFeatureGate();
 }
-addEventListenerWithCleanup(document, "DOMContentLoaded", runStartupInitializers);
+addEventListenerWithCleanup(
+    document,
+    "DOMContentLoaded",
+    runStartupInitializers
+);

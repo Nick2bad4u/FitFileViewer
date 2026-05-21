@@ -1,4 +1,7 @@
-import { reRenderChartsAfterSettingChange, resetAllSettings, } from "../../app/initialization/getCurrentSettings.js";
+import {
+    reRenderChartsAfterSettingChange,
+    resetAllSettings,
+} from "../../app/initialization/getCurrentSettings.js";
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { createChartStatusIndicator } from "../../charts/components/createChartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
@@ -6,8 +9,17 @@ import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
-import { fieldColors, fieldLabels, formatChartFields, } from "../../formatting/display/formatChartFields.js";
-import { getChartFieldVisibility, getChartSetting, setChartFieldVisibility, setChartSetting, } from "../../state/domain/settingsStateManager.js";
+import {
+    fieldColors,
+    fieldLabels,
+    formatChartFields,
+} from "../../formatting/display/formatChartFields.js";
+import {
+    getChartFieldVisibility,
+    getChartSetting,
+    setChartFieldVisibility,
+    setChartSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../notifications/showNotification.js";
 const extendedExportUtils = exportUtils;
@@ -80,7 +92,8 @@ function parseFiniteNumber(value) {
     if (value === null || value === undefined) {
         return null;
     }
-    const parsed = typeof value === "number" ? value : Number.parseFloat(String(value));
+    const parsed =
+        typeof value === "number" ? value : Number.parseFloat(String(value));
     return Number.isFinite(parsed) ? parsed : null;
 }
 /** Applies inline styles to the chart settings panel wrapper. */
@@ -173,66 +186,125 @@ export function createExportSection(wrapper) {
 	`;
     const exportButtons = [
         {
-            action: () => showChartSelectionModal("Save as PNG", (/* @type {any} */ chart) => {
-                const [dataset] = chart.data.datasets, fieldName = dataset?.label || "chart", filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
-                extendedExportUtils.downloadChartAsPNG(chart, filename);
-            }, (/* @type {any} */ charts) => extendedExportUtils.createCombinedChartsImage(charts, "combined-charts.png")),
+            action: () =>
+                showChartSelectionModal(
+                    "Save as PNG",
+                    (/* @type {any} */ chart) => {
+                        const [dataset] = chart.data.datasets,
+                            fieldName = dataset?.label || "chart",
+                            filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
+                        extendedExportUtils.downloadChartAsPNG(chart, filename);
+                    },
+                    (/* @type {any} */ charts) =>
+                        extendedExportUtils.createCombinedChartsImage(
+                            charts,
+                            "combined-charts.png"
+                        )
+                ),
             icon: "📷",
             text: "Save PNG",
         },
         {
-            action: () => showChartSelectionModal("Copy to Clipboard", (/* @type {any} */ chart) => extendedExportUtils.copyChartToClipboard(chart), (/* @type {any} */ charts) => extendedExportUtils.copyCombinedChartsToClipboard(charts)),
+            action: () =>
+                showChartSelectionModal(
+                    "Copy to Clipboard",
+                    (/* @type {any} */ chart) =>
+                        extendedExportUtils.copyChartToClipboard(chart),
+                    (/* @type {any} */ charts) =>
+                        extendedExportUtils.copyCombinedChartsToClipboard(
+                            charts
+                        )
+                ),
             icon: "📋",
             text: "Copy Image",
         },
         {
-            action: () => showChartSelectionModal("Export as CSV", (/* @type {any} */ chart) => {
-                const [dataset] = chart.data.datasets;
-                if (dataset && dataset.data) {
-                    const fieldName = dataset.label || "chart", filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.csv`;
-                    extendedExportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
-                }
-            }, (/* @type {any} */ charts) => extendedExportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")),
+            action: () =>
+                showChartSelectionModal(
+                    "Export as CSV",
+                    (/* @type {any} */ chart) => {
+                        const [dataset] = chart.data.datasets;
+                        if (dataset && dataset.data) {
+                            const fieldName = dataset.label || "chart",
+                                filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.csv`;
+                            extendedExportUtils.exportChartDataAsCSV(
+                                dataset.data,
+                                fieldName,
+                                filename
+                            );
+                        }
+                    },
+                    (/* @type {any} */ charts) =>
+                        extendedExportUtils.exportCombinedChartsDataAsCSV(
+                            charts,
+                            "combined-charts-data.csv"
+                        )
+                ),
             icon: "📊",
             text: "Export CSV",
         },
         {
-            action: () => showChartSelectionModal("Export as JSON", (/* @type {any} */ chart) => {
-                const [dataset] = chart.data.datasets;
-                if (dataset && dataset.data) {
-                    const fieldName = dataset.label || "chart", filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.json`;
-                    extendedExportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
-                }
-            }, (charts) => {
-                const allChartsData = {
-                    charts: charts.map((chart, index) => {
+            action: () =>
+                showChartSelectionModal(
+                    "Export as JSON",
+                    (/* @type {any} */ chart) => {
                         const [dataset] = chart.data.datasets;
-                        return {
-                            data: dataset?.data || [],
-                            field: dataset?.label ||
-                                `chart-${index}`,
-                            totalPoints: dataset?.data
-                                ? dataset.data.length
-                                : 0,
-                            type: chart.config?.type,
-                        };
-                    }),
-                    exportedAt: new Date().toISOString(),
-                }, blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
-                    type: "application/json;charset=utf-8;",
-                }), link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = "combined-charts-data.json";
-                document.body.append(link);
-                link.click();
-                link.remove();
-                showNotification("Combined chart data exported as JSON", "success");
-            }),
+                        if (dataset && dataset.data) {
+                            const fieldName = dataset.label || "chart",
+                                filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.json`;
+                            extendedExportUtils.exportChartDataAsJSON(
+                                dataset.data,
+                                fieldName,
+                                filename
+                            );
+                        }
+                    },
+                    (charts) => {
+                        const allChartsData = {
+                                charts: charts.map((chart, index) => {
+                                    const [dataset] = chart.data.datasets;
+                                    return {
+                                        data: dataset?.data || [],
+                                        field:
+                                            dataset?.label || `chart-${index}`,
+                                        totalPoints: dataset?.data
+                                            ? dataset.data.length
+                                            : 0,
+                                        type: chart.config?.type,
+                                    };
+                                }),
+                                exportedAt: new Date().toISOString(),
+                            },
+                            blob = new Blob(
+                                [JSON.stringify(allChartsData, null, 2)],
+                                {
+                                    type: "application/json;charset=utf-8;",
+                                }
+                            ),
+                            link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob);
+                        link.download = "combined-charts-data.json";
+                        document.body.append(link);
+                        link.click();
+                        link.remove();
+                        showNotification(
+                            "Combined chart data exported as JSON",
+                            "success"
+                        );
+                    }
+                ),
             icon: "📄",
             text: "Export JSON",
         },
         {
-            action: () => showChartSelectionModal("Print", (/* @type {any} */ chart) => extendedExportUtils.printChart(chart), (/* @type {any} */ charts) => extendedExportUtils.printCombinedCharts(charts)),
+            action: () =>
+                showChartSelectionModal(
+                    "Print",
+                    (/* @type {any} */ chart) =>
+                        extendedExportUtils.printChart(chart),
+                    (/* @type {any} */ charts) =>
+                        extendedExportUtils.printCombinedCharts(charts)
+                ),
             icon: "🖨️",
             text: "Print",
         },
@@ -240,7 +312,10 @@ export function createExportSection(wrapper) {
             action: () => {
                 const charts = getChartInstances();
                 if (!charts || charts.length === 0) {
-                    showNotification("No charts available to export", "warning");
+                    showNotification(
+                        "No charts available to export",
+                        "warning"
+                    );
                     return;
                 }
                 extendedExportUtils.exportAllAsZip(charts);
@@ -256,7 +331,10 @@ export function createExportSection(wrapper) {
         {
             action: () => {
                 if (!extendedExportUtils.isGyazoAuthenticated()) {
-                    showNotification("Please connect your Gyazo account first", "warning");
+                    showNotification(
+                        "Please connect your Gyazo account first",
+                        "warning"
+                    );
                     extendedExportUtils.showGyazoAccountManager();
                     return;
                 }
@@ -277,7 +355,12 @@ export function createExportSection(wrapper) {
         },
     ];
     for (const btn of exportButtons) {
-        const button = createActionButton(`${btn.icon} ${btn.text}`, `${btn.text} for charts`, btn.action, "export-btn");
+        const button = createActionButton(
+            `${btn.icon} ${btn.text}`,
+            `${btn.text} for charts`,
+            btn.action,
+            "export-btn"
+        );
         exportGrid.append(button);
     }
     exportSection.append(exportTitle);
@@ -349,29 +432,53 @@ export function createFieldTogglesSection(wrapper) {
     const toggleButtonsController = new AbortController();
     const toggleButtonsSignal = toggleButtonsController.signal;
     // Add hover effects
-    enableAllBtn.addEventListener("mouseenter", () => {
-        enableAllBtn.style.opacity = "0.8";
-        enableAllBtn.style.transform = "translateY(-1px)";
-    }, { signal: toggleButtonsSignal });
-    enableAllBtn.addEventListener("mouseleave", () => {
-        enableAllBtn.style.opacity = "1";
-        enableAllBtn.style.transform = "translateY(0)";
-    }, { signal: toggleButtonsSignal });
-    disableAllBtn.addEventListener("mouseenter", () => {
-        disableAllBtn.style.opacity = "0.8";
-        disableAllBtn.style.transform = "translateY(-1px)";
-    }, { signal: toggleButtonsSignal });
-    disableAllBtn.addEventListener("mouseleave", () => {
-        disableAllBtn.style.opacity = "1";
-        disableAllBtn.style.transform = "translateY(0)";
-    }, { signal: toggleButtonsSignal });
+    enableAllBtn.addEventListener(
+        "mouseenter",
+        () => {
+            enableAllBtn.style.opacity = "0.8";
+            enableAllBtn.style.transform = "translateY(-1px)";
+        },
+        { signal: toggleButtonsSignal }
+    );
+    enableAllBtn.addEventListener(
+        "mouseleave",
+        () => {
+            enableAllBtn.style.opacity = "1";
+            enableAllBtn.style.transform = "translateY(0)";
+        },
+        { signal: toggleButtonsSignal }
+    );
+    disableAllBtn.addEventListener(
+        "mouseenter",
+        () => {
+            disableAllBtn.style.opacity = "0.8";
+            disableAllBtn.style.transform = "translateY(-1px)";
+        },
+        { signal: toggleButtonsSignal }
+    );
+    disableAllBtn.addEventListener(
+        "mouseleave",
+        () => {
+            disableAllBtn.style.opacity = "1";
+            disableAllBtn.style.transform = "translateY(0)";
+        },
+        { signal: toggleButtonsSignal }
+    );
     // Add click handlers
-    enableAllBtn.addEventListener("click", () => {
-        toggleAllFields(true);
-    }, { signal: toggleButtonsSignal });
-    disableAllBtn.addEventListener("click", () => {
-        toggleAllFields(false);
-    }, { signal: toggleButtonsSignal });
+    enableAllBtn.addEventListener(
+        "click",
+        () => {
+            toggleAllFields(true);
+        },
+        { signal: toggleButtonsSignal }
+    );
+    disableAllBtn.addEventListener(
+        "click",
+        () => {
+            toggleAllFields(false);
+        },
+        { signal: toggleButtonsSignal }
+    );
     toggleAllContainer.append(enableAllBtn);
     toggleAllContainer.append(disableAllBtn);
     fieldsTitle.append(titleText);
@@ -402,38 +509,53 @@ export function createFieldTogglesSection(wrapper) {
     fieldsGrid.append(powerZoneDoughnutToggle);
     // Add lap zone chart toggles if data exists
     if (getGlobalData().timeInZoneMesgs) {
-        const { timeInZoneMesgs } = getGlobalData(), lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+        const { timeInZoneMesgs } = getGlobalData(),
+            lapZoneMsgs = timeInZoneMesgs.filter(
+                (msg) => msg.referenceMesg === "lap"
+            );
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
             const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
             if (hrLapZones.length > 0) {
-                const hrLapStackedToggle = createFieldToggle("hr_lap_zone_stacked");
+                const hrLapStackedToggle = createFieldToggle(
+                    "hr_lap_zone_stacked"
+                );
                 fieldsGrid.append(hrLapStackedToggle);
-                const hrLapIndividualToggle = createFieldToggle("hr_lap_zone_individual");
+                const hrLapIndividualToggle = createFieldToggle(
+                    "hr_lap_zone_individual"
+                );
                 fieldsGrid.append(hrLapIndividualToggle);
             }
             // Check for Power lap zone data
-            const powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+            const powerLapZones = lapZoneMsgs.filter(
+                (msg) => msg.timeInPowerZone
+            );
             if (powerLapZones.length > 0) {
-                const powerLapStackedToggle = createFieldToggle("power_lap_zone_stacked");
+                const powerLapStackedToggle = createFieldToggle(
+                    "power_lap_zone_stacked"
+                );
                 fieldsGrid.append(powerLapStackedToggle);
-                const powerLapIndividualToggle = createFieldToggle("power_lap_zone_individual");
+                const powerLapIndividualToggle = createFieldToggle(
+                    "power_lap_zone_individual"
+                );
                 fieldsGrid.append(powerLapIndividualToggle);
             }
         }
     }
     // Add event messages toggle if data exists
-    if (getGlobalData()?.eventMesgs &&
+    if (
+        getGlobalData()?.eventMesgs &&
         Array.isArray(getGlobalData().eventMesgs) &&
-        getGlobalData().eventMesgs
-            .length > 0) {
+        getGlobalData().eventMesgs.length > 0
+    ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.append(eventMessagesToggle);
     }
     // Add developer fields toggles if data exists
-    if (getGlobalData() &&
-        getGlobalData().recordMesgs) {
-        const devFields = extractDeveloperFieldsList(getGlobalData().recordMesgs);
+    if (getGlobalData() && getGlobalData().recordMesgs) {
+        const devFields = extractDeveloperFieldsList(
+            getGlobalData().recordMesgs
+        );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
             fieldsGrid.append(fieldToggle);
@@ -497,24 +619,33 @@ export function createSettingsHeader(wrapper) {
 	`;
     // Reset to defaults button
     const // Export all charts button
-    exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
-        exportAllCharts();
-    }), resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
-        // Provide immediate visual feedback
-        resetBtn.style.opacity = "0.6";
-        resetBtn.disabled = true;
-        // Perform the reset
-        const success = resetAllSettings();
-        // Re-enable button after reset completes
-        const resetTimer = setTimeout(() => {
-            resetBtn.style.opacity = "1";
-            resetBtn.disabled = false;
-        }, 200);
-        void resetTimer;
-        if (!success) {
-            console.error("[ResetBtn] Reset failed");
-        }
-    });
+        exportAllBtn = createActionButton(
+            "📦 Export All",
+            "Export all charts as images",
+            () => {
+                exportAllCharts();
+            }
+        ),
+        resetBtn = createActionButton(
+            "↻ Reset",
+            "Reset all settings to defaults",
+            () => {
+                // Provide immediate visual feedback
+                resetBtn.style.opacity = "0.6";
+                resetBtn.disabled = true;
+                // Perform the reset
+                const success = resetAllSettings();
+                // Re-enable button after reset completes
+                const resetTimer = setTimeout(() => {
+                    resetBtn.style.opacity = "1";
+                    resetBtn.disabled = false;
+                }, 200);
+                void resetTimer;
+                if (!success) {
+                    console.error("[ResetBtn] Reset failed");
+                }
+            }
+        );
     globalActions.append(resetBtn);
     globalActions.append(exportAllBtn);
     header.append(leftSection);
@@ -522,14 +653,20 @@ export function createSettingsHeader(wrapper) {
     wrapper.append(header);
 }
 /** Shows the chart selection modal for export actions. */
-export function showChartSelectionModal(actionType, singleCallback, combinedCallback) {
+export function showChartSelectionModal(
+    actionType,
+    singleCallback,
+    combinedCallback
+) {
     const charts = getChartInstances();
     if (!charts || charts.length === 0) {
         showNotification("No charts available", "warning");
         return;
     }
     // Filter out invalid charts using exportUtils validation
-    const validCharts = charts.filter((/* @type {any} */ chart) => extendedExportUtils.isValidChart(chart));
+    const validCharts = charts.filter((/* @type {any} */ chart) =>
+        extendedExportUtils.isValidChart(chart)
+    );
     if (validCharts.length === 0) {
         showNotification("No valid charts available", "warning");
         return;
@@ -591,7 +728,9 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		margin-bottom: 20px;
 	`;
     for (const [index, chart] of validCharts.entries()) {
-        const chartItem = document.createElement("button"), [dataset] = chart.data.datasets, fieldName = dataset?.label || `Chart ${index + 1}`;
+        const chartItem = document.createElement("button"),
+            [dataset] = chart.data.datasets,
+            fieldName = dataset?.label || `Chart ${index + 1}`;
         chartItem.textContent = `📊 ${fieldName}`;
         chartItem.style.cssText = `
 			display: block;
@@ -607,16 +746,28 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 			text-align: left;
 			transition: var(--transition-smooth);
 		`;
-        chartItem.addEventListener("mouseenter", () => {
-            chartItem.style.background = "var(--color-accent-hover)";
-        }, { signal: modalAbortController.signal });
-        chartItem.addEventListener("mouseleave", () => {
-            chartItem.style.background = "var(--color-glass)";
-        }, { signal: modalAbortController.signal });
-        chartItem.addEventListener("click", () => {
-            closeModal();
-            singleCallback(chart); // Pass the actual chart object, not the index
-        }, { signal: modalAbortController.signal });
+        chartItem.addEventListener(
+            "mouseenter",
+            () => {
+                chartItem.style.background = "var(--color-accent-hover)";
+            },
+            { signal: modalAbortController.signal }
+        );
+        chartItem.addEventListener(
+            "mouseleave",
+            () => {
+                chartItem.style.background = "var(--color-glass)";
+            },
+            { signal: modalAbortController.signal }
+        );
+        chartItem.addEventListener(
+            "click",
+            () => {
+                closeModal();
+                singleCallback(chart); // Pass the actual chart object, not the index
+            },
+            { signal: modalAbortController.signal }
+        );
         chartList.append(chartItem);
     }
     // Combined option
@@ -636,16 +787,28 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		text-align: left;
 		transition: all 0.3s ease;
 	`;
-    combinedItem.addEventListener("mouseenter", () => {
-        combinedItem.style.background = "var(--color-accent-hover)";
-    }, { signal: modalAbortController.signal });
-    combinedItem.addEventListener("mouseleave", () => {
-        combinedItem.style.background = "var(--color-accent-hover)";
-    }, { signal: modalAbortController.signal });
-    combinedItem.addEventListener("click", () => {
-        closeModal();
-        combinedCallback(validCharts);
-    }, { signal: modalAbortController.signal });
+    combinedItem.addEventListener(
+        "mouseenter",
+        () => {
+            combinedItem.style.background = "var(--color-accent-hover)";
+        },
+        { signal: modalAbortController.signal }
+    );
+    combinedItem.addEventListener(
+        "mouseleave",
+        () => {
+            combinedItem.style.background = "var(--color-accent-hover)";
+        },
+        { signal: modalAbortController.signal }
+    );
+    combinedItem.addEventListener(
+        "click",
+        () => {
+            closeModal();
+            combinedCallback(validCharts);
+        },
+        { signal: modalAbortController.signal }
+    );
     // Cancel button
     const cancelButton = document.createElement("button");
     cancelButton.textContent = "Cancel";
@@ -660,9 +823,13 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		font-size: 14px;
 		transition: all 0.3s ease;
 	`;
-    cancelButton.addEventListener("click", () => {
-        closeModal();
-    }, { signal: modalAbortController.signal });
+    cancelButton.addEventListener(
+        "click",
+        () => {
+            closeModal();
+        },
+        { signal: modalAbortController.signal }
+    );
     // ESC key handler
     const handleEscape = (e) => {
         if (e.key === "Escape") {
@@ -673,11 +840,15 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
         signal: modalAbortController.signal,
     });
     // Click outside to close
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-            closeModal();
-        }
-    }, { signal: modalAbortController.signal });
+    overlay.addEventListener(
+        "click",
+        (e) => {
+            if (e.target === overlay) {
+                closeModal();
+            }
+        },
+        { signal: modalAbortController.signal }
+    );
     // Assemble modal
     modal.append(title);
     modal.append(chartList);
@@ -717,16 +888,24 @@ function createActionButton(text, title, onClick, className = "") {
 	`;
     const buttonController = new AbortController();
     const buttonSignal = buttonController.signal;
-    button.addEventListener("mouseenter", () => {
-        button.style.background = "var(--color-btn-hover)";
-        button.style.transform = "translateY(-1px)";
-        button.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: buttonSignal });
-    button.addEventListener("mouseleave", () => {
-        button.style.background = "var(--color-btn-bg)";
-        button.style.transform = "translateY(0)";
-        button.style.boxShadow = "none";
-    }, { signal: buttonSignal });
+    button.addEventListener(
+        "mouseenter",
+        () => {
+            button.style.background = "var(--color-btn-hover)";
+            button.style.transform = "translateY(-1px)";
+            button.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: buttonSignal }
+    );
+    button.addEventListener(
+        "mouseleave",
+        () => {
+            button.style.background = "var(--color-btn-bg)";
+            button.style.transform = "translateY(0)";
+            button.style.boxShadow = "none";
+        },
+        { signal: buttonSignal }
+    );
     button.addEventListener("click", onClick, { signal: buttonSignal });
     return button;
 }
@@ -752,16 +931,24 @@ function createControlGroup(option) {
     const groupController = new AbortController();
     const groupSignal = groupController.signal;
     // Add hover effect
-    group.addEventListener("mouseenter", () => {
-        group.style.background = "var(--color-glass-border)";
-        group.style.transform = "translateY(-2px)";
-        group.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: groupSignal });
-    group.addEventListener("mouseleave", () => {
-        group.style.background = "var(--color-glass)";
-        group.style.transform = "translateY(0)";
-        group.style.boxShadow = "none";
-    }, { signal: groupSignal });
+    group.addEventListener(
+        "mouseenter",
+        () => {
+            group.style.background = "var(--color-glass-border)";
+            group.style.transform = "translateY(-2px)";
+            group.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: groupSignal }
+    );
+    group.addEventListener(
+        "mouseleave",
+        () => {
+            group.style.background = "var(--color-glass)";
+            group.style.transform = "translateY(0)";
+            group.style.boxShadow = "none";
+        },
+        { signal: groupSignal }
+    );
     const label = document.createElement("label");
     label.textContent = option.label;
     label.style.cssText = `
@@ -786,11 +973,9 @@ function createControlGroup(option) {
     let control;
     if (option.type === "range") {
         control = createRangeControl(option);
-    }
-    else if (option.type === "toggle") {
+    } else if (option.type === "toggle") {
         control = createToggleControl(option);
-    }
-    else {
+    } else {
         control = createSelectControl(option);
     }
     group.append(label);
@@ -804,18 +989,19 @@ function createControlGroup(option) {
  * Creates individual field toggle controls
  */
 function createFieldToggle(field) {
-    const container = document.createElement("div"), themeConfig = getThemeConfig();
+    const container = document.createElement("div"),
+        themeConfig = getThemeConfig();
     const fieldToggleController = new AbortController();
     const fieldToggleSignal = fieldToggleController.signal;
     container.className = "field-toggle";
     // Check if this field has valid data
     let hasValidData = false;
-    if (getGlobalData() &&
+    if (
+        getGlobalData() &&
         getGlobalData().recordMesgs &&
-        getGlobalData().recordMesgs
-            .length > 0) {
-        const data = getGlobalData()
-            .recordMesgs;
+        getGlobalData().recordMesgs.length > 0
+    ) {
+        const data = getGlobalData().recordMesgs;
         switch (field) {
             case "altitude_profile": {
                 hasValidData = data.some((row) => {
@@ -825,19 +1011,21 @@ function createFieldToggle(field) {
                 break;
             }
             case "event_messages": {
-                hasValidData = Boolean(getGlobalData()
-                    ?.eventMesgs &&
-                    Array.isArray(getGlobalData()
-                        .eventMesgs) &&
-                    getGlobalData()
-                        .eventMesgs.length > 0);
+                hasValidData = Boolean(
+                    getGlobalData()?.eventMesgs &&
+                    Array.isArray(getGlobalData().eventMesgs) &&
+                    getGlobalData().eventMesgs.length > 0
+                );
                 break;
             }
             case "gps_track": {
                 hasValidData = data.some((row) => {
-                    const lat = row.positionLat, long = row.positionLong;
-                    return (parseFiniteNumber(lat) !== null ||
-                        parseFiniteNumber(long) !== null);
+                    const lat = row.positionLat,
+                        long = row.positionLong;
+                    return (
+                        parseFiniteNumber(lat) !== null ||
+                        parseFiniteNumber(long) !== null
+                    );
                 });
                 break;
             }
@@ -845,7 +1033,13 @@ function createFieldToggle(field) {
             case "hr_lap_zone_stacked": {
                 // Check for HR lap zone data
                 if (getGlobalData().timeInZoneMesgs) {
-                    const { timeInZoneMesgs } = getGlobalData(), lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap"), hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
+                    const { timeInZoneMesgs } = getGlobalData(),
+                        lapZoneMsgs = timeInZoneMesgs.filter(
+                            (msg) => msg.referenceMesg === "lap"
+                        ),
+                        hrLapZones = lapZoneMsgs.filter(
+                            (msg) => msg.timeInHrZone
+                        );
                     hasValidData = hrLapZones.length > 0;
                 }
                 break;
@@ -854,30 +1048,38 @@ function createFieldToggle(field) {
             case "power_lap_zone_stacked": {
                 // Check for Power lap zone data
                 if (getGlobalData().timeInZoneMesgs) {
-                    const { timeInZoneMesgs } = getGlobalData(), lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap"), powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+                    const { timeInZoneMesgs } = getGlobalData(),
+                        lapZoneMsgs = timeInZoneMesgs.filter(
+                            (msg) => msg.referenceMesg === "lap"
+                        ),
+                        powerLapZones = lapZoneMsgs.filter(
+                            (msg) => msg.timeInPowerZone
+                        );
                     hasValidData = powerLapZones.length > 0;
                 }
                 break;
             }
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
-                    const hr = row.heartRate;
-                    return parseFiniteNumber(hr) !== null;
-                }), hasPower = data.some((row) => {
-                    const { power } = row;
-                    return parseFiniteNumber(power) !== null;
-                });
+                        const hr = row.heartRate;
+                        return parseFiniteNumber(hr) !== null;
+                    }),
+                    hasPower = data.some((row) => {
+                        const { power } = row;
+                        return parseFiniteNumber(power) !== null;
+                    });
                 hasValidData = hasPower && hasHeartRate;
                 break;
             }
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
-                    const { distance } = row;
-                    return parseFiniteNumber(distance) !== null;
-                }), hasSpeed = data.some((row) => {
-                    const speed = row.enhancedSpeed || row.speed;
-                    return parseFiniteNumber(speed) !== null;
-                });
+                        const { distance } = row;
+                        return parseFiniteNumber(distance) !== null;
+                    }),
+                    hasSpeed = data.some((row) => {
+                        const speed = row.enhancedSpeed || row.speed;
+                        return parseFiniteNumber(speed) !== null;
+                    });
                 hasValidData = hasSpeed && hasDistance;
                 break;
             }
@@ -887,16 +1089,15 @@ function createFieldToggle(field) {
                         const hr = row.heartRate;
                         return parseFiniteNumber(hr) !== null;
                     });
-                }
-                else if (field.includes("power_zone")) {
+                } else if (field.includes("power_zone")) {
                     hasValidData = data.some((row) => {
                         const { power } = row;
                         return parseFiniteNumber(power) !== null;
                     });
-                }
-                else if (
-                /* @type {string[]} */ (
-                /* @type {unknown} */ (formatChartFields)).includes(field)) {
+                } else if (
+                    /* @type {string[]} */ formatChartFields
+                        /* @type {unknown} */ .includes(field)
+                ) {
                     // Regular chart field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
@@ -905,8 +1106,7 @@ function createFieldToggle(field) {
                         return null;
                     });
                     hasValidData = !numericData.every((val) => val === null);
-                }
-                else {
+                } else {
                     // Developer field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
@@ -950,18 +1150,19 @@ function createFieldToggle(field) {
 		color: var(--color-fg);
 		font-size: 14px;
 		cursor: pointer;	`; // Check if this is a zone chart - zone charts no longer get individual color pickers
-    const isHRZoneChart = field.includes("hr_zone"), isLapZoneChart = field.includes("lap_zone"), isPowerZoneChart = field.includes("power_zone"), isZoneChart = isHRZoneChart || isPowerZoneChart;
+    const isHRZoneChart = field.includes("hr_zone"),
+        isLapZoneChart = field.includes("lap_zone"),
+        isPowerZoneChart = field.includes("power_zone"),
+        isZoneChart = isHRZoneChart || isPowerZoneChart;
     if (isZoneChart) {
         // Zone charts now only get toggle and label - unified color picker is in their dedicated sections
         container.append(toggle);
         container.append(label);
-    }
-    else if (isLapZoneChart) {
+    } else if (isLapZoneChart) {
         // Lap zone charts only get toggle, no color picker (they use the same zone colors)
         container.append(toggle);
         container.append(label);
-    }
-    else {
+    } else {
         // Regular color picker for non-zone charts
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
@@ -974,28 +1175,36 @@ function createFieldToggle(field) {
          * @returns {string | null}
          */
         const normalizeColorInputHex = (value) => {
-            if (typeof value !== "string")
-                return null;
+            if (typeof value !== "string") return null;
             const v = value.trim();
-            if (/^#[\da-f]{6}$/iu.test(v))
-                return v;
+            if (/^#[\da-f]{6}$/iu.test(v)) return v;
             // #RRGGBBAA -> strip alpha
-            if (/^#[\da-f]{8}$/iu.test(v))
-                return v.slice(0, 7);
+            if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
             // #RGB / #RGBA -> expand and strip alpha
             if (/^#[\da-f]{3}$/iu.test(v)) {
-                const [, r, g, b,] = v;
+                const [
+                    ,
+                    r,
+                    g,
+                    b,
+                ] = v;
                 return `#${r}${r}${g}${g}${b}${b}`;
             }
             if (/^#[\da-f]{4}$/iu.test(v)) {
-                const [, r, g, b,] = v;
+                const [
+                    ,
+                    r,
+                    g,
+                    b,
+                ] = v;
                 return `#${r}${r}${g}${g}${b}${b}`;
             }
             return null;
         };
         const storedColor = getChartSetting(`color_${field}`);
-        const candidate = storedColor ||
-            /* @type {any} */ (fieldColors)[field] ||
+        const candidate =
+            storedColor ||
+            /* @type {any} */ fieldColors[field] ||
             themeConfig.colors?.accent;
         colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
         colorPicker.style.cssText = `
@@ -1006,54 +1215,82 @@ function createFieldToggle(field) {
 			cursor: pointer;
 			background: none;
 		`; // Event listeners for color picker
-        colorPicker.addEventListener("change", () => {
-            setChartSetting(`color_${field}`, colorPicker.value);
-            // Dispatch custom event for color change
-            globalThis.dispatchEvent(new CustomEvent("fieldToggleChanged", {
-                detail: { field, type: "color", value: colorPicker.value },
-            }));
-            reRenderChartsAfterSettingChange(`${field}_color`, colorPicker.value);
-        }, { signal: fieldToggleSignal });
+        colorPicker.addEventListener(
+            "change",
+            () => {
+                setChartSetting(`color_${field}`, colorPicker.value);
+                // Dispatch custom event for color change
+                globalThis.dispatchEvent(
+                    new CustomEvent("fieldToggleChanged", {
+                        detail: {
+                            field,
+                            type: "color",
+                            value: colorPicker.value,
+                        },
+                    })
+                );
+                reRenderChartsAfterSettingChange(
+                    `${field}_color`,
+                    colorPicker.value
+                );
+            },
+            { signal: fieldToggleSignal }
+        );
         container.append(toggle);
         container.append(label);
         container.append(colorPicker);
     } // Event listeners for toggle
     let statusUpdateTimer;
-    toggle.addEventListener("change", () => {
-        const visibility = toggle.checked ? "visible" : "hidden";
-        setChartFieldVisibility(field, visibility);
-        // Dispatch custom event for field toggle change (for real-time updates)
-        globalThis.dispatchEvent(new CustomEvent("fieldToggleChanged", {
-            detail: { field, visibility },
-        }));
-        // Trigger chart re-render through modern state management
-        if (chartStateManager) {
-            chartStateManager.debouncedRender(`Field toggle: ${field}`);
-        }
-        else {
-            // Fallback without importing renderChartJS to avoid circular deps
-            getChartDev()?.requestRerender?.("Field toggle fallback");
-            globalThis.dispatchEvent(new CustomEvent("ffv:request-render-charts", {
-                detail: { reason: "field-toggle" },
-            }));
-        }
-        // Update status indicators after a short delay to allow charts to render
-        if (statusUpdateTimer) {
-            clearTimeout(statusUpdateTimer);
-        }
-        statusUpdateTimer = setTimeout(() => {
-            updateAllChartStatusIndicators();
-        }, 100);
-    }, { signal: fieldToggleSignal });
+    toggle.addEventListener(
+        "change",
+        () => {
+            const visibility = toggle.checked ? "visible" : "hidden";
+            setChartFieldVisibility(field, visibility);
+            // Dispatch custom event for field toggle change (for real-time updates)
+            globalThis.dispatchEvent(
+                new CustomEvent("fieldToggleChanged", {
+                    detail: { field, visibility },
+                })
+            );
+            // Trigger chart re-render through modern state management
+            if (chartStateManager) {
+                chartStateManager.debouncedRender(`Field toggle: ${field}`);
+            } else {
+                // Fallback without importing renderChartJS to avoid circular deps
+                getChartDev()?.requestRerender?.("Field toggle fallback");
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", {
+                        detail: { reason: "field-toggle" },
+                    })
+                );
+            }
+            // Update status indicators after a short delay to allow charts to render
+            if (statusUpdateTimer) {
+                clearTimeout(statusUpdateTimer);
+            }
+            statusUpdateTimer = setTimeout(() => {
+                updateAllChartStatusIndicators();
+            }, 100);
+        },
+        { signal: fieldToggleSignal }
+    );
     // Hover effects
-    container.addEventListener("mouseenter", () => {
-        container.style.background = "var(--color-glass-border)";
-        container.style.transform = "translateY(-1px)";
-    }, { signal: fieldToggleSignal });
-    container.addEventListener("mouseleave", () => {
-        container.style.background = "var(--color-glass)";
-        container.style.transform = "translateY(0)";
-    }, { signal: fieldToggleSignal });
+    container.addEventListener(
+        "mouseenter",
+        () => {
+            container.style.background = "var(--color-glass-border)";
+            container.style.transform = "translateY(-1px)";
+        },
+        { signal: fieldToggleSignal }
+    );
+    container.addEventListener(
+        "mouseleave",
+        () => {
+            container.style.background = "var(--color-glass)";
+            container.style.transform = "translateY(0)";
+        },
+        { signal: fieldToggleSignal }
+    );
     return container;
 }
 /*
@@ -1069,7 +1306,8 @@ function createRangeControl(option) {
 		position: relative;
 	`;
     const defaultRaw = option.defaultValue ?? option.default ?? 0;
-    const defaultNumber = typeof defaultRaw === "number" ? defaultRaw : Number(defaultRaw);
+    const defaultNumber =
+        typeof defaultRaw === "number" ? defaultRaw : Number(defaultRaw);
     const fallbackValue = Number.isFinite(defaultNumber) ? defaultNumber : 0;
     const storedValue = getChartSetting(option.id);
     const resolvedValue = (() => {
@@ -1140,33 +1378,39 @@ function createRangeControl(option) {
 		font-size: 12px;
 		font-weight: 600;
 	`;
-    slider.addEventListener("input", (e) => {
-        const target = e.target;
-        if (target) {
-            // input[type=range] should always produce a numeric string within min/max,
-            // but we clamp defensively in case of stored-state corruption or unexpected DOM.
-            const current = Number(target.value);
-            const safeCurrent = Number.isFinite(current)
-                ? Math.min(maxVal, Math.max(minVal, current))
-                : clamped;
-            const safeValue = String(safeCurrent);
-            valueDisplay.textContent = safeValue;
-            setChartSetting(option.id, safeCurrent);
-            // Update slider background
-            const range = maxVal - minVal;
-            const percentage = range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
-            slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
-            // Debounced re-render using the same approach as the reset button
-            clearTimeout(slider.timeout);
-            slider.timeout = setTimeout(() => {
-                reRenderChartsAfterSettingChange(option.id, safeValue);
-            }, 300);
-        }
-    }, { signal: rangeSignal });
+    slider.addEventListener(
+        "input",
+        (e) => {
+            const target = e.target;
+            if (target) {
+                // input[type=range] should always produce a numeric string within min/max,
+                // but we clamp defensively in case of stored-state corruption or unexpected DOM.
+                const current = Number(target.value);
+                const safeCurrent = Number.isFinite(current)
+                    ? Math.min(maxVal, Math.max(minVal, current))
+                    : clamped;
+                const safeValue = String(safeCurrent);
+                valueDisplay.textContent = safeValue;
+                setChartSetting(option.id, safeCurrent);
+                // Update slider background
+                const range = maxVal - minVal;
+                const percentage =
+                    range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
+                slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
+                // Debounced re-render using the same approach as the reset button
+                clearTimeout(slider.timeout);
+                slider.timeout = setTimeout(() => {
+                    reRenderChartsAfterSettingChange(option.id, safeValue);
+                }, 300);
+            }
+        },
+        { signal: rangeSignal }
+    );
     // Initialize slider background
     // Set initial background
     const range = maxVal - minVal;
-    const initialPercentage = range > 0 ? ((Number(slider.value) - minVal) / range) * 100 : 0;
+    const initialPercentage =
+        range > 0 ? ((Number(slider.value) - minVal) / range) * 100 : 0;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
     container.append(valueDisplay);
     container.append(slider);
@@ -1193,14 +1437,22 @@ function createSelectControl(option) {
 		outline: none;
 		backdrop-filter: var(--backdrop-blur);
 	`;
-    select.addEventListener("focus", () => {
-        select.style.borderColor = "var(--color-accent)";
-        select.style.boxShadow = "0 0 0 2px var(--color-accent-secondary)";
-    }, { signal: selectSignal });
-    select.addEventListener("blur", () => {
-        select.style.borderColor = "var(--color-border)";
-        select.style.boxShadow = "none";
-    }, { signal: selectSignal });
+    select.addEventListener(
+        "focus",
+        () => {
+            select.style.borderColor = "var(--color-accent)";
+            select.style.boxShadow = "0 0 0 2px var(--color-accent-secondary)";
+        },
+        { signal: selectSignal }
+    );
+    select.addEventListener(
+        "blur",
+        () => {
+            select.style.borderColor = "var(--color-border)";
+            select.style.boxShadow = "none";
+        },
+        { signal: selectSignal }
+    );
     if (option.options)
         for (const val of option.options) {
             const optionEl = document.createElement("option");
@@ -1209,11 +1461,11 @@ function createSelectControl(option) {
                 val === "all"
                     ? "All Points"
                     : val === "on"
-                        ? "Enabled"
-                        : val === "off"
-                            ? "Disabled"
-                            : String(val).charAt(0).toUpperCase() +
-                                String(val).slice(1);
+                      ? "Enabled"
+                      : val === "off"
+                        ? "Disabled"
+                        : String(val).charAt(0).toUpperCase() +
+                          String(val).slice(1);
             optionEl.style.background = "var(--color-bg-solid)";
             optionEl.style.color = "var(--color-fg)";
             select.append(optionEl);
@@ -1222,39 +1474,53 @@ function createSelectControl(option) {
     const allowed = Array.isArray(option.options)
         ? new Set(option.options.map(String))
         : null;
-    const fallback = option.default === undefined
-        ? String(option.options?.[0] ?? "")
-        : String(option.default);
-    const candidate = storedValue === null || storedValue === undefined
-        ? fallback
-        : String(storedValue);
+    const fallback =
+        option.default === undefined
+            ? String(option.options?.[0] ?? "")
+            : String(option.default);
+    const candidate =
+        storedValue === null || storedValue === undefined
+            ? fallback
+            : String(storedValue);
     select.value = allowed && !allowed.has(candidate) ? fallback : candidate;
     // Mouse wheel support for maxpoints
     if (option.id === "maxpoints") {
-        select.addEventListener("wheel", (e) => {
-            e.preventDefault();
-            const idx = option.options?.indexOf(select.value === "all" ? "all" : Number(select.value)) ?? -1;
-            let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
-            if (newIdx < 0) {
-                newIdx = 0;
-            }
-            if (newIdx >= (option.options?.length ?? 0)) {
-                newIdx = (option.options?.length ?? 1) - 1;
-            }
-            select.value = String(option.options?.[newIdx] ?? "");
-            select.dispatchEvent(new Event("change"));
-        }, { passive: false, signal: selectSignal });
+        select.addEventListener(
+            "wheel",
+            (e) => {
+                e.preventDefault();
+                const idx =
+                    option.options?.indexOf(
+                        select.value === "all" ? "all" : Number(select.value)
+                    ) ?? -1;
+                let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
+                if (newIdx < 0) {
+                    newIdx = 0;
+                }
+                if (newIdx >= (option.options?.length ?? 0)) {
+                    newIdx = (option.options?.length ?? 1) - 1;
+                }
+                select.value = String(option.options?.[newIdx] ?? "");
+                select.dispatchEvent(new Event("change"));
+            },
+            { passive: false, signal: selectSignal }
+        );
     }
-    select.addEventListener("change", (e) => {
-        const target = e.target;
-        if (target) {
-            const nextValue = option.id === "maxpoints" && target.value !== "all"
-                ? Number(target.value)
-                : target.value;
-            setChartSetting(option.id, nextValue);
-            reRenderChartsAfterSettingChange(option.id, nextValue);
-        }
-    }, { signal: selectSignal });
+    select.addEventListener(
+        "change",
+        (e) => {
+            const target = e.target;
+            if (target) {
+                const nextValue =
+                    option.id === "maxpoints" && target.value !== "all"
+                        ? Number(target.value)
+                        : target.value;
+                setChartSetting(option.id, nextValue);
+                reRenderChartsAfterSettingChange(option.id, nextValue);
+            }
+        },
+        { signal: selectSignal }
+    );
     return select;
 }
 /*
@@ -1325,8 +1591,7 @@ function createToggleControl(option) {
             statusText.textContent = "On";
             statusText.style.color = "var(--color-success)";
             statusText.style.opacity = "1";
-        }
-        else {
+        } else {
             toggle.style.background = "var(--color-border)";
             toggleThumb.style.left = "2px";
             statusText.textContent = "Off";
@@ -1338,16 +1603,20 @@ function createToggleControl(option) {
     let isOn = getCurrentValue();
     updateVisualState(isOn);
     toggle.append(toggleThumb);
-    toggle.addEventListener("click", () => {
-        // Toggle the current state
-        isOn = !isOn;
-        // Store as string for consistency with existing system
-        setChartSetting(option.id, isOn);
-        // Update visual state
-        updateVisualState(isOn);
-        // Re-render charts using the same approach as the reset button
-        reRenderChartsAfterSettingChange(option.id, isOn);
-    }, { signal: toggleSignal });
+    toggle.addEventListener(
+        "click",
+        () => {
+            // Toggle the current state
+            isOn = !isOn;
+            // Store as string for consistency with existing system
+            setChartSetting(option.id, isOn);
+            // Update visual state
+            updateVisualState(isOn);
+            // Re-render charts using the same approach as the reset button
+            reRenderChartsAfterSettingChange(option.id, isOn);
+        },
+        { signal: toggleSignal }
+    );
     // Add method to update from external reset
     container._updateFromReset = function () {
         isOn = getCurrentValue();
@@ -1365,37 +1634,41 @@ function createToggleControl(option) {
 function toggleAllFields(enable) {
     try {
         const // Get all possible field keys
-        allFields = [
-            ... /* @type {string[]} */(
-            /* @type {unknown} */ (formatChartFields)),
-            "gps_track",
-            "speed_vs_distance",
-            "power_vs_hr",
-            "altitude_profile",
-            "hr_zone_doughnut",
-            "power_zone_doughnut",
-            "event_messages",
-            "hr_lap_zone_stacked",
-            "hr_lap_zone_individual",
-            "power_lap_zone_stacked",
-            "power_lap_zone_individual",
-        ], visibility = enable ? "visible" : "hidden";
+            allFields = [
+                .../* @type {string[]} */ /* @type {unknown} */ formatChartFields,
+                "gps_track",
+                "speed_vs_distance",
+                "power_vs_hr",
+                "altitude_profile",
+                "hr_zone_doughnut",
+                "power_zone_doughnut",
+                "event_messages",
+                "hr_lap_zone_stacked",
+                "hr_lap_zone_individual",
+                "power_lap_zone_stacked",
+                "power_lap_zone_individual",
+            ],
+            visibility = enable ? "visible" : "hidden";
         // Add developer fields if they exist
-        if (getGlobalData() &&
-            getGlobalData().recordMesgs) {
-            const devFields = extractDeveloperFieldsList(getGlobalData()
-                .recordMesgs);
+        if (getGlobalData() && getGlobalData().recordMesgs) {
+            const devFields = extractDeveloperFieldsList(
+                getGlobalData().recordMesgs
+            );
             allFields.push(...devFields);
         } // Update localStorage for all fields
         for (const field of allFields) {
             setChartFieldVisibility(field, visibility);
         }
         // Dispatch custom event for bulk field toggle change
-        globalThis.dispatchEvent(new CustomEvent("fieldToggleChanged", {
-            detail: { fields: allFields, visibility },
-        }));
+        globalThis.dispatchEvent(
+            new CustomEvent("fieldToggleChanged", {
+                detail: { fields: allFields, visibility },
+            })
+        );
         // Update all toggle checkboxes in the UI
-        const toggles = document.querySelectorAll('.field-toggle input[type="checkbox"]');
+        const toggles = document.querySelectorAll(
+            '.field-toggle input[type="checkbox"]'
+        );
         for (const toggle of toggles) {
             if (toggle instanceof HTMLInputElement) {
                 toggle.checked = enable;
@@ -1407,19 +1680,19 @@ function toggleAllFields(enable) {
         // Re-render charts and update status indicators through modern state management
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
-        }
-        else {
+        } else {
             getChartDev()?.requestRerender?.("Settings change fallback");
-            globalThis.dispatchEvent(new CustomEvent("ffv:request-render-charts", {
-                detail: { reason: "settings-change" },
-            }));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv:request-render-charts", {
+                    detail: { reason: "settings-change" },
+                })
+            );
         }
         const statusTimer = setTimeout(() => {
             updateAllChartStatusIndicators();
         }, 100);
         void statusTimer;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Settings] Error toggling all fields:", error);
         showNotification("Error updating chart visibility", "error");
     }

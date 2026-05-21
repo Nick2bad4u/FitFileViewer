@@ -191,13 +191,16 @@
             // Common in tests: the path does not exist. Fall back to the resolved path.
         }
 
-        return isWindowsStylePath(filePath) ? canonical.toLowerCase() : canonical;
+        return isWindowsStylePath(filePath)
+            ? canonical.toLowerCase()
+            : canonical;
     }
 
     /**
      * Validate and normalize an IPC-provided file path.
      *
-     * @throws Error when the value is not an acceptable absolute filesystem path.
+     * @throws Error when the value is not an acceptable absolute filesystem
+     *   path.
      */
     function validateFilePathInput(filePath: unknown): string {
         if (!isNonEmptyString(filePath)) {

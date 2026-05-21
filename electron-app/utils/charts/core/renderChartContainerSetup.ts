@@ -68,6 +68,7 @@ function resolveOrCreateChartContainer(
  *
  * @param dependencies - DOM and cleanup dependencies for container setup.
  * @param options - Target container and control-panel options.
+ *
  * @returns The prepared chart container.
  */
 export function prepareChartRenderContainer(

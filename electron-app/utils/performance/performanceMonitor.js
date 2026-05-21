@@ -2,7 +2,8 @@
  * Tracks operation timings when performance monitoring is enabled.
  */
 export class PerformanceMonitor {
-    enabled = process.env["NODE_ENV"] === "development" ||
+    enabled =
+        process.env["NODE_ENV"] === "development" ||
         process.env["PERFORMANCE_MONITORING"] === "true";
     timers = new Map();
     /**
@@ -25,7 +26,9 @@ export class PerformanceMonitor {
         }
         timer.end = performance.now();
         timer.duration = timer.end - timer.start;
-        console.log(`[Performance] ${operationId}: ${timer.duration.toFixed(2)}ms`);
+        console.log(
+            `[Performance] ${operationId}: ${timer.duration.toFixed(2)}ms`
+        );
         return timer.duration;
     }
     /**

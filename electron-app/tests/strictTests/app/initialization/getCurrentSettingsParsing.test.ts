@@ -55,7 +55,15 @@ describe(parseStoredValue, () => {
             parseStoredValue("false", option),
             parseStoredValue(1, option),
             parseStoredValue(0, option),
-        ]).toStrictEqual([true, false, true, true, false, true, false]);
+        ]).toStrictEqual([
+            true,
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+        ]);
     });
 
     it("returns stored values unchanged for unknown option types", () => {

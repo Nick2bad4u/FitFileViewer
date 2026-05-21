@@ -14,15 +14,22 @@ export class ChartTabIntegration {
     checkAndRenderCharts() {
         const globalData = getGlobalFitData();
         if (!hasChartDataRecordMessages(globalData)) {
-            console.log("[ChartTabIntegration] No data available for chart rendering");
+            console.log(
+                "[ChartTabIntegration] No data available for chart rendering"
+            );
             return;
         }
         if (this.isChartTabActive()) {
-            console.log("[ChartTabIntegration] Chart tab is active, requesting render");
-            chartStateManager.debouncedRender("Integration check after file load");
-        }
-        else {
-            console.log("[ChartTabIntegration] Chart tab not active, skipping render");
+            console.log(
+                "[ChartTabIntegration] Chart tab is active, requesting render"
+            );
+            chartStateManager.debouncedRender(
+                "Integration check after file load"
+            );
+        } else {
+            console.log(
+                "[ChartTabIntegration] Chart tab not active, skipping render"
+            );
         }
     }
     /**
@@ -66,9 +73,11 @@ export class ChartTabIntegration {
      * Get the chart tab button element.
      */
     getChartTabButton() {
-        return asDisableableTabButton(document.querySelector("#tab_chartjs") ??
-            document.querySelector("#tab_chart") ??
-            document.querySelector('[data-tab="chart"]'));
+        return asDisableableTabButton(
+            document.querySelector("#tab_chartjs") ??
+                document.querySelector("#tab_chart") ??
+                document.querySelector('[data-tab="chart"]')
+        );
     }
     /**
      * Get integration status information.
@@ -88,14 +97,17 @@ export class ChartTabIntegration {
      * @param newData - The new global FIT data payload.
      */
     handleDataChange(newData) {
-        console.log("[ChartTabIntegration] Data changed, updating availability");
+        console.log(
+            "[ChartTabIntegration] Data changed, updating availability"
+        );
         if (hasChartDataRecordMessages(newData)) {
             this.enableChartTab();
             if (this.isChartTabActive()) {
-                chartStateManager.debouncedRender("New data loaded via integration");
+                chartStateManager.debouncedRender(
+                    "New data loaded via integration"
+                );
             }
-        }
-        else {
+        } else {
             this.disableChartTab();
             chartStateManager.clearChartState();
         }
@@ -127,7 +139,10 @@ export class ChartTabIntegration {
     refreshCharts(reason = "Manual refresh") {
         const globalData = getGlobalFitData();
         if (!hasChartDataRecordMessages(globalData)) {
-            void showNotification("No data available for chart rendering", "warning");
+            void showNotification(
+                "No data available for chart rendering",
+                "warning"
+            );
             return false;
         }
         chartStateManager.forceRender(reason);
@@ -159,14 +174,14 @@ export class ChartTabIntegration {
             void showNotification("Please load a FIT file first", "info");
             return false;
         }
-        return (tabStateManager.switchToTab("chartjs") ||
-            tabStateManager.switchToTab("chart"));
+        return (
+            tabStateManager.switchToTab("chartjs") ||
+            tabStateManager.switchToTab("chart")
+        );
     }
 }
 function asDisableableTabButton(element) {
-    return element instanceof HTMLElement
-        ? element
-        : null;
+    return element instanceof HTMLElement ? element : null;
 }
 function getGlobalFitData() {
     return getState("globalData");

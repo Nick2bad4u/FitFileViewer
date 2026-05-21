@@ -6,8 +6,10 @@
  */
 {
     function asElectronLike(candidate) {
-        if (candidate &&
-            (typeof candidate === "object" || typeof candidate === "function")) {
+        if (
+            candidate &&
+            (typeof candidate === "object" || typeof candidate === "function")
+        ) {
             return candidate;
         }
         return null;
@@ -18,13 +20,15 @@
     }
     const hasElectronApis = (candidate) => {
         const electronLike = asElectronLike(candidate);
-        return Boolean(electronLike &&
+        return Boolean(
+            electronLike &&
             (electronLike.app ||
                 electronLike.BrowserWindow ||
                 electronLike.ipcMain ||
                 electronLike.Menu ||
                 electronLike.shell ||
-                electronLike.dialog));
+                electronLike.dialog)
+        );
     };
     /**
      * Lazily resolves the Electron module, handling CJS/ESM interop and
@@ -53,8 +57,7 @@
                 return defaultExport;
             }
             return moduleLike ?? {};
-        }
-        catch {
+        } catch {
             return {};
         }
     }

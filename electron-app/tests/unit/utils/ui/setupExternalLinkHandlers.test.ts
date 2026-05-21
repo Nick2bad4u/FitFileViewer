@@ -8,23 +8,27 @@ type AttachExternalLinkHandlersOptions = {
 };
 
 const mocks = vi.hoisted(() => ({
-    attachExternalLinkHandlers: vi.fn<
-        (options: AttachExternalLinkHandlersOptions) => CleanupFunction
-    >(),
-    showNotification: vi.fn<(message: string, type?: string) => Promise<void>>(),
+    attachExternalLinkHandlers:
+        vi.fn<
+            (options: AttachExternalLinkHandlersOptions) => CleanupFunction
+        >(),
+    showNotification:
+        vi.fn<(message: string, type?: string) => Promise<void>>(),
 }));
 
 vi.mock(import("../../../../utils/ui/links/externalLinkHandlers.js"), () => ({
     attachExternalLinkHandlers: mocks.attachExternalLinkHandlers,
 }));
 
-vi.mock(import("../../../../utils/ui/notifications/showNotification.js"), () => ({
-    showNotification: mocks.showNotification,
-}));
-
-const { setupExternalLinkHandlers } = await import(
-    "../../../../utils/ui/setupExternalLinkHandlers.js"
+vi.mock(
+    import("../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
 );
+
+const { setupExternalLinkHandlers } =
+    await import("../../../../utils/ui/setupExternalLinkHandlers.js");
 
 function resetExternalLinkHandlerMocks(): CleanupFunction {
     const cleanup = vi.fn<CleanupFunction>();

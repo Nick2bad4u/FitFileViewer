@@ -1,4 +1,8 @@
-import { getChartContentContainer, getChartControlsToggle, getChartSettingsWrapper, } from "../dom/chartDomUtils.js";
+import {
+    getChartContentContainer,
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../dom/chartDomUtils.js";
 const globalIndicatorCleanupCallbacks = new WeakMap();
 function getStatusPresentation(counts, hasHiddenCharts, isAllVisible) {
     if (isAllVisible) {
@@ -17,15 +21,15 @@ function getStatusPresentation(counts, hasHiddenCharts, isAllVisible) {
     }
     return counts.available === 0
         ? {
-            icon: "❌",
-            title: "No charts are available",
-            valueColor: "var(--color-error)",
-        }
+              icon: "❌",
+              title: "No charts are available",
+              valueColor: "var(--color-error)",
+          }
         : {
-            icon: "❌",
-            title: "No charts are visible",
-            valueColor: "var(--color-error)",
-        };
+              icon: "❌",
+              title: "No charts are visible",
+              valueColor: "var(--color-error)",
+          };
 }
 function createCategoryRow(icon, label, counts) {
     const row = document.createElement("div");
@@ -42,7 +46,11 @@ function appendStatusText(statusText, counts, valueColor) {
     const countSpan = document.createElement("span");
     countSpan.style.color = valueColor;
     countSpan.textContent = String(counts.visible);
-    statusText.append(document.createTextNode("Showing "), countSpan, document.createTextNode(` of ${counts.available} available charts`));
+    statusText.append(
+        document.createTextNode("Showing "),
+        countSpan,
+        document.createTextNode(` of ${counts.available} available charts`)
+    );
     statusText.style.color = "var(--color-fg)";
 }
 function createQuickAction(counts, hasHiddenCharts, isAllVisible) {
@@ -66,8 +74,7 @@ function createQuickAction(counts, hasHiddenCharts, isAllVisible) {
     if (isAllVisible && counts.available > 0) {
         quickAction.textContent = "✨ Charts Ready";
         quickAction.title = "All available charts are visible";
-    }
-    else {
+    } else {
         quickAction.textContent = "📂 Load FIT";
         quickAction.title = "Load a FIT file to see charts";
     }
@@ -111,7 +118,12 @@ function createBreakdown(counts, hasHiddenCharts) {
         gap: 8px;
         font-size: 11px;
     `;
-    grid.append(createCategoryRow("📊", "Metrics", counts.categories.metrics), createCategoryRow("📈", "Analysis", counts.categories.analysis), createCategoryRow("🎯", "Zones", counts.categories.zones), createCategoryRow("🗺️", "GPS", counts.categories.gps));
+    grid.append(
+        createCategoryRow("📊", "Metrics", counts.categories.metrics),
+        createCategoryRow("📈", "Analysis", counts.categories.analysis),
+        createCategoryRow("🎯", "Zones", counts.categories.zones),
+        createCategoryRow("🗺️", "GPS", counts.categories.gps)
+    );
     globalBreakdown.append(title, grid);
     if (hasHiddenCharts) {
         const hint = document.createElement("div");
@@ -147,17 +159,21 @@ function scheduleFieldSectionScroll(fieldsSection, pendingTimers) {
 /**
  * Clean up event listeners and delayed work for a global status indicator.
  *
- * @param indicator - Indicator returned from createGlobalChartStatusIndicatorFromCounts.
+ * @param indicator - Indicator returned from
+ *   createGlobalChartStatusIndicatorFromCounts.
  */
 export function cleanupGlobalChartStatusIndicatorFromCounts(indicator) {
     globalIndicatorCleanupCallbacks.get(indicator)?.();
     globalIndicatorCleanupCallbacks.delete(indicator);
 }
 /**
- * Creates a global chart status indicator element from precomputed chart counts.
+ * Creates a global chart status indicator element from precomputed chart
+ * counts.
  *
  * @param counts - Precomputed chart visibility and availability counts.
- * @returns The global chart status indicator element, or null when chart content is unavailable.
+ *
+ * @returns The global chart status indicator element, or null when chart
+ *   content is unavailable.
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
@@ -185,8 +201,13 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             box-shadow: 0 2px 4px var(--color-shadow);
         `;
         const hasHiddenCharts = counts.available > counts.visible;
-        const isAllVisible = counts.available > 0 && counts.visible === counts.available;
-        const presentation = getStatusPresentation(counts, hasHiddenCharts, isAllVisible);
+        const isAllVisible =
+            counts.available > 0 && counts.visible === counts.available;
+        const presentation = getStatusPresentation(
+            counts,
+            hasHiddenCharts,
+            isAllVisible
+        );
         const statusInfo = document.createElement("div");
         statusInfo.style.cssText = `
             display: flex;
@@ -203,7 +224,11 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             font-size: 14px;
         `;
         appendStatusText(statusText, counts, presentation.valueColor);
-        const quickAction = createQuickAction(counts, hasHiddenCharts, isAllVisible);
+        const quickAction = createQuickAction(
+            counts,
+            hasHiddenCharts,
+            isAllVisible
+        );
         const globalBreakdown = createBreakdown(counts, hasHiddenCharts);
         const controller = new AbortController();
         const { signal } = controller;
@@ -216,30 +241,47 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             pendingTimers.clear();
         });
         if (hasHiddenCharts) {
-            quickAction.addEventListener("click", () => {
-                const toggleButton = getChartControlsToggle(document);
-                const wrapper = getChartSettingsWrapper(document);
-                if (!(wrapper instanceof HTMLElement) ||
-                    !(toggleButton instanceof HTMLElement)) {
-                    return;
-                }
-                wrapper.style.display = "block";
-                toggleButton.textContent = "▼ Hide Controls";
-                toggleButton.setAttribute("aria-expanded", "true");
-                const fieldsSection = document.querySelector(".fields-section");
-                if (fieldsSection instanceof HTMLElement) {
-                    scheduleFieldSectionScroll(fieldsSection, pendingTimers);
-                }
-            }, { signal });
-            quickAction.addEventListener("mouseenter", () => {
-                quickAction.style.background =
-                    "var(--color-accent-hover)";
-                quickAction.style.transform = "translateY(-1px)";
-            }, { signal });
-            quickAction.addEventListener("mouseleave", () => {
-                quickAction.style.background = "var(--color-btn-bg)";
-                quickAction.style.transform = "translateY(0)";
-            }, { signal });
+            quickAction.addEventListener(
+                "click",
+                () => {
+                    const toggleButton = getChartControlsToggle(document);
+                    const wrapper = getChartSettingsWrapper(document);
+                    if (
+                        !(wrapper instanceof HTMLElement) ||
+                        !(toggleButton instanceof HTMLElement)
+                    ) {
+                        return;
+                    }
+                    wrapper.style.display = "block";
+                    toggleButton.textContent = "▼ Hide Controls";
+                    toggleButton.setAttribute("aria-expanded", "true");
+                    const fieldsSection =
+                        document.querySelector(".fields-section");
+                    if (fieldsSection instanceof HTMLElement) {
+                        scheduleFieldSectionScroll(
+                            fieldsSection,
+                            pendingTimers
+                        );
+                    }
+                },
+                { signal }
+            );
+            quickAction.addEventListener(
+                "mouseenter",
+                () => {
+                    quickAction.style.background = "var(--color-accent-hover)";
+                    quickAction.style.transform = "translateY(-1px)";
+                },
+                { signal }
+            );
+            quickAction.addEventListener(
+                "mouseleave",
+                () => {
+                    quickAction.style.background = "var(--color-btn-bg)";
+                    quickAction.style.transform = "translateY(0)";
+                },
+                { signal }
+            );
         }
         const showBreakdown = () => {
             globalIndicator.style.background = "var(--color-glass-border)";
@@ -259,9 +301,11 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
         statusInfo.append(statusIcon, statusText);
         globalIndicator.append(statusInfo, quickAction, globalBreakdown);
         return globalIndicator;
-    }
-    catch (error) {
-        console.error("[ChartStatus] Error creating global chart status indicator from counts:", error);
+    } catch (error) {
+        console.error(
+            "[ChartStatus] Error creating global chart status indicator from counts:",
+            error
+        );
         return null;
     }
 }

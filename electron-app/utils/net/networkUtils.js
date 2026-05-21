@@ -10,26 +10,29 @@
  * @param url - URL to fetch.
  * @param timeoutMs - Timeout in milliseconds.
  * @param init - Optional fetch init.
+ *
  * @returns The fetch response.
  */
 export async function fetchWithTimeout(url, timeoutMs, init = {}) {
-    const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
-    const timeoutId = controller === undefined
-        ? undefined
-        : setTimeout(() => {
-            controller.abort();
-        }, timeoutMs);
+    const controller =
+        typeof AbortController === "undefined"
+            ? undefined
+            : new AbortController();
+    const timeoutId =
+        controller === undefined
+            ? undefined
+            : setTimeout(() => {
+                  controller.abort();
+              }, timeoutMs);
     try {
         const fetchInit = { ...init };
         if (controller !== undefined) {
             fetchInit.signal = controller.signal;
-        }
-        else if (init.signal !== undefined) {
+        } else if (init.signal !== undefined) {
             fetchInit.signal = init.signal;
         }
         return await fetch(url, fetchInit);
-    }
-    finally {
+    } finally {
         if (timeoutId !== undefined) {
             clearTimeout(timeoutId);
         }
@@ -39,19 +42,23 @@ export async function fetchWithTimeout(url, timeoutMs, init = {}) {
  * Check whether an unknown error value is a DOM abort error.
  *
  * @param error - Error-like value to inspect.
+ *
  * @returns True when the value has `name: "AbortError"`.
  */
 export function isAbortError(error) {
-    return (typeof error === "object" &&
+    return (
+        typeof error === "object" &&
         error !== null &&
         "name" in error &&
-        error.name === "AbortError");
+        error.name === "AbortError"
+    );
 }
 /**
  * Truncate response/error text for safe inclusion in thrown errors.
  *
  * @param value - Text to truncate.
  * @param maxLength - Maximum number of characters to retain.
+ *
  * @returns Truncated text, or an empty string for non-string input.
  */
 export function truncateErrorText(value, maxLength = 500) {

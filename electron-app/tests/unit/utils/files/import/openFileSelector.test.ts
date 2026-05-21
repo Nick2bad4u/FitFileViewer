@@ -27,9 +27,12 @@ const mocks = vi.hoisted(() => ({
     showNotification: vi.fn<(message: string, type?: string) => void>(),
 }));
 
-vi.mock(import("../../../../../utils/files/import/loadOverlayFiles.js"), () => ({
-    loadOverlayFiles: mocks.loadOverlayFiles,
-}));
+vi.mock(
+    import("../../../../../utils/files/import/loadOverlayFiles.js"),
+    () => ({
+        loadOverlayFiles: mocks.loadOverlayFiles,
+    })
+);
 
 vi.mock(import("../../../../../utils/ui/components/LoadingOverlay.js"), () => ({
     LoadingOverlay: {
@@ -44,9 +47,8 @@ vi.mock(
     })
 );
 
-const { openFileSelector } = await import(
-    "../../../../../utils/files/import/openFileSelector.js"
-);
+const { openFileSelector } =
+    await import("../../../../../utils/files/import/openFileSelector.js");
 
 const appGlobal = globalThis as FileSelectorTestGlobal;
 

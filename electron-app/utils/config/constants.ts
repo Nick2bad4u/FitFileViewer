@@ -302,12 +302,12 @@ export interface ConfigValidationResult {
 /**
  * Get a configuration value by dot-notation path.
  *
- * @example
- *     getConfig("UI_CONSTANTS.DEFAULT_THEME"); // "dark"
- *     getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // 1609.344
+ * @example GetConfig("UI_CONSTANTS.DEFAULT_THEME"); // "dark"
+ * getConfig("CONVERSION_FACTORS.METERS_PER_MILE"); // 1609.344
  *
  * @param path - Dot-notation path to a configuration value.
  * @param defaultValue - Value returned when the path does not exist.
+ *
  * @returns Configuration value, or the provided default value.
  */
 export function getConfig(path: string, defaultValue?: unknown): unknown {

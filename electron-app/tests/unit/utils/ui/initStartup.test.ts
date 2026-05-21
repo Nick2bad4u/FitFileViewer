@@ -23,9 +23,8 @@ vi.mock(import("../../../../utils/ui/unifiedControlBar.js"), () => ({
     initUnifiedControlBar: initializerMocks.initUnifiedControlBar,
 }));
 
-const { runStartupInitializers } = await import(
-    "../../../../utils/ui/initStartup.js"
-);
+const { runStartupInitializers } =
+    await import("../../../../utils/ui/initStartup.js");
 
 describe("initStartup", () => {
     it("runs startup initializers on DOMContentLoaded", () => {

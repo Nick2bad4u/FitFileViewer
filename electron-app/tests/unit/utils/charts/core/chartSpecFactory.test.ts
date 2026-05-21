@@ -19,7 +19,11 @@ describe("chartSpecFactory", () => {
             datasets: [
                 {
                     colorRole: "primary",
-                    data: [1, 2, 3],
+                    data: [
+                        1,
+                        2,
+                        3,
+                    ],
                     fill: true,
                     id: "power",
                     label: "Power",
@@ -45,7 +49,11 @@ describe("chartSpecFactory", () => {
                     {
                         backgroundColor: "#12345633",
                         borderColor: "#123456",
-                        data: [1, 2, 3],
+                        data: [
+                            1,
+                            2,
+                            3,
+                        ],
                         fill: true,
                         hidden: false,
                         label: "Power",

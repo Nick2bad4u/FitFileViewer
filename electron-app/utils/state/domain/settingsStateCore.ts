@@ -66,7 +66,6 @@ class SettingsStateManager {
 
     /**
      * Export all settings and metadata
-     *
      */
     exportSettings(): ExportedSettings | null {
         try {
@@ -89,7 +88,6 @@ class SettingsStateManager {
 
     /**
      * Return all chart (chartjs_) settings as object
-     *
      */
     getChartSettings(): Record<string, unknown> {
         const settings: Record<string, unknown> = {};
@@ -115,8 +113,6 @@ class SettingsStateManager {
 
     /**
      * Get a setting (entire category or specific key for object categories)
-     *
-     *
      */
     getSetting(category: SettingCategory, key: null | string = null): unknown {
         const schema = settingsSchema[category];
@@ -215,8 +211,6 @@ class SettingsStateManager {
      * Import settings from an exported payload.
      *
      * The export format is produced by {@link exportSettings}.
-     *
-     *
      */
     importSettings(settingsData: unknown): boolean {
         try {
@@ -377,8 +371,6 @@ class SettingsStateManager {
 
     /**
      * Reset settings (single category or all)
-     *
-     *
      */
     resetSettings(
         category: null | SettingCategory = null,
@@ -448,8 +440,6 @@ class SettingsStateManager {
     /**
      * Set a setting value (entire category or specific key for object
      * categories)
-     *
-     *
      */
     setSetting(
         category: SettingCategory,
@@ -497,13 +487,9 @@ class SettingsStateManager {
                             ? (rootState[category] as Record<string, unknown>)
                             : {};
                 currentSettings[key] = value;
-                setState(
-                    `settings.${category}`,
-                    currentSettings,
-                    {
-                        source: "SettingsStateManager.setSetting",
-                    }
-                );
+                setState(`settings.${category}`, currentSettings, {
+                    source: "SettingsStateManager.setSetting",
+                });
             } else {
                 // Set entire setting
                 localStorage.setItem(
@@ -547,23 +533,27 @@ class SettingsStateManager {
         this.storageSyncController?.abort();
         this.storageSyncController = new AbortController();
 
-        globalThis.addEventListener("storage", (event) => {
-            const k = event.key || ""; // Normalize for TS nullability
-            if (
-                k &&
-                Object.values(settingsSchema).some((schema) =>
-                    k.startsWith(schema.key)
-                )
-            ) {
-                console.log(
-                    "[SettingsState] External localStorage change detected:",
-                    event.key
-                );
+        globalThis.addEventListener(
+            "storage",
+            (event) => {
+                const k = event.key || ""; // Normalize for TS nullability
+                if (
+                    k &&
+                    Object.values(settingsSchema).some((schema) =>
+                        k.startsWith(schema.key)
+                    )
+                ) {
+                    console.log(
+                        "[SettingsState] External localStorage change detected:",
+                        event.key
+                    );
 
-                // Update state to reflect external changes
-                this.syncFromLocalStorage();
-            }
-        }, { signal: this.storageSyncController.signal });
+                    // Update state to reflect external changes
+                    this.syncFromLocalStorage();
+                }
+            },
+            { signal: this.storageSyncController.signal }
+        );
     }
     /**
      * Sync state from localStorage after external changes

@@ -1,4 +1,7 @@
-import type { ChartCategoryCounts, ChartCounts } from "../core/getChartCounts.js";
+import type {
+    ChartCategoryCounts,
+    ChartCounts,
+} from "../core/getChartCounts.js";
 
 const BREAKDOWN_ID = "chart-status-indicator-breakdown";
 const indicatorCleanupCallbacks = new WeakMap<HTMLElement, () => void>();
@@ -80,7 +83,10 @@ function createCategoryRow(
     return row;
 }
 
-function createBreakdown(counts: ChartCounts, hasHiddenCharts: boolean): HTMLDivElement {
+function createBreakdown(
+    counts: ChartCounts,
+    hasHiddenCharts: boolean
+): HTMLDivElement {
     const breakdown = document.createElement("div");
     breakdown.className = "status-breakdown";
     breakdown.id = BREAKDOWN_ID;
@@ -171,11 +177,15 @@ function positionBreakdown(breakdown: HTMLElement, event: MouseEvent): void {
 }
 
 /**
- * Clean up event listeners and detached tooltip state for a generated chart status indicator.
+ * Clean up event listeners and detached tooltip state for a generated chart
+ * status indicator.
  *
- * @param indicator - Indicator element returned from createChartStatusIndicatorFromCounts.
+ * @param indicator - Indicator element returned from
+ *   createChartStatusIndicatorFromCounts.
  */
-export function cleanupChartStatusIndicatorFromCounts(indicator: HTMLElement): void {
+export function cleanupChartStatusIndicatorFromCounts(
+    indicator: HTMLElement
+): void {
     indicatorCleanupCallbacks.get(indicator)?.();
     indicatorCleanupCallbacks.delete(indicator);
 }
@@ -184,6 +194,7 @@ export function cleanupChartStatusIndicatorFromCounts(indicator: HTMLElement): v
  * Creates a chart status indicator element from precomputed chart counts.
  *
  * @param counts - Precomputed chart visibility and availability counts.
+ *
  * @returns The chart status indicator element.
  */
 export function createChartStatusIndicatorFromCounts(

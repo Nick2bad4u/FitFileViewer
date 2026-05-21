@@ -27,8 +27,13 @@ export function initializeChartStateManagement(dependencies) {
         source: "initializeChartStateManagement",
     });
     const computedStateManager = dependencies.getComputedStateManager();
-    computedStateManager.define?.("charts.hasData", () => hasChartDataRecordMessages(dependencies.getState("globalData")));
-    computedStateManager.define?.("charts.renderableFieldCount", () => dependencies.getChartSummaryState().renderableFields.length);
+    computedStateManager.define?.("charts.hasData", () =>
+        hasChartDataRecordMessages(dependencies.getState("globalData"))
+    );
+    computedStateManager.define?.(
+        "charts.renderableFieldCount",
+        () => dependencies.getChartSummaryState().renderableFields.length
+    );
     computedStateManager.define?.("charts.summary", () => {
         const chartState = dependencies.getChartSummaryState();
         return {
@@ -39,11 +44,15 @@ export function initializeChartStateManagement(dependencies) {
             lastRender: dependencies.getState("charts.lastRenderTime"),
         };
     });
-    const hasChartRenderMiddleware = dependencies.middlewareManager.has?.("chart-render") ?? false;
+    const hasChartRenderMiddleware =
+        dependencies.middlewareManager.has?.("chart-render") ?? false;
     if (!hasChartRenderMiddleware) {
         dependencies.middlewareManager.register?.("chart-render", {
             afterSet: (context) => {
-                console.log("[ChartJS] Chart render action completed:", context);
+                console.log(
+                    "[ChartJS] Chart render action completed:",
+                    context
+                );
                 return context;
             },
             beforeSet: (context) => {
@@ -51,7 +60,11 @@ export function initializeChartStateManagement(dependencies) {
                 return context;
             },
             onError: (error, errorContext) => {
-                console.error("[ChartJS] Chart render action failed:", error, errorContext);
+                console.error(
+                    "[ChartJS] Chart render action failed:",
+                    error,
+                    errorContext
+                );
                 void Promise.resolve().then(() => {
                     dependencies.notify("Chart rendering failed", "error");
                 });

@@ -12,7 +12,9 @@ interface RendererDevGlobal {
 }
 
 interface MockCanvasContext {
-    fillRect: ReturnType<typeof vi.fn<(x: number, y: number, w: number, h: number) => void>>;
+    fillRect: ReturnType<
+        typeof vi.fn<(x: number, y: number, w: number, h: number) => void>
+    >;
     fillStyle: CanvasRenderingContext2D["fillStyle"];
     restore: ReturnType<typeof vi.fn<() => void>>;
     save: ReturnType<typeof vi.fn<() => void>>;
@@ -183,9 +185,7 @@ describe("chartBackgroundColorPlugin", () => {
 
         const context = createMockContext(),
             chart = createChart(context),
-            consoleLog = vi
-                .spyOn(console, "log")
-                .mockReturnValue(undefined);
+            consoleLog = vi.spyOn(console, "log").mockReturnValue(undefined);
         setRendererDebugEnabled(true);
 
         try {

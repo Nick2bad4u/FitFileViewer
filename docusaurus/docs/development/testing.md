@@ -49,84 +49,83 @@ npm test -- --grep "formatDistance"
 ### Basic Test Structure
 
 ```javascript
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { formatDistance } from '../../utils/formatting/formatDistance.js';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { formatDistance } from "../../utils/formatting/formatDistance.js";
 
-describe('formatDistance', () => {
-    describe('basic formatting', () => {
-        it('should format meters to kilometers', () => {
-            expect(formatDistance(5000)).toBe('5.00 km');
-        });
+describe("formatDistance", () => {
+ describe("basic formatting", () => {
+  it("should format meters to kilometers", () => {
+   expect(formatDistance(5000)).toBe("5.00 km");
+  });
 
-        it('should handle decimal values', () => {
-            expect(formatDistance(5500)).toBe('5.50 km');
-        });
-    });
+  it("should handle decimal values", () => {
+   expect(formatDistance(5500)).toBe("5.50 km");
+  });
+ });
 
-    describe('edge cases', () => {
-        it('should handle zero', () => {
-            expect(formatDistance(0)).toBe('0.00 km');
-        });
+ describe("edge cases", () => {
+  it("should handle zero", () => {
+   expect(formatDistance(0)).toBe("0.00 km");
+  });
 
-        it('should handle negative values', () => {
-            expect(formatDistance(-1000)).toBe('-1.00 km');
-        });
-    });
+  it("should handle negative values", () => {
+   expect(formatDistance(-1000)).toBe("-1.00 km");
+  });
+ });
 });
 ```
 
 ### Testing with Setup/Teardown
 
 ```javascript
-describe('StateManager', () => {
-    let stateManager;
+describe("StateManager", () => {
+ let stateManager;
 
-    beforeEach(() => {
-        stateManager = new StateManager();
-    });
+ beforeEach(() => {
+  stateManager = new StateManager();
+ });
 
-    afterEach(() => {
-        stateManager.reset();
-    });
+ afterEach(() => {
+  stateManager.reset();
+ });
 
-    it('should store values', () => {
-        stateManager.set('key', 'value');
-        expect(stateManager.get('key')).toBe('value');
-    });
+ it("should store values", () => {
+  stateManager.set("key", "value");
+  expect(stateManager.get("key")).toBe("value");
+ });
 });
 ```
 
 ### Testing Async Functions
 
 ```javascript
-describe('loadFile', () => {
-    it('should load file successfully', async () => {
-        const result = await loadFile('test.fit');
-        expect(result).toBeDefined();
-        expect(result.records).toBeInstanceOf(Array);
-    });
+describe("loadFile", () => {
+ it("should load file successfully", async () => {
+  const result = await loadFile("test.fit");
+  expect(result).toBeDefined();
+  expect(result.records).toBeInstanceOf(Array);
+ });
 
-    it('should reject invalid files', async () => {
-        await expect(loadFile('invalid.txt'))
-            .rejects.toThrow('Invalid file type');
-    });
+ it("should reject invalid files", async () => {
+  await expect(loadFile("invalid.txt")).rejects.toThrow("Invalid file type");
+ });
 });
 ```
 
 ### Mocking
 
 ```javascript
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
-describe('with mocks', () => {
-    it('should call callback', () => {
-        const callback = vi.fn();
+describe("with mocks", () => {
+ it("should call callback", () => {
+  const callback = vi.fn();
 
-        processData(data, callback);
+  processData(data, callback);
 
-        expect(callback).toHaveBeenCalled();
-        expect(callback).toHaveBeenCalledWith(expectedData);
-    });
+  expect(callback).toHaveBeenCalled();
+  expect(callback).toHaveBeenCalledWith(expectedData);
+ });
 });
 ```
 
@@ -138,10 +137,10 @@ Test individual functions in isolation:
 
 ```javascript
 // Test pure functions
-describe('calculateAverage', () => {
-    it('should calculate average', () => {
-        expect(calculateAverage([1, 2, 3])).toBe(2);
-    });
+describe("calculateAverage", () => {
+ it("should calculate average", () => {
+  expect(calculateAverage([1, 2, 3])).toBe(2);
+ });
 });
 ```
 
@@ -151,14 +150,14 @@ Test module interactions:
 
 ```javascript
 // Test components working together
-describe('FileProcessor', () => {
-    it('should parse and format file data', async () => {
-        const fileData = await loadFile('test.fit');
-        const formatted = formatFileData(fileData);
+describe("FileProcessor", () => {
+ it("should parse and format file data", async () => {
+  const fileData = await loadFile("test.fit");
+  const formatted = formatFileData(fileData);
 
-        expect(formatted.summary).toBeDefined();
-        expect(formatted.records.length).toBeGreaterThan(0);
-    });
+  expect(formatted.summary).toBeDefined();
+  expect(formatted.records.length).toBeGreaterThan(0);
+ });
 });
 ```
 
@@ -168,16 +167,16 @@ Test full user workflows:
 
 ```javascript
 // Test complete user scenarios
-describe('User opens FIT file', () => {
-    it('should display data in all tabs', async () => {
-        await openFile('activity.fit');
+describe("User opens FIT file", () => {
+ it("should display data in all tabs", async () => {
+  await openFile("activity.fit");
 
-        await clickTab('Map');
-        expect(await isMapVisible()).toBe(true);
+  await clickTab("Map");
+  expect(await isMapVisible()).toBe(true);
 
-        await clickTab('Charts');
-        expect(await areChartsVisible()).toBe(true);
-    });
+  await clickTab("Charts");
+  expect(await areChartsVisible()).toBe(true);
+ });
 });
 ```
 
@@ -191,25 +190,25 @@ npm run test:coverage
 
 ### Coverage Targets
 
-| Type | Target |
-|------|--------|
-| Statements | 80%+ |
-| Branches | 75%+ |
-| Functions | 80%+ |
-| Lines | 80%+ |
+| Type       | Target |
+| ---------- | ------ |
+| Statements | 80%+   |
+| Branches   | 75%+   |
+| Functions  | 80%+   |
+| Lines      | 80%+   |
 
 ### Coverage Configuration
 
 ```javascript
 // vitest.config.js
 export default {
-    test: {
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'html', 'lcov'],
-            exclude: ['tests/', 'node_modules/']
-        }
-    }
+ test: {
+  coverage: {
+   provider: "v8",
+   reporter: ["text", "html", "lcov"],
+   exclude: ["tests/", "node_modules/"],
+  },
+ },
 };
 ```
 
@@ -234,12 +233,12 @@ export default {
 
 ```javascript
 // Good: Describes behavior
-it('should return formatted string when given valid input', () => {});
-it('should throw error when input is null', () => {});
+it("should return formatted string when given valid input", () => {});
+it("should throw error when input is null", () => {});
 
 // Bad: Vague
-it('works', () => {});
-it('test1', () => {});
+it("works", () => {});
+it("test1", () => {});
 ```
 
 ---

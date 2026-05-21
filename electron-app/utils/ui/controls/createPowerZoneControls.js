@@ -8,6 +8,7 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
  * Creates the power zone controls section by extracting existing controls.
  *
  * @param parentContainer - Parent container to append controls to.
+ *
  * @returns The created power zone controls section.
  */
 export function createPowerZoneControls(parentContainer) {
@@ -78,14 +79,22 @@ export function createPowerZoneControls(parentContainer) {
         overflow: hidden;
     `;
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("power-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
     const listenerController = new AbortController();
-    collapseBtn.addEventListener("click", () => {
-        isCollapsed = !isCollapsed;
-        localStorage.setItem("power-zone-controls-collapsed", isCollapsed.toString());
-        updateCollapseState();
-    }, { signal: listenerController.signal });
+    collapseBtn.addEventListener(
+        "click",
+        () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem(
+                "power-zone-controls-collapsed",
+                isCollapsed.toString()
+            );
+            updateCollapseState();
+        },
+        { signal: listenerController.signal }
+    );
     function updateCollapseState() {
         if (isCollapsed) {
             content.style.maxHeight = "0";
@@ -93,8 +102,7 @@ export function createPowerZoneControls(parentContainer) {
             content.style.marginTop = "0";
             collapseBtn.textContent = "▶";
             collapseBtn.setAttribute("aria-expanded", "false");
-        }
-        else {
+        } else {
             content.style.maxHeight = "500px";
             content.style.opacity = "1";
             content.style.marginTop = "0";
@@ -106,14 +114,22 @@ export function createPowerZoneControls(parentContainer) {
     powerZoneSection.append(header);
     powerZoneSection.append(content);
     // Add hover effects
-    powerZoneSection.addEventListener("mouseenter", () => {
-        powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
-        powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: listenerController.signal });
-    powerZoneSection.addEventListener("mouseleave", () => {
-        powerZoneSection.style.borderColor = "var(--color-border)";
-        powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: listenerController.signal });
+    powerZoneSection.addEventListener(
+        "mouseenter",
+        () => {
+            powerZoneSection.style.borderColor = "var(--color-primary-alpha)";
+            powerZoneSection.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: listenerController.signal }
+    );
+    powerZoneSection.addEventListener(
+        "mouseleave",
+        () => {
+            powerZoneSection.style.borderColor = "var(--color-border)";
+            powerZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: listenerController.signal }
+    );
     parentContainer.append(powerZoneSection);
     return powerZoneSection;
 }
@@ -124,9 +140,12 @@ export function createPowerZoneControls(parentContainer) {
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartFieldVisibility("power_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("power_zone_doughnut") !== "hidden",
+        lapIndividualVisible:
+            getChartFieldVisibility("power_lap_zone_individual") !== "hidden",
+        lapStackedVisible:
+            getChartFieldVisibility("power_lap_zone_stacked") !== "hidden",
     };
 }
 /**
@@ -136,7 +155,9 @@ export function getPowerZoneVisibilitySettings() {
 export function movePowerZoneControlsToSection() {
     const powerZoneContent = document.querySelector("#power-zone-content");
     if (!(powerZoneContent instanceof HTMLElement)) {
-        console.warn("[PowerZoneControls] Power zone content container not found");
+        console.warn(
+            "[PowerZoneControls] Power zone content container not found"
+        );
         return;
     }
     const movedControls = [];
@@ -154,11 +175,15 @@ export function movePowerZoneControlsToSection() {
             // Move the entire control container to the power zone section
             powerZoneContent.append(controlContainer);
             movedControls.push(fieldName);
-            console.log(`[PowerZoneControls] Moved ${fieldName} control to power zone section`);
+            console.log(
+                `[PowerZoneControls] Moved ${fieldName} control to power zone section`
+            );
         }
     }
     if (movedControls.length > 0) {
-        console.log(`[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`);
+        console.log(
+            `[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`
+        );
         // Add some spacing between the controls
         const controls = Array.from(powerZoneContent.children);
         for (const [i, control] of controls.entries()) {
@@ -185,8 +210,7 @@ export function updatePowerZoneControlsVisibility(hasData) {
     if (hasData) {
         controls.style.display = "block";
         controls.style.opacity = "1";
-    }
-    else {
+    } else {
         controls.style.display = "none";
         controls.style.opacity = "0.5";
     }

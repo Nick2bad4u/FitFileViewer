@@ -5,9 +5,8 @@ import { addExitFullscreenOverlay } from "../../../../../utils/ui/controls/addEx
 const EXIT_BUTTON_SELECTOR = ".exit-fullscreen-overlay";
 
 function getExitButton(container: HTMLElement): HTMLButtonElement {
-    const button = container.querySelector<HTMLButtonElement>(
-        EXIT_BUTTON_SELECTOR
-    );
+    const button =
+        container.querySelector<HTMLButtonElement>(EXIT_BUTTON_SELECTOR);
     if (!button) {
         throw new Error("Missing exit fullscreen overlay button");
     }
@@ -76,16 +75,18 @@ describe(addExitFullscreenOverlay, () => {
         expect.assertions(2);
 
         resetDocument();
-        const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+        const debugSpy = vi
+            .spyOn(console, "debug")
+            .mockImplementation(() => {});
         const container = document.createElement("section");
 
         try {
             addExitFullscreenOverlay(container);
             addExitFullscreenOverlay(container);
 
-            expect(container.querySelectorAll(EXIT_BUTTON_SELECTOR)).toHaveLength(
-                1
-            );
+            expect(
+                container.querySelectorAll(EXIT_BUTTON_SELECTOR)
+            ).toHaveLength(1);
             expect(debugSpy).toHaveBeenCalledWith(
                 "[addExitFullscreenOverlay] Overlay already exists, skipping creation"
             );
@@ -166,7 +167,9 @@ describe(addExitFullscreenOverlay, () => {
 
         resetDocument();
         const error = new Error("Denied");
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const container = document.createElement("section");
         setFullscreenElement(document.createElement("div"));
         setExitFullscreen(() => Promise.reject(error));

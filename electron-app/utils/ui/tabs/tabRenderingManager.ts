@@ -69,7 +69,9 @@ class TabRenderingManager {
      * @param tabName - Name of tab being rendered.
      * @param operation - Async operation to execute.
      * @param options - Render scheduling options.
+     *
      * @returns Operation result, or null when skipped/cancelled/stale.
+     *
      * @throws Rethrows non-cancellation errors from the render operation.
      */
     async executeRenderOperation<Result = unknown>(

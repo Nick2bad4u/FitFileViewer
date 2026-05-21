@@ -27,9 +27,11 @@ export class CancellationToken {
         for (const callback of this._callbacks) {
             try {
                 callback();
-            }
-            catch (error) {
-                console.error("[CancellationToken] Error in cancellation callback:", error);
+            } catch (error) {
+                console.error(
+                    "[CancellationToken] Error in cancellation callback:",
+                    error
+                );
             }
         }
         this._callbacks = [];
@@ -38,7 +40,9 @@ export class CancellationToken {
      * Register a callback to be called when cancelled
      *
      * @param callback - Callback function.
+     *
      * @returns Unsubscribe function.
+     *
      * @throws TypeError when callback is not a function.
      */
     onCancel(callback) {
@@ -49,11 +53,13 @@ export class CancellationToken {
             // Already cancelled, call immediately
             try {
                 callback();
+            } catch (error) {
+                console.error(
+                    "[CancellationToken] Error in immediate cancellation callback:",
+                    error
+                );
             }
-            catch (error) {
-                console.error("[CancellationToken] Error in immediate cancellation callback:", error);
-            }
-            return () => { }; // No-op unsubscribe
+            return () => {}; // No-op unsubscribe
         }
         this._callbacks.push(callback);
         // Return unsubscribe function
@@ -97,6 +103,7 @@ export class CancellationTokenSource {
  * Create a cancellation token that automatically cancels after a timeout
  *
  * @param timeout - Timeout in milliseconds.
+ *
  * @returns Cancellation token source.
  */
 export function createTimeoutCancellationToken(timeout) {
@@ -114,6 +121,7 @@ export function createTimeoutCancellationToken(timeout) {
  *
  * @param ms - Milliseconds to wait.
  * @param token - Optional cancellation token.
+ *
  * @returns Promise that resolves after the delay or rejects when cancelled.
  */
 export async function delay(ms, token) {
@@ -141,8 +149,11 @@ export async function delay(ms, token) {
  * Check if an error is a cancellation error
  *
  * @param error - Error to check.
+ *
  * @returns Whether the error represents cancellation.
  */
 export function isCancellationError(error) {
-    return (error instanceof Error && error.message === "Operation was cancelled");
+    return (
+        error instanceof Error && error.message === "Operation was cancelled"
+    );
 }

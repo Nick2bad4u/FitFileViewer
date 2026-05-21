@@ -183,20 +183,24 @@ export function setupDOMContentLoaded(): void {
     try {
         if (document.readyState === "loading") {
             const domReadyListener = new AbortController();
-            globalThis.addEventListener("DOMContentLoaded", () => {
-                const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
-                    (id) => document.getElementById(id) !== null
-                );
-                if (hasRequiredElements) {
-                    addFullScreenButton();
-                    logWithContext(
-                        "Legacy DOM setup: Fullscreen button initialized"
+            globalThis.addEventListener(
+                "DOMContentLoaded",
+                () => {
+                    const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
+                        (id) => document.getElementById(id) !== null
                     );
+                    if (hasRequiredElements) {
+                        addFullScreenButton();
+                        logWithContext(
+                            "Legacy DOM setup: Fullscreen button initialized"
+                        );
+                    }
+                    domReadyListener.abort();
+                },
+                {
+                    signal: domReadyListener.signal,
                 }
-                domReadyListener.abort();
-            }, {
-                signal: domReadyListener.signal,
-            });
+            );
         } else {
             const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
                 (id) => document.getElementById(id) !== null
@@ -210,10 +214,7 @@ export function setupDOMContentLoaded(): void {
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logWithContext(
-            `Error in legacy DOM setup: ${message}`,
-            "error"
-        );
+        logWithContext(`Error in legacy DOM setup: ${message}`, "error");
     }
 }
 /** Sets up fullscreen state listeners, F11 handling, and initialization. */
@@ -321,14 +322,14 @@ export function setupFullscreenListeners(): void {
     }
 }
 /** Creates the icon wrapper used by the fullscreen button. */
-function createFullscreenIconWrapper(
-    state: "enter" | "exit"
-): HTMLSpanElement {
+function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {
     const icon = document.createElement("span");
     icon.className = "fullscreen-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.append(
-        state === "enter" ? createEnterFullscreenIcon() : createExitFullscreenIcon()
+        state === "enter"
+            ? createEnterFullscreenIcon()
+            : createExitFullscreenIcon()
     );
 
     return icon;
@@ -425,9 +426,7 @@ function handleFullscreenStateChange(): void {
             (fullscreenEnabled ? Boolean(screenfull.isFullscreen) : false);
         if (isFullscreen) {
             if (activeContent) {
-                addExitFullscreenOverlay(
-                    activeContent as HTMLElement
-                );
+                addExitFullscreenOverlay(activeContent as HTMLElement);
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
             if (globalBtn) {
@@ -441,9 +440,7 @@ function handleFullscreenStateChange(): void {
             }
         } else {
             if (activeContent) {
-                removeExitFullscreenOverlay(
-                    activeContent as HTMLElement
-                );
+                removeExitFullscreenOverlay(activeContent as HTMLElement);
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
             if (globalBtn) {
@@ -497,10 +494,7 @@ function handleFullscreenToggle(event: Event): void {
         nativeToggleFullscreen(activeContent as HTMLElement);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logWithContext(
-            `Failed to toggle fullscreen: ${message}`,
-            "error"
-        );
+        logWithContext(`Failed to toggle fullscreen: ${message}`, "error");
     }
 }
 /** Handles keyboard shortcuts for fullscreen functionality. */
@@ -530,9 +524,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
 
                 const activeContent = getActiveTabContent();
                 if (activeContent) {
-                    removeExitFullscreenOverlay(
-                        activeContent as HTMLElement
-                    );
+                    removeExitFullscreenOverlay(activeContent as HTMLElement);
                 }
                 return;
             }
@@ -574,10 +566,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logWithContext(
-            `Error handling keyboard shortcut: ${message}`,
-            "error"
-        );
+        logWithContext(`Error handling keyboard shortcut: ${message}`, "error");
     }
 }
 /** Logs messages with context for fullscreen operations. */
@@ -667,10 +656,7 @@ function updateButtonState(button: HTMLElement, isFullscreen: boolean): void {
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logWithContext(
-            `Failed to update button state: ${message}`,
-            "error"
-        );
+        logWithContext(`Failed to update button state: ${message}`, "error");
     }
 }
 // logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
@@ -680,7 +666,5 @@ function updateFullscreenButtonState(): void {
     if (!btn) return;
     const hasFile = document.body.classList.contains("app-has-file");
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");
-    btn.dataset["tooltip"] = hasFile
-        ? "Fullscreen (F11)"
-        : "Load a file first";
+    btn.dataset["tooltip"] = hasFile ? "Fullscreen (F11)" : "Load a file first";
 }

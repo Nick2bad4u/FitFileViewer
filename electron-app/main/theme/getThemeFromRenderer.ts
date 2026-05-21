@@ -27,9 +27,9 @@
     };
 
     /**
-     * Fetches the persisted theme from the renderer by reading localStorage. The
-     * helper is resilient to missing BrowserWindow instances so Jasmine/Vitest
-     * environments without a DOM do not crash.
+     * Fetches the persisted theme from the renderer by reading localStorage.
+     * The helper is resilient to missing BrowserWindow instances so
+     * Jasmine/Vitest environments without a DOM do not crash.
      */
     async function getThemeFromRenderer(
         win?: null | ThemeWindowCandidate
@@ -46,7 +46,10 @@
                 ? theme
                 : CONSTANTS.DEFAULT_THEME;
         } catch (error) {
-            console.error("[main.js] Failed to get theme from renderer:", error);
+            console.error(
+                "[main.js] Failed to get theme from renderer:",
+                error
+            );
             return CONSTANTS.DEFAULT_THEME;
         }
     }

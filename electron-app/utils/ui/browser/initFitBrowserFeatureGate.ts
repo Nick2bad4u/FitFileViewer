@@ -41,11 +41,16 @@ export function initFitBrowserFeatureGate(): void {
         // Ignore startup races from preload teardown in tests.
     });
 
-    api.onIpc?.("fit-browser-enabled-changed", (eventOrEnabled, enabledMaybe) => {
-        const enabled =
-            typeof eventOrEnabled === "boolean" ? eventOrEnabled : enabledMaybe;
-        applyBrowserTabVisibility(enabled === true);
-    });
+    api.onIpc?.(
+        "fit-browser-enabled-changed",
+        (eventOrEnabled, enabledMaybe) => {
+            const enabled =
+                typeof eventOrEnabled === "boolean"
+                    ? eventOrEnabled
+                    : enabledMaybe;
+            applyBrowserTabVisibility(enabled === true);
+        }
+    );
 }
 
 function applyBrowserTabVisibility(enabled: boolean): void {
@@ -73,8 +78,8 @@ function getElectronAPI(): FitBrowserFeatureGateApi | null {
     if (
         api === null ||
         typeof api !== "object" ||
-        typeof (api as Partial<FitBrowserFeatureGateApi>).isFitBrowserEnabled !==
-            "function"
+        typeof (api as Partial<FitBrowserFeatureGateApi>)
+            .isFitBrowserEnabled !== "function"
     ) {
         return null;
     }

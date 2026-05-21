@@ -1,4 +1,5 @@
-const isSettingsObject = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+const isSettingsObject = (value) =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
 /**
  * Settings categories and their persistence configuration.
  */
@@ -40,11 +41,12 @@ export const SETTINGS_SCHEMA = {
         default: "dark",
         key: "ffv-theme",
         type: "string",
-        validate: (value) => [
-            "auto",
-            "dark",
-            "light",
-        ].includes(value),
+        validate: (value) =>
+            [
+                "auto",
+                "dark",
+                "light",
+            ].includes(value),
     },
     ui: {
         default: {

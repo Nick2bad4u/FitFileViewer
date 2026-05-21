@@ -39,9 +39,8 @@ function getTestGlobal(): MapActionButtonTestGlobal {
 }
 
 function resetMapActionFixture(): void {
-    const activeFileName = document.querySelector<ActiveFileNameElement>(
-        "#active_file_name"
-    );
+    const activeFileName =
+        document.querySelector<ActiveFileNameElement>("#active_file_name");
     activeFileName?.__ffvMapActionCleanup?.();
     document.body.replaceChildren();
 
@@ -99,9 +98,10 @@ function installMapGlobals(): {
     };
     const polylineElement = document.createElement("div");
     const polylineBringToFront = vi.fn<() => void>();
-    const fitBounds = vi.fn<
-        (bounds: MapBounds, options: { padding: [number, number] }) => void
-    >();
+    const fitBounds =
+        vi.fn<
+            (bounds: MapBounds, options: { padding: [number, number] }) => void
+        >();
     const updateOverlayHighlights = vi.fn<() => void>();
     const updateShownFilesList = vi.fn<(...args: unknown[]) => void>();
 

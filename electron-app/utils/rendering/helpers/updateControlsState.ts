@@ -23,10 +23,7 @@ export function initializeControlsState(): void {
             toggleBtn.textContent = controlsVisible
                 ? "▼ Hide Controls"
                 : "▶ Show Controls";
-            toggleBtn.setAttribute(
-                "aria-expanded",
-                controlsVisible.toString()
-            );
+            toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
         }
     });
 

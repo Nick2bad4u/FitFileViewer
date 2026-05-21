@@ -438,9 +438,7 @@ function areObjectsShallowEqual(
         return false;
     }
 
-    return leftKeys.every((key) =>
-        Object.is(left[key], right[key])
-    );
+    return leftKeys.every((key) => Object.is(left[key], right[key]));
 }
 
 function getChartInstanceCount(): number {

@@ -1,7 +1,10 @@
 /**
  * Persistence and defaults for estimated cycling power settings.
  */
-import { getPowerEstimationSetting, setPowerEstimationSetting, } from "../../state/domain/settingsStateManager.js";
+import {
+    getPowerEstimationSetting,
+    setPowerEstimationSetting,
+} from "../../state/domain/settingsStateManager.js";
 const DEFAULT_POWER_ESTIMATION_SETTINGS = {
     bikeWeightKg: 10,
     cda: 0.32,
@@ -35,7 +38,10 @@ export function getPowerEstimationSettings() {
         enabled: enabledRaw !== false,
     };
     for (const key of NUMERIC_SETTING_KEYS) {
-        settings[key] = getFiniteNumberSetting(key, DEFAULT_POWER_ESTIMATION_SETTINGS[key]);
+        settings[key] = getFiniteNumberSetting(
+            key,
+            DEFAULT_POWER_ESTIMATION_SETTINGS[key]
+        );
     }
     return settings;
 }
@@ -50,7 +56,10 @@ export function setPowerEstimationSettings(settings) {
     setPowerEstimationSetting("bikeWeightKg", settings.bikeWeightKg);
     setPowerEstimationSetting("crr", settings.crr);
     setPowerEstimationSetting("cda", settings.cda);
-    setPowerEstimationSetting("drivetrainEfficiency", settings.drivetrainEfficiency);
+    setPowerEstimationSetting(
+        "drivetrainEfficiency",
+        settings.drivetrainEfficiency
+    );
     setPowerEstimationSetting("windSpeedMps", settings.windSpeedMps);
     setPowerEstimationSetting("gradeWindowMeters", settings.gradeWindowMeters);
     setPowerEstimationSetting("maxPowerW", settings.maxPowerW);

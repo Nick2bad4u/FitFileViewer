@@ -14,7 +14,10 @@ const { bootstrapMainWindow } = require("../window/bootstrapMainWindow");
  * Extracted from the monolithic main.js to make the orchestration easier to
  * comprehend.
  *
- * @returns {Promise<import("../../types/main/window/bootstrapMainWindow").MainWindowLike>} Resolves with the created BrowserWindow instance.
+ * @returns {Promise<
+ *     import("../../types/main/window/bootstrapMainWindow").MainWindowLike
+ * >}
+ *   Resolves with the created BrowserWindow instance.
  */
 async function initializeApplication() {
     return bootstrapMainWindow({

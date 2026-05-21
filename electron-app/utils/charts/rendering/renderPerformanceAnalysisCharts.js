@@ -4,14 +4,19 @@ import { renderSpeedVsDistanceChart } from "./renderSpeedVsDistanceChart.js";
 const chartGlobal = globalThis;
 /**
  * Render performance analysis charts.
- *
  */
-export function renderPerformanceAnalysisCharts(container, data, labels, options) {
+export function renderPerformanceAnalysisCharts(
+    container,
+    data,
+    labels,
+    options
+) {
     try {
-        const isDevEnvironment = typeof process !== "undefined" &&
+        const isDevEnvironment =
+            typeof process !== "undefined" &&
             process.env?.["NODE_ENV"] === "development";
-        const isDebugLoggingEnabled = isDevEnvironment &&
-            Boolean(chartGlobal.__FFV_debugCharts);
+        const isDebugLoggingEnabled =
+            isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderPerformanceAnalysisCharts called");
         }
@@ -21,8 +26,10 @@ export function renderPerformanceAnalysisCharts(container, data, labels, options
         renderPowerVsHeartRateChart(container, data, options);
         // Render altitude profile with gradient chart
         renderAltitudeProfileChart(container, data, labels, options);
-    }
-    catch (error) {
-        console.error("[ChartJS] Error rendering performance analysis charts:", error);
+    } catch (error) {
+        console.error(
+            "[ChartJS] Error rendering performance analysis charts:",
+            error
+        );
     }
 }

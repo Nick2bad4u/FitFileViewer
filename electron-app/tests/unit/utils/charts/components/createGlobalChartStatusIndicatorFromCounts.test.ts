@@ -96,14 +96,11 @@ describe("global chart status indicator from counts", () => {
         expect.assertions(2);
 
         document.body.replaceChildren();
-        const warnSpy = vi
-            .spyOn(console, "warn")
-            .mockReturnValue(undefined);
+        const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
 
         try {
-            const indicator = createGlobalChartStatusIndicatorFromCounts(
-                createCounts()
-            );
+            const indicator =
+                createGlobalChartStatusIndicatorFromCounts(createCounts());
 
             expect(indicator).toBeNull();
             expect(warnSpy).toHaveBeenCalledWith(

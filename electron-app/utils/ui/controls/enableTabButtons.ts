@@ -298,7 +298,10 @@ function enableButton(button: HTMLElement): void {
     forceStyleRecalculation(button);
 }
 
-function enableButtonWithVerification(button: HTMLElement, buttonId: string): void {
+function enableButtonWithVerification(
+    button: HTMLElement,
+    buttonId: string
+): void {
     setButtonDisabled(button, false);
     button.classList.remove(TAB_DISABLED_CLASS);
     button.removeAttribute("disabled");

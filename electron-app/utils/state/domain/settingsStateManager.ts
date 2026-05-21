@@ -54,10 +54,7 @@ export interface SettingsStateManager {
     exportSettings(): ExportedSettings | null;
     getSetting(category: string, key?: string): unknown;
     importSettings(settingsData: unknown): boolean;
-    resetSettings(
-        category: string,
-        options?: Record<string, unknown>
-    ): unknown;
+    resetSettings(category: string, options?: Record<string, unknown>): unknown;
     setSetting(category: string, value: unknown, key?: string): unknown;
 }
 
@@ -70,8 +67,8 @@ export const settingsStateManager =
 /**
  * Export all persisted settings into a serializable payload.
  */
-export const exportAllSettings = exportAllSettingsImpl as () =>
-    ExportedSettings | null;
+export const exportAllSettings =
+    exportAllSettingsImpl as () => ExportedSettings | null;
 
 /**
  * Read a chart field visibility preference.
@@ -84,9 +81,7 @@ export const getChartFieldVisibility = getChartFieldVisibilityImpl as (
 /**
  * Read a chart setting value.
  */
-export const getChartSetting = getChartSettingImpl as (
-    key: string
-) => unknown;
+export const getChartSetting = getChartSettingImpl as (key: string) => unknown;
 
 /**
  * Read the current chart settings object.

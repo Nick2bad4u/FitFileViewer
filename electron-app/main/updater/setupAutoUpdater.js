@@ -8,6 +8,7 @@ const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess");
 
 /**
  * @typedef {import("../../types/main/updater/autoUpdaterAccess").AutoUpdaterLike} AutoUpdaterLike
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
  *
  * @typedef {{ level?: string }} FileTransportLike
@@ -67,8 +68,8 @@ function redactUrlCredentials(value) {
  *
  * @param {MainWindowLike | null | undefined} mainWindow - BrowserWindow
  *   receiving updater events.
- * @param {AutoUpdaterLike | null} [providedAutoUpdater] - Optional
- *   pre-resolved autoUpdater (used by tests).
+ * @param {AutoUpdaterLike | null} [providedAutoUpdater] - Optional pre-resolved
+ *   autoUpdater (used by tests).
  */
 function setupAutoUpdater(mainWindow, providedAutoUpdater) {
     // Allow tests to explicitly pass `null` to exercise the "no updater available" path.

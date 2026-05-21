@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-type SystemInfoModule = typeof import("../../../../utils/app/initialization/updateSystemInfo.js");
+type SystemInfoModule =
+    typeof import("../../../../utils/app/initialization/updateSystemInfo.js");
 
 const completeSystemInfo = {
     author: "FitFileViewer Team",
@@ -94,7 +95,9 @@ describe("updateSystemInfo", () => {
         document.body.innerHTML = "";
         vi.resetModules();
 
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const { updateSystemInfo } = await importSystemInfoModule();
 
@@ -105,9 +108,7 @@ describe("updateSystemInfo", () => {
 
             createFields(0);
 
-            expect(updateSystemInfo({}) ? "updated" : "failed").toBe(
-                "failed"
-            );
+            expect(updateSystemInfo({}) ? "updated" : "failed").toBe("failed");
         } finally {
             errorSpy.mockRestore();
             warnSpy.mockRestore();

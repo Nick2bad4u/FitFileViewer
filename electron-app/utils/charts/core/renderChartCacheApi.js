@@ -2,6 +2,7 @@
  * Creates the public cache API exported by renderChartJS.
  *
  * @param dependencies - Cache manager, settings manager, and prewarm worker.
+ *
  * @returns Cache facade preserving the renderChartJS public API.
  */
 export function createChartRenderCacheApi(dependencies) {
@@ -11,10 +12,14 @@ export function createChartRenderCacheApi(dependencies) {
     };
     return {
         addInvalidateChartRenderCacheListener(listener) {
-            return chartRenderCacheManager.addInvalidateChartRenderCacheListener(listener);
+            return chartRenderCacheManager.addInvalidateChartRenderCacheListener(
+                listener
+            );
         },
         ensureDataSettingsSignature(settings) {
-            return chartRenderCacheManager.ensureDataSettingsSignature(settings);
+            return chartRenderCacheManager.ensureDataSettingsSignature(
+                settings
+            );
         },
         getChartSeriesCacheStats() {
             return chartRenderCacheManager.getChartSeriesCacheStats();
@@ -22,7 +27,8 @@ export function createChartRenderCacheApi(dependencies) {
         invalidateChartRenderCache,
         prewarmChartRenderCaches(params) {
             return dependencies.prewarmChartRenderCaches(params, {
-                getFieldVisibility: (field) => chartSettingsManager.getFieldVisibility(field),
+                getFieldVisibility: (field) =>
+                    chartSettingsManager.getFieldVisibility(field),
                 getSettings: () => chartSettingsManager.getSettings(),
                 invalidateChartRenderCache,
             });

@@ -1,5 +1,5 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
-import { updateSystemInfo, } from "./updateSystemInfo.js";
+import { updateSystemInfo } from "./updateSystemInfo.js";
 const DEFAULT_VALUES = {
     author: "Nick2bad4u",
     chrome: "unknown",
@@ -17,9 +17,7 @@ export async function loadVersionInfo() {
     try {
         logWithContext("info", "Starting version information loading");
         const electronAPI = getVersionInfoElectronAPI();
-        const source = electronAPI
-            ? "electronAPI"
-            : "fallback";
+        const source = electronAPI ? "electronAPI" : "fallback";
         const systemInfo = electronAPI
             ? await getSystemInfoFromElectronAPI(electronAPI)
             : getFallbackSystemInfo();
@@ -31,8 +29,7 @@ export async function loadVersionInfo() {
             source,
             systemInfo,
         });
-    }
-    catch (error) {
+    } catch (error) {
         const errorInfo = getErrorInfo(error);
         logWithContext("error", "Failed to load version information", {
             error: errorInfo.message,
@@ -103,11 +100,14 @@ async function getSystemInfoFromElectronAPI(electronAPI) {
                 license: systemInfo.license,
             });
         }
-    }
-    catch (error) {
-        logWithContext("error", "Failed to retrieve system information from electronAPI", {
-            error: getErrorInfo(error).message,
-        });
+    } catch (error) {
+        logWithContext(
+            "error",
+            "Failed to retrieve system information from electronAPI",
+            {
+                error: getErrorInfo(error).message,
+            }
+        );
     }
     return systemInfo;
 }
@@ -115,8 +115,7 @@ function applyFallbackSystemInfoAfterError() {
     try {
         updateSystemInfo(getFallbackSystemInfo());
         logWithContext("info", "Fallback system info applied after error");
-    }
-    catch (fallbackError) {
+    } catch (fallbackError) {
         logWithContext("error", "Failed to apply fallback system info", {
             error: getErrorInfo(fallbackError).message,
         });
@@ -136,8 +135,7 @@ function updateVersionDisplay(version) {
         if (!versionNumber) {
             logWithContext("warn", "Version number element not found in DOM");
         }
-    }
-    catch (error) {
+    } catch (error) {
         logWithContext("error", "Failed to update version display", {
             error: getErrorInfo(error).message,
             version,
@@ -145,8 +143,7 @@ function updateVersionDisplay(version) {
     }
 }
 function getVersionInfoElectronAPI() {
-    const candidate = globalThis
-        .electronAPI;
+    const candidate = globalThis.electronAPI;
     if (candidate && typeof candidate === "object") {
         return candidate;
     }

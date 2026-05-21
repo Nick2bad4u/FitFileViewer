@@ -41,10 +41,7 @@ if (RECENT_ENV) {
 
             process.on("exit", () => {
                 try {
-                    if (
-                        RECENT_FILES_PATH &&
-                        fs.existsSync(RECENT_FILES_PATH)
-                    ) {
+                    if (RECENT_FILES_PATH && fs.existsSync(RECENT_FILES_PATH)) {
                         fs.unlinkSync(RECENT_FILES_PATH);
                     }
                 } catch {
@@ -94,7 +91,9 @@ function loadRecentFiles(): string[] {
         const data = fs.readFileSync(RECENT_FILES_PATH, "utf8");
         const parsed = JSON.parse(data) as unknown;
         return Array.isArray(parsed)
-            ? parsed.filter((entry): entry is string => typeof entry === "string")
+            ? parsed.filter(
+                  (entry): entry is string => typeof entry === "string"
+              )
             : [];
     } catch (error) {
         console.error("Failed to load recent files:", error);

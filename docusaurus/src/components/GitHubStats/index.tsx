@@ -5,8 +5,8 @@ import Link from "@docusaurus/Link";
 import styles from "./styles.module.css";
 
 /**
- * GitHub Statistics Component
- * Displays star count, fork count, and other GitHub stats
+ * GitHub Statistics Component Displays star count, fork count, and other GitHub
+ * stats
  */
 export default function GitHubStatsComponent(): JSX.Element {
     return (

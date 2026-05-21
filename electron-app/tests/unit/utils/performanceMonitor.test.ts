@@ -27,7 +27,9 @@ describe(PerformanceMonitor, () => {
             .spyOn(performance, "now")
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(142.5);
-        const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+        const consoleLog = vi
+            .spyOn(console, "log")
+            .mockImplementation(() => {});
 
         try {
             monitor.setEnabled(true);
@@ -41,7 +43,9 @@ describe(PerformanceMonitor, () => {
                 end: 142.5,
                 start: 100,
             });
-            expect(monitor.getAllTimers().get("parse-fit")?.duration).toBe(42.5);
+            expect(monitor.getAllTimers().get("parse-fit")?.duration).toBe(
+                42.5
+            );
             expect(consoleLog).toHaveBeenCalledWith(
                 "[Performance] parse-fit: 42.50ms"
             );
@@ -55,7 +59,9 @@ describe(PerformanceMonitor, () => {
         expect.assertions(2);
 
         const monitor = new PerformanceMonitor();
-        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarn = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
 
         try {
             monitor.setEnabled(true);
@@ -77,7 +83,9 @@ describe(PerformanceMonitor, () => {
             performanceMonitor.startTimer("singleton-operation");
 
             expect(performanceMonitor).toBeInstanceOf(PerformanceMonitor);
-            expect(performanceMonitor.getTimer("singleton-operation")).toMatchObject({
+            expect(
+                performanceMonitor.getTimer("singleton-operation")
+            ).toMatchObject({
                 duration: null,
                 end: null,
             });

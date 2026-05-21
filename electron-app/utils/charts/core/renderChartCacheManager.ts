@@ -36,6 +36,7 @@ export interface ChartRenderCacheManager {
  * Creates the chart render cache manager used by renderChartJS orchestration.
  *
  * @param dependencies - Cache stores, listener registry, and environment hooks.
+ *
  * @returns Cache invalidation and signature helper facade.
  */
 export function createChartRenderCacheManager(

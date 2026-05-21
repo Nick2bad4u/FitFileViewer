@@ -6,10 +6,7 @@ interface CreateChartStateViewDependencies {
     getFieldVisibility(field: string): unknown;
     getFormatChartFields(): unknown;
     getInjectedModule(id: string): unknown;
-    getRecordFunction(
-        value: unknown,
-        key: string
-    ): UnknownFunction | undefined;
+    getRecordFunction(value: unknown, key: string): UnknownFunction | undefined;
     getRecordValue(value: unknown, key: string): unknown;
     getState(path: string): unknown;
 }
@@ -118,7 +115,9 @@ function resolveRenderableFields(
 /**
  * Creates the read-only chart state view backed by the centralized state store.
  *
- * @param dependencies - State and formatting accessors supplied by renderChartJS.
+ * @param dependencies - State and formatting accessors supplied by
+ *   renderChartJS.
+ *
  * @returns A live chart state view.
  */
 export function createChartStateView(

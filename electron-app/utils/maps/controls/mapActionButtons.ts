@@ -156,8 +156,8 @@ function _centerMapOnMainFile(): void {
         const attempts =
             typeof w.__centerMainAttempts === "number" &&
             Number.isInteger(w.__centerMainAttempts)
-            ? w.__centerMainAttempts
-            : 0;
+                ? w.__centerMainAttempts
+                : 0;
 
         let mainPolyline = w._mainPolyline;
         if (!mainPolyline && w._overlayPolylines) {
@@ -209,11 +209,7 @@ function _centerMapOnMainFile(): void {
 
         // Bring associated markers to front
         const circleMarker = w.L?.CircleMarker;
-        if (
-            circleMarker &&
-            polyline?._map &&
-            polyline._map._layers
-        ) {
+        if (circleMarker && polyline?._map && polyline._map._layers) {
             for (const layer of Object.values(polyline._map._layers)) {
                 try {
                     if (

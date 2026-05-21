@@ -2,8 +2,14 @@
  * Toggles tab content section visibility and synchronizes visible-tab state.
  */
 import * as __StateMgr from "../../state/core/stateManager.js";
-import { buildIdVariants, getElementByIdFlexible, } from "../dom/elementIdUtils.js";
-import { extractTabNameFromContentId, getContentIdFromTabName, } from "./tabIdUtils.js";
+import {
+    buildIdVariants,
+    getElementByIdFlexible,
+} from "../dom/elementIdUtils.js";
+import {
+    extractTabNameFromContentId,
+    getContentIdFromTabName,
+} from "./tabIdUtils.js";
 const TAB_CONTENT_IDS = [
     "content_data",
     "content_chartjs",
@@ -18,12 +24,14 @@ const DISPLAY_NONE = "none";
 let mapReflowTimerLong;
 let mapReflowTimerShort;
 function canUseDocument(candidate) {
-    return (candidate !== null &&
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "getElementById" in candidate &&
         typeof candidate.getElementById === "function" &&
         "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function");
+        typeof candidate.querySelectorAll === "function"
+    );
 }
 function getEffectiveGlobals() {
     return globalThis;
@@ -33,16 +41,14 @@ function getGlobalDocument() {
         return typeof globalThis.document !== "undefined"
             ? globalThis.document
             : undefined;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
 function getEffectiveDocument() {
     try {
         return getEffectiveGlobals().__vitest_effective_document__;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
@@ -60,9 +66,7 @@ function getDoc() {
     return document;
 }
 function asStateManagerCandidate(value) {
-    return value !== null && typeof value === "object"
-        ? value
-        : {};
+    return value !== null && typeof value === "object" ? value : {};
 }
 function getGetState(candidate) {
     const value = candidate.getState;
@@ -85,24 +89,27 @@ function getStateMgr() {
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     try {
-        const effectiveStateManager = asStateManagerCandidate(getEffectiveGlobals().__vitest_effective_stateManager__);
+        const effectiveStateManager = asStateManagerCandidate(
+            getEffectiveGlobals().__vitest_effective_stateManager__
+        );
         const fallbackStateManager = asStateManagerCandidate(__StateMgr);
-        const getState = getGetState(effectiveStateManager) ??
+        const getState =
+            getGetState(effectiveStateManager) ??
             getGetState(fallbackStateManager);
-        const setState = getSetState(effectiveStateManager) ??
+        const setState =
+            getSetState(effectiveStateManager) ??
             getSetState(fallbackStateManager);
-        const subscribe = getSubscribe(effectiveStateManager) ??
+        const subscribe =
+            getSubscribe(effectiveStateManager) ??
             getSubscribe(fallbackStateManager);
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     return {
@@ -121,9 +128,10 @@ function getContentElementMap() {
         const element = getElementByIdFlexible(getDoc(), id);
         if (element) {
             elementMap[id] = element;
-        }
-        else {
-            console.warn(`updateTabVisibility: Missing element in the DOM: ${id}. Please check the HTML structure to ensure the element with ID '${id}' exists, or verify that it is dynamically added to the DOM before calling updateTabVisibility.`);
+        } else {
+            console.warn(
+                `updateTabVisibility: Missing element in the DOM: ${id}. Please check the HTML structure to ensure the element with ID '${id}' exists, or verify that it is dynamically added to the DOM before calling updateTabVisibility.`
+            );
         }
     }
     return elementMap;
@@ -133,7 +141,9 @@ function resolveTargetContentId(visibleTabId, elementMap) {
     let derivedTabName = null;
     if (targetId && !(targetId in elementMap)) {
         const variants = buildIdVariants(String(targetId));
-        const matchingVariant = variants.find((variant) => variant in elementMap);
+        const matchingVariant = variants.find(
+            (variant) => variant in elementMap
+        );
         if (matchingVariant) {
             targetId = matchingVariant;
         }
@@ -218,7 +228,10 @@ export function showTabContent(tabName) {
  */
 export function updateTabVisibility(visibleTabId) {
     const elementMap = getContentElementMap();
-    const { derivedTabName, targetId } = resolveTargetContentId(visibleTabId, elementMap);
+    const { derivedTabName, targetId } = resolveTargetContentId(
+        visibleTabId,
+        elementMap
+    );
     for (const [id, element] of Object.entries(elementMap)) {
         const isVisible = id === targetId;
         element.style.display = isVisible ? DISPLAY_FLEX : DISPLAY_NONE;
@@ -257,8 +270,7 @@ function scheduleMapReflowRefresh() {
     const reflow = () => {
         try {
             map.invalidateSize({ animate: false, pan: false });
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         try {
@@ -266,14 +278,14 @@ function scheduleMapReflowRefresh() {
             if (miniMap && typeof miniMap.invalidateSize === "function") {
                 miniMap.invalidateSize();
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
     };
-    const raf = typeof globalThis.requestAnimationFrame === "function"
-        ? globalThis.requestAnimationFrame.bind(globalThis)
-        : (callback) => setTimeout(callback, 0);
+    const raf =
+        typeof globalThis.requestAnimationFrame === "function"
+            ? globalThis.requestAnimationFrame.bind(globalThis)
+            : (callback) => setTimeout(callback, 0);
     reflow();
     raf(() => reflow());
     mapReflowTimerShort = setTimeout(() => {

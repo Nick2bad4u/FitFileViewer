@@ -21,14 +21,15 @@ export interface FormatArrayOptions {
  * the legacy behavior that removes trailing zeroes. Comma-separated strings use
  * `toFixed`, preserving fixed decimal places.
  *
- * @example
- *     formatArray([1.234, 2.567]); // "1.23, 2.57"
- *     formatArray("1.234,2.567", 1); // "1.2, 2.6"
+ * @example FormatArray([1.234, 2.567]); // "1.23, 2.57"
+ * formatArray("1.234,2.567", 1); // "1.2, 2.6"
  *
  * @param val - Value to format.
  * @param digits - Decimal digits to use for numeric values.
  * @param options - Formatting options.
+ *
  * @returns Formatted values, or the original value when it is not processable.
+ *
  * @throws Error when strict validation is enabled and a value is invalid.
  */
 export function formatArray<T>(

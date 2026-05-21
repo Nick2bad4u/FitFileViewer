@@ -17,8 +17,7 @@ export function cleanup() {
         tabStateManager.cleanup();
         chartTabIntegration.cleanup();
         console.log("[setupWindow] Cleanup completed");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[setupWindow] Cleanup failed:", error);
     }
 }
@@ -29,7 +28,9 @@ export function cleanup() {
  */
 export async function setupWindow() {
     try {
-        console.log("[setupWindow] Initializing with modern state management...");
+        console.log(
+            "[setupWindow] Initializing with modern state management..."
+        );
         // Initialize theme system first
         await setupTheme(applyTheme, listenForThemeChange);
         // Initialize state managers in proper order
@@ -38,10 +39,13 @@ export async function setupWindow() {
         // Set default tab to summary
         tabStateManager.switchToTab("summary");
         // Show initialization complete notification
-        showNotification("Application initialized successfully", "success", 2000);
+        showNotification(
+            "Application initialized successfully",
+            "success",
+            2000
+        );
         console.log("[setupWindow] Modern initialization complete");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[setupWindow] Initialization failed:", error);
         showNotification("Application initialization failed", "error", 5000);
         throw error;

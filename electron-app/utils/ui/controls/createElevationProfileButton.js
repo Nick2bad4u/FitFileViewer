@@ -36,38 +36,79 @@ function createElevationIcon(color) {
 export function createElevationProfileButton() {
     const btn = document.createElement("button");
     btn.className = "map-action-btn";
-    const themeColorsInit = getThemeColors(), p = sanitizeCssColorToken(themeColorsInit["primary"], "#3b82f6");
+    const themeColorsInit = getThemeColors(),
+        p = sanitizeCssColorToken(themeColorsInit["primary"], "#3b82f6");
     const label = document.createElement("span");
     label.textContent = "Elevation";
     btn.append(createElevationIcon(p), label);
     btn.title = "Show Elevation Profile";
     const buttonListener = new AbortController();
-    btn.addEventListener("click", () => {
-        const fitFiles = getElevationFitFiles();
-        const chartWin = window.open("", "Elevation Profile", "width=900,height=600"), isDark = document.body.classList.contains("theme-dark"), themeColors = getThemeColors();
-        if (!chartWin) {
-            return;
-        }
-        const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
-        // Sanitize the theme colors used in template-string CSS.
-        const safeThemeColors = {
-            background: sanitizeCssColorToken(themeColors["background"], isDark ? "#0b1220" : "#ffffff"),
-            border: sanitizeCssColorToken(themeColors["border"], isDark ? "#334155" : "#e5e7eb"),
-            borderLight: sanitizeCssColorToken(themeColors["borderLight"], isDark ? "#475569" : "#f1f5f9"),
-            primary: sanitizeCssColorToken(themeColors["primary"], "#3b82f6"),
-            primaryShadow: sanitizeCssColorToken(themeColors["primaryShadow"], isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"),
-            shadowLight: sanitizeCssColorToken(themeColors["shadowLight"], isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"),
-            shadowMedium: sanitizeCssColorToken(themeColors["shadowMedium"], isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"),
-            surface: sanitizeCssColorToken(themeColors["surface"], isDark ? "#111827" : "#ffffff"),
-            text: sanitizeCssColorToken(themeColors["text"], isDark ? "#e5e7eb" : "#0f172a"),
-            textSecondary: sanitizeCssColorToken(themeColors["textSecondary"], isDark ? "#cbd5e1" : "#475569"),
-        };
-        buildElevationProfilePopup(chartWin, {
-            fitFilesModel,
-            isDark,
-            safeThemeColors,
-        });
-    }, { signal: buttonListener.signal });
+    btn.addEventListener(
+        "click",
+        () => {
+            const fitFiles = getElevationFitFiles();
+            const chartWin = window.open(
+                    "",
+                    "Elevation Profile",
+                    "width=900,height=600"
+                ),
+                isDark = document.body.classList.contains("theme-dark"),
+                themeColors = getThemeColors();
+            if (!chartWin) {
+                return;
+            }
+            const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
+            // Sanitize the theme colors used in template-string CSS.
+            const safeThemeColors = {
+                background: sanitizeCssColorToken(
+                    themeColors["background"],
+                    isDark ? "#0b1220" : "#ffffff"
+                ),
+                border: sanitizeCssColorToken(
+                    themeColors["border"],
+                    isDark ? "#334155" : "#e5e7eb"
+                ),
+                borderLight: sanitizeCssColorToken(
+                    themeColors["borderLight"],
+                    isDark ? "#475569" : "#f1f5f9"
+                ),
+                primary: sanitizeCssColorToken(
+                    themeColors["primary"],
+                    "#3b82f6"
+                ),
+                primaryShadow: sanitizeCssColorToken(
+                    themeColors["primaryShadow"],
+                    isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"
+                ),
+                shadowLight: sanitizeCssColorToken(
+                    themeColors["shadowLight"],
+                    isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"
+                ),
+                shadowMedium: sanitizeCssColorToken(
+                    themeColors["shadowMedium"],
+                    isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
+                ),
+                surface: sanitizeCssColorToken(
+                    themeColors["surface"],
+                    isDark ? "#111827" : "#ffffff"
+                ),
+                text: sanitizeCssColorToken(
+                    themeColors["text"],
+                    isDark ? "#e5e7eb" : "#0f172a"
+                ),
+                textSecondary: sanitizeCssColorToken(
+                    themeColors["textSecondary"],
+                    isDark ? "#cbd5e1" : "#475569"
+                ),
+            };
+            buildElevationProfilePopup(chartWin, {
+                fitFilesModel,
+                isDark,
+                safeThemeColors,
+            });
+        },
+        { signal: buttonListener.signal }
+    );
     return btn;
 }
 function createElevationProfileFileModel(file, idx) {
@@ -87,7 +128,10 @@ function getElevationFitFiles() {
     if (Array.isArray(loadedFitFiles) && loadedFitFiles.length > 0) {
         return loadedFitFiles.filter(isElevationFitFile);
     }
-    if (isElevationFitData(globalData) && Array.isArray(globalData.recordMesgs)) {
+    if (
+        isElevationFitData(globalData) &&
+        Array.isArray(globalData.recordMesgs)
+    ) {
         return [
             {
                 data: globalData,
@@ -114,9 +158,14 @@ function getElevationPoints(file) {
 }
 function getOverlayColor(idx) {
     const { chartOverlayColorPalette } = getElevationGlobal();
-    if (Array.isArray(chartOverlayColorPalette) &&
-        chartOverlayColorPalette.length > 0) {
-        return sanitizeCssColorToken(chartOverlayColorPalette[idx % chartOverlayColorPalette.length], "#1976d2");
+    if (
+        Array.isArray(chartOverlayColorPalette) &&
+        chartOverlayColorPalette.length > 0
+    ) {
+        return sanitizeCssColorToken(
+            chartOverlayColorPalette[idx % chartOverlayColorPalette.length],
+            "#1976d2"
+        );
     }
     return "#1976d2";
 }
@@ -125,10 +174,12 @@ function isAltitudeRecord(value) {
         return false;
     }
     const record = value;
-    return (record["positionLat"] != null &&
+    return (
+        record["positionLat"] != null &&
         record["positionLong"] != null &&
         typeof record["altitude"] === "number" &&
-        Number.isFinite(record["altitude"]));
+        Number.isFinite(record["altitude"])
+    );
 }
 function isElevationFitData(value) {
     return value !== null && typeof value === "object";
@@ -139,7 +190,10 @@ function isElevationFitFile(value) {
 function isElevationChartConstructor(value) {
     return typeof value === "function";
 }
-function buildElevationProfilePopup(chartWin, { fitFilesModel, isDark, safeThemeColors }) {
+function buildElevationProfilePopup(
+    chartWin,
+    { fitFilesModel, isDark, safeThemeColors }
+) {
     const chartDoc = chartWin.document;
     chartDoc.title = "Elevation Profiles";
     chartDoc.head.replaceChildren();
@@ -169,10 +223,14 @@ function buildElevationProfilePopup(chartWin, { fitFilesModel, isDark, safeTheme
     container.id = "elevChartsContainer";
     chartDoc.body.append(header, container);
     const scriptLoadListener = new AbortController();
-    chartScript.addEventListener("load", () => {
-        renderElevationCharts(chartWin, container, fitFilesModel, isDark);
-        scriptLoadListener.abort();
-    }, { signal: scriptLoadListener.signal });
+    chartScript.addEventListener(
+        "load",
+        () => {
+            renderElevationCharts(chartWin, container, fitFilesModel, isDark);
+            scriptLoadListener.abort();
+        },
+        { signal: scriptLoadListener.signal }
+    );
     chartDoc.head.append(chartScript);
 }
 function createElevationPopupStyles(colors, isDark) {
@@ -282,18 +340,20 @@ function renderElevationCharts(chartWin, container, fitFiles, isDark) {
             continue;
         }
         const canvas = block.querySelector("canvas");
-        const ctx = canvas instanceof HTMLCanvasElement
-            ? canvas.getContext("2d")
-            : null;
+        const ctx =
+            canvas instanceof HTMLCanvasElement
+                ? canvas.getContext("2d")
+                : null;
         if (!ctx) {
             continue;
         }
         const colorHelper = Chart.helpers?.color;
-        const backgroundColor = typeof colorHelper === "function"
-            ? colorHelper(file.color)
-                .alpha(isDark ? 0.18 : 0.1)
-                .rgbString()
-            : file.color;
+        const backgroundColor =
+            typeof colorHelper === "function"
+                ? colorHelper(file.color)
+                      .alpha(isDark ? 0.18 : 0.1)
+                      .rgbString()
+                : file.color;
         new Chart(ctx, {
             data: {
                 datasets: [

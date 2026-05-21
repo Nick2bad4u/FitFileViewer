@@ -18,10 +18,15 @@ const MAX_COLOR_TOKEN_LENGTH = 128;
  *
  * Everything else returns the provided fallback.
  */
-export function sanitizeCssColorToken(value, fallback = DEFAULT_COLOR_FALLBACK) {
+export function sanitizeCssColorToken(
+    value,
+    fallback = DEFAULT_COLOR_FALLBACK
+) {
     let resolvedFallback = fallback;
-    if (typeof resolvedFallback !== "string" ||
-        resolvedFallback.trim().length === 0) {
+    if (
+        typeof resolvedFallback !== "string" ||
+        resolvedFallback.trim().length === 0
+    ) {
         // Ensure we always return *some* valid value.
         resolvedFallback = DEFAULT_COLOR_FALLBACK;
     }
@@ -39,12 +44,15 @@ export function sanitizeCssColorToken(value, fallback = DEFAULT_COLOR_FALLBACK) 
     const lower = v.toLowerCase();
     // Block obvious CSS injection primitives.
     // We intentionally avoid the literal "javascript:" substring to satisfy eslint no-script-url.
-    const isScriptScheme = lower.startsWith("javascript") &&
+    const isScriptScheme =
+        lower.startsWith("javascript") &&
         lower.charAt("javascript".length) === ":";
-    if (lower.includes("url(") ||
+    if (
+        lower.includes("url(") ||
         lower.includes("expression(") ||
         lower.includes("@import") ||
-        isScriptScheme) {
+        isScriptScheme
+    ) {
         return resolvedFallback;
     }
     // Hex

@@ -1,10 +1,13 @@
-import { getChartBackgroundContainer, getChartContentContainer, getChartRenderContainer, } from "../../charts/dom/chartDomUtils.js";
+import {
+    getChartBackgroundContainer,
+    getChartContentContainer,
+    getChartRenderContainer,
+} from "../../charts/dom/chartDomUtils.js";
 import { ensureChartSettingsDropdowns } from "../components/ensureChartSettingsDropdowns.js";
 import { getDoc } from "./tabStateManagerDoc.js";
 /**
  * Attach any pre-rendered chart canvas from the background container into the
  * visible chart container.
- *
  */
 export function attachPreRenderedCharts() {
     const doc = getDoc();
@@ -34,9 +37,11 @@ export function attachPreRenderedCharts() {
             ensureChartSettingsDropdowns();
         }
         return true;
-    }
-    catch (error) {
-        console.error("[TabManager] Error attaching pre-rendered chart:", error);
+    } catch (error) {
+        console.error(
+            "[TabManager] Error attaching pre-rendered chart:",
+            error
+        );
         return false;
     }
 }

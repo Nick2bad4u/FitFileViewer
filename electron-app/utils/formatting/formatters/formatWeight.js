@@ -5,10 +5,10 @@ import { CONVERSION_FACTORS } from "../../config/index.js";
  * Invalid inputs return an empty string and log a warning, matching the legacy
  * renderer behavior.
  *
- * @example
- *     formatWeight(70); // "70 kg (154 lbs)"
+ * @example FormatWeight(70); // "70 kg (154 lbs)"
  *
  * @param kg - Weight in kilograms.
+ *
  * @returns Formatted weight string, or an empty string for invalid input.
  */
 export function formatWeight(kg) {
@@ -23,8 +23,7 @@ export function formatWeight(kg) {
     try {
         const pounds = Math.round(kg * CONVERSION_FACTORS.KG_TO_POUNDS);
         return `${kg} kg (${pounds} lbs)`;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[formatWeight] Weight formatting failed:", error);
         return kg.toString();
     }

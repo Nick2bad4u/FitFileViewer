@@ -255,7 +255,12 @@ function createViewSegmentedControl(): HTMLElement {
     segmented.setAttribute("role", "tablist");
     segmented.setAttribute("aria-label", "Browser view");
     segmented.append(
-        createViewSegmentButton("fit-browser-view-files", "file", "Files", true),
+        createViewSegmentButton(
+            "fit-browser-view-files",
+            "file",
+            "Files",
+            true
+        ),
         createViewSegmentButton(
             "fit-browser-view-library",
             "database",
@@ -516,7 +521,9 @@ function getLibraryStorageKey(root: string): string {
     return `fitLibraryCache_${encodeURIComponent(root)}`;
 }
 
-function groupItemsByDay(items: FitLibraryItem[]): Map<string, FitLibraryItem[]> {
+function groupItemsByDay(
+    items: FitLibraryItem[]
+): Map<string, FitLibraryItem[]> {
     const m = new Map<string, FitLibraryItem[]>();
     for (const it of items) {
         const key = formatLocalDayKey(it.startTime);
@@ -530,7 +537,9 @@ function groupItemsByDay(items: FitLibraryItem[]): Map<string, FitLibraryItem[]>
     return m;
 }
 
-function isFitBrowserListResponse(value: unknown): value is FitBrowserListResponse {
+function isFitBrowserListResponse(
+    value: unknown
+): value is FitBrowserListResponse {
     if (!value || typeof value !== "object") return false;
     const v = value as { entries?: unknown; relPath?: unknown; root?: unknown };
     if (v.root !== null && typeof v.root !== "string" && v.root !== undefined)
@@ -1014,7 +1023,9 @@ async function refreshListing(): Promise<void> {
     }
 
     if (entries.length === 0) {
-        listEl.append(createEmptyMessage("No .fit files found in this folder."));
+        listEl.append(
+            createEmptyMessage("No .fit files found in this folder.")
+        );
         return;
     }
 
@@ -1129,7 +1140,7 @@ function renderCalendarResults(
 
     const todayKey = formatLocalDayKey(new Date());
 
-        const gridItems = [];
+    const gridItems = [];
     for (const wd of weekdayLabels) {
         const weekday = document.createElement("div");
         weekday.className = "file-calendar__weekday";
@@ -1414,14 +1425,7 @@ function createBrowserActionButton({
     if (tooltip) {
         button.dataset["tooltip"] = tooltip;
     }
-    appendIconLabel(
-        button,
-        iconName,
-        "file-browser__btn-icon",
-        label,
-        "",
-        14
-    );
+    appendIconLabel(button, iconName, "file-browser__btn-icon", label, "", 14);
 
     return button;
 }
@@ -1505,11 +1509,7 @@ async function renderCalendarView(): Promise<void> {
             addManagedEventListener(todayBtn, "click", () => {
                 const now = new Date();
                 const next = {
-                    monthStart: new Date(
-                        now.getFullYear(),
-                        now.getMonth(),
-                        1
-                    ),
+                    monthStart: new Date(now.getFullYear(), now.getMonth(), 1),
                     selectedDayKey: formatLocalDayKey(now),
                 };
                 persistCalendarState(next);
@@ -1785,7 +1785,9 @@ function renderLibraryResults(
             ? payload.items.slice(0, 50)
             : [];
         if (items.length === 0) {
-            listEl.replaceChildren(createEmptyMessage("No activities decoded."));
+            listEl.replaceChildren(
+                createEmptyMessage("No activities decoded.")
+            );
             return;
         }
 

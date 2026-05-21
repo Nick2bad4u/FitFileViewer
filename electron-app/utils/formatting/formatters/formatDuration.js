@@ -12,13 +12,13 @@ const THRESHOLDS = {
  * Null/undefined inputs return an empty string. Invalid inputs throw a
  * descriptive error, matching the legacy formatter behavior.
  *
- * @example
- *     formatDuration(30); // "30 sec"
- *     formatDuration(90); // "1 min 30 sec"
- *     formatDuration(3661); // "1 hr 1 min"
+ * @example FormatDuration(30); // "30 sec" formatDuration(90); // "1 min 30
+ * sec" formatDuration(3661); // "1 hr 1 min"
  *
  * @param seconds - The duration in seconds.
+ *
  * @returns The formatted duration string.
+ *
  * @throws Error If the input is not a finite number or is negative.
  */
 export function formatDuration(seconds) {
@@ -39,15 +39,22 @@ export function formatDuration(seconds) {
     return formatHoursAndMinutes(normalizedSeconds);
 }
 function formatHoursAndMinutes(seconds) {
-    const hours = Math.floor(seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR);
+    const hours = Math.floor(
+        seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR
+    );
     const remainingSeconds = seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_HOUR;
-    const minutes = Math.floor(remainingSeconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE);
+    const minutes = Math.floor(
+        remainingSeconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
     const hourText = hours === 1 ? "hr" : "hrs";
     return `${hours} ${hourText} ${minutes} min`;
 }
 function formatMinutesAndSeconds(seconds) {
-    const minutes = Math.floor(seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE);
-    const remainingSeconds = seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE;
+    const minutes = Math.floor(
+        seconds / TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE
+    );
+    const remainingSeconds =
+        seconds % TIME_CONVERSION_FACTORS.SECONDS_PER_MINUTE;
     return `${minutes} min ${remainingSeconds} sec`;
 }
 function formatSecondsOnly(seconds) {
@@ -65,12 +72,16 @@ function validateAndNormalizeDuration(seconds) {
         }
         normalizedSeconds = Number(trimmed);
     }
-    if (typeof normalizedSeconds === "number" &&
-        !Number.isInteger(normalizedSeconds)) {
+    if (
+        typeof normalizedSeconds === "number" &&
+        !Number.isInteger(normalizedSeconds)
+    ) {
         normalizedSeconds = Math.round(normalizedSeconds);
     }
-    if (typeof normalizedSeconds !== "number" ||
-        !Number.isFinite(normalizedSeconds)) {
+    if (
+        typeof normalizedSeconds !== "number" ||
+        !Number.isFinite(normalizedSeconds)
+    ) {
         return {
             error: "Input must be a finite number",
             isValid: false,

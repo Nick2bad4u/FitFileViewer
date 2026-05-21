@@ -47,15 +47,12 @@
     const { browserWindowRef } = require("../runtime/electronAccess") as {
         browserWindowRef: () => unknown;
     };
-    const {
-        cleanupEventHandlers,
-        getAppState,
-        mainProcessState,
-    } = require("../state/appState") as {
-        cleanupEventHandlers: () => void;
-        getAppState: (statePath: string) => unknown;
-        mainProcessState: MainProcessStateLike;
-    };
+    const { cleanupEventHandlers, getAppState, mainProcessState } =
+        require("../state/appState") as {
+            cleanupEventHandlers: () => void;
+            getAppState: (statePath: string) => unknown;
+            mainProcessState: MainProcessStateLike;
+        };
     const { validateWindow } = require("../window/windowValidation") as {
         validateWindow: (
             win?: MainWindowLike | null,
@@ -68,22 +65,20 @@
     ): value is BrowserWindowConstructorLike =>
         Boolean(
             value &&
-                typeof value === "function" &&
-                typeof Reflect.get(value, "getFocusedWindow") === "function"
+            typeof value === "function" &&
+            typeof Reflect.get(value, "getFocusedWindow") === "function"
         );
 
     const getLoadedFitFilePath = (): null | string => {
         const loadedFitFilePath = getAppState("loadedFitFilePath");
 
-        return typeof loadedFitFilePath === "string"
-            ? loadedFitFilePath
-            : null;
+        return typeof loadedFitFilePath === "string" ? loadedFitFilePath : null;
     };
 
     /**
      * Attaches debugging helpers to the global object for development builds.
-     * Mirroring the legacy behaviour keeps the devtools workflow untouched while
-     * allowing the logic to live outside main.js.
+     * Mirroring the legacy behaviour keeps the devtools workflow untouched
+     * while allowing the logic to live outside main.js.
      */
     function exposeDevHelpers(): void {
         const devHelpers: DevHelpers = {

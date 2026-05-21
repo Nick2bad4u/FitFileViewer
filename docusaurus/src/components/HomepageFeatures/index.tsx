@@ -17,9 +17,9 @@ const FeatureList: FeatureItem[] = [
         emoji: "🗺️",
         description: (
             <>
-                Visualize your GPS routes with beautiful interactive maps powered by Leaflet.
-                See your activity path, lap markers, start/end points, and elevation profile
-                all in one place.
+                Visualize your GPS routes with beautiful interactive maps
+                powered by Leaflet. See your activity path, lap markers,
+                start/end points, and elevation profile all in one place.
             </>
         ),
     },
@@ -28,9 +28,9 @@ const FeatureList: FeatureItem[] = [
         emoji: "📊",
         description: (
             <>
-                Analyze your performance with dynamic Chart.js and Vega-Lite charts.
-                View speed, heart rate, elevation, power, cadence, and more over time
-                or distance.
+                Analyze your performance with dynamic Chart.js and Vega-Lite
+                charts. View speed, heart rate, elevation, power, cadence, and
+                more over time or distance.
             </>
         ),
     },
@@ -40,8 +40,8 @@ const FeatureList: FeatureItem[] = [
         description: (
             <>
                 Dive deep into your data with sortable, filterable DataTables.
-                Export to CSV, search through records, and explore every data point
-                from your activity.
+                Export to CSV, search through records, and explore every data
+                point from your activity.
             </>
         ),
     },
@@ -51,7 +51,8 @@ const FeatureList: FeatureItem[] = [
         description: (
             <>
                 Built with Electron for Windows, macOS, and Linux. Download once
-                and analyze your fitness data offline, with no cloud services required.
+                and analyze your fitness data offline, with no cloud services
+                required.
             </>
         ),
     },
@@ -60,8 +61,9 @@ const FeatureList: FeatureItem[] = [
         emoji: "🔓",
         description: (
             <>
-                100% open source under the Unlicense. View the code, contribute features,
-                report bugs, or fork it for your own projects. Your data stays yours.
+                100% open source under the Unlicense. View the code, contribute
+                features, report bugs, or fork it for your own projects. Your
+                data stays yours.
             </>
         ),
     },
@@ -70,8 +72,9 @@ const FeatureList: FeatureItem[] = [
         emoji: "⌚",
         description: (
             <>
-                Full support for Garmin FIT files using the official Garmin FIT SDK.
-                Works with running, cycling, swimming, hiking, and other activity types.
+                Full support for Garmin FIT files using the official Garmin FIT
+                SDK. Works with running, cycling, swimming, hiking, and other
+                activity types.
             </>
         ),
     },

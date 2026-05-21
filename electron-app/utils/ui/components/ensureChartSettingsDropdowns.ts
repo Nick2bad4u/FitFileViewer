@@ -38,6 +38,7 @@ const deferredZoneControlTimers = new Set<ReturnType<typeof setTimeout>>();
  * Ensures chart settings dropdowns exist and applies styling.
  *
  * @param targetContainer - Container element or ID.
+ *
  * @returns Current settings object.
  */
 export function ensureChartSettingsDropdowns(
@@ -117,6 +118,7 @@ export function ensureChartSettingsDropdowns(
  * Creates a toggle button for the chart controls panel.
  *
  * @param container - Container for fallback insertion.
+ *
  * @returns Existing or newly created toggle button.
  */
 function createControlsToggleButton(container: HTMLElement): HTMLElement {
@@ -154,15 +156,23 @@ function createControlsToggleButton(container: HTMLElement): HTMLElement {
 
     // Add hover and focus effects
     const listenerController = new AbortController();
-    toggleBtn.addEventListener("mouseenter", () => {
-        toggleBtn.style.transform = "translateY(-2px)";
-        toggleBtn.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
-    }, { signal: listenerController.signal });
+    toggleBtn.addEventListener(
+        "mouseenter",
+        () => {
+            toggleBtn.style.transform = "translateY(-2px)";
+            toggleBtn.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
+        },
+        { signal: listenerController.signal }
+    );
 
-    toggleBtn.addEventListener("mouseleave", () => {
-        toggleBtn.style.transform = "translateY(0)";
-        toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
-    }, { signal: listenerController.signal });
+    toggleBtn.addEventListener(
+        "mouseleave",
+        () => {
+            toggleBtn.style.transform = "translateY(0)";
+            toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
+        },
+        { signal: listenerController.signal }
+    );
 
     toggleBtn.addEventListener("click", toggleChartControls, {
         signal: listenerController.signal,

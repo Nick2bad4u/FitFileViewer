@@ -8,6 +8,7 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
  * Creates the heart rate zone controls section by extracting existing controls.
  *
  * @param parentContainer - Parent container to append controls to.
+ *
  * @returns The created heart rate zone controls section.
  */
 export function createHRZoneControls(parentContainer) {
@@ -78,14 +79,22 @@ export function createHRZoneControls(parentContainer) {
         overflow: hidden;
     `;
     // Add collapse functionality
-    let isCollapsed = localStorage.getItem("hr-zone-controls-collapsed") === "true";
+    let isCollapsed =
+        localStorage.getItem("hr-zone-controls-collapsed") === "true";
     updateCollapseState();
     const listenerController = new AbortController();
-    collapseBtn.addEventListener("click", () => {
-        isCollapsed = !isCollapsed;
-        localStorage.setItem("hr-zone-controls-collapsed", isCollapsed.toString());
-        updateCollapseState();
-    }, { signal: listenerController.signal });
+    collapseBtn.addEventListener(
+        "click",
+        () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem(
+                "hr-zone-controls-collapsed",
+                isCollapsed.toString()
+            );
+            updateCollapseState();
+        },
+        { signal: listenerController.signal }
+    );
     function updateCollapseState() {
         if (isCollapsed) {
             content.style.maxHeight = "0";
@@ -93,8 +102,7 @@ export function createHRZoneControls(parentContainer) {
             content.style.marginTop = "0";
             collapseBtn.textContent = "▶";
             collapseBtn.setAttribute("aria-expanded", "false");
-        }
-        else {
+        } else {
             content.style.maxHeight = "500px";
             content.style.opacity = "1";
             content.style.marginTop = "0";
@@ -106,14 +114,22 @@ export function createHRZoneControls(parentContainer) {
     hrZoneSection.append(header);
     hrZoneSection.append(content);
     // Add hover effects
-    hrZoneSection.addEventListener("mouseenter", () => {
-        hrZoneSection.style.borderColor = "var(--color-primary-alpha)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow)";
-    }, { signal: listenerController.signal });
-    hrZoneSection.addEventListener("mouseleave", () => {
-        hrZoneSection.style.borderColor = "var(--color-border)";
-        hrZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
-    }, { signal: listenerController.signal });
+    hrZoneSection.addEventListener(
+        "mouseenter",
+        () => {
+            hrZoneSection.style.borderColor = "var(--color-primary-alpha)";
+            hrZoneSection.style.boxShadow = "var(--color-box-shadow)";
+        },
+        { signal: listenerController.signal }
+    );
+    hrZoneSection.addEventListener(
+        "mouseleave",
+        () => {
+            hrZoneSection.style.borderColor = "var(--color-border)";
+            hrZoneSection.style.boxShadow = "var(--color-box-shadow-light)";
+        },
+        { signal: listenerController.signal }
+    );
     parentContainer.append(hrZoneSection);
     return hrZoneSection;
 }
@@ -124,9 +140,12 @@ export function createHRZoneControls(parentContainer) {
  */
 export function getHRZoneVisibilitySettings() {
     return {
-        doughnutVisible: getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
-        lapIndividualVisible: getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
-        lapStackedVisible: getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
+        doughnutVisible:
+            getChartFieldVisibility("hr_zone_doughnut") !== "hidden",
+        lapIndividualVisible:
+            getChartFieldVisibility("hr_lap_zone_individual") !== "hidden",
+        lapStackedVisible:
+            getChartFieldVisibility("hr_lap_zone_stacked") !== "hidden",
     };
 }
 /**
@@ -140,10 +159,11 @@ export function moveHRZoneControlsToSection() {
         return;
     } // Find existing HR zone controls in the field toggles section
     const hrZoneFields = [
-        "hr_zone_doughnut",
-        "hr_lap_zone_stacked",
-        "hr_lap_zone_individual",
-    ], movedControls = [];
+            "hr_zone_doughnut",
+            "hr_lap_zone_stacked",
+            "hr_lap_zone_individual",
+        ],
+        movedControls = [];
     for (const fieldName of hrZoneFields) {
         // Look for the toggle by ID
         const toggle = document.getElementById(`field-toggle-${fieldName}`);
@@ -152,11 +172,15 @@ export function moveHRZoneControlsToSection() {
             // Move the entire control container to the HR zone section
             hrZoneContent.append(controlContainer);
             movedControls.push(fieldName);
-            console.log(`[HRZoneControls] Moved ${fieldName} control to HR zone section`);
+            console.log(
+                `[HRZoneControls] Moved ${fieldName} control to HR zone section`
+            );
         }
     }
     if (movedControls.length > 0) {
-        console.log(`[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`);
+        console.log(
+            `[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`
+        );
         // Add some spacing between the controls
         const controls = Array.from(hrZoneContent.children);
         for (const [i, control] of controls.entries()) {
@@ -183,8 +207,7 @@ export function updateHRZoneControlsVisibility(hasData) {
     if (hasData) {
         controls.style.display = "block";
         controls.style.opacity = "1";
-    }
-    else {
+    } else {
         controls.style.display = "none";
         controls.style.opacity = "0.5";
     }

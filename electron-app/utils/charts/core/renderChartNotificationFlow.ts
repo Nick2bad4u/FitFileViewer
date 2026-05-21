@@ -79,7 +79,9 @@ export function handleChartRenderNotification(
             schedule(() => {
                 const currentTab = getState("ui.activeTab");
                 if (isChartTabActive(currentTab, isTestRuntime)) {
-                    Promise.resolve().then(() => notifySuccess(message, "success"));
+                    Promise.resolve().then(() =>
+                        notifySuccess(message, "success")
+                    );
                 } else {
                     console.log(
                         `[ChartJS] Notification cancelled - tab switched to ${currentTab}`

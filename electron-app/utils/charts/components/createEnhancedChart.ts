@@ -231,12 +231,11 @@ function normalizeChartType(chartType: ChartKind): string {
     return chartType === "area" ? "line" : chartType;
 }
 
-function buildAxisRange(range: AxisRange | undefined, floorAtZero: boolean): Record<string, number> {
-    if (
-        !range ||
-        !Number.isFinite(range.min) ||
-        !Number.isFinite(range.max)
-    ) {
+function buildAxisRange(
+    range: AxisRange | undefined,
+    floorAtZero: boolean
+): Record<string, number> {
+    if (!range || !Number.isFinite(range.min) || !Number.isFinite(range.max)) {
         return {};
     }
 
@@ -367,7 +366,10 @@ export function createEnhancedChart(
             pointRadius: showPoints ? 3 : 0,
             spanGaps: enableSpanGaps,
             stepped: interpolationConfig.stepped,
-            tension: interpolation === "linear" ? smoothing / 100 : interpolationConfig.tension,
+            tension:
+                interpolation === "linear"
+                    ? smoothing / 100
+                    : interpolationConfig.tension,
         };
 
         if (chartType === "bar") {
@@ -447,7 +449,9 @@ export function createEnhancedChart(
 
                                 return `${context.dataset.label ?? field}: ${formatTooltipWithUnits(rawValue, field)}`;
                             },
-                            title(context: readonly TooltipTitleContext[]): string {
+                            title(
+                                context: readonly TooltipTitleContext[]
+                            ): string {
                                 return context[0]?.label ?? "";
                             },
                         },

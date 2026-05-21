@@ -62,7 +62,8 @@ const LEGACY_PATHS = new Set([
 ]);
 
 /**
- * Single interface for routing state access during the legacy-to-modern state migration.
+ * Single interface for routing state access during the legacy-to-modern state
+ * migration.
  */
 export class UnifiedStateManager {
     private debugMode = false;
@@ -175,7 +176,10 @@ export class UnifiedStateManager {
         }
     }
 
-    /** Subscribes to modern state changes while guarding unsupported legacy subscriptions. */
+    /**
+     * Subscribes to modern state changes while guarding unsupported legacy
+     * subscriptions.
+     */
     public subscribe(
         path: string,
         callback: (newValue: unknown, oldValue: unknown, path: string) => void
@@ -217,9 +221,7 @@ export class UnifiedStateManager {
             } catch (error) {
                 warnings.push({
                     error:
-                        error instanceof Error
-                            ? error.message
-                            : String(error),
+                        error instanceof Error ? error.message : String(error),
                     path: legacyPath,
                     type: "access_error",
                 });
@@ -263,7 +265,10 @@ export class UnifiedStateManager {
         }
     }
 
-    private warnLegacyPathOnce(path: string, action: "Accessing" | "Setting"): void {
+    private warnLegacyPathOnce(
+        path: string,
+        action: "Accessing" | "Setting"
+    ): void {
         if (this.legacyWarningsShown.has(path)) {
             return;
         }
@@ -312,7 +317,10 @@ export function subscribe(
     return unifiedState.subscribe(path, callback);
 }
 
-/** Initializes unified state management and reports any initial consistency issues. */
+/**
+ * Initializes unified state management and reports any initial consistency
+ * issues.
+ */
 export function initializeUnifiedState(
     options: UnifiedStateInitOptions = {}
 ): UnifiedStateManager {

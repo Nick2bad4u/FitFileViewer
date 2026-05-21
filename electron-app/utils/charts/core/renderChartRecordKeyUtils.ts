@@ -4,7 +4,10 @@ type FieldReadKeyCache = {
     readKeys?: Map<string, string>;
 };
 
-/** Resolves which record-message key should be read for a configured chart field. */
+/**
+ * Resolves which record-message key should be read for a configured chart
+ * field.
+ */
 export function resolveRecordFieldKey(
     cache: FieldReadKeyCache | null | undefined,
     recordMesgs: readonly ChartDataRecord[],

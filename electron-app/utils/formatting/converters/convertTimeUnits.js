@@ -15,17 +15,20 @@ export const TIME_UNITS = {
  *
  * Unknown units preserve legacy behavior by warning and returning seconds.
  *
- * @example
- *     const hours = convertTimeUnits(3600, TIME_UNITS.HOURS); // 1
+ * @example Const hours = convertTimeUnits(3600, TIME_UNITS.HOURS); // 1
  *
  * @param seconds - Time in seconds.
  * @param targetUnit - Target unit: seconds, minutes, or hours.
+ *
  * @returns Converted time value.
+ *
  * @throws TypeError If seconds is not a number or is NaN.
  */
 export function convertTimeUnits(seconds, targetUnit) {
     if (typeof seconds !== "number" || Number.isNaN(seconds)) {
-        throw new TypeError(`Expected seconds to be a number, received ${typeof seconds}`);
+        throw new TypeError(
+            `Expected seconds to be a number, received ${typeof seconds}`
+        );
     }
     if (seconds < 0) {
         console.warn("[convertTimeUnits] Negative time value:", seconds);
@@ -42,12 +45,13 @@ export function convertTimeUnits(seconds, targetUnit) {
                 return seconds;
             }
             default: {
-                console.warn(`[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`);
+                console.warn(
+                    `[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`
+                );
                 return seconds;
             }
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[convertTimeUnits] Conversion failed:", error);
         throw new Error(`Failed to convert time: ${getErrorMessage(error)}`);
     }

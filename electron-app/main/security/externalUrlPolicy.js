@@ -11,8 +11,8 @@
      *
      * Behavioral property:
      *
-     * - Returns the caller-provided URL string trimmed, not canonicalized, to avoid
-     *   surprise changes like appending a trailing slash.
+     * - Returns the caller-provided URL string trimmed, not canonicalized, to
+     *   avoid surprise changes like appending a trailing slash.
      *
      * @throws TypeError when the input is not a valid URL string.
      * @throws Error when the URL protocol or credential policy rejects the URL.
@@ -42,8 +42,7 @@
         let parsed;
         try {
             parsed = new URL(trimmed);
-        }
-        catch {
+        } catch {
             throw new TypeError("Invalid URL provided");
         }
         if (parsed.protocol !== "https:" && parsed.protocol !== "mailto:") {

@@ -7,7 +7,11 @@ export const DATA_SIGNATURE_SOURCES = [
 export function createDataSettingsSignature(settings = {}) {
     const signature = {};
     for (const { settingKey, storageKey } of DATA_SIGNATURE_SOURCES) {
-        const value = readSettingOrStorageValue(settingKey, storageKey, settings);
+        const value = readSettingOrStorageValue(
+            settingKey,
+            storageKey,
+            settings
+        );
         if (value != null) {
             signature[settingKey] = value;
         }

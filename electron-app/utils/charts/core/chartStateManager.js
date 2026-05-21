@@ -1,5 +1,10 @@
-import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
-import { subscribeToChartSettings, } from "../../state/domain/settingsStateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../../state/core/stateManager.js";
+import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
@@ -31,11 +36,15 @@ export class ChartStateManager {
     clearChartState() {
         invalidateChartRenderCache("ChartStateManager.clearChartState");
         this.destroyExistingCharts();
-        updateState("charts", {
-            chartData: null,
-            isRendered: false,
-            tabActive: false,
-        }, { source: "ChartStateManager.clearChartState" });
+        updateState(
+            "charts",
+            {
+                chartData: null,
+                isRendered: false,
+                tabActive: false,
+            },
+            { source: "ChartStateManager.clearChartState" }
+        );
     }
     /**
      * Debounced chart rendering to prevent excessive re-renders.
@@ -77,9 +86,11 @@ export class ChartStateManager {
                 if (hasDestroy(chart)) {
                     chart.destroy();
                 }
-            }
-            catch (error) {
-                console.warn(`[ChartStateManager] Error destroying chart ${index}:`, error);
+            } catch (error) {
+                console.warn(
+                    `[ChartStateManager] Error destroying chart ${index}:`,
+                    error
+                );
             }
         }
         chartGlobal._chartjsInstances = [];
@@ -99,7 +110,8 @@ export class ChartStateManager {
      * Gets current chart state information.
      */
     getChartInfo() {
-        const chartState = getChartState(), chartGlobal = globalThis;
+        const chartState = getChartState(),
+            chartGlobal = globalThis;
         const info = {
             instanceCount: chartGlobal._chartjsInstances?.length ?? 0,
             isRendered: chartState?.isRendered ?? false,
@@ -118,7 +130,9 @@ export class ChartStateManager {
      * @param newData - The new global FIT data.
      */
     handleDataChange(newData) {
-        console.log("[ChartStateManager] Data changed, checking if charts need update");
+        console.log(
+            "[ChartStateManager] Data changed, checking if charts need update"
+        );
         this.clearChartState();
         if (hasChartDataRecordMessages(newData) && this.isChartTabActive()) {
             this.debouncedRender("New data loaded");
@@ -128,17 +142,21 @@ export class ChartStateManager {
      * Handles chart tab activation.
      */
     handleTabActivation() {
-        const chartState = getChartState(), globalData = getGlobalFitData();
+        const chartState = getChartState(),
+            globalData = getGlobalFitData();
         console.log("[ChartStateManager] Chart tab activated");
         setState("charts.tabActive", true, {
             source: "ChartStateManager.handleTabActivation",
         });
         if (chartState?.isRendering === true) {
-            console.log("[ChartStateManager] Render already in progress - skipping activation render");
+            console.log(
+                "[ChartStateManager] Render already in progress - skipping activation render"
+            );
             return;
         }
         if (hasChartDataRecordMessages(globalData)) {
-            const isRendered = chartState?.isRendered ?? false, hasRenderableOutput = hasExistingRenderableChartOutput();
+            const isRendered = chartState?.isRendered ?? false,
+                hasRenderableOutput = hasExistingRenderableChartOutput();
             if (!isRendered || !hasRenderableOutput) {
                 this.debouncedRender("Tab activation with data available");
             }
@@ -155,7 +173,9 @@ export class ChartStateManager {
             return;
         }
         if (chartState.isRendered && this.isChartTabActive()) {
-            this.debouncedRender(newTheme ? `Theme change to ${newTheme}` : "Theme change");
+            this.debouncedRender(
+                newTheme ? `Theme change to ${newTheme}` : "Theme change"
+            );
         }
     }
     /**
@@ -163,11 +183,15 @@ export class ChartStateManager {
      */
     initializeSubscriptions() {
         subscribe("ui.theme", (newTheme, oldTheme) => {
-            if (typeof newTheme === "string" &&
+            if (
+                typeof newTheme === "string" &&
                 typeof oldTheme === "string" &&
                 oldTheme &&
-                newTheme !== oldTheme) {
-                console.log(`[ChartStateManager] Theme changed: ${oldTheme} -> ${newTheme}`);
+                newTheme !== oldTheme
+            ) {
+                console.log(
+                    `[ChartStateManager] Theme changed: ${oldTheme} -> ${newTheme}`
+                );
                 this.handleThemeChange(newTheme);
             }
         });
@@ -188,8 +212,12 @@ export class ChartStateManager {
             this.updateControlsVisibility(visible === true);
         });
         subscribeToChartSettings((nextSettings, previousSettings) => {
-            const hasChanges = !areObjectsShallowEqual(nextSettings, previousSettings) ||
-                !areObjectsShallowEqual(nextSettings.fieldVisibility, previousSettings.fieldVisibility);
+            const hasChanges =
+                !areObjectsShallowEqual(nextSettings, previousSettings) ||
+                !areObjectsShallowEqual(
+                    nextSettings.fieldVisibility,
+                    previousSettings.fieldVisibility
+                );
             if (!hasChanges) {
                 return;
             }
@@ -218,7 +246,9 @@ export class ChartStateManager {
         console.log(`[ChartStateManager] Rendering charts: ${reason}`);
         if (this.isRendering) {
             this.pendingRenderReason = reason;
-            console.log(`[ChartStateManager] Render in progress - queued follow-up render: ${reason}`);
+            console.log(
+                `[ChartStateManager] Render in progress - queued follow-up render: ${reason}`
+            );
             return;
         }
         this.isRendering = true;
@@ -240,17 +270,19 @@ export class ChartStateManager {
                 setState("charts.lastRenderTime", Date.now(), {
                     source: "ChartStateManager.performChartRender",
                 });
-                console.log(`[ChartStateManager] Charts rendered successfully: ${reason}`);
-            }
-            else {
+                console.log(
+                    `[ChartStateManager] Charts rendered successfully: ${reason}`
+                );
+            } else {
                 this.reportSkippedOrFailedRender(reason);
             }
-        }
-        catch (error) {
-            console.error("[ChartStateManager] Error during chart rendering:", error);
+        } catch (error) {
+            console.error(
+                "[ChartStateManager] Error during chart rendering:",
+                error
+            );
             void showNotification("Failed to render charts", "error");
-        }
-        finally {
+        } finally {
             setState("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
@@ -274,19 +306,24 @@ export class ChartStateManager {
         if (!this.isChartTabActive()) {
             skipReasons.push("chart tab inactive");
         }
-        const globalData = getGlobalFitData(), hasRecords = hasChartDataRecordMessages(globalData);
+        const globalData = getGlobalFitData(),
+            hasRecords = hasChartDataRecordMessages(globalData);
         if (!hasRecords) {
             skipReasons.push("no chartable data");
         }
         if (skipReasons.length > 0) {
-            console.info(`[ChartStateManager] Skipped chart render (${reason}): ${skipReasons.join(", ")}`);
+            console.info(
+                `[ChartStateManager] Skipped chart render (${reason}): ${skipReasons.join(", ")}`
+            );
             return;
         }
         console.warn(`[ChartStateManager] Chart rendering failed: ${reason}`);
     }
     renderPendingFollowUp() {
-        if (typeof this.pendingRenderReason !== "string" ||
-            this.pendingRenderReason.length === 0) {
+        if (
+            typeof this.pendingRenderReason !== "string" ||
+            this.pendingRenderReason.length === 0
+        ) {
             return;
         }
         const followUpReason = this.pendingRenderReason;
@@ -313,9 +350,11 @@ function areObjectsShallowEqual(first, second) {
     return leftKeys.every((key) => Object.is(left[key], right[key]));
 }
 function getChartInstanceCount() {
-    const chartGlobal = globalThis, instances = chartGlobal._chartjsInstances ??
-        chartGlobal.window?._chartjsInstances ??
-        [];
+    const chartGlobal = globalThis,
+        instances =
+            chartGlobal._chartjsInstances ??
+            chartGlobal.window?._chartjsInstances ??
+            [];
     return Array.isArray(instances) ? instances.length : 0;
 }
 function getChartState() {
@@ -336,12 +375,13 @@ function getGlobalFitData() {
 }
 function hasExistingRenderableChartOutput() {
     try {
-        const instanceCount = getChartInstanceCount(), container = getChartRenderContainer(document), canvasCount = container
-            ? container.querySelectorAll("canvas").length
-            : 0;
+        const instanceCount = getChartInstanceCount(),
+            container = getChartRenderContainer(document),
+            canvasCount = container
+                ? container.querySelectorAll("canvas").length
+                : 0;
         return instanceCount > 0 && canvasCount > 0;
-    }
-    catch {
+    } catch {
         return false;
     }
 }

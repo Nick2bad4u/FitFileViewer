@@ -4,15 +4,23 @@
 /**
  * Create handlers that open, position, and close the data point filter panel.
  */
-export function createPanelController({ container, panel, toggleButton, metricSelect, viewportPadding, }) {
+export function createPanelController({
+    container,
+    panel,
+    toggleButton,
+    metricSelect,
+    viewportPadding,
+}) {
     let openPanelAbortController = null;
     let pendingFrame = 0;
     function handleOutsideClick(event) {
         const target = event.target instanceof Node ? event.target : null;
-        if (!panel.hidden &&
+        if (
+            !panel.hidden &&
             target &&
             !container.contains(target) &&
-            !panel.contains(target)) {
+            !panel.contains(target)
+        ) {
             closePanel();
         }
     }
@@ -37,23 +45,36 @@ export function createPanelController({ container, panel, toggleButton, metricSe
         if (panelRect.width === 0 || panelRect.height === 0) {
             return;
         }
-        const centeredLeft = buttonRect.left + buttonRect.width / 2 - panelRect.width / 2;
+        const centeredLeft =
+            buttonRect.left + buttonRect.width / 2 - panelRect.width / 2;
         const maxLeft = viewportWidth - panelRect.width - viewportPadding;
-        const clampedLeft = Math.max(viewportPadding, Math.min(centeredLeft, Math.max(viewportPadding, maxLeft)));
+        const clampedLeft = Math.max(
+            viewportPadding,
+            Math.min(centeredLeft, Math.max(viewportPadding, maxLeft))
+        );
         let top = buttonRect.bottom + viewportPadding;
         let reverse = false;
         if (top + panelRect.height > viewportHeight - viewportPadding) {
             reverse = true;
-            top = Math.max(viewportPadding, buttonRect.top - viewportPadding - panelRect.height);
+            top = Math.max(
+                viewportPadding,
+                buttonRect.top - viewportPadding - panelRect.height
+            );
         }
-        panel.classList.toggle("data-point-filter-control__panel--reverse", reverse);
+        panel.classList.toggle(
+            "data-point-filter-control__panel--reverse",
+            reverse
+        );
         panel.style.left = `${Math.round(clampedLeft)}px`;
         panel.style.top = `${Math.round(top)}px`;
         const arrowRaw = buttonRect.left + buttonRect.width / 2 - clampedLeft;
         const arrowMin = 14;
         const arrowMax = Math.max(arrowMin, panelRect.width - 14);
         const arrowOffset = Math.max(arrowMin, Math.min(arrowRaw, arrowMax));
-        panel.style.setProperty("--data-point-filter-arrow-offset", `${Math.round(arrowOffset)}px`);
+        panel.style.setProperty(
+            "--data-point-filter-arrow-offset",
+            `${Math.round(arrowOffset)}px`
+        );
     }
     function queueReposition() {
         if (panel.hidden) {

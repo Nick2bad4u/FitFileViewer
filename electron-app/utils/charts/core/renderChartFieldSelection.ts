@@ -27,6 +27,7 @@ function getDefaultRecordFields(record: ChartDataRecord): string[] {
  *
  * @param renderableFields - State-managed renderable field list.
  * @param records - FIT record messages used as fallback field source.
+ *
  * @returns Candidate chart fields in render order.
  */
 export function resolveRenderableChartFields(

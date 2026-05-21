@@ -48,79 +48,79 @@ utils/
 
 Handle data display formatting:
 
-| Module | Purpose |
-|--------|---------|
-| `formatDistance.js` | Distance values |
-| `formatDuration.js` | Time durations |
-| `formatSpeed.js` | Speed/pace |
-| `formatUtils.js` | General utilities |
+| Module              | Purpose           |
+| ------------------- | ----------------- |
+| `formatDistance.js` | Distance values   |
+| `formatDuration.js` | Time durations    |
+| `formatSpeed.js`    | Speed/pace        |
+| `formatUtils.js`    | General utilities |
 
 ### Map Modules
 
 Geographic visualization:
 
-| Module | Purpose |
-|--------|---------|
-| `renderMap.js` | Main map rendering |
-| `mapBaseLayers.js` | Tile layer providers |
-| `mapDrawLaps.js` | Lap marker drawing |
-| `mapFullscreenControl.js` | Fullscreen mode |
-| `mapMeasureTool.js` | Distance measurement |
+| Module                    | Purpose              |
+| ------------------------- | -------------------- |
+| `renderMap.js`            | Main map rendering   |
+| `mapBaseLayers.js`        | Tile layer providers |
+| `mapDrawLaps.js`          | Lap marker drawing   |
+| `mapFullscreenControl.js` | Fullscreen mode      |
+| `mapMeasureTool.js`       | Distance measurement |
 
 ### Chart Modules
 
 Data visualization:
 
-| Module | Purpose |
-|--------|---------|
-| `chartSpec.js` | Chart configuration |
-| `renderChartJS.js` | Chart.js rendering |
-| `vegaLiteUtils.js` | Vega-Lite charts |
+| Module             | Purpose             |
+| ------------------ | ------------------- |
+| `chartSpec.js`     | Chart configuration |
+| `renderChartJS.js` | Chart.js rendering  |
+| `vegaLiteUtils.js` | Vega-Lite charts    |
 
 ### State Modules
 
 Application state:
 
-| Module | Purpose |
-|--------|---------|
-| `stateManager.js` | Central state |
-| `themeManager.js` | Theme state |
-| `fileStateManager.js` | File state |
+| Module                | Purpose       |
+| --------------------- | ------------- |
+| `stateManager.js`     | Central state |
+| `themeManager.js`     | Theme state   |
+| `fileStateManager.js` | File state    |
 
 ### UI Modules
 
 User interface:
 
-| Module | Purpose |
-|--------|---------|
-| `tabManager.js` | Tab navigation |
-| `fullscreen.js` | Fullscreen handling |
-| `setupWindow.js` | Window setup |
+| Module           | Purpose             |
+| ---------------- | ------------------- |
+| `tabManager.js`  | Tab navigation      |
+| `fullscreen.js`  | Fullscreen handling |
+| `setupWindow.js` | Window setup        |
 
 ## Import Patterns
 
 ### Direct Import
 
 ```javascript
-import { formatDistance } from './utils/formatting/formatDistance.js';
+import { formatDistance } from "./utils/formatting/formatDistance.js";
 ```
 
 ### Barrel Export
 
 ```javascript
 // utils/formatting/index.js
-export { formatDistance } from './formatDistance.js';
-export { formatDuration } from './formatDuration.js';
+export { formatDistance } from "./formatDistance.js";
+export { formatDuration } from "./formatDuration.js";
 
 // Usage
-import { formatDistance, formatDuration } from './utils/formatting/index.js';
+import { formatDistance, formatDuration } from "./utils/formatting/index.js";
 ```
 
 ### Dynamic Import
 
 ```javascript
 // Lazy loading for performance
-const { renderMap } = await import('./utils/maps/renderMap.js');
+const { renderMap } = await import("./utils/maps/renderMap.js");
 ```
 
 ## Module Standards
@@ -132,26 +132,26 @@ Each module has one clear purpose:
 ```javascript
 // Good: Single responsibility
 // formatDistance.js
-export function formatDistance(meters, unit = 'km') {
-    // Only handles distance formatting
+export function formatDistance(meters, unit = "km") {
+ // Only handles distance formatting
 }
 
 // Bad: Multiple responsibilities
 // formatters.js
-export function formatDistance() { }
-export function formatDuration() { }
-export function renderChart() { }  // Unrelated
+export function formatDistance() {}
+export function formatDuration() {}
+export function renderChart() {} // Unrelated
 ```
 
 ### Clear Exports
 
 ```javascript
 // Named exports preferred
-export function formatDistance(meters) { }
-export function convertToMiles(meters) { }
+export function formatDistance(meters) {}
+export function convertToMiles(meters) {}
 
 // Default export for main functionality
-export default function formatDistance(meters) { }
+export default function formatDistance(meters) {}
 ```
 
 ### Documentation
@@ -160,16 +160,17 @@ export default function formatDistance(meters) { }
 /**
  * Formats a distance value for display.
  *
+ * @example
+ *  formatDistance(5000); // "5.00 km"
+ *  formatDistance(5000, "mi"); // "3.11 mi"
+ *
  * @param {number} meters - Distance in meters
  * @param {string} unit - Target unit ('km' or 'mi')
- * @returns {string} Formatted distance string
  *
- * @example
- * formatDistance(5000); // "5.00 km"
- * formatDistance(5000, 'mi'); // "3.11 mi"
+ * @returns {string} Formatted distance string
  */
-export function formatDistance(meters, unit = 'km') {
-    // Implementation
+export function formatDistance(meters, unit = "km") {
+ // Implementation
 }
 ```
 

@@ -12,6 +12,7 @@ const ERROR_MESSAGES = {
  * data is unavailable.
  *
  * @example
+ *
  * ```ts
  * const filename = getOverlayFileName(0);
  * ```
@@ -25,19 +26,25 @@ export function getOverlayFileName(idx) {
     try {
         const loadedFitFiles = getState("globalData.loadedFitFiles");
         if (!Array.isArray(loadedFitFiles)) {
-            console.warn(`[getOverlayFileName] ${ERROR_MESSAGES.INVALID_LOADED_FILES}`);
+            console.warn(
+                `[getOverlayFileName] ${ERROR_MESSAGES.INVALID_LOADED_FILES}`
+            );
             return "";
         }
         const fileData = loadedFitFiles[idx];
-        if (fileData &&
+        if (
+            fileData &&
             typeof fileData.filePath === "string" &&
-            fileData.filePath.trim()) {
+            fileData.filePath.trim()
+        ) {
             return fileData.filePath;
         }
         return "";
-    }
-    catch (error) {
-        console.error(`[getOverlayFileName] ${ERROR_MESSAGES.STATE_ACCESS_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[getOverlayFileName] ${ERROR_MESSAGES.STATE_ACCESS_ERROR}`,
+            error
+        );
         return "";
     }
 }

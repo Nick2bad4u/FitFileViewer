@@ -19,11 +19,14 @@ export class MainProcessStateClient {
             return;
         }
         if (!getMainStateElectronAPI()) {
-            console.warn("[MainProcessStateClient] electronAPI not available - client will be in degraded mode");
+            console.warn(
+                "[MainProcessStateClient] electronAPI not available - client will be in degraded mode"
+            );
             return;
         }
         this._isInitialized = true;
-        const isDevelopment = typeof process !== "undefined" &&
+        const isDevelopment =
+            typeof process !== "undefined" &&
             Boolean(process.env) &&
             process.env["NODE_ENV"] === "development";
         if (isDevelopment) {
@@ -33,21 +36,28 @@ export class MainProcessStateClient {
     /**
      * Gets a value from main process state.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async get(path) {
         const electronAPI = this.requireElectronAPI();
         try {
             return await electronAPI.getMainState(path);
-        }
-        catch (error) {
-            console.error(`[MainProcessStateClient] Error getting state${path ? ` at path "${path}"` : ""}:`, error);
+        } catch (error) {
+            console.error(
+                `[MainProcessStateClient] Error getting state${path ? ` at path "${path}"` : ""}:`,
+                error
+            );
             throw error;
         }
     }
     /** Gets diagnostic state from the main process state manager. */
     async getDiagnostics() {
-        const [errors, operations, metrics] = await Promise.all([
+        const [
+            errors,
+            operations,
+            metrics,
+        ] = await Promise.all([
             this.getErrors(),
             this.getOperations(),
             this.getMetrics(),
@@ -57,15 +67,18 @@ export class MainProcessStateClient {
     /**
      * Gets recent state-manager errors.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async getErrors(limit = 50) {
         const electronAPI = this.requireElectronAPI();
         try {
-            return (await electronAPI.getErrors(limit));
-        }
-        catch (error) {
-            console.error("[MainProcessStateClient] Error getting errors:", error);
+            return await electronAPI.getErrors(limit);
+        } catch (error) {
+            console.error(
+                "[MainProcessStateClient] Error getting errors:",
+                error
+            );
             throw error;
         }
     }
@@ -88,45 +101,54 @@ export class MainProcessStateClient {
     /**
      * Gets performance metrics from the main process state manager.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async getMetrics() {
         const electronAPI = this.requireElectronAPI();
         try {
-            return (await electronAPI.getMetrics());
-        }
-        catch (error) {
-            console.error("[MainProcessStateClient] Error getting metrics:", error);
+            return await electronAPI.getMetrics();
+        } catch (error) {
+            console.error(
+                "[MainProcessStateClient] Error getting metrics:",
+                error
+            );
             throw error;
         }
     }
     /**
      * Gets the status of a specific operation.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async getOperation(operationId) {
         const electronAPI = this.requireElectronAPI();
         try {
-            return (await electronAPI.getOperation(operationId));
-        }
-        catch (error) {
-            console.error(`[MainProcessStateClient] Error getting operation "${operationId}":`, error);
+            return await electronAPI.getOperation(operationId);
+        } catch (error) {
+            console.error(
+                `[MainProcessStateClient] Error getting operation "${operationId}":`,
+                error
+            );
             throw error;
         }
     }
     /**
      * Gets all tracked operations from the main process state manager.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async getOperations() {
         const electronAPI = this.requireElectronAPI();
         try {
-            return (await electronAPI.getOperations());
-        }
-        catch (error) {
-            console.error("[MainProcessStateClient] Error getting operations:", error);
+            return await electronAPI.getOperations();
+        } catch (error) {
+            console.error(
+                "[MainProcessStateClient] Error getting operations:",
+                error
+            );
             throw error;
         }
     }
@@ -138,7 +160,8 @@ export class MainProcessStateClient {
      * Listens for changes to a specific main-process state path.
      *
      * @throws TypeError when callback is not a function.
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async listen(path, callback) {
         const electronAPI = this.requireElectronAPI();
@@ -163,20 +186,25 @@ export class MainProcessStateClient {
     /**
      * Sets a value in renderer-writable main process state.
      *
-     * @throws Error when the preload state bridge is unavailable or the IPC call fails.
+     * @throws Error when the preload state bridge is unavailable or the IPC
+     *   call fails.
      */
     async set(path, value, options = {}) {
         const electronAPI = this.requireElectronAPI();
         try {
             const result = await electronAPI.setMainState(path, value, options);
             if (!result) {
-                console.warn(`[MainProcessStateClient] Failed to set "${path}" - path may be restricted. ` +
-                    "Only 'loadedFitFilePath' and 'operations.*' paths can be set from renderer.");
+                console.warn(
+                    `[MainProcessStateClient] Failed to set "${path}" - path may be restricted. ` +
+                        "Only 'loadedFitFilePath' and 'operations.*' paths can be set from renderer."
+                );
             }
             return result;
-        }
-        catch (error) {
-            console.error(`[MainProcessStateClient] Error setting state at path "${path}":`, error);
+        } catch (error) {
+            console.error(
+                `[MainProcessStateClient] Error setting state at path "${path}":`,
+                error
+            );
             throw error;
         }
     }

@@ -164,6 +164,7 @@ class StateDebugUtilities {
      *
      * @param snapshot1 - First snapshot.
      * @param snapshot2 - Second snapshot.
+     *
      * @returns Comparison results.
      */
     compareSnapshots(
@@ -326,10 +327,7 @@ class StateDebugUtilities {
      * @param state - State to validate.
      * @param validation - Validation results.
      */
-    validateStateStructure(
-        state: unknown,
-        validation: ValidationResult
-    ): void {
+    validateStateStructure(state: unknown, validation: ValidationResult): void {
         if (!isStateRecord(state)) {
             validation.isValid = false;
             validation.errors.push("State root is not an object");
@@ -427,6 +425,7 @@ class StatePerformanceMonitor {
      * End timing an operation
      *
      * @param operationId - Unique identifier for the operation.
+     *
      * @returns Duration in milliseconds when timing was active.
      */
     endTimer(operationId: string): number | undefined {
@@ -536,10 +535,7 @@ ${
 
         try {
             // Use performance.memory if available (Chrome/Edge)
-            if (
-                typeof performance !== "undefined" &&
-                "memory" in performance
-            ) {
+            if (typeof performance !== "undefined" && "memory" in performance) {
                 const mem = getBrowserMemoryInfo();
 
                 if (!mem) {
@@ -696,9 +692,12 @@ export function initializeStateDevTools(enableInProduction = false): void {
  * Utility function to measure state operation performance
  *
  * @typeParam T - Operation result type.
+ *
  * @param operationName - Name of the operation.
  * @param operation - Operation to measure.
+ *
  * @returns Operation result.
+ *
  * @throws Re-throws any error from the measured operation.
  */
 export async function measureStateOperation<T>(
@@ -735,8 +734,10 @@ export async function measureStateOperation<T>(
  *
  * @typeParam Args - Callable argument tuple.
  * @typeParam T - Callable result type.
+ *
  * @param name - Callable name for monitoring.
  * @param fn - Callable to wrap.
+ *
  * @returns Wrapped callable.
  */
 export function withPerformanceMonitoring<Args extends unknown[], T>(

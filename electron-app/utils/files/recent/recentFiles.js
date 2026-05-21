@@ -7,22 +7,19 @@ let RECENT_FILES_PATH;
 const { RECENT_FILES_PATH: RECENT_ENV } = process.env;
 if (RECENT_ENV) {
     RECENT_FILES_PATH = RECENT_ENV;
-}
-else {
+} else {
     let userDataPath = null;
     try {
         userDataPath =
             app && typeof app.getPath === "function"
                 ? app.getPath("userData")
                 : null;
-    }
-    catch {
+    } catch {
         userDataPath = null;
     }
     if (userDataPath) {
         RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
-    }
-    else {
+    } else {
         const { TEMP, TMP, VITEST_WORKER_ID } = process.env;
         const tempDir = TEMP || TMP || os.tmpdir();
         const fitTempDir = path.join(tempDir, "fit-file-viewer-tests");
@@ -31,20 +28,20 @@ else {
                 fs.mkdirSync(fitTempDir, { recursive: true });
             }
             const testId = VITEST_WORKER_ID || String(process.pid);
-            RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
+            RECENT_FILES_PATH = path.join(
+                fitTempDir,
+                `recent-files-${testId}.json`
+            );
             process.on("exit", () => {
                 try {
-                    if (RECENT_FILES_PATH &&
-                        fs.existsSync(RECENT_FILES_PATH)) {
+                    if (RECENT_FILES_PATH && fs.existsSync(RECENT_FILES_PATH)) {
                         fs.unlinkSync(RECENT_FILES_PATH);
                     }
-                }
-                catch {
+                } catch {
                     // Ignore best-effort temp-file cleanup errors.
                 }
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Failed to create temp directory for tests:", error);
         }
     }
@@ -82,8 +79,7 @@ function loadRecentFiles() {
         return Array.isArray(parsed)
             ? parsed.filter((entry) => typeof entry === "string")
             : [];
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Failed to load recent files:", error);
     }
     return [];
@@ -93,9 +89,12 @@ function saveRecentFiles(list) {
         if (!RECENT_FILES_PATH) {
             return;
         }
-        fs.writeFileSync(RECENT_FILES_PATH, JSON.stringify(list.slice(0, MAX_RECENT_FILES)), "utf8");
-    }
-    catch (error) {
+        fs.writeFileSync(
+            RECENT_FILES_PATH,
+            JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
+            "utf8"
+        );
+    } catch (error) {
         console.error("Failed to save recent files:", error);
     }
 }

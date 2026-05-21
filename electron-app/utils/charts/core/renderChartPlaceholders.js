@@ -1,5 +1,8 @@
 import { clearElement, sanitizeCssColorToken } from "../../dom/index.js";
-import { getElementByIdFlexible, querySelectorByIdFlexible, } from "../../ui/dom/elementIdUtils.js";
+import {
+    getElementByIdFlexible,
+    querySelectorByIdFlexible,
+} from "../../ui/dom/elementIdUtils.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { isElement, safeAppend } from "./renderChartDomHelpers.js";
 const FALLBACK_BACKGROUND_ALT = "#ffffff";
@@ -8,38 +11,58 @@ const FALLBACK_ERROR = "#ef4444";
 const FALLBACK_TEXT = "#1e293b";
 const FALLBACK_TEXT_PRIMARY = "#0f172a";
 function getThemeColor(themeConfig, colorName, fallback) {
-    return sanitizeCssColorToken(getRecordValue(getRecordValue(themeConfig, "colors"), colorName), fallback);
+    return sanitizeCssColorToken(
+        getRecordValue(getRecordValue(themeConfig, "colors"), colorName),
+        fallback
+    );
 }
 function resolveTargetContainer(doc, targetContainer) {
     if (typeof targetContainer === "string") {
         const normalizedId = targetContainer.startsWith("#")
             ? targetContainer.slice(1)
             : targetContainer;
-        return (getElementByIdFlexible(doc, normalizedId) ||
-            querySelectorByIdFlexible(doc, targetContainer));
+        return (
+            getElementByIdFlexible(doc, normalizedId) ||
+            querySelectorByIdFlexible(doc, targetContainer)
+        );
     }
     return isElement(targetContainer) ? targetContainer : null;
 }
 function resolveNoDataContainer(doc, targetContainer) {
-    return (resolveTargetContainer(doc, targetContainer) ||
-        querySelectorByIdFlexible(doc, "#content_chart"));
+    return (
+        resolveTargetContainer(doc, targetContainer) ||
+        querySelectorByIdFlexible(doc, "#content_chart")
+    );
 }
 function resolveErrorContainer(doc, targetContainer) {
-    return (querySelectorByIdFlexible(doc, "#content_chart") ||
-        resolveTargetContainer(doc, targetContainer));
+    return (
+        querySelectorByIdFlexible(doc, "#content_chart") ||
+        resolveTargetContainer(doc, targetContainer)
+    );
 }
 /**
  * Renders the state-aware no-chart-data placeholder.
  */
-export async function renderNoChartDataPlaceholder(dependencies, targetContainer) {
+export async function renderNoChartDataPlaceholder(
+    dependencies,
+    targetContainer
+) {
     const container = resolveNoDataContainer(dependencies.doc, targetContainer);
     if (!container) {
         return;
     }
     const themeConfig = await dependencies.getThemeConfig();
     const safeText = getThemeColor(themeConfig, "text", FALLBACK_TEXT);
-    const safeTextPrimary = getThemeColor(themeConfig, "textPrimary", FALLBACK_TEXT_PRIMARY);
-    const safeBgAlt = getThemeColor(themeConfig, "backgroundAlt", FALLBACK_BACKGROUND_ALT);
+    const safeTextPrimary = getThemeColor(
+        themeConfig,
+        "textPrimary",
+        FALLBACK_TEXT_PRIMARY
+    );
+    const safeBgAlt = getThemeColor(
+        themeConfig,
+        "backgroundAlt",
+        FALLBACK_BACKGROUND_ALT
+    );
     const safeBorder = getThemeColor(themeConfig, "border", FALLBACK_BORDER);
     container.replaceChildren();
     const wrapper = dependencies.doc.createElement("div");
@@ -69,14 +92,22 @@ export async function renderNoChartDataPlaceholder(dependencies, targetContainer
 /**
  * Renders the state-aware chart rendering error placeholder.
  */
-export async function renderChartErrorPlaceholder(dependencies, targetContainer, error) {
+export async function renderChartErrorPlaceholder(
+    dependencies,
+    targetContainer,
+    error
+) {
     const container = resolveErrorContainer(dependencies.doc, targetContainer);
     if (!container) {
         return;
     }
     const themeConfig = await dependencies.getThemeConfig();
     const safeText = getThemeColor(themeConfig, "text", FALLBACK_TEXT);
-    const safeBgAlt = getThemeColor(themeConfig, "backgroundAlt", FALLBACK_BACKGROUND_ALT);
+    const safeBgAlt = getThemeColor(
+        themeConfig,
+        "backgroundAlt",
+        FALLBACK_BACKGROUND_ALT
+    );
     const safeBorder = getThemeColor(themeConfig, "border", FALLBACK_BORDER);
     const safeError = getThemeColor(themeConfig, "error", FALLBACK_ERROR);
     clearElement(container);

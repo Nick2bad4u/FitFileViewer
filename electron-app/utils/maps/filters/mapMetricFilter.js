@@ -20,12 +20,14 @@ export const MAP_FILTER_METRICS = [
     {
         key: "cadence",
         label: "Cadence",
-        resolver: (row) => typeof row.cadence === "number" ? row.cadence : null,
+        resolver: (row) =>
+            typeof row.cadence === "number" ? row.cadence : null,
     },
     {
         key: "heartRate",
         label: "Heart Rate",
-        resolver: (row) => typeof row.heartRate === "number" ? row.heartRate : null,
+        resolver: (row) =>
+            typeof row.heartRate === "number" ? row.heartRate : null,
     },
     {
         key: "auxHeartRate",
@@ -35,7 +37,8 @@ export const MAP_FILTER_METRICS = [
     {
         key: "altitude",
         label: "Altitude",
-        resolver: (row) => typeof row.altitude === "number" ? row.altitude : null,
+        resolver: (row) =>
+            typeof row.altitude === "number" ? row.altitude : null,
     },
 ];
 /**
@@ -56,9 +59,10 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
     if (!metricDef) {
         return null;
     }
-    const valueExtractor = typeof options.valueExtractor === "function"
-        ? options.valueExtractor
-        : metricDef.resolver;
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
     const values = [];
     let hasDecimal = false;
     for (const row of recordMesgs) {
@@ -75,7 +79,10 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
     }
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const sum = values.reduce((accumulator, current) => accumulator + current, 0);
+    const sum = values.reduce(
+        (accumulator, current) => accumulator + current,
+        0
+    );
     const average = sum / values.length;
     const decimals = hasDecimal ? 2 : 0;
     const range = Math.abs(max - min);
@@ -83,13 +90,14 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
     if (decimals === 0) {
         const raw = Math.round(range / 200) || 1;
         step = Math.max(1, raw);
-    }
-    else {
+    } else {
         const base = range / 200;
         const minimumStep = 1 / 10 ** decimals;
-        step = Number(Number.isFinite(base) && base > minimumStep
-            ? base.toFixed(decimals)
-            : minimumStep.toFixed(decimals));
+        step = Number(
+            Number.isFinite(base) && base > minimumStep
+                ? base.toFixed(decimals)
+                : minimumStep.toFixed(decimals)
+        );
     }
     return {
         average,
@@ -134,9 +142,10 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
             reason: `Unknown metric: ${config.metric}`,
         };
     }
-    const valueExtractor = typeof options.valueExtractor === "function"
-        ? options.valueExtractor
-        : metricDef.resolver;
+    const valueExtractor =
+        typeof options.valueExtractor === "function"
+            ? options.valueExtractor
+            : metricDef.resolver;
     const entries = [];
     for (const [idx, row] of recordMesgs.entries()) {
         const value = valueExtractor(row);
@@ -180,11 +189,28 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
  * Resolve metric definition by key.
  */
 export function getMetricDefinition(metricKey) {
-    return (MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null);
+    return (
+        MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null
+    );
 }
-function createValueRangeFilter({ config, disabledResult, entries, maxCandidate, metricDef, minCandidate, }) {
-    const appliedMin = clampValue(typeof config.minValue === "number" ? config.minValue : minCandidate, minCandidate, maxCandidate);
-    const appliedMax = clampValue(typeof config.maxValue === "number" ? config.maxValue : maxCandidate, minCandidate, maxCandidate);
+function createValueRangeFilter({
+    config,
+    disabledResult,
+    entries,
+    maxCandidate,
+    metricDef,
+    minCandidate,
+}) {
+    const appliedMin = clampValue(
+        typeof config.minValue === "number" ? config.minValue : minCandidate,
+        minCandidate,
+        maxCandidate
+    );
+    const appliedMax = clampValue(
+        typeof config.maxValue === "number" ? config.maxValue : maxCandidate,
+        minCandidate,
+        maxCandidate
+    );
     const normalizedMin = Math.min(appliedMin, appliedMax);
     const normalizedMax = Math.max(appliedMin, appliedMax);
     const orderedIndices = [];
@@ -224,7 +250,14 @@ function createValueRangeFilter({ config, disabledResult, entries, maxCandidate,
         totalCandidates: entries.length,
     };
 }
-function createTopPercentFilter({ config, disabledResult, entries, maxCandidate, metricDef, minCandidate, }) {
+function createTopPercentFilter({
+    config,
+    disabledResult,
+    entries,
+    maxCandidate,
+    metricDef,
+    minCandidate,
+}) {
     const pct = clamp(Number(config.percent) || 0, 0, 100);
     if (pct <= 0) {
         return {
@@ -241,8 +274,10 @@ function createTopPercentFilter({ config, disabledResult, entries, maxCandidate,
     const orderedIndices = [];
     const allowedIndices = new Set();
     for (const entry of entries) {
-        if (orderedIndices.length >= selectionCount &&
-            entry.value < thresholdValue) {
+        if (
+            orderedIndices.length >= selectionCount &&
+            entry.value < thresholdValue
+        ) {
             break;
         }
         allowedIndices.add(entry.index);

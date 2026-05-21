@@ -80,37 +80,52 @@ export function getUnitSymbol(field, unitType) {
             return getTemperatureUnitSymbol();
         }
         if (isSpeedField(field)) {
-            const distanceUnits = getUserPreference(SETTING_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
+            const distanceUnits = getUserPreference(
+                SETTING_KEYS.DISTANCE_UNITS,
+                DEFAULT_UNITS.DISTANCE
+            );
             return distanceUnits === "miles" || distanceUnits === "feet"
                 ? UNIT_SYMBOLS.SPEED.mph
                 : UNIT_SYMBOLS.SPEED.kmh;
         }
         return ORIGINAL_FIELD_LABELS[field] ?? "";
-    }
-    catch (error) {
-        console.error(`[UnitSymbol] Error getting unit symbol for field "${field}":`, error);
+    } catch (error) {
+        console.error(
+            `[UnitSymbol] Error getting unit symbol for field "${field}":`,
+            error
+        );
         return "";
     }
 }
 function getDistanceUnitSymbol() {
-    const distanceUnits = getUserPreference(SETTING_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
+    const distanceUnits = getUserPreference(
+        SETTING_KEYS.DISTANCE_UNITS,
+        DEFAULT_UNITS.DISTANCE
+    );
     return UNIT_SYMBOLS.DISTANCE[distanceUnits] ?? UNIT_SYMBOLS.DISTANCE.meters;
 }
 function getTemperatureUnitSymbol() {
-    const temperatureUnits = getUserPreference(SETTING_KEYS.TEMPERATURE_UNITS, DEFAULT_UNITS.TEMPERATURE);
-    return (UNIT_SYMBOLS.TEMPERATURE[temperatureUnits] ??
-        UNIT_SYMBOLS.TEMPERATURE.celsius);
+    const temperatureUnits = getUserPreference(
+        SETTING_KEYS.TEMPERATURE_UNITS,
+        DEFAULT_UNITS.TEMPERATURE
+    );
+    return (
+        UNIT_SYMBOLS.TEMPERATURE[temperatureUnits] ??
+        UNIT_SYMBOLS.TEMPERATURE.celsius
+    );
 }
 function getTimeUnitSymbol() {
-    const timeUnits = getUserPreference(SETTING_KEYS.TIME_UNITS, DEFAULT_UNITS.TIME);
+    const timeUnits = getUserPreference(
+        SETTING_KEYS.TIME_UNITS,
+        DEFAULT_UNITS.TIME
+    );
     return UNIT_SYMBOLS.TIME[timeUnits] ?? UNIT_SYMBOLS.TIME.seconds;
 }
 function getUserPreference(key, fallback) {
     try {
         const value = getChartSetting(key);
         return typeof value === "string" && value ? value : fallback;
-    }
-    catch (error) {
+    } catch (error) {
         console.warn(`[UnitSymbol] Error reading setting "${key}":`, error);
         return fallback;
     }

@@ -86,6 +86,7 @@ function renderNoDataForContainer(
  *
  * @param dependencies - Runtime, state, notification, and DOM dependencies.
  * @param input - Render timing and visible field summary.
+ *
  * @returns Final render duration and chart count.
  */
 export async function completeSuccessfulChartRender(

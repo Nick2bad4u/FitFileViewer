@@ -14,6 +14,7 @@ interface ChartThemeRenderPlan {
  * Resolves theme-dependent chart render inputs.
  *
  * @param input - Current render theme state.
+ *
  * @returns Theme-dependent configuration consumed by chart renderers.
  */
 export function resolveChartThemeRenderPlan(

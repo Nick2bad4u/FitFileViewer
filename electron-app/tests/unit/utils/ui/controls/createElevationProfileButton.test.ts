@@ -234,9 +234,9 @@ describe(createElevationProfileButton, () => {
         const mockWin = getPopupWindow();
 
         expect(mockWin.document.body.className).toBe("theme-dark");
-        expect(
-            mockWin.document.querySelector("style")?.textContent
-        ).toContain("text-shadow: 0 0 2px #000");
+        expect(mockWin.document.querySelector("style")?.textContent).toContain(
+            "text-shadow: 0 0 2px #000"
+        );
     });
 
     it("should handle files without altitude data", () => {
@@ -296,9 +296,9 @@ describe(createElevationProfileButton, () => {
         expect(mockWin.document.body.textContent).toContain(
             "test-with-colors.fit"
         );
-        expect(mockWin.Chart.mock.calls[0][1].data.datasets[0].borderColor).toBe(
-            "#ff0000"
-        );
+        expect(
+            mockWin.Chart.mock.calls[0][1].data.datasets[0].borderColor
+        ).toBe("#ff0000");
 
         // Clean up the mock
         delete (window as any).chartOverlayColorPalette;
@@ -349,8 +349,9 @@ describe(createElevationProfileButton, () => {
         );
 
         const labels = Array.from(
-            mockWin.document.querySelectorAll(".elev-profile-label")
-        , (label) => label.textContent);
+            mockWin.document.querySelectorAll(".elev-profile-label"),
+            (label) => label.textContent
+        );
 
         expect(labels).toStrictEqual([
             "with-altitude.fit",

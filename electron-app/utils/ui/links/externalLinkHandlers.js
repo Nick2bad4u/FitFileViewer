@@ -4,11 +4,12 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
  * `data-external-link` within a root.
  *
  * @param params - Handler options.
+ *
  * @returns Cleanup callback for the delegated listeners.
  */
-export function attachExternalLinkHandlers({ root, onOpenExternalError, }) {
+export function attachExternalLinkHandlers({ root, onOpenExternalError }) {
     if (!root || typeof root.addEventListener !== "function") {
-        return () => { };
+        return () => {};
     }
     let cleanupFunctions = [
         addEventListenerWithCleanup(root, "click", (event) => {
@@ -50,8 +51,7 @@ export function attachExternalLinkHandlers({ root, onOpenExternalError, }) {
         for (const cleanup of activeCleanups) {
             try {
                 cleanup();
-            }
-            catch {
+            } catch {
                 // Ignore cleanup failures from partially detached test DOMs.
             }
         }
@@ -65,10 +65,10 @@ function openExternal(url, onOpenExternalError) {
                 return;
             }
             try {
-                const normalizedError = error instanceof Error ? error : new Error(String(error));
+                const normalizedError =
+                    error instanceof Error ? error : new Error(String(error));
                 onOpenExternalError(url, normalizedError);
-            }
-            catch {
+            } catch {
                 // Ignore observer failures.
             }
         });
@@ -76,16 +76,16 @@ function openExternal(url, onOpenExternalError) {
     }
     try {
         window.open(url, "_blank", "noopener,noreferrer");
-    }
-    catch {
+    } catch {
         // Ignore fallback failures outside normal browser contexts.
     }
 }
 function getOpenExternalApi() {
     const globalApi = globalThis.electronAPI;
-    const windowApi = typeof globalThis.window === "object"
-        ? globalThis.window.electronAPI
-        : undefined;
+    const windowApi =
+        typeof globalThis.window === "object"
+            ? globalThis.window.electronAPI
+            : undefined;
     const api = globalApi ?? windowApi;
     if (api === null || typeof api !== "object") {
         return null;
@@ -109,16 +109,17 @@ function validateExternalHttpUrl(url) {
     }
     for (const character of trimmed) {
         const codePoint = character.codePointAt(0);
-        if (codePoint !== undefined &&
-            (codePoint < 0x20 || codePoint === 0x7f)) {
+        if (
+            codePoint !== undefined &&
+            (codePoint < 0x20 || codePoint === 0x7f)
+        ) {
             return null;
         }
     }
     let parsed;
     try {
         parsed = new URL(trimmed);
-    }
-    catch {
+    } catch {
         return null;
     }
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {

@@ -41,10 +41,9 @@ const mocks = vi.hoisted(() => ({
     loadingShow: vi.fn<(message: string, detail?: string) => void>(),
     loadSingleOverlayFile:
         vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
-    pLimitCompat: vi.fn<LimitFactory>(
-        (_concurrency) => async (task) => task()
-    ),
-    setState: vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    pLimitCompat: vi.fn<LimitFactory>((_concurrency) => async (task) => task()),
+    setState:
+        vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
 }));
 
@@ -77,9 +76,8 @@ vi.mock(
     })
 );
 
-const { loadOverlayFiles } = await import(
-    "../../../../../utils/files/import/loadOverlayFiles.js"
-);
+const { loadOverlayFiles } =
+    await import("../../../../../utils/files/import/loadOverlayFiles.js");
 
 const appGlobal = globalThis as LoadOverlayTestGlobal;
 
@@ -136,9 +134,9 @@ describe(loadOverlayFiles, () => {
                     sourceKey: "path:c:/rides/overlay.fit",
                 },
             ]);
-            expect(mocks.pLimitCompat.mock.calls[0]?.[0]).toBeGreaterThanOrEqual(
-                1
-            );
+            expect(
+                mocks.pLimitCompat.mock.calls[0]?.[0]
+            ).toBeGreaterThanOrEqual(1);
             expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
             expect(mocks.setState).toHaveBeenCalledWith(
                 "globalData.loadedFitFiles",
@@ -152,7 +150,9 @@ describe(loadOverlayFiles, () => {
                 "Successfully loaded 1 files",
                 "success"
             );
-            expect(overlayData.cachedFilePath).toBe(String.raw`C:\rides\overlay.fit`);
+            expect(overlayData.cachedFilePath).toBe(
+                String.raw`C:\rides\overlay.fit`
+            );
         } finally {
             cleanupGlobals();
         }

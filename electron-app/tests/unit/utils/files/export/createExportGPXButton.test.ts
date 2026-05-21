@@ -6,9 +6,8 @@ import { createExportGPXButton } from "../../../../../utils/files/export/createE
 vi.mock(
     import("../../../../../utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn<
-            (message: string, type: string, duration?: number) => void
-        >(),
+        showNotification:
+            vi.fn<(message: string, type: string, duration?: number) => void>(),
     })
 );
 
@@ -21,7 +20,11 @@ type GpxExportTestGlobal = typeof globalThis & {
             timestamp?: string;
         }[];
     };
-    loadedFitFiles?: { displayName?: string; filePath?: string; name?: string }[];
+    loadedFitFiles?: {
+        displayName?: string;
+        filePath?: string;
+        name?: string;
+    }[];
 };
 
 const appGlobal = globalThis as GpxExportTestGlobal;

@@ -2,7 +2,16 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../notifications/showNotification.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DEFAULT_MARKER_COUNT = 50;
-const MARKER_COUNT_OPTIONS = [10, 25, 50, 100, 200, 500, 1000, "all"];
+const MARKER_COUNT_OPTIONS = [
+    10,
+    25,
+    50,
+    100,
+    200,
+    500,
+    1000,
+    "all",
+];
 function createMarkerCountIcon(themeColors) {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
@@ -42,8 +51,7 @@ function getThemeColorValue(colors, key) {
  *
  * Contract:
  *
- * - `onChange` is called with 0 to mean "all" markers, else the numeric
- *   limit.
+ * - `onChange` is called with 0 to mean "all" markers, else the numeric limit.
  * - Global `window.mapMarkerCount` is always kept in sync; 0 means all.
  * - Returned element is a container div with a label + select.
  *
@@ -75,21 +83,31 @@ export function createMarkerCountSelector(onChange) {
         const g = globalThis;
         select.value = resolveInitialMarkerCount(g);
         // Handle selection changes
-        select.addEventListener("change", () => {
-            handleMarkerCountChange(select, g, onChange);
-        }, { signal: listenerController.signal });
+        select.addEventListener(
+            "change",
+            () => {
+                handleMarkerCountChange(select, g, onChange);
+            },
+            { signal: listenerController.signal }
+        );
         // Add mouse wheel support for changing marker count
-        select.addEventListener("wheel", (e) => {
-            handleMarkerCountWheel(e, select);
-        }, { passive: false, signal: listenerController.signal });
+        select.addEventListener(
+            "wheel",
+            (e) => {
+                handleMarkerCountWheel(e, select);
+            },
+            { passive: false, signal: listenerController.signal }
+        );
         // Apply CSS classes for proper theming - no need for inline styles
         // The CSS already handles theming through .map-action-btn and theme-specific selectors
         container.append(label);
         container.append(select);
         return container;
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error creating marker count selector:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error creating marker count selector:",
+            error
+        );
         showNotification("Failed to create marker count selector", "error");
         return document.createElement("div");
     }
@@ -100,9 +118,11 @@ function handleMarkerCountChange(select, globalRef, onChange) {
             select.value === "all" ? 0 : Number.parseInt(select.value, 10);
         onChange?.(globalRef.mapMarkerCount);
         globalRef.updateShownFilesList?.();
-    }
-    catch (error) {
-        console.error("[mapActionButtons] Error in marker count change:", error);
+    } catch (error) {
+        console.error(
+            "[mapActionButtons] Error in marker count change:",
+            error
+        );
         showNotification("Failed to update marker count", "error");
     }
 }
@@ -115,22 +135,22 @@ function handleMarkerCountWheel(event, select) {
         if (event.deltaY > 0 && idx < optionCount - 1) {
             select.selectedIndex = idx + 1;
             dispatchMarkerCountChange(select);
-        }
-        else if (event.deltaY < 0 && idx > 0) {
+        } else if (event.deltaY < 0 && idx > 0) {
             select.selectedIndex = idx - 1;
             dispatchMarkerCountChange(select);
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[mapActionButtons] Error in wheel event:", error);
     }
 }
 function dispatchMarkerCountChange(select) {
-    select.dispatchEvent(new Event("change", {
-        bubbles: false,
-        cancelable: true,
-        composed: false,
-    }));
+    select.dispatchEvent(
+        new Event("change", {
+            bubbles: false,
+            cancelable: true,
+            composed: false,
+        })
+    );
 }
 function resolveInitialMarkerCount(globalRef) {
     const current = globalRef.mapMarkerCount;

@@ -1,8 +1,14 @@
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
-import { convertDistanceUnits, DISTANCE_UNITS, } from "./convertDistanceUnits.js";
+import {
+    convertDistanceUnits,
+    DISTANCE_UNITS,
+} from "./convertDistanceUnits.js";
 import { convertMpsToKmh } from "./convertMpsToKmh.js";
 import { convertMpsToMph } from "./convertMpsToMph.js";
-import { convertTemperatureUnits, TEMPERATURE_UNITS, } from "./convertTemperatureUnits.js";
+import {
+    convertTemperatureUnits,
+    TEMPERATURE_UNITS,
+} from "./convertTemperatureUnits.js";
 const FIELD_CATEGORIES = {
     DISTANCE: [
         "distance",
@@ -27,7 +33,10 @@ const TEMPERATURE_FIELDS = new Set(FIELD_CATEGORIES.TEMPERATURE);
  */
 export function convertValueToUserUnits(value, field) {
     if (typeof value !== "number" || Number.isNaN(value)) {
-        console.warn(`[convertValueToUserUnits] Invalid value for field '${String(field)}':`, value);
+        console.warn(
+            `[convertValueToUserUnits] Invalid value for field '${String(field)}':`,
+            value
+        );
         return value;
     }
     if (typeof field !== "string" || !field.trim()) {
@@ -36,25 +45,35 @@ export function convertValueToUserUnits(value, field) {
     }
     try {
         if (DISTANCE_FIELDS.has(field)) {
-            const distanceUnits = resolveDistanceUnits(getChartSetting(UNIT_SETTING_KEYS.DISTANCE));
+            const distanceUnits = resolveDistanceUnits(
+                getChartSetting(UNIT_SETTING_KEYS.DISTANCE)
+            );
             return convertDistanceUnits(value, distanceUnits);
         }
         if (TEMPERATURE_FIELDS.has(field)) {
-            const temperatureUnits = resolveTemperatureUnits(getChartSetting(UNIT_SETTING_KEYS.TEMPERATURE));
+            const temperatureUnits = resolveTemperatureUnits(
+                getChartSetting(UNIT_SETTING_KEYS.TEMPERATURE)
+            );
             return convertTemperatureUnits(value, temperatureUnits);
         }
         if (SPEED_FIELDS.has(field)) {
-            const distanceUnits = resolveDistanceUnits(getChartSetting(UNIT_SETTING_KEYS.DISTANCE));
-            if (distanceUnits === DISTANCE_UNITS.MILES ||
-                distanceUnits === DISTANCE_UNITS.FEET) {
+            const distanceUnits = resolveDistanceUnits(
+                getChartSetting(UNIT_SETTING_KEYS.DISTANCE)
+            );
+            if (
+                distanceUnits === DISTANCE_UNITS.MILES ||
+                distanceUnits === DISTANCE_UNITS.FEET
+            ) {
                 return convertMpsToMph(value);
             }
             return convertMpsToKmh(value);
         }
         return value;
-    }
-    catch (error) {
-        console.error(`[convertValueToUserUnits] Conversion failed for field '${field}':`, error);
+    } catch (error) {
+        console.error(
+            `[convertValueToUserUnits] Conversion failed for field '${field}':`,
+            error
+        );
         return value;
     }
 }

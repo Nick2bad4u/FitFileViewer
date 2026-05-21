@@ -15,21 +15,22 @@
             if (!win.webContents) {
                 return false;
             }
-            const webContentsDestroyed = typeof win.webContents.isDestroyed === "function"
-                ? win.webContents.isDestroyed()
-                : true;
-            const windowDestroyed = typeof win.isDestroyed === "function"
-                ? win.isDestroyed()
-                : true;
+            const webContentsDestroyed =
+                typeof win.webContents.isDestroyed === "function"
+                    ? win.webContents.isDestroyed()
+                    : true;
+            const windowDestroyed =
+                typeof win.isDestroyed === "function"
+                    ? win.isDestroyed()
+                    : true;
             return !windowDestroyed && !webContentsDestroyed;
-        }
-        catch {
+        } catch {
             return false;
         }
     }
     /**
-     * Validates that a BrowserWindow is usable and logs a structured warning when
-     * it is not.
+     * Validates that a BrowserWindow is usable and logs a structured warning
+     * when it is not.
      *
      * @param context - Description of the operation requiring the window.
      *
@@ -40,12 +41,16 @@
             return true;
         }
         if (!getAppState("appIsQuitting")) {
-            logWithContext("warn", `Window validation failed during ${context}`, {
-                hasWebContents: Boolean(win?.webContents),
-                hasWindow: Boolean(win),
-                isDestroyed: win?.isDestroyed?.(),
-                webContentsDestroyed: win?.webContents?.isDestroyed?.(),
-            });
+            logWithContext(
+                "warn",
+                `Window validation failed during ${context}`,
+                {
+                    hasWebContents: Boolean(win?.webContents),
+                    hasWindow: Boolean(win),
+                    isDestroyed: win?.isDestroyed?.(),
+                    webContentsDestroyed: win?.webContents?.isDestroyed?.(),
+                }
+            );
         }
         return false;
     }

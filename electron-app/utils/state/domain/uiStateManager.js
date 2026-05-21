@@ -3,18 +3,27 @@
  * interactions
  */
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getChartControlsToggle, getChartSettingsWrapper, } from "../../charts/dom/chartDomUtils.js";
+import {
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../../charts/dom/chartDomUtils.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getState, setState, subscribe, updateState, } from "../core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../core/stateManager.js";
 function getNotificationMessage(notification) {
     return typeof notification === "string"
         ? notification
         : notification.message || "No message provided";
 }
-const DEFAULT_DOCUMENT_TITLE = typeof document !== "undefined" && document?.title
-    ? document.title
-    : "Fit File Viewer";
+const DEFAULT_DOCUMENT_TITLE =
+    typeof document !== "undefined" && document?.title
+        ? document.title
+        : "Fit File Viewer";
 /**
  * UI State Manager - handles common UI state operations
  */
@@ -27,17 +36,21 @@ export class UIStateManager {
     }
     /**
      * Apply theme to the UI
-     *
      */
     applyTheme(theme) {
-        const root = (document.documentElement || document.body || ({}));
+        const root = document.documentElement || document.body || {};
         if (theme === "system") {
             // Remove explicit theme and use system preference
             delete root.dataset["theme"];
             // Listen for system theme changes if supported
-            if (globalThis.window !== undefined &&
-                typeof globalThis.matchMedia === "function") {
-                const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)"), systemTheme = mediaQuery.matches ? "dark" : "light";
+            if (
+                globalThis.window !== undefined &&
+                typeof globalThis.matchMedia === "function"
+            ) {
+                const mediaQuery = globalThis.matchMedia(
+                        "(prefers-color-scheme: dark)"
+                    ),
+                    systemTheme = mediaQuery.matches ? "dark" : "light";
                 root.dataset["theme"] = systemTheme;
                 // Update on system theme change
                 if (!this.systemThemeListener) {
@@ -46,34 +59,43 @@ export class UIStateManager {
                         root.dataset["theme"] = newSystemTheme;
                     };
                     if (typeof mediaQuery.addEventListener === "function") {
-                        mediaQuery.addEventListener("change", this.systemThemeListener, {
-                            signal: this.eventListenerAbortController
-                                .signal,
-                        });
-                    }
-                    else if (typeof mediaQuery.addListener === "function") {
+                        mediaQuery.addEventListener(
+                            "change",
+                            this.systemThemeListener,
+                            {
+                                signal: this.eventListenerAbortController
+                                    .signal,
+                            }
+                        );
+                    } else if (typeof mediaQuery.addListener === "function") {
                         // Older API fallback
                         mediaQuery.addListener(this.systemThemeListener);
                     }
                 }
-            }
-            else {
+            } else {
                 // Fallback when matchMedia is not available (e.g., jsdom)
                 root.dataset["theme"] = "light";
             }
-        }
-        else {
+        } else {
             // Apply explicit theme
             root.dataset["theme"] = theme;
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
-                if (globalThis.window !== undefined &&
-                    typeof globalThis.matchMedia === "function") {
-                    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+                if (
+                    globalThis.window !== undefined &&
+                    typeof globalThis.matchMedia === "function"
+                ) {
+                    const mediaQuery = globalThis.matchMedia(
+                        "(prefers-color-scheme: dark)"
+                    );
                     if (typeof mediaQuery.removeEventListener === "function") {
-                        mediaQuery.removeEventListener("change", this.systemThemeListener);
-                    }
-                    else if (typeof mediaQuery.removeListener === "function") {
+                        mediaQuery.removeEventListener(
+                            "change",
+                            this.systemThemeListener
+                        );
+                    } else if (
+                        typeof mediaQuery.removeListener === "function"
+                    ) {
                         mediaQuery.removeListener(this.systemThemeListener);
                     }
                 }
@@ -83,16 +105,16 @@ export class UIStateManager {
         // Update theme toggle buttons
         const themeButtons = (() => {
             try {
-                return ([
-                    ...(document.querySelectorAll("[data-theme]") || []),
-                ]);
-            }
-            catch {
+                return [...(document.querySelectorAll("[data-theme]") || [])];
+            } catch {
                 return [];
             }
         })();
         for (const button of themeButtons) {
-            const buttonTheme = button instanceof HTMLElement ? button.dataset["theme"] : undefined;
+            const buttonTheme =
+                button instanceof HTMLElement
+                    ? button.dataset["theme"]
+                    : undefined;
             button.classList.toggle("active", buttonTheme === theme);
         }
         console.log(`[UIStateManager] Theme applied: ${theme}`);
@@ -103,7 +125,9 @@ export class UIStateManager {
     cleanup() {
         // Remove system theme listener if it exists
         if (this.systemThemeListener) {
-            const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+            const mediaQuery = globalThis.matchMedia(
+                "(prefers-color-scheme: dark)"
+            );
             mediaQuery.removeEventListener("change", this.systemThemeListener);
         }
         // Clear custom event listeners
@@ -128,7 +152,10 @@ export class UIStateManager {
     initializeReactiveElements() {
         // Subscribe to active tab changes
         subscribe("ui.activeTab", (activeTab) => {
-            const tabName = typeof activeTab === "string" ? activeTab : String(activeTab ?? "");
+            const tabName =
+                typeof activeTab === "string"
+                    ? activeTab
+                    : String(activeTab ?? "");
             this.updateTabVisibility(tabName);
             this.updateTabButtons(tabName);
         });
@@ -165,11 +192,15 @@ export class UIStateManager {
             this.updateDropOverlayVisibility(Boolean(isVisible));
         });
         // Apply persisted states on startup
-        this.updateUnloadButtonVisibility(Boolean(getState("ui.unloadButtonVisible")));
+        this.updateUnloadButtonVisibility(
+            Boolean(getState("ui.unloadButtonVisible"))
+        );
         this.updateFileDisplayUI(getState("ui.fileInfo"));
         this.updateLoadingProgressUI(getState("ui.loadingIndicator"));
         this.updateLoadingIndicator(Boolean(getState("isLoading")));
-        this.updateDropOverlayVisibility(Boolean(getState("ui.dropOverlay.visible")));
+        this.updateDropOverlayVisibility(
+            Boolean(getState("ui.dropOverlay.visible"))
+        );
     }
     /**
      * Set up DOM event listeners that sync with state
@@ -178,24 +209,20 @@ export class UIStateManager {
         // Safe helpers to guard against jsdom brand-check errors or replaced globals
         const safeQuerySelectorAll = (selector) => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
                     // Array.from guards non-iterables
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
-            }
-            catch {
+            } catch {
                 // Swallow to keep tests stable if document was swapped or methods are from another realm
             }
             return [];
         };
         const safeGetById = (id) => {
             try {
-                return (getElementByIdFlexible(document, id));
-            }
-            catch {
+                return getElementByIdFlexible(document, id);
+            } catch {
                 return null;
             }
         };
@@ -204,12 +231,10 @@ export class UIStateManager {
          *
          * Some unit tests stub DOM nodes with plain objects; in production
          * these are real HTMLElements. Guard to avoid runtime crashes.
-         *
          */
         const safeAddClickListener = (el, handler) => {
-            if (el &&
-                typeof ((el).addEventListener) === "function") {
-                (el).addEventListener("click", handler, {
+            if (el && typeof el.addEventListener === "function") {
+                el.addEventListener("click", handler, {
                     signal: this.eventListenerAbortController.signal,
                 });
             }
@@ -217,7 +242,10 @@ export class UIStateManager {
         // Tab switching
         const tabButtons = safeQuerySelectorAll("[data-tab]");
         for (const button of tabButtons) {
-            const tabName = button instanceof HTMLElement ? button.dataset["tab"] : undefined;
+            const tabName =
+                button instanceof HTMLElement
+                    ? button.dataset["tab"]
+                    : undefined;
             safeAddClickListener(button, () => {
                 if (tabName) {
                     AppActions.switchTab(tabName);
@@ -233,9 +261,14 @@ export class UIStateManager {
         // previous theme and effectively "undo" a user change.
         //
         // Only treat explicit UI controls as theme toggles.
-        const themeButtons = safeQuerySelectorAll('button[data-theme], [role="button"][data-theme]');
+        const themeButtons = safeQuerySelectorAll(
+            'button[data-theme], [role="button"][data-theme]'
+        );
         for (const button of themeButtons) {
-            const theme = button instanceof HTMLElement ? button.dataset["theme"] : undefined;
+            const theme =
+                button instanceof HTMLElement
+                    ? button.dataset["theme"]
+                    : undefined;
             safeAddClickListener(button, () => {
                 if (theme) {
                     AppActions.switchTheme(theme);
@@ -243,7 +276,8 @@ export class UIStateManager {
             });
         }
         // Chart controls toggle
-        const chartToggle = getChartControlsToggle(document) ||
+        const chartToggle =
+            getChartControlsToggle(document) ||
             safeGetById("chart-controls-toggle");
         safeAddClickListener(chartToggle, () => {
             AppActions.toggleChartControls();
@@ -256,7 +290,6 @@ export class UIStateManager {
     }
     /**
      * Show a notification to the user
-     *
      */
     showNotification(notification) {
         try {
@@ -266,21 +299,23 @@ export class UIStateManager {
                 message = notification;
                 type = "info";
                 duration = 3000;
-            }
-            else if (typeof notification === "object" &&
-                notification !== null) {
+            } else if (
+                typeof notification === "object" &&
+                notification !== null
+            ) {
                 message = notification.message || "No message provided";
                 type = notification.type || "info";
                 duration = notification.duration || 3000;
-            }
-            else {
-                console.warn("[UIStateManager] Invalid notification parameter:", notification);
+            } else {
+                console.warn(
+                    "[UIStateManager] Invalid notification parameter:",
+                    notification
+                );
                 return;
             } // Use the imported showNotification utility
             try {
                 showNotification(message, type, duration);
-            }
-            catch {
+            } catch {
                 // Fallback to console logging if notification system fails
                 console.log(`[Notification ${type.toUpperCase()}] ${message}`);
                 if (type === "error" || type === "warning") {
@@ -288,27 +323,36 @@ export class UIStateManager {
                 }
             }
             // Update state to track the last notification
-            setState("ui.lastNotification", {
-                message,
-                timestamp: Date.now(),
-                type,
-            }, { source: "UIStateManager.showNotification" });
-        }
-        catch (error) {
-            console.error("[UIStateManager] Failed to show notification:", error);
-            console.log(`[Notification] ${getNotificationMessage(notification)}`);
+            setState(
+                "ui.lastNotification",
+                {
+                    message,
+                    timestamp: Date.now(),
+                    type,
+                },
+                { source: "UIStateManager.showNotification" }
+            );
+        } catch (error) {
+            console.error(
+                "[UIStateManager] Failed to show notification:",
+                error
+            );
+            console.log(
+                `[Notification] ${getNotificationMessage(notification)}`
+            );
         }
     }
     /**
      * Show/hide sidebar
-     *
      */
     toggleSidebar(collapsed) {
-        const currentState = getState("ui.sidebarCollapsed"), newState = collapsed === undefined ? !currentState : collapsed;
+        const currentState = getState("ui.sidebarCollapsed"),
+            newState = collapsed === undefined ? !currentState : collapsed;
         setState("ui.sidebarCollapsed", newState, {
             source: "UIStateManager.toggleSidebar",
         });
-        const mainContent = document.querySelector("#main-content"), sidebar = document.querySelector("#sidebar");
+        const mainContent = document.querySelector("#main-content"),
+            sidebar = document.querySelector("#sidebar");
         if (sidebar) {
             sidebar.classList.toggle("collapsed", newState);
         }
@@ -318,7 +362,6 @@ export class UIStateManager {
     }
     /**
      * Update chart controls UI
-     *
      */
     updateChartControlsUI(isVisible) {
         const wrapper = getChartSettingsWrapper(document);
@@ -335,14 +378,12 @@ export class UIStateManager {
     }
     /**
      * Update drop overlay visibility and related iframe pointer state
-     *
      */
     updateDropOverlayVisibility(isVisible) {
         const dropOverlay = (() => {
             try {
-                return (getElementByIdFlexible(document, "drop_overlay"));
-            }
-            catch {
+                return getElementByIdFlexible(document, "drop_overlay");
+            } catch {
                 return null;
             }
         })();
@@ -351,9 +392,8 @@ export class UIStateManager {
         }
         const altFitIframe = (() => {
             try {
-                return (getElementByIdFlexible(document, "altfit_iframe"));
-            }
-            catch {
+                return getElementByIdFlexible(document, "altfit_iframe");
+            } catch {
                 return null;
             }
         })();
@@ -362,9 +402,8 @@ export class UIStateManager {
         }
         const zwiftIframe = (() => {
             try {
-                return (getElementByIdFlexible(document, "zwift_iframe"));
-            }
-            catch {
+                return getElementByIdFlexible(document, "zwift_iframe");
+            } catch {
                 return null;
             }
         })();
@@ -376,14 +415,25 @@ export class UIStateManager {
      * Update active file display elements based on state
      */
     updateFileDisplayUI(fileInfo) {
-        const info = fileInfo || {}, requestedHasFile = Boolean(info.hasFile), displayName = typeof info.displayName === "string" ? info.displayName : "", title = typeof info.title === "string" && info.title.trim().length > 0
-            ? info.title
-            : DEFAULT_DOCUMENT_TITLE, globalData = getState("globalData"), hasRenderableFile = Boolean(requestedHasFile && displayName && globalData);
+        const info = fileInfo || {},
+            requestedHasFile = Boolean(info.hasFile),
+            displayName =
+                typeof info.displayName === "string" ? info.displayName : "",
+            title =
+                typeof info.title === "string" && info.title.trim().length > 0
+                    ? info.title
+                    : DEFAULT_DOCUMENT_TITLE,
+            globalData = getState("globalData"),
+            hasRenderableFile = Boolean(
+                requestedHasFile && displayName && globalData
+            );
         const fileNameContainer = (() => {
             try {
-                return getElementByIdFlexible(document, "active_file_name_container");
-            }
-            catch {
+                return getElementByIdFlexible(
+                    document,
+                    "active_file_name_container"
+                );
+            } catch {
                 return null;
             }
         })();
@@ -391,14 +441,22 @@ export class UIStateManager {
             fileNameContainer.classList.toggle("has-file", hasRenderableFile);
         }
         if (typeof document !== "undefined" && document.body) {
-            const { body } = document, { classList, dataset } = body, hasToggle = Boolean(classList && typeof classList.toggle === "function");
+            const { body } = document,
+                { classList, dataset } = body,
+                hasToggle = Boolean(
+                    classList && typeof classList.toggle === "function"
+                );
             if (hasToggle) {
                 classList.toggle("app-has-file", hasRenderableFile);
-            }
-            else {
-                const { className = "" } = body, classes = typeof className === "string"
-                    ? className.split(/\s+/)
-                    : [], filtered = classes.filter((cls) => cls && cls !== "app-has-file");
+            } else {
+                const { className = "" } = body,
+                    classes =
+                        typeof className === "string"
+                            ? className.split(/\s+/)
+                            : [],
+                    filtered = classes.filter(
+                        (cls) => cls && cls !== "app-has-file"
+                    );
                 if (hasRenderableFile) {
                     filtered.push("app-has-file");
                 }
@@ -406,7 +464,8 @@ export class UIStateManager {
             }
             // In runtime Electron, `HTMLBodyElement.dataset` exists.
             // In some tests, `document.body` can be a partial mock without dataset.
-            const datasetRef = dataset && typeof dataset === "object" ? dataset : null;
+            const datasetRef =
+                dataset && typeof dataset === "object" ? dataset : null;
             if (datasetRef) {
                 datasetRef["hasFitFile"] = hasRenderableFile ? "true" : "false";
             }
@@ -414,8 +473,7 @@ export class UIStateManager {
         const fileSpan = (() => {
             try {
                 return getElementByIdFlexible(document, "active_file_name");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
@@ -440,8 +498,7 @@ export class UIStateManager {
                 fileSpan.title = displayName;
                 fileSpan.classList.remove("marquee");
                 fileSpan.scrollLeft = 0;
-            }
-            else {
+            } else {
                 fileSpan.textContent = "";
                 fileSpan.title = "";
                 fileSpan.classList.remove("marquee");
@@ -449,29 +506,25 @@ export class UIStateManager {
         }
         try {
             document.title = title;
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
     }
     /**
      * Update loading indicator visibility
-     *
      */
     updateLoadingIndicator(isLoading) {
         const loadingIndicator = (() => {
             try {
                 return document.querySelector("#loading-indicator");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
         const mainContent = (() => {
             try {
                 return document.querySelector("#main-content");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
@@ -485,52 +538,52 @@ export class UIStateManager {
         // Update cursor
         try {
             document.body.style.cursor = isLoading ? "wait" : "default";
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
     }
     /**
      * Update loading progress UI based on indicator state
      *
-     *   Loading indicator state
+     * Loading indicator state
      */
     updateLoadingProgressUI(indicator) {
-        const progressValue = typeof indicator?.progress === "number"
-            ? indicator.progress
-            : 0, isActive = Boolean(indicator?.active);
+        const progressValue =
+                typeof indicator?.progress === "number"
+                    ? indicator.progress
+                    : 0,
+            isActive = Boolean(indicator?.active);
         const progressElement = (() => {
             try {
                 return document.querySelector("#file-loading-progress");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
         if (progressElement) {
             progressElement.style.width = `${progressValue}%`;
-            progressElement.setAttribute("aria-valuenow", progressValue.toString());
+            progressElement.setAttribute(
+                "aria-valuenow",
+                progressValue.toString()
+            );
             progressElement.setAttribute("aria-hidden", (!isActive).toString());
         }
     }
     /**
      * Update measurement mode UI
-     *
      */
     updateMeasurementModeUI(isActive) {
         const toggleBtn = (() => {
             try {
                 return document.querySelector("#measurement-mode-toggle");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
         const mapContainer = (() => {
             try {
                 return document.querySelector("#map-container");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
@@ -546,62 +599,54 @@ export class UIStateManager {
     }
     /**
      * Update tab button states
-     *
      */
     updateTabButtons(activeTab) {
-        /**
-         *
-         */
+        /**/
         const safeQuerySelectorAll = (selector) => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
-            }
-            catch {
+            } catch {
                 /* Ignore errors */
             }
             return [];
         };
         const tabButtons = safeQuerySelectorAll("[data-tab]");
         for (const button of tabButtons) {
-            const tabName = button instanceof HTMLElement
-                ? button.dataset["tab"]
-                : undefined, isActive = tabName === activeTab;
+            const tabName =
+                    button instanceof HTMLElement
+                        ? button.dataset["tab"]
+                        : undefined,
+                isActive = tabName === activeTab;
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", isActive.toString());
         }
     }
     /**
      * Update tab visibility based on active tab
-     *
      */
     updateTabVisibility(activeTab) {
-        /**
-         *
-         */
+        /**/
         const safeQuerySelectorAll = (selector) => {
             try {
-                const doc = (document);
+                const doc = document;
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return ([
-                        ...(doc.querySelectorAll(selector) || []),
-                    ]);
+                    return [...(doc.querySelectorAll(selector) || [])];
                 }
-            }
-            catch {
+            } catch {
                 /* Ignore errors */
             }
             return [];
         };
         const tabContents = safeQuerySelectorAll(".tab-content");
         for (const content of tabContents) {
-            const tabName = content instanceof HTMLElement
-                ? content.dataset["tabContent"]
-                : undefined, isActive = tabName === activeTab;
+            const tabName =
+                    content instanceof HTMLElement
+                        ? content.dataset["tabContent"]
+                        : undefined,
+                isActive = tabName === activeTab;
             if (content instanceof HTMLElement) {
                 content.style.display = isActive ? "block" : "none";
             }
@@ -611,14 +656,12 @@ export class UIStateManager {
     }
     /**
      * Update unload button visibility
-     *
      */
     updateUnloadButtonVisibility(isVisible) {
         const unloadBtn = (() => {
             try {
                 return getElementByIdFlexible(document, "unload_file_btn");
-            }
-            catch {
+            } catch {
                 return null;
             }
         })();
@@ -632,7 +675,8 @@ export class UIStateManager {
     updateWindowStateFromDOM() {
         const windowState = {
             height: window.innerHeight,
-            maximized: window.outerWidth === screen.availWidth &&
+            maximized:
+                window.outerWidth === screen.availWidth &&
                 window.outerHeight === screen.availHeight,
             width: window.innerWidth,
             x: window.screenX,
@@ -653,14 +697,12 @@ export const uiStateManager = new UIStateManager();
 export const UIActions = {
     /**
      * Set theme
-     *
      */
     setTheme(theme) {
         AppActions.switchTheme(theme);
     },
     /**
      * Show a tab
-     *
      */
     showTab(tabName) {
         AppActions.switchTab(tabName);
@@ -679,7 +721,6 @@ export const UIActions = {
     },
     /**
      * Toggle sidebar
-     *
      */
     toggleSidebar(collapsed) {
         uiStateManager.toggleSidebar(collapsed);
@@ -694,16 +735,24 @@ export const UIActions = {
 // Set up window resize listener
 if (globalThis.window !== undefined) {
     const windowListenerAbortController = new AbortController();
-    window.addEventListener("resize", () => {
-        UIActions.updateWindowState();
-    }, {
-        signal: windowListenerAbortController.signal,
-    });
+    window.addEventListener(
+        "resize",
+        () => {
+            UIActions.updateWindowState();
+        },
+        {
+            signal: windowListenerAbortController.signal,
+        }
+    );
     // Set up beforeunload to save state
-    window.addEventListener("beforeunload", () => {
-        UIActions.updateWindowState();
-        windowListenerAbortController.abort();
-    }, {
-        signal: windowListenerAbortController.signal,
-    });
+    window.addEventListener(
+        "beforeunload",
+        () => {
+            UIActions.updateWindowState();
+            windowListenerAbortController.abort();
+        },
+        {
+            signal: windowListenerAbortController.signal,
+        }
+    );
 }

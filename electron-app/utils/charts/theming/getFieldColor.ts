@@ -44,6 +44,7 @@ export function getAllFieldColors(): Record<ChartFieldColorKey, string> {
  * Get the standardized color for a chart field.
  *
  * @param field - Field name to get a color for.
+ *
  * @returns Mapped field color, or the default color for unknown fields.
  */
 export function getFieldColor(field: unknown): string {
@@ -76,11 +77,9 @@ export function getFieldColor(field: unknown): string {
  * Check if a field has a defined color mapping.
  *
  * @param field - Field name to check.
+ *
  * @returns Whether the field has a defined color.
  */
 export function hasFieldColor(field: unknown): field is ChartFieldColorKey {
-    return (
-        typeof field === "string" &&
-        Object.hasOwn(FIELD_COLOR_MAP, field)
-    );
+    return typeof field === "string" && Object.hasOwn(FIELD_COLOR_MAP, field);
 }

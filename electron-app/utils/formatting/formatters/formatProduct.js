@@ -1,4 +1,7 @@
-import { getManufacturerIdFromName, getProductName, } from "../display/formatAntNames.js";
+import {
+    getManufacturerIdFromName,
+    getProductName,
+} from "../display/formatAntNames.js";
 const PRODUCT_FORMAT_CONFIG = {
     ERROR_MESSAGES: {
         FORMATTING_ERROR: "Error formatting product:",
@@ -30,9 +33,11 @@ export function formatProduct(manufacturer, productId) {
             return formatFallbackProduct(productId);
         }
         return getFormattedProductName(manufacturerId, productId);
-    }
-    catch (error) {
-        console.error(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
+    } catch (error) {
+        console.error(
+            `[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`,
+            error
+        );
         return formatFallbackProduct(productId);
     }
 }
@@ -50,28 +55,36 @@ function formatFallbackProduct(productId) {
 function formatProductNameString(productName) {
     return productName
         .split(PRODUCT_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
         .join(PRODUCT_FORMAT_CONFIG.FORMATTED_SEPARATOR);
 }
 function getFormattedProductName(manufacturerId, productId) {
     try {
         const productName = getProductName(manufacturerId, productId);
-        if (productName &&
+        if (
+            productName &&
             productName !== productId &&
-            typeof productName === "string") {
+            typeof productName === "string"
+        ) {
             return formatProductNameString(productName);
         }
         return formatFallbackProduct(productId);
-    }
-    catch (error) {
-        console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.PRODUCT_LOOKUP_ERROR}`, error);
+    } catch (error) {
+        console.warn(
+            `[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.PRODUCT_LOOKUP_ERROR}`,
+            error
+        );
         return formatFallbackProduct(productId);
     }
 }
 function isValidManufacturer(manufacturer) {
-    return (manufacturer !== null &&
+    return (
+        manufacturer !== null &&
         manufacturer !== undefined &&
-        manufacturer !== "");
+        manufacturer !== ""
+    );
 }
 function isValidProductId(productId) {
     if (productId === 0) {
@@ -81,8 +94,10 @@ function isValidProductId(productId) {
 }
 function resolveManufacturerId(manufacturer) {
     try {
-        if (typeof manufacturer === "number" ||
-            !Number.isNaN(Number(manufacturer))) {
+        if (
+            typeof manufacturer === "number" ||
+            !Number.isNaN(Number(manufacturer))
+        ) {
             return Number(manufacturer);
         }
         if (typeof manufacturer === "string") {
@@ -92,9 +107,11 @@ function resolveManufacturerId(manufacturer) {
                 : manufacturerId;
         }
         return null;
-    }
-    catch (error) {
-        console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.MANUFACTURER_LOOKUP_ERROR}`, error);
+    } catch (error) {
+        console.warn(
+            `[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.MANUFACTURER_LOOKUP_ERROR}`,
+            error
+        );
         return null;
     }
 }

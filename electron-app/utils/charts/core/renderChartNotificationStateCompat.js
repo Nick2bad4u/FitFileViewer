@@ -8,15 +8,15 @@ const notificationState = chartNotificationState;
 /**
  * Previous chart state exported through renderChartJS for compatibility.
  */
-export const previousChartState = notificationState.previousChartState ?? fallbackPreviousChartState;
+export const previousChartState =
+    notificationState.previousChartState ?? fallbackPreviousChartState;
 /**
  * Resets chart notification state while tolerating injected empty test modules.
  */
 export function resetChartNotificationState() {
     try {
         notificationState.resetChartNotificationState?.();
-    }
-    catch {
+    } catch {
         // Ignore notification-state compatibility failures.
     }
 }
@@ -25,9 +25,12 @@ export function resetChartNotificationState() {
  */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     try {
-        notificationState.updatePreviousChartState?.(chartCount, visibleFields, timestamp);
-    }
-    catch {
+        notificationState.updatePreviousChartState?.(
+            chartCount,
+            visibleFields,
+            timestamp
+        );
+    } catch {
         // Ignore notification-state compatibility failures.
     }
 }

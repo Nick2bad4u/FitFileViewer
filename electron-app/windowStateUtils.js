@@ -38,9 +38,11 @@
     }
     function getEnvironmentValue(key) {
         const processValue = globalThis.process;
-        if (processValue === null ||
+        if (
+            processValue === null ||
             typeof processValue !== "object" ||
-            !("env" in processValue)) {
+            !("env" in processValue)
+        ) {
             return undefined;
         }
         const { env } = processValue;
@@ -93,20 +95,27 @@
         try {
             const userDataPath = app.getPath("userData");
             return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
-        }
-        catch (error) {
-            logWithContext("error", "Error getting window state settings path", {
-                error: safeErrorMessage(error),
-            });
+        } catch (error) {
+            logWithContext(
+                "error",
+                "Error getting window state settings path",
+                {
+                    error: safeErrorMessage(error),
+                }
+            );
             return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
         }
     }
     function resolveWebSecuritySetting() {
         const isProduction = getEnvironmentValue("NODE_ENV") === "production";
-        const disableWebSecurity = !isProduction &&
+        const disableWebSecurity =
+            !isProduction &&
             getEnvironmentValue("FFV_DISABLE_WEB_SECURITY") === "true";
         if (disableWebSecurity) {
-            logWithContext("warn", "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)");
+            logWithContext(
+                "warn",
+                "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)"
+            );
         }
         return !disableWebSecurity;
     }
@@ -114,12 +123,18 @@
     function getWindowState() {
         try {
             if (!fs.existsSync(settingsPath)) {
-                logWithContext("info", "Window state file does not exist, using defaults");
+                logWithContext(
+                    "info",
+                    "Window state file does not exist, using defaults"
+                );
                 return { ...CONSTANTS.DEFAULTS.WINDOW };
             }
             const data = fs.readFileSync(settingsPath, "utf8");
             if (!data.trim()) {
-                logWithContext("warn", "Window state file is empty, using defaults");
+                logWithContext(
+                    "warn",
+                    "Window state file is empty, using defaults"
+                );
                 return { ...CONSTANTS.DEFAULTS.WINDOW };
             }
             const state = sanitizeWindowState(JSON.parse(data));
@@ -127,12 +142,15 @@
                 state,
             });
             return state;
-        }
-        catch (error) {
-            logWithContext("error", "Error reading window state, using defaults", {
-                error: safeErrorMessage(error),
-                path: settingsPath,
-            });
+        } catch (error) {
+            logWithContext(
+                "error",
+                "Error reading window state, using defaults",
+                {
+                    error: safeErrorMessage(error),
+                    path: settingsPath,
+                }
+            );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
     }
@@ -145,12 +163,18 @@
     }
     function saveWindowState(win) {
         if (!validateWindow(win)) {
-            logWithContext("error", "Invalid window object provided to saveWindowState");
+            logWithContext(
+                "error",
+                "Invalid window object provided to saveWindowState"
+            );
             return;
         }
         try {
             if (win.isMinimized() || win.isMaximized()) {
-                logWithContext("info", "Skipping window state save - window is minimized or maximized");
+                logWithContext(
+                    "info",
+                    "Skipping window state save - window is minimized or maximized"
+                );
                 return;
             }
             const bounds = win.getBounds();
@@ -163,8 +187,7 @@
             logWithContext("info", "Window state saved successfully", {
                 state,
             });
-        }
-        catch (error) {
+        } catch (error) {
             logWithContext("error", "Error saving window state", {
                 error: safeErrorMessage(error),
                 path: settingsPath,
@@ -199,8 +222,7 @@
             win.on("close", () => {
                 try {
                     saveWindowState(win);
-                }
-                catch (error) {
+                } catch (error) {
                     logWithContext("error", "Error in window close handler", {
                         error: safeErrorMessage(error),
                     });
@@ -216,16 +238,18 @@
             void win
                 .loadFile(CONSTANTS.PATHS.HTML.INDEX)
                 .then(() => {
-                logWithContext("info", "Main HTML file loaded successfully");
-            })
+                    logWithContext(
+                        "info",
+                        "Main HTML file loaded successfully"
+                    );
+                })
                 .catch((error) => {
-                logWithContext("error", "Error loading main HTML file", {
-                    error: safeErrorMessage(error),
+                    logWithContext("error", "Error loading main HTML file", {
+                        error: safeErrorMessage(error),
+                    });
                 });
-            });
             return win;
-        }
-        catch (error) {
+        } catch (error) {
             logWithContext("error", "Error creating window", {
                 error: safeErrorMessage(error),
             });
@@ -246,8 +270,7 @@
                     return true;
                 }
                 return false;
-            }
-            catch (error) {
+            } catch (error) {
                 logWithContext("error", "Error resetting window state", {
                     error: safeErrorMessage(error),
                 });
@@ -263,8 +286,7 @@
                     path: settingsPath,
                     state,
                 };
-            }
-            catch (error) {
+            } catch (error) {
                 return {
                     error: safeErrorMessage(error),
                     exists: false,

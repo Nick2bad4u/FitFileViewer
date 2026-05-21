@@ -71,9 +71,8 @@ export function getActiveTabContent(): Element | null {
         // Final strategy: derive active content from the active tab button id
         // and map to content-* using flexible ID lookup.
         try {
-            const activeBtn = document.querySelector<HTMLElement>(
-                ".tab-button.active"
-            );
+            const activeBtn =
+                document.querySelector<HTMLElement>(".tab-button.active");
             const activeId =
                 activeBtn && typeof activeBtn.id === "string"
                     ? activeBtn.id

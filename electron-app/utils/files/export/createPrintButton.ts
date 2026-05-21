@@ -1,6 +1,4 @@
-import {
-    getThemeColors,
-} from "../../charts/theming/getThemeColors.js";
+import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import type { ThemeColorMap } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 

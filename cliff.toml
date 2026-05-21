@@ -63,23 +63,23 @@ trim = true
 render_always = true
 protect_breaking_commits = false
 postprocessors = [
-  { pattern = 'fitfileviewer', replace = "[FitFileViewer](https://github.com/Nick2bad4u/FitFileViewer)" }, # replace repository URL
-  { pattern = 'merge branch', replace = "[chore] Merge Branch" },                                          # replace merge branch commit messages
-  { pattern = 'Merge branch', replace = "[chore] Merge Branch" },                                          # replace merge branch commit messages
-  { pattern = '\[dependency\]', replace = 'test' },
-  # Clean up Dependabot messages - remove verbose table content
-  { pattern = '\[dependency\] \[chore\] Bump the.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependencies" },
-  { pattern = 'Bumps the npm-all group.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update npm dependencies" },
-  { pattern = 'Bump the.*?group with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependency group" },
-  
-  # Clean up individual package bump messages
-  { pattern = 'Bumps \[([^\]]+)\].*?from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
-  { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
-  { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
-  { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
-  { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
-  # Generic bump message cleanup
-  { pattern = 'Bump', replace = "[dependency] Update" },
+    { pattern = 'fitfileviewer', replace = "[FitFileViewer](https://github.com/Nick2bad4u/FitFileViewer)" }, # replace repository URL
+    { pattern = 'merge branch', replace = "[chore] Merge Branch" },                                          # replace merge branch commit messages
+    { pattern = 'Merge branch', replace = "[chore] Merge Branch" },                                          # replace merge branch commit messages
+    { pattern = '\[dependency\]', replace = 'test' },
+    # Clean up Dependabot messages - remove verbose table content
+    { pattern = '\[dependency\] \[chore\] Bump the.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependencies" },
+    { pattern = 'Bumps the npm-all group.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update npm dependencies" },
+    { pattern = 'Bump the.*?group with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependency group" },
+
+    # Clean up individual package bump messages
+    { pattern = 'Bumps \[([^\]]+)\].*?from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
+    { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
+    { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
+    { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
+    { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
+    # Generic bump message cleanup
+    { pattern = 'Bump', replace = "[dependency] Update" },
 
 ]
 # render body even when there are no releases to process
@@ -100,52 +100,52 @@ use_branch_tags = false
 recurse_submodules = true
 # recurse into submodules to find commits
 commit_preprocessors = [
-  # Replace issue numbers
-  # This regex pattern matches issue references in the format "(optional text #123)" 
-  # and replaces them with a markdown link to the issue, e.g., "[#123](<REPO>/issues/123)".
-  # { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
-  # Example: Check spelling of the commit with the `typos` tool.
-  # For more information, visit: https://github.com/crate-ci/typos
-  # { pattern = '.*', replace_command = 'typos --write-changes -' },
-  # If the spelling is incorrect, it will be automatically fixed.
-  # { pattern = '.*', replace_command = 'typos --write-changes -' },
+    # Replace issue numbers
+    # This regex pattern matches issue references in the format "(optional text #123)" 
+    # and replaces them with a markdown link to the issue, e.g., "[#123](<REPO>/issues/123)".
+    # { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
+    # Example: Check spelling of the commit with the `typos` tool.
+    # For more information, visit: https://github.com/crate-ci/typos
+    # { pattern = '.*', replace_command = 'typos --write-changes -' },
+    # If the spelling is incorrect, it will be automatically fixed.
+    # { pattern = '.*', replace_command = 'typos --write-changes -' },
 ]
 # regex for parsing and grouping commits
 # Commit parsers use emojis and HTML comments for categorization.
 # This convention helps in visually distinguishing commit groups.
 commit_parsers = [
-  { message = "^feat", group = "<!-- 0 -->🚀 Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-  { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
-  { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
-  { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
-  { message = "^style", group = "<!-- 5 -->🎨 Styling" },
-  { message = "^test", group = "<!-- 6 -->🧪 Testing" },
-  { message = "^chore\\(release\\): prepare for", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-  { message = "^chore\\(deps.*\\)", group = "<!-- 8 -->📦 Dependencies" },
-  { message = "^chore\\(pr\\)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-  { message = "^chore\\(pull\\)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-  { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-  
-  # Dependency-related commits
-  { message = "^\\[dependency\\]", group = "<!-- 8 -->📦 Dependencies" },
-  { message = "^bump the.*group", group = "<!-- 8 -->📦 Dependencies" },
-  { message = "^Bump the.*group", group = "<!-- 8 -->📦 Dependencies" },
-  { message = "^Bumps.*", group = "<!-- 8 -->📦 Dependencies" },
-  { message = "^Bump [a-zA-Z0-9@\\-\\/]+", group = "<!-- 8 -->📦 Dependencies" },
-  { message = ".*npm-all.*", group = "<!-- 8 -->📦 Dependencies" },
-  { message = ".*dependabot.*", group = "<!-- 8 -->📦 Dependencies" },
-  
-  # Security-related (keep separate from general dependencies)
-  { body = ".*security.*", group = "<!-- 9 -->🛡️ Security" },
-  { message = ".*security.*", group = "<!-- 9 -->🛡️ Security" },
-  
-  { message = "^revert", group = "<!-- 10 -->◀️ Revert" },
-  { message = "^Merge branch", group = "<!-- 11 -->🔀 Merge Commits" },
-  { message = "^merge branch", group = "<!-- 11 -->🔀 Merge Commits" },
-  { message = ".*\\.yml", group = "<!-- 12 -->🛠️ GitHub Actions" },
-  { message = ".*", group = "<!-- 13 -->💼 Other", body = ".*" },
-  { message = ".*", group = "<!-- 13 -->💼 Other" },
+    { message = "^feat", group = "<!-- 0 -->🚀 Features" },
+    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+    { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
+    { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
+    { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
+    { message = "^style", group = "<!-- 5 -->🎨 Styling" },
+    { message = "^test", group = "<!-- 6 -->🧪 Testing" },
+    { message = "^chore\\(release\\): prepare for", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+    { message = "^chore\\(deps.*\\)", group = "<!-- 8 -->📦 Dependencies" },
+    { message = "^chore\\(pr\\)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+    { message = "^chore\\(pull\\)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+    { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+
+    # Dependency-related commits
+    { message = "^\\[dependency\\]", group = "<!-- 8 -->📦 Dependencies" },
+    { message = "^bump the.*group", group = "<!-- 8 -->📦 Dependencies" },
+    { message = "^Bump the.*group", group = "<!-- 8 -->📦 Dependencies" },
+    { message = "^Bumps.*", group = "<!-- 8 -->📦 Dependencies" },
+    { message = "^Bump [a-zA-Z0-9@\\-\\/]+", group = "<!-- 8 -->📦 Dependencies" },
+    { message = ".*npm-all.*", group = "<!-- 8 -->📦 Dependencies" },
+    { message = ".*dependabot.*", group = "<!-- 8 -->📦 Dependencies" },
+
+    # Security-related (keep separate from general dependencies)
+    { body = ".*security.*", group = "<!-- 9 -->🛡️ Security" },
+    { message = ".*security.*", group = "<!-- 9 -->🛡️ Security" },
+
+    { message = "^revert", group = "<!-- 10 -->◀️ Revert" },
+    { message = "^Merge branch", group = "<!-- 11 -->🔀 Merge Commits" },
+    { message = "^merge branch", group = "<!-- 11 -->🔀 Merge Commits" },
+    { message = ".*\\.yml", group = "<!-- 12 -->🛠️ GitHub Actions" },
+    { message = ".*", group = "<!-- 13 -->💼 Other", body = ".*" },
+    { message = ".*", group = "<!-- 13 -->💼 Other" },
 ]
 # filter out the commits that are not matched by commit parsers
 filter_commits = false

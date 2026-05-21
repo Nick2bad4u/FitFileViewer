@@ -54,9 +54,7 @@ describe("exportUtils print windows", () => {
         try {
             await exportUtils.printChart({ canvas: chartCanvas });
             const imageElement =
-                printDocument.querySelector<HTMLImageElement>(
-                    "#ffv-print-img"
-                );
+                printDocument.querySelector<HTMLImageElement>("#ffv-print-img");
             imageElement?.dispatchEvent(new Event("load"));
 
             expect(openSpy).toHaveBeenCalledWith(

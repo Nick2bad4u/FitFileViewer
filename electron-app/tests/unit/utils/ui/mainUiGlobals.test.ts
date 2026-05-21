@@ -48,20 +48,22 @@ function resetTestState(): void {
     mocks.setState.mockReset();
 }
 
-function createDependencies(validateElement: (id: string) => HTMLElement | null) {
+function createDependencies(
+    validateElement: (id: string) => HTMLElement | null
+) {
     return {
         cleanupEventListeners: vi.fn<() => void>(),
         constants: {
             DOM_IDS: { ALT_FIT_IFRAME: IFRAME_ID },
             IFRAME_PATHS: { ALT_FIT: IFRAME_PATH },
         },
-        renderChartJS: vi.fn<
-            (data: unknown, filePath: string, options?: unknown) => void
-        >(),
+        renderChartJS:
+            vi.fn<
+                (data: unknown, filePath: string, options?: unknown) => void
+            >(),
         showFitData: vi.fn<(fitData: unknown, filePath: string) => void>(),
-        validateElement: vi.fn<(id: string) => HTMLElement | null>(
-            validateElement
-        ),
+        validateElement:
+            vi.fn<(id: string) => HTMLElement | null>(validateElement),
     };
 }
 
@@ -127,9 +129,7 @@ describe("mainUiGlobals", () => {
 
         const result = await (
             globalThis as LegacyGlobals
-        ).sendFitFileToAltFitReader?.(
-            Uint8Array.from([65, 66]).buffer
-        );
+        ).sendFitFileToAltFitReader?.(Uint8Array.from([65, 66]).buffer);
 
         expect({ result }).toStrictEqual({ result: undefined });
         expect(postMessageSpy).toHaveBeenCalledWith(
@@ -182,9 +182,7 @@ describe("mainUiGlobals", () => {
 
         const result = await (
             globalThis as LegacyGlobals
-        ).sendFitFileToAltFitReader?.(
-            new ArrayBuffer(0)
-        );
+        ).sendFitFileToAltFitReader?.(new ArrayBuffer(0));
 
         expect({ result }).toStrictEqual({ result: undefined });
         expect(warnSpy).toHaveBeenCalledExactlyOnceWith(

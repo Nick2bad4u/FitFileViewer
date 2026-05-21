@@ -8,10 +8,27 @@
 export async function resolveChartRuntimeDependencies(input) {
     const themeConfig = await input.getThemeConfig();
     const convert = input.getConverters();
-    const { createChartCanvas: createChartCanvasSafe, createEnhancedChart: createEnhancedChartSafe, renderEventMessagesChart: renderEventMessagesChartSafe, renderGPSTimeChart: renderGPSTimeChartSafe, renderGPSTrackChart: renderGPSTrackChartSafe, renderLapZoneCharts: renderLapZoneChartsSafe, renderPerformanceAnalysisCharts: renderPerformanceAnalysisChartsSafe, renderTimeInZoneCharts: renderTimeInZoneChartsSafe, } = input.getRendererModules();
-    const { addChartHoverEffects: addChartHoverEffectsSafe, addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe, removeChartHoverEffects: removeChartHoverEffectsSafe, } = input.getHoverPlugins();
+    const {
+        createChartCanvas: createChartCanvasSafe,
+        createEnhancedChart: createEnhancedChartSafe,
+        renderEventMessagesChart: renderEventMessagesChartSafe,
+        renderGPSTimeChart: renderGPSTimeChartSafe,
+        renderGPSTrackChart: renderGPSTrackChartSafe,
+        renderLapZoneCharts: renderLapZoneChartsSafe,
+        renderPerformanceAnalysisCharts: renderPerformanceAnalysisChartsSafe,
+        renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
+    } = input.getRendererModules();
+    const {
+        addChartHoverEffects: addChartHoverEffectsSafe,
+        addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
+        removeChartHoverEffects: removeChartHoverEffectsSafe,
+    } = input.getHoverPlugins();
     const showRenderNotificationSafe = input.getShowRenderNotification();
-    const { getState: gs_rcwd, setState: ss_rcwd, updateState: us_rcwd, } = input.getStateManager();
+    const {
+        getState: gs_rcwd,
+        setState: ss_rcwd,
+        updateState: us_rcwd,
+    } = input.getStateManager();
     return {
         addChartHoverEffectsSafe,
         addHoverEffectsToExistingChartsSafe,

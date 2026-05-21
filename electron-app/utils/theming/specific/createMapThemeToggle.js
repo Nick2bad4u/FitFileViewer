@@ -5,7 +5,10 @@
  * theme while keeping the preference synchronized across map re-renders.
  */
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-import { getMapThemeSetting, setMapThemeSetting, } from "../../state/domain/settingsStateManager.js";
+import {
+    getMapThemeSetting,
+    setMapThemeSetting,
+} from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 function getMapThemeToggleGlobal() {
     return globalThis;
@@ -65,22 +68,38 @@ export function createMapThemeToggle() {
         // Update button appearance based on current state
         const updateButtonState = () => {
             try {
-                const isDarkMode = document.body.classList.contains("theme-dark");
+                const isDarkMode =
+                    document.body.classList.contains("theme-dark");
                 const isInverted = getMapThemeInverted();
                 const themeColors = getThemeColors();
                 const createIcon = (variant) => {
-                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    const svg = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "svg"
+                    );
                     svg.setAttribute("viewBox", "0 0 20 20");
                     svg.setAttribute("width", "18");
                     svg.setAttribute("height", "18");
                     svg.setAttribute("fill", "none");
                     svg.setAttribute("stroke", "currentcolor");
                     svg.setAttribute("stroke-width", "2");
-                    const stroke = getThemeColorValue(themeColors["primary"], "#3b82f6");
-                    const fill = getThemeColorValue(themeColors["surface"], "transparent");
+                    const stroke = getThemeColorValue(
+                        themeColors["primary"],
+                        "#3b82f6"
+                    );
+                    const fill = getThemeColorValue(
+                        themeColors["surface"],
+                        "transparent"
+                    );
                     if (variant === "moon") {
-                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                        path.setAttribute("d", "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z");
+                        const path = document.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "path"
+                        );
+                        path.setAttribute(
+                            "d",
+                            "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
+                        );
                         path.setAttribute("fill", fill);
                         path.setAttribute("stroke", stroke);
                         path.setAttribute("stroke-width", "2");
@@ -88,7 +107,10 @@ export function createMapThemeToggle() {
                         return svg;
                     }
                     // Sun icon
-                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    const circle = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "circle"
+                    );
                     circle.setAttribute("cx", "10");
                     circle.setAttribute("cy", "10");
                     circle.setAttribute("r", "5");
@@ -146,8 +168,16 @@ export function createMapThemeToggle() {
                             "4.22",
                         ],
                     ];
-                    for (const [x1, y1, x2, y2,] of rays) {
-                        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    for (const [
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                    ] of rays) {
+                        const line = document.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "line"
+                        );
                         line.setAttribute("x1", x1);
                         line.setAttribute("y1", y1);
                         line.setAttribute("x2", x2);
@@ -164,41 +194,53 @@ export function createMapThemeToggle() {
                     iconContainer.replaceChildren(createIcon("moon"));
                     button.title = "Map: Dark theme (click for light theme)";
                     button.classList.add("active");
-                }
-                else {
+                } else {
                     // Map is standard/light - show sun icon
                     iconContainer.replaceChildren(createIcon("sun"));
                     button.title = "Map: Light theme (click for dark theme)";
                     button.classList.remove("active");
                 }
                 if (!runningInTest) {
-                    console.debug(`[createMapThemeToggle] Button state updated - UI: ${isDarkMode ? "dark" : "light"}, Map: ${isInverted ? "dark" : "light"}`);
+                    console.debug(
+                        `[createMapThemeToggle] Button state updated - UI: ${isDarkMode ? "dark" : "light"}, Map: ${isInverted ? "dark" : "light"}`
+                    );
                 }
-            }
-            catch (error) {
-                console.error("[createMapThemeToggle] Error updating button state:", error);
+            } catch (error) {
+                console.error(
+                    "[createMapThemeToggle] Error updating button state:",
+                    error
+                );
             }
         };
         // Handle button click
         const listenerController = new AbortController();
-        button.addEventListener("click", () => {
-            try {
-                const currentInverted = getMapThemeInverted(), newInverted = !currentInverted;
-                setMapThemeInverted(newInverted);
-                updateButtonState();
-                // Apply the theme change immediately
-                if (appGlobal.updateMapTheme) {
-                    appGlobal.updateMapTheme();
+        button.addEventListener(
+            "click",
+            () => {
+                try {
+                    const currentInverted = getMapThemeInverted(),
+                        newInverted = !currentInverted;
+                    setMapThemeInverted(newInverted);
+                    updateButtonState();
+                    // Apply the theme change immediately
+                    if (appGlobal.updateMapTheme) {
+                        appGlobal.updateMapTheme();
+                    }
+                    const action = newInverted ? "dark" : "light";
+                    showNotification(`Map theme set to ${action}`, "success");
+                    console.log(
+                        `[createMapThemeToggle] Map theme toggled to: ${action}`
+                    );
+                } catch (error) {
+                    console.error(
+                        "[createMapThemeToggle] Error in button click:",
+                        error
+                    );
+                    showNotification("Failed to toggle map theme", "error");
                 }
-                const action = newInverted ? "dark" : "light";
-                showNotification(`Map theme set to ${action}`, "success");
-                console.log(`[createMapThemeToggle] Map theme toggled to: ${action}`);
-            }
-            catch (error) {
-                console.error("[createMapThemeToggle] Error in button click:", error);
-                showNotification("Failed to toggle map theme", "error");
-            }
-        }, { signal: listenerController.signal });
+            },
+            { signal: listenerController.signal }
+        );
         // Install global listeners once and register the updater for the currently-mounted toggle.
         // This avoids leaking document/body listeners when the map UI is re-rendered.
         ensureMapThemeToggleGlobalListenersInstalled();
@@ -209,9 +251,11 @@ export function createMapThemeToggle() {
         // Initial state update
         updateButtonState();
         return button;
-    }
-    catch (error) {
-        console.error("[createMapThemeToggle] Error creating map theme toggle:", error);
+    } catch (error) {
+        console.error(
+            "[createMapThemeToggle] Error creating map theme toggle:",
+            error
+        );
         showNotification("Failed to create map theme toggle", "error");
         return document.createElement("div"); // Return empty div as fallback
     }
@@ -225,9 +269,11 @@ export function getMapThemeInverted() {
     try {
         // Prefer the canonical settings manager (still backed by localStorage).
         return getMapThemeSetting();
-    }
-    catch (error) {
-        console.error("[createMapThemeToggle] Error reading map theme preference:", error);
+    } catch (error) {
+        console.error(
+            "[createMapThemeToggle] Error reading map theme preference:",
+            error
+        );
         return true; // Default to dark map
     }
 }
@@ -246,10 +292,14 @@ export function setMapThemeInverted(inverted) {
             detail: { inverted },
         });
         document.dispatchEvent(event);
-        console.log(`[createMapThemeToggle] Map theme inversion set to: ${inverted}`);
-    }
-    catch (error) {
-        console.error("[createMapThemeToggle] Error saving map theme preference:", error);
+        console.log(
+            `[createMapThemeToggle] Map theme inversion set to: ${inverted}`
+        );
+    } catch (error) {
+        console.error(
+            "[createMapThemeToggle] Error saving map theme preference:",
+            error
+        );
         showNotification("Failed to save map theme preference", "error");
     }
 }
@@ -272,8 +322,7 @@ function ensureMapThemeToggleGlobalListenersInstalled() {
             if (typeof fn === "function") {
                 fn();
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
     };

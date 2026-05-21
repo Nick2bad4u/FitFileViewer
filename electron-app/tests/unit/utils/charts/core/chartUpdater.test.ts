@@ -18,9 +18,7 @@ const clearChartStateMock = vi.hoisted(() => vi.fn<() => void>());
 const debouncedRenderMock = vi.hoisted(() =>
     vi.fn<(reason?: string) => void>()
 );
-const forceRenderMock = vi.hoisted(() =>
-    vi.fn<(reason?: string) => void>()
-);
+const forceRenderMock = vi.hoisted(() => vi.fn<(reason?: string) => void>());
 const getChartInfoMock = vi.hoisted(() => vi.fn<() => object>());
 const handleThemeChangeMock = vi.hoisted(() =>
     vi.fn<(theme?: string) => void>()
@@ -39,10 +37,13 @@ const renderChartJSMock = vi.hoisted(() =>
     vi.fn<(container?: HTMLElement | null) => Promise<boolean>>()
 );
 
-vi.mock(import("../../../../../utils/charts/core/chartStateManager.js"), () => ({
-    chartStateManager: chartStateManagerMock,
-    default: chartStateManagerMock,
-}));
+vi.mock(
+    import("../../../../../utils/charts/core/chartStateManager.js"),
+    () => ({
+        chartStateManager: chartStateManagerMock,
+        default: chartStateManagerMock,
+    })
+);
 
 vi.mock(import("../../../../../utils/charts/core/renderChartJS.js"), () => ({
     renderChartJS: renderChartJSMock,

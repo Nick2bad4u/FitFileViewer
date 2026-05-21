@@ -1,4 +1,7 @@
-import { getEffectiveAccentColor, setAccentColor, } from "../theming/core/accentColor.js";
+import {
+    getEffectiveAccentColor,
+    setAccentColor,
+} from "../theming/core/accentColor.js";
 import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
 const COLOR_PRESETS = [
     { color: "#3b82f6", name: "Blue-tiful" },
@@ -20,7 +23,10 @@ function createPaletteIcon() {
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z");
+    path.setAttribute(
+        "d",
+        "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+    );
     path.setAttribute("fill", "currentColor");
     const circle = document.createElementNS(SVG_NS, "circle");
     circle.setAttribute("cx", "12");
@@ -45,7 +51,10 @@ function createSettingsIcon() {
     circlePath.setAttribute("stroke-linecap", "round");
     circlePath.setAttribute("stroke-linejoin", "round");
     const gearPath = document.createElementNS(SVG_NS, "path");
-    gearPath.setAttribute("d", "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z");
+    gearPath.setAttribute(
+        "d",
+        "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+    );
     gearPath.setAttribute("stroke", "currentColor");
     gearPath.setAttribute("stroke-width", "2");
     gearPath.setAttribute("stroke-linecap", "round");
@@ -108,7 +117,10 @@ function createSwitcherDropdown(currentColor) {
     settingsButton.id = "open-full-settings";
     settingsButton.type = "button";
     settingsButton.title = "Advanced color settings";
-    settingsButton.append(createSettingsIcon(), document.createTextNode("More Options"));
+    settingsButton.append(
+        createSettingsIcon(),
+        document.createTextNode("More Options")
+    );
     footer.append(settingsButton);
     dropdown.append(header, grid, footer);
     return dropdown;
@@ -136,8 +148,7 @@ export function initQuickColorSwitcher() {
  */
 export function updateSwitcherActiveColor(color) {
     const switcher = document.getElementById(SWITCHER_ID);
-    if (!switcher)
-        return;
+    if (!switcher) return;
     const colorOptions = switcher.querySelectorAll(".color-option");
     for (const option of colorOptions) {
         option.classList.toggle("active", option.dataset["color"] === color);
@@ -386,46 +397,62 @@ function setupSwitcherListeners(switcher) {
     const colorOptions = switcher.querySelectorAll(".color-option");
     const settingsBtn = switcher.querySelector("#open-full-settings");
     if (toggle) {
-        toggle.addEventListener("click", (e) => {
-            e.stopPropagation();
-            dropdown?.classList.toggle("open");
-        }, { signal: listenerController.signal });
+        toggle.addEventListener(
+            "click",
+            (e) => {
+                e.stopPropagation();
+                dropdown?.classList.toggle("open");
+            },
+            { signal: listenerController.signal }
+        );
     }
     // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-        if (e.target instanceof Node && !switcher.contains(e.target)) {
-            dropdown?.classList.remove("open");
-        }
-    }, { signal: listenerController.signal });
+    document.addEventListener(
+        "click",
+        (e) => {
+            if (e.target instanceof Node && !switcher.contains(e.target)) {
+                dropdown?.classList.remove("open");
+            }
+        },
+        { signal: listenerController.signal }
+    );
     // Color option click
     for (const option of colorOptions) {
-        option.addEventListener("click", () => {
-            const color = option.dataset["color"];
-            if (color) {
-                const currentTheme = loadTheme();
-                const effectiveTheme = getEffectiveTheme(currentTheme);
-                setAccentColor(color, effectiveTheme);
-                // Update active state
-                for (const opt of colorOptions) {
-                    opt.classList.remove("active");
+        option.addEventListener(
+            "click",
+            () => {
+                const color = option.dataset["color"];
+                if (color) {
+                    const currentTheme = loadTheme();
+                    const effectiveTheme = getEffectiveTheme(currentTheme);
+                    setAccentColor(color, effectiveTheme);
+                    // Update active state
+                    for (const opt of colorOptions) {
+                        opt.classList.remove("active");
+                    }
+                    option.classList.add("active");
+                    // Close dropdown after short delay
+                    if (state.closeTimer) {
+                        clearTimeout(state.closeTimer);
+                    }
+                    state.closeTimer = setTimeout(() => {
+                        state.closeTimer = null;
+                        dropdown?.classList.remove("open");
+                    }, SWITCHER_CLOSE_DELAY_MS);
                 }
-                option.classList.add("active");
-                // Close dropdown after short delay
-                if (state.closeTimer) {
-                    clearTimeout(state.closeTimer);
-                }
-                state.closeTimer = setTimeout(() => {
-                    state.closeTimer = null;
-                    dropdown?.classList.remove("open");
-                }, SWITCHER_CLOSE_DELAY_MS);
-            }
-        }, { signal: listenerController.signal });
+            },
+            { signal: listenerController.signal }
+        );
     }
     // Open full settings modal
     if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            void openSettingsModal(dropdown);
-        }, { signal: listenerController.signal });
+        settingsBtn.addEventListener(
+            "click",
+            () => {
+                void openSettingsModal(dropdown);
+            },
+            { signal: listenerController.signal }
+        );
     }
 }
 async function openSettingsModal(dropdown) {

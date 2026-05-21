@@ -60,7 +60,9 @@ const AUX_HEART_RATE_HINTS = [
     "heart_rate_4",
     "heartRate4",
 ];
-const AUX_HINTS_NORMALIZED = new Set(AUX_HEART_RATE_HINTS.map((key) => normalizeKey(key)));
+const AUX_HINTS_NORMALIZED = new Set(
+    AUX_HEART_RATE_HINTS.map((key) => normalizeKey(key))
+);
 function normalizeKey(key) {
     return String(key)
         .toLowerCase()
@@ -108,22 +110,29 @@ function isAuxHeartRateKeyCandidate(key) {
     if (AUX_HINTS_NORMALIZED.has(normalized)) {
         return true;
     }
-    if (PRIMARY_HEART_RATE_KEYS.has(key) ||
-        PRIMARY_HEART_RATE_KEYS.has(normalized)) {
+    if (
+        PRIMARY_HEART_RATE_KEYS.has(key) ||
+        PRIMARY_HEART_RATE_KEYS.has(normalized)
+    ) {
         return false;
     }
-    if (EXCLUDED_HEART_RATE_KEYS.has(key) ||
-        EXCLUDED_HEART_RATE_KEYS.has(normalized)) {
+    if (
+        EXCLUDED_HEART_RATE_KEYS.has(key) ||
+        EXCLUDED_HEART_RATE_KEYS.has(normalized)
+    ) {
         return false;
     }
     const lower = key.toLowerCase();
     const hasHeartRate = /heart\s*rate/iu.test(lower);
     const hasHrToken = /\bhr\b/iu.test(lower) || /hrm/iu.test(lower);
-    const hasAuxQualifier = /(aux|auxiliary|external|secondary|strap|chest)/iu.test(lower);
+    const hasAuxQualifier =
+        /(aux|auxiliary|external|secondary|strap|chest)/iu.test(lower);
     const hasNumericSuffix = /(heart\s*rate|hr)[^0-9]*\d/iu.test(lower);
-    return ((hasHeartRate && hasAuxQualifier) ||
+    return (
+        (hasHeartRate && hasAuxQualifier) ||
         (hasHeartRate && hasNumericSuffix) ||
-        (hasHrToken && hasAuxQualifier));
+        (hasHrToken && hasAuxQualifier)
+    );
 }
 function countNumericValues(recordMesgs, key) {
     let count = 0;
@@ -176,29 +185,37 @@ function scanRecordKeysForAuxHeartRate(recordMesgs) {
     return { count: bestCount, key: bestKey };
 }
 function normalizeFieldDescription(message) {
-    const fieldNameCandidate = message["field_name"] ??
+    const fieldNameCandidate =
+        message["field_name"] ??
         message["fieldName"] ??
         message["field"] ??
         message["name"] ??
         message["field_description"] ??
         message["fieldDescription"];
-    const fieldDefinitionNumberCandidate = message["field_definition_number"] ??
+    const fieldDefinitionNumberCandidate =
+        message["field_definition_number"] ??
         message["fieldDefinitionNumber"] ??
         message["field_def_number"] ??
         message["fieldDefNumber"] ??
         message["field_definition_num"] ??
         message["fieldDefinitionNum"];
-    const developerDataIndexCandidate = message["developer_data_index"] ??
+    const developerDataIndexCandidate =
+        message["developer_data_index"] ??
         message["developerDataIndex"] ??
         message["developer_data_id"] ??
         message["developerDataId"];
-    const fieldName = typeof fieldNameCandidate === "string" && fieldNameCandidate.trim()
-        ? fieldNameCandidate.trim()
-        : null;
-    const fieldDefinitionNumber = Number.isFinite(Number(fieldDefinitionNumberCandidate))
+    const fieldName =
+        typeof fieldNameCandidate === "string" && fieldNameCandidate.trim()
+            ? fieldNameCandidate.trim()
+            : null;
+    const fieldDefinitionNumber = Number.isFinite(
+        Number(fieldDefinitionNumberCandidate)
+    )
         ? String(fieldDefinitionNumberCandidate)
         : null;
-    const developerDataIndex = Number.isFinite(Number(developerDataIndexCandidate))
+    const developerDataIndex = Number.isFinite(
+        Number(developerDataIndexCandidate)
+    )
         ? String(developerDataIndexCandidate)
         : null;
     return { developerDataIndex, fieldDefinitionNumber, fieldName };
@@ -211,13 +228,16 @@ function resolveAuxDeveloperField(fieldDescriptionMesgs) {
         if (!isDataRecord(message)) {
             continue;
         }
-        const { fieldName, fieldDefinitionNumber, developerDataIndex } = normalizeFieldDescription(message);
+        const { fieldName, fieldDefinitionNumber, developerDataIndex } =
+            normalizeFieldDescription(message);
         if (!fieldName || !fieldDefinitionNumber) {
             continue;
         }
         const lowerName = fieldName.toLowerCase();
-        const hasHeartRate = /heart\s*rate/iu.test(lowerName) || /\bhr\b/iu.test(lowerName);
-        const hasAuxQualifier = /(aux|auxiliary|external|secondary|strap|chest)/iu.test(lowerName);
+        const hasHeartRate =
+            /heart\s*rate/iu.test(lowerName) || /\bhr\b/iu.test(lowerName);
+        const hasAuxQualifier =
+            /(aux|auxiliary|external|secondary|strap|chest)/iu.test(lowerName);
         if (!hasHeartRate || !hasAuxQualifier) {
             continue;
         }
@@ -245,12 +265,10 @@ function getDeveloperFieldValue(row, fieldIds) {
         try {
             const parsed = JSON.parse(devFieldValue);
             devFields = isDataRecord(parsed) ? parsed : null;
-        }
-        catch {
+        } catch {
             devFields = null;
         }
-    }
-    else if (isDataRecord(devFieldValue)) {
+    } else if (isDataRecord(devFieldValue)) {
         devFields = devFieldValue;
     }
     if (!devFields) {
@@ -282,17 +300,23 @@ function getDeveloperFieldValue(row, fieldIds) {
  *
  * @returns The resolved auxiliary heart rate source.
  */
-export function resolveAuxHeartRateResolution(recordMesgs, fieldDescriptionMesgs = []) {
+export function resolveAuxHeartRateResolution(
+    recordMesgs,
+    fieldDescriptionMesgs = []
+) {
     if (recordMesgs.length === 0) {
         return { source: "none" };
     }
     const cached = AUX_HEART_RATE_CACHE.get(recordMesgs);
-    if (cached &&
+    if (
+        cached &&
         (!fieldDescriptionMesgs.length ||
-            cached.fieldDescriptionMesgs === fieldDescriptionMesgs)) {
+            cached.fieldDescriptionMesgs === fieldDescriptionMesgs)
+    ) {
         return cached.resolution;
     }
-    const { key: candidateKey, count } = scanRecordKeysForAuxHeartRate(recordMesgs);
+    const { key: candidateKey, count } =
+        scanRecordKeysForAuxHeartRate(recordMesgs);
     if (candidateKey && count > 0) {
         const resolution = {
             fieldKey: candidateKey,
@@ -306,7 +330,10 @@ export function resolveAuxHeartRateResolution(recordMesgs, fieldDescriptionMesgs
     }
     const developerFieldMatch = resolveAuxDeveloperField(fieldDescriptionMesgs);
     if (developerFieldMatch?.fieldIds.length) {
-        const devCount = countDeveloperFieldValues(recordMesgs, developerFieldMatch.fieldIds);
+        const devCount = countDeveloperFieldValues(
+            recordMesgs,
+            developerFieldMatch.fieldIds
+        );
         if (devCount > 0) {
             const resolution = {
                 developerFieldIds: developerFieldMatch.fieldIds,
@@ -364,14 +391,20 @@ export function getAuxHeartRateValue(row, options = {}) {
             }
         }
     }
-    const resolution = options.resolution ??
-        resolveAuxHeartRateResolution(options.recordMesgs ?? [], options.fieldDescriptionMesgs ?? []);
+    const resolution =
+        options.resolution ??
+        resolveAuxHeartRateResolution(
+            options.recordMesgs ?? [],
+            options.fieldDescriptionMesgs ?? []
+        );
     if (resolution.source === "recordKey" && resolution.fieldKey) {
         const value = row[resolution.fieldKey];
         return isNumericValue(value) ? Number(value) : null;
     }
-    if (resolution.source === "developerField" &&
-        Array.isArray(resolution.developerFieldIds)) {
+    if (
+        resolution.source === "developerField" &&
+        Array.isArray(resolution.developerFieldIds)
+    ) {
         return getDeveloperFieldValue(row, resolution.developerFieldIds);
     }
     return null;
@@ -383,7 +416,10 @@ export function getAuxHeartRateValue(row, options = {}) {
  *
  * @returns Summary of whether values were applied.
  */
-export function applyAuxHeartRateToRecords({ recordMesgs, fieldDescriptionMesgs = [], }) {
+export function applyAuxHeartRateToRecords({
+    recordMesgs,
+    fieldDescriptionMesgs = [],
+}) {
     if (recordMesgs.length === 0) {
         return {
             applied: false,
@@ -391,7 +427,10 @@ export function applyAuxHeartRateToRecords({ recordMesgs, fieldDescriptionMesgs 
             valuesFound: 0,
         };
     }
-    const resolution = resolveAuxHeartRateResolution(recordMesgs, fieldDescriptionMesgs);
+    const resolution = resolveAuxHeartRateResolution(
+        recordMesgs,
+        fieldDescriptionMesgs
+    );
     if (resolution.source === "none") {
         return { applied: false, resolution, valuesFound: 0 };
     }

@@ -1,41 +1,34 @@
 import { describe, expect, it, vi } from "vitest";
 
-type SetupWindowModule = typeof import("../../../../utils/app/initialization/setupWindow.js");
+type SetupWindowModule =
+    typeof import("../../../../utils/app/initialization/setupWindow.js");
 
 const mocks = vi.hoisted(() => ({
     applyTheme: vi.fn<(theme: string, withTransition?: boolean) => void>(),
     chartStateCleanup: vi.fn<() => void>(),
     chartTabCleanup: vi.fn<() => void>(),
     chartTabInitialize: vi.fn<() => void>(),
-    listenForThemeChange: vi.fn<
-        (onThemeChange: (theme: string) => void) => void
-    >(),
+    listenForThemeChange:
+        vi.fn<(onThemeChange: (theme: string) => void) => void>(),
     setupTheme: vi.fn<() => Promise<"dark">>(() => Promise.resolve("dark")),
-    showNotification: vi.fn<
-        (message: string, type: string, duration?: number) => void
-    >(),
+    showNotification:
+        vi.fn<(message: string, type: string, duration?: number) => void>(),
     tabStateCleanup: vi.fn<() => void>(),
     tabSwitchToTab: vi.fn<(tabId: string) => void>(),
 }));
 
-vi.mock(
-    import("../../../../utils/charts/core/chartStateManager.js"),
-    () => ({
-        chartStateManager: {
-            cleanup: mocks.chartStateCleanup,
-        },
-    })
-);
+vi.mock(import("../../../../utils/charts/core/chartStateManager.js"), () => ({
+    chartStateManager: {
+        cleanup: mocks.chartStateCleanup,
+    },
+}));
 
-vi.mock(
-    import("../../../../utils/charts/core/chartTabIntegration.js"),
-    () => ({
-        chartTabIntegration: {
-            cleanup: mocks.chartTabCleanup,
-            initialize: mocks.chartTabInitialize,
-        },
-    })
-);
+vi.mock(import("../../../../utils/charts/core/chartTabIntegration.js"), () => ({
+    chartTabIntegration: {
+        cleanup: mocks.chartTabCleanup,
+        initialize: mocks.chartTabInitialize,
+    },
+}));
 
 vi.mock(import("../../../../utils/theming/core/setupTheme.js"), () => ({
     setupTheme: mocks.setupTheme,

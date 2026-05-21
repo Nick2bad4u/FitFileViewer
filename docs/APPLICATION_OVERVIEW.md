@@ -125,16 +125,16 @@ The preload script exposes a constrained API (all methods validate their argumen
 
 ## IPC Reference (selected)
 
-| Channel/Event                                                 | Direction        | Description                                                  |
-| ------------------------------------------------------------- | ---------------- | ------------------------------------------------------------ |
-| `dialog:openFile`                                             | renderer → main  | Open file picker filtered to FIT files                       |
-| `file:read`                                                   | renderer → main  | Read file contents into ArrayBuffer                          |
-| `fit:parse`, `fit:decode`                                     | renderer → main  | Decode FIT data via shared parser                            |
+| Channel/Event                                                 | Direction       | Description                                                  |
+| ------------------------------------------------------------- | --------------- | ------------------------------------------------------------ |
+| `dialog:openFile`                                             | renderer → main | Open file picker filtered to FIT files                       |
+| `file:read`                                                   | renderer → main | Read file contents into ArrayBuffer                          |
+| `fit:parse`, `fit:decode`                                     | renderer → main | Decode FIT data via shared parser                            |
 | `recentFiles:get`, `recentFiles:add`                          | renderer ↔ main | Manage recent file list                                      |
-| `theme:get`, `map-tab:get`                                    | renderer → main  | Retrieve persisted settings                                  |
-| `shell:openExternal`                                          | renderer → main  | Open external URLs                                           |
-| `menu-open-file`, `open-recent-file`, `theme-changed`         | main → renderer  | Menu-driven actions forwarded through preload event handlers |
-| Update events (`update-available`, `update-downloaded`, etc.) | main → renderer  | Auto-updater status notifications                            |
+| `theme:get`, `map-tab:get`                                    | renderer → main | Retrieve persisted settings                                  |
+| `shell:openExternal`                                          | renderer → main | Open external URLs                                           |
+| `menu-open-file`, `open-recent-file`, `theme-changed`         | main → renderer | Menu-driven actions forwarded through preload event handlers |
+| Update events (`update-available`, `update-downloaded`, etc.) | main → renderer | Auto-updater status notifications                            |
 
 Refer to `preload.js` and `main.js` for the full set of channels and event names.
 

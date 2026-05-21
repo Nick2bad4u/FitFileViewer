@@ -4,12 +4,14 @@
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
 function isDocumentLike(candidate) {
-    return (candidate !== null &&
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "getElementById" in candidate &&
         typeof candidate.getElementById === "function" &&
         "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function");
+        typeof candidate.querySelectorAll === "function"
+    );
 }
 function isRecord(candidate) {
     return candidate !== null && typeof candidate === "object";
@@ -25,12 +27,13 @@ export function getDoc() {
     const candidates = [];
     // Canonical Vitest document (preferred)
     try {
-        if (typeof __vitest_effective_document__ !== "undefined" &&
-            __vitest_effective_document__) {
+        if (
+            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__
+        ) {
             candidates.push(__vitest_effective_document__);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Local realm document (JSDOM/Electron)
@@ -38,19 +41,19 @@ export function getDoc() {
         if (typeof document !== "undefined" && document) {
             candidates.push(document);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     // Global document (other realms)
     try {
-        if (typeof globalThis !== "undefined" &&
+        if (
+            typeof globalThis !== "undefined" &&
             "document" in globalThis &&
-            globalThis.document) {
+            globalThis.document
+        ) {
             candidates.push(globalThis.document);
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
     for (const candidate of candidates) {
@@ -71,39 +74,44 @@ export function getDoc() {
  */
 export function getStateMgr() {
     try {
-        const getState = typeof __StateMgr.getState === "function"
-            ? __StateMgr.getState
-            : undefined;
-        const setState = typeof __StateMgr.setState === "function"
-            ? __StateMgr.setState
-            : undefined;
-        const subscribe = typeof __StateMgr.subscribe === "function"
-            ? __StateMgr.subscribe
-            : undefined;
+        const getState =
+            typeof __StateMgr.getState === "function"
+                ? __StateMgr.getState
+                : undefined;
+        const setState =
+            typeof __StateMgr.setState === "function"
+                ? __StateMgr.setState
+                : undefined;
+        const subscribe =
+            typeof __StateMgr.subscribe === "function"
+                ? __StateMgr.subscribe
+                : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     try {
-        const eff = typeof __vitest_effective_stateManager__ !== "undefined" &&
+        const eff =
+            typeof __vitest_effective_stateManager__ !== "undefined" &&
             __vitest_effective_stateManager__;
         if (isRecord(eff)) {
-            const getState = typeof eff["getState"] === "function"
-                ? eff["getState"]
-                : __StateMgr.getState;
-            const setState = typeof eff["setState"] === "function"
-                ? eff["setState"]
-                : __StateMgr.setState;
-            const subscribe = typeof eff["subscribe"] === "function"
-                ? eff["subscribe"]
-                : __StateMgr.subscribe;
+            const getState =
+                typeof eff["getState"] === "function"
+                    ? eff["getState"]
+                    : __StateMgr.getState;
+            const setState =
+                typeof eff["setState"] === "function"
+                    ? eff["setState"]
+                    : __StateMgr.setState;
+            const subscribe =
+                typeof eff["subscribe"] === "function"
+                    ? eff["subscribe"]
+                    : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     return {

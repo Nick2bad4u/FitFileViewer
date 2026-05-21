@@ -16,23 +16,40 @@ function getChartInstanceCount(chartGlobal) {
  * @returns Render success and elapsed render time.
  */
 export async function executePreparedChartRender(dependencies, input, options) {
-    touchRendererModulesForTest({
-        createElement: dependencies.createElement,
-        getRendererModules: dependencies.getRendererModules,
-        isTestEnvironment: dependencies.isTestEnvironment,
-    }, input.recordMesgs, input.activityStartTime);
-    const success = await runChartRender({
-        renderChartsWithData: dependencies.renderChartsWithData,
-        warn: dependencies.warn,
-    }, input.targetContainer, input.recordMesgs, input.activityStartTime, {
-        skipControls: options.skipControls,
-        skipTabAbort: options.skipTabAbort || options.allowInactiveTab,
-    });
+    touchRendererModulesForTest(
+        {
+            createElement: dependencies.createElement,
+            getRendererModules: dependencies.getRendererModules,
+            isTestEnvironment: dependencies.isTestEnvironment,
+        },
+        input.recordMesgs,
+        input.activityStartTime
+    );
+    const success = await runChartRender(
+        {
+            renderChartsWithData: dependencies.renderChartsWithData,
+            warn: dependencies.warn,
+        },
+        input.targetContainer,
+        input.recordMesgs,
+        input.activityStartTime,
+        {
+            skipControls: options.skipControls,
+            skipTabAbort: options.skipTabAbort || options.allowInactiveTab,
+        }
+    );
     const renderTime = dependencies.now() - input.performanceStart;
-    console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
-    completeChartRendering({
-        getGlobalChartActions: dependencies.getGlobalChartActions,
-        safeCompleteRendering: dependencies.safeCompleteRendering,
-    }, success, getChartInstanceCount(dependencies.chartGlobal), renderTime);
+    console.log(
+        `[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`
+    );
+    completeChartRendering(
+        {
+            getGlobalChartActions: dependencies.getGlobalChartActions,
+            safeCompleteRendering: dependencies.safeCompleteRendering,
+        },
+        success,
+        getChartInstanceCount(dependencies.chartGlobal),
+        renderTime
+    );
     return { renderTime, success };
 }

@@ -5,11 +5,12 @@ const SPEED_CONVERSIONS = {
 /**
  * Converts speed from meters per second to kilometers per hour.
  *
- * @example
- *     const speedKmh = convertMpsToKmh(5); // 18
+ * @example Const speedKmh = convertMpsToKmh(5); // 18
  *
  * @param mps - Speed in meters per second.
+ *
  * @returns Speed in kilometers per hour.
+ *
  * @throws TypeError If mps is not a number or is NaN.
  */
 export function convertMpsToKmh(mps: unknown): number {

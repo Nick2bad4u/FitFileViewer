@@ -11,6 +11,7 @@
  * @param url - URL to fetch.
  * @param timeoutMs - Timeout in milliseconds.
  * @param init - Optional fetch init.
+ *
  * @returns The fetch response.
  */
 export async function fetchWithTimeout(
@@ -19,7 +20,9 @@ export async function fetchWithTimeout(
     init: RequestInit = {}
 ): Promise<Response> {
     const controller =
-        typeof AbortController === "undefined" ? undefined : new AbortController();
+        typeof AbortController === "undefined"
+            ? undefined
+            : new AbortController();
     const timeoutId =
         controller === undefined
             ? undefined
@@ -47,6 +50,7 @@ export async function fetchWithTimeout(
  * Check whether an unknown error value is a DOM abort error.
  *
  * @param error - Error-like value to inspect.
+ *
  * @returns True when the value has `name: "AbortError"`.
  */
 export function isAbortError(error: unknown): boolean {
@@ -63,6 +67,7 @@ export function isAbortError(error: unknown): boolean {
  *
  * @param value - Text to truncate.
  * @param maxLength - Maximum number of characters to retain.
+ *
  * @returns Truncated text, or an empty string for non-string input.
  */
 export function truncateErrorText(

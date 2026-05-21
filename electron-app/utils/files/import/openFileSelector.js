@@ -37,18 +37,26 @@ export async function openFileSelector() {
                 return;
             }
             const facadeFiles = selectedPaths
-                .filter((filePath) => typeof filePath === "string" &&
-                filePath.trim().length > 0)
+                .filter(
+                    (filePath) =>
+                        typeof filePath === "string" &&
+                        filePath.trim().length > 0
+                )
                 .map((filePath) => createNativeFileFacade(filePath));
             if (facadeFiles.length === 0) {
                 return;
             }
             await loadOverlayFiles(facadeFiles);
             return;
-        }
-        catch (error) {
-            console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error);
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error
+            );
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
             LoadingOverlay.hide();
             return;
         }
@@ -57,10 +65,15 @@ export async function openFileSelector() {
         const input = createFileInput();
         const controller = setupFileInputHandler(input);
         await triggerFileSelection(input, controller);
-    }
-    catch (error) {
-        console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error);
-        showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+    } catch (error) {
+        console.error(
+            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+            error
+        );
+        showNotification(
+            FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+            "error"
+        );
         LoadingOverlay.hide();
     }
 }
@@ -74,7 +87,8 @@ function createFileInput() {
     const input = document.createElement("input");
     // In JSDOM tests, setting type="file" can make the `files` property non-configurable,
     // Which prevents tests from redefining it. Detect JSDOM and skip setting type there.
-    const isJsdom = typeof navigator !== "undefined" &&
+    const isJsdom =
+        typeof navigator !== "undefined" &&
         /jsdom/i.test(navigator.userAgent || "");
     if (!isJsdom) {
         input.type = FILE_SELECTOR_CONFIG.INPUT_TYPE;
@@ -92,7 +106,7 @@ function createFileInput() {
 function createInputProcessingController(input) {
     let handled = false;
     const abortController = new AbortController();
-    let resolveDone = () => { };
+    let resolveDone = () => {};
     const done = new Promise((resolve) => {
         resolveDone = resolve;
     });
@@ -111,12 +125,17 @@ function createInputProcessingController(input) {
         PROCESSED_INPUTS.add(input);
         try {
             await handleFilesFromInput(input);
-        }
-        catch (error) {
-            console.error(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`, error, `(source: ${origin})`);
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-        }
-        finally {
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error,
+                `(source: ${origin})`
+            );
+            showNotification(
+                FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED,
+                "error"
+            );
+        } finally {
             LoadingOverlay.hide();
             finalize();
         }
@@ -162,11 +181,15 @@ async function handleFilesFromInput(input) {
         }
     }
     if (unique.length === 0) {
-        console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`);
+        console.debug(
+            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`
+        );
         return;
     }
     const fileArray = unique;
-    console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
+    console.debug(
+        `${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`
+    );
     // Support test-time injection via window.loadOverlayFiles
     const loader = resolveOverlayFilesLoader();
     await loader(fileArray);
@@ -190,11 +213,15 @@ function resolveOverlayFilesLoader() {
 }
 function setupFileInputHandler(input) {
     const controller = createInputProcessingController(input);
-    input.addEventListener("change", () => {
-        controller.run("change").catch(() => {
-            // Errors are surfaced via showNotification; suppress unhandled rejection.
-        });
-    }, { signal: controller.signal });
+    input.addEventListener(
+        "change",
+        () => {
+            controller.run("change").catch(() => {
+                // Errors are surfaced via showNotification; suppress unhandled rejection.
+            });
+        },
+        { signal: controller.signal }
+    );
     return controller;
 }
 /**
@@ -205,8 +232,7 @@ async function triggerFileSelection(input, controller) {
     document.body.append(input);
     try {
         input.click();
-    }
-    finally {
+    } finally {
         queueMicrotask(() => {
             controller.run("microtask").catch(() => {
                 /* handled in controller */
@@ -217,10 +243,16 @@ async function triggerFileSelection(input, controller) {
             const clearScheduledTimeout = () => {
                 globalThis.clearTimeout(timeoutHandle);
                 timeoutCleanupController.abort();
-                controller.signal.removeEventListener("abort", clearScheduledTimeout);
+                controller.signal.removeEventListener(
+                    "abort",
+                    clearScheduledTimeout
+                );
             };
             const timeoutHandle = globalThis.setTimeout(() => {
-                controller.signal.removeEventListener("abort", clearScheduledTimeout);
+                controller.signal.removeEventListener(
+                    "abort",
+                    clearScheduledTimeout
+                );
                 controller.run("timeout").catch(() => {
                     /* handled in controller */
                 });

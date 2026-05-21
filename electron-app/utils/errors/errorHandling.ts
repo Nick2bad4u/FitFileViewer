@@ -220,12 +220,12 @@ export function createErrorHandler<Fallback = null>(
             console[config.logLevel](`[ErrorHandler] ${message}`, err);
         }
 
-        if (
-            config.notify &&
-            typeof globalRef.showNotification === "function"
-        ) {
+        if (config.notify && typeof globalRef.showNotification === "function") {
             try {
-                globalRef.showNotification(err.message, config.notificationType);
+                globalRef.showNotification(
+                    err.message,
+                    config.notificationType
+                );
             } catch (notificationError) {
                 console.warn(
                     "[ErrorHandler] Failed to show notification:",
@@ -296,14 +296,20 @@ export function validateInput<T = unknown>(
 /**
  * Wrap a sync or async function with standardized error handling.
  */
-export function withErrorHandling<Args extends unknown[], Result, Fallback = null>(
+export function withErrorHandling<
+    Args extends unknown[],
+    Result,
+    Fallback = null,
+>(
     fn: (...args: Args) => MaybePromise<Result>,
     options: ErrorHandlingOptions<Fallback> = {}
 ): (...args: Args) => MaybePromise<Fallback | Result> {
     const handleError = createErrorHandler(options);
     const functionName = fn.name || "anonymous";
 
-    return function wrappedFunction(...args: Args): MaybePromise<Fallback | Result> {
+    return function wrappedFunction(
+        ...args: Args
+    ): MaybePromise<Fallback | Result> {
         try {
             const result = fn(...args);
 
@@ -345,7 +351,10 @@ export const validators = {
         };
     },
 
-    isNonEmptyString(value: unknown, fieldName: string): ValidatorResult<string> {
+    isNonEmptyString(
+        value: unknown,
+        fieldName: string
+    ): ValidatorResult<string> {
         const isString = typeof value === "string";
         const trimmedValue = isString ? value.trim() : String(value).trim();
 
@@ -360,7 +369,10 @@ export const validators = {
         };
     },
 
-    isPositiveNumber(value: unknown, fieldName: string): ValidatorResult<number> {
+    isPositiveNumber(
+        value: unknown,
+        fieldName: string
+    ): ValidatorResult<number> {
         const isNumber = typeof value === "number";
         const isFiniteNumber = isNumber && Number.isFinite(value);
         const isValid = isFiniteNumber && value > 0;
@@ -393,7 +405,9 @@ export const validators = {
 /**
  * Initialize browser-level global error logging hooks.
  */
-export function initializeErrorHandling(_options: Record<string, never> = {}): void {
+export function initializeErrorHandling(
+    _options: Record<string, never> = {}
+): void {
     if (typeof globalRef.addEventListener === "function") {
         globalErrorListenerAbortController?.abort();
         globalErrorListenerAbortController = new AbortController();
@@ -401,12 +415,16 @@ export function initializeErrorHandling(_options: Record<string, never> = {}): v
             signal: globalErrorListenerAbortController.signal,
         };
 
-        globalRef.addEventListener("error", (event: ErrorEvent) => {
-            logError(event.error ?? new Error(event.message), {
-                operation: "global-error-handler",
-                path: `${event.filename}:${event.lineno}:${event.colno}`,
-            });
-        }, listenerOptions);
+        globalRef.addEventListener(
+            "error",
+            (event: ErrorEvent) => {
+                logError(event.error ?? new Error(event.message), {
+                    operation: "global-error-handler",
+                    path: `${event.filename}:${event.lineno}:${event.colno}`,
+                });
+            },
+            listenerOptions
+        );
 
         globalRef.addEventListener(
             "unhandledrejection",
@@ -476,7 +494,8 @@ export function makeResilient<Args extends unknown[], Result, Fallback>(
 }
 
 /**
- * Create a fail-safe function wrapper that returns null when the function fails.
+ * Create a fail-safe function wrapper that returns null when the function
+ * fails.
  */
 export function makeSafe<Args extends unknown[], Result>(
     fn: (...args: Args) => MaybePromise<Result>,

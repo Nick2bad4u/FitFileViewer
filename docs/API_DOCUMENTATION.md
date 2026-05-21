@@ -120,8 +120,9 @@ import { formatDistance } from "./utils/formatting/formatters/formatDistance.js"
 /**
  * Format distance with appropriate units
  *
- * @example formatDistance(1000) // "1.00 km" formatDistance(500, 'meters') //
- * "500 m" formatDistance(1609.344, 'miles') // "1.00 mi"
+ * @example
+ *  formatDistance(1000) // "1.00 km" formatDistance(500, 'meters') //
+ *  "500 m" formatDistance(1609.344, 'miles') // "1.00 mi"
  *
  * @param {number} distance - Distance in meters
  * @param {string} [targetUnit] - Target unit (auto-detected if not provided)
@@ -139,8 +140,9 @@ import { formatTime } from "./utils/formatting/formatters/formatTime.js";
 /**
  * Format time duration
  *
- * @example formatTime(3661) // "1:01:01" formatTime(90) // "1:30"
- * formatTime(3600, true) // "1.0h" (if user prefers hours)
+ * @example
+ *  formatTime(3661); // "1:01:01" formatTime(90) // "1:30"
+ *  formatTime(3600, true); // "1.0h" (if user prefers hours)
  *
  * @param {number} seconds - Time in seconds
  * @param {boolean} [useUserUnits=false] - Use user's preferred time units.
@@ -158,8 +160,9 @@ import { convertDistanceUnits } from "./utils/formatting/converters/convertDista
 /**
  * Convert distance between units
  *
- * @example convertDistanceUnits(1000, 'kilometers') // 1
- * convertDistanceUnits(1609.344, 'miles') // 1
+ * @example
+ *  convertDistanceUnits(1000, "kilometers"); // 1
+ *  convertDistanceUnits(1609.344, "miles"); // 1
  *
  * @param {number} meters - Distance in meters
  * @param {string} targetUnit - Target unit

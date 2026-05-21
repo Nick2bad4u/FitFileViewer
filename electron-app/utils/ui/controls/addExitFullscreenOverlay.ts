@@ -33,9 +33,8 @@ const ICON_PATHS = [
  * the app's theme. Uses CSS classes for consistent styling and handles
  * fullscreen API errors gracefully.
  *
- * @example
- *     // Add exit fullscreen overlay to a chart container
- *     addExitFullscreenOverlay(document.getElementById("chart-container"));
+ * @example // Add exit fullscreen overlay to a chart container
+ * addExitFullscreenOverlay(document.getElementById("chart-container"));
  *
  * @throws TypeError If container is not a valid DOM element.
  */

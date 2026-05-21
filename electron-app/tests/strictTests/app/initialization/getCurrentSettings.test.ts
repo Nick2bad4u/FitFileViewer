@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-type GetCurrentSettingsModule = typeof import("../../../../utils/app/initialization/getCurrentSettings.js");
+type GetCurrentSettingsModule =
+    typeof import("../../../../utils/app/initialization/getCurrentSettings.js");
 
 type ChartTestGlobal = typeof globalThis & {
     _chartjsInstances?: unknown[];
@@ -10,41 +11,45 @@ type ChartTestGlobal = typeof globalThis & {
 const mocks = vi.hoisted(() => ({
     debouncedRender: vi.fn<(reason: string) => void>(),
     destroyChart: vi.fn<() => void>(),
-    setState: vi.fn<
-        (
-            path: string,
-            value: unknown,
-            options?: { source?: string }
-        ) => void
-    >(),
+    setState:
+        vi.fn<
+            (
+                path: string,
+                value: unknown,
+                options?: { source?: string }
+            ) => void
+        >(),
     showNotification: vi.fn<(message: string, type: string) => void>(),
     updateAllChartStatusIndicators: vi.fn<() => void>(),
 }));
 
-vi.mock(import("../../../../utils/charts/plugins/chartOptionsConfig.js"), () => ({
-    chartOptionsConfig: [
-        {
-            default: "all",
-            id: "maxpoints",
-            label: "Max Points",
-            type: "select",
-        },
-        {
-            default: true,
-            id: "showgrid",
-            label: "Show Grid",
-            type: "toggle",
-        },
-        {
-            default: 5,
-            id: "smoothness",
-            label: "Smoothness",
-            max: 10,
-            min: 0,
-            type: "range",
-        },
-    ],
-}));
+vi.mock(
+    import("../../../../utils/charts/plugins/chartOptionsConfig.js"),
+    () => ({
+        chartOptionsConfig: [
+            {
+                default: "all",
+                id: "maxpoints",
+                label: "Max Points",
+                type: "select",
+            },
+            {
+                default: true,
+                id: "showgrid",
+                label: "Show Grid",
+                type: "toggle",
+            },
+            {
+                default: 5,
+                id: "smoothness",
+                label: "Smoothness",
+                max: 10,
+                min: 0,
+                type: "range",
+            },
+        ],
+    })
+);
 
 vi.mock(
     import("../../../../utils/formatting/display/formatChartFields.js"),
@@ -64,9 +69,12 @@ vi.mock(import("../../../../utils/theming/core/theme.js"), () => ({
     }),
 }));
 
-vi.mock(import("../../../../utils/ui/notifications/showNotification.js"), () => ({
-    showNotification: mocks.showNotification,
-}));
+vi.mock(
+    import("../../../../utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
+);
 
 vi.mock(
     import("../../../../utils/charts/components/chartStatusIndicator.js"),

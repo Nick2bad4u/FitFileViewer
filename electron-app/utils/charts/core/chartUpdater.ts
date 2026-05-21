@@ -58,7 +58,9 @@ export function isModernChartSystemAvailable(): boolean {
  *
  * @param reason - Reason for the chart update.
  * @param container - Optional chart container element.
+ *
  * @returns Whether the update request was accepted or rendered.
+ *
  * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateCharts(
@@ -94,6 +96,7 @@ export async function updateCharts(
  * Handle data changes with proper chart updates.
  *
  * @param newData - New data object.
+ *
  * @returns Whether the update request was accepted.
  */
 export async function updateChartsForDataChange(
@@ -109,6 +112,7 @@ export async function updateChartsForDataChange(
  * @param settingName - Name of the changed setting.
  * @param newValue - New setting value.
  * @param container - Optional chart container element.
+ *
  * @returns Whether the update request was accepted.
  */
 export async function updateChartsForSettingChange(
@@ -133,7 +137,9 @@ export async function updateChartsForTabActivation(): Promise<boolean> {
  * Handle theme changes with proper chart updates.
  *
  * @param newTheme - The new theme name.
+ *
  * @returns Whether the update request was accepted or rendered.
+ *
  * @throws Re-throws chart state manager or fallback render failures.
  */
 export async function updateChartsForThemeChange(

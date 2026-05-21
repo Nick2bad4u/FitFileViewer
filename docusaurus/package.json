@@ -1,26 +1,38 @@
 {
     "name": "fitfileviewer-docs",
     "version": "1.0.0",
-    "description": "Documentation website for FitFileViewer - Cross-platform .fit file viewer and analyzer",
     "private": true,
+    "description": "Documentation website for FitFileViewer - Cross-platform .fit file viewer and analyzer",
     "scripts": {
-        "docusaurus": "docusaurus",
-        "start": "docusaurus start",
         "build": "npm run docs:typedoc && docusaurus build",
         "build:local": "npm run docs:typedoc:local && docusaurus build",
-        "swizzle": "docusaurus swizzle",
-        "deploy": "docusaurus deploy",
         "clear": "docusaurus clear",
-        "serve": "docusaurus serve",
-        "write-translations": "docusaurus write-translations",
-        "write-heading-ids": "docusaurus write-heading-ids",
-        "typecheck": "tsc --project tsconfig.json",
+        "deploy": "docusaurus deploy",
         "docs:typedoc": "typedoc --options typedoc.json && node scripts/generate-api-categories.mjs",
         "docs:typedoc:local": "typedoc --options typedoc.local.json && node scripts/generate-api-categories.mjs",
+        "docusaurus": "docusaurus",
         "lint": "npm run lint:code && npm run lint:content",
         "lint:code": "cd .. && node ./electron-app/node_modules/eslint/bin/eslint.js --config ./eslint.config.mjs --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-docusaurus --fix docusaurus/**/*.{js,jsx,ts,tsx}",
         "lint:code:check": "cd .. && node ./electron-app/node_modules/eslint/bin/eslint.js --config ./eslint.config.mjs --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-docusaurus docusaurus/**/*.{js,jsx,ts,tsx}",
-        "lint:content": "npx --yes markdownlint-cli2 \"docs/**/*.{md,mdx}\" \"!docs/api/**/*.md\" \"blog/**/*.{md,mdx}\" \"src/**/*.{md,mdx}\" --config ../.markdownlint.json"
+        "lint:content": "npx --yes markdownlint-cli2 \"docs/**/*.{md,mdx}\" \"!docs/api/**/*.md\" \"blog/**/*.{md,mdx}\" \"src/**/*.{md,mdx}\" --config ../.markdownlint.json",
+        "serve": "docusaurus serve",
+        "start": "docusaurus start",
+        "swizzle": "docusaurus swizzle",
+        "typecheck": "tsc --project tsconfig.json",
+        "write-heading-ids": "docusaurus write-heading-ids",
+        "write-translations": "docusaurus write-translations"
+    },
+    "browserslist": {
+        "production": [
+            ">0.5%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 3 chrome version",
+            "last 3 firefox version",
+            "last 5 safari version"
+        ]
     },
     "dependencies": {
         "@docusaurus/core": "^3.9.2",
@@ -59,18 +71,6 @@
         "typedoc-plugin-rename-defaults": "^0.7.3",
         "typedoc-plugin-replace-text": "^4.2.0",
         "typescript": "^5.9.3"
-    },
-    "browserslist": {
-        "production": [
-            ">0.5%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 3 chrome version",
-            "last 3 firefox version",
-            "last 5 safari version"
-        ]
     },
     "engines": {
         "node": ">=18.0"

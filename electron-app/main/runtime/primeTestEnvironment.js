@@ -8,14 +8,18 @@ const {
 
 /**
  * @typedef {import("../../types/main/runtime/electronAccess").ElectronLike} ElectronLike
+ *
  * @typedef {import("../../types/main/window/bootstrapMainWindow").MainWindowLike} MainWindowLike
+ *
  * @typedef {() => Promise<MainWindowLike>} InitializeApplication
+ *
  * @typedef {{
  *     emit?: (event: string) => boolean;
  *     listenerCount?: (event: string) => number;
  *     on?: (event: string, listener: () => void) => unknown;
  *     whenReady?: () => Promise<unknown> | unknown;
  * }} AppLike
+ *
  * @typedef {{ getAllWindows?: () => MainWindowLike[] }} BrowserWindowLike
  */
 
@@ -67,8 +71,7 @@ function asElectronLike(value) {
 function hasElectronApis(value) {
     return Boolean(
         asRecord(value) &&
-            (getProperty(value, "app") ||
-                getProperty(value, "BrowserWindow"))
+        (getProperty(value, "app") || getProperty(value, "BrowserWindow"))
     );
 }
 
@@ -100,7 +103,7 @@ function isTestEnvironment() {
         (typeof process !== "undefined" &&
             process.env &&
             process.env.NODE_ENV === "test") ||
-            getHoistedElectronMock()
+        getHoistedElectronMock()
     );
 }
 
@@ -163,10 +166,7 @@ function callWhenReady(app) {
  * @returns {MainWindowLike[] | null}
  */
 function getAllWindows(BrowserWindow) {
-    if (
-        !BrowserWindow ||
-        typeof BrowserWindow.getAllWindows !== "function"
-    ) {
+    if (!BrowserWindow || typeof BrowserWindow.getAllWindows !== "function") {
         return null;
     }
 
@@ -181,14 +181,18 @@ function getAllWindows(BrowserWindow) {
 /**
  * @param {MainWindowLike[] | null} windows
  * @param {InitializeApplication} initializeApplication
- * @param {boolean} [shouldInitialize=false]
+ * @param {boolean} [shouldInitialize=false] Default is `false`
  */
 function setFirstWindowIfMissing(
     windows,
     initializeApplication,
     shouldInitialize = false
 ) {
-    if (Array.isArray(windows) && windows.length > 0 && !getAppState("mainWindow")) {
+    if (
+        Array.isArray(windows) &&
+        windows.length > 0 &&
+        !getAppState("mainWindow")
+    ) {
         setAppState("mainWindow", windows[0]);
         if (shouldInitialize) {
             try {
@@ -271,7 +275,9 @@ function primeTestEnvironment(initializeApplication) {
 
                         callWhenReady(asAppLike(appRef()));
                         setFirstWindowIfMissing(
-                            getAllWindows(asBrowserWindowLike(browserWindowRef())),
+                            getAllWindows(
+                                asBrowserWindowLike(browserWindowRef())
+                            ),
                             initializeApplication
                         );
                         try {
@@ -289,9 +295,7 @@ function primeTestEnvironment(initializeApplication) {
                 /* Ignore promise setup errors */
             }
 
-            const electronModule = /** @type {unknown} */ (
-                require("electron")
-            );
+            const electronModule = /** @type {unknown} */ (require("electron"));
             const resolved = resolveElectronModule(electronModule);
             try {
                 callWhenReady(getApp(resolved));

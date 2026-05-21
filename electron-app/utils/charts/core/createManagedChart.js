@@ -4,6 +4,7 @@ const chartGlobal = globalThis;
  *
  * @param canvas - Canvas element to render into.
  * @param config - Chart.js configuration object.
+ *
  * @returns The created chart instance, or null when Chart.js is not loaded.
  */
 export function createManagedChart(canvas, config) {

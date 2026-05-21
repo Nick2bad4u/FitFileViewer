@@ -1,5 +1,9 @@
-import { createMetricFilter, } from "../../../maps/filters/mapMetricFilter.js";
-import { formatMetricValue, formatPercent, getGlobalRecords, } from "./stateHelpers.js";
+import { createMetricFilter } from "../../../maps/filters/mapMetricFilter.js";
+import {
+    formatMetricValue,
+    formatPercent,
+    getGlobalRecords,
+} from "./stateHelpers.js";
 /** Build the user-facing summary text for a filter result. */
 export function buildSummaryText(result, config, stats) {
     if (!result || !result.isActive || result.reason) {
@@ -19,9 +23,11 @@ export function previewFilterResult(config) {
     try {
         const records = getGlobalRecords();
         return createMetricFilter(records, config);
-    }
-    catch (error) {
-        console.error("[dataPointFilter] Failed to preview filter result", error);
+    } catch (error) {
+        console.error(
+            "[dataPointFilter] Failed to preview filter result",
+            error
+        );
         return null;
     }
 }

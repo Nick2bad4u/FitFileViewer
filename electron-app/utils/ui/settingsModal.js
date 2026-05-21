@@ -2,8 +2,18 @@
  * Provides a settings UI for theme and accent color customization.
  */
 import { setState } from "../state/core/stateManager.js";
-import { getEffectiveAccentColor, isValidHexColor, resetAccentColor, setAccentColor, } from "../theming/core/accentColor.js";
-import { applyTheme, getEffectiveTheme, loadTheme, THEME_MODES, } from "../theming/core/theme.js";
+import {
+    getEffectiveAccentColor,
+    isValidHexColor,
+    resetAccentColor,
+    setAccentColor,
+} from "../theming/core/accentColor.js";
+import {
+    applyTheme,
+    getEffectiveTheme,
+    loadTheme,
+    THEME_MODES,
+} from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
 const SETTINGS_MODAL_ID = "settings-modal";
@@ -47,7 +57,8 @@ export async function showSettingsModal() {
         modal.style.display = "none";
         document.body.append(modal);
         // Inject styles (from aboutModal styles)
-        const { injectModalStyles } = await import("./modals/injectModalStyles.js");
+        const { injectModalStyles } =
+            await import("./modals/injectModalStyles.js");
         injectModalStyles();
     }
     // Inject settings-specific styles
@@ -111,7 +122,11 @@ function createSettingsModalContent(currentTheme, currentAccent) {
     const sectionTitle = document.createElement("h3");
     sectionTitle.className = "settings-section-title";
     sectionTitle.textContent = "🎨 Appearance";
-    settingsSection.append(sectionTitle, createThemeSetting(currentTheme), createAccentSetting(currentAccent));
+    settingsSection.append(
+        sectionTitle,
+        createThemeSetting(currentTheme),
+        createAccentSetting(currentAccent)
+    );
     const footer = document.createElement("div");
     footer.className = "settings-footer";
     const footerCloseButton = document.createElement("button");
@@ -143,7 +158,10 @@ function createResetIcon() {
     const firstPath = document.createElementNS(SVG_NS, "path");
     firstPath.setAttribute("d", "M1 4v6h6M23 20v-6h-6");
     const secondPath = document.createElementNS(SVG_NS, "path");
-    secondPath.setAttribute("d", "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15");
+    secondPath.setAttribute(
+        "d",
+        "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"
+    );
     for (const path of [firstPath, secondPath]) {
         path.setAttribute("stroke", "currentColor");
         path.setAttribute("stroke-width", "2");
@@ -170,7 +188,15 @@ function createThemeSetting(currentTheme) {
     const select = document.createElement("select");
     select.id = "theme-select";
     select.className = "setting-select";
-    select.append(createThemeOption(THEME_MODES.AUTO, "Auto (Follow System)", currentTheme), createThemeOption(THEME_MODES.DARK, "Dark", currentTheme), createThemeOption(THEME_MODES.LIGHT, "Light", currentTheme));
+    select.append(
+        createThemeOption(
+            THEME_MODES.AUTO,
+            "Auto (Follow System)",
+            currentTheme
+        ),
+        createThemeOption(THEME_MODES.DARK, "Dark", currentTheme),
+        createThemeOption(THEME_MODES.LIGHT, "Light", currentTheme)
+    );
     item.append(label, select);
     return item;
 }
@@ -190,7 +216,11 @@ function createAccentSetting(currentAccent) {
     label.textContent = "Accent Color";
     const controls = document.createElement("div");
     controls.className = "accent-color-controls";
-    controls.append(createAccentColorInput(currentAccent), createAccentTextInput(currentAccent), createResetButton());
+    controls.append(
+        createAccentColorInput(currentAccent),
+        createAccentTextInput(currentAccent),
+        createResetButton()
+    );
     const preview = document.createElement("div");
     preview.className = "accent-color-preview";
     const previewLabel = document.createElement("div");
@@ -491,7 +521,11 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             cleanupEscape = undefined;
         }
     };
-    cleanupEscape = addEventListenerWithCleanup(document, "keydown", handleEscape);
+    cleanupEscape = addEventListenerWithCleanup(
+        document,
+        "keydown",
+        handleEscape
+    );
     // Theme selector
     const themeSelect = modal.querySelector("#theme-select");
     if (themeSelect) {
@@ -506,13 +540,13 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             //
             // - Theme core persists: "auto" | "dark" | "light"
             // - UI/state layer historically uses: "system" for auto
-            const stateTheme = newTheme === THEME_MODES.AUTO ? "system" : newTheme;
+            const stateTheme =
+                newTheme === THEME_MODES.AUTO ? "system" : newTheme;
             try {
                 setState("ui.theme", stateTheme, {
                     source: "settingsModal:theme-select",
                 });
-            }
-            catch {
+            } catch {
                 // Fallback for environments where state management is unavailable.
                 applyTheme(newTheme, true);
             }
@@ -520,8 +554,7 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
             // theme later (e.g., after focus/menu interactions).
             try {
                 globalThis.electronAPI?.sendThemeChanged?.(newTheme);
-            }
-            catch {
+            } catch {
                 /* ignore */
             }
             // Update effective theme for accent color

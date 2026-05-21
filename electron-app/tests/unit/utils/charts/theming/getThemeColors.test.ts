@@ -48,9 +48,7 @@ describe(getThemeColors, () => {
         getThemeConfigMock.mockReturnValue(
             null as unknown as ReturnType<typeof getThemeConfig>
         );
-        const warnSpy = vi
-            .spyOn(console, "warn")
-            .mockReturnValue(undefined);
+        const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
 
         expect(getThemeColors()).toStrictEqual(FALLBACK_THEME_COLORS);
         expect(warnSpy).toHaveBeenCalledWith(
@@ -67,9 +65,7 @@ describe(getThemeColors, () => {
         getThemeConfigMock.mockImplementation(() => {
             throw failure;
         });
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockReturnValue(undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
 
         expect(getThemeColors()).toStrictEqual(FALLBACK_THEME_COLORS);
         expect(errorSpy).toHaveBeenCalledWith(
@@ -111,9 +107,7 @@ describe(getThemeColor, () => {
     it("uses fallback colors for invalid keys", () => {
         expect.assertions(2);
 
-        const warnSpy = vi
-            .spyOn(console, "warn")
-            .mockReturnValue(undefined);
+        const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
 
         expect(getThemeColor("", "#fedcba")).toBe("#fedcba");
         expect(warnSpy).toHaveBeenCalledWith(

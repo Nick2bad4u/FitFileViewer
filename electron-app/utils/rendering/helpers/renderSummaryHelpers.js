@@ -2,9 +2,11 @@ import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
 function isDateInput(value) {
-    return (value instanceof Date ||
+    return (
+        value instanceof Date ||
         typeof value === "number" ||
-        typeof value === "string");
+        typeof value === "string"
+    );
 }
 function toCellText(value) {
     return value === null || value === undefined ? "" : String(value);
@@ -22,7 +24,10 @@ const SUMMARY_VIRTUAL_OVERSCAN = 8;
 export function isNumberedSummaryColumnKey(key) {
     return /^\d+$/u.test(key);
 }
-/** Orders named columns before numbered-only columns while keeping relative order stable. */
+/**
+ * Orders named columns before numbered-only columns while keeping relative
+ * order stable.
+ */
 export function orderSummaryColumnsNamedFirst(keys) {
     const named = [];
     const numbered = [];
@@ -58,17 +63,16 @@ export function getStorageKey(data, _allKeys) {
         const windowGlobal = summaryGlobal.window;
         if (windowGlobal && windowGlobal.globalData?.cachedFilePath) {
             fpath = windowGlobal.globalData.cachedFilePath;
-        }
-        else if (data &&
+        } else if (
+            data &&
             typeof data === "object" &&
-            typeof data["cachedFilePath"] === "string") {
+            typeof data["cachedFilePath"] === "string"
+        ) {
             fpath = data["cachedFilePath"];
-        }
-        else if (windowGlobal?.activeFitFileName) {
+        } else if (windowGlobal?.activeFitFileName) {
             fpath = windowGlobal.activeFitFileName;
         }
-    }
-    catch {
+    } catch {
         // Ignore
     }
     if (fpath) {
@@ -90,14 +94,19 @@ export function loadColPrefs(key, _allKeys) {
                 return arr;
             }
         }
-    }
-    catch {
+    } catch {
         /* Intentionally ignore errors */
     }
     return null;
 }
 /** Renders the summary and lap table into the provided container. */
-export function renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns, }) {
+export function renderTable({
+    container,
+    data,
+    gearBtn,
+    setVisibleColumns,
+    visibleColumns,
+}) {
     const summaryContainer = container;
     // Clean up any prior virtual scroll listeners from earlier renders.
     const cleanupVirtualizer = summaryContainer._summaryVirtualCleanup;
@@ -143,30 +152,9 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     }
     const filterValue = summaryContainer._summaryFilterValue ?? "All";
     filterSelect.value = filterValue;
-    filterSelect.addEventListener("change", () => {
-        summaryContainer._summaryFilterValue = filterSelect.value;
-        renderTable({
-            container,
-            data,
-            gearBtn,
-            setVisibleColumns,
-            visibleColumns,
-        });
-    }, { signal: renderController.signal });
-    // Add scroll wheel support for changing selection
-    filterSelect.addEventListener("wheel", (e) => {
-        e.preventDefault();
-        const options = [...filterSelect.options];
-        let idx = options.findIndex((opt) => opt.value === filterSelect.value);
-        if (e.deltaY > 0 && idx < options.length - 1) {
-            idx++;
-        }
-        else if (e.deltaY < 0 && idx > 0) {
-            idx--;
-        }
-        const opt = options[idx];
-        if (opt) {
-            filterSelect.value = opt.value;
+    filterSelect.addEventListener(
+        "change",
+        () => {
             summaryContainer._summaryFilterValue = filterSelect.value;
             renderTable({
                 container,
@@ -175,8 +163,38 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
                 setVisibleColumns,
                 visibleColumns,
             });
-        }
-    }, { passive: false, signal: renderController.signal });
+        },
+        { signal: renderController.signal }
+    );
+    // Add scroll wheel support for changing selection
+    filterSelect.addEventListener(
+        "wheel",
+        (e) => {
+            e.preventDefault();
+            const options = [...filterSelect.options];
+            let idx = options.findIndex(
+                (opt) => opt.value === filterSelect.value
+            );
+            if (e.deltaY > 0 && idx < options.length - 1) {
+                idx++;
+            } else if (e.deltaY < 0 && idx > 0) {
+                idx--;
+            }
+            const opt = options[idx];
+            if (opt) {
+                filterSelect.value = opt.value;
+                summaryContainer._summaryFilterValue = filterSelect.value;
+                renderTable({
+                    container,
+                    data,
+                    gearBtn,
+                    setVisibleColumns,
+                    visibleColumns,
+                });
+            }
+        },
+        { passive: false, signal: renderController.signal }
+    );
     filterLabel.append(filterSelect);
     filterBar.append(filterLabel);
     section.append(filterBar);
@@ -189,61 +207,88 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     const copyBtn = document.createElement("button");
     copyBtn.textContent = "Copy as CSV";
     copyBtn.className = "copy-btn";
-    copyBtn.addEventListener("click", () => {
-        try {
-            const rows = [];
-            const orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns), sortedVisible = [LABEL_COL, ...orderedVisible];
-            rows.push(sortedVisible
-                .map((k) => (k === LABEL_COL ? "Type" : k))
-                .join(","));
-            // Summary row
-            if (filterValue === "All" || filterValue === "Summary") {
-                const summaryRows = getSummaryRows(data), summary = summaryRows && summaryRows[0]
-                    ? summaryRows[0]
-                    : {};
-                rows.push(sortedVisible
-                    .map((k) => k === LABEL_COL
-                    ? "Summary"
-                    : summary && summary[k] !== undefined
-                        ? toCellText(summary[k])
-                        : "")
-                    .join(","));
-            }
-            // Lap rows
-            if (data.lapMesgs &&
-                data.lapMesgs.length > 0 &&
-                (filterValue === "All" || filterValue.startsWith("Lap"))) {
-                const patchedLaps = data.lapMesgs.map((lap) => {
-                    const patched = { ...lap };
-                    patchSummaryFields(patched);
-                    return patched;
-                });
-                for (const [i, lap] of patchedLaps.entries()) {
-                    if (filterValue === "All" ||
-                        filterValue === `Lap ${i + 1}`) {
-                        rows.push(sortedVisible
-                            .map((k) => k === LABEL_COL
-                            ? `Lap ${i + 1}`
-                            : toCellText(lap[k]))
-                            .join(","));
+    copyBtn.addEventListener(
+        "click",
+        () => {
+            try {
+                const rows = [];
+                const orderedVisible =
+                        orderSummaryColumnsNamedFirst(visibleColumns),
+                    sortedVisible = [LABEL_COL, ...orderedVisible];
+                rows.push(
+                    sortedVisible
+                        .map((k) => (k === LABEL_COL ? "Type" : k))
+                        .join(",")
+                );
+                // Summary row
+                if (filterValue === "All" || filterValue === "Summary") {
+                    const summaryRows = getSummaryRows(data),
+                        summary =
+                            summaryRows && summaryRows[0] ? summaryRows[0] : {};
+                    rows.push(
+                        sortedVisible
+                            .map((k) =>
+                                k === LABEL_COL
+                                    ? "Summary"
+                                    : summary && summary[k] !== undefined
+                                      ? toCellText(summary[k])
+                                      : ""
+                            )
+                            .join(",")
+                    );
+                }
+                // Lap rows
+                if (
+                    data.lapMesgs &&
+                    data.lapMesgs.length > 0 &&
+                    (filterValue === "All" || filterValue.startsWith("Lap"))
+                ) {
+                    const patchedLaps = data.lapMesgs.map((lap) => {
+                        const patched = { ...lap };
+                        patchSummaryFields(patched);
+                        return patched;
+                    });
+                    for (const [i, lap] of patchedLaps.entries()) {
+                        if (
+                            filterValue === "All" ||
+                            filterValue === `Lap ${i + 1}`
+                        ) {
+                            rows.push(
+                                sortedVisible
+                                    .map((k) =>
+                                        k === LABEL_COL
+                                            ? `Lap ${i + 1}`
+                                            : toCellText(lap[k])
+                                    )
+                                    .join(",")
+                            );
+                        }
                     }
                 }
+                const csvText = rows.join("\n");
+                // Prefer the Electron clipboard bridge to avoid permission denials in file:// contexts.
+                Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch(
+                    (error) => {
+                        console.warn(
+                            "[renderSummary] Failed to copy summary CSV:",
+                            error
+                        );
+                    }
+                );
+            } catch {
+                /* Ignore copy errors */
             }
-            const csvText = rows.join("\n");
-            // Prefer the Electron clipboard bridge to avoid permission denials in file:// contexts.
-            Promise.resolve(exportUtils.copyTextToClipboard(csvText)).catch((error) => {
-                console.warn("[renderSummary] Failed to copy summary CSV:", error);
-            });
-        }
-        catch {
-            /* Ignore copy errors */
-        }
-    }, { signal: renderController.signal });
+        },
+        { signal: renderController.signal }
+    );
     headerBar.append(copyBtn);
     section.append(headerBar);
     const table = document.createElement("table");
     table.classList.add("display");
-    const headerRow = document.createElement("tr"), orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns), sortedVisible = [LABEL_COL, ...orderedVisible], thead = document.createElement("thead");
+    const headerRow = document.createElement("tr"),
+        orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
+        sortedVisible = [LABEL_COL, ...orderedVisible],
+        thead = document.createElement("thead");
     let virtualizerInit = null;
     for (const key of sortedVisible) {
         const th = document.createElement("th");
@@ -257,15 +302,17 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     lapBody.className = "summary-lap-body";
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
-        const summaryRows = getSummaryRows(data), summaryRec = summaryRows[0] || {}, summaryRow = document.createElement("tr");
+        const summaryRows = getSummaryRows(data),
+            summaryRec = summaryRows[0] || {},
+            summaryRow = document.createElement("tr");
         for (const [idx, key] of sortedVisible.entries()) {
             const td = document.createElement("td");
             td.textContent =
                 key === LABEL_COL
                     ? "Summary"
                     : summaryRec[key] === undefined
-                        ? ""
-                        : toCellText(summaryRec[key]);
+                      ? ""
+                      : toCellText(summaryRec[key]);
             if (idx === 0) {
                 td.classList.add("summary-row");
             }
@@ -274,9 +321,11 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         summaryBody.append(summaryRow);
     }
     // Lap rows
-    if (data.lapMesgs &&
+    if (
+        data.lapMesgs &&
         data.lapMesgs.length > 0 &&
-        (filterValue === "All" || filterValue.startsWith("Lap"))) {
+        (filterValue === "All" || filterValue.startsWith("Lap"))
+    ) {
         const { lapMesgs } = data;
         const lapCache = new Map();
         const lapFilterIndexRaw = filterValue.startsWith("Lap")
@@ -285,7 +334,8 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         const lapFilterIndex = Number.isFinite(lapFilterIndexRaw)
             ? lapFilterIndexRaw - 1
             : null;
-        const shouldVirtualize = filterValue === "All" &&
+        const shouldVirtualize =
+            filterValue === "All" &&
             lapMesgs.length > SUMMARY_VIRTUAL_ROW_THRESHOLD;
         if (shouldVirtualize) {
             virtualizerInit = () => {
@@ -297,14 +347,18 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
                     sortedVisible,
                 });
             };
-        }
-        else if (lapFilterIndex !== null) {
+        } else if (lapFilterIndex !== null) {
             if (lapFilterIndex >= 0 && lapFilterIndex < lapMesgs.length) {
-                const lap = getPatchedLapRow(lapMesgs, lapFilterIndex, lapCache);
-                lapBody.append(createLapRowElement(lapFilterIndex, lap, sortedVisible));
+                const lap = getPatchedLapRow(
+                    lapMesgs,
+                    lapFilterIndex,
+                    lapCache
+                );
+                lapBody.append(
+                    createLapRowElement(lapFilterIndex, lap, sortedVisible)
+                );
             }
-        }
-        else {
+        } else {
             for (let i = 0; i < lapMesgs.length; i += 1) {
                 const lap = getPatchedLapRow(lapMesgs, i, lapCache);
                 lapBody.append(createLapRowElement(i, lap, sortedVisible));
@@ -321,8 +375,7 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         const raf = globalThis.requestAnimationFrame;
         if (typeof raf === "function") {
             raf(() => virtualizerInit && virtualizerInit());
-        }
-        else {
+        } else {
             virtualizerInit();
         }
     }
@@ -346,18 +399,19 @@ function createLapRowElement(lapIndex, lap, sortedVisible) {
         const td = document.createElement("td");
         if (key === LABEL_COL) {
             td.textContent = `Lap ${lapIndex + 1}`;
-        }
-        else if (key === "timestamp" && lap["startTime"]) {
+        } else if (key === "timestamp" && lap["startTime"]) {
             td.textContent = toCellText(lap["startTime"]);
-        }
-        else {
+        } else {
             td.textContent = lap[key] === undefined ? "" : String(lap[key]);
         }
         lapRow.append(td);
     }
     return lapRow;
 }
-/** Creates a spacer row used to represent off-screen rows in a virtualized tbody. */
+/**
+ * Creates a spacer row used to represent off-screen rows in a virtualized
+ * tbody.
+ */
 function createSpacerRow(colSpan) {
     const row = document.createElement("tr");
     row.className = "summary-virtual-spacer";
@@ -371,7 +425,13 @@ function createSpacerRow(colSpan) {
     return { row, cell };
 }
 /** Initializes a virtualized lap tbody to keep DOM size small for large files. */
-function setupVirtualizedLapRows({ lapBody, lapCache, lapMesgs, scrollContainer, sortedVisible, }) {
+function setupVirtualizedLapRows({
+    lapBody,
+    lapCache,
+    lapMesgs,
+    scrollContainer,
+    sortedVisible,
+}) {
     const lapCount = lapMesgs.length;
     const colSpan = sortedVisible.length;
     const { row: topSpacer, cell: topCell } = createSpacerRow(colSpan);
@@ -381,10 +441,17 @@ function setupVirtualizedLapRows({ lapBody, lapCache, lapMesgs, scrollContainer,
     let lastStart = -1;
     let lastEnd = -1;
     let rafHandle = 0;
-    const measureRow = createLapRowElement(0, getPatchedLapRow(lapMesgs, 0, lapCache), sortedVisible);
+    const measureRow = createLapRowElement(
+        0,
+        getPatchedLapRow(lapMesgs, 0, lapCache),
+        sortedVisible
+    );
     measureRow.style.visibility = "hidden";
     lapBody.append(measureRow);
-    rowHeight = Math.max(SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK, Math.round(measureRow.getBoundingClientRect().height));
+    rowHeight = Math.max(
+        SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK,
+        Math.round(measureRow.getBoundingClientRect().height)
+    );
     measureRow.remove();
     const renderWindow = (start, end) => {
         if (start === lastStart && end === lastEnd) {
@@ -413,9 +480,15 @@ function setupVirtualizedLapRows({ lapBody, lapCache, lapMesgs, scrollContainer,
         const viewportHeight = scrollContainer.clientHeight;
         const bodyTop = bodyRect.top - containerRect.top + scrollTop;
         const relativeScroll = Math.max(0, scrollTop - bodyTop);
-        const start = Math.max(0, Math.floor(relativeScroll / rowHeight) - SUMMARY_VIRTUAL_OVERSCAN);
-        const end = Math.min(lapCount, Math.ceil((relativeScroll + viewportHeight) / rowHeight) +
-            SUMMARY_VIRTUAL_OVERSCAN);
+        const start = Math.max(
+            0,
+            Math.floor(relativeScroll / rowHeight) - SUMMARY_VIRTUAL_OVERSCAN
+        );
+        const end = Math.min(
+            lapCount,
+            Math.ceil((relativeScroll + viewportHeight) / rowHeight) +
+                SUMMARY_VIRTUAL_OVERSCAN
+        );
         renderWindow(start, end);
     };
     const scheduleUpdate = () => {
@@ -453,12 +526,14 @@ function setupVirtualizedLapRows({ lapBody, lapCache, lapMesgs, scrollContainer,
 export function saveColPrefs(key, visibleColumns, _allKeys) {
     try {
         localStorage.setItem(key, JSON.stringify(visibleColumns));
-    }
-    catch {
+    } catch {
         /* Intentionally ignore errors */
     }
 }
-/** Computes the single summary row from session messages or derived record stats. */
+/**
+ * Computes the single summary row from session messages or derived record
+ * stats.
+ */
 function getSummaryRows(data) {
     if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
         const raw = { ...data.sessionMesgs[0] };
@@ -479,12 +554,15 @@ function getSummaryRows(data) {
                 }
                 if (values.length > 0) {
                     const total = values.reduce((a, b) => a + b, 0);
-                    raw["avg_estimated_power"] = Math.round(total / values.length);
-                    raw["max_estimated_power"] = Math.round(Math.max(...values));
+                    raw["avg_estimated_power"] = Math.round(
+                        total / values.length
+                    );
+                    raw["max_estimated_power"] = Math.round(
+                        Math.max(...values)
+                    );
                 }
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         const totalAscent = Number(raw["total_ascent"]);
@@ -500,10 +578,12 @@ function getSummaryRows(data) {
         return [raw];
     }
     const summaryGlobal = globalThis;
-    if (data?.recordMesgs &&
+    if (
+        data?.recordMesgs &&
         data.recordMesgs.length > 0 &&
         summaryGlobal.window !== undefined &&
-        summaryGlobal.aq) {
+        summaryGlobal.aq
+    ) {
         try {
             const { aq } = summaryGlobal;
             const table = aq.from(data.recordMesgs);
@@ -513,13 +593,20 @@ function getSummaryRows(data) {
                 total_records: table.numRows(),
             };
             if (table.columnNames().includes("distance")) {
-                stats.total_distance = table.get(table.numRows() - 1, "distance");
+                stats.total_distance = table.get(
+                    table.numRows() - 1,
+                    "distance"
+                );
             }
             if (table.columnNames().includes("timestamp")) {
-                const endTimestamp = table.get(table.numRows() - 1, "timestamp");
+                const endTimestamp = table.get(
+                    table.numRows() - 1,
+                    "timestamp"
+                );
                 const startTimestamp = table.get(0, "timestamp");
                 if (isDateInput(endTimestamp) && isDateInput(startTimestamp)) {
-                    const endTs = new Date(endTimestamp).getTime(), startTs = new Date(startTimestamp).getTime();
+                    const endTs = new Date(endTimestamp).getTime(),
+                        startTs = new Date(startTimestamp).getTime();
                     if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
                         const sec = Math.round((endTs - startTs) / 1000);
                         stats.duration = sec;
@@ -529,7 +616,10 @@ function getSummaryRows(data) {
             if (table.columnNames().includes("speed")) {
                 const speeds = table
                     .array("speed")
-                    .filter((value) => typeof value === "number" && Number.isFinite(value));
+                    .filter(
+                        (value) =>
+                            typeof value === "number" && Number.isFinite(value)
+                    );
                 if (speeds.length > 0) {
                     const total = speeds.reduce((a, b) => a + b, 0);
                     stats.avg_speed = total / speeds.length;
@@ -539,7 +629,10 @@ function getSummaryRows(data) {
             if (table.columnNames().includes("altitude")) {
                 const alts = table
                     .array("altitude")
-                    .filter((value) => typeof value === "number" && Number.isFinite(value));
+                    .filter(
+                        (value) =>
+                            typeof value === "number" && Number.isFinite(value)
+                    );
                 if (alts.length > 0) {
                     stats.min_altitude_ft = Math.min(...alts);
                     stats.max_altitude_ft = Math.max(...alts);
@@ -547,8 +640,7 @@ function getSummaryRows(data) {
             }
             patchSummaryFields(stats);
             return [stats];
-        }
-        catch {
+        } catch {
             // Ignore stats errors
         }
     }

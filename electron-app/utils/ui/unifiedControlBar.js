@@ -23,9 +23,7 @@ function scheduleControlBarCheck(callback, delayMs) {
 }
 function getActiveFilenameElement() {
     const candidate = document.getElementById("active_file_name");
-    return candidate instanceof HTMLElement
-        ? candidate
-        : null;
+    return candidate instanceof HTMLElement ? candidate : null;
 }
 function cleanupExistingFilenameAutoScrollState(filenameElement) {
     const existingState = filenameElement.__ffvFilenameAutoScrollState;
@@ -52,8 +50,7 @@ export function initFilenameAutoScroll() {
     // Helper to check if filename needs scrolling.
     const checkScroll = () => {
         const container = filenameElement.parentElement;
-        if (!container)
-            return;
+        if (!container) return;
         // Find the scrollable filename text span
         const filenameText = filenameElement.querySelector(".filename-text");
         if (!filenameText) {
@@ -61,7 +58,8 @@ export function initFilenameAutoScroll() {
             return;
         }
         const activeLabel = filenameElement.querySelector(".active-label");
-        const containerWidth = container.offsetWidth - FILENAME_CONTAINER_RESERVED_WIDTH_PX;
+        const containerWidth =
+            container.offsetWidth - FILENAME_CONTAINER_RESERVED_WIDTH_PX;
         const labelWidth = activeLabel
             ? activeLabel.offsetWidth + FILENAME_LABEL_GAP_PX
             : 0;
@@ -69,11 +67,14 @@ export function initFilenameAutoScroll() {
         const filenameWidth = filenameText.scrollWidth;
         if (filenameWidth > availableWidth) {
             // Enable scrolling animation
-            const scrollDistance = filenameWidth - availableWidth + FILENAME_SCROLL_PADDING_PX;
+            const scrollDistance =
+                filenameWidth - availableWidth + FILENAME_SCROLL_PADDING_PX;
             filenameElement.classList.add("scrolling");
-            filenameText.style.setProperty("--scroll-distance", `${scrollDistance}px`);
-        }
-        else {
+            filenameText.style.setProperty(
+                "--scroll-distance",
+                `${scrollDistance}px`
+            );
+        } else {
             // Disable scrolling animation
             filenameElement.classList.remove("scrolling");
         }
@@ -121,9 +122,13 @@ export function initUnifiedControlBar() {
     // Wait for DOM to be ready, then move controls into the bar
     const checkAndMoveControls = () => {
         // Find the fullscreen button wrapper
-        const fullscreenWrapper = document.querySelector("#global-fullscreen-btn-wrapper, .fullscreen-btn-wrapper");
+        const fullscreenWrapper = document.querySelector(
+            "#global-fullscreen-btn-wrapper, .fullscreen-btn-wrapper"
+        );
         // Find the color switcher
-        const colorSwitcher = document.querySelector("#quick-color-switcher, .quick-color-switcher");
+        const colorSwitcher = document.querySelector(
+            "#quick-color-switcher, .quick-color-switcher"
+        );
         if (fullscreenWrapper || colorSwitcher) {
             // Add to body first if not already there
             if (!controlBar.parentElement) {
@@ -141,7 +146,9 @@ export function initUnifiedControlBar() {
             if (fullscreenWrapper && !controlBar.contains(fullscreenWrapper)) {
                 // Remove from original position
                 if (fullscreenWrapper.parentElement) {
-                    fullscreenWrapper.parentElement.removeChild(fullscreenWrapper);
+                    fullscreenWrapper.parentElement.removeChild(
+                        fullscreenWrapper
+                    );
                 }
                 controlBar.append(fullscreenWrapper);
             }
@@ -154,7 +161,10 @@ export function initUnifiedControlBar() {
         // If controls not found yet or incomplete, try again
         retryCount++;
         if (retryCount < CONTROL_BAR_MAX_RETRIES) {
-            scheduleControlBarCheck(checkAndMoveControls, CONTROL_BAR_RETRY_DELAY_MS);
+            scheduleControlBarCheck(
+                checkAndMoveControls,
+                CONTROL_BAR_RETRY_DELAY_MS
+            );
         }
     };
     // Start checking for controls with a slight delay to ensure both are created

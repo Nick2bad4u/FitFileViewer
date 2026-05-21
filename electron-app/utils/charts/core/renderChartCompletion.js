@@ -3,8 +3,7 @@ import { getGlobalChartActions } from "./renderChartRuntimeHelpers.js";
 export function safeCompleteRendering(success) {
     try {
         getGlobalChartActions()?.completeRendering?.(success);
-    }
-    catch {
+    } catch {
         // Compatibility bridge failures should not mask render cleanup paths.
     }
 }

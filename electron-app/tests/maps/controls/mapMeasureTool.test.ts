@@ -318,7 +318,11 @@ describe("mapMeasureTool.js", () => {
                         function (
                             /** @type {string} */ type,
                             /** @type {EventListenerOrEventListenerObject} */ listener,
-                            /** @type {boolean | AddEventListenerOptions | undefined} */ options
+                            /**
+                             * @type {boolean
+                             *     | AddEventListenerOptions
+                             *     | undefined}
+                             */ options
                         ) {
                             // Capture the click listener for testing
                             if (type === "click") {
@@ -365,7 +369,7 @@ describe("mapMeasureTool.js", () => {
         const divIconCall = global.L.divIcon.mock.calls[0][0];
         expect(divIconCall.html).toBeInstanceOf(HTMLElement);
         expect(
-            /** @type {HTMLElement} */ (divIconCall.html).querySelector(
+            /** @type {HTMLElement} */ divIconCall.html.querySelector(
                 ".measure-exit-btn"
             )
         ).toBeInstanceOf(HTMLButtonElement);

@@ -80,9 +80,8 @@ npm run package           # Create package without installer
 
 ```javascript
 // Use ES6+ features consistently
-const { formatDistance, formatTime } = await import(
- "./utils/formatting/index.js"
-);
+const { formatDistance, formatTime } =
+ await import("./utils/formatting/index.js");
 
 // Prefer const/let over var
 const CONSTANT_VALUE = "immutable";
@@ -97,7 +96,8 @@ function calculateAverageSpeed(distance, time) {
 /**
  * Converts distance from meters to specified unit
  *
- * @example const km = convertDistanceUnits(1000, 'kilometers'); // 1
+ * @example
+ *  const km = convertDistanceUnits(1000, "kilometers"); // 1
  *
  * @param {number} meters - Distance in meters
  * @param {string} targetUnit - Target unit (km, mi, ft)

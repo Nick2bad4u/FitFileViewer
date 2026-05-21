@@ -37,49 +37,53 @@ export function getActiveTabContent() {
         // rather than an inline style. These fallbacks intentionally do not use getComputedStyle
         // because JSDOM defaults can cause false positives in unit tests.
         try {
-            const activeByClass = document.querySelector(`${SELECTORS.TAB_CONTENT}.active`);
+            const activeByClass = document.querySelector(
+                `${SELECTORS.TAB_CONTENT}.active`
+            );
             if (activeByClass) {
                 return activeByClass;
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         try {
-            const activeByAria = document.querySelector(`${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`);
+            const activeByAria = document.querySelector(
+                `${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`
+            );
             if (activeByAria) {
                 return activeByAria;
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         // Final strategy: derive active content from the active tab button id
         // and map to content-* using flexible ID lookup.
         try {
             const activeBtn = document.querySelector(".tab-button.active");
-            const activeId = activeBtn && typeof activeBtn.id === "string"
-                ? activeBtn.id
-                : "";
+            const activeId =
+                activeBtn && typeof activeBtn.id === "string"
+                    ? activeBtn.id
+                    : "";
             const match = /^tab[-_]?(.+)$/iu.exec(activeId);
             if (match && match[1]) {
                 const rawName = String(match[1]);
                 const normalized = rawName
                     .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
                     .toLowerCase();
-                const contentEl = getElementByIdFlexible(document, `content_${normalized}`);
+                const contentEl = getElementByIdFlexible(
+                    document,
+                    `content_${normalized}`
+                );
                 if (contentEl) {
                     return contentEl;
                 }
             }
-        }
-        catch {
+        } catch {
             /* ignore */
         }
         // No active tab found
         return null;
-    }
-    catch (error) {
+    } catch (error) {
         console.error(`${LOG_PREFIX} Error getting active tab content:`, error);
         return null;
     }

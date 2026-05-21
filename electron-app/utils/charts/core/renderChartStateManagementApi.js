@@ -1,4 +1,7 @@
-import { initializeChartStateManagement as initializeChartStateManagementImpl, refreshChartsIfNeeded as refreshChartsIfNeededImpl, } from "./renderChartStateManagement.js";
+import {
+    initializeChartStateManagement as initializeChartStateManagementImpl,
+    refreshChartsIfNeeded as refreshChartsIfNeededImpl,
+} from "./renderChartStateManagement.js";
 /**
  * Creates the state-management API exported by renderChartJS.
  *
@@ -24,9 +27,11 @@ export function createChartStateManagementApi(dependencies) {
         },
         refreshChartsIfNeeded() {
             return refreshChartsIfNeededImpl({
-                hasValidData: () => Boolean(dependencies.chartState.hasValidData),
+                hasValidData: () =>
+                    Boolean(dependencies.chartState.hasValidData),
                 isRendering: () => dependencies.chartState.isRendering,
-                requestRerender: (reason) => dependencies.chartActions.requestRerender(reason),
+                requestRerender: (reason) =>
+                    dependencies.chartActions.requestRerender(reason),
             });
         },
     };

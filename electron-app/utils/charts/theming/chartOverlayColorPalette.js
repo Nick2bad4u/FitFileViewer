@@ -12,7 +12,11 @@ function hexToRgb(hex) {
             .join("");
     }
     if (!/^[\da-f]{6}$/.test(cleaned)) {
-        return [0, 0, 0];
+        return [
+            0,
+            0,
+            0,
+        ];
     }
     const numericColor = Number.parseInt(cleaned, 16);
     return [
@@ -22,9 +26,21 @@ function hexToRgb(hex) {
     ];
 }
 function colorDistance(firstColor, secondColor) {
-    const [firstRed, firstGreen, firstBlue] = hexToRgb(firstColor);
-    const [secondRed, secondGreen, secondBlue] = hexToRgb(secondColor);
-    return Math.hypot(firstRed - secondRed, firstGreen - secondGreen, firstBlue - secondBlue);
+    const [
+        firstRed,
+        firstGreen,
+        firstBlue,
+    ] = hexToRgb(firstColor);
+    const [
+        secondRed,
+        secondGreen,
+        secondBlue,
+    ] = hexToRgb(secondColor);
+    return Math.hypot(
+        firstRed - secondRed,
+        firstGreen - secondGreen,
+        firstBlue - secondBlue
+    );
 }
 function seededShuffle(inputColors, seed = DEFAULT_SHUFFLE_SEED) {
     const shuffledColors = [...inputColors];
@@ -32,7 +48,7 @@ function seededShuffle(inputColors, seed = DEFAULT_SHUFFLE_SEED) {
     for (let index = shuffledColors.length - 1; index > 0; index -= 1) {
         state =
             (LINEAR_CONGRUENTIAL_A * state + LINEAR_CONGRUENTIAL_C) %
-                LINEAR_CONGRUENTIAL_M;
+            LINEAR_CONGRUENTIAL_M;
         const swapIndex = state % (index + 1);
         const currentColor = shuffledColors[index];
         const swapColor = shuffledColors[swapIndex];
@@ -52,8 +68,13 @@ export function getChartOverlayColorPalette(inputColors) {
     const uniqueColors = [...new Set(inputColors)];
     const filteredColors = [];
     for (const color of uniqueColors) {
-        if (filteredColors.every((existingColor) => colorDistance(color, existingColor) >=
-            MINIMUM_COLOR_DISTANCE)) {
+        if (
+            filteredColors.every(
+                (existingColor) =>
+                    colorDistance(color, existingColor) >=
+                    MINIMUM_COLOR_DISTANCE
+            )
+        ) {
             filteredColors.push(color);
         }
     }
@@ -94,4 +115,6 @@ export const baseChartOverlayColors = [
  * Chart overlay color palette with visually distinct colors for overlaying
  * multiple data series.
  */
-export const chartOverlayColorPalette = getChartOverlayColorPalette(baseChartOverlayColors);
+export const chartOverlayColorPalette = getChartOverlayColorPalette(
+    baseChartOverlayColors
+);

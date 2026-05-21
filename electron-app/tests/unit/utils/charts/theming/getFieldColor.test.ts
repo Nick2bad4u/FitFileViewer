@@ -19,9 +19,7 @@ describe(getFieldColor, () => {
     it("returns the default color for unknown fields", () => {
         expect.assertions(2);
 
-        const debugSpy = vi
-            .spyOn(console, "debug")
-            .mockReturnValue(undefined);
+        const debugSpy = vi.spyOn(console, "debug").mockReturnValue(undefined);
 
         expect(getFieldColor("unknownField")).toBe(DEFAULT_FIELD_COLOR);
         expect(debugSpy).toHaveBeenCalledWith(
@@ -34,9 +32,7 @@ describe(getFieldColor, () => {
     it("returns the default color for invalid field values", () => {
         expect.assertions(4);
 
-        const warnSpy = vi
-            .spyOn(console, "warn")
-            .mockReturnValue(undefined);
+        const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
 
         expect(getFieldColor("")).toBe(DEFAULT_FIELD_COLOR);
         expect(getFieldColor(null)).toBe(DEFAULT_FIELD_COLOR);

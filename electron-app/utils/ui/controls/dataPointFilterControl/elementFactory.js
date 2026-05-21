@@ -126,7 +126,12 @@ export function createFilterControlElements(instanceId) {
     const rangeValueDisplay = document.createElement("div");
     rangeValueDisplay.className = "data-point-filter-control__range-values";
     rangeValueDisplay.textContent = "Range unavailable";
-    rangeGroup.append(rangeLabel, rangeSliderMin, rangeSliderMax, rangeValueDisplay);
+    rangeGroup.append(
+        rangeLabel,
+        rangeSliderMin,
+        rangeSliderMax,
+        rangeValueDisplay
+    );
     const summary = document.createElement("p");
     summary.className = "data-point-filter-control__summary";
     summary.textContent = "Highlight the most intense sections of your ride.";
@@ -141,7 +146,14 @@ export function createFilterControlElements(instanceId) {
     resetButton.className = "data-point-filter-control__reset";
     resetButton.textContent = "Clear";
     actions.append(applyButton, resetButton);
-    panel.append(metricGroup, modeGroup, percentGroup, rangeGroup, summary, actions);
+    panel.append(
+        metricGroup,
+        modeGroup,
+        percentGroup,
+        rangeGroup,
+        summary,
+        actions
+    );
     container.append(toggleButton);
     return {
         container,

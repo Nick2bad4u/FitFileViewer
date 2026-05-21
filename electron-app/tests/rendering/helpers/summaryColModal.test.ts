@@ -32,8 +32,9 @@ function getRequiredElement<TElement extends Element>(
 }
 
 function getButtonByText(text: string): HTMLButtonElement {
-    const button = [...document.querySelectorAll<HTMLButtonElement>("button")]
-        .find((candidate) => candidate.textContent === text);
+    const button = [
+        ...document.querySelectorAll<HTMLButtonElement>("button"),
+    ].find((candidate) => candidate.textContent === text);
     if (!button) {
         throw new TypeError(`Missing button with text ${text}`);
     }
@@ -115,20 +116,14 @@ describe("summaryColModal", () => {
             ]);
             expect(renderTable).toHaveBeenCalledOnce();
             expect(localStorage.getItem(fileStorageKey)).toBe(
-                JSON.stringify([
-                    "speed",
-                    "distance",
-                ])
+                JSON.stringify(["speed", "distance"])
             );
             expect(selectedCount.textContent).toBe("Selected 2 / 3");
 
             getButtonByText("Make Global Default").click();
 
             expect(localStorage.getItem("summaryColSel_global_default")).toBe(
-                JSON.stringify([
-                    "speed",
-                    "distance",
-                ])
+                JSON.stringify(["speed", "distance"])
             );
             expect(localStorage.getItem(fileStorageKey)).toBeNull();
             expect(renderTable).toHaveBeenCalledTimes(2);

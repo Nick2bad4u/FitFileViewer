@@ -104,7 +104,8 @@ function insertIndicatorIntoDom(
 /**
  * Creates a persistent global chart status indicator for the chart tab.
  *
- * @returns The created or existing indicator element, or null when chart content is unavailable.
+ * @returns The created or existing indicator element, or null when chart
+ *   content is unavailable.
  */
 export function createGlobalChartStatusIndicator(): HTMLElement | null {
     try {

@@ -1,7 +1,11 @@
 import { clearElement } from "../../dom/index.js";
 import { createUserDeviceInfoBox } from "../../rendering/components/createUserDeviceInfoBox.js";
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
-import { getChartRenderContainer, getChartSettingsWrapper, resolveChartContainer, } from "../dom/chartDomUtils.js";
+import {
+    getChartRenderContainer,
+    getChartSettingsWrapper,
+    resolveChartContainer,
+} from "../dom/chartDomUtils.js";
 import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 import { isElement } from "./renderChartDomHelpers.js";
 function normalizeChartTarget(targetContainer) {
@@ -21,23 +25,28 @@ function createFallbackChartContainer(doc) {
 		`;
     const settingsWrapper = getChartSettingsWrapper(doc);
     if (settingsWrapper && settingsWrapper.parentNode) {
-        settingsWrapper.parentNode.insertBefore(chartContainer, settingsWrapper.nextSibling);
-    }
-    else {
+        settingsWrapper.parentNode.insertBefore(
+            chartContainer,
+            settingsWrapper.nextSibling
+        );
+    } else {
         doc.body.append(chartContainer);
     }
     return chartContainer;
 }
 function resolveOrCreateChartContainer(doc, targetContainer) {
-    return (resolveChartContainer(doc, targetContainer) ||
+    return (
+        resolveChartContainer(doc, targetContainer) ||
         getChartRenderContainer(doc) ||
-        createFallbackChartContainer(doc));
+        createFallbackChartContainer(doc)
+    );
 }
 /**
  * Prepares the chart render container and adjacent controls for chart output.
  *
  * @param dependencies - DOM and cleanup dependencies for container setup.
  * @param options - Target container and control-panel options.
+ *
  * @returns The prepared chart container.
  */
 export function prepareChartRenderContainer(dependencies, options) {
@@ -45,7 +54,10 @@ export function prepareChartRenderContainer(dependencies, options) {
     if (!options.skipControls) {
         ensureChartSettingsDropdowns(targetContainer);
     }
-    const chartContainer = resolveOrCreateChartContainer(dependencies.doc, targetContainer);
+    const chartContainer = resolveOrCreateChartContainer(
+        dependencies.doc,
+        targetContainer
+    );
     const settingsWrapper = getChartSettingsWrapper(dependencies.doc);
     if (!options.skipControls && targetContainer && settingsWrapper) {
         setupChartThemeListener(chartContainer, settingsWrapper);

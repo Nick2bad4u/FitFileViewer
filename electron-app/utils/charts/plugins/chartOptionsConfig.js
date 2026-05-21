@@ -31,12 +31,14 @@ export const maxPointsOptions = [
     "all",
 ];
 /**
- * Comprehensive chart customization options used by settings UI and chart rendering.
+ * Comprehensive chart customization options used by settings UI and chart
+ * rendering.
  */
 export const chartOptionsConfig = [
     {
         default: DEFAULT_MAX_POINTS,
-        description: "Maximum number of data points to display (higher values may impact performance)",
+        description:
+            "Maximum number of data points to display (higher values may impact performance)",
         id: "maxpoints",
         label: "Max Points",
         options: maxPointsOptions,
@@ -44,7 +46,8 @@ export const chartOptionsConfig = [
     },
     {
         default: "line",
-        description: 'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
+        description:
+            'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
         id: "chartType",
         label: "Chart Type",
         options: [
@@ -57,7 +60,8 @@ export const chartOptionsConfig = [
     },
     {
         default: "linear",
-        description: "Line interpolation method for smooth curves or stepped visualization",
+        description:
+            "Line interpolation method for smooth curves or stepped visualization",
         id: "interpolation",
         label: "Interpolation",
         options: [
@@ -69,7 +73,8 @@ export const chartOptionsConfig = [
     },
     {
         default: "smooth",
-        description: "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
+        description:
+            "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
         id: "animation",
         label: "Animation",
         options: [
@@ -81,7 +86,8 @@ export const chartOptionsConfig = [
     },
     {
         default: "auto",
-        description: "Background theme for exported chart images (auto uses current app theme)",
+        description:
+            "Background theme for exported chart images (auto uses current app theme)",
         id: "exportTheme",
         label: "Export Theme",
         options: [
@@ -94,7 +100,8 @@ export const chartOptionsConfig = [
     },
     {
         default: true,
-        description: "Show or hide chart grid lines for better data readability",
+        description:
+            "Show or hide chart grid lines for better data readability",
         id: "showGrid",
         label: "Grid",
         options: [true, false],
@@ -134,7 +141,8 @@ export const chartOptionsConfig = [
     },
     {
         default: 0.4,
-        description: "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies to 'line' and 'area' charts with 'monotone' or 'linear' interpolation.",
+        description:
+            "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies to 'line' and 'area' charts with 'monotone' or 'linear' interpolation.",
         id: "smoothing",
         label: "Line Smoothing",
         max: 1,
@@ -156,7 +164,8 @@ export const chartOptionsConfig = [
     },
     {
         default: "kilometers",
-        description: "Units for distance and altitude display on axes and tooltips",
+        description:
+            "Units for distance and altitude display on axes and tooltips",
         id: "distanceUnits",
         label: "Distance Units",
         options: [
@@ -217,10 +226,12 @@ export function isValidOptionValue(optionId, value) {
     }
     switch (option.type) {
         case "range": {
-            return (typeof value === "number" &&
+            return (
+                typeof value === "number" &&
                 Number.isFinite(value) &&
                 value >= option.min &&
-                value <= option.max);
+                value <= option.max
+            );
         }
         case "select": {
             return option.options.includes(value);

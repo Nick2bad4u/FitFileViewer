@@ -29,6 +29,7 @@ function getChartContainer(): Element | null {
  * state manager is unavailable.
  *
  * @param dependencies - Runtime state, environment, and render callback hooks.
+ *
  * @returns Debounced direct re-render scheduler.
  */
 export function createDebouncedDirectRerender(

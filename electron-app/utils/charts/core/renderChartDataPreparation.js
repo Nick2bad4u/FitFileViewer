@@ -13,12 +13,16 @@ export function isNonEmptyChartDataRecordArray(value) {
 }
 /** Checks whether an object exposes non-empty validated chart record messages. */
 export function hasChartDataRecordMessages(value) {
-    return (isChartDataRecord(value) &&
-        isNonEmptyChartDataRecordArray(getRecordValue(value, "recordMesgs")));
+    return (
+        isChartDataRecord(value) &&
+        isNonEmptyChartDataRecordArray(getRecordValue(value, "recordMesgs"))
+    );
 }
 function isActivityStartTime(value) {
-    return (value instanceof Date ||
-        (typeof value === "number" && Number.isFinite(value)));
+    return (
+        value instanceof Date ||
+        (typeof value === "number" && Number.isFinite(value))
+    );
 }
 /**
  * Checks whether global chart data is a record-like object.
@@ -61,9 +65,13 @@ export function getActivityStartTime(recordMesgs) {
  * consumers.
  */
 export function storeChartData(dependencies, recordMesgs, activityStartTime) {
-    dependencies.setState("charts.chartData", {
-        activityStartTime,
-        recordMesgs,
-        totalDataPoints: recordMesgs.length,
-    }, { silent: false, source: "renderChartJS" });
+    dependencies.setState(
+        "charts.chartData",
+        {
+            activityStartTime,
+            recordMesgs,
+            totalDataPoints: recordMesgs.length,
+        },
+        { silent: false, source: "renderChartJS" }
+    );
 }

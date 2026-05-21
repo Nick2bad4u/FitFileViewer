@@ -3,20 +3,22 @@ import { describe, expect, it, vi } from "vitest";
 import type { PowerEstimationSettings } from "../../../../../utils/data/processing/estimateCyclingPower.js";
 
 const mocks = vi.hoisted(() => ({
-    applyEstimatedPowerToRecords: vi.fn<
-        (params: {
-            recordMesgs: Record<string, unknown>[];
-            sessionMesgs?: Record<string, unknown>[];
-            settings: PowerEstimationSettings;
-        }) => unknown
-    >(),
+    applyEstimatedPowerToRecords:
+        vi.fn<
+            (params: {
+                recordMesgs: Record<string, unknown>[];
+                sessionMesgs?: Record<string, unknown>[];
+                settings: PowerEstimationSettings;
+            }) => unknown
+        >(),
     hasPowerData: vi.fn<(records: Record<string, unknown>[]) => boolean>(),
-    openPowerEstimationSettingsModal: vi.fn<
-        (params: {
-            hasRealPower: boolean;
-            onApply: (settings: PowerEstimationSettings) => void;
-        }) => void
-    >(),
+    openPowerEstimationSettingsModal:
+        vi.fn<
+            (params: {
+                hasRealPower: boolean;
+                onApply: (settings: PowerEstimationSettings) => void;
+            }) => void
+        >(),
 }));
 
 vi.mock(
@@ -28,9 +30,7 @@ vi.mock(
 );
 
 vi.mock(
-    import(
-        "../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js"
-    ),
+    import("../../../../../utils/ui/modals/openPowerEstimationSettingsModal.js"),
     () => ({
         openPowerEstimationSettingsModal:
             mocks.openPowerEstimationSettingsModal,

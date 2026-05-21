@@ -23,9 +23,15 @@ function collapseLayersPanelIfClickOutside(event) {
         if (!(mapTypeBtn instanceof HTMLElement)) {
             return;
         }
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
-        if (!layersControlEl ||
-            !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+        const layersControlEl = document.querySelector(
+            ".leaflet-control-layers"
+        );
+        if (
+            !layersControlEl ||
+            !layersControlEl.classList.contains(
+                "leaflet-control-layers-expanded"
+            )
+        ) {
             return;
         }
         const node = event.target instanceof Node ? event.target : null;
@@ -35,7 +41,9 @@ function collapseLayersPanelIfClickOutside(event) {
         if (!layersControlEl.contains(node) && !mapTypeBtn.contains(node)) {
             layersControlEl.classList.remove("leaflet-control-layers-expanded");
             const layersControlElStyled = layersControlEl;
-            const layersListEl = layersControlElStyled.querySelector(".leaflet-control-layers-list");
+            const layersListEl = layersControlElStyled.querySelector(
+                ".leaflet-control-layers-list"
+            );
             layersControlElStyled.style.zIndex = "";
             layersControlElStyled.style.maxHeight = "";
             layersControlElStyled.style.marginTop = "";
@@ -46,24 +54,28 @@ function collapseLayersPanelIfClickOutside(event) {
                 layersListEl.style.overflowY = "";
             }
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }
 function layoutLayersPanelOnResize() {
     try {
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
-        if (!layersControlEl ||
-            !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+        const layersControlEl = document.querySelector(
+            ".leaflet-control-layers"
+        );
+        if (
+            !layersControlEl ||
+            !layersControlEl.classList.contains(
+                "leaflet-control-layers-expanded"
+            )
+        ) {
             return;
         }
         const layoutFn = getMapDocumentGlobal().__ffvLayoutLayersControl;
         if (typeof layoutFn === "function") {
             layoutFn();
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }
@@ -73,8 +85,7 @@ function resetMapZoomDraggingRef() {
         if (isMapZoomDraggingRef(ref)) {
             ref.current = false;
         }
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }

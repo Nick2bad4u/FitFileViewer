@@ -47,7 +47,9 @@ export class CancellationToken {
      * Register a callback to be called when cancelled
      *
      * @param callback - Callback function.
+     *
      * @returns Unsubscribe function.
+     *
      * @throws TypeError when callback is not a function.
      */
     onCancel(callback: () => void): () => void {
@@ -115,6 +117,7 @@ export class CancellationTokenSource {
  * Create a cancellation token that automatically cancels after a timeout
  *
  * @param timeout - Timeout in milliseconds.
+ *
  * @returns Cancellation token source.
  */
 export function createTimeoutCancellationToken(
@@ -137,6 +140,7 @@ export function createTimeoutCancellationToken(
  *
  * @param ms - Milliseconds to wait.
  * @param token - Optional cancellation token.
+ *
  * @returns Promise that resolves after the delay or rejects when cancelled.
  */
 export async function delay(
@@ -171,6 +175,7 @@ export async function delay(
  * Check if an error is a cancellation error
  *
  * @param error - Error to check.
+ *
  * @returns Whether the error represents cancellation.
  */
 export function isCancellationError(error: unknown): boolean {

@@ -31,11 +31,11 @@
     const isCreateAppMenu = (value: unknown): value is CreateAppMenu =>
         typeof value === "function";
 
-/**
- * Lazily creates the application menu. The helper is intentionally defensive so
- * unit tests that run without a real Electron runtime do not crash when the
- * menu builder is required.
- */
+    /**
+     * Lazily creates the application menu. The helper is intentionally
+     * defensive so unit tests that run without a real Electron runtime do not
+     * crash when the menu builder is required.
+     */
     function safeCreateAppMenu(
         mainWindow: MainWindowLike,
         theme: string,

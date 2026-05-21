@@ -23,35 +23,53 @@ export function getLapNumForIdx(idx, lapMesgs) {
             if (!isValidLap(lap, lapIndex)) {
                 continue;
             }
-            if (validation.idx >= lap.start_index &&
-                validation.idx <= lap.end_index) {
+            if (
+                validation.idx >= lap.start_index &&
+                validation.idx <= lap.end_index
+            ) {
                 return lapIndex + 1;
             }
         }
         return null;
-    }
-    catch (error) {
-        console.error(`${LOG_PREFIX} Error determining lap number for index ${String(idx)}:`, error);
+    } catch (error) {
+        console.error(
+            `${LOG_PREFIX} Error determining lap number for index ${String(idx)}:`,
+            error
+        );
         return null;
     }
 }
 function isValidLap(lap, lapIndex) {
     if (!lap || typeof lap !== "object") {
-        console.warn(`${LOG_PREFIX} Invalid lap object at index ${lapIndex}:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Invalid lap object at index ${lapIndex}:`,
+            lap
+        );
         return false;
     }
     const candidate = lap;
-    if (typeof candidate.start_index !== "number" ||
-        typeof candidate.end_index !== "number") {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`, lap);
+    if (
+        typeof candidate.start_index !== "number" ||
+        typeof candidate.end_index !== "number"
+    ) {
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`,
+            lap
+        );
         return false;
     }
     if (candidate.start_index < 0 || candidate.end_index < 0) {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} has negative indices:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} has negative indices:`,
+            lap
+        );
         return false;
     }
     if (candidate.start_index > candidate.end_index) {
-        console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} has start_index > end_index:`, lap);
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} has start_index > end_index:`,
+            lap
+        );
         return false;
     }
     return true;

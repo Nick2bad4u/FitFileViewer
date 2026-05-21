@@ -24,6 +24,7 @@ type WindowWithElectronApi = Window & {
  * `data-external-link` within a root.
  *
  * @param params - Handler options.
+ *
  * @returns Cleanup callback for the delegated listeners.
  */
 export function attachExternalLinkHandlers({

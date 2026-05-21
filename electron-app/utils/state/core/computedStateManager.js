@@ -7,12 +7,16 @@ function getRecordMessages(state) {
 }
 function hasLoadedGlobalData(state) {
     const globalData = state.globalData;
-    return (globalData !== null &&
+    return (
+        globalData !== null &&
         typeof globalData === "object" &&
-        Object.keys(globalData).length > 0);
+        Object.keys(globalData).length > 0
+    );
 }
 function isDarkSchemePreferred() {
-    return Boolean(globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches);
+    return Boolean(
+        globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches
+    );
 }
 /**
  * Manages derived values that recompute from state dependencies.
@@ -27,7 +31,9 @@ class ComputedStateManager {
      */
     addComputed(key, computeFn, deps = []) {
         if (this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" already exists, replacing...`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" already exists, replacing...`
+            );
             this.removeComputed(key);
         }
         this.computedValues.set(key, {
@@ -39,12 +45,17 @@ class ComputedStateManager {
             value: undefined,
         });
         this.dependencies.set(key, deps);
-        const subscriptions = deps.map((dep) => subscribe(dep, () => {
-            this.invalidateComputed(key);
-        }));
+        const subscriptions = deps.map((dep) =>
+            subscribe(dep, () => {
+                this.invalidateComputed(key);
+            })
+        );
         this.subscriptions.set(key, subscriptions);
         this.computeValue(key);
-        console.log(`[ComputedState] Registered computed value "${key}" with dependencies:`, deps);
+        console.log(
+            `[ComputedState] Registered computed value "${key}" with dependencies:`,
+            deps
+        );
         return () => {
             this.removeComputed(key);
         };
@@ -69,7 +80,9 @@ class ComputedStateManager {
             return;
         }
         if (this.isComputing.has(key)) {
-            console.error(`[ComputedState] Circular dependency detected for computed value "${key}"`);
+            console.error(
+                `[ComputedState] Circular dependency detected for computed value "${key}"`
+            );
             return;
         }
         this.isComputing.add(key);
@@ -83,16 +96,21 @@ class ComputedStateManager {
             computed.lastComputed = Date.now();
             computed.error = null;
             if (duration > 10) {
-                console.warn(`[ComputedState] Slow computation for "${key}": ${duration.toFixed(2)}ms`);
+                console.warn(
+                    `[ComputedState] Slow computation for "${key}": ${duration.toFixed(2)}ms`
+                );
             }
-            console.log(`[ComputedState] Computed value "${key}" updated in ${duration.toFixed(2)}ms`);
-        }
-        catch (error) {
-            console.error(`[ComputedState] Error computing value for "${key}":`, error);
+            console.log(
+                `[ComputedState] Computed value "${key}" updated in ${duration.toFixed(2)}ms`
+            );
+        } catch (error) {
+            console.error(
+                `[ComputedState] Error computing value for "${key}":`,
+                error
+            );
             computed.error = error;
             computed.isValid = false;
-        }
-        finally {
+        } finally {
             this.isComputing.delete(key);
         }
     }
@@ -118,7 +136,9 @@ class ComputedStateManager {
     getComputed(key) {
         const computed = this.computedValues.get(key);
         if (!computed) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" does not exist`
+            );
             return undefined;
         }
         if (!computed.isValid || computed.error) {
@@ -155,7 +175,9 @@ class ComputedStateManager {
     /** Removes a computed value and its dependency subscriptions. */
     removeComputed(key) {
         if (!this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            console.warn(
+                `[ComputedState] Computed value "${key}" does not exist`
+            );
             return;
         }
         const subscriptions = this.subscriptions.get(key) ?? [];
@@ -215,76 +237,112 @@ let commonComputedValuesInitialized = false;
 /** Initializes common computed values for the FitFileViewer application. */
 export function initializeCommonComputedValues() {
     if (commonComputedValuesInitialized) {
-        console.log("[ComputedState] Common computed values already initialized, skipping...");
+        console.log(
+            "[ComputedState] Common computed values already initialized, skipping..."
+        );
         return;
     }
     console.log("[ComputedState] Initializing common computed values...");
     addComputed("isFileLoaded", hasLoadedGlobalData, ["globalData"]);
-    addComputed("isAppReady", (state) => state.app.initialized && !state.app.isOpeningFile, ["app.initialized", "app.isOpeningFile"]);
-    addComputed("hasChartData", (state) => getRecordMessages(state).length > 0, ["globalData.recordMesgs"]);
-    addComputed("hasMapData", (state) => getRecordMessages(state).some((record) => record.positionLat !== undefined &&
-        record.positionLong !== undefined), ["globalData.recordMesgs"]);
-    addComputed("summaryData", (state) => {
-        const [session] = state.globalData?.sessionMesgs ?? [];
-        if (!session) {
-            return null;
-        }
-        return {
-            avgHeartRate: session.avgHeartRate,
-            avgPower: session.avgPower,
-            avgSpeed: session.avgSpeed,
-            maxHeartRate: session.maxHeartRate,
-            maxPower: session.maxPower,
-            maxSpeed: session.maxSpeed,
-            totalAscent: session.totalAscent,
-            totalDescent: session.totalDescent,
-            totalDistance: session.totalDistance,
-            totalTime: session.totalElapsedTime,
-        };
-    }, ["globalData.sessionMesgs"]);
-    addComputed("performanceMetrics", (state) => {
-        const startTime = state.app.startTime;
-        if (!startTime) {
-            return null;
-        }
-        return {
-            isFileLoaded: hasLoadedGlobalData(state),
-            lastActivity: state.system?.lastActivity ?? startTime,
-            tabsEnabled: state.ui?.tabs ?? {},
-            uptime: Date.now() - startTime,
-        };
-    }, [
-        "app.startTime",
-        "globalData",
-        "ui.tabs",
-        "system.lastActivity",
-    ]);
-    addComputed("themeInfo", (state) => {
-        const mapTheme = state.settings?.mapTheme ?? true;
-        const theme = state.settings?.theme ?? "dark";
-        const darkSchemePreferred = isDarkSchemePreferred();
-        return {
-            currentTheme: theme,
-            isDarkTheme: theme === "dark" ||
-                (theme === "auto" && darkSchemePreferred),
-            isLightTheme: theme === "light" ||
-                (theme === "auto" && !darkSchemePreferred),
-            mapThemeInverted: mapTheme,
-        };
-    }, ["settings.theme", "settings.mapTheme"]);
-    addComputed("uiStateSummary", (state) => ({
-        activeTab: state.ui?.activeTab ?? "summary",
-        controlsEnabled: state.ui?.controlsEnabled ?? false,
-        loadingState: state.ui?.loading ?? false,
-        notificationCount: state.ui?.notifications?.length ?? 0,
-        tabsVisible: state.ui?.tabsVisible ?? false,
-    }), [
-        "ui.activeTab",
-        "ui.loading",
-        "ui.notifications",
-        "ui.controlsEnabled",
-        "ui.tabsVisible",
-    ]);
+    addComputed(
+        "isAppReady",
+        (state) => state.app.initialized && !state.app.isOpeningFile,
+        ["app.initialized", "app.isOpeningFile"]
+    );
+    addComputed(
+        "hasChartData",
+        (state) => getRecordMessages(state).length > 0,
+        ["globalData.recordMesgs"]
+    );
+    addComputed(
+        "hasMapData",
+        (state) =>
+            getRecordMessages(state).some(
+                (record) =>
+                    record.positionLat !== undefined &&
+                    record.positionLong !== undefined
+            ),
+        ["globalData.recordMesgs"]
+    );
+    addComputed(
+        "summaryData",
+        (state) => {
+            const [session] = state.globalData?.sessionMesgs ?? [];
+            if (!session) {
+                return null;
+            }
+            return {
+                avgHeartRate: session.avgHeartRate,
+                avgPower: session.avgPower,
+                avgSpeed: session.avgSpeed,
+                maxHeartRate: session.maxHeartRate,
+                maxPower: session.maxPower,
+                maxSpeed: session.maxSpeed,
+                totalAscent: session.totalAscent,
+                totalDescent: session.totalDescent,
+                totalDistance: session.totalDistance,
+                totalTime: session.totalElapsedTime,
+            };
+        },
+        ["globalData.sessionMesgs"]
+    );
+    addComputed(
+        "performanceMetrics",
+        (state) => {
+            const startTime = state.app.startTime;
+            if (!startTime) {
+                return null;
+            }
+            return {
+                isFileLoaded: hasLoadedGlobalData(state),
+                lastActivity: state.system?.lastActivity ?? startTime,
+                tabsEnabled: state.ui?.tabs ?? {},
+                uptime: Date.now() - startTime,
+            };
+        },
+        [
+            "app.startTime",
+            "globalData",
+            "ui.tabs",
+            "system.lastActivity",
+        ]
+    );
+    addComputed(
+        "themeInfo",
+        (state) => {
+            const mapTheme = state.settings?.mapTheme ?? true;
+            const theme = state.settings?.theme ?? "dark";
+            const darkSchemePreferred = isDarkSchemePreferred();
+            return {
+                currentTheme: theme,
+                isDarkTheme:
+                    theme === "dark" ||
+                    (theme === "auto" && darkSchemePreferred),
+                isLightTheme:
+                    theme === "light" ||
+                    (theme === "auto" && !darkSchemePreferred),
+                mapThemeInverted: mapTheme,
+            };
+        },
+        ["settings.theme", "settings.mapTheme"]
+    );
+    addComputed(
+        "uiStateSummary",
+        (state) => ({
+            activeTab: state.ui?.activeTab ?? "summary",
+            controlsEnabled: state.ui?.controlsEnabled ?? false,
+            loadingState: state.ui?.loading ?? false,
+            notificationCount: state.ui?.notifications?.length ?? 0,
+            tabsVisible: state.ui?.tabsVisible ?? false,
+        }),
+        [
+            "ui.activeTab",
+            "ui.loading",
+            "ui.notifications",
+            "ui.controlsEnabled",
+            "ui.tabsVisible",
+        ]
+    );
     commonComputedValuesInitialized = true;
     console.log("[ComputedState] Common computed values initialized");
 }

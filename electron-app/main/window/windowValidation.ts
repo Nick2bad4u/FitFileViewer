@@ -17,11 +17,11 @@
         };
     }
 
-/**
- * Determines whether the provided BrowserWindow is still usable.
- *
- * @returns True when the window and its webContents remain alive.
- */
+    /**
+     * Determines whether the provided BrowserWindow is still usable.
+     *
+     * @returns True when the window and its webContents remain alive.
+     */
     function isWindowUsable(
         win?: null | WindowUsabilityCandidate
     ): win is WindowUsabilityCandidate & {
@@ -52,14 +52,14 @@
         }
     }
 
-/**
- * Validates that a BrowserWindow is usable and logs a structured warning when
- * it is not.
- *
- * @param context - Description of the operation requiring the window.
- *
- * @returns True when the window can be used.
- */
+    /**
+     * Validates that a BrowserWindow is usable and logs a structured warning
+     * when it is not.
+     *
+     * @param context - Description of the operation requiring the window.
+     *
+     * @returns True when the window can be used.
+     */
     function validateWindow(
         win?: null | WindowUsabilityCandidate,
         context = "unknown operation"

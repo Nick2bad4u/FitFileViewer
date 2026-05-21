@@ -21,9 +21,8 @@ const overlayCache = new WeakMap();
  * removal methods. Automatically cleans up cache entries when overlays are
  * removed.
  *
- * @example
- *     // Remove exit fullscreen overlay from a chart container
- *     removeExitFullscreenOverlay(document.getElementById("chart-container"));
+ * @example // Remove exit fullscreen overlay from a chart container
+ * removeExitFullscreenOverlay(document.getElementById("chart-container"));
  *
  * @throws TypeError If container is not a valid DOM element.
  */
@@ -37,13 +36,16 @@ export function removeExitFullscreenOverlay(container) {
         if (overlay) {
             removeOverlayElement(overlay);
             overlayCache.delete(container);
+        } else {
+            console.debug(
+                `[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.OVERLAY_NOT_FOUND}`
+            );
         }
-        else {
-            console.debug(`[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.OVERLAY_NOT_FOUND}`);
-        }
-    }
-    catch (error) {
-        console.error(`[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.REMOVAL_FAILED}`, error);
+    } catch (error) {
+        console.error(
+            `[removeExitFullscreenOverlay] ${OVERLAY_CONFIG.MESSAGES.REMOVAL_FAILED}`,
+            error
+        );
         throw error;
     }
 }
@@ -71,12 +73,12 @@ function removeOverlayElement(overlay) {
     // Use modern remove() method if available
     if (typeof overlay.remove === "function") {
         overlay.remove();
-    }
-    else if (overlay.parentNode) {
+    } else if (overlay.parentNode) {
         // Fallback to legacy removeChild for older browsers
         overlay.parentNode.removeChild(overlay);
-    }
-    else {
-        throw new Error("Unable to remove overlay: no removal method available");
+    } else {
+        throw new Error(
+            "Unable to remove overlay: no removal method available"
+        );
     }
 }

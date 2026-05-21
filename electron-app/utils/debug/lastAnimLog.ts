@@ -24,8 +24,8 @@ function isDevelopmentMode(): boolean {
 
 /**
  * Logs animation progress messages to the console at most once every 500ms to
- * prevent log flooding. Intended for development/debug logging
- * only, and disabled in production builds.
+ * prevent log flooding. Intended for development/debug logging only, and
+ * disabled in production builds.
  *
  * This utility uses a closure to maintain state and throttle log messages,
  * which is particularly useful for high-frequency events like animation frames

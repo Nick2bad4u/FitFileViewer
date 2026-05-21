@@ -9,9 +9,11 @@
      * usable.
      */
     function sendToRenderer(win, channel, ...args) {
-        if (win &&
+        if (
+            win &&
             validateWindow(win, `IPC send to ${channel}`) &&
-            hasRendererSend(win)) {
+            hasRendererSend(win)
+        ) {
             win.webContents.send(channel, ...args);
         }
     }

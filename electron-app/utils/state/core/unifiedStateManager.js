@@ -1,4 +1,8 @@
-import { getState as getNewState, setState as setNewState, subscribe as subscribeNew, } from "./stateManager.js";
+import {
+    getState as getNewState,
+    setState as setNewState,
+    subscribe as subscribeNew,
+} from "./stateManager.js";
 const LEGACY_PATHS = new Set([
     "autoUpdaterInitialized",
     "globalData",
@@ -6,7 +10,8 @@ const LEGACY_PATHS = new Set([
     "mainWindow",
 ]);
 /**
- * Single interface for routing state access during the legacy-to-modern state migration.
+ * Single interface for routing state access during the legacy-to-modern state
+ * migration.
  */
 export class UnifiedStateManager {
     debugMode = false;
@@ -28,10 +33,12 @@ export class UnifiedStateManager {
                 return this.getLegacyState(path, defaultValue);
             }
             return getNewState(path) ?? defaultValue;
-        }
-        catch (error) {
+        } catch (error) {
             if (this.debugMode) {
-                console.warn(`[UnifiedState] Failed to get state for path "${path}":`, error);
+                console.warn(
+                    `[UnifiedState] Failed to get state for path "${path}":`,
+                    error
+                );
             }
             return defaultValue;
         }
@@ -72,8 +79,7 @@ export class UnifiedStateManager {
                         silent: opts.silent,
                     });
                 }
-            }
-            else {
+            } else {
                 setNewState(path, value, {
                     source: opts.source,
                     silent: opts.silent,
@@ -82,9 +88,11 @@ export class UnifiedStateManager {
             if (this.debugMode) {
                 console.log(`[UnifiedState] Set "${path}" =`, value, opts);
             }
-        }
-        catch (error) {
-            console.error(`[UnifiedState] Failed to set state for path "${path}":`, error);
+        } catch (error) {
+            console.error(
+                `[UnifiedState] Failed to set state for path "${path}":`,
+                error
+            );
             throw error;
         }
     }
@@ -92,13 +100,20 @@ export class UnifiedStateManager {
     setSyncEnabled(enabled) {
         this.syncEnabled = enabled;
         if (this.debugMode) {
-            console.log(`[UnifiedState] Legacy sync ${enabled ? "enabled" : "disabled"}`);
+            console.log(
+                `[UnifiedState] Legacy sync ${enabled ? "enabled" : "disabled"}`
+            );
         }
     }
-    /** Subscribes to modern state changes while guarding unsupported legacy subscriptions. */
+    /**
+     * Subscribes to modern state changes while guarding unsupported legacy
+     * subscriptions.
+     */
     subscribe(path, callback) {
         if (this.isLegacyPath(path)) {
-            console.warn(`[UnifiedState] Legacy path "${path}" subscriptions not fully supported`);
+            console.warn(
+                `[UnifiedState] Legacy path "${path}" subscriptions not fully supported`
+            );
             return () => {
                 // Legacy subscriptions are intentionally unsupported.
             };
@@ -113,9 +128,11 @@ export class UnifiedStateManager {
             try {
                 const legacyValue = this.getLegacyState(legacyPath);
                 const newValue = getNewState(legacyPath);
-                if (legacyValue !== undefined &&
+                if (
+                    legacyValue !== undefined &&
                     newValue !== undefined &&
-                    legacyValue !== newValue) {
+                    legacyValue !== newValue
+                ) {
                     issues.push({
                         legacyValue,
                         newValue,
@@ -123,12 +140,10 @@ export class UnifiedStateManager {
                         type: "value_mismatch",
                     });
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 warnings.push({
-                    error: error instanceof Error
-                        ? error.message
-                        : String(error),
+                    error:
+                        error instanceof Error ? error.message : String(error),
                     path: legacyPath,
                     type: "access_error",
                 });
@@ -143,23 +158,24 @@ export class UnifiedStateManager {
     }
     getLegacyState(path, defaultValue) {
         this.warnLegacyPathOnce(path, "Accessing");
-        const stateGlobal = globalThis;
+        const stateGlobal = getUnifiedStateGlobal();
         if (stateGlobal.globalData !== undefined && path === "globalData") {
             return stateGlobal.globalData;
         }
-        if (stateGlobal.window?.globalData !== undefined &&
-            path === "globalData") {
-            return stateGlobal.window.globalData;
+        const stateWindow = getUnifiedStateWindow(stateGlobal);
+        if (stateWindow?.globalData !== undefined && path === "globalData") {
+            return stateWindow.globalData;
         }
         return defaultValue;
     }
     setLegacyState(path, value) {
         this.warnLegacyPathOnce(path, "Setting");
         if (path === "globalData") {
-            const stateGlobal = globalThis;
+            const stateGlobal = getUnifiedStateGlobal();
             stateGlobal.globalData = value;
-            if (stateGlobal.window) {
-                stateGlobal.window.globalData = value;
+            const stateWindow = getUnifiedStateWindow(stateGlobal);
+            if (stateWindow) {
+                stateWindow.globalData = value;
             }
         }
     }
@@ -167,9 +183,19 @@ export class UnifiedStateManager {
         if (this.legacyWarningsShown.has(path)) {
             return;
         }
-        console.warn(`[UnifiedState] ${action} legacy state path "${path}". Consider migrating to new state system.`);
+        console.warn(
+            `[UnifiedState] ${action} legacy state path "${path}". Consider migrating to new state system.`
+        );
         this.legacyWarningsShown.add(path);
     }
+}
+function getUnifiedStateGlobal() {
+    return globalThis;
+}
+function getUnifiedStateWindow(stateGlobal) {
+    return typeof stateGlobal.window === "undefined"
+        ? undefined
+        : stateGlobal.window;
 }
 /** Singleton unified state manager used during the state migration. */
 export const unifiedState = new UnifiedStateManager();
@@ -185,7 +211,10 @@ export function set(path, value, options = {}) {
 export function subscribe(path, callback) {
     return unifiedState.subscribe(path, callback);
 }
-/** Initializes unified state management and reports any initial consistency issues. */
+/**
+ * Initializes unified state management and reports any initial consistency
+ * issues.
+ */
 export function initializeUnifiedState(options = {}) {
     const { enableDebug = false, enableSync = true } = options;
     if (enableDebug) {
@@ -194,10 +223,16 @@ export function initializeUnifiedState(options = {}) {
     unifiedState.setSyncEnabled(enableSync);
     const validation = unifiedState.validateConsistency();
     if (!validation.isValid) {
-        console.warn("[UnifiedState] State consistency issues detected:", validation.issues);
+        console.warn(
+            "[UnifiedState] State consistency issues detected:",
+            validation.issues
+        );
     }
     if (validation.warnings.length > 0) {
-        console.warn("[UnifiedState] State access warnings:", validation.warnings);
+        console.warn(
+            "[UnifiedState] State access warnings:",
+            validation.warnings
+        );
     }
     console.log("[UnifiedState] Unified state management initialized");
     return unifiedState;

@@ -44,7 +44,8 @@ function registerSharedConfigurationLoader(
 }
 
 /**
- * Registers renderer startup bridges that still need global runtime integration.
+ * Registers renderer startup bridges that still need global runtime
+ * integration.
  *
  * @param params - Startup dependencies supplied by renderChartJS.
  */

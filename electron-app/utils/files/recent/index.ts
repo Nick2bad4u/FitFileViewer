@@ -29,7 +29,10 @@ export function addRecentFile(filePath: string): void {
 /** Returns a display-safe basename for a recent file path. */
 export function getShortRecentName(file: unknown): string {
     const mod = loadRecentModule();
-    if (typeof file === "string" && typeof mod?.getShortRecentName === "function") {
+    if (
+        typeof file === "string" &&
+        typeof mod?.getShortRecentName === "function"
+    ) {
         return mod.getShortRecentName(file);
     }
 

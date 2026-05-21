@@ -20,7 +20,12 @@ describe("renderChartDataPreparation", () => {
             isChartDataObject([]),
             isChartDataObject(null),
             isChartDataObject("recordMesgs"),
-        ]).toStrictEqual([true, false, false, false]);
+        ]).toStrictEqual([
+            true,
+            false,
+            false,
+            false,
+        ]);
     });
 
     it("returns non-empty object record messages from global chart data", () => {
@@ -29,8 +34,9 @@ describe("renderChartDataPreparation", () => {
         const recordMesgs = [{ timestamp: "2026-05-21T12:00:00Z" }];
 
         expect(getRecordMessages({ recordMesgs })).toBe(recordMesgs);
-        expect(getRecordMessages({ recordMesgs: [null, ...recordMesgs] }))
-            .toStrictEqual(recordMesgs);
+        expect(
+            getRecordMessages({ recordMesgs: [null, ...recordMesgs] })
+        ).toStrictEqual(recordMesgs);
         expect(getRecordMessages({ recordMesgs: [] })).toBeNull();
         expect(getRecordMessages({ sessionMesgs: recordMesgs })).toBeNull();
     });
@@ -40,15 +46,19 @@ describe("renderChartDataPreparation", () => {
 
         const recordMesgs = [{ timestamp: 1_779_363_600 }];
 
-        expect(
-            [
-                isChartDataRecordArray(recordMesgs),
-                isNonEmptyChartDataRecordArray([]),
-                hasChartDataRecordMessages({ recordMesgs }),
-                hasChartDataRecordMessages({ recordMesgs: [recordMesgs, []] }),
-                hasChartDataRecordMessages({ recordMesgs: [null] }),
-            ]
-        ).toStrictEqual([true, false, true, false, false]);
+        expect([
+            isChartDataRecordArray(recordMesgs),
+            isNonEmptyChartDataRecordArray([]),
+            hasChartDataRecordMessages({ recordMesgs }),
+            hasChartDataRecordMessages({ recordMesgs: [recordMesgs, []] }),
+            hasChartDataRecordMessages({ recordMesgs: [null] }),
+        ]).toStrictEqual([
+            true,
+            false,
+            true,
+            false,
+            false,
+        ]);
     });
 
     it("finds the first supported activity start time from record messages", () => {

@@ -25,7 +25,10 @@ const ZONE_CHART_TYPES = ["hr_zone_doughnut", "power_zone_doughnut"];
  * Computes chart counts grouped by category.
  */
 export function getChartCounts() {
-    const counts = createEmptyChartCounts(), chartGlobal = globalThis, globalData = chartGlobal.globalData, recordRows = getRecordRows(globalData);
+    const counts = createEmptyChartCounts(),
+        chartGlobal = globalThis,
+        globalData = chartGlobal.globalData,
+        recordRows = getRecordRows(globalData);
     if (recordRows.length === 0) {
         return counts;
     }
@@ -37,8 +40,7 @@ export function getChartCounts() {
         countEventMessagesChart(counts, globalData);
         countLapZoneCharts(counts, globalData);
         countDeveloperFieldCharts(counts, recordRows);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[ChartStatus] Error counting charts:", error);
     }
     logChartCountDebug(counts, chartGlobal);
@@ -76,9 +78,12 @@ function countDeveloperFieldCharts(counts, recordRows) {
     if (!sampleRecord) {
         return;
     }
-    const developerFields = Object.keys(sampleRecord).filter((key) => !formatChartFields.includes(key) &&
-        !DEVELOPER_FIELD_EXCLUSIONS.has(key) &&
-        (key.startsWith("developer_") || key.includes("_")));
+    const developerFields = Object.keys(sampleRecord).filter(
+        (key) =>
+            !formatChartFields.includes(key) &&
+            !DEVELOPER_FIELD_EXCLUSIONS.has(key) &&
+            (key.startsWith("developer_") || key.includes("_"))
+    );
     for (const field of developerFields) {
         if (hasNumericFieldData(recordRows, field)) {
             addAvailableChart(counts, "metrics", field);
@@ -91,23 +96,46 @@ function countEventMessagesChart(counts, globalData) {
     }
 }
 function countGpsChart(counts, recordRows) {
-    if (recordRows.some((row) => isNumericLike(row["positionLat"]) ||
-        isNumericLike(row["positionLong"]))) {
+    if (
+        recordRows.some(
+            (row) =>
+                isNumericLike(row["positionLat"]) ||
+                isNumericLike(row["positionLong"])
+        )
+    ) {
         addAvailableChart(counts, "gps", "gps_track");
     }
 }
 function countLapZoneCharts(counts, globalData) {
-    const lapZoneMessages = getTimeInZoneRows(globalData).filter((message) => message["referenceMesg"] === "lap");
+    const lapZoneMessages = getTimeInZoneRows(globalData).filter(
+        (message) => message["referenceMesg"] === "lap"
+    );
     if (!lapZoneMessages.length) {
         return;
     }
     if (lapZoneMessages.some((message) => message["timeInHrZone"])) {
-        addAvailableChart(counts, "zones", LAP_ZONE_CHART_VISIBILITY_KEYS.hrStacked);
-        addAvailableChart(counts, "zones", LAP_ZONE_CHART_VISIBILITY_KEYS.hrIndividual);
+        addAvailableChart(
+            counts,
+            "zones",
+            LAP_ZONE_CHART_VISIBILITY_KEYS.hrStacked
+        );
+        addAvailableChart(
+            counts,
+            "zones",
+            LAP_ZONE_CHART_VISIBILITY_KEYS.hrIndividual
+        );
     }
     if (lapZoneMessages.some((message) => message["timeInPowerZone"])) {
-        addAvailableChart(counts, "zones", LAP_ZONE_CHART_VISIBILITY_KEYS.powerStacked);
-        addAvailableChart(counts, "zones", LAP_ZONE_CHART_VISIBILITY_KEYS.powerIndividual);
+        addAvailableChart(
+            counts,
+            "zones",
+            LAP_ZONE_CHART_VISIBILITY_KEYS.powerStacked
+        );
+        addAvailableChart(
+            counts,
+            "zones",
+            LAP_ZONE_CHART_VISIBILITY_KEYS.powerIndividual
+        );
     }
 }
 function countMetricCharts(counts, recordRows) {
@@ -167,12 +195,20 @@ function getTimeInZoneRows(globalData) {
 function hasAnalysisChartData(chartType, recordRows) {
     switch (chartType) {
         case "altitude_profile":
-            return recordRows.some((row) => isNumericLike(row["altitude"] ?? row["enhancedAltitude"]));
+            return recordRows.some((row) =>
+                isNumericLike(row["altitude"] ?? row["enhancedAltitude"])
+            );
         case "power_vs_hr":
-            return (hasNumericFieldData(recordRows, "power") &&
-                hasNumericFieldData(recordRows, "heartRate"));
+            return (
+                hasNumericFieldData(recordRows, "power") &&
+                hasNumericFieldData(recordRows, "heartRate")
+            );
         case "speed_vs_distance":
-            return (recordRows.some((row) => isNumericLike(row["enhancedSpeed"] ?? row["speed"])) && hasNumericFieldData(recordRows, "distance"));
+            return (
+                recordRows.some((row) =>
+                    isNumericLike(row["enhancedSpeed"] ?? row["speed"])
+                ) && hasNumericFieldData(recordRows, "distance")
+            );
     }
 }
 function hasNumericFieldData(recordRows, field) {
@@ -192,9 +228,16 @@ function logChartCountDebug(counts, chartGlobal) {
         total: counts.total,
         visible: counts.visible,
     });
-    if (Array.isArray(chartGlobal._chartjsInstances) &&
-        chartGlobal._chartjsInstances.length > 0) {
-        const renderedChartIds = chartGlobal._chartjsInstances.map((chart) => chart.canvas?.id ?? "");
-        console.log("[ChartStatus] Actually rendered charts:", renderedChartIds);
+    if (
+        Array.isArray(chartGlobal._chartjsInstances) &&
+        chartGlobal._chartjsInstances.length > 0
+    ) {
+        const renderedChartIds = chartGlobal._chartjsInstances.map(
+            (chart) => chart.canvas?.id ?? ""
+        );
+        console.log(
+            "[ChartStatus] Actually rendered charts:",
+            renderedChartIds
+        );
     }
 }

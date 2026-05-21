@@ -22,15 +22,16 @@ const LEGACY_THEME_STORAGE_KEYS = ["fitFileViewer_theme"];
  *
  * The codebase historically used both "auto" and "system" for the system theme.
  * For persistence and theme core logic we canonicalize to "auto".
- *
  */
 function normalizeThemePreference(theme) {
     if (theme === "system") {
         return THEME_MODES.AUTO;
     }
-    if (theme === THEME_MODES.AUTO ||
+    if (
+        theme === THEME_MODES.AUTO ||
         theme === THEME_MODES.DARK ||
-        theme === THEME_MODES.LIGHT) {
+        theme === THEME_MODES.LIGHT
+    ) {
         return theme;
     }
     return THEME_MODES.DARK;
@@ -42,7 +43,6 @@ const THEME_TRANSITION_CLASS = "theme-transitioning";
 const themeTransitionTimers = new Set();
 /**
  * Apply the given theme to the document body and persist it.
- *
  */
 export function applyTheme(theme, withTransition = true) {
     const themePreference = normalizeThemePreference(theme);
@@ -59,18 +59,15 @@ export function applyTheme(theme, withTransition = true) {
         try {
             document.body.dataset["theme"] = systemTheme;
             document.documentElement.dataset["theme"] = systemTheme;
-        }
-        catch {
+        } catch {
             /* Ignore dataset errors */
         }
-    }
-    else {
+    } else {
         document.body.classList.add(`theme-${themePreference}`);
         try {
             document.body.dataset["theme"] = themePreference;
             document.documentElement.dataset["theme"] = themePreference;
-        }
-        catch {
+        } catch {
             /* Ignore dataset errors */
         }
     }
@@ -83,8 +80,7 @@ export function applyTheme(theme, withTransition = true) {
                 if (localStorage.getItem(legacyKey) !== null) {
                     localStorage.removeItem(legacyKey);
                 }
-            }
-            catch {
+            } catch {
                 // Ignore legacy cleanup failures
             }
         }
@@ -95,8 +91,7 @@ export function applyTheme(theme, withTransition = true) {
         dispatchThemeChangeEvent(themePreference);
         // Update meta theme-color for mobile browsers
         updateMetaThemeColor(themePreference);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Failed to persist theme to localStorage:", error);
     }
     // Remove transition class after animation completes
@@ -111,7 +106,6 @@ export function applyTheme(theme, withTransition = true) {
 }
 /**
  * Get the effective theme (resolves 'auto' to actual theme)
- *
  */
 export function getEffectiveTheme(theme = null) {
     const currentTheme = normalizeThemePreference(theme || loadTheme());
@@ -119,7 +113,6 @@ export function getEffectiveTheme(theme = null) {
 }
 /**
  * Get the system's preferred color scheme
- *
  */
 export function getSystemTheme() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
@@ -131,7 +124,6 @@ export function getSystemTheme() {
 }
 /**
  * Get theme preference for external libraries
- *
  */
 export function getThemeConfig() {
     const cssColors = {};
@@ -192,9 +184,11 @@ export function getThemeConfig() {
     const getVar = (name) => {
         try {
             // Guard for environments where document/body or getComputedStyle may be unavailable or mocked
-            if (typeof document === "undefined" ||
+            if (
+                typeof document === "undefined" ||
                 !document ||
-                !document.body) {
+                !document.body
+            ) {
                 return "";
             }
             if (typeof getComputedStyle !== "function") {
@@ -202,16 +196,18 @@ export function getThemeConfig() {
             }
             // Some tests may replace body with non-Element. Accessing computed style would throw.
             const { body } = document;
-            if (!body ||
+            if (
+                !body ||
                 typeof body.nodeType !== "number" ||
-                body.nodeType !== 1) {
+                body.nodeType !== 1
+            ) {
                 return "";
             }
-            return (getComputedStyle(body)
-                .getPropertyValue(`--${name}`)
-                ?.trim() || "");
-        }
-        catch {
+            return (
+                getComputedStyle(body).getPropertyValue(`--${name}`)?.trim() ||
+                ""
+            );
+        } catch {
             return "";
         }
     };
@@ -222,24 +218,31 @@ export function getThemeConfig() {
         colors: {
             // Core palette (from CSS variables)
             ...cssColors,
-            accent: getCssColor("accent") ||
+            accent:
+                getCssColor("accent") ||
                 (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
-            accentHover: getCssColor("accentHover") ||
+            accentHover:
+                getCssColor("accentHover") ||
                 (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
-            background: getCssColor("bg") ||
+            background:
+                getCssColor("bg") ||
                 (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
-            backgroundAlt: getCssColor("bgAlt") ||
+            backgroundAlt:
+                getCssColor("bgAlt") ||
                 (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
-            border: getCssColor("border") ||
+            border:
+                getCssColor("border") ||
                 (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
-            borderLight: getCssColor("borderLight") ||
+            borderLight:
+                getCssColor("borderLight") ||
                 (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
             // Chart-specific colors
             chartBackground: effectiveTheme === "dark" ? "#181c24" : "#ffffff",
             chartBorder: effectiveTheme === "dark" ? "#555" : "#ddd",
-            chartGrid: effectiveTheme === "dark"
-                ? "rgba(255,255,255,0.1)"
-                : "rgba(0,0,0,0.1)",
+            chartGrid:
+                effectiveTheme === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
             chartSurface: effectiveTheme === "dark" ? "#222" : "#fff",
             error: getCssColor("error") || "#ef4444",
             // Heart rate zone colors
@@ -280,27 +283,35 @@ export function getThemeConfig() {
             // Legacy/explicit keys for compatibility
             primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
-            primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
-            primaryShadowHeavy: effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
-            primaryShadowLight: effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
-            shadow: getCssColor("shadow") ||
+            primaryShadow:
+                effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
+            primaryShadowHeavy:
+                effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
+            primaryShadowLight:
+                effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
+            shadow:
+                getCssColor("shadow") ||
                 (effectiveTheme === "dark"
                     ? "rgba(0, 0, 0, 0.3)"
                     : "rgba(0, 0, 0, 0.15)"),
-            shadowHeavy: effectiveTheme === "dark"
-                ? "rgba(0, 0, 0, 0.5)"
-                : "rgba(0, 0, 0, 0.15)",
-            shadowLight: getCssColor("boxShadowLight") ||
+            shadowHeavy:
+                effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.5)"
+                    : "rgba(0, 0, 0, 0.15)",
+            shadowLight:
+                getCssColor("boxShadowLight") ||
                 (effectiveTheme === "dark"
                     ? "rgba(0, 0, 0, 0.2)"
                     : "rgba(0, 0, 0, 0.05)"),
-            shadowMedium: effectiveTheme === "dark"
-                ? "rgba(0, 0, 0, 0.4)"
-                : "rgba(0, 0, 0, 0.1)",
+            shadowMedium:
+                effectiveTheme === "dark"
+                    ? "rgba(0, 0, 0, 0.4)"
+                    : "rgba(0, 0, 0, 0.1)",
             success: getCssColor("success") || "#10b981",
             surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
             surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
-            text: getCssColor("fg") ||
+            text:
+                getCssColor("fg") ||
                 (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
             textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
             textSecondary: effectiveTheme === "dark" ? "#a0a0a0" : "#6b7280",
@@ -343,32 +354,34 @@ export function initializeTheme() {
 }
 /**
  * Listen for system theme changes and update if using auto theme
- *
  */
 export function listenForSystemThemeChange() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
-        const listenerController = new AbortController(), handleSystemThemeChange = () => {
-            const currentTheme = loadTheme();
-            if (currentTheme === THEME_MODES.AUTO) {
-                applyTheme(THEME_MODES.AUTO, true);
-            }
-        }, mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+        const listenerController = new AbortController(),
+            handleSystemThemeChange = () => {
+                const currentTheme = loadTheme();
+                if (currentTheme === THEME_MODES.AUTO) {
+                    applyTheme(THEME_MODES.AUTO, true);
+                }
+            },
+            mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
         // Use the newer addEventListener if available, fallback to addListener
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener("change", handleSystemThemeChange, {
                 signal: listenerController.signal,
             });
-        }
-        else {
+        } else {
             mediaQuery.addListener(handleSystemThemeChange);
         }
         // Return cleanup function
         return () => {
             listenerController.abort();
             if (mediaQuery.removeEventListener) {
-                mediaQuery.removeEventListener("change", handleSystemThemeChange);
-            }
-            else {
+                mediaQuery.removeEventListener(
+                    "change",
+                    handleSystemThemeChange
+                );
+            } else {
                 mediaQuery.removeListener(handleSystemThemeChange);
             }
         };
@@ -379,32 +392,33 @@ export function listenForSystemThemeChange() {
 /**
  * Listen for theme change events from the Electron main process and apply the
  * theme.
- *
  */
 export function listenForThemeChange(onThemeChange) {
-    const electronAPI = globalThis
-        .electronAPI;
-    if (electronAPI &&
+    const electronAPI = globalThis.electronAPI;
+    if (
+        electronAPI &&
         typeof electronAPI.onSetTheme === "function" &&
-        typeof electronAPI.sendThemeChanged === "function") {
+        typeof electronAPI.sendThemeChanged === "function"
+    ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
         electronAPI.onSetTheme((theme) => {
             onThemeChange(theme);
             if (typeof electronAPI.sendThemeChanged === "function") {
                 electronAPI.sendThemeChanged(theme);
-            }
-            else {
-                console.warn("sendThemeChanged method is not available on electronAPI.");
+            } else {
+                console.warn(
+                    "sendThemeChanged method is not available on electronAPI."
+                );
             }
         });
-    }
-    else {
-        console.warn("Electron API is not available. Theme change listener is not active.");
+    } else {
+        console.warn(
+            "Electron API is not available. Theme change listener is not active."
+        );
     }
 }
 /**
  * Load the persisted theme from localStorage, defaulting to 'dark'.
- *
  */
 export function loadTheme() {
     try {
@@ -420,37 +434,36 @@ export function loadTheme() {
                 localStorage.setItem(THEME_STORAGE_KEY, normalized);
                 try {
                     localStorage.removeItem(legacyKey);
-                }
-                catch {
+                } catch {
                     /* ignore */
                 }
                 return normalized;
             }
         }
         return THEME_MODES.DARK;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error loading theme from localStorage:", error);
         return THEME_MODES.DARK;
     }
 }
 /**
  * Toggle between light and dark themes
- *
  */
 export function toggleTheme(withTransition = true) {
-    const currentTheme = loadTheme(), effectiveTheme = getEffectiveTheme(currentTheme), newTheme = effectiveTheme === "dark" ? "light" : "dark";
+    const currentTheme = loadTheme(),
+        effectiveTheme = getEffectiveTheme(currentTheme),
+        newTheme = effectiveTheme === "dark" ? "light" : "dark";
     applyTheme(newTheme, withTransition);
 }
 /**
  * Dispatch a custom theme change event
- *
  */
 function dispatchThemeChangeEvent(theme) {
     const detail = {
-        effectiveTheme: getEffectiveTheme(theme),
-        theme,
-    }, targets = [];
+            effectiveTheme: getEffectiveTheme(theme),
+            theme,
+        },
+        targets = [];
     if (typeof document === "object" && document) {
         targets.push(document);
         if (document.body) {
@@ -468,8 +481,7 @@ function dispatchThemeChangeEvent(theme) {
                 detail,
             });
             target.dispatchEvent(event);
-        }
-        catch (error) {
+        } catch (error) {
             console.warn("[Theme] Failed to dispatch themechange event", error);
         }
     }
@@ -505,10 +517,10 @@ function injectThemeTransitionCSS() {
 }
 /**
  * Update the meta theme-color tag for mobile browsers
- *
  */
 function updateMetaThemeColor(theme) {
-    const effectiveTheme = getEffectiveTheme(theme), themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
+    const effectiveTheme = getEffectiveTheme(theme),
+        themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
         metaThemeColor = document.createElement("meta");

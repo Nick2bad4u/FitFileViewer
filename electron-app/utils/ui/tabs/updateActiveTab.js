@@ -5,12 +5,14 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { extractTabNameFromButtonId } from "./tabIdUtils.js";
 let activeTabUnsubscribe = null;
 function canUseDocument(candidate) {
-    return (candidate !== null &&
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "getElementById" in candidate &&
         typeof candidate.getElementById === "function" &&
         "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function");
+        typeof candidate.querySelectorAll === "function"
+    );
 }
 function getEffectiveGlobals() {
     return globalThis;
@@ -20,8 +22,7 @@ function getWindowDocument() {
         return typeof globalThis.window !== "undefined"
             ? globalThis.window.document
             : undefined;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
@@ -30,16 +31,14 @@ function getGlobalDocument() {
         return typeof globalThis.document !== "undefined"
             ? globalThis.document
             : undefined;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
 function getEffectiveDocument() {
     try {
         return getEffectiveGlobals().__vitest_effective_document__;
-    }
-    catch {
+    } catch {
         return undefined;
     }
 }
@@ -58,9 +57,7 @@ function getDoc() {
     return document;
 }
 function asStateManagerCandidate(value) {
-    return value !== null && typeof value === "object"
-        ? value
-        : {};
+    return value !== null && typeof value === "object" ? value : {};
 }
 function getGetState(candidate) {
     const value = candidate.getState;
@@ -83,24 +80,27 @@ function getStateMgr() {
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     try {
-        const effectiveStateManager = asStateManagerCandidate(getEffectiveGlobals().__vitest_effective_stateManager__);
+        const effectiveStateManager = asStateManagerCandidate(
+            getEffectiveGlobals().__vitest_effective_stateManager__
+        );
         const fallbackStateManager = asStateManagerCandidate(__StateMgr);
-        const getState = getGetState(effectiveStateManager) ??
+        const getState =
+            getGetState(effectiveStateManager) ??
             getGetState(fallbackStateManager);
-        const setState = getSetState(effectiveStateManager) ??
+        const setState =
+            getSetState(effectiveStateManager) ??
             getSetState(fallbackStateManager);
-        const subscribe = getSubscribe(effectiveStateManager) ??
+        const subscribe =
+            getSubscribe(effectiveStateManager) ??
             getSubscribe(fallbackStateManager);
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     return {
@@ -118,20 +118,25 @@ function getButtonCollection(selector) {
     return getDoc().querySelectorAll(selector);
 }
 function isButtonLike(candidate) {
-    return (candidate !== null &&
+    return (
+        candidate !== null &&
         typeof candidate === "object" &&
         "classList" in candidate &&
         candidate.classList !== undefined &&
-        candidate.classList !== null);
+        candidate.classList !== null
+    );
 }
 function getButtonId(button) {
     return typeof button.id === "string" ? button.id.trim() : "";
 }
 function isDisabledButton(button) {
-    const hasDisabledClass = button.classList?.contains?.("tab-disabled") === true;
-    return (button.disabled === true ||
+    const hasDisabledClass =
+        button.classList?.contains?.("tab-disabled") === true;
+    return (
+        button.disabled === true ||
         button.getAttribute?.("aria-disabled") === "true" ||
-        hasDisabledClass);
+        hasDisabledClass
+    );
 }
 function removeActiveClass(element) {
     if (isButtonLike(element)) {
@@ -157,8 +162,7 @@ export function initializeActiveTabState() {
                 if (typeof activeTab === "string") {
                     updateTabButtonsFromState(activeTab);
                 }
-            }
-            catch {
+            } catch {
                 /* Ignore */
             }
         };
@@ -166,52 +170,60 @@ export function initializeActiveTabState() {
             if (typeof activeTabUnsubscribe === "function") {
                 activeTabUnsubscribe();
             }
-        }
-        catch {
+        } catch {
             /* Ignore errors */
         }
         activeTabUnsubscribe = null;
         const stateManager = getStateMgr();
         if (typeof stateManager.subscribe === "function") {
-            const maybeUnsub = stateManager.subscribe("ui.activeTab", onActiveTabChange);
+            const maybeUnsub = stateManager.subscribe(
+                "ui.activeTab",
+                onActiveTabChange
+            );
             activeTabUnsubscribe =
-                typeof maybeUnsub === "function"
-                    ? maybeUnsub
-                    : null;
-        }
-        else {
+                typeof maybeUnsub === "function" ? maybeUnsub : null;
+        } else {
             const subscribeSingleton = getSubscribeSingleton();
             if (subscribeSingleton) {
-                subscribeSingleton("ui.activeTab", "ui:updateActiveTab:activeTab", onActiveTabChange);
-            }
-            else {
-                console.warn("[ActiveTab] No state subscription API available; active tab UI will not react to state");
+                subscribeSingleton(
+                    "ui.activeTab",
+                    "ui:updateActiveTab:activeTab",
+                    onActiveTabChange
+                );
+            } else {
+                console.warn(
+                    "[ActiveTab] No state subscription API available; active tab UI will not react to state"
+                );
             }
         }
         const tabButtons = getButtonCollection(".tab-button");
         if (!tabButtons || tabButtons.length === 0) {
-            console.warn("initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up.");
-        }
-        else {
+            console.warn(
+                "initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up."
+            );
+        } else {
             for (const candidate of tabButtons) {
                 if (!isButtonLike(candidate)) {
-                    console.warn("initializeActiveTabState: Invalid button element found:", candidate);
+                    console.warn(
+                        "initializeActiveTabState: Invalid button element found:",
+                        candidate
+                    );
                     continue;
                 }
                 const button = candidate;
                 const onClick = (event) => {
                     if (isDisabledButton(button)) {
                         try {
-                            console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`);
-                        }
-                        catch {
+                            console.log(
+                                `[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`
+                            );
+                        } catch {
                             /* Ignore errors */
                         }
                         try {
                             event.preventDefault();
                             event.stopPropagation();
-                        }
-                        catch {
+                        } catch {
                             /* Ignore errors */
                         }
                         return;
@@ -228,12 +240,13 @@ export function initializeActiveTabState() {
                         getStateMgr().setState("ui.activeTab", tabName, {
                             source: "tabButtonClick",
                         });
-                    }
-                    catch (error) {
+                    } catch (error) {
                         try {
-                            console.warn("[ActiveTab] Failed to set state from button click:", error);
-                        }
-                        catch {
+                            console.warn(
+                                "[ActiveTab] Failed to set state from button click:",
+                                error
+                            );
+                        } catch {
                             /* Ignore errors */
                         }
                     }
@@ -242,8 +255,7 @@ export function initializeActiveTabState() {
             }
         }
         console.log("[ActiveTab] State management initialized");
-    }
-    catch {
+    } catch {
         // Non-fatal in tests.
     }
 }
@@ -251,6 +263,7 @@ export function initializeActiveTabState() {
  * Update active tab efficiently.
  *
  * @param tabId - Tab button element ID.
+ *
  * @returns True when the active tab was updated.
  */
 export function updateActiveTab(tabId) {
@@ -267,8 +280,7 @@ export function updateActiveTab(tabId) {
             });
             return true;
         }
-    }
-    catch {
+    } catch {
         /* Ignore errors */
     }
     const activeNow = getButtonCollection(".tab-button.active");
@@ -276,8 +288,7 @@ export function updateActiveTab(tabId) {
         if (activeNow.length === 1) {
             const [only] = activeNow;
             removeActiveClass(only);
-        }
-        else {
+        } else {
             for (const element of activeNow) {
                 removeActiveClass(element);
             }
@@ -292,7 +303,9 @@ export function updateActiveTab(tabId) {
         });
         return true;
     }
-    console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
+    console.error(
+        `Element with ID "${tabId}" not found in the DOM or missing classList.`
+    );
     return false;
 }
 /**
@@ -308,7 +321,10 @@ function updateTabButtonsFromState(activeTab) {
     }
     for (const candidate of tabButtons) {
         if (!isButtonLike(candidate)) {
-            console.warn("updateTabButtonsFromState: Invalid button element found:", candidate);
+            console.warn(
+                "updateTabButtonsFromState: Invalid button element found:",
+                candidate
+            );
             continue;
         }
         const tabName = extractTabNameFromButtonId(candidate.id ?? "");

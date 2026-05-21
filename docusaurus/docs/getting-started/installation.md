@@ -5,12 +5,12 @@ sidebar_label: 📥 Installation
 sidebar_position: 1
 description: How to download and install FitFileViewer on Windows, macOS, and Linux.
 keywords:
-  - install
-  - download
-  - setup
-  - windows
-  - macos
-  - linux
+ - install
+ - download
+ - setup
+ - windows
+ - macos
+ - linux
 ---
 
 # Installation
@@ -50,12 +50,12 @@ No installation required:
 
 ### Available Windows Formats
 
-| Format | Filename Pattern | Description |
-|--------|-----------------|-------------|
-| NSIS Installer | `Fit-File-Viewer-nsis-x64-X.X.X.exe` | Standard Windows installer |
-| MSI | `Fit-File-Viewer-msi-x64-X.X.X.msi` | Windows Installer package |
-| Portable | `Fit-File-Viewer-portable-x64-X.X.X.exe` | No installation required |
-| Squirrel | `Fit-File-Viewer-squirrel-x64-X.X.X.exe` | Auto-updating installer |
+| Format         | Filename Pattern                         | Description                |
+| -------------- | ---------------------------------------- | -------------------------- |
+| NSIS Installer | `Fit-File-Viewer-nsis-x64-X.X.X.exe`     | Standard Windows installer |
+| MSI            | `Fit-File-Viewer-msi-x64-X.X.X.msi`      | Windows Installer package  |
+| Portable       | `Fit-File-Viewer-portable-x64-X.X.X.exe` | No installation required   |
+| Squirrel       | `Fit-File-Viewer-squirrel-x64-X.X.X.exe` | Auto-updating installer    |
 
 :::tip 32-bit Windows
 Replace `x64` with `ia32` for 32-bit Windows versions.
@@ -84,11 +84,11 @@ For compatibility with both Intel and Apple Silicon Macs:
 
 ### Available macOS Formats
 
-| Architecture | DMG | PKG |
-|-------------|-----|-----|
-| Apple Silicon (M1/M2/M3) | `dmg-arm64` | `pkg-arm64` |
-| Intel | `dmg-x64` | `pkg-x64` |
-| Universal | `dmg-universal` | `pkg-universal` |
+| Architecture             | DMG             | PKG             |
+| ------------------------ | --------------- | --------------- |
+| Apple Silicon (M1/M2/M3) | `dmg-arm64`     | `pkg-arm64`     |
+| Intel                    | `dmg-x64`       | `pkg-x64`       |
+| Universal                | `dmg-universal` | `pkg-universal` |
 
 :::note Security Warning
 If macOS shows a security warning, go to **System Preferences → Security & Privacy** and click "Open Anyway".
@@ -145,15 +145,15 @@ flatpak install FitFileViewer-vX.X.X.flatpak
 
 ### Available Linux Formats
 
-| Format | Package Manager | Filename Pattern |
-|--------|----------------|------------------|
-| AppImage | Universal | `appimage-x86_64` |
-| DEB | apt/dpkg | `deb-amd64` |
-| RPM | dnf/rpm | `rpm-x86_64` |
-| Pacman | pacman | `pacman-x64` |
-| Snap | snapd | `snap-amd64` |
-| Flatpak | flatpak | `flatpak` |
-| APK | Alpine | `apk-x64` |
+| Format   | Package Manager | Filename Pattern  |
+| -------- | --------------- | ----------------- |
+| AppImage | Universal       | `appimage-x86_64` |
+| DEB      | apt/dpkg        | `deb-amd64`       |
+| RPM      | dnf/rpm         | `rpm-x86_64`      |
+| Pacman   | pacman          | `pacman-x64`      |
+| Snap     | snapd           | `snap-amd64`      |
+| Flatpak  | flatpak         | `flatpak`         |
+| APK      | Alpine          | `apk-x64`         |
 
 ## 🔄 Updating
 

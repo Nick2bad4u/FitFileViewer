@@ -72,7 +72,10 @@ export function clearExistingCharts(
                     chart.destroy();
                 }
             } catch (error) {
-                console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+                console.warn(
+                    `[ChartJS] Error destroying chart ${index}:`,
+                    error
+                );
             }
         }
     }

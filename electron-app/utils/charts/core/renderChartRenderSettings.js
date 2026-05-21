@@ -20,7 +20,23 @@ function toFiniteNumber(value, fallback) {
  */
 export function resolveChartRenderSettings(dependencies, params) {
     const settings = dependencies.getSettings();
-    const { animation: animationStyle = "normal", chartType = "line", colors: customColors = [], distanceUnits = "kilometers", exportTheme = "auto", interpolation = "linear", maxpoints: maxPoints = dependencies.defaultMaxPoints, showFill = false, showGrid = true, showLegend = true, showPoints = false, showTitle = true, smoothing = 0.1, temperatureUnits = "celsius", timeUnits = "seconds", } = settings;
+    const {
+        animation: animationStyle = "normal",
+        chartType = "line",
+        colors: customColors = [],
+        distanceUnits = "kilometers",
+        exportTheme = "auto",
+        interpolation = "linear",
+        maxpoints: maxPoints = dependencies.defaultMaxPoints,
+        showFill = false,
+        showGrid = true,
+        showLegend = true,
+        showPoints = false,
+        showTitle = true,
+        smoothing = 0.1,
+        temperatureUnits = "celsius",
+        timeUnits = "seconds",
+    } = settings;
     const boolSettings = {
         showFill: isSettingOn(showFill),
         showGrid: isSettingNotOff(showGrid),
@@ -29,14 +45,23 @@ export function resolveChartRenderSettings(dependencies, params) {
         showTitle: isSettingNotOff(showTitle),
     };
     const normalizedMaxPoints = normalizeMaxPointsValue(maxPoints);
-    const dataSettingsSignature = dependencies.ensureDataSettingsSignature(settings);
-    const performanceTuning = dependencies.resolvePerformanceSettings(params.recordCount, settings, dataSettingsSignature);
-    dependencies.setChartOptionsState("charts.chartOptions", {
-        ...settings,
-        boolSettings,
-        performanceTuning,
-        processedAt: params.processedAt ?? Date.now(),
-    }, { silent: false, source: "renderChartsWithData" });
+    const dataSettingsSignature =
+        dependencies.ensureDataSettingsSignature(settings);
+    const performanceTuning = dependencies.resolvePerformanceSettings(
+        params.recordCount,
+        settings,
+        dataSettingsSignature
+    );
+    dependencies.setChartOptionsState(
+        "charts.chartOptions",
+        {
+            ...settings,
+            boolSettings,
+            performanceTuning,
+            processedAt: params.processedAt ?? Date.now(),
+        },
+        { silent: false, source: "renderChartsWithData" }
+    );
     return {
         animationStyle: String(animationStyle),
         boolSettings,

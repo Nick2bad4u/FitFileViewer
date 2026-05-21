@@ -79,7 +79,9 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
             expect(indicator.id).toBe("chart-status-indicator");
             expect(indicator.className).toBe("chart-status-indicator");
             expect(statusIcon.textContent).toBe("⚠️");
-            expect(statusIcon.getAttribute("title")).toBe("Some charts are hidden");
+            expect(statusIcon.getAttribute("title")).toBe(
+                "Some charts are hidden"
+            );
             expect(statusText.textContent).toBe("3 / 6 charts visible");
             expect(breakdown.parentElement).toBe(document.body);
             expect(breakdown.textContent).toContain("Metrics: 2/3");
@@ -114,7 +116,9 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
                 "#chart-status-indicator"
             );
 
-            expect(indicator.querySelector(".status-icon")?.textContent).toBe("❌");
+            expect(indicator.querySelector(".status-icon")?.textContent).toBe(
+                "❌"
+            );
             expect(
                 indicator.querySelector(".status-icon")?.getAttribute("title")
             ).toBe("No charts are available");
@@ -154,7 +158,9 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
                 })
             );
 
-            expect(indicator.style.background).toBe("var(--color-glass-border)");
+            expect(indicator.style.background).toBe(
+                "var(--color-glass-border)"
+            );
             expect(indicator.style.transform).toBe("translateY(-1px)");
             expect(breakdown.style.visibility).toBe("visible");
             expect(breakdown.style.opacity).toBe("1");

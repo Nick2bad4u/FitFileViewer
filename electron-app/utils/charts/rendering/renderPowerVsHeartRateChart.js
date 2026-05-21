@@ -17,11 +17,13 @@ function getThemeColor(colors, key) {
         ? value
         : DEFAULT_COLORS[key];
 }
-function toPowerHeartRatePoint({ heartRate, power, }) {
-    if (power !== undefined &&
+function toPowerHeartRatePoint({ heartRate, power }) {
+    if (
+        power !== undefined &&
         power !== null &&
         heartRate !== undefined &&
-        heartRate !== null) {
+        heartRate !== null
+    ) {
         return {
             x: heartRate,
             y: power,
@@ -34,17 +36,31 @@ function toPowerHeartRatePoint({ heartRate, power, }) {
  */
 export function renderPowerVsHeartRateChart(container, data, options) {
     try {
-        const { animationStyle = "normal", maxPoints = "all", showGrid, showLegend, showPoints, showTitle, theme = "auto", } = options;
-        const hasHeartRate = data.some(({ heartRate }) => heartRate !== undefined && heartRate !== null);
-        const hasPower = data.some(({ power }) => power !== undefined && power !== null);
+        const {
+            animationStyle = "normal",
+            maxPoints = "all",
+            showGrid,
+            showLegend,
+            showPoints,
+            showTitle,
+            theme = "auto",
+        } = options;
+        const hasHeartRate = data.some(
+            ({ heartRate }) => heartRate !== undefined && heartRate !== null
+        );
+        const hasPower = data.some(
+            ({ power }) => power !== undefined && power !== null
+        );
         if (!hasPower || !hasHeartRate) {
             return;
         }
-        const visibility = chartSettingsManager.getFieldVisibility("power_vs_hr");
+        const visibility =
+            chartSettingsManager.getFieldVisibility("power_vs_hr");
         if (visibility === "hidden") {
             return;
         }
-        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
+        const currentTheme =
+            theme && theme !== "auto" ? theme : detectCurrentTheme();
         const themeConfig = getThemeConfig();
         const { colors } = themeConfig || {};
         const isDark = currentTheme === "dark";
@@ -87,11 +103,12 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             },
             options: {
                 animation: {
-                    duration: animationStyle === "none"
-                        ? 0
-                        : animationStyle === "fast"
-                            ? 500
-                            : animationStyle === "slow"
+                    duration:
+                        animationStyle === "none"
+                            ? 0
+                            : animationStyle === "fast"
+                              ? 500
+                              : animationStyle === "slow"
                                 ? 2000
                                 : 1000,
                     easing: "easeOutQuart",
@@ -199,10 +216,14 @@ export function renderPowerVsHeartRateChart(container, data, options) {
         };
         const chart = createManagedChart(canvas, config);
         if (chart) {
-            console.log("[ChartJS] Power vs Heart Rate chart created successfully");
+            console.log(
+                "[ChartJS] Power vs Heart Rate chart created successfully"
+            );
         }
-    }
-    catch (error) {
-        console.error("[ChartJS] Error rendering power vs heart rate chart:", error);
+    } catch (error) {
+        console.error(
+            "[ChartJS] Error rendering power vs heart rate chart:",
+            error
+        );
     }
 }

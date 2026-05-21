@@ -1,4 +1,3 @@
-
 ACTION_ACTIONLINT_CONFIG_FILE: ActionLintConfig.yaml
 COPYPASTE_JSCPD_CONFIG_FILE: .jscpd.json
 CSS_STYLELINT_CONFIG_FILE: stylelint.config.js

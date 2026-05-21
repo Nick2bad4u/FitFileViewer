@@ -48,13 +48,17 @@ const PATH_SPLIT_REGEX = /[\\/]+/u;
  * is always safe to assign to the `download` attribute of an anchor element.
  */
 export function buildDownloadFilename(candidatePath, options = {}) {
-    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } = options;
+    const { defaultExtension = "", fallbackBase = DEFAULT_FALLBACK_BASE } =
+        options;
     const pathSegment = typeof candidatePath === "string" ? candidatePath : "";
     const leaf = pathSegment.split(PATH_SPLIT_REGEX).pop() ?? "";
     const dotIndex = leaf.lastIndexOf(".");
     const rawBase = dotIndex > 0 ? leaf.slice(0, dotIndex) : leaf;
     const rawExtension = dotIndex > 0 ? leaf.slice(dotIndex + 1) : "";
-    const sanitizedBase = sanitizeFilenameComponent(rawBase || leaf, fallbackBase);
+    const sanitizedBase = sanitizeFilenameComponent(
+        rawBase || leaf,
+        fallbackBase
+    );
     const extensionSource = defaultExtension || rawExtension;
     const sanitizedExtension = sanitizeFileExtension(extensionSource);
     if (sanitizedExtension) {
@@ -64,8 +68,8 @@ export function buildDownloadFilename(candidatePath, options = {}) {
 }
 /**
  * Normalises file extensions by removing leading dots/whitespace and characters
- * that are not alphanumeric, dashes or underscores. Extensions are
- * lower-cased for consistency.
+ * that are not alphanumeric, dashes or underscores. Extensions are lower-cased
+ * for consistency.
  */
 export function sanitizeFileExtension(extension, fallback = "") {
     if (typeof extension !== "string" || extension.length === 0) {
@@ -88,9 +92,13 @@ export function sanitizeFileExtension(extension, fallback = "") {
 /**
  * Safely transforms an arbitrary string into a file-system friendly segment.
  * Reserved Windows characters, ASCII control codes (0x00-0x1F), trailing dots
- * and leading periods are stripped. Whitespace collapses to single underscores.
+ * and leading periods are stripped. Whitespace collapses to single
+ * underscores.
  */
-export function sanitizeFilenameComponent(value, fallback = DEFAULT_FALLBACK_BASE) {
+export function sanitizeFilenameComponent(
+    value,
+    fallback = DEFAULT_FALLBACK_BASE
+) {
     return sanitiseFilenameInternal(value, fallback, 0);
 }
 /**
@@ -105,7 +113,11 @@ function sanitiseFilenameInternal(value, fallback, depth) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
     let normalised = "";
     for (const char of value.normalize("NFKC")) {
@@ -129,7 +141,11 @@ function sanitiseFilenameInternal(value, fallback, depth) {
         if (!fallback || fallback === value) {
             return DEFAULT_FALLBACK_BASE;
         }
-        return sanitiseFilenameInternal(fallback, DEFAULT_FALLBACK_BASE, depth + 1);
+        return sanitiseFilenameInternal(
+            fallback,
+            DEFAULT_FALLBACK_BASE,
+            depth + 1
+        );
     }
     if (RESERVED_DEVICE_NAMES.has(compacted.toUpperCase())) {
         compacted = `${compacted}_file`;

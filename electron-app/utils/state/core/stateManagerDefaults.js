@@ -103,7 +103,11 @@ export function createDefaultAppState() {
  * @returns Default state without lifecycle-only branches.
  */
 export function createResetAppState() {
-    const { app: _app, system: _system, ...resetState } = createDefaultAppState();
+    const {
+        app: _app,
+        system: _system,
+        ...resetState
+    } = createDefaultAppState();
     return resetState;
 }
 /**

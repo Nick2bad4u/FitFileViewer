@@ -79,18 +79,23 @@
  *   state
  * @property {(loading: boolean) => void} setLoading - Function to show/hide
  *   loading state
- * @property {(message: string, type?: string, timeout?: number) => unknown}
- *   showNotification - Function to display notifications
+ * @property {(message: string, type?: string, timeout?: number) => unknown} showNotification
+ *   - Function to display notifications
  * @property {UnknownRendererFunction} handleOpenFile - Function to handle file
  *   opening
- * @property {(message: string, type?: string, duration?: number, withAction?: boolean | string) => void}
- *   showUpdateNotification - Function to show update notifications
+ * @property {(
+ *     message: string,
+ *     type?: string,
+ *     duration?: number,
+ *     withAction?: boolean | string
+ * ) => void} showUpdateNotification
+ *   - Function to show update notifications
  * @property {(html?: string) => void} showAboutModal - Function to display
  *   about modal
  * @property {(theme: string, withTransition?: boolean) => void} applyTheme -
  *   Function to apply theme changes
- * @property {(onThemeChange: (theme: string) => void) => void}
- *   listenForThemeChange - Function to listen for theme changes
+ * @property {(onThemeChange: (theme: string) => void) => void} listenForThemeChange
+ *   - Function to listen for theme changes
  */
 
 // ==========================================
@@ -1649,9 +1654,9 @@ try {
                 function installElectronAPIProxy() {
                     try {
                         // Preserve current value
-                        const current =
-                            /** @type {{ electronAPI?: any }} */ (globalThis)
-                                .electronAPI;
+                        const current = /** @type {{ electronAPI?: any }} */ (
+                            globalThis
+                        ).electronAPI;
                         let _api = current;
                         Object.defineProperty(globalThis, "electronAPI", {
                             configurable: true,

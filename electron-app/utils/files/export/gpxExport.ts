@@ -39,7 +39,8 @@ const GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
 // eslint-disable-next-line sdl/no-insecure-url -- The XML Schema Instance namespace URI is fixed by the spec.
 const GPX_XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
 const GPX_SCHEMA_LOCATION = `${GPX_NAMESPACE} ${GPX_NAMESPACE}/gpx.xsd`;
-const GPX_TRACKPOINT_EXTENSION_NAMESPACE = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"; // eslint-disable-line sdl/no-insecure-url -- Garmin TrackPointExtension uses this namespace URI.
+const GPX_TRACKPOINT_EXTENSION_NAMESPACE =
+    "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"; // eslint-disable-line sdl/no-insecure-url -- Garmin TrackPointExtension uses this namespace URI.
 const SEMICIRCLE_TO_DEGREES = 180 / 2_147_483_648; // 2 ** 31 per FIT protocol
 const FIT_EPOCH_OFFSET_SECONDS = 631_065_600; // 1989-12-31T00:00:00Z
 
@@ -61,7 +62,6 @@ const XML_ESCAPE_MAP: Readonly<Record<string, string>> = Object.freeze({
  * rate, cadence, temperature, and power when available. When no valid
  * coordinates exist the function returns null, allowing callers to surface
  * user-friendly notifications.
- *
  */
 export function buildGpxFromRecords(
     records: GpxRecord[] | null | undefined,
@@ -213,7 +213,6 @@ export function buildGpxFromRecords(
 
 /**
  * Resolves a user-friendly track name based on loaded FIT file context.
- *
  */
 export function resolveTrackNameFromLoadedFiles(
     loadedFitFiles: LoadedFitFileDescriptor[] | null | undefined,
@@ -243,7 +242,6 @@ export function resolveTrackNameFromLoadedFiles(
 
 /**
  * Escapes XML special characters within a string.
- *
  */
 function escapeXml(value: string): string {
     return value.replaceAll(/["&'<>]/g, (char) => XML_ESCAPE_MAP[char] ?? char);
@@ -252,7 +250,6 @@ function escapeXml(value: string): string {
 /**
  * Formats a number as a coordinate string with 7 decimal places (≈1cm
  * precision).
- *
  */
 function formatCoordinate(value: number): string {
     return value.toFixed(7);
@@ -260,7 +257,6 @@ function formatCoordinate(value: number): string {
 
 /**
  * Formats an elevation measurement in metres using two decimal places.
- *
  */
 function formatElevation(value: number): string {
     return value.toFixed(2);
@@ -268,7 +264,6 @@ function formatElevation(value: number): string {
 
 /**
  * Normalizes a potential track name or creator string into safe XML content.
- *
  */
 function normalizeLabel(
     value: null | string | undefined,
@@ -282,7 +277,6 @@ function normalizeLabel(
 
 /**
  * Normalizes a numeric metric (e.g., HR, cadence) into an integer string.
- *
  */
 function normalizeMetric(value: unknown): string | null {
     if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -293,7 +287,6 @@ function normalizeMetric(value: unknown): string | null {
 
 /**
  * Converts FIT semicircle coordinates to decimal degrees.
- *
  */
 function semicirclesToDegrees(raw: unknown): number | null {
     if (typeof raw !== "number" || !Number.isFinite(raw)) {
@@ -310,7 +303,6 @@ function semicirclesToDegrees(raw: unknown): number | null {
  * Attempts to coerce a timestamp-like value into an ISO 8601 string for GPX
  * output. Supports Date instances, ISO8601 strings, UNIX epoch
  * seconds/milliseconds, and FIT epoch seconds (seconds since 1989-12-31).
- *
  */
 function toIsoTimestamp(value: unknown): string | null {
     if (!value) {
