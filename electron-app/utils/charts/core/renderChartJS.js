@@ -68,7 +68,6 @@ import {
     clearChartSeriesCache,
     getChartSeriesCacheStats as getSeriesCacheStats,
 } from "./renderChartSeriesCache.js";
-import { renderPrimaryChartFields } from "./renderChartPrimaryFields.js";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
@@ -135,12 +134,12 @@ import {
     shouldAbortInactiveChartRender,
 } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
-import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
 import { resolveChartThemeRenderPlan } from "./renderChartThemePlan.js";
 import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencies.js";
+import { renderChartDataCharts } from "./renderChartDataCharts.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -553,7 +552,6 @@ async function renderChartsWithData(
     });
 
     // Process data using memoization helpers to avoid redundant conversions across renders
-    const data = recordMesgs;
     const {
         effectiveAnimationStyle,
         fieldsToRender,
@@ -565,9 +563,8 @@ async function renderChartsWithData(
         renderableFields: chartState.renderableFields,
         startTime,
     });
-    let visibleFieldCount = 0;
 
-    const primaryFieldRenderResult = renderPrimaryChartFields(
+    const chartDataRenderResult = renderChartDataCharts(
         {
             chartContainer,
             chartGlobal,
@@ -580,6 +577,15 @@ async function renderChartsWithData(
             isTestRuntime,
             registerChart: (chart) =>
                 resourceManager.registerChart(chart, { owner: "renderChartJS" }),
+            renderers: {
+                renderEventMessagesChart: renderEventMessagesChartSafe,
+                renderGPSTimeChart: renderGPSTimeChartSafe,
+                renderGPSTrackChart: renderGPSTrackChartSafe,
+                renderLapZoneCharts: renderLapZoneChartsSafe,
+                renderPerformanceAnalysisCharts:
+                    renderPerformanceAnalysisChartsSafe,
+                renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
+            },
             skipTabAbort,
         },
         {
@@ -598,51 +604,16 @@ async function renderChartsWithData(
             performanceTuning,
             recordMesgs,
             smoothing,
+            startTime,
             temperatureUnits,
             timeUnits,
             zoomPluginConfig,
         }
     );
-    if (primaryFieldRenderResult.aborted) {
+    if (chartDataRenderResult.aborted) {
         return false;
     }
-    visibleFieldCount = primaryFieldRenderResult.visibleFieldCount;
 
-    renderSupplementalCharts(
-        {
-            chartContainer,
-            labels,
-            renderers: {
-                renderEventMessagesChart: renderEventMessagesChartSafe,
-                renderGPSTimeChart: renderGPSTimeChartSafe,
-                renderGPSTrackChart: renderGPSTrackChartSafe,
-                renderLapZoneCharts: renderLapZoneChartsSafe,
-                renderPerformanceAnalysisCharts:
-                    renderPerformanceAnalysisChartsSafe,
-                renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
-            },
-            visibility: {
-                getFieldVisibility: (field) =>
-                    chartSettingsManager.getFieldVisibility(field),
-            },
-        },
-        {
-            animationStyle: effectiveAnimationStyle,
-            chartType,
-            customColors,
-            data,
-            interpolation,
-            maxPoints: normalizedMaxPoints,
-            showFill: boolSettings.showFill,
-            showGrid: boolSettings.showGrid,
-            showLegend: boolSettings.showLegend,
-            showPoints: boolSettings.showPoints,
-            showTitle: boolSettings.showTitle,
-            smoothing,
-            startTime,
-            zoomPluginConfig,
-        }
-    );
     await completeSuccessfulChartRender(
         {
             addChartHoverEffects: addChartHoverEffectsSafe,
@@ -670,7 +641,7 @@ async function renderChartsWithData(
         },
         {
             renderStartTime,
-            visibleFieldCount,
+            visibleFieldCount: chartDataRenderResult.visibleFieldCount,
         }
     );
 
