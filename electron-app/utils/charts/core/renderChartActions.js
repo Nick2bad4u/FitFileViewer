@@ -1,8 +1,4 @@
-function hasDestroy(value) {
-    return (value !== null &&
-        typeof value === "object" &&
-        typeof value.destroy === "function");
-}
+import { hasDestroy } from "./renderChartModuleHelpers.js";
 function getPanelVisibilityManager(value) {
     return (value !== null &&
         typeof value === "object" &&

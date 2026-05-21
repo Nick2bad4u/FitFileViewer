@@ -32,6 +32,13 @@ export function getRecordFunction(
 }
 
 /**
+ * Checks whether an unknown object exposes a chart-style destroy hook.
+ */
+export function hasDestroy(value: unknown): value is { destroy(): void } {
+    return getRecordFunction(value, "destroy") !== null;
+}
+
+/**
  * Reads a module from the CommonJS-like require hook used by tests.
  */
 export function getInjectedModule(modulePath: string): unknown {

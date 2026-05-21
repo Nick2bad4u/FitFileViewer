@@ -1,3 +1,5 @@
+import { hasDestroy } from "./renderChartModuleHelpers.js";
+
 interface ChartLifecycleActions {
     clearCharts?: () => void;
     completeRendering?: (
@@ -27,14 +29,6 @@ interface ClearExistingChartsDependencies {
 interface CompleteChartRenderingDependencies {
     getGlobalChartActions(): ChartLifecycleActions | null;
     safeCompleteRendering(success: boolean): void;
-}
-
-function hasDestroy(value: unknown): value is { destroy(): void } {
-    return (
-        value !== null &&
-        typeof value === "object" &&
-        typeof (value as { destroy?: unknown }).destroy === "function"
-    );
 }
 
 /** Starts chart rendering through global actions or the state fallback. */

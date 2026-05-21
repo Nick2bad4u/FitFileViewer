@@ -1,3 +1,5 @@
+import { hasDestroy } from "./renderChartModuleHelpers.js";
+
 interface ChartActionsGlobal {
     _chartjsInstances?: unknown[];
 }
@@ -35,14 +37,6 @@ interface ChartActions {
     selectChart(chartType: string): void;
     startRendering(): void;
     toggleControls(): void;
-}
-
-function hasDestroy(value: unknown): value is { destroy(): void } {
-    return (
-        value !== null &&
-        typeof value === "object" &&
-        typeof (value as { destroy?: unknown }).destroy === "function"
-    );
 }
 
 function getPanelVisibilityManager(

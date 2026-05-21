@@ -1,8 +1,4 @@
-function hasDestroy(value) {
-    return (value !== null &&
-        typeof value === "object" &&
-        typeof value.destroy === "function");
-}
+import { hasDestroy } from "./renderChartModuleHelpers.js";
 /** Starts chart rendering through global actions or the state fallback. */
 export function startChartRendering(dependencies) {
     const actions = dependencies.getGlobalChartActions();
