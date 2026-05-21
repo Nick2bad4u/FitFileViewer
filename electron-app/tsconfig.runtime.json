@@ -161,6 +161,7 @@
         "utils/charts/plugins/chartLegendItemBoxPlugin.ts",
         "utils/charts/plugins/chartTitleOverlayUtils.ts",
         "utils/charts/plugins/chartZoomResetPlugin.ts",
+        "utils/charts/rendering/renderEventMessagesChart.ts",
         "utils/charts/rendering/renderPerformanceAnalysisCharts.ts",
         "utils/charts/rendering/renderPowerVsHeartRateChart.ts",
         "utils/charts/theming/chartThemeUtils.ts",
