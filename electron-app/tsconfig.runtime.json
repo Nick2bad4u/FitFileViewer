@@ -166,6 +166,7 @@
         "utils/charts/rendering/renderAltitudeProfileChart.ts",
         "utils/charts/rendering/renderGPSTimeChart.ts",
         "utils/charts/rendering/renderGPSTrackChart.ts",
+        "utils/charts/rendering/renderLapZoneChart.ts",
         "utils/charts/rendering/renderPerformanceAnalysisCharts.ts",
         "utils/charts/rendering/renderPowerVsHeartRateChart.ts",
         "utils/charts/rendering/renderSpeedVsDistanceChart.ts",

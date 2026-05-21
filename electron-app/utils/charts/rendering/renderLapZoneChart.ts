@@ -1,9 +1,81 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
-import { createManagedChart } from "../core/createManagedChart.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
+import {
+    createManagedChart,
+    type ManagedChartConfig,
+    type ManagedChartInstance,
+} from "../core/createManagedChart.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+
+interface LapZoneChartOptions {
+    readonly title?: string;
+}
+
+interface LapZoneDatum {
+    readonly color?: string;
+    readonly label: string;
+    readonly value: number;
+    readonly zoneIndex?: number;
+}
+
+interface LapZoneEntry {
+    readonly lapLabel: string;
+    readonly zones: readonly LapZoneDatum[];
+}
+
+interface LapZoneRuntimeGlobal {
+    readonly Chart?: unknown;
+    readonly showNotification?: (message: string, type: string) => void;
+}
+
+interface LapZoneThemeColors {
+    readonly chartBackground: string;
+    readonly chartBorder: string;
+    readonly chartGrid: string;
+    readonly chartSurface: string;
+    readonly primary: string;
+    readonly primaryAlpha: string;
+    readonly textPrimary: string;
+    readonly textSecondary: string;
+}
+
+interface LapZoneThemeConfig {
+    readonly colors: LapZoneThemeColors;
+    readonly name?: unknown;
+}
+
+interface TooltipDataset {
+    readonly data?: unknown;
+}
+
+interface TooltipFooterItem {
+    readonly parsed?: {
+        readonly y?: unknown;
+    };
+}
+
+interface TooltipLabelContext {
+    readonly chart?: {
+        readonly data?: {
+            readonly datasets?: readonly TooltipDataset[];
+        };
+    };
+    readonly dataIndex: number;
+    readonly dataset?: {
+        readonly label?: unknown;
+    };
+    readonly parsed?: {
+        readonly y?: unknown;
+    };
+}
+
+type ZoneType = "hr" | "power";
+
 const DEFAULT_CHART_BACKGROUND = "#fff",
     DEFAULT_CHART_BORDER = "#333",
     DEFAULT_CHART_GRID = "rgba(0,0,0,0.1)",
@@ -12,6 +84,7 @@ const DEFAULT_CHART_BACKGROUND = "#fff",
     DEFAULT_PRIMARY_ALPHA = "rgba(59,130,246,0.2)",
     DEFAULT_TEXT_PRIMARY = "#000",
     DEFAULT_TEXT_SECONDARY = "#444";
+
 /**
  * Render lap-by-lap stacked zone chart for heart-rate or power zones.
  *
@@ -24,7 +97,11 @@ const DEFAULT_CHART_BACKGROUND = "#fff",
  * @throws Internally when required chart inputs are missing; the exported
  *   function catches the error and returns null.
  */
-export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
+export function renderLapZoneChart(
+    canvas: HTMLCanvasElement,
+    lapZoneData: readonly LapZoneEntry[],
+    options: LapZoneChartOptions = {}
+): ManagedChartInstance | null {
     try {
         const runtimeGlobal = getRuntimeGlobal();
         if (
@@ -34,7 +111,9 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         ) {
             throw new Error("Chart.js, canvas, or lapZoneData missing");
         }
+
         canvas.classList.add("chart-canvas");
+
         const themeConfig = getLapZoneThemeConfig();
         if (themeConfig.name !== undefined) {
             console.log(
@@ -42,8 +121,10 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 themeConfig.name
             );
         }
-        const allZoneData = new Map(),
-            allZoneLabels = new Set();
+
+        const allZoneData = new Map<string, LapZoneDatum>(),
+            allZoneLabels = new Set<string>();
+
         for (const lap of lapZoneData) {
             for (const zone of lap.zones) {
                 allZoneLabels.add(zone.label);
@@ -52,6 +133,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 }
             }
         }
+
         const colors = themeConfig.colors,
             datasets = [...allZoneLabels]
                 .sort((a, b) => parseZoneNumber(a, 0) - parseZoneNumber(b, 0))
@@ -72,6 +154,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 options.title,
                 colors
             );
+
         return createManagedChart(canvas, config);
     } catch (error) {
         getRuntimeGlobal().showNotification?.(
@@ -82,7 +165,13 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         return null;
     }
 }
-function createLapZoneChartConfig(datasets, lapLabels, title, colors) {
+
+function createLapZoneChartConfig(
+    datasets: readonly Record<string, unknown>[],
+    lapLabels: readonly string[],
+    title: string | undefined,
+    colors: LapZoneThemeColors
+): ManagedChartConfig {
     return {
         data: {
             datasets,
@@ -204,14 +293,15 @@ function createLapZoneChartConfig(datasets, lapLabels, title, colors) {
         type: "bar",
     };
 }
+
 function createLapZoneDataset(
-    zoneLabel,
-    zoneIndex,
-    zoneInfo,
-    lapZoneData,
-    zoneType,
-    colors
-) {
+    zoneLabel: string,
+    zoneIndex: number,
+    zoneInfo: LapZoneDatum | undefined,
+    lapZoneData: readonly LapZoneEntry[],
+    zoneType: ZoneType,
+    colors: LapZoneThemeColors
+): Record<string, unknown> {
     const data = lapZoneData.map((lap) =>
             toFiniteNumber(
                 lap.zones.find((zone) => zone.label === zoneLabel)?.value
@@ -222,6 +312,7 @@ function createLapZoneDataset(
             getZoneColor(zoneType, zoneInfo?.zoneIndex ?? zoneIndex) ||
             originalColor ||
             `hsl(${zoneIndex * 45}, 70%, 60%)`;
+
     return {
         backgroundColor: zoneColor,
         borderColor: colors.textSecondary,
@@ -231,14 +322,18 @@ function createLapZoneDataset(
         stack: "zones",
     };
 }
-function createTooltipFooter(tooltipItems) {
+
+function createTooltipFooter(
+    tooltipItems: readonly TooltipFooterItem[]
+): string {
     const total = tooltipItems.reduce(
         (sum, item) => sum + toFiniteNumber(item.parsed?.y),
         0
     );
     return `Total: ${formatTime(total, true)}`;
 }
-function createTooltipLabel(context) {
+
+function createTooltipLabel(context: TooltipLabelContext): string {
     const lapTotal = (context.chart?.data?.datasets ?? []).reduce(
             (total, dataset) =>
                 total + getDatasetValue(dataset, context.dataIndex),
@@ -251,24 +346,30 @@ function createTooltipLabel(context) {
             typeof context.dataset?.label === "string"
                 ? context.dataset.label
                 : "Zone";
+
     return `${datasetLabel}: ${formatTime(value, true)} (${percentage}%)`;
 }
-function formatTickValue(value) {
+
+function formatTickValue(value: number | string): string {
     const numericValue = typeof value === "number" ? value : Number(value);
     if (!Number.isFinite(numericValue)) {
         return formatTime(0, true);
     }
+
     return formatTime(Math.max(numericValue, 0), true);
 }
-function getDatasetValue(dataset, dataIndex) {
+
+function getDatasetValue(dataset: TooltipDataset, dataIndex: number): number {
     if (!Array.isArray(dataset.data)) {
         return 0;
     }
     return toFiniteNumber(dataset.data[dataIndex]);
 }
-function getLapZoneThemeConfig() {
+
+function getLapZoneThemeConfig(): LapZoneThemeConfig {
     const themeConfig = getThemeConfig(),
         colors = themeConfig.colors;
+
     return {
         colors: {
             chartBackground: getThemeColor(
@@ -307,16 +408,23 @@ function getLapZoneThemeConfig() {
         name: getThemeName(themeConfig),
     };
 }
-function getRuntimeGlobal() {
-    return globalThis;
+
+function getRuntimeGlobal(): LapZoneRuntimeGlobal {
+    return globalThis as LapZoneRuntimeGlobal;
 }
-function getThemeColor(colors, key, fallback) {
+
+function getThemeColor(
+    colors: ThemeColorMap,
+    key: string,
+    fallback: string
+): string {
     const colorValue = colors[key];
     return typeof colorValue === "string" && colorValue.length > 0
         ? colorValue
         : fallback;
 }
-function getThemeName(themeConfig) {
+
+function getThemeName(themeConfig: unknown): unknown {
     if (
         typeof themeConfig === "object" &&
         themeConfig !== null &&
@@ -326,17 +434,21 @@ function getThemeName(themeConfig) {
     }
     return undefined;
 }
-function parseZoneNumber(label, fallback) {
+
+function parseZoneNumber(label: string, fallback: number): number {
     const match = label.match(/\d+/);
     if (!match) {
         return fallback;
     }
+
     const zoneNumber = Number.parseInt(match[0], 10);
     return Number.isFinite(zoneNumber) ? zoneNumber : fallback;
 }
-function resolveZoneType(title) {
+
+function resolveZoneType(title: string | undefined): ZoneType {
     return title?.toLowerCase().includes("power") === true ? "power" : "hr";
 }
-function toFiniteNumber(value) {
+
+function toFiniteNumber(value: unknown): number {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
