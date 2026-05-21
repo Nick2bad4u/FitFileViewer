@@ -8,36 +8,130 @@
  * - The renderer requests directory listings and can open a selected .fit file by
  *   path.
  */
+
 import pLimitCompat from "../../async/pLimitCompat.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
+import type { AppIconName } from "../icons/iconFactory.js";
 import { createAppIconElement } from "../icons/iconFactory.js";
 import { showNotification } from "../notifications/showNotification.js";
+
+type BrowserView = "calendar" | "files" | "library";
+
+type CalendarState = {
+    monthStart: Date;
+    selectedDayKey: string;
+};
+
+type DistanceUnit = "km" | "mi";
+
+type FitBrowserEntry = {
+    fullPath: string;
+    kind: "dir" | "file";
+    name: string;
+    relPath: string;
+};
+
+type FitBrowserListResponse = {
+    entries: FitBrowserEntry[];
+    relPath: string;
+    root: null | string;
+};
+
+type FitBrowserGlobal = typeof globalThis & {
+    __ffvLibraryCache?: Record<string, FitLibraryCachePayload>;
+    electronAPI?: FitBrowserElectronAPI;
+};
+
+type FitBrowserElectronAPI = {
+    decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
+    getFitBrowserFolder?: () => Promise<null | string>;
+    listFitBrowserFolder?: (relPath?: string) => Promise<unknown>;
+    openFolderDialog?: () => Promise<null | string>;
+    readFile: (filePath: string) => Promise<ArrayBuffer>;
+};
+
+type FitLibraryCachePayload = {
+    items: FitLibraryItem[];
+    scannedAt: number;
+};
+
+type FitLibraryFile = {
+    fullPath: string;
+    name: string;
+};
+
+type FitLibraryItem = {
+    fileName: string;
+    fullPath: string;
+    sport?: string;
+    startTime: Date;
+    totalDistanceM: number;
+};
+
+type FitLibraryPrefs = {
+    lastDays: number;
+    unit: DistanceUnit;
+};
+
+type FitLibraryTotals = {
+    lastDaysDistanceM: number;
+    lastDaysStart: string;
+    monthDistanceM: number;
+    monthStart: string;
+    weekDistanceM: number;
+    weekStart: string;
+};
+
+type LibraryRowOptions = {
+    includeSportBadge: boolean;
+    useTimeOnly: boolean;
+};
+
+type SportBadge = {
+    emoji: string;
+    key: string;
+    label: string;
+};
+
+type SportBadgeCount = SportBadge & {
+    count: number;
+};
+
 const TAB_STATE_PATH_REL = "browser.relPath";
 const TAB_STATE_VIEW = "browser.view";
+
 const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
-function addManagedEventListener(target, type, listener) {
+
+function addManagedEventListener<K extends keyof HTMLElementEventMap>(
+    target: HTMLElement,
+    type: K,
+    listener: (event: HTMLElementEventMap[K]) => Promise<void> | void
+): void {
     const controller = new AbortController();
-    target.addEventListener(type, listener, {
+    target.addEventListener(type, listener as EventListener, {
         signal: controller.signal,
     });
 }
+
 /**
  * Render or refresh the Browser tab UI.
  */
-export async function renderFileBrowserTab() {
+export async function renderFileBrowserTab(): Promise<void> {
     const container = getElementByIdFlexible(document, "content_browser");
     if (!container) {
         return;
     }
+
     // One-time UI scaffolding.
     if (!container.dataset["ffvBrowserInitialized"]) {
         container.dataset["ffvBrowserInitialized"] = "true";
         container.replaceChildren(createFileBrowserScaffold());
+
         const pickBtn = document.getElementById("fit-browser-pick-folder");
         if (pickBtn) {
             addManagedEventListener(pickBtn, "click", async () => {
@@ -46,10 +140,12 @@ export async function renderFileBrowserTab() {
                     showNotification("Folder picker is unavailable.", "error");
                     return;
                 }
+
                 const selected = await api.openFolderDialog();
                 if (!selected) {
                     return;
                 }
+
                 // Reset the relative path when a new root is chosen.
                 setState(TAB_STATE_PATH_REL, "", {
                     source: "fileBrowser.pickFolder",
@@ -57,104 +153,189 @@ export async function renderFileBrowserTab() {
                 await refreshActiveView();
             });
         }
+
         const filesBtn = document.getElementById("fit-browser-view-files");
         const libraryBtn = document.getElementById("fit-browser-view-library");
-        const calendarBtn = document.getElementById("fit-browser-view-calendar");
-        const setView = async (view) => {
+        const calendarBtn = document.getElementById(
+            "fit-browser-view-calendar"
+        );
+
+        const setView = async (view: BrowserView): Promise<void> => {
             setState(TAB_STATE_VIEW, view, { source: "fileBrowser.setView" });
             await refreshActiveView();
         };
+
         if (filesBtn) {
-            addManagedEventListener(filesBtn, "click", async () => setView("files"));
+            addManagedEventListener(filesBtn, "click", async () =>
+                setView("files")
+            );
         }
         if (libraryBtn) {
-            addManagedEventListener(libraryBtn, "click", async () => setView("library"));
+            addManagedEventListener(libraryBtn, "click", async () =>
+                setView("library")
+            );
         }
         if (calendarBtn) {
-            addManagedEventListener(calendarBtn, "click", async () => setView("calendar"));
+            addManagedEventListener(calendarBtn, "click", async () =>
+                setView("calendar")
+            );
         }
     }
+
     await refreshActiveView();
 }
-function createFileBrowserScaffold() {
+
+function createFileBrowserScaffold(): HTMLElement {
     const root = document.createElement("div");
     root.className = "file-browser";
+
     const notice = document.createElement("div");
     notice.className = "file-browser__notice";
     notice.setAttribute("role", "note");
     notice.textContent =
         "Experimental feature — folder scanning and calendar may change.";
+
     const header = document.createElement("div");
     header.className = "file-browser__header";
+
     const controls = document.createElement("div");
     controls.className = "file-browser__controls";
     controls.append(createPickFolderButton(), createViewSegmentedControl());
+
     const currentPath = document.createElement("div");
     currentPath.className = "file-browser__path";
     currentPath.id = "fit-browser-current-path";
+
     header.append(controls, currentPath);
+
     const body = document.createElement("div");
     body.className = "file-browser__body";
+
     const list = document.createElement("div");
     list.className = "file-browser__list";
     list.id = "fit-browser-list";
     list.setAttribute("role", "list");
+
     const library = document.createElement("div");
     library.className = "file-browser__library";
     library.id = "fit-browser-library";
     library.hidden = true;
+
     const calendar = document.createElement("div");
     calendar.className = "file-browser__calendar";
     calendar.id = "fit-browser-calendar";
     calendar.hidden = true;
+
     body.append(list, library, calendar);
     root.append(notice, header, body);
+
     return root;
 }
-function createPickFolderButton() {
+
+function createPickFolderButton(): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "file-browser__btn";
     button.id = "fit-browser-pick-folder";
-    appendIconLabel(button, "folderOpen", "file-browser__btn-icon", "Choose Folder", "file-browser__btn-label", 16);
+    appendIconLabel(
+        button,
+        "folderOpen",
+        "file-browser__btn-icon",
+        "Choose Folder",
+        "file-browser__btn-label",
+        16
+    );
+
     return button;
 }
-function createViewSegmentedControl() {
+
+function createViewSegmentedControl(): HTMLElement {
     const segmented = document.createElement("div");
     segmented.className = "file-browser__segmented";
     segmented.setAttribute("role", "tablist");
     segmented.setAttribute("aria-label", "Browser view");
-    segmented.append(createViewSegmentButton("fit-browser-view-files", "file", "Files", true), createViewSegmentButton("fit-browser-view-library", "database", "Library", false), createViewSegmentButton("fit-browser-view-calendar", "calendar", "Calendar", false));
+    segmented.append(
+        createViewSegmentButton("fit-browser-view-files", "file", "Files", true),
+        createViewSegmentButton(
+            "fit-browser-view-library",
+            "database",
+            "Library",
+            false
+        ),
+        createViewSegmentButton(
+            "fit-browser-view-calendar",
+            "calendar",
+            "Calendar",
+            false
+        )
+    );
+
     return segmented;
 }
-function createViewSegmentButton(id, iconName, label, selected) {
+
+function createViewSegmentButton(
+    id: string,
+    iconName: AppIconName,
+    label: string,
+    selected: boolean
+): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "file-browser__seg-btn";
     button.id = id;
     button.setAttribute("role", "tab");
     button.setAttribute("aria-selected", selected ? "true" : "false");
-    appendIconLabel(button, iconName, "file-browser__seg-icon", label, "file-browser__seg-label", 14);
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__seg-icon",
+        label,
+        "file-browser__seg-label",
+        14
+    );
+
     return button;
 }
-function appendIconLabel(target, iconName, iconClass, labelText, labelClass, size) {
+
+function appendIconLabel(
+    target: HTMLElement,
+    iconName: AppIconName,
+    iconClass: string,
+    labelText: string,
+    labelClass: string,
+    size: number
+): void {
     const label = document.createElement("span");
     if (labelClass) {
         label.className = labelClass;
     }
     label.textContent = labelText;
-    target.append(createAppIconElement(iconName, { className: iconClass, size }), label);
+    target.append(
+        createAppIconElement(iconName, { className: iconClass, size }),
+        label
+    );
 }
-function createEmptyMessage(text, className = "file-browser__empty") {
+
+function createEmptyMessage(
+    text: string,
+    className = "file-browser__empty"
+): HTMLElement {
     const empty = document.createElement("div");
     empty.className = className;
     empty.textContent = text;
+
     return empty;
 }
-function addMonths(monthStart, deltaMonths) {
-    return new Date(monthStart.getFullYear(), monthStart.getMonth() + deltaMonths, 1);
+
+function addMonths(monthStart: Date, deltaMonths: number): Date {
+    return new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth() + deltaMonths,
+        1
+    );
 }
-function coerceToDate(value) {
+
+function coerceToDate(value: unknown): Date | null {
     if (value instanceof Date && Number.isFinite(value.getTime())) {
         return value;
     }
@@ -170,23 +351,31 @@ function coerceToDate(value) {
     }
     return null;
 }
-function coerceToNumber(value) {
-    if (typeof value === "number" && Number.isFinite(value))
-        return value;
+
+function coerceToNumber(value: unknown): number {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
     const n = typeof value === "string" ? Number(value) : Number.NaN;
     return Number.isFinite(n) ? n : 0;
 }
-function computeLibraryTotals(items, lastDays) {
+
+function computeLibraryTotals(
+    items: FitLibraryItem[],
+    lastDays: number
+): FitLibraryTotals {
     const now = new Date();
     const startOfWeek = startOfLocalWeek(now);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const safeLastDays = Number.isFinite(lastDays)
         ? Math.max(1, Math.min(3650, Math.floor(lastDays)))
         : 30;
-    const startOfLastDays = new Date(now.getTime() - safeLastDays * 24 * 60 * 60 * 1000);
+    const startOfLastDays = new Date(
+        now.getTime() - safeLastDays * 24 * 60 * 60 * 1000
+    );
+
     let weekDistance = 0;
     let monthDistance = 0;
     let lastDaysDistance = 0;
+
     for (const it of items) {
         const t = it.startTime.getTime();
         if (t >= startOfWeek.getTime()) {
@@ -199,6 +388,7 @@ function computeLibraryTotals(items, lastDays) {
             lastDaysDistance += it.totalDistanceM;
         }
     }
+
     return {
         lastDaysDistanceM: lastDaysDistance,
         lastDaysStart: startOfLastDays.toISOString(),
@@ -208,30 +398,43 @@ function computeLibraryTotals(items, lastDays) {
         weekStart: startOfWeek.toISOString(),
     };
 }
-async function decodeLibraryItem(api, file) {
+
+async function decodeLibraryItem(
+    api: FitBrowserElectronAPI,
+    file: FitLibraryFile
+): Promise<FitLibraryItem | null> {
     try {
         const buf = await api.readFile(file.fullPath);
         const decoded = await api.decodeFitFile(buf);
-        const session = decoded && typeof decoded === "object"
-            ? decoded.sessionMesgs?.[0]
-            : null;
-        const sessionRecord = session && typeof session === "object"
-            ? session
-            : null;
-        const startRaw = sessionRecord?.["start_time"] ??
+        const session =
+            decoded && typeof decoded === "object"
+                ? (decoded as { sessionMesgs?: unknown[] }).sessionMesgs?.[0]
+                : null;
+        const sessionRecord =
+            session && typeof session === "object"
+                ? (session as Record<string, unknown>)
+                : null;
+
+        const startRaw =
+            sessionRecord?.["start_time"] ??
             sessionRecord?.["startTime"] ??
             sessionRecord?.["timestamp"];
         const startTime = coerceToDate(startRaw);
         if (!startTime) {
             return null;
         }
-        const totalDistanceM = coerceToNumber(sessionRecord?.["total_distance"] ??
-            sessionRecord?.["totalDistance"] ??
-            0);
-        const sport = typeof sessionRecord?.["sport"] === "string"
-            ? sessionRecord["sport"]
-            : undefined;
-        const item = {
+
+        const totalDistanceM = coerceToNumber(
+            sessionRecord?.["total_distance"] ??
+                sessionRecord?.["totalDistance"] ??
+                0
+        );
+        const sport =
+            typeof sessionRecord?.["sport"] === "string"
+                ? sessionRecord["sport"]
+                : undefined;
+
+        const item: FitLibraryItem = {
             fileName: file.name,
             fullPath: file.fullPath,
             startTime,
@@ -241,171 +444,209 @@ async function decodeLibraryItem(api, file) {
             item.sport = sport;
         }
         return item;
-    }
-    catch {
+    } catch {
         return null;
     }
 }
-function formatLocalDayKey(date) {
+
+function formatLocalDayKey(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
 }
-function formatMonthKey(date) {
+function formatMonthKey(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     return `${y}-${m}`;
 }
-function getCalendarState() {
+
+function getCalendarState(): CalendarState {
     const now = new Date();
     const defaultMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const defaultSelected = formatLocalDayKey(now);
+
     try {
         const monthRaw = localStorage.getItem(CAL_PREFS_MONTH_KEY);
         const selectedRaw = localStorage.getItem(CAL_PREFS_SELECTED_DAY_KEY);
+
         const monthStart = parseMonthKey(monthRaw) ?? defaultMonthStart;
-        const selectedDayKey = typeof selectedRaw === "string" && selectedRaw
-            ? selectedRaw
-            : defaultSelected;
+        const selectedDayKey =
+            typeof selectedRaw === "string" && selectedRaw
+                ? selectedRaw
+                : defaultSelected;
+
         return { monthStart, selectedDayKey };
-    }
-    catch {
+    } catch {
         return {
             monthStart: defaultMonthStart,
             selectedDayKey: defaultSelected,
         };
     }
 }
-function getFitBrowserGlobal() {
-    return globalThis;
+
+function getFitBrowserGlobal(): FitBrowserGlobal {
+    return globalThis as FitBrowserGlobal;
 }
-function getElectronAPI() {
+
+function getElectronAPI(): FitBrowserElectronAPI | null {
     const api = getFitBrowserGlobal().electronAPI;
     if (!api || typeof api !== "object") {
         return null;
     }
     return api;
 }
-function getLibraryPrefs() {
+
+function getLibraryPrefs(): FitLibraryPrefs {
     try {
         const lastDaysRaw = localStorage.getItem(LIB_PREFS_LAST_DAYS_KEY);
         const unitRaw = localStorage.getItem(LIB_PREFS_UNIT_KEY);
-        const n = typeof lastDaysRaw === "string" ? Number(lastDaysRaw) : Number.NaN;
-        const lastDays = Number.isFinite(n) && n >= 1 && n <= 3650 ? Math.floor(n) : 30;
+        const n =
+            typeof lastDaysRaw === "string" ? Number(lastDaysRaw) : Number.NaN;
+        const lastDays =
+            Number.isFinite(n) && n >= 1 && n <= 3650 ? Math.floor(n) : 30;
         const unit = unitRaw === "mi" ? "mi" : "km";
         return { lastDays, unit };
-    }
-    catch {
+    } catch {
         return { lastDays: 30, unit: "km" };
     }
 }
-function getLibraryStorageKey(root) {
+
+function getLibraryStorageKey(root: string): string {
     return `fitLibraryCache_${encodeURIComponent(root)}`;
 }
-function groupItemsByDay(items) {
-    const m = new Map();
+
+function groupItemsByDay(items: FitLibraryItem[]): Map<string, FitLibraryItem[]> {
+    const m = new Map<string, FitLibraryItem[]>();
     for (const it of items) {
         const key = formatLocalDayKey(it.startTime);
         const arr = m.get(key);
         if (arr) {
             arr.push(it);
-        }
-        else {
+        } else {
             m.set(key, [it]);
         }
     }
     return m;
 }
-function isFitBrowserListResponse(value) {
-    if (!value || typeof value !== "object")
-        return false;
-    const v = value;
+
+function isFitBrowserListResponse(value: unknown): value is FitBrowserListResponse {
+    if (!value || typeof value !== "object") return false;
+    const v = value as { entries?: unknown; relPath?: unknown; root?: unknown };
     if (v.root !== null && typeof v.root !== "string" && v.root !== undefined)
         return false;
-    if (typeof v.relPath !== "string")
-        return false;
-    if (!Array.isArray(v.entries))
-        return false;
-    return v.entries.every((e) => {
-        if (!e || typeof e !== "object")
-            return false;
-        const entry = e;
-        return (typeof entry.name === "string" &&
+    if (typeof v.relPath !== "string") return false;
+    if (!Array.isArray(v.entries)) return false;
+    return v.entries.every((e: unknown) => {
+        if (!e || typeof e !== "object") return false;
+        const entry = e as {
+            fullPath?: unknown;
+            kind?: unknown;
+            name?: unknown;
+            relPath?: unknown;
+        };
+        return (
+            typeof entry.name === "string" &&
             (entry.kind === "dir" || entry.kind === "file") &&
             typeof entry.relPath === "string" &&
-            typeof entry.fullPath === "string");
+            typeof entry.fullPath === "string"
+        );
     });
 }
-async function listAllFitFiles(api) {
-    const out = [];
+
+async function listAllFitFiles(
+    api: FitBrowserElectronAPI
+): Promise<FitLibraryFile[]> {
+    const out: FitLibraryFile[] = [];
     const { listFitBrowserFolder } = api;
     if (typeof listFitBrowserFolder !== "function") {
         return out;
     }
+
     const limit = pLimitCompat(6);
-    const visited = new Set();
-    const walk = async (relPath) => {
+    const visited = new Set<string>();
+
+    const walk = async (relPath: string): Promise<void> => {
         if (visited.has(relPath)) {
             return;
         }
         visited.add(relPath);
+
         const respRaw = await listFitBrowserFolder(relPath);
         if (!isFitBrowserListResponse(respRaw)) {
             return;
         }
+
         const { entries } = respRaw;
-        const nested = [];
+        const nested: Promise<void>[] = [];
+
         for (const e of entries) {
             if (e.kind === "dir") {
                 nested.push(limit(() => walk(e.relPath)));
-            }
-            else {
+            } else {
                 out.push({ fullPath: e.fullPath, name: e.name });
             }
         }
+
         await Promise.all(nested);
     };
+
     await walk("");
     return out;
 }
-function asRecord(value) {
+
+function asRecord(value: unknown): Record<string, unknown> | null {
     return value && typeof value === "object"
-        ? value
+        ? (value as Record<string, unknown>)
         : null;
 }
-function loadPersistedLibraryCache(root) {
+
+function loadPersistedLibraryCache(
+    root: string
+): FitLibraryCachePayload | null {
     try {
         const raw = localStorage.getItem(getLibraryStorageKey(root));
         if (!raw) {
             return null;
         }
+
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== "object") {
             return null;
         }
-        const { items: itemsRaw, scannedAt } = parsed;
+
+        const { items: itemsRaw, scannedAt } = parsed as {
+            items?: unknown;
+            scannedAt?: unknown;
+        };
         if (!Array.isArray(itemsRaw)) {
             return null;
         }
-        const items = [];
+
+        const items: FitLibraryItem[] = [];
         for (const it of itemsRaw) {
             const itemRecord = asRecord(it);
-            const fullPath = typeof itemRecord?.["fullPath"] === "string"
-                ? itemRecord["fullPath"]
-                : "";
-            const fileName = typeof itemRecord?.["fileName"] === "string"
-                ? itemRecord["fileName"]
-                : "";
+            const fullPath =
+                typeof itemRecord?.["fullPath"] === "string"
+                    ? itemRecord["fullPath"]
+                    : "";
+            const fileName =
+                typeof itemRecord?.["fileName"] === "string"
+                    ? itemRecord["fileName"]
+                    : "";
             const startTime = coerceToDate(itemRecord?.["startTime"]);
-            const totalDistanceM = coerceToNumber(itemRecord?.["totalDistanceM"]);
-            const sport = typeof itemRecord?.["sport"] === "string"
-                ? itemRecord["sport"]
-                : undefined;
+            const totalDistanceM = coerceToNumber(
+                itemRecord?.["totalDistanceM"]
+            );
+            const sport =
+                typeof itemRecord?.["sport"] === "string"
+                    ? itemRecord["sport"]
+                    : undefined;
+
             if (!fullPath || !fileName || !startTime) {
                 continue;
             }
-            const item = {
+            const item: FitLibraryItem = {
                 fileName,
                 fullPath,
                 startTime,
@@ -416,110 +657,154 @@ function loadPersistedLibraryCache(root) {
             }
             items.push(item);
         }
+
         items.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-        const normalizedScannedAt = typeof scannedAt === "number" && Number.isFinite(scannedAt)
-            ? scannedAt
-            : Date.now();
+        const normalizedScannedAt =
+            typeof scannedAt === "number" && Number.isFinite(scannedAt)
+                ? scannedAt
+                : Date.now();
+
         return { items, scannedAt: normalizedScannedAt };
-    }
-    catch {
+    } catch {
         return null;
     }
 }
-function loadSessionLibraryCache(root) {
+
+function loadSessionLibraryCache(root: string): FitLibraryCachePayload | null {
     const cachedForRoot = getFitBrowserGlobal().__ffvLibraryCache?.[root];
     return cachedForRoot ?? null;
 }
-function parentRelPath(relPath) {
+
+function parentRelPath(relPath: string): string {
     const normalized = relPath
         .replaceAll("\\", "/")
         .replace(/^\/+/, "")
         .replace(/\/+$/, "");
     const idx = normalized.lastIndexOf("/");
-    if (idx === -1)
-        return "";
+    if (idx === -1) return "";
     return normalized.slice(0, idx);
 }
-function isNonEmptyString(value) {
+
+function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
 }
-function normalizePathSeparators(value) {
+
+function normalizePathSeparators(value: string): string {
     return value.replaceAll("\\", "/");
 }
-function splitPathSegments(value) {
+
+function splitPathSegments(value: string): string[] {
     return normalizePathSeparators(value)
         .split("/")
-        .filter((segment) => segment.length > 0);
+        .filter((segment: string) => segment.length > 0);
 }
-function isWindowsStylePath(value) {
+
+function isWindowsStylePath(value: string): boolean {
     const normalized = normalizePathSeparators(value.trim());
     return /^[A-Za-z]:\//u.test(normalized) || normalized.startsWith("//");
 }
-function getRelativePathWithinRoot(rootPath, fullPath) {
+
+function getRelativePathWithinRoot(
+    rootPath: string,
+    fullPath: string
+): string | null {
     if (!isNonEmptyString(rootPath) || !isNonEmptyString(fullPath)) {
         return null;
     }
+
     const rootSegments = splitPathSegments(rootPath);
     const fullSegments = splitPathSegments(fullPath);
+
     if (fullSegments.length <= rootSegments.length) {
         return null;
     }
-    const caseInsensitive = isWindowsStylePath(rootPath) || isWindowsStylePath(fullPath);
+
+    const caseInsensitive =
+        isWindowsStylePath(rootPath) || isWindowsStylePath(fullPath);
+
     for (let index = 0; index < rootSegments.length; index += 1) {
         const left = rootSegments[index];
         const right = fullSegments[index];
         if (typeof left !== "string" || typeof right !== "string") {
             return null;
         }
+
         if (caseInsensitive) {
             if (left.toLowerCase() !== right.toLowerCase()) {
                 return null;
             }
             continue;
         }
+
         if (left !== right) {
             return null;
         }
     }
+
     return fullSegments.slice(rootSegments.length).join("/");
 }
-async function ensureBrowserFileReadApproval(api, filePath) {
+
+async function ensureBrowserFileReadApproval(
+    api: FitBrowserElectronAPI,
+    filePath: string
+): Promise<boolean> {
     if (!isNonEmptyString(filePath)) {
         return false;
     }
-    if (typeof api.getFitBrowserFolder !== "function" ||
-        typeof api.listFitBrowserFolder !== "function") {
+
+    if (
+        typeof api.getFitBrowserFolder !== "function" ||
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
         return false;
     }
+
     if (!/\.fit$/iu.test(filePath.trim())) {
         return false;
     }
+
     const root = await api.getFitBrowserFolder();
     if (!isNonEmptyString(root)) {
         return false;
     }
+
     const relPath = getRelativePathWithinRoot(root, filePath);
     if (!isNonEmptyString(relPath)) {
         return false;
     }
+
     const parentPath = parentRelPath(relPath);
     const responseRaw = await api.listFitBrowserFolder(parentPath);
     return isFitBrowserListResponse(responseRaw);
 }
-async function openBrowserFile(filePath) {
+
+async function openBrowserFile(filePath: string): Promise<void> {
     try {
         const api = getElectronAPI();
         if (!api) {
             showNotification("Browser is unavailable.", "error");
             return;
         }
+
         const approved = await ensureBrowserFileReadApproval(api, filePath);
         if (!approved) {
-            showNotification("File is unavailable for reading in the current Browser folder.", "error");
+            showNotification(
+                "File is unavailable for reading in the current Browser folder.",
+                "error"
+            );
             return;
         }
+
         const openFileBtn = document.getElementById("open_file_btn");
-        const openParams = {
+        const openParams: {
+            filePath: string;
+            openFileBtn?: HTMLElement;
+            showNotification: (
+                message: string,
+                type: string,
+                timeout?: number
+            ) => void;
+        } = {
             filePath,
             showNotification,
         };
@@ -527,16 +812,17 @@ async function openBrowserFile(filePath) {
             openParams.openFileBtn = openFileBtn;
         }
         await openFitFileFromPath(openParams);
-    }
-    catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Unknown browser open error";
+    } catch (error) {
+        const message =
+            error instanceof Error
+                ? error.message
+                : "Unknown browser open error";
         console.error("[fileBrowserTab] openBrowserFile failed", error);
         showNotification(`Failed to open file: ${message}`, "error", 8000);
     }
 }
-function parseMonthKey(raw) {
+
+function parseMonthKey(raw: unknown): Date | null {
     if (typeof raw !== "string" || !/^\d{4}-\d{2}$/u.test(raw)) {
         return null;
     }
@@ -548,16 +834,23 @@ function parseMonthKey(raw) {
     }
     return new Date(y, m - 1, 1);
 }
-function persistCalendarState(state) {
+
+function persistCalendarState(state: CalendarState): void {
     try {
-        localStorage.setItem(CAL_PREFS_MONTH_KEY, formatMonthKey(state.monthStart));
+        localStorage.setItem(
+            CAL_PREFS_MONTH_KEY,
+            formatMonthKey(state.monthStart)
+        );
         localStorage.setItem(CAL_PREFS_SELECTED_DAY_KEY, state.selectedDayKey);
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }
-function persistLibraryCache(root, payload) {
+
+function persistLibraryCache(
+    root: string,
+    payload: FitLibraryCachePayload
+): void {
     try {
         const serializable = {
             scannedAt: payload.scannedAt,
@@ -569,95 +862,146 @@ function persistLibraryCache(root, payload) {
                 totalDistanceM: it.totalDistanceM,
             })),
         };
-        localStorage.setItem(getLibraryStorageKey(root), JSON.stringify(serializable));
-    }
-    catch {
+        localStorage.setItem(
+            getLibraryStorageKey(root),
+            JSON.stringify(serializable)
+        );
+    } catch {
         /* ignore */
     }
 }
-function persistLibraryPrefs(prefs) {
+
+function persistLibraryPrefs(prefs: FitLibraryPrefs): void {
     try {
         localStorage.setItem(LIB_PREFS_LAST_DAYS_KEY, String(prefs.lastDays));
         localStorage.setItem(LIB_PREFS_UNIT_KEY, prefs.unit);
-    }
-    catch {
+    } catch {
         /* ignore */
     }
 }
-async function refreshActiveView() {
+
+async function refreshActiveView(): Promise<void> {
     const rawView = getState(TAB_STATE_VIEW);
-    const view = rawView === "calendar"
-        ? "calendar"
-        : rawView === "library"
-            ? "library"
-            : "files";
+    const view: BrowserView =
+        rawView === "calendar"
+            ? "calendar"
+            : rawView === "library"
+              ? "library"
+              : "files";
     const filesBtn = document.getElementById("fit-browser-view-files");
     const libraryBtn = document.getElementById("fit-browser-view-library");
     const calendarBtn = document.getElementById("fit-browser-view-calendar");
     const listEl = document.getElementById("fit-browser-list");
     const libraryEl = document.getElementById("fit-browser-library");
     const calendarEl = document.getElementById("fit-browser-calendar");
+
     if (filesBtn) {
-        filesBtn.setAttribute("aria-selected", view === "files" ? "true" : "false");
-        filesBtn.classList.toggle("file-browser__seg-btn--active", view === "files");
+        filesBtn.setAttribute(
+            "aria-selected",
+            view === "files" ? "true" : "false"
+        );
+        filesBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "files"
+        );
     }
     if (libraryBtn) {
-        libraryBtn.setAttribute("aria-selected", view === "library" ? "true" : "false");
-        libraryBtn.classList.toggle("file-browser__seg-btn--active", view === "library");
+        libraryBtn.setAttribute(
+            "aria-selected",
+            view === "library" ? "true" : "false"
+        );
+        libraryBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "library"
+        );
     }
     if (calendarBtn) {
-        calendarBtn.setAttribute("aria-selected", view === "calendar" ? "true" : "false");
-        calendarBtn.classList.toggle("file-browser__seg-btn--active", view === "calendar");
+        calendarBtn.setAttribute(
+            "aria-selected",
+            view === "calendar" ? "true" : "false"
+        );
+        calendarBtn.classList.toggle(
+            "file-browser__seg-btn--active",
+            view === "calendar"
+        );
     }
-    setElementVisible(listEl instanceof HTMLElement ? listEl : null, view === "files");
-    setElementVisible(libraryEl instanceof HTMLElement ? libraryEl : null, view === "library");
-    setElementVisible(calendarEl instanceof HTMLElement ? calendarEl : null, view === "calendar");
+
+    setElementVisible(
+        listEl instanceof HTMLElement ? listEl : null,
+        view === "files"
+    );
+    setElementVisible(
+        libraryEl instanceof HTMLElement ? libraryEl : null,
+        view === "library"
+    );
+    setElementVisible(
+        calendarEl instanceof HTMLElement ? calendarEl : null,
+        view === "calendar"
+    );
+
     if (view === "files") {
         await refreshListing();
         return;
     }
+
     if (view === "library") {
         await renderLibraryView();
         return;
     }
+
     await renderCalendarView();
 }
-async function refreshListing() {
+
+async function refreshListing(): Promise<void> {
     const api = getElectronAPI();
     const pathEl = document.getElementById("fit-browser-current-path");
     const listEl = document.getElementById("fit-browser-list");
+
     if (!pathEl || !listEl) {
         return;
     }
-    if (!api ||
+
+    if (
+        !api ||
         typeof api.getFitBrowserFolder !== "function" ||
-        typeof api.listFitBrowserFolder !== "function") {
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         listEl.replaceChildren();
         return;
     }
+
     const root = await api.getFitBrowserFolder();
-    const rel = typeof getState(TAB_STATE_PATH_REL) === "string"
-        ? String(getState(TAB_STATE_PATH_REL))
-        : "";
+    const rel =
+        typeof getState(TAB_STATE_PATH_REL) === "string"
+            ? String(getState(TAB_STATE_PATH_REL))
+            : "";
+
     if (!root) {
         pathEl.textContent = "No folder selected";
-        listEl.replaceChildren(createEmptyMessage("Choose a folder to browse .fit files."));
+        listEl.replaceChildren(
+            createEmptyMessage("Choose a folder to browse .fit files.")
+        );
         return;
     }
+
     const responseRaw = await api.listFitBrowserFolder(rel);
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
         listEl.replaceChildren(createEmptyMessage("Unable to list folder."));
         return;
     }
+
     const response = responseRaw;
     const { entries, relPath } = response;
+
     const displayPath = relPath
         ? `${root} / ${relPath.replaceAll("/", " / ")}`
         : root;
     pathEl.textContent = displayPath;
+
     listEl.replaceChildren();
+
     if (relPath) {
         const up = createBrowserItemButton("dir", "arrowLeft", "..");
         addManagedEventListener(up, "click", async () => {
@@ -668,14 +1012,17 @@ async function refreshListing() {
         });
         listEl.append(up);
     }
+
     if (entries.length === 0) {
         listEl.append(createEmptyMessage("No .fit files found in this folder."));
         return;
     }
+
     for (const entry of entries) {
         const { kind, name, relPath: entryRelPath, fullPath } = entry;
         const iconName = kind === "dir" ? "folder" : "file";
         const btn = createBrowserItemButton(kind, iconName, name);
+
         if (kind === "dir") {
             addManagedEventListener(btn, "click", async () => {
                 setState(TAB_STATE_PATH_REL, entryRelPath, {
@@ -683,41 +1030,71 @@ async function refreshListing() {
                 });
                 await refreshListing();
             });
-        }
-        else {
+        } else {
             addManagedEventListener(btn, "click", async () => {
                 await openBrowserFile(fullPath);
             });
         }
+
         listEl.append(btn);
     }
 }
-function createBrowserItemButton(kind, iconName, label) {
+
+function createBrowserItemButton(
+    kind: "dir" | "file",
+    iconName: AppIconName,
+    label: string
+): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `file-browser__item ${kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"}`;
-    appendIconLabel(button, iconName, "file-browser__item-icon", label, "file-browser__item-label", 14);
+    button.className = `file-browser__item ${
+        kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"
+    }`;
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__item-icon",
+        label,
+        "file-browser__item-label",
+        14
+    );
+
     return button;
 }
-function renderCalendarResults(root, payload) {
+
+function renderCalendarResults(
+    root: string,
+    payload: FitLibraryCachePayload | null
+): void {
     const titleEl = document.getElementById("fit-calendar-title");
     const gridEl = document.getElementById("fit-calendar-grid");
     const panelEl = document.getElementById("fit-calendar-panel");
+
     if (!(gridEl instanceof HTMLElement) || !(panelEl instanceof HTMLElement)) {
         return;
     }
+
     if (!payload) {
         if (titleEl) {
             titleEl.textContent = "Calendar";
         }
-        gridEl.replaceChildren(createEmptyMessage('No scan results yet. Click "Scan folder".'));
-        panelEl.replaceChildren(createEmptyMessage("No activities to display.", "file-calendar__panelEmpty"));
+        gridEl.replaceChildren(
+            createEmptyMessage('No scan results yet. Click "Scan folder".')
+        );
+        panelEl.replaceChildren(
+            createEmptyMessage(
+                "No activities to display.",
+                "file-calendar__panelEmpty"
+            )
+        );
         return;
     }
+
     const prefs = getLibraryPrefs();
     const unitFactor = prefs.unit === "mi" ? 1 / 1609.344 : 1 / 1000;
     const unitLabel = prefs.unit;
-    const fmt = (meters) => (meters * unitFactor).toFixed(1);
+    const fmt = (meters: number): string => (meters * unitFactor).toFixed(1);
+
     const state = getCalendarState();
     const { monthStart, selectedDayKey } = state;
     const monthLabel = monthStart.toLocaleString(undefined, {
@@ -727,7 +1104,9 @@ function renderCalendarResults(root, payload) {
     if (titleEl) {
         titleEl.textContent = `${monthLabel} — ${root}`;
     }
+
     const itemsByDay = groupItemsByDay(payload.items);
+
     const weekdayLabels = [
         "Mon",
         "Tue",
@@ -737,20 +1116,27 @@ function renderCalendarResults(root, payload) {
         "Sat",
         "Sun",
     ];
-    const firstDay = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1);
+    const firstDay = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth(),
+        1
+    );
     const firstDow = firstDay.getDay();
     const firstIso = firstDow === 0 ? 7 : firstDow;
     const offset = firstIso - 1; // 0..6 where 0 is Monday
     const gridStart = new Date(firstDay);
     gridStart.setDate(firstDay.getDate() - offset);
+
     const todayKey = formatLocalDayKey(new Date());
-    const gridItems = [];
+
+        const gridItems = [];
     for (const wd of weekdayLabels) {
         const weekday = document.createElement("div");
         weekday.className = "file-calendar__weekday";
         weekday.textContent = wd;
         gridItems.push(weekday);
     }
+
     for (let i = 0; i < 42; i++) {
         const day = new Date(gridStart);
         day.setDate(gridStart.getDate() + i);
@@ -758,8 +1144,13 @@ function renderCalendarResults(root, payload) {
         const inMonth = day.getMonth() === monthStart.getMonth();
         const isToday = dayKey === todayKey;
         const isSelected = dayKey === selectedDayKey;
+
         const dayItems = itemsByDay.get(dayKey) ?? [];
-        const dayDistance = dayItems.reduce((acc, it) => acc + it.totalDistanceM, 0);
+        const dayDistance = dayItems.reduce(
+            (acc, it) => acc + it.totalDistanceM,
+            0
+        );
+
         const button = createCalendarDayButton({
             day,
             dayDistance,
@@ -778,63 +1169,100 @@ function renderCalendarResults(root, payload) {
         });
         gridItems.push(button);
     }
+
     gridEl.replaceChildren(...gridItems);
+
     // Selected-day panel
     const selectedItems = itemsByDay.get(selectedDayKey) ?? [];
     if (selectedItems.length === 0) {
-        panelEl.replaceChildren(createCalendarPanelTitle(selectedDayKey), createEmptyMessage("No activities.", "file-calendar__panelEmpty"));
+        panelEl.replaceChildren(
+            createCalendarPanelTitle(selectedDayKey),
+            createEmptyMessage("No activities.", "file-calendar__panelEmpty")
+        );
         return;
     }
-    const rows = createLibraryRows(selectedItems
-        .slice()
-        .sort((a, b) => b.startTime.getTime() - a.startTime.getTime()), unitLabel, fmt, { includeSportBadge: true, useTimeOnly: true });
+
+    const rows = createLibraryRows(
+        selectedItems
+            .slice()
+            .sort((a, b) => b.startTime.getTime() - a.startTime.getTime()),
+        unitLabel,
+        fmt,
+        { includeSportBadge: true, useTimeOnly: true }
+    );
     panelEl.replaceChildren(createCalendarPanelTitle(selectedDayKey), rows);
 }
-function createCalendarDayButton({ day, dayDistance, dayItems, dayKey, formatDistance, inMonth, isSelected, isToday, unitLabel, }) {
+
+function createCalendarDayButton({
+    day,
+    dayDistance,
+    dayItems,
+    dayKey,
+    formatDistance,
+    inMonth,
+    isSelected,
+    isToday,
+    unitLabel,
+}: {
+    day: Date;
+    dayDistance: number;
+    dayItems: FitLibraryItem[];
+    dayKey: string;
+    formatDistance: (meters: number) => string;
+    inMonth: boolean;
+    isSelected: boolean;
+    isToday: boolean;
+    unitLabel: DistanceUnit;
+}): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "file-calendar__day";
     button.dataset["day"] = dayKey;
-    if (!inMonth)
-        button.classList.add("file-calendar__day--outside");
-    if (isToday)
-        button.classList.add("file-calendar__day--today");
-    if (isSelected)
-        button.classList.add("file-calendar__day--selected");
+
+    if (!inMonth) button.classList.add("file-calendar__day--outside");
+    if (isToday) button.classList.add("file-calendar__day--today");
+    if (isSelected) button.classList.add("file-calendar__day--selected");
     if (dayItems.length > 0) {
         button.classList.add("file-calendar__day--hasActivities");
         button.dataset["tooltip"] =
             `${dayKey} • ${formatDistance(dayDistance)} ${unitLabel} • ${formatActivityLabel(dayItems.length)}`;
-    }
-    else {
+    } else {
         button.dataset["tooltip"] = dayKey;
     }
-    if (dayItems.length > 1)
-        button.classList.add("file-calendar__day--multi");
+    if (dayItems.length > 1) button.classList.add("file-calendar__day--multi");
+
     const dayNumber = document.createElement("div");
     dayNumber.className = "file-calendar__dayNumber";
     dayNumber.textContent = String(day.getDate());
+
     const dayMeta = document.createElement("div");
     dayMeta.className = "file-calendar__dayMeta";
     if (dayItems.length > 0) {
         const distance = document.createElement("div");
         distance.className = "file-calendar__dayDistance";
         distance.textContent = `${formatDistance(dayDistance)} ${unitLabel}`;
+
         const count = document.createElement("div");
         count.className = "file-calendar__dayCount";
         count.textContent = formatActivityLabel(dayItems.length);
+
         dayMeta.append(distance, count, createCalendarDayIconRow(dayItems));
     }
+
     button.append(dayNumber, dayMeta);
+
     return button;
 }
-function createCalendarDayIconRow(items) {
+
+function createCalendarDayIconRow(items: FitLibraryItem[]): HTMLElement {
     const iconRow = document.createElement("div");
     iconRow.className = "file-calendar__dayIcons";
     iconRow.setAttribute("aria-hidden", "true");
+
     const badges = createSportBadgeCounts(items);
     const shown = badges.slice(0, 3);
     const remainder = Math.max(0, badges.length - shown.length);
+
     for (const badge of shown) {
         const icon = document.createElement("span");
         icon.className = "file-calendar__dayIcon";
@@ -845,43 +1273,53 @@ function createCalendarDayIconRow(items) {
         icon.textContent = badge.emoji;
         iconRow.append(icon);
     }
+
     if (remainder > 0) {
         const more = document.createElement("span");
         more.className = "file-calendar__dayIconMore";
         more.textContent = `+${remainder}`;
         iconRow.append(more);
     }
+
     return iconRow;
 }
-function createSportBadgeCounts(items) {
-    const bySport = new Map();
+
+function createSportBadgeCounts(items: FitLibraryItem[]): SportBadgeCount[] {
+    const bySport = new Map<string, SportBadgeCount>();
     for (const item of items) {
         const badge = getSportBadge(item.sport);
         const existing = bySport.get(badge.key);
         if (existing) {
             existing.count += 1;
-        }
-        else {
+        } else {
             bySport.set(badge.key, { ...badge, count: 1 });
         }
     }
+
     return [...bySport.values()].sort((a, b) => b.count - a.count);
 }
-function createCalendarPanelTitle(dayKey) {
+
+function createCalendarPanelTitle(dayKey: string): HTMLElement {
     const title = document.createElement("div");
     title.className = "file-calendar__panelTitle";
     title.textContent = dayKey;
+
     return title;
 }
-function formatActivityLabel(count) {
+
+function formatActivityLabel(count: number): string {
     return `${count} ${count === 1 ? "activity" : "activities"}`;
 }
-function getSportBadge(sport) {
+
+function getSportBadge(sport: string | undefined): SportBadge {
     const raw = typeof sport === "string" ? sport.trim() : "";
     const sportLower = raw.toLowerCase();
-    if (sportLower.includes("cycling") ||
+
+    if (
+        sportLower.includes("cycling") ||
         sportLower.includes("bike") ||
-        sportLower.includes("biking")) {
+        sportLower.includes("biking")
+    ) {
         return { emoji: "🚴", key: "cycling", label: "Cycling" };
     }
     if (sportLower.includes("run")) {
@@ -899,50 +1337,76 @@ function getSportBadge(sport) {
     if (sportLower.includes("row")) {
         return { emoji: "🚣", key: "rowing", label: "Rowing" };
     }
+
     return { emoji: "🏁", key: "other", label: raw || "Activity" };
 }
-function createCalendarScaffold() {
+
+function createCalendarScaffold(): HTMLElement {
     const calendar = document.createElement("div");
     calendar.className = "file-calendar";
+
     const header = document.createElement("div");
     header.className = "file-calendar__header";
+
     const title = document.createElement("div");
     title.className = "file-calendar__title";
     title.id = "fit-calendar-title";
+
     const nav = document.createElement("div");
     nav.className = "file-calendar__nav";
-    nav.append(createBrowserActionButton({
-        id: "fit-calendar-prev",
-        iconName: "arrowLeft",
-        label: "Prev",
-        tooltip: "Previous month",
-    }), createBrowserActionButton({
-        id: "fit-calendar-today",
-        iconName: "calendar",
-        label: "Today",
-        tooltip: "Jump to today",
-    }), createBrowserActionButton({
-        id: "fit-calendar-next",
-        iconName: "arrowRight",
-        label: "Next",
-        tooltip: "Next month",
-    }), createBrowserActionButton({
-        id: "fit-calendar-scan",
-        iconName: "database",
-        label: "Scan folder",
-        tooltip: "Scan folder for activities",
-    }));
+    nav.append(
+        createBrowserActionButton({
+            id: "fit-calendar-prev",
+            iconName: "arrowLeft",
+            label: "Prev",
+            tooltip: "Previous month",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-today",
+            iconName: "calendar",
+            label: "Today",
+            tooltip: "Jump to today",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-next",
+            iconName: "arrowRight",
+            label: "Next",
+            tooltip: "Next month",
+        }),
+        createBrowserActionButton({
+            id: "fit-calendar-scan",
+            iconName: "database",
+            label: "Scan folder",
+            tooltip: "Scan folder for activities",
+        })
+    );
+
     header.append(title, nav);
+
     const grid = document.createElement("div");
     grid.className = "file-calendar__grid";
     grid.id = "fit-calendar-grid";
+
     const panel = document.createElement("div");
     panel.className = "file-calendar__panel";
     panel.id = "fit-calendar-panel";
+
     calendar.append(header, grid, panel);
+
     return calendar;
 }
-function createBrowserActionButton({ id, iconName, label, tooltip, }) {
+
+function createBrowserActionButton({
+    id,
+    iconName,
+    label,
+    tooltip,
+}: {
+    id: string;
+    iconName: AppIconName;
+    label: string;
+    tooltip?: string;
+}): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "file-browser__btn";
@@ -950,41 +1414,61 @@ function createBrowserActionButton({ id, iconName, label, tooltip, }) {
     if (tooltip) {
         button.dataset["tooltip"] = tooltip;
     }
-    appendIconLabel(button, iconName, "file-browser__btn-icon", label, "", 14);
+    appendIconLabel(
+        button,
+        iconName,
+        "file-browser__btn-icon",
+        label,
+        "",
+        14
+    );
+
     return button;
 }
+
 /**
  * Render the Calendar view.
  */
-async function renderCalendarView() {
+async function renderCalendarView(): Promise<void> {
     const api = getElectronAPI();
     const pathEl = document.getElementById("fit-browser-current-path");
     const calendarEl = document.getElementById("fit-browser-calendar");
-    if (!(calendarEl instanceof HTMLElement) ||
-        !(pathEl instanceof HTMLElement)) {
+    if (
+        !(calendarEl instanceof HTMLElement) ||
+        !(pathEl instanceof HTMLElement)
+    ) {
         return;
     }
+
     if (!api || typeof api.getFitBrowserFolder !== "function") {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         delete calendarEl.dataset["ffvCalendarInitialized"];
         calendarEl.replaceChildren();
         return;
     }
+
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
         delete calendarEl.dataset["ffvCalendarInitialized"];
-        calendarEl.replaceChildren(createEmptyMessage("Choose a folder to view the calendar."));
+        calendarEl.replaceChildren(
+            createEmptyMessage("Choose a folder to view the calendar.")
+        );
         return;
     }
-    const cached = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+
+    const cached =
+        loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+
     if (!calendarEl.dataset["ffvCalendarInitialized"]) {
         calendarEl.dataset["ffvCalendarInitialized"] = "true";
         calendarEl.replaceChildren(createCalendarScaffold());
+
         const prevBtn = document.getElementById("fit-calendar-prev");
         const nextBtn = document.getElementById("fit-calendar-next");
         const todayBtn = document.getElementById("fit-calendar-today");
         const scanBtn = document.getElementById("fit-calendar-scan");
+
         if (prevBtn) {
             addManagedEventListener(prevBtn, "click", () => {
                 const st = getCalendarState();
@@ -993,10 +1477,14 @@ async function renderCalendarView() {
                     monthStart: addMonths(st.monthStart, -1),
                 };
                 persistCalendarState(next);
-                renderCalendarResults(root, loadPersistedLibraryCache(root) ??
-                    loadSessionLibraryCache(root));
+                renderCalendarResults(
+                    root,
+                    loadPersistedLibraryCache(root) ??
+                        loadSessionLibraryCache(root)
+                );
             });
         }
+
         if (nextBtn) {
             addManagedEventListener(nextBtn, "click", () => {
                 const st = getCalendarState();
@@ -1005,47 +1493,86 @@ async function renderCalendarView() {
                     monthStart: addMonths(st.monthStart, 1),
                 };
                 persistCalendarState(next);
-                renderCalendarResults(root, loadPersistedLibraryCache(root) ??
-                    loadSessionLibraryCache(root));
+                renderCalendarResults(
+                    root,
+                    loadPersistedLibraryCache(root) ??
+                        loadSessionLibraryCache(root)
+                );
             });
         }
+
         if (todayBtn) {
             addManagedEventListener(todayBtn, "click", () => {
                 const now = new Date();
                 const next = {
-                    monthStart: new Date(now.getFullYear(), now.getMonth(), 1),
+                    monthStart: new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        1
+                    ),
                     selectedDayKey: formatLocalDayKey(now),
                 };
                 persistCalendarState(next);
-                renderCalendarResults(root, loadPersistedLibraryCache(root) ??
-                    loadSessionLibraryCache(root));
+                renderCalendarResults(
+                    root,
+                    loadPersistedLibraryCache(root) ??
+                        loadSessionLibraryCache(root)
+                );
             });
         }
+
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
-                renderCalendarResults(root, loadPersistedLibraryCache(root) ??
-                    loadSessionLibraryCache(root));
+                renderCalendarResults(
+                    root,
+                    loadPersistedLibraryCache(root) ??
+                        loadSessionLibraryCache(root)
+                );
             });
         }
     }
+
     renderCalendarResults(root, cached);
 }
-function createLibraryCard(iconName, label, value) {
+
+function createLibraryCard(
+    iconName: AppIconName,
+    label: string,
+    value: string
+): HTMLElement {
     const card = document.createElement("div");
     card.className = "file-library__card";
+
     const cardLabel = document.createElement("div");
     cardLabel.className = "file-library__cardLabel";
-    appendIconLabel(cardLabel, iconName, "file-library__cardIcon", label, "", 13);
+    appendIconLabel(
+        cardLabel,
+        iconName,
+        "file-library__cardIcon",
+        label,
+        "",
+        13
+    );
+
     const cardValue = document.createElement("div");
     cardValue.className = "file-library__cardValue";
     cardValue.textContent = value;
+
     card.append(cardLabel, cardValue);
+
     return card;
 }
-function createLibraryRows(items, unitLabel, formatDistance, options) {
+
+function createLibraryRows(
+    items: FitLibraryItem[],
+    unitLabel: DistanceUnit,
+    formatDistance: (meters: number) => string,
+    options: LibraryRowOptions
+): HTMLElement {
     const rows = document.createElement("div");
     rows.className = "file-library__rows";
+
     for (const item of items) {
         const row = document.createElement("button");
         row.type = "button";
@@ -1054,8 +1581,10 @@ function createLibraryRows(items, unitLabel, formatDistance, options) {
         addManagedEventListener(row, "click", async () => {
             await openBrowserFile(item.fullPath);
         });
+
         const main = document.createElement("span");
         main.className = "file-library__rowMain";
+
         if (options.includeSportBadge) {
             const badge = getSportBadge(item.sport);
             const icon = document.createElement("span");
@@ -1064,64 +1593,100 @@ function createLibraryRows(items, unitLabel, formatDistance, options) {
             icon.setAttribute("aria-hidden", "true");
             icon.textContent = badge.emoji;
             main.append(icon, document.createTextNode(` ${item.fileName}`));
-        }
-        else {
+        } else {
             const fileName = document.createElement("span");
             fileName.textContent = item.fileName;
-            main.append(createAppIconElement("file", {
-                className: "file-library__rowIcon",
-                size: 13,
-            }), fileName);
+            main.append(
+                createAppIconElement("file", {
+                    className: "file-library__rowIcon",
+                    size: 13,
+                }),
+                fileName
+            );
         }
+
         const when = options.useTimeOnly
             ? item.startTime.toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-            })
+                  hour: "2-digit",
+                  minute: "2-digit",
+              })
             : item.startTime.toLocaleString();
         const sport = item.sport ? ` — ${item.sport}` : "";
         const meta = document.createElement("span");
         meta.className = "file-library__rowMeta";
         meta.textContent = `${when} • ${formatDistance(item.totalDistanceM)} ${unitLabel}${sport}`;
+
         row.append(main, meta);
         rows.append(row);
     }
+
     return rows;
 }
-function createLibraryScaffold() {
+
+function createLibraryScaffold(): HTMLElement {
     const library = document.createElement("div");
     library.className = "file-library";
+
     const header = document.createElement("div");
     header.className = "file-library__header";
+
     const title = document.createElement("div");
     title.className = "file-library__title";
-    appendIconLabel(title, "folder", "file-library__titleIcon", "Folder Summary", "", 16);
+    appendIconLabel(
+        title,
+        "folder",
+        "file-library__titleIcon",
+        "Folder Summary",
+        "",
+        16
+    );
+
     const controls = document.createElement("div");
     controls.className = "file-library__controls";
-    controls.append(createLibraryDaysControl(), createLibraryUnitControl(), createBrowserActionButton({
-        id: "fit-library-scan",
-        iconName: "database",
-        label: "Scan folder",
-    }));
+    controls.append(
+        createLibraryDaysControl(),
+        createLibraryUnitControl(),
+        createBrowserActionButton({
+            id: "fit-library-scan",
+            iconName: "database",
+            label: "Scan folder",
+        })
+    );
+
     header.append(title, controls);
+
     const status = document.createElement("div");
     status.className = "file-library__status";
     status.id = "fit-library-status";
+
     const cards = document.createElement("div");
     cards.className = "file-library__grid";
     cards.id = "fit-library-cards";
+
     const activities = document.createElement("div");
     activities.className = "file-library__list";
     activities.id = "fit-library-activities";
+
     library.append(header, status, cards, activities);
+
     return library;
 }
-function createLibraryDaysControl() {
+
+function createLibraryDaysControl(): HTMLLabelElement {
     const label = document.createElement("label");
     label.className = "file-library__control";
+
     const intro = document.createElement("span");
     intro.className = "file-library__controlLabel";
-    appendIconLabel(intro, "history", "file-library__controlIcon", "Last", "", 12);
+    appendIconLabel(
+        intro,
+        "history",
+        "file-library__controlIcon",
+        "Last",
+        "",
+        12
+    );
+
     const input = document.createElement("input");
     input.type = "number";
     input.min = "1";
@@ -1129,51 +1694,92 @@ function createLibraryDaysControl() {
     input.step = "1";
     input.className = "file-library__daysInput";
     input.id = "fit-library-days";
+
     const suffix = document.createElement("span");
     suffix.className = "file-library__controlLabel";
     suffix.textContent = "days";
+
     label.append(intro, input, suffix);
+
     return label;
 }
-function createLibraryUnitControl() {
+
+function createLibraryUnitControl(): HTMLLabelElement {
     const label = document.createElement("label");
     label.className = "file-library__control";
+
     const intro = document.createElement("span");
     intro.className = "file-library__controlLabel";
-    appendIconLabel(intro, "ruler", "file-library__controlIcon", "Units", "", 12);
+    appendIconLabel(
+        intro,
+        "ruler",
+        "file-library__controlIcon",
+        "Units",
+        "",
+        12
+    );
+
     const select = document.createElement("select");
     select.className = "file-library__unitSelect";
     select.id = "fit-library-unit";
+
     for (const value of ["km", "mi"]) {
         const option = document.createElement("option");
         option.value = value;
         option.textContent = value;
         select.append(option);
     }
+
     label.append(intro, select);
+
     return label;
 }
-function renderLibraryResults(root, payload) {
+
+function renderLibraryResults(
+    root: string,
+    payload: FitLibraryCachePayload
+): void {
     const statusEl = document.getElementById("fit-library-status");
     const cardsEl = document.getElementById("fit-library-cards");
     const listEl = document.getElementById("fit-library-activities");
+
     const prefs = getLibraryPrefs();
     const totals = computeLibraryTotals(payload.items, prefs.lastDays);
     const unitFactor = prefs.unit === "mi" ? 1 / 1609.344 : 1 / 1000;
     const unitLabel = prefs.unit;
-    const fmt = (meters) => (meters * unitFactor).toFixed(1);
+    const fmt = (meters: number): string => (meters * unitFactor).toFixed(1);
+
     if (statusEl) {
         const scanned = payload?.scannedAt ? new Date(payload.scannedAt) : null;
         statusEl.textContent = scanned
             ? `Scanned ${scanned.toLocaleString()} — ${root}`
             : root;
     }
+
     if (cardsEl) {
         const lastDaysVal = fmt(totals.lastDaysDistanceM);
         const weekVal = fmt(totals.weekDistanceM);
         const monthVal = fmt(totals.monthDistanceM);
-        cardsEl.replaceChildren(createLibraryCard("file", "Files", String(payload.items.length)), createLibraryCard("history", `Last ${prefs.lastDays} days`, `${lastDaysVal} ${unitLabel}`), createLibraryCard("calendarWeek", "This week", `${weekVal} ${unitLabel}`), createLibraryCard("calendarRange", "This month", `${monthVal} ${unitLabel}`));
+        cardsEl.replaceChildren(
+            createLibraryCard("file", "Files", String(payload.items.length)),
+            createLibraryCard(
+                "history",
+                `Last ${prefs.lastDays} days`,
+                `${lastDaysVal} ${unitLabel}`
+            ),
+            createLibraryCard(
+                "calendarWeek",
+                "This week",
+                `${weekVal} ${unitLabel}`
+            ),
+            createLibraryCard(
+                "calendarRange",
+                "This month",
+                `${monthVal} ${unitLabel}`
+            )
+        );
     }
+
     if (listEl) {
         const items = Array.isArray(payload?.items)
             ? payload.items.slice(0, 50)
@@ -1182,49 +1788,66 @@ function renderLibraryResults(root, payload) {
             listEl.replaceChildren(createEmptyMessage("No activities decoded."));
             return;
         }
-        listEl.replaceChildren(createLibraryRows(items, unitLabel, fmt, {
-            includeSportBadge: false,
-            useTimeOnly: false,
-        }));
+
+        listEl.replaceChildren(
+            createLibraryRows(items, unitLabel, fmt, {
+                includeSportBadge: false,
+                useTimeOnly: false,
+            })
+        );
     }
 }
-async function renderLibraryView() {
+
+async function renderLibraryView(): Promise<void> {
     const api = getElectronAPI();
     const pathEl = document.getElementById("fit-browser-current-path");
     const libraryEl = document.getElementById("fit-browser-library");
-    if (!(libraryEl instanceof HTMLElement) ||
-        !(pathEl instanceof HTMLElement)) {
+
+    if (
+        !(libraryEl instanceof HTMLElement) ||
+        !(pathEl instanceof HTMLElement)
+    ) {
         return;
     }
-    if (!api ||
+
+    if (
+        !api ||
         typeof api.getFitBrowserFolder !== "function" ||
-        typeof api.listFitBrowserFolder !== "function") {
+        typeof api.listFitBrowserFolder !== "function"
+    ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         delete libraryEl.dataset["ffvLibraryInitialized"];
         libraryEl.replaceChildren();
         return;
     }
+
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
         delete libraryEl.dataset["ffvLibraryInitialized"];
-        libraryEl.replaceChildren(createEmptyMessage("Choose a folder to build a library summary."));
+        libraryEl.replaceChildren(
+            createEmptyMessage("Choose a folder to build a library summary.")
+        );
         return;
     }
+
     // One-time scaffold.
     if (!libraryEl.dataset["ffvLibraryInitialized"]) {
         libraryEl.dataset["ffvLibraryInitialized"] = "true";
         libraryEl.replaceChildren(createLibraryScaffold());
+
         const scanBtn = document.getElementById("fit-library-scan");
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
             });
         }
+
         // Initialize controls from persisted prefs.
         const prefs = getLibraryPrefs();
         const daysInput = document.getElementById("fit-library-days");
         const unitSelect = document.getElementById("fit-library-unit");
+
         if (daysInput instanceof HTMLInputElement) {
             daysInput.value = String(prefs.lastDays);
             addManagedEventListener(daysInput, "change", () => {
@@ -1236,19 +1859,24 @@ async function renderLibraryView() {
                     ...getLibraryPrefs(),
                     lastDays: nextDays,
                 });
-                const cached = loadPersistedLibraryCache(root) ??
+
+                const cached =
+                    loadPersistedLibraryCache(root) ??
                     loadSessionLibraryCache(root);
                 if (cached) {
                     renderLibraryResults(root, cached);
                 }
             });
         }
+
         if (unitSelect instanceof HTMLSelectElement) {
             unitSelect.value = prefs.unit;
             addManagedEventListener(unitSelect, "change", () => {
                 const nextUnit = unitSelect.value === "mi" ? "mi" : "km";
                 persistLibraryPrefs({ ...getLibraryPrefs(), unit: nextUnit });
-                const cached = loadPersistedLibraryCache(root) ??
+
+                const cached =
+                    loadPersistedLibraryCache(root) ??
                     loadSessionLibraryCache(root);
                 if (cached) {
                     renderLibraryResults(root, cached);
@@ -1256,76 +1884,98 @@ async function renderLibraryView() {
             });
         }
     }
+
     // If we have cached results for this root (session + persisted), show them.
-    const cachedForRoot = loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    const cachedForRoot =
+        loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
     if (cachedForRoot) {
         renderLibraryResults(root, cachedForRoot);
         return;
     }
+
     const statusEl = document.getElementById("fit-library-status");
     if (statusEl) {
         statusEl.textContent =
             "Click ‘Scan folder’ to compute weekly/monthly totals.";
     }
 }
-async function scanAndRenderLibrary(root) {
+
+async function scanAndRenderLibrary(root: string): Promise<void> {
     const api = getElectronAPI();
     const statusEl = document.getElementById("fit-library-status");
-    if (!api ||
+    if (
+        !api ||
         typeof api.listFitBrowserFolder !== "function" ||
-        typeof api.readFile !== "function") {
-        showNotification("Library scan is unavailable (Electron API missing).", "error");
+        typeof api.readFile !== "function"
+    ) {
+        showNotification(
+            "Library scan is unavailable (Electron API missing).",
+            "error"
+        );
         return;
     }
+
     try {
-        if (statusEl)
-            statusEl.textContent = "Listing files…";
+        if (statusEl) statusEl.textContent = "Listing files…";
+
         const files = await listAllFitFiles(api);
         if (files.length === 0) {
-            if (statusEl)
-                statusEl.textContent = "No .fit files found.";
+            if (statusEl) statusEl.textContent = "No .fit files found.";
             renderLibraryResults(root, { items: [], scannedAt: Date.now() });
             return;
         }
+
         if (files.length > 500) {
-            showNotification(`Large folder detected (${files.length} FIT files). Scanning may take a while.`, "info", 5000);
+            showNotification(
+                `Large folder detected (${files.length} FIT files). Scanning may take a while.`,
+                "info",
+                5000
+            );
         }
+
         // Decode with small concurrency to keep UI responsive.
         const concurrency = 2;
         const limit = pLimitCompat(concurrency);
         let done = 0;
-        const items = [];
-        const tasks = files.map((file) => limit(async () => {
-            const res = await decodeLibraryItem(api, file);
-            done++;
-            if (statusEl) {
-                statusEl.textContent = `Decoding ${Math.min(done, files.length)} / ${files.length}…`;
-            }
-            if (res) {
-                items.push(res);
-            }
-        }));
+
+        const items: FitLibraryItem[] = [];
+
+        const tasks = files.map((file) =>
+            limit(async () => {
+                const res = await decodeLibraryItem(api, file);
+                done++;
+                if (statusEl) {
+                    statusEl.textContent = `Decoding ${Math.min(done, files.length)} / ${files.length}…`;
+                }
+                if (res) {
+                    items.push(res);
+                }
+            })
+        );
+
         await Promise.allSettled(tasks);
+
         items.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+
         const payload = { items, scannedAt: Date.now() };
         writeSessionLibraryCache(root, payload);
         persistLibraryCache(root, payload);
+
         renderLibraryResults(root, payload);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[fileBrowserTab] Library scan failed", error);
-        if (statusEl)
-            statusEl.textContent = "Scan failed.";
+        if (statusEl) statusEl.textContent = "Scan failed.";
         showNotification("Failed to scan folder.", "error");
     }
 }
-function setElementVisible(el, visible) {
-    if (!el)
-        return;
+
+function setElementVisible(el: HTMLElement | null, visible: boolean): void {
+    if (!el) return;
     el.hidden = !visible;
     el.style.display = visible ? "" : "none";
 }
-function startOfLocalWeek(date) {
+
+function startOfLocalWeek(date: Date): Date {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const day = d.getDay();
     const isoDay = day === 0 ? 7 : day;
@@ -1333,7 +1983,11 @@ function startOfLocalWeek(date) {
     d.setHours(0, 0, 0, 0);
     return d;
 }
-function writeSessionLibraryCache(root, payload) {
+
+function writeSessionLibraryCache(
+    root: string,
+    payload: FitLibraryCachePayload
+): void {
     const appGlobal = getFitBrowserGlobal();
     if (!appGlobal.__ffvLibraryCache) {
         appGlobal.__ffvLibraryCache = {};

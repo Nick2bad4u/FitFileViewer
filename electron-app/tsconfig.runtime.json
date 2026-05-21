@@ -261,6 +261,7 @@
         "utils/ui/components/ensureChartSettingsDropdowns.ts",
         "utils/ui/setupExternalLinkHandlers.ts",
         "utils/ui/browser/initFitBrowserFeatureGate.ts",
+        "utils/ui/browser/fileBrowserTab.ts",
         "utils/ui/links/externalLinkHandlers.ts",
         "utils/ui/layout/enhanceCreditsSection.ts",
         "utils/ui/modals/aboutModal.ts",
