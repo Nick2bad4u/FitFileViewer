@@ -147,6 +147,7 @@ import {
     refreshChartsIfNeeded as refreshChartsIfNeededImpl,
 } from "./renderChartStateManagement.js";
 import { createChartStateView } from "./renderChartStateView.js";
+import { createChartActions } from "./renderChartActions.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -492,160 +493,19 @@ export const chartState = createChartStateView({
     getState: callGetState,
 });
 
-/**
- * Chart actions - encapsulated state transitions for chart operations
- */
-export const chartActions = {
-    /**
-     * Clear all chart data and reset state
-     */
-    clearCharts() {
-        // Destroy existing chart instances
-        if (chartGlobal._chartjsInstances) {
-            for (const [
-                index,
-                chart,
-            ] of chartGlobal._chartjsInstances.entries()) {
-                try {
-                    if (chart && typeof chart.destroy === "function") {
-                        chart.destroy();
-                    }
-                } catch (error) {
-                    console.warn(
-                        `[ChartJS] Error destroying chart ${index}:`,
-                        error
-                    );
-                }
-            }
-            chartGlobal._chartjsInstances = [];
-        }
-
-        // Reset chart state using updateState for efficiency
-        callUpdateState(
-            "charts",
-            {
-                chartData: null,
-                isRendered: false,
-                renderedCount: 0,
-            },
-            { silent: false, source: "chartActions.clearCharts" }
-        );
-    },
-
-    /**
-     * Complete chart rendering process
-     *
-     * @param {boolean} success - Whether rendering succeeded
-     * @param {number} chartCount - Number of charts rendered
-     * @param {number} renderTime - Time taken to render
-     */
-    completeRendering(success, chartCount = 0, renderTime = 0) {
-        // Use updateState for efficient nested updates
-        callUpdateState(
-            "charts",
-            {
-                isRendered: success,
-                isRendering: false,
-                ...(success && {
-                    lastRenderTime: Date.now(),
-                    renderedCount: chartCount,
-                }),
-            },
-            { silent: false, source: "chartActions.completeRendering" }
-        );
-
-        // Background renders (preload) must not hijack the global loading indicator.
-        if (!isLoadingStateSuppressed()) {
-            callSetState("isLoading", false, {
-                silent: false,
-                source: "chartActions.completeRendering",
-            });
-        }
-
-        if (success) {
-            callUpdateState(
-                "performance.renderTimes",
-                {
-                    chart: renderTime,
-                },
-                { silent: false, source: "chartActions.completeRendering" }
-            );
-
-            // Notify other components of successful render
-            notifyChartRenderComplete(AppActions, chartCount);
-        }
-    },
-
-    /**
-     * Request chart re-render with debouncing
-     *
-     * @param {string} reason - Reason for re-render
-     */
-    requestRerender(reason = "State change") {
-        console.log(`[ChartJS] Re-render requested: ${reason}`);
-
-        // Prefer the centralized ChartStateManager when available.
-        // This prevents duplicate renders from multiple subsystems.
-        const chartStateManager = getDebouncedChartStateManager();
-        if (chartStateManager) {
-            chartStateManager.debouncedRender(reason);
-            return;
-        }
-
-        // Fallback: stable module-level debounced render.
-        debouncedDirectRerender(reason);
-    },
-
-    /**
-     * Update chart selection
-     *
-     * @param {string} chartType - New chart type selection
-     */
-    selectChart(chartType) {
-        callSetState("charts.selectedChart", chartType, {
-            silent: false,
-            source: "chartActions.selectChart",
-        });
-
-        // Trigger re-render if charts are currently displayed
-        if (chartState.isRendered) {
-            this.requestRerender("Chart selection changed");
-        }
-    },
-
-    /**
-     * Start chart rendering process
-     */
-    startRendering() {
-        // Use state management instead of missing AppActions method
-        callSetState("charts.isRendering", true, {
-            silent: false,
-            source: "chartActions.startRendering",
-        });
-        // Background renders (preload) must not hijack the global loading indicator.
-        if (!isLoadingStateSuppressed()) {
-            callSetState("isLoading", true, {
-                silent: false,
-                source: "chartActions.startRendering",
-            });
-        }
-    },
-
-    /**
-     * Toggle chart controls visibility
-     */
-    toggleControls() {
-        const newVisibility = !chartState.controlsVisible;
-        callSetState("charts.controlsVisible", newVisibility, {
-            silent: false,
-            source: "chartActions.toggleControls",
-        });
-        const uiMgr = getUIStateManagerMaybe();
-        if (uiMgr && typeof uiMgr.updatePanelVisibility === "function") {
-            uiMgr.updatePanelVisibility("chart-controls", newVisibility);
-        }
-    },
-};
+export const chartActions = createChartActions({
+    appActions: AppActions,
+    chartGlobal,
+    debouncedDirectRerender,
+    getControlsVisible: () => chartState.controlsVisible,
+    getDebouncedChartStateManager,
+    getPanelVisibilityManager: getUIStateManagerMaybe,
+    isLoadingStateSuppressed,
+    isRendered: () => chartState.isRendered,
+    notifyChartRenderComplete,
+    setState: callSetState,
+    updateState: callUpdateState,
+});
 
 // Load shared configuration on page load
 if (globalThis.window !== undefined) {
