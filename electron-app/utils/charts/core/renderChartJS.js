@@ -169,6 +169,7 @@ import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { resolveRenderableChartFields } from "./renderChartFieldSelection.js";
 import { resolveChartRenderResultState } from "./renderChartResultState.js";
+import { renderSupplementalCharts } from "./renderChartSupplementalCharts.js";
 import { createChartZoomPluginConfig } from "./renderChartZoomConfig.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
@@ -834,94 +835,41 @@ async function renderChartsWithData(
         }
     }
 
-    // Event messages chart (respect state-managed visibility)
-    const eventMessagesVisibility =
-        chartSettingsManager.getFieldVisibility("event_messages");
-    if (eventMessagesVisibility !== "hidden") {
-        renderEventMessagesChartSafe(
+    renderSupplementalCharts(
+        {
             chartContainer,
-            {
-                showGrid: boolSettings.showGrid,
-                showLegend: boolSettings.showLegend,
-                showTitle: boolSettings.showTitle,
-                zoomPluginConfig,
+            labels,
+            renderers: {
+                renderEventMessagesChart: renderEventMessagesChartSafe,
+                renderGPSTimeChart: renderGPSTimeChartSafe,
+                renderGPSTrackChart: renderGPSTrackChartSafe,
+                renderLapZoneCharts: renderLapZoneChartsSafe,
+                renderPerformanceAnalysisCharts:
+                    renderPerformanceAnalysisChartsSafe,
+                renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
             },
-            startTime
-        );
-    }
-
-    // Render time in zone charts
-    renderTimeInZoneChartsSafe(chartContainer, {
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showTitle: boolSettings.showTitle,
-        zoomPluginConfig,
-    });
-
-    // Render lap zone charts with enhanced state-managed visibility
-    const lapZoneVisibility = {
-        hrIndividualVisible:
-            chartSettingsManager.getFieldVisibility(
-                "hr_lap_zone_individual"
-            ) !== "hidden",
-        hrStackedVisible:
-            chartSettingsManager.getFieldVisibility("hr_lap_zone_stacked") !==
-            "hidden",
-        powerIndividualVisible:
-            chartSettingsManager.getFieldVisibility(
-                "power_lap_zone_individual"
-            ) !== "hidden",
-        powerStackedVisible:
-            chartSettingsManager.getFieldVisibility(
-                "power_lap_zone_stacked"
-            ) !== "hidden",
-    };
-
-    // Only render if at least one lap zone chart type is visible
-    if (Object.values(lapZoneVisibility).some(Boolean)) {
-        renderLapZoneChartsSafe(
-            chartContainer,
-            {
-                showGrid: boolSettings.showGrid,
-                showLegend: boolSettings.showLegend,
-                showTitle: boolSettings.showTitle,
-                visibilitySettings: lapZoneVisibility,
-                zoomPluginConfig,
-            }
-        );
-    } // Render GPS track chart if position data is available
-    renderGPSTrackChartSafe(chartContainer, data, {
-        maxPoints: normalizedMaxPoints,
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showPoints: boolSettings.showPoints,
-        showTitle: boolSettings.showTitle,
-    });
-
-    // Render GPS position vs time chart if position and timestamp data are available
-    renderGPSTimeChartSafe(chartContainer, data, {
-        maxPoints: normalizedMaxPoints,
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showPoints: boolSettings.showPoints,
-        showTitle: boolSettings.showTitle,
-    });
-
-    // Render performance analysis charts
-    renderPerformanceAnalysisChartsSafe(chartContainer, data, labels, {
-        animationStyle: effectiveAnimationStyle,
-        chartType,
-        customColors,
-        interpolation,
-        maxPoints: normalizedMaxPoints,
-        showFill: boolSettings.showFill,
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showPoints: boolSettings.showPoints,
-        showTitle: boolSettings.showTitle,
-        smoothing,
-        zoomPluginConfig,
-    });
+            visibility: {
+                getFieldVisibility: (field) =>
+                    chartSettingsManager.getFieldVisibility(field),
+            },
+        },
+        {
+            animationStyle: effectiveAnimationStyle,
+            chartType,
+            customColors,
+            data,
+            interpolation,
+            maxPoints: normalizedMaxPoints,
+            showFill: boolSettings.showFill,
+            showGrid: boolSettings.showGrid,
+            showLegend: boolSettings.showLegend,
+            showPoints: boolSettings.showPoints,
+            showTitle: boolSettings.showTitle,
+            smoothing,
+            startTime,
+            zoomPluginConfig,
+        }
+    );
     const { totalChartsRendered } = resolveChartRenderResultState(
         {
             chartContainer,
