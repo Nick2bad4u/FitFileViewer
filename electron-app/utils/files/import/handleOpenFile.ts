@@ -2,10 +2,62 @@
  * File open handling utility for FitFileViewer Provides secure file opening
  * with comprehensive error handling and state management integration
  */
+
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
+import type { RendererLogLevel } from "../../logging/rendererLogger.js";
 import * as stateManager from "../../state/core/stateManager.js";
+
 const __TEST_ONLY_exposedStateManager = stateManager;
+
+type FileOpeningRef = { value?: boolean };
+
+type FileOpenUiElements = {
+    isOpeningFileRef?: FileOpeningRef | null | undefined;
+    openFileBtn?: { disabled?: boolean } | null | undefined;
+    setLoading?: ((isLoading: boolean) => void) | null | undefined;
+};
+
+type NotificationType = "error" | "info" | "success" | "warning";
+
+type ShowNotification = (
+    message: string,
+    type?: NotificationType,
+    duration?: number
+) => void;
+
+type HandleOpenFileParams = FileOpenUiElements & {
+    showNotification?: ShowNotification | null | undefined;
+};
+
+type HandleOpenFileOptions = {
+    timeout?: number;
+    validateFileSize?: boolean;
+};
+
+type FileParseResult = {
+    data?: unknown;
+    details?: unknown;
+    error?: string;
+} & Record<string, unknown>;
+
+type FileOpenElectronAPI = {
+    openFile: () => Promise<null | string | string[]>;
+    parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FileParseResult>;
+    readFile: (filePath: string) => Promise<ArrayBuffer>;
+};
+
+type FileOpenRendererGlobal = typeof globalThis & {
+    __FFV_fitFileStateManager?: unknown;
+    electronAPI?: Partial<FileOpenElectronAPI>;
+    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
+    showFitData?: (data: unknown, fileName?: string) => void;
+};
+
+type FitFileStateManagerFacade = {
+    handleFileLoadingError: (error: Error) => void;
+};
+
 // Constants for better maintainability
 const FILE_OPEN_CONSTANTS = {
     ELECTRON_API_METHODS: {
@@ -18,23 +70,30 @@ const FILE_OPEN_CONSTANTS = {
         DEFAULT: 5000,
     },
     LOG_PREFIX: "HandleOpenFile",
-};
+} as const;
+
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
-function getFileOpenGlobal() {
-    return globalThis;
+
+function getFileOpenGlobal(): FileOpenRendererGlobal {
+    return globalThis as FileOpenRendererGlobal;
 }
-const resolveFitFileStateManager = () => {
+
+const resolveFitFileStateManager = (): FitFileStateManagerFacade | null => {
     const candidate = getFileOpenGlobal().__FFV_fitFileStateManager;
+
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoadingError" in candidate &&
-        typeof candidate.handleFileLoadingError === "function"
+        typeof (candidate as { handleFileLoadingError?: unknown })
+            .handleFileLoadingError === "function"
     ) {
-        return candidate;
+        return candidate as FitFileStateManagerFacade;
     }
+
     return null;
 };
+
 /**
  * Handles file opening with Electron file IO and renderer state updates.
  *
@@ -42,15 +101,22 @@ const resolveFitFileStateManager = () => {
  *   converted to a false return value.
  */
 async function handleOpenFile(
-    { isOpeningFileRef, openFileBtn, setLoading, showNotification },
-    options = {}
-) {
+    {
+        isOpeningFileRef,
+        openFileBtn,
+        setLoading,
+        showNotification,
+    }: HandleOpenFileParams,
+    options: HandleOpenFileOptions = {}
+): Promise<boolean> {
     const config = {
         timeout: 30_000,
         validateFileSize: true,
         ...options,
     };
+
     const openingRef = isOpeningFileRef;
+
     if (openingRef?.value) {
         log("warn", "File opening already in progress");
         if (typeof showNotification === "function") {
@@ -61,18 +127,22 @@ async function handleOpenFile(
         }
         return false;
     }
+
     if (typeof showNotification !== "function") {
         log("error", "showNotification function is required");
         return false;
     }
+
     const uiElements = {
         isOpeningFileRef: openingRef,
         openFileBtn,
         setLoading,
     };
+
     try {
         AppActions.setFileOpening(true);
         updateUIState(uiElements, true, true);
+
         if (!validateElectronAPI()) {
             showNotification(
                 "Electron API not available. Please restart the app.",
@@ -82,9 +152,12 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         log("info", "Opening file dialog");
-        const electronAPI = getFileOpenGlobal().electronAPI;
-        let filePath;
+
+        const electronAPI = getFileOpenGlobal()
+            .electronAPI as FileOpenElectronAPI;
+        let filePath: null | string | string[];
         try {
             filePath = await electronAPI.openFile();
         } catch (error) {
@@ -98,14 +171,17 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         if (!filePath) {
             log("info", "File dialog cancelled by user");
             updateUIState(uiElements, false, false);
             return false;
         }
+
         const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
         log("info", "File selected", { filePath: filePathString });
-        let arrayBuffer;
+
+        let arrayBuffer: ArrayBuffer;
         try {
             if (!filePathString) {
                 throw new Error("No file path provided");
@@ -123,6 +199,7 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         if (config.validateFileSize && arrayBuffer.byteLength === 0) {
             const message = "Selected file appears to be empty";
             log("error", message, { filePath: filePathString });
@@ -131,10 +208,12 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         log("info", "File read successfully", {
             bytes: arrayBuffer.byteLength,
         });
-        let result;
+
+        let result: FileParseResult;
         try {
             result = await electronAPI.parseFitFile(arrayBuffer);
         } catch (error) {
@@ -146,6 +225,7 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         if (result?.error) {
             const details = result.details ? `\n${result.details}` : "";
             const message = `${result.error}${details}`;
@@ -154,6 +234,7 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
+
         if (
             typeof process !== "undefined" &&
             process.env &&
@@ -165,11 +246,13 @@ async function handleOpenFile(
                 `[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`
             );
         }
+
         try {
             const { showFitData } = getFileOpenGlobal();
             if (typeof showFitData === "function") {
                 showFitData(result.data || result, filePathString);
             }
+
             const { sendFitFileToAltFitReader } = getFileOpenGlobal();
             if (typeof sendFitFileToAltFitReader === "function") {
                 sendFitFileToAltFitReader(arrayBuffer);
@@ -183,6 +266,7 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return true;
         }
+
         updateUIState(uiElements, false, false);
         return true;
     } catch (error) {
@@ -206,16 +290,23 @@ async function handleOpenFile(
         }
     }
 }
-function getSessionCount(result) {
+
+function getSessionCount(result: FileParseResult): number {
     const { data } = result;
     if (!data || typeof data !== "object" || !("sessions" in data)) {
         return 0;
     }
-    const { sessions } = data;
+
+    const { sessions } = data as { sessions?: unknown };
     return Array.isArray(sessions) ? sessions.length : 0;
 }
-function logWithContext(message, level = "info", context = {}) {
-    const normalizedLevel =
+
+function logWithContext(
+    message: string,
+    level: RendererLogLevel = "info",
+    context: Record<string, unknown> = {}
+): void {
+    const normalizedLevel: RendererLogLevel =
         level === "error"
             ? "error"
             : level === "warn"
@@ -232,7 +323,7 @@ function logWithContext(message, level = "info", context = {}) {
     } catch (error) {
         const safeMessage = `[${FILE_OPEN_CONSTANTS.LOG_PREFIX}] ${message}`;
         try {
-            const consoleMethod =
+            const consoleMethod: RendererLogLevel | "log" =
                 normalizedLevel in console ? normalizedLevel : "log";
             console[consoleMethod](safeMessage);
         } catch (innerError) {
@@ -251,9 +342,11 @@ function logWithContext(message, level = "info", context = {}) {
         }
     }
 }
-function notifyFileLoadError(error) {
+
+function notifyFileLoadError(error: unknown): boolean {
     try {
         const manager = resolveFitFileStateManager();
+
         if (!manager || typeof manager.handleFileLoadingError !== "function") {
             return false;
         }
@@ -271,22 +364,32 @@ function notifyFileLoadError(error) {
         return false;
     }
 }
+
 /** Updates UI affordances while a file open operation is active. */
-function updateUIState(uiElements, isLoading, isOpening) {
+function updateUIState(
+    uiElements: FileOpenUiElements,
+    isLoading: boolean,
+    isOpening: boolean
+): void {
     try {
         const { isOpeningFileRef, openFileBtn, setLoading } = uiElements;
+
         if (openFileBtn) {
             openFileBtn.disabled = isLoading;
         }
+
         if (typeof setLoading === "function") {
             setLoading(isLoading);
         }
+
         if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
             isOpeningFileRef.value = isOpening;
         }
+
         if (typeof isOpening === "boolean") {
             AppActions.setFileOpening(isOpening);
         }
+
         log("info", "Updated UI state", { isLoading, isOpening });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -297,26 +400,32 @@ function updateUIState(uiElements, isLoading, isOpening) {
         });
     }
 }
+
 /** Validates that all required Electron API methods are available. */
-function validateElectronAPI() {
+function validateElectronAPI(): boolean {
     const { ELECTRON_API_METHODS } = FILE_OPEN_CONSTANTS;
     const { electronAPI } = getFileOpenGlobal();
+
     if (!electronAPI) {
         log("error", "Electron API not available");
         return false;
     }
-    const electronAPIRecord = electronAPI;
+
+    const electronAPIRecord = electronAPI as Record<string, unknown>;
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
         (method) => typeof electronAPIRecord[method] !== "function"
     );
+
     if (missingMethods.length > 0) {
         log("error", "Missing Electron API methods", {
             methods: missingMethods,
         });
         return false;
     }
+
     return true;
 }
+
 // Export functions for testing
 export {
     // Only used in tests, never in production code

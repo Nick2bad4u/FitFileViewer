@@ -26,6 +26,7 @@ beforeAll(async () => {
 
 // Mock console methods
 const mockConsoleLog = vi.spyOn(console, "log");
+const mockConsoleInfo = vi.spyOn(console, "info");
 const mockConsoleWarn = vi.spyOn(console, "warn");
 const mockConsoleError = vi.spyOn(console, "error");
 
@@ -59,6 +60,7 @@ beforeEach(() => {
 
     // Clear console mocks
     mockConsoleLog.mockClear();
+    mockConsoleInfo.mockClear();
     mockConsoleWarn.mockClear();
     mockConsoleError.mockClear();
 
@@ -77,6 +79,7 @@ beforeEach(() => {
 
     // Mock console methods for each test
     console.log = vi.fn();
+    console.info = vi.fn();
     console.warn = vi.fn();
     console.error = vi.fn();
 });
@@ -85,6 +88,7 @@ afterEach(() => {
     vi.clearAllTimers();
     // Restore original console methods
     console.log = originalConsole.log;
+    console.info = originalConsole.info;
     console.warn = originalConsole.warn;
     console.error = originalConsole.error;
 });
@@ -94,11 +98,14 @@ describe("handleOpenFile.js", () => {
         it("should log info messages with prefix", () => {
             const { logWithContext } = handleOpenFileModule;
 
-            logWithContext("Test message");
+            expect(() => logWithContext("Test message")).not.toThrow();
 
-            expect(console.log).toHaveBeenCalledWith(
-                "[HandleOpenFile] Test message"
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: Test message$/
+                )
             );
+            expect(console.log).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
             expect(console.error).not.toHaveBeenCalled();
         });
@@ -106,10 +113,14 @@ describe("handleOpenFile.js", () => {
         it("should log warning messages with prefix", () => {
             const { logWithContext } = handleOpenFileModule;
 
-            logWithContext("Warning message", "warn");
+            expect(() =>
+                logWithContext("Warning message", "warn")
+            ).not.toThrow();
 
             expect(console.warn).toHaveBeenCalledWith(
-                "[HandleOpenFile] Warning message"
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: Warning message$/
+                )
             );
             expect(console.log).not.toHaveBeenCalled();
             expect(console.error).not.toHaveBeenCalled();
@@ -118,10 +129,14 @@ describe("handleOpenFile.js", () => {
         it("should log error messages with prefix", () => {
             const { logWithContext } = handleOpenFileModule;
 
-            logWithContext("Error message", "error");
+            expect(() =>
+                logWithContext("Error message", "error")
+            ).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
-                "[HandleOpenFile] Error message"
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: Error message$/
+                )
             );
             expect(console.log).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
@@ -224,6 +239,7 @@ describe("handleOpenFile.js", () => {
 
             updateUIState(uiElements, true, true);
 
+            expect(uiElements.openFileBtn.disabled).toBe(true);
             expect(mockSetLoading).toHaveBeenCalledWith(true);
         });
 
@@ -241,7 +257,7 @@ describe("handleOpenFile.js", () => {
             expect(uiElements.isOpeningFileRef.value).toBe(true);
         });
 
-        it("should call setState for UI state management", () => {
+        it("should update all UI state surfaces", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
@@ -252,14 +268,9 @@ describe("handleOpenFile.js", () => {
 
             updateUIState(uiElements, true, true);
 
-            expect(mockSetState).toHaveBeenCalledWith(
-                "ui.isOpeningFile",
-                true,
-                { source: "handleOpenFile" }
-            );
-            expect(mockSetState).toHaveBeenCalledWith("ui.isLoading", true, {
-                source: "handleOpenFile",
-            });
+            expect(uiElements.openFileBtn.disabled).toBe(true);
+            expect(mockSetLoading).toHaveBeenCalledWith(true);
+            expect(uiElements.isOpeningFileRef.value).toBe(true);
         });
 
         it("should handle errors gracefully", () => {
@@ -292,6 +303,7 @@ describe("handleOpenFile.js", () => {
             });
 
             expect(result).toBe(false);
+            expect(mockWindow.electronAPI.openFile).not.toHaveBeenCalled();
         });
 
         it("should prevent concurrent file opening operations", async () => {
@@ -364,7 +376,7 @@ describe("handleOpenFile.js", () => {
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
-                "Unable to open the file dialog. Please try again. Error details: Error: Dialog error",
+                "Unable to open the file dialog. Please try again. Error details: Dialog error",
                 "error"
             );
         });
@@ -406,9 +418,10 @@ describe("handleOpenFile.js", () => {
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
-                "Error reading file: Error: Read error",
+                "Error reading file: Read error",
                 "error"
             );
+            expect(mockWindow.electronAPI.parseFitFile).not.toHaveBeenCalled();
         });
 
         it("should handle empty files when validation is enabled", async () => {
@@ -487,7 +500,7 @@ describe("handleOpenFile.js", () => {
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
-                "Error parsing FIT file: Error: Parse error",
+                "Error parsing FIT file: Parse error",
                 "error"
             );
         });
@@ -515,7 +528,7 @@ describe("handleOpenFile.js", () => {
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
-                "Error: Invalid FIT format\n",
+                "Error: Invalid FIT format",
                 "error"
             );
         });
@@ -584,9 +597,10 @@ describe("handleOpenFile.js", () => {
 
             expect(result).toBe(true); // Should still succeed
             expect(mockShowNotification).toHaveBeenCalledWith(
-                "Error displaying FIT data: Error: Display error",
+                "Error displaying FIT data: Display error",
                 "error"
             );
+            expect(mockWindow.sendFitFileToAltFitReader).not.toHaveBeenCalled();
         });
 
         it("should handle array file paths", async () => {
@@ -660,6 +674,7 @@ describe("handleOpenFile.js", () => {
             });
 
             expect(result).toBe(true);
+            expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
         it("should accept custom configuration options", async () => {
@@ -687,6 +702,7 @@ describe("handleOpenFile.js", () => {
             );
 
             expect(result).toBe(true);
+            expect(mockShowNotification).not.toHaveBeenCalled();
         });
     });
 
@@ -705,15 +721,19 @@ describe("handleOpenFile.js", () => {
                 data: {},
             });
 
-            await handleOpenFile({
+            const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
                 openFileBtn: { disabled: false } as any,
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
 
-            expect(console.log).toHaveBeenCalledWith(
-                "[HandleOpenFile] File selected: /path/to/file.fit"
+            expect(result).toBe(true);
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: File selected$/
+                ),
+                JSON.stringify({ filePath: "/path/to/file.fit" })
             );
         });
 
@@ -731,15 +751,19 @@ describe("handleOpenFile.js", () => {
                 data: {},
             });
 
-            await handleOpenFile({
+            const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
                 openFileBtn: { disabled: false } as any,
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
 
-            expect(console.log).toHaveBeenCalledWith(
-                "[HandleOpenFile] File read successfully: 100 bytes"
+            expect(result).toBe(true);
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: File read successfully$/
+                ),
+                JSON.stringify({ bytes: 100 })
             );
         });
 
@@ -761,16 +785,18 @@ describe("handleOpenFile.js", () => {
                 data: { sessions: [{}] },
             });
 
-            await handleOpenFile({
+            const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
                 openFileBtn: { disabled: false } as any,
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
 
+            expect(result).toBe(true);
             expect(console.log).toHaveBeenCalledWith(
                 "[HandleOpenFile] Debug: Parsed FIT data contains 1 sessions"
             );
+            expect(mockShowNotification).not.toHaveBeenCalled();
 
             // Restore environment
             process.env.NODE_ENV = originalEnv;
@@ -812,8 +838,11 @@ describe("handleOpenFile.js", () => {
             updateUIState(uiElements, true, true);
 
             // Verify UI elements are updated correctly
-            expect(console.log).toHaveBeenCalledWith(
-                "[HandleOpenFile] Setting isLoading=true, app.isOpeningFile=true"
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: Updated UI state$/
+                ),
+                JSON.stringify({ isLoading: true, isOpening: true })
             );
             expect(uiElements.openFileBtn.disabled).toBe(true);
             expect(uiElements.setLoading).toHaveBeenCalledWith(true);
@@ -857,8 +886,11 @@ describe("handleOpenFile.js", () => {
             });
 
             expect(result).toBe(false);
+            expect(mockWindow.electronAPI.openFile).not.toHaveBeenCalled();
             expect(console.error).toHaveBeenCalledWith(
-                "[HandleOpenFile] showNotification function is required"
+                expect.stringMatching(
+                    /\[renderer\] HandleOpenFile: showNotification function is required$/
+                )
             );
         });
     });

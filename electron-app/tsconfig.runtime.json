@@ -232,6 +232,7 @@
         "utils/files/export/createPrintButton.ts",
         "utils/files/export/gpxExport.ts",
         "utils/files/import/getOverlayFileName.ts",
+        "utils/files/import/handleOpenFile.ts",
         "utils/files/import/loadOverlayFiles.ts",
         "utils/files/import/loadSingleOverlayFile.ts",
         "utils/files/import/openFileSelector.ts",
