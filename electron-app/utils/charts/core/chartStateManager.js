@@ -3,6 +3,7 @@ import { subscribeToChartSettings, } from "../../state/domain/settingsStateManag
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 /**
  * Chart state manager handles chart-related state, lifecycle, and reactive
  * updates.
@@ -118,9 +119,7 @@ export class ChartStateManager {
     handleDataChange(newData) {
         console.log("[ChartStateManager] Data changed, checking if charts need update");
         this.clearChartState();
-        if (newData &&
-            Array.isArray(newData.recordMesgs) &&
-            this.isChartTabActive()) {
+        if (hasChartDataRecordMessages(newData) && this.isChartTabActive()) {
             this.debouncedRender("New data loaded");
         }
     }
@@ -137,7 +136,7 @@ export class ChartStateManager {
             console.log("[ChartStateManager] Render already in progress - skipping activation render");
             return;
         }
-        if (globalData) {
+        if (isRecord(globalData)) {
             const isRendered = chartState?.isRendered ?? false, hasRenderableOutput = hasExistingRenderableChartOutput();
             if (!isRendered || !hasRenderableOutput) {
                 this.debouncedRender("Tab activation with data available");
@@ -178,7 +177,7 @@ export class ChartStateManager {
         });
         subscribe("globalData", (newData, oldData) => {
             if (newData !== oldData) {
-                this.handleDataChange(asFitGlobalData(newData));
+                this.handleDataChange(newData);
             }
         });
         subscribe("charts.selectedChart", (chartType) => {
@@ -274,8 +273,7 @@ export class ChartStateManager {
         if (!this.isChartTabActive()) {
             skipReasons.push("chart tab inactive");
         }
-        const globalData = getGlobalFitData(), hasRecords = Array.isArray(globalData?.recordMesgs) &&
-            globalData.recordMesgs.length > 0;
+        const globalData = getGlobalFitData(), hasRecords = hasChartDataRecordMessages(globalData);
         if (!hasRecords) {
             skipReasons.push("no chartable data");
         }
@@ -324,8 +322,7 @@ function getChartState() {
     return isRecord(value) ? value : undefined;
 }
 function getGlobalFitData() {
-    const value = asFitGlobalData(getState("globalData"));
-    return value ?? undefined;
+    return getState("globalData");
 }
 function hasExistingRenderableChartOutput() {
     try {
@@ -337,12 +334,6 @@ function hasExistingRenderableChartOutput() {
     catch {
         return false;
     }
-}
-function asFitGlobalData(value) {
-    if (value === null || value === undefined) {
-        return value;
-    }
-    return isRecord(value) ? value : undefined;
 }
 function isRecord(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);

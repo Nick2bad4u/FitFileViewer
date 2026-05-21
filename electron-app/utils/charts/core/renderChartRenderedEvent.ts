@@ -1,4 +1,4 @@
-import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 
 interface RenderedEventDependencies {
     CustomEventConstructor: typeof CustomEvent | undefined;
@@ -14,9 +14,7 @@ interface RenderedEventSummary {
 }
 
 function hasRenderableGlobalData(getState: (path: string) => unknown): boolean {
-    const globalData = getState("globalData");
-    const recordMesgs = getRecordValue(globalData, "recordMesgs");
-    return Array.isArray(recordMesgs) && recordMesgs.length > 0;
+    return hasChartDataRecordMessages(getState("globalData"));
 }
 
 /**

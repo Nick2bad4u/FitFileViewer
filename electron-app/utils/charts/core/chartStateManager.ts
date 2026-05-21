@@ -11,10 +11,7 @@ import {
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
-
-type FitGlobalData = {
-    readonly recordMesgs?: readonly unknown[];
-};
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 
 type ChartInfo = {
     instanceCount: number;
@@ -179,18 +176,14 @@ export class ChartStateManager {
      *
      * @param newData - The new global FIT data.
      */
-    handleDataChange(newData: FitGlobalData | null | undefined): void {
+    handleDataChange(newData: unknown): void {
         console.log(
             "[ChartStateManager] Data changed, checking if charts need update"
         );
 
         this.clearChartState();
 
-        if (
-            newData &&
-            Array.isArray(newData.recordMesgs) &&
-            this.isChartTabActive()
-        ) {
+        if (hasChartDataRecordMessages(newData) && this.isChartTabActive()) {
             this.debouncedRender("New data loaded");
         }
     }
@@ -215,7 +208,7 @@ export class ChartStateManager {
             return;
         }
 
-        if (globalData) {
+        if (isRecord(globalData)) {
             const isRendered = chartState?.isRendered ?? false,
                 hasRenderableOutput = hasExistingRenderableChartOutput();
 
@@ -269,7 +262,7 @@ export class ChartStateManager {
 
         subscribe("globalData", (newData, oldData) => {
             if (newData !== oldData) {
-                this.handleDataChange(asFitGlobalData(newData));
+                this.handleDataChange(newData);
             }
         });
 
@@ -396,9 +389,7 @@ export class ChartStateManager {
         }
 
         const globalData = getGlobalFitData(),
-            hasRecords =
-                Array.isArray(globalData?.recordMesgs) &&
-                globalData.recordMesgs.length > 0;
+            hasRecords = hasChartDataRecordMessages(globalData);
 
         if (!hasRecords) {
             skipReasons.push("no chartable data");
@@ -473,9 +464,8 @@ function getChartState(): ChartState | undefined {
     return isRecord(value) ? (value as ChartState) : undefined;
 }
 
-function getGlobalFitData(): FitGlobalData | undefined {
-    const value = asFitGlobalData(getState("globalData"));
-    return value ?? undefined;
+function getGlobalFitData(): unknown {
+    return getState("globalData");
 }
 
 function hasExistingRenderableChartOutput(): boolean {
@@ -490,14 +480,6 @@ function hasExistingRenderableChartOutput(): boolean {
     } catch {
         return false;
     }
-}
-
-function asFitGlobalData(value: unknown): FitGlobalData | null | undefined {
-    if (value === null || value === undefined) {
-        return value;
-    }
-
-    return isRecord(value) ? (value as FitGlobalData) : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

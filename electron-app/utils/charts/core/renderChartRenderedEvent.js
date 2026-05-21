@@ -1,8 +1,6 @@
-import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 function hasRenderableGlobalData(getState) {
-    const globalData = getState("globalData");
-    const recordMesgs = getRecordValue(globalData, "recordMesgs");
-    return Array.isArray(recordMesgs) && recordMesgs.length > 0;
+    return hasChartDataRecordMessages(getState("globalData"));
 }
 /**
  * Emits the chart-rendered status event consumed by chart status UI.
