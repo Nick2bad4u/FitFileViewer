@@ -12,6 +12,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import { hasDestroy, isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type ChartInfo = {
     instanceCount: number;
@@ -30,14 +31,10 @@ type ChartState = {
     tabActive?: boolean;
 };
 
-type DestroyableChart = {
-    destroy?: () => void;
-};
-
 type ChartStateGlobal = typeof globalThis & {
-    _chartjsInstances?: DestroyableChart[];
+    _chartjsInstances?: unknown[];
     chartStateManager?: ChartStateManager;
-    window?: (Window & { _chartjsInstances?: DestroyableChart[] }) | undefined;
+    window?: (Window & { _chartjsInstances?: unknown[] }) | undefined;
 };
 
 /**
@@ -124,7 +121,7 @@ export class ChartStateManager {
 
         for (const [index, chart] of chartGlobal._chartjsInstances.entries()) {
             try {
-                if (chart && typeof chart.destroy === "function") {
+                if (hasDestroy(chart)) {
                     chart.destroy();
                 }
             } catch (error) {
@@ -208,7 +205,7 @@ export class ChartStateManager {
             return;
         }
 
-        if (isRecord(globalData)) {
+        if (hasChartDataRecordMessages(globalData)) {
             const isRendered = chartState?.isRendered ?? false,
                 hasRenderableOutput = hasExistingRenderableChartOutput();
 
@@ -432,8 +429,8 @@ function areObjectsShallowEqual(
     first: ChartSettings | Record<string, unknown> | null | undefined,
     second: ChartSettings | Record<string, unknown> | null | undefined
 ): boolean {
-    const left = first && typeof first === "object" ? first : {};
-    const right = second && typeof second === "object" ? second : {};
+    const left = isObjectRecord(first) ? first : {};
+    const right = isObjectRecord(second) ? second : {};
     const leftKeys = Object.keys(left);
     const rightKeys = Object.keys(right);
 
@@ -442,10 +439,7 @@ function areObjectsShallowEqual(
     }
 
     return leftKeys.every((key) =>
-        Object.is(
-            (left as Record<string, unknown>)[key],
-            (right as Record<string, unknown>)[key]
-        )
+        Object.is(left[key], right[key])
     );
 }
 
@@ -461,7 +455,19 @@ function getChartInstanceCount(): number {
 
 function getChartState(): ChartState | undefined {
     const value = getState("charts");
-    return isRecord(value) ? (value as ChartState) : undefined;
+    if (!isObjectRecord(value)) {
+        return undefined;
+    }
+
+    const chartState: ChartState = {};
+
+    assignBooleanProperty(chartState, value, "isRendered");
+    assignBooleanProperty(chartState, value, "isRendering");
+    assignNumberProperty(chartState, value, "lastRenderTime");
+    assignStringProperty(chartState, value, "selectedChart");
+    assignBooleanProperty(chartState, value, "tabActive");
+
+    return chartState;
 }
 
 function getGlobalFitData(): unknown {
@@ -482,8 +488,37 @@ function hasExistingRenderableChartOutput(): boolean {
     }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
+function assignBooleanProperty(
+    chartState: ChartState,
+    source: Record<string, unknown>,
+    key: "isRendered" | "isRendering" | "tabActive"
+): void {
+    const value = source[key];
+    if (typeof value === "boolean") {
+        chartState[key] = value;
+    }
+}
+
+function assignNumberProperty(
+    chartState: ChartState,
+    source: Record<string, unknown>,
+    key: "lastRenderTime"
+): void {
+    const value = source[key];
+    if (typeof value === "number") {
+        chartState[key] = value;
+    }
+}
+
+function assignStringProperty(
+    chartState: ChartState,
+    source: Record<string, unknown>,
+    key: "selectedChart"
+): void {
+    const value = source[key];
+    if (typeof value === "string") {
+        chartState[key] = value;
+    }
 }
 
 /**

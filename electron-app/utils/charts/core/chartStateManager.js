@@ -4,6 +4,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import { hasDestroy, isObjectRecord } from "./renderChartModuleHelpers.js";
 /**
  * Chart state manager handles chart-related state, lifecycle, and reactive
  * updates.
@@ -73,7 +74,7 @@ export class ChartStateManager {
         }
         for (const [index, chart] of chartGlobal._chartjsInstances.entries()) {
             try {
-                if (chart && typeof chart.destroy === "function") {
+                if (hasDestroy(chart)) {
                     chart.destroy();
                 }
             }
@@ -136,7 +137,7 @@ export class ChartStateManager {
             console.log("[ChartStateManager] Render already in progress - skipping activation render");
             return;
         }
-        if (isRecord(globalData)) {
+        if (hasChartDataRecordMessages(globalData)) {
             const isRendered = chartState?.isRendered ?? false, hasRenderableOutput = hasExistingRenderableChartOutput();
             if (!isRendered || !hasRenderableOutput) {
                 this.debouncedRender("Tab activation with data available");
@@ -302,8 +303,8 @@ export class ChartStateManager {
     }
 }
 function areObjectsShallowEqual(first, second) {
-    const left = first && typeof first === "object" ? first : {};
-    const right = second && typeof second === "object" ? second : {};
+    const left = isObjectRecord(first) ? first : {};
+    const right = isObjectRecord(second) ? second : {};
     const leftKeys = Object.keys(left);
     const rightKeys = Object.keys(right);
     if (leftKeys.length !== rightKeys.length) {
@@ -319,7 +320,16 @@ function getChartInstanceCount() {
 }
 function getChartState() {
     const value = getState("charts");
-    return isRecord(value) ? value : undefined;
+    if (!isObjectRecord(value)) {
+        return undefined;
+    }
+    const chartState = {};
+    assignBooleanProperty(chartState, value, "isRendered");
+    assignBooleanProperty(chartState, value, "isRendering");
+    assignNumberProperty(chartState, value, "lastRenderTime");
+    assignStringProperty(chartState, value, "selectedChart");
+    assignBooleanProperty(chartState, value, "tabActive");
+    return chartState;
 }
 function getGlobalFitData() {
     return getState("globalData");
@@ -335,8 +345,23 @@ function hasExistingRenderableChartOutput() {
         return false;
     }
 }
-function isRecord(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
+function assignBooleanProperty(chartState, source, key) {
+    const value = source[key];
+    if (typeof value === "boolean") {
+        chartState[key] = value;
+    }
+}
+function assignNumberProperty(chartState, source, key) {
+    const value = source[key];
+    if (typeof value === "number") {
+        chartState[key] = value;
+    }
+}
+function assignStringProperty(chartState, source, key) {
+    const value = source[key];
+    if (typeof value === "string") {
+        chartState[key] = value;
+    }
 }
 /**
  * Singleton chart state manager instance used by legacy chart modules.
