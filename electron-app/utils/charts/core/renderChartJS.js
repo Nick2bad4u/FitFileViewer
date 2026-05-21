@@ -140,6 +140,7 @@ import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
 import { resolveChartThemeRenderPlan } from "./renderChartThemePlan.js";
+import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencies.js";
 
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
 
@@ -486,31 +487,32 @@ async function renderChartsWithData(
     // allowing the error to be handled by the outer try/catch in renderChartJS()
     document.createElement("div");
 
-    // Get theme configuration for consistent theming
-    const themeConfig = await getThemeConfigSafe();
-    // Resolve dynamic/safe dependencies (ensure test spies are hit)
-    const convert = getConvertersSafe();
     const {
-        createChartCanvas: createChartCanvasSafe,
-        createEnhancedChart: createEnhancedChartSafe,
-        renderEventMessagesChart: renderEventMessagesChartSafe,
-        renderGPSTimeChart: renderGPSTimeChartSafe,
-        renderGPSTrackChart: renderGPSTrackChartSafe,
-        renderLapZoneCharts: renderLapZoneChartsSafe,
-        renderPerformanceAnalysisCharts: renderPerformanceAnalysisChartsSafe,
-        renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
-    } = getRendererModulesSafe();
-    const {
-        addChartHoverEffects: addChartHoverEffectsSafe,
-        addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
-        removeChartHoverEffects: removeChartHoverEffectsSafe,
-    } = getHoverPluginsSafe();
-    const showRenderNotificationSafe = getShowRenderNotificationSafe();
-    const {
-        setState: ss_rcwd,
-        updateState: us_rcwd,
-        getState: gs_rcwd,
-    } = getStateManagerSafe();
+        addChartHoverEffectsSafe,
+        addHoverEffectsToExistingChartsSafe,
+        convert,
+        createChartCanvasSafe,
+        createEnhancedChartSafe,
+        gs_rcwd,
+        removeChartHoverEffectsSafe,
+        renderEventMessagesChartSafe,
+        renderGPSTimeChartSafe,
+        renderGPSTrackChartSafe,
+        renderLapZoneChartsSafe,
+        renderPerformanceAnalysisChartsSafe,
+        renderTimeInZoneChartsSafe,
+        showRenderNotificationSafe,
+        ss_rcwd,
+        themeConfig,
+        us_rcwd,
+    } = await resolveChartRuntimeDependencies({
+        getConverters: getConvertersSafe,
+        getHoverPlugins: getHoverPluginsSafe,
+        getRendererModules: getRendererModulesSafe,
+        getShowRenderNotification: getShowRenderNotificationSafe,
+        getStateManager: getStateManagerSafe,
+        getThemeConfig: getThemeConfigSafe,
+    });
 
     const chartContainer = prepareChartRenderContainer(
         {
