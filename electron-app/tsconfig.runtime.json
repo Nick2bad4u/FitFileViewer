@@ -185,6 +185,7 @@
         "utils/charts/core/renderChartCacheManager.ts",
         "utils/charts/core/renderChartCacheInvalidationListeners.ts",
         "utils/charts/core/renderChartCachePrewarm.ts",
+        "utils/charts/core/renderChartAnimationTuning.ts",
         "utils/charts/core/renderChartColorUtils.ts",
         "utils/charts/core/renderChartCompletion.ts",
         "utils/charts/core/renderChartContainerSetup.ts",

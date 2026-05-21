@@ -74,6 +74,7 @@ import {
     shouldUseSpanGaps,
 } from "./renderChartPerformanceSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
+import { resolveChartAnimationTuning } from "./renderChartAnimationTuning.js";
 import {
     clearChartSeriesCache,
     getCachedSeriesForSettings,
@@ -729,18 +730,8 @@ async function renderChartsWithData(
         );
     }
 
-    // Rendering a large number of charts with "normal" animations produces long-running rAF handlers
-    // and makes the UI feel sluggish even for small record sets. Auto-tune animation for bulk renders.
-    // NOTE: This does not change persisted settings; it only affects this render.
-    const ESTIMATED_NON_METRIC_CHARTS = 12;
-    const estimatedChartCount =
-        fieldsToRender.length + ESTIMATED_NON_METRIC_CHARTS;
-    const effectiveAnimationStyle =
-        animationStyle === "normal" && estimatedChartCount >= 20
-            ? "none"
-            : animationStyle === "normal" && estimatedChartCount >= 12
-              ? "fast"
-              : animationStyle;
+    const { effectiveAnimationStyle, estimatedChartCount } =
+        resolveChartAnimationTuning(animationStyle, fieldsToRender.length);
     if (isDebugLoggingEnabled && effectiveAnimationStyle !== animationStyle) {
         console.log(
             `[ChartJS] Auto-tuned animation from ${String(animationStyle)} to ${String(
