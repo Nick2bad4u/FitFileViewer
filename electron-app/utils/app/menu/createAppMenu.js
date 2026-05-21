@@ -210,7 +210,8 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
     // can be authorized after a user clicks a recent file menu item.
     let fileAccessPolicy = null;
     try {
-        fileAccessPolicy = require("../../../main/security/fileAccessPolicy");
+        fileAccessPolicy =
+            require("../../../main/security/fileAccessPolicy");
     }
     catch {
         fileAccessPolicy = null;
@@ -810,7 +811,9 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
         return;
     }
     try {
-        if (Menu && typeof Menu.buildFromTemplate === "function") {
+        if (Menu &&
+            typeof Menu.buildFromTemplate === "function" &&
+            typeof Menu.setApplicationMenu === "function") {
             mainMenu = Menu.buildFromTemplate(template);
             Menu.setApplicationMenu(mainMenu);
             return;

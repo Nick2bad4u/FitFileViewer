@@ -12,8 +12,52 @@ type ConfLike = {
     set: (key: string, value: unknown) => void;
 };
 
-type ElectronLike = Record<string, any>;
-type MenuItemLike = Record<string, any>;
+type ElectronAppLike = {
+    clearRecentDocuments?: () => void;
+    isPackaged?: boolean;
+    name?: string;
+};
+
+type ElectronBrowserWindowLike = {
+    getFocusedWindow?: () => BrowserWindowLike | null | undefined;
+};
+
+type ElectronClipboardLike = {
+    writeText?: (text: string) => void;
+};
+
+type ElectronMenuLike = {
+    buildFromTemplate?: (template: MenuItemLike[]) => unknown;
+    setApplicationMenu?: (menu: unknown) => void;
+};
+
+type ElectronShellLike = {
+    openExternal?: (url: string) => Promise<unknown> | unknown;
+    showItemInFolder?: (path: string) => void;
+};
+
+type ElectronLike = {
+    app?: ElectronAppLike;
+    BrowserWindow?: ElectronBrowserWindowLike;
+    clipboard?: ElectronClipboardLike;
+    Menu?: ElectronMenuLike;
+    shell?: ElectronShellLike;
+    [key: string]: unknown;
+};
+
+type MenuItemLike = {
+    accelerator?: string;
+    checked?: boolean;
+    click?: (menuItem: MenuItemLike) => unknown;
+    enabled?: boolean;
+    id?: string;
+    label?: string;
+    role?: string;
+    submenu?: MenuItemLike[];
+    type?: string;
+    visible?: boolean;
+    [key: string]: unknown;
+};
 
 type RecentFilesUtils = {
     getShortRecentName: (path: string) => string;
@@ -52,10 +96,10 @@ function getElectron(): ElectronLike {
         /* ignore */
     }
     if (
-            __electronCached &&
-            (__electronCached["Menu"] ||
-                __electronCached["app"] ||
-                __electronCached["BrowserWindow"])
+        __electronCached &&
+        (__electronCached["Menu"] ||
+            __electronCached["app"] ||
+            __electronCached["BrowserWindow"])
     ) {
         return __electronCached;
     }
@@ -270,9 +314,8 @@ function createAppMenu(
     // can be authorized after a user clicks a recent file menu item.
     let fileAccessPolicy: FileAccessPolicy | null = null;
     try {
-        fileAccessPolicy = require(
-            "../../../main/security/fileAccessPolicy"
-        ) as FileAccessPolicy;
+        fileAccessPolicy =
+            require("../../../main/security/fileAccessPolicy") as FileAccessPolicy;
     } catch {
         fileAccessPolicy = null;
     }
@@ -904,11 +947,7 @@ function createAppMenu(
                         }
 
                         // Refresh the menu so the checked state is consistent everywhere.
-                        createAppMenu(
-                            win,
-                            getTheme(),
-                            loadedFitFilePath
-                        );
+                        createAppMenu(win, getTheme(), loadedFitFilePath);
                     },
                     label: "🗂️ Show Browser Tab (Experimental)",
                     type: "checkbox",
@@ -935,7 +974,7 @@ function createAppMenu(
             submenu: [
                 {
                     click: () => {
-        const { BrowserWindow: BW } = getElectron();
+                        const { BrowserWindow: BW } = getElectron();
                         const win =
                             (BW && typeof BW.getFocusedWindow === "function"
                                 ? BW.getFocusedWindow()
@@ -1027,7 +1066,11 @@ function createAppMenu(
         return;
     }
     try {
-        if (Menu && typeof Menu.buildFromTemplate === "function") {
+        if (
+            Menu &&
+            typeof Menu.buildFromTemplate === "function" &&
+            typeof Menu.setApplicationMenu === "function"
+        ) {
             mainMenu = Menu.buildFromTemplate(template);
             Menu.setApplicationMenu(mainMenu);
             return;
