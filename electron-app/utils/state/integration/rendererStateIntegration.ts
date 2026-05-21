@@ -3,6 +3,7 @@
  * to modify your existing renderer.js to use the new centralized state
  * management
  */
+
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
@@ -10,88 +11,127 @@ import { getState, setState, subscribe } from "../core/stateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
-let stateAwareEventHandlersAbortController;
+
+type Unsubscribe = () => void;
+
+type RendererElectronAPI = {
+    onFileOpened?: (
+        callback: (fileData: unknown, filePath: string | null) => void
+    ) => void;
+};
+
+type RendererStateIntegrationGlobal = typeof globalThis & {
+    electronAPI?: RendererElectronAPI;
+};
+
+let stateAwareEventHandlersAbortController: AbortController | undefined;
+
 /**
  * Example of how to use the state system in your existing functions
  */
-export function exampleStateUsage() {
+export function exampleStateUsage(): Unsubscribe {
     // Getting state
-    const activeTab = getState("ui.activeTab"), currentTheme = getState("ui.theme"), isLoading = getState("isLoading");
+    const activeTab = getState("ui.activeTab"),
+        currentTheme = getState("ui.theme"),
+        isLoading = getState("isLoading");
+
     console.log("Current state:", { activeTab, currentTheme, isLoading });
+
     // Setting state
     setState("ui.theme", "dark", { silent: false, source: "exampleFunction" });
     setState("isLoading", true, { silent: false, source: "exampleFunction" });
+
     // Using actions
     AppActions.switchTab("chart");
     void AppActions.loadFile({ records: [] }, "path/to/file.fit");
     UIActions.toggleChartControls();
+
     // Using selectors
     if (AppSelectors.hasData()) {
         console.log("Data is available");
     }
+
     if (AppSelectors.isTabActive("chart")) {
         console.log("Chart tab is active");
     }
+
     // Subscribing to changes
     const unsubscribe = subscribe("ui.activeTab", (newTab) => {
         if (typeof newTab === "string") {
             console.log(`Tab changed to: ${newTab}`);
         }
     });
+
     // Later, clean up the subscription
     const cleanupTimeout = setTimeout(() => unsubscribe(), 5000);
+
     return () => {
         clearTimeout(cleanupTimeout);
         unsubscribe();
     };
 }
+
 /**
  * Example of how to modify your existing renderer initialization
  */
-export function initializeRendererWithNewStateSystem() {
+export function initializeRendererWithNewStateSystem(): void {
     console.log("[Renderer] Starting initialization with new state system...");
+
     // Initialize the complete state system first
     initializeCompleteStateSystem();
+
     // Set up state-aware event handlers
     setupStateAwareEventHandlers();
+
     // Initialize components with state awareness
     initializeComponentsWithState();
+
     // Set up state-based UI updates
     setupReactiveUI();
+
     console.log("[Renderer] Initialization completed with state system");
 }
+
 /**
  * Migration helper for existing renderer.js Replace your existing
  * initialization with this pattern
  */
-export function migrateExistingRenderer() {
+export function migrateExistingRenderer(): void {
     // 1. Replace direct global variable assignments with setState
     // OLD: window.globalData = newData;
     // NEW: setState('globalData', newData, { source: 'fileLoad' });
+
     // 2. Replace direct property access with getState
     // OLD: if (window.globalData) { ... }
     // NEW: if (getState('globalData')) { ... }
+
     // 3. Replace manual DOM updates with state subscriptions
     // OLD: Directly updating DOM in multiple places
     // NEW: subscribe('ui.activeTab', (tab) => updateTabUI(tab));
+
     // 4. Use actions instead of direct function calls
     // OLD: switchTab('chart'); showChart();
     // NEW: AppActions.switchTab('chart');
+
     // 5. Use selectors for computed values
     // OLD: Checking multiple conditions manually
     // NEW: if (AppSelectors.hasData() && AppSelectors.isTabActive('chart')) { ... }
+
     console.log("[Renderer] Migration patterns documented");
 }
+
 /**
  * Handle tab changes with state awareness
  */
-function handleTabChange(activeTab) {
+function handleTabChange(activeTab: string): void {
     const hasData = AppSelectors.hasData();
+
     if (!hasData && activeTab !== "summary") {
         // If no data is loaded, switch back to summary
         AppActions.switchTab("summary");
         return;
     }
+
     // Load tab content based on current state
     switch (activeTab) {
         case "chart": {
@@ -114,10 +154,11 @@ function handleTabChange(activeTab) {
         }
     }
 }
+
 /**
  * Initialize components with state awareness
  */
-function initializeComponentsWithState() {
+function initializeComponentsWithState(): void {
     // Subscribe to data loading events
     subscribe("globalData", (newData) => {
         if (newData) {
@@ -125,106 +166,121 @@ function initializeComponentsWithState() {
             updateAllComponents(newData);
         }
     });
+
     // Subscribe to active tab changes
     subscribe("ui.activeTab", (activeTab) => {
         if (typeof activeTab !== "string") {
             return;
         }
+
         console.log(`[Renderer] Active tab changed to: ${activeTab}`);
         handleTabChange(activeTab);
     });
+
     // Subscribe to chart rendering state
     subscribe("charts.isRendered", (isRendered) => {
         if (isRendered) {
             console.log("[Renderer] Charts have been rendered");
         }
     });
+
     // Subscribe to loading state
     subscribe("isLoading", (isLoading) => {
         console.log(`[Renderer] Loading state: ${isLoading}`);
         // Update UI loading indicators
     });
 }
+
 /**
  * Load chart tab with state awareness
  */
-async function loadChartTab() {
+async function loadChartTab(): Promise<void> {
     const globalData = getState("globalData");
     if (!globalData) {
         return;
     }
+
     try {
         setState("isLoading", true, { silent: false, source: "loadChartTab" });
+
         // Your existing chart rendering logic here
         // Const chartData = await processChartData(globalData);
         // Const chartOptions = getChartOptions();
+
         // AppActions.renderChart(chartData, chartOptions);
+
         console.log("[Renderer] Chart tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading chart tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadChartTab" });
     }
 }
+
 /**
  * Load map tab with state awareness
  */
-async function loadMapTab() {
+async function loadMapTab(): Promise<void> {
     const globalData = getState("globalData");
     if (!globalData) {
         return;
     }
+
     try {
         setState("isLoading", true, { silent: false, source: "loadMapTab" });
+
         // Your existing map rendering logic here
         // Const mapCenter = calculateMapCenter(globalData);
         // Const mapZoom = getOptimalZoom(globalData);
+
         // AppActions.renderMap(mapCenter, mapZoom);
+
         console.log("[Renderer] Map tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading map tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadMapTab" });
     }
 }
+
 /**
  * Load table tab with state awareness
  */
-async function loadTableTab() {
+async function loadTableTab(): Promise<void> {
     const globalData = getState("globalData");
     if (!globalData) {
         return;
     }
+
     try {
         setState("isLoading", true, { silent: false, source: "loadTableTab" });
+
         // Your existing table rendering logic here
         // Const tableConfig = {
         //     PageSize: getState('tables.pageSize'),
         //     SortColumn: getState('tables.sortColumn')
         // };
+
         // AppActions.renderTable(tableConfig);
+
         console.log("[Renderer] Table tab loaded");
-    }
-    catch (error) {
+    } catch (error) {
         console.error("[Renderer] Error loading table tab:", error);
-    }
-    finally {
+    } finally {
         setState("isLoading", false, { silent: false, source: "loadTableTab" });
     }
 }
+
 /**
  * Set up reactive UI that responds to state changes
  */
-function setupReactiveUI() {
+function setupReactiveUI(): void {
     // Update tab visibility when active tab changes
     subscribe("ui.activeTab", (activeTab) => {
         if (typeof activeTab !== "string") {
             return;
         }
+
         const tabContents = document.querySelectorAll(".tab-content");
         for (const content of tabContents) {
             if (content instanceof HTMLElement) {
@@ -234,12 +290,14 @@ function setupReactiveUI() {
             }
         }
     });
+
     // Update theme when it changes
     subscribe("ui.theme", (theme) => {
         if (typeof theme === "string" && theme) {
             document.documentElement.dataset["theme"] = theme;
         }
     });
+
     // Update chart controls visibility
     subscribe("charts.controlsVisible", (isVisible) => {
         const wrapper = getChartSettingsWrapper(document);
@@ -248,20 +306,24 @@ function setupReactiveUI() {
         }
     });
 }
+
 /**
  * Set up event handlers that work with the state system
  */
-function setupStateAwareEventHandlers() {
+function setupStateAwareEventHandlers(): void {
     const integrationGlobal = getRendererStateIntegrationGlobal();
+
     // File open handler (optional in preload API)
     if (integrationGlobal.electronAPI?.onFileOpened) {
         integrationGlobal.electronAPI.onFileOpened((fileData, filePath) => {
             void AppActions.loadFile(fileData, filePath);
         });
     }
+
     stateAwareEventHandlersAbortController?.abort();
     stateAwareEventHandlersAbortController = new AbortController();
     const { signal } = stateAwareEventHandlersAbortController;
+
     // Tab switching (if not handled by UIStateManager)
     document.addEventListener("click", (event) => {
         const target = event.target instanceof Element ? event.target : null;
@@ -276,6 +338,7 @@ function setupStateAwareEventHandlers() {
             }
         }
     }, { signal });
+
     // Theme switching
     document.addEventListener("click", (event) => {
         const target = event.target instanceof Element ? event.target : null;
@@ -291,10 +354,11 @@ function setupStateAwareEventHandlers() {
         }
     }, { signal });
 }
+
 /**
  * Update all components when new data is loaded
  */
-function updateAllComponents(newData) {
+function updateAllComponents(newData: unknown): void {
     // Reset all component render states
     setState("charts.isRendered", false, {
         silent: true,
@@ -308,23 +372,28 @@ function updateAllComponents(newData) {
         silent: true,
         source: "updateAllComponents",
     });
+
     // Update summary immediately
     updateSummaryTab(newData);
+
     // Other tabs will be loaded when switched to
     const activeTab = getState("ui.activeTab");
     if (typeof activeTab === "string" && activeTab !== "summary") {
         handleTabChange(activeTab);
     }
 }
+
 /**
  * Update summary tab
  */
-function updateSummaryTab(data) {
+function updateSummaryTab(data: unknown): void {
     // Your existing summary update logic here
     console.log("[Renderer] Summary updated with new data", data);
 }
-function getRendererStateIntegrationGlobal() {
-    return globalThis;
+
+function getRendererStateIntegrationGlobal(): RendererStateIntegrationGlobal {
+    return globalThis as RendererStateIntegrationGlobal;
 }
+
 // Export for use in renderer.js
 export default initializeRendererWithNewStateSystem;
