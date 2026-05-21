@@ -179,6 +179,7 @@
         "utils/rendering/core/showFitData.ts",
         "utils/rendering/components/createShownFilesList.ts",
         "utils/rendering/components/createTables.ts",
+        "utils/rendering/components/createUserDeviceInfoBox.ts",
         "utils/rendering/components/shownFilesListItemHandlers.ts",
         "utils/ui/events/eventListenerManager.ts",
         "utils/ui/dragDropHandler.ts",

@@ -4,7 +4,89 @@ import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorMap,
+} from "../../theming/core/theme.js";
+
+type UserProfileData = {
+    readonly activityClass?: string;
+    readonly age?: number;
+    readonly defaultMaxBikingHeartRate?: number;
+    readonly defaultMaxHeartRate?: number;
+    readonly defaultMaxRunningHeartRate?: number;
+    readonly depthSetting?: string;
+    readonly distSetting?: string;
+    readonly diveCount?: number;
+    readonly elevSetting?: string;
+    readonly friendlyName?: string;
+    readonly gender?: string;
+    readonly globalId?: string;
+    readonly height?: number;
+    readonly heightSetting?: string;
+    readonly hrSetting?: string;
+    readonly language?: string;
+    readonly localId?: number;
+    readonly positionSetting?: string;
+    readonly powerSetting?: string;
+    readonly restingHeartRate?: number;
+    readonly sleepTime?: string;
+    readonly speedSetting?: string;
+    readonly temperatureSetting?: string;
+    readonly userRunningStepLength?: number;
+    readonly userWalkingStepLength?: number;
+    readonly wakeTime?: string;
+    readonly weight?: number;
+    readonly weightSetting?: string;
+};
+
+type DeviceInfo = {
+    readonly antNetwork?: string;
+    readonly batteryStatus?: string;
+    readonly batteryVoltage?: number;
+    readonly descriptor?: string;
+    readonly deviceIndex?: number | string;
+    readonly deviceType?: string;
+    readonly garminProduct?: string;
+    readonly hardwareVersion?: number;
+    readonly manufacturer?: number | string;
+    readonly product?: number | string;
+    readonly productName?: string;
+    readonly serialNumber?: number | string;
+    readonly softwareVersion?: number;
+    readonly sourceType?: string;
+};
+
+type FitGlobalData = {
+    readonly cachedFilePath?: string;
+    readonly deviceInfoMesgs?: DeviceInfo[];
+    readonly recordMesgs?: readonly Record<string, unknown>[];
+    readonly userProfileMesgs?: UserProfileData[];
+};
+
+type UserDeviceInfoGlobal = typeof globalThis & {
+    globalData?: FitGlobalData;
+};
+
+type InfoBoxThemeColors = {
+    readonly accent: string;
+    readonly border: string;
+    readonly borderLight: string;
+    readonly primary: string;
+    readonly primaryShadow: string;
+    readonly primaryShadowHeavy: string;
+    readonly primaryShadowLight: string;
+    readonly shadow: string;
+    readonly shadowHeavy: string;
+    readonly shadowLight: string;
+    readonly shadowMedium: string;
+    readonly surface: string;
+    readonly surfaceSecondary: string;
+    readonly text: string;
+    readonly textPrimary: string;
+    readonly textSecondary: string;
+};
+
 const ALLOWED_INFO_BOX_ATTRIBUTES = [
     "aria-label",
     "class",
@@ -13,7 +95,8 @@ const ALLOWED_INFO_BOX_ATTRIBUTES = [
     "style",
     "tabindex",
     "title",
-];
+] as const;
+
 const ALLOWED_INFO_BOX_TAGS = [
     "DIV",
     "H1",
@@ -24,7 +107,8 @@ const ALLOWED_INFO_BOX_TAGS = [
     "H6",
     "SPAN",
     "STRONG",
-];
+] as const;
+
 const INFO_BOX_THEME_FALLBACKS = {
     accent: "#3b82f6",
     border: "#e5e7eb",
@@ -42,14 +126,19 @@ const INFO_BOX_THEME_FALLBACKS = {
     text: "#1e293b",
     textPrimary: "#0f172a",
     textSecondary: "#6b7280",
-};
-function getStringThemeColor(colors, colorKey) {
+} as const satisfies InfoBoxThemeColors;
+
+function getStringThemeColor(
+    colors: ThemeColorMap,
+    colorKey: keyof InfoBoxThemeColors
+): string {
     const color = colors[colorKey];
     return typeof color === "string" && color
         ? color
         : INFO_BOX_THEME_FALLBACKS[colorKey];
 }
-function getInfoBoxThemeColors(colors) {
+
+function getInfoBoxThemeColors(colors: ThemeColorMap): InfoBoxThemeColors {
     return {
         accent: getStringThemeColor(colors, "accent"),
         border: getStringThemeColor(colors, "border"),
@@ -69,22 +158,25 @@ function getInfoBoxThemeColors(colors) {
         textSecondary: getStringThemeColor(colors, "textSecondary"),
     };
 }
-function getGlobalData() {
-    return globalThis.globalData ?? {};
+
+function getGlobalData(): FitGlobalData {
+    return (globalThis as UserDeviceInfoGlobal).globalData ?? {};
 }
-function sanitizeInfoBoxHtml(html) {
+
+function sanitizeInfoBoxHtml(html: string): DocumentFragment {
     return sanitizeHtmlAllowlist(html, {
         allowedAttributes: ALLOWED_INFO_BOX_ATTRIBUTES,
         allowedTags: ALLOWED_INFO_BOX_TAGS,
         stripUrlInStyle: true,
     });
 }
+
 /**
  * Creates an info box displaying user profile and device information.
  *
  * @param container - Container to append the info box to.
  */
-export function createUserDeviceInfoBox(container) {
+export function createUserDeviceInfoBox(container: HTMLElement): void {
     try {
         const globalData = getGlobalData(),
             deviceInfos = Array.isArray(globalData.deviceInfoMesgs)
@@ -95,6 +187,7 @@ export function createUserDeviceInfoBox(container) {
             userProfile = globalData.userProfileMesgs?.[0] ?? {},
             colors = getInfoBoxThemeColors(themeConfig.colors);
         const { signal } = new AbortController();
+
         // Create info box container with theme-aware styling and hover effects.
         infoBox.className = "user-device-info-box chart-info-section";
         infoBox.style.cssText = `
@@ -113,6 +206,7 @@ export function createUserDeviceInfoBox(container) {
             position: relative;
             overflow: hidden;
         `;
+
         // Add hover effects using event listeners
         infoBox.addEventListener(
             "mouseenter",
@@ -124,6 +218,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         infoBox.addEventListener(
             "mouseleave",
             () => {
@@ -134,6 +229,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         // Add animated border glow effect
         const glowOverlay = document.createElement("div");
         glowOverlay.style.cssText = `
@@ -148,6 +244,7 @@ export function createUserDeviceInfoBox(container) {
             transition: opacity 0.4s ease;
         `;
         infoBox.append(glowOverlay);
+
         infoBox.addEventListener(
             "mouseenter",
             () => {
@@ -155,6 +252,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         infoBox.addEventListener(
             "mouseleave",
             () => {
@@ -174,6 +272,7 @@ export function createUserDeviceInfoBox(container) {
             position: relative;
             overflow: hidden;
         `;
+
         // Add hover effects to user section
         userSection.addEventListener(
             "mouseenter",
@@ -184,6 +283,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         userSection.addEventListener(
             "mouseleave",
             () => {
@@ -193,6 +293,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         // User Profile Section with enhanced styling and more fields
         const rawUserSectionHtml = `
             <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
@@ -231,6 +332,7 @@ export function createUserDeviceInfoBox(container) {
                 ${userProfile.diveCount ? `<div style="padding: 8px; border-radius: 8px; background: ${colors.surfaceSecondary}; border-left: 4px solid ${colors.primary}; transition: all 0.2s ease;" onmouseenter="this.style.transform='translateX(4px)'; this.style.backgroundColor='${colors.accent}'" onmouseleave="this.style.transform='translateX(0)'; this.style.backgroundColor='${colors.surfaceSecondary}'"><strong style="color: ${colors.primary};">Dive Count:</strong> ${userProfile.diveCount}</div>` : ""}
             </div>
         `;
+
         // Security: sanitize HTML because FIT-derived strings can contain markup.
         // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
         userSection.replaceChildren(sanitizeInfoBoxHtml(rawUserSectionHtml));
@@ -246,6 +348,7 @@ export function createUserDeviceInfoBox(container) {
             position: relative;
             overflow: hidden;
         `;
+
         // Add hover effects to device section
         deviceSection.addEventListener(
             "mouseenter",
@@ -256,6 +359,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         deviceSection.addEventListener(
             "mouseleave",
             () => {
@@ -265,6 +369,7 @@ export function createUserDeviceInfoBox(container) {
             },
             { signal }
         );
+
         // Process device info to get primary device and sensors
         const primaryDevice =
                 deviceInfos.find(
@@ -281,6 +386,7 @@ export function createUserDeviceInfoBox(container) {
                 <span style="font-size: 20px; filter: drop-shadow(0 2px 4px ${colors.shadowLight});"></span> Device Information
             </h3>
         `;
+
         if (primaryDevice) {
             deviceHtml += `
                 <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
@@ -306,6 +412,7 @@ export function createUserDeviceInfoBox(container) {
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 12px;">
             `;
+
             for (const sensor of sensors) {
                 if (sensor.manufacturer || sensor.garminProduct) {
                     deviceHtml += `
@@ -351,6 +458,7 @@ export function createUserDeviceInfoBox(container) {
                     `;
                 }
             }
+
             deviceHtml += `
                     </div>
                 </div>
@@ -373,13 +481,17 @@ export function createUserDeviceInfoBox(container) {
                 </div>
             `;
         }
+
         // Security: sanitize HTML before inserting.
         deviceSection.replaceChildren(sanitizeInfoBoxHtml(deviceHtml));
+
         // Add sections to info box
         infoBox.append(userSection);
         infoBox.append(deviceSection);
+
         // Add info box to container
         container.append(infoBox);
+
         console.log(
             "[ChartJS] User and device info box created with theme:",
             themeConfig.theme
