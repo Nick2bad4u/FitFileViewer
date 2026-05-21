@@ -1,13 +1,77 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
-import { createAppIconElement } from "../../ui/icons/iconFactory.js";
+import {
+    type AppIconName,
+    createAppIconElement,
+} from "../../ui/icons/iconFactory.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
-function getRenderTableGlobal() {
-    return globalThis;
+
+/** Row shape accepted by the raw-data table renderer. */
+export type RenderTableRow = Record<string, unknown>;
+
+/** Data wrapper consumed by the raw-data table renderer. */
+export type RenderTableData = {
+    rows: RenderTableRow[];
+};
+
+type NormalizedCellValue = boolean | number | string;
+
+type NormalizedTableRow = Record<string, NormalizedCellValue>;
+
+type DataTableInstance = {
+    columns: {
+        adjust: () => void;
+    };
+    destroy: () => void;
+};
+
+type DataTableColumnConfig = {
+    data: string;
+    defaultContent: string;
+    title: string;
+};
+
+type DataTableOptions = {
+    autoWidth: boolean;
+    columns: DataTableColumnConfig[];
+    data: NormalizedTableRow[];
+    deferRender: boolean;
+    lengthMenu: [number[], Array<number | string>];
+    ordering: boolean;
+    pageLength: number;
+    paging: boolean;
+    scrollCollapse: boolean;
+    scrollX: boolean;
+    searching: boolean;
+};
+
+type JQueryTableSelection = {
+    DataTable: (options?: DataTableOptions) => DataTableInstance;
+};
+
+type DataTableFactory = {
+    isDataTable: (selector: string) => boolean;
+};
+
+type JQueryLike = {
+    (selector: string): JQueryTableSelection;
+    fn?: {
+        DataTable?: DataTableFactory;
+    };
+};
+
+type RenderTableGlobal = typeof globalThis & {
+    jQuery?: JQueryLike;
+};
+
+function getRenderTableGlobal(): RenderTableGlobal {
+    return globalThis as RenderTableGlobal;
 }
-function getJQueryWithDataTable() {
+
+function getJQueryWithDataTable(): JQueryLike | null {
     const { jQuery } = getRenderTableGlobal();
     return jQuery?.fn?.DataTable ? jQuery : null;
 }
+
 /**
  * Renders a collapsible raw-data table section.
  *
@@ -19,45 +83,61 @@ function getJQueryWithDataTable() {
  * @param table - Data wrapper containing raw table rows.
  * @param index - Stable index used for generated element IDs.
  */
-export function renderTable(container, title, table, index) {
+export function renderTable(
+    container: HTMLElement,
+    title: string,
+    table: RenderTableData,
+    index: number
+): void {
     const rows = table && Array.isArray(table.rows) ? table.rows : [];
     const normalized = normalizeRows(rows);
     const columns = getColumns(normalized);
+
     const section = document.createElement("div");
     const tableId = `datatable_${index}`;
     section.classList.add("table-section");
+
     const header = document.createElement("div");
     header.classList.add("table-header");
+
     const leftSpan = document.createElement("span");
     leftSpan.className = "table-header-title";
     decorateSectionHeaderTitle(leftSpan, title);
+
     const rightContainer = document.createElement("div");
     rightContainer.style.display = "flex";
     rightContainer.style.alignItems = "center";
     rightContainer.style.gap = "10px";
+
     const copyButton = document.createElement("button");
     copyButton.textContent = "Copy as CSV";
     copyButton.classList.add("copy-btn");
     addEventListenerWithCleanup(copyButton, "click", (event) => {
         event.stopPropagation();
-        Promise.resolve(copyTableAsCSV(normalized)).catch((error) => {
+        Promise.resolve(copyTableAsCSV(normalized)).catch((error: unknown) => {
             console.error("[renderTable] Failed to copy CSV:", error);
         });
     });
+
     const icon = document.createElement("span");
     icon.textContent = "➕";
+
     rightContainer.append(copyButton);
     rightContainer.append(icon);
     header.append(leftSpan);
     header.append(rightContainer);
-    let dataTableInitTimer = null;
+
+    let dataTableInitTimer: null | ReturnType<typeof setTimeout> = null;
+
     const content = document.createElement("div");
     content.classList.add("table-content");
     content.id = `content_${tableId}`;
     content.style.display = "none";
+
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
     tableElement.classList.add("display");
+
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
     for (const column of columns) {
@@ -68,12 +148,15 @@ export function renderTable(container, title, table, index) {
     thead.append(headRow);
     tableElement.append(thead);
     tableElement.append(document.createElement("tbody"));
+
     content.append(tableElement);
-    const initializeDataTableIfAvailable = () => {
+
+    const initializeDataTableIfAvailable = (): void => {
         const jQ = getJQueryWithDataTable();
         if (!jQ) {
             return;
         }
+
         const tableSelector = `#${tableId}`;
         try {
             if (jQ.fn?.DataTable?.isDataTable(tableSelector)) {
@@ -83,6 +166,7 @@ export function renderTable(container, title, table, index) {
                     /* ignore */
                 }
             }
+
             const dt = jQ(tableSelector).DataTable({
                 autoWidth: false,
                 columns: columns.map((column) => ({
@@ -115,6 +199,7 @@ export function renderTable(container, title, table, index) {
                 scrollX: true,
                 searching: true,
             });
+
             const raf = globalThis.requestAnimationFrame;
             if (typeof raf === "function") {
                 raf(() => {
@@ -140,12 +225,15 @@ export function renderTable(container, title, table, index) {
             );
         }
     };
-    const renderFallbackTableBody = () => {
+
+    const renderFallbackTableBody = (): void => {
         const tbody = tableElement.querySelector("tbody");
         if (!(tbody instanceof HTMLElement)) {
             return;
         }
+
         decorateTableHeaderCells(tableElement, columns);
+
         tbody.replaceChildren();
         const limit = 500;
         const slice = normalized.slice(0, limit);
@@ -159,17 +247,21 @@ export function renderTable(container, title, table, index) {
             tbody.append(tr);
         }
     };
-    const scheduleDataTableInit = () => {
+
+    const scheduleDataTableInit = (): void => {
         if (!getJQueryWithDataTable() || dataTableInitTimer) {
             return;
         }
+
         dataTableInitTimer = setTimeout(() => {
             dataTableInitTimer = null;
+
             const host = document.getElementById(`content_${tableId}`);
             const isDisplayed =
                 host instanceof HTMLElement &&
                 typeof globalThis.getComputedStyle === "function" &&
                 globalThis.getComputedStyle(host).display !== "none";
+
             if (!isDisplayed) {
                 dataTableInitTimer = setTimeout(() => {
                     dataTableInitTimer = null;
@@ -177,14 +269,17 @@ export function renderTable(container, title, table, index) {
                 }, 50);
                 return;
             }
+
             initializeDataTableIfAvailable();
         }, 25);
     };
+
     addEventListenerWithCleanup(header, "click", () => {
         const isHidden =
             globalThis.getComputedStyle(content).display === "none";
         content.style.display = isHidden ? "block" : "none";
         icon.textContent = isHidden ? "➖" : "➕";
+
         if (isHidden) {
             if (getJQueryWithDataTable()) {
                 scheduleDataTableInit();
@@ -193,11 +288,19 @@ export function renderTable(container, title, table, index) {
             }
         }
     });
+
     section.append(header);
     section.append(content);
     container.append(section);
 }
-function applyIconLabel(container, iconName, text, iconClass, textClass) {
+
+function applyIconLabel(
+    container: HTMLElement,
+    iconName: AppIconName,
+    text: string,
+    iconClass: string,
+    textClass: string
+): void {
     const icon = document.createElement("span");
     icon.className = iconClass;
     icon.append(
@@ -207,12 +310,18 @@ function applyIconLabel(container, iconName, text, iconClass, textClass) {
             strokeWidth: 2,
         })
     );
+
     const label = document.createElement("span");
     label.className = textClass;
     label.textContent = text;
+
     container.replaceChildren(icon, label);
 }
-function decorateSectionHeaderTitle(container, title) {
+
+function decorateSectionHeaderTitle(
+    container: HTMLElement,
+    title: string
+): void {
     const icon = document.createElement("i");
     icon.className = "table-header-title__icon";
     icon.append(
@@ -222,12 +331,18 @@ function decorateSectionHeaderTitle(container, title) {
             strokeWidth: 2,
         })
     );
+
     const label = document.createElement("strong");
     label.className = "table-header-title__text";
     label.textContent = title;
+
     container.replaceChildren(icon, label);
 }
-function decorateTableHeaderCells(tableElement, columns) {
+
+function decorateTableHeaderCells(
+    tableElement: HTMLTableElement,
+    columns: readonly string[]
+): void {
     const headerCells = tableElement.querySelectorAll("thead th");
     for (const [index, cell] of headerCells.entries()) {
         if (!(cell instanceof HTMLTableCellElement)) {
@@ -236,7 +351,11 @@ function decorateTableHeaderCells(tableElement, columns) {
         decorateTableHeaderCell(cell, columns[index] ?? cell.textContent ?? "");
     }
 }
-function decorateTableHeaderCell(cell, label) {
+
+function decorateTableHeaderCell(
+    cell: HTMLTableCellElement,
+    label: string
+): void {
     applyIconLabel(
         cell,
         resolveTableColumnIconName(label),
@@ -245,7 +364,8 @@ function decorateTableHeaderCell(cell, label) {
         "table-column-title__text"
     );
 }
-function resolveTableSectionIconName(title) {
+
+function resolveTableSectionIconName(title: string): AppIconName {
     const normalized = title.toLowerCase();
     if (normalized.includes("session")) {
         return "activity";
@@ -264,7 +384,8 @@ function resolveTableSectionIconName(title) {
     }
     return "database";
 }
-function resolveTableColumnIconName(label) {
+
+function resolveTableColumnIconName(label: string): AppIconName {
     const normalized = label.toLowerCase();
     if (/timestamp|time|date/u.test(normalized)) {
         return "timer";
@@ -295,12 +416,15 @@ function resolveTableColumnIconName(label) {
     }
     return "table";
 }
-function getColumns(rows) {
-    const namedCols = [];
-    const numberedCols = [];
-    const seen = new Set();
-    const isNumberedKey = (key) => /^\d+$/u.test(key);
-    const pushKey = (key) => {
+
+function getColumns(rows: readonly NormalizedTableRow[]): string[] {
+    const namedCols: string[] = [];
+    const numberedCols: string[] = [];
+    const seen = new Set<string>();
+
+    const isNumberedKey = (key: string): boolean => /^\d+$/u.test(key);
+
+    const pushKey = (key: string): void => {
         if (seen.has(key)) {
             return;
         }
@@ -311,20 +435,24 @@ function getColumns(rows) {
             namedCols.push(key);
         }
     };
+
     const [first] = rows;
     if (first) {
         for (const key of Object.keys(first)) {
             pushKey(key);
         }
     }
+
     for (const row of rows) {
         for (const key of Object.keys(row)) {
             pushKey(key);
         }
     }
+
     return namedCols.concat(numberedCols);
 }
-function normalizeCellValue(value) {
+
+function normalizeCellValue(value: unknown): NormalizedCellValue {
     if (value === null || value === undefined) {
         return "";
     }
@@ -341,9 +469,10 @@ function normalizeCellValue(value) {
         return String(value);
     }
 }
-function normalizeRows(rows) {
+
+function normalizeRows(rows: readonly RenderTableRow[]): NormalizedTableRow[] {
     return rows.map((row) => {
-        const out = {};
+        const out: NormalizedTableRow = {};
         for (const [key, value] of Object.entries(row)) {
             out[key] = normalizeCellValue(value);
         }
