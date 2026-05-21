@@ -177,6 +177,7 @@
         "utils/rendering/core/renderTable.ts",
         "utils/rendering/core/renderSummary.ts",
         "utils/rendering/core/showFitData.ts",
+        "utils/rendering/components/createShownFilesList.ts",
         "utils/rendering/components/createTables.ts",
         "utils/rendering/components/shownFilesListItemHandlers.ts",
         "utils/ui/events/eventListenerManager.ts",

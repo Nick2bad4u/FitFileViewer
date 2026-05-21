@@ -2,19 +2,60 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { setState } from "../../state/core/stateManager.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
-function getShownFilesGlobal() {
-    return globalThis;
+
+type LoadedFitFile = {
+    readonly data?: unknown;
+    readonly filePath?: string;
+    readonly originalPath?: string;
+};
+
+type ShownFilesGlobal = typeof globalThis & {
+    _measureControl?: {
+        clearMeasurements?: () => void;
+    };
+    _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
+    loadedFitFiles?: LoadedFitFile[];
+    renderMap?: () => void;
+    updateShownFilesList?: () => void;
+};
+
+type ShownFilesContainer = HTMLDivElement & {
+    _dispose?: () => void;
+};
+
+type OverlayListItem = HTMLLIElement & {
+    _overlayListItemCleanup?: (() => void) | null;
+    _tooltipRemover?: (() => void) | null;
+};
+
+type FocusOverlayOptions = {
+    readonly scrollIntoView?: boolean;
+};
+
+type Rgb = readonly [
+    number,
+    number,
+    number,
+];
+
+function getShownFilesGlobal(): ShownFilesGlobal {
+    return globalThis as ShownFilesGlobal;
 }
-function removeOverlayFilenameTooltips() {
+
+function removeOverlayFilenameTooltips(): void {
     const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
     for (const tooltip of tooltips) {
         tooltip.parentNode?.removeChild(tooltip);
     }
 }
-function getOverlayItems(container) {
-    return Array.from(container.querySelectorAll("li[data-overlay-index]"));
+
+function getOverlayItems(container: HTMLElement): OverlayListItem[] {
+    return Array.from(
+        container.querySelectorAll<OverlayListItem>("li[data-overlay-index]")
+    );
 }
-function hexToRgb(hexColor) {
+
+function hexToRgb(hexColor: string): Rgb {
     let hex = hexColor.replace("#", "");
     if (hex.length === 3) {
         hex = hex
@@ -22,6 +63,7 @@ function hexToRgb(hexColor) {
             .map((value) => value + value)
             .join("");
     }
+
     const numericColor = Number.parseInt(hex, 16);
     return [
         numericColor >> 16,
@@ -29,10 +71,12 @@ function hexToRgb(hexColor) {
         numericColor & 255,
     ];
 }
-function parseColor(color) {
+
+function parseColor(color: string): Rgb {
     if (color.startsWith("#")) {
         return hexToRgb(color);
     }
+
     const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
     if (match?.[1] && match[2] && match[3]) {
         return [
@@ -41,13 +85,15 @@ function parseColor(color) {
             Number.parseInt(match[3], 10),
         ];
     }
+
     return [
         255,
         255,
         255,
     ];
 }
-function luminance(red, green, blue) {
+
+function luminance(red: number, green: number, blue: number): number {
     const components = [
         red,
         green,
@@ -58,16 +104,19 @@ function luminance(red, green, blue) {
             ? normalizedValue / 12.92
             : ((normalizedValue + 0.055) / 1.055) ** 2.4;
     });
+
     return (
         0.2126 * (components[0] ?? 0) +
         0.7152 * (components[1] ?? 0) +
         0.0722 * (components[2] ?? 0)
     );
 }
-function getFilteredColor(color, filter) {
+
+function getFilteredColor(color: string, filter: string): string {
     if (!filter) {
         return color;
     }
+
     const temp = document.createElement("span");
     temp.style.color = color;
     temp.style.filter = filter;
@@ -77,7 +126,8 @@ function getFilteredColor(color, filter) {
     temp.remove();
     return filteredColor;
 }
-function isColorAccessible(foreground, background) {
+
+function isColorAccessible(foreground: string, background: string): boolean {
     const [
         redForeground,
         greenForeground,
@@ -96,21 +146,29 @@ function isColorAccessible(foreground, background) {
         foregroundLuminance > backgroundLuminance
             ? foregroundLuminance / backgroundLuminance
             : backgroundLuminance / foregroundLuminance;
+
     return contrastRatio >= 3.5;
 }
-function getStringThemeColor(themeColors, colorKey, fallback) {
+
+function getStringThemeColor(
+    themeColors: ReturnType<typeof getThemeColors>,
+    colorKey: string,
+    fallback: string
+): string {
     const color = themeColors[colorKey];
     return typeof color === "string" && color ? color : fallback;
 }
+
 /**
  * Creates a list container for showing loaded FIT files on the map.
  *
  * @returns The files list container.
  */
-export function createShownFilesList() {
-    const container = document.createElement("div");
+export function createShownFilesList(): HTMLElement {
+    const container: ShownFilesContainer = document.createElement("div");
     const lifecycle = new AbortController();
     const overlayGlobal = getShownFilesGlobal();
+
     container.className = "shown-files-list map-controls-secondary-card";
     container.style.margin = "0";
     container.style.fontSize = "0.95em";
@@ -125,6 +183,7 @@ export function createShownFilesList() {
     container.setAttribute("role", "region");
     container.setAttribute("aria-label", "Map overlay files");
     container.setAttribute("aria-disabled", "true");
+
     // Security: avoid innerHTML. The header/list markup is static, but using DOM APIs
     // keeps the pattern consistent and prevents future accidental interpolation.
     const heading = document.createElement("b");
@@ -135,7 +194,8 @@ export function createShownFilesList() {
     listElement.style.paddingLeft = "18px";
     listElement.setAttribute("role", "listbox");
     container.append(heading, listElement);
-    const applyTheme = () => {
+
+    const applyTheme = (): void => {
         const themeColors = getThemeColors();
         const surface = getStringThemeColor(themeColors, "surface", "#ffffff");
         const text = getStringThemeColor(themeColors, "text", "#000000");
@@ -145,9 +205,11 @@ export function createShownFilesList() {
         container.style.border = `1px solid ${border}`;
     };
     applyTheme();
+
     document.body.addEventListener("themechange", applyTheme, {
         signal: lifecycle.signal,
     });
+
     /**
      * Cleanup hook used by renderMap when it tears down the old map DOM. This
      * prevents accumulating document/body listeners and any hovered-tooltip
@@ -155,18 +217,22 @@ export function createShownFilesList() {
      */
     container._dispose = () => {
         lifecycle.abort();
+
         if (overlayGlobal._overlayTooltipTimeout) {
             clearTimeout(overlayGlobal._overlayTooltipTimeout);
             overlayGlobal._overlayTooltipTimeout = null;
         }
+
         for (const item of getOverlayItems(container)) {
             item._overlayListItemCleanup?.();
             item._tooltipRemover?.();
         }
+
         removeOverlayFilenameTooltips();
     };
+
     let pendingStateSync = false;
-    const syncOverlayState = () => {
+    const syncOverlayState = (): void => {
         try {
             const files = Array.isArray(overlayGlobal.loadedFitFiles)
                 ? [...overlayGlobal.loadedFitFiles]
@@ -181,7 +247,8 @@ export function createShownFilesList() {
             );
         }
     };
-    const scheduleOverlayStateSync = () => {
+
+    const scheduleOverlayStateSync = (): void => {
         if (pendingStateSync) {
             return;
         }
@@ -191,15 +258,21 @@ export function createShownFilesList() {
             syncOverlayState();
         });
     };
+
     let keyboardFocusIndex = -1;
-    const assignKeyboardFocus = (value) => {
+    const assignKeyboardFocus = (value: number): void => {
         keyboardFocusIndex = value;
     };
-    const focusOverlayItem = (index, options) => {
+
+    const focusOverlayItem = (
+        index: number,
+        options?: FocusOverlayOptions
+    ): void => {
         const items = getOverlayItems(container);
         if (index < 0 || index >= items.length) {
             return;
         }
+
         const shouldScrollIntoView = options?.scrollIntoView ?? true;
         keyboardFocusIndex = index;
         for (const [itemIndex, item] of items.entries()) {
@@ -213,6 +286,7 @@ export function createShownFilesList() {
             }
         }
     };
+
     container.addEventListener(
         "focus",
         (event) => {
@@ -230,6 +304,7 @@ export function createShownFilesList() {
         },
         { signal: lifecycle.signal }
     );
+
     container.addEventListener(
         "keydown",
         (event) => {
@@ -237,7 +312,8 @@ export function createShownFilesList() {
             if (items.length === 0) {
                 return;
             }
-            const clampIndex = (value) => {
+
+            const clampIndex = (value: number): number => {
                 if (value < 0) {
                     return items.length - 1;
                 }
@@ -246,31 +322,37 @@ export function createShownFilesList() {
                 }
                 return value;
             };
+
             const { key } = event;
+
             if (key === "ArrowDown" || key === "ArrowRight") {
                 event.preventDefault();
                 keyboardFocusIndex = clampIndex(keyboardFocusIndex + 1);
                 focusOverlayItem(keyboardFocusIndex);
                 return;
             }
+
             if (key === "ArrowUp" || key === "ArrowLeft") {
                 event.preventDefault();
                 keyboardFocusIndex = clampIndex(keyboardFocusIndex - 1);
                 focusOverlayItem(keyboardFocusIndex);
                 return;
             }
+
             if (key === "Home") {
                 event.preventDefault();
                 keyboardFocusIndex = 0;
                 focusOverlayItem(keyboardFocusIndex);
                 return;
             }
+
             if (key === "End") {
                 event.preventDefault();
                 keyboardFocusIndex = items.length - 1;
                 focusOverlayItem(keyboardFocusIndex);
                 return;
             }
+
             if (key === "Enter" || key === " ") {
                 if (
                     keyboardFocusIndex >= 0 &&
@@ -281,6 +363,7 @@ export function createShownFilesList() {
                 }
                 return;
             }
+
             if (
                 (key === "Backspace" || key === "Delete") &&
                 keyboardFocusIndex >= 0 &&
@@ -297,11 +380,13 @@ export function createShownFilesList() {
         },
         { signal: lifecycle.signal }
     );
-    overlayGlobal.updateShownFilesList = () => {
+
+    overlayGlobal.updateShownFilesList = (): void => {
         const shownFilesList = container.querySelector("#shown-files-ul");
         if (!(shownFilesList instanceof HTMLUListElement)) {
             return;
         }
+
         shownFilesList.replaceChildren();
         const files = overlayGlobal.loadedFitFiles;
         if (!files || files.length <= 1) {
@@ -310,13 +395,15 @@ export function createShownFilesList() {
             assignKeyboardFocus(-1);
             return;
         }
+
         let anyOverlays = false;
         for (const [index, file] of files.entries()) {
             if (index === 0) {
                 continue;
             }
+
             anyOverlays = true;
-            const item = document.createElement("li");
+            const item: OverlayListItem = document.createElement("li");
             item.style.position = "relative";
             const displayLabel = file.filePath || "(unknown)";
             item.textContent = `File: ${displayLabel}`;
@@ -324,6 +411,7 @@ export function createShownFilesList() {
             item.dataset["overlayIndex"] = String(overlayIndex);
             item.setAttribute("role", "option");
             item.tabIndex = -1;
+
             const colorIndex = overlayIndex % chartOverlayColorPalette.length;
             const color = chartOverlayColorPalette[colorIndex] || "#1976d2";
             const isDark = document.body.classList.contains("theme-dark");
@@ -333,12 +421,14 @@ export function createShownFilesList() {
             if (filter) {
                 item.style.filter = filter;
             }
+
             const background = isDark ? "rgb(30,34,40)" : "#fff";
             item.style.color = color;
             item.style.filter = filter;
             item.style.textShadow = isDark
                 ? "0 0 2px #000, 0 0 1px #000, 0 0 1px #000"
                 : "0 0 2px #fff, 0 0 1px #fff, 0 0 1px #fff";
+
             const filteredColor = getFilteredColor(color, filter);
             const fullPath = file.originalPath || displayLabel;
             const showWarning = !isColorAccessible(
@@ -348,6 +438,7 @@ export function createShownFilesList() {
             item.style.cursor = "pointer";
             item.setAttribute("aria-label", `Overlay ${fullPath}`);
             item.setAttribute("aria-selected", "false");
+
             const removeButton = document.createElement("span");
             removeButton.className = "overlay-remove-btn";
             removeButton.textContent = "×";
@@ -372,6 +463,7 @@ export function createShownFilesList() {
             removeButton.setAttribute("role", "button");
             removeButton.setAttribute("tabindex", "-1");
             item.append(removeButton);
+
             attachOverlayListItemHandlers({
                 assignKeyboardFocus,
                 fullPath,
@@ -384,6 +476,7 @@ export function createShownFilesList() {
             });
             shownFilesList.append(item);
         }
+
         const overlayItems = getOverlayItems(container);
         container.setAttribute(
             "aria-disabled",
@@ -401,6 +494,7 @@ export function createShownFilesList() {
         } else if (keyboardFocusIndex >= overlayItems.length) {
             assignKeyboardFocus(overlayItems.length - 1);
         }
+
         if (
             anyOverlays &&
             shownFilesList.parentNode instanceof HTMLElement &&
@@ -428,11 +522,13 @@ export function createShownFilesList() {
                 "click",
                 (event) => {
                     event.stopPropagation();
+
                     try {
                         overlayGlobal._measureControl?.clearMeasurements?.();
                     } catch {
                         // Ignore optional map measurement cleanup failures.
                     }
+
                     overlayGlobal.loadedFitFiles?.splice(1);
                     assignKeyboardFocus(-1);
                     scheduleOverlayStateSync();
@@ -444,13 +540,16 @@ export function createShownFilesList() {
             );
             shownFilesList.parentNode.append(clearAll);
         }
+
         container.style.display = "";
     };
+
     if (
         !overlayGlobal.loadedFitFiles ||
         overlayGlobal.loadedFitFiles.length <= 1
     ) {
         container.style.display = "none";
     }
+
     return container;
 }
