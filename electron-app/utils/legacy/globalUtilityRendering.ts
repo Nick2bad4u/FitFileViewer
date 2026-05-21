@@ -3,6 +3,7 @@ import { createTables } from "../rendering/components/createTables.js";
 import { renderSummary } from "../rendering/core/renderSummary.js";
 import { renderTable } from "../rendering/core/renderTable.js";
 import { showFitData } from "../rendering/core/showFitData.js";
+
 /** Legacy rendering utilities exposed through the global utility bridge. */
 export const renderingUtilityExports = Object.freeze({
     createTables,

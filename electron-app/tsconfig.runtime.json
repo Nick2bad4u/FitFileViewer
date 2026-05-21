@@ -117,6 +117,8 @@
         "utils/legacy/globalUtilityApp.ts",
         "utils/legacy/globalUtilityData.ts",
         "utils/legacy/globalUtilityFormatting.ts",
+        "utils/legacy/globalUtilityRendering.ts",
+        "utils/legacy/globalUtilityRegistry.ts",
         "utils/legacy/globalUtilityTheming.ts",
         "utils/legacy/globalUtilityUi.ts",
         "utils/maps/core/mapColors.ts",
