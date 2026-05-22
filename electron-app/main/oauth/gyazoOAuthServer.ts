@@ -1,39 +1,83 @@
-"use strict";
 {
-    const { logWithContext } = require("../logging/logWithContext");
-    const { httpRef } = require("../runtime/nodeModules");
-    const { getAppState, setAppState } = require("../state/appState");
-    const { validateWindow } = require("../window/windowValidation");
-    function getErrorMessage(error) {
+    type HttpModule = typeof import("node:http");
+    type OAuthServer = import("node:http").Server;
+    type ServerResponse = import("node:http").ServerResponse;
+
+    interface OAuthWindowLike {
+        isDestroyed?: () => boolean;
+        webContents?: {
+            isDestroyed?: () => boolean;
+            send?: (channel: string, ...args: unknown[]) => void;
+        };
+    }
+
+    interface StartServerResult {
+        message: string;
+        port?: number;
+        success: boolean;
+    }
+
+    interface StopServerResult {
+        message: string;
+        success: boolean;
+    }
+
+    const { logWithContext } = require("../logging/logWithContext") as {
+        logWithContext: (
+            level: string,
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+    const { httpRef } = require("../runtime/nodeModules") as {
+        httpRef: () => HttpModule | null;
+    };
+    const { getAppState, setAppState } = require("../state/appState") as {
+        getAppState: (key: string) => unknown;
+        setAppState: (key: string, value: unknown) => void;
+    };
+    const { validateWindow } = require("../window/windowValidation") as {
+        validateWindow: (
+            win?: null | OAuthWindowLike,
+            context?: string
+        ) => boolean;
+    };
+
+    function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
-    function isAddressInUseError(error) {
+
+    function isAddressInUseError(error: unknown): boolean {
         if (!error || typeof error !== "object") return false;
         return Reflect.get(error, "code") === "EADDRINUSE";
     }
-    function asOAuthServer(value) {
+
+    function asOAuthServer(value: unknown): OAuthServer | null {
         if (
             value &&
             typeof value === "object" &&
             typeof Reflect.get(value, "close") === "function"
         ) {
-            return value;
+            return value as OAuthServer;
         }
         return null;
     }
-    function asOAuthWindow(value) {
+
+    function asOAuthWindow(value: unknown): OAuthWindowLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? value
+            ? (value as OAuthWindowLike)
             : null;
     }
-    function applyStandardHeaders(res) {
+
+    function applyStandardHeaders(res: ServerResponse): void {
         try {
             res.setHeader("X-Content-Type-Options", "nosniff");
             res.setHeader("Cache-Control", "no-store");
             res.setHeader("Pragma", "no-cache");
             res.setHeader("Referrer-Policy", "no-referrer");
             res.setHeader("X-Frame-Options", "DENY");
+
             // The callback serves only simple inline HTML. Disallow remote loads.
             res.setHeader(
                 "Content-Security-Policy",
@@ -43,7 +87,8 @@
             /* ignore */
         }
     }
-    function escapeHtml(value) {
+
+    function escapeHtml(value: string): string {
         return value
             .replaceAll("&", "&amp;")
             .replaceAll("<", "&lt;")
@@ -51,7 +96,8 @@
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#39;");
     }
-    function sendOAuthCallbackToRenderer(code, state) {
+
+    function sendOAuthCallbackToRenderer(code: string, state: string): void {
         const mainWindow = asOAuthWindow(getAppState("mainWindow"));
         if (
             validateWindow(mainWindow, "gyazo-oauth-callback") &&
@@ -63,7 +109,8 @@
             });
         }
     }
-    function writeOAuthErrorPage(res, error) {
+
+    function writeOAuthErrorPage(res: ServerResponse, error: string): void {
         res.writeHead(200, { "Content-Type": "text/html" });
         /* c8 ignore start */
         res.end(`
@@ -91,7 +138,8 @@
         `);
         /* c8 ignore stop */
     }
-    function writeOAuthSuccessPage(res) {
+
+    function writeOAuthSuccessPage(res: ServerResponse): void {
         res.writeHead(200, { "Content-Type": "text/html" });
         /* c8 ignore start */
         res.end(`
@@ -127,7 +175,8 @@
         `);
         /* c8 ignore stop */
     }
-    function writeInvalidOAuthRequestPage(res) {
+
+    function writeInvalidOAuthRequestPage(res: ServerResponse): void {
         res.writeHead(400, { "Content-Type": "text/html" });
         /* c8 ignore start */
         res.end(`
@@ -152,22 +201,27 @@
         `);
         /* c8 ignore stop */
     }
+
     /**
      * Starts the local OAuth callback server used for Gyazo integrations.
      */
-    async function startGyazoOAuthServer(port = 3000) {
+    async function startGyazoOAuthServer(
+        port = 3000
+    ): Promise<StartServerResult> {
         const existingServer = getAppState("gyazoServer");
         if (existingServer) {
             await stopGyazoOAuthServer();
         }
-        return new Promise((resolve, reject) => {
+
+        return new Promise<StartServerResult>((resolve, reject) => {
             try {
                 const http = httpRef();
                 if (!http || typeof http.createServer !== "function") {
                     throw new Error("HTTP module unavailable");
                 }
+
                 const server = http.createServer((req, res) => {
-                    let parsedUrl = null;
+                    let parsedUrl: URL | null = null;
                     try {
                         const raw = typeof req.url === "string" ? req.url : "";
                         parsedUrl = new URL(raw, `http://localhost:${port}`);
@@ -177,7 +231,9 @@
                         res.end("Bad Request");
                         return;
                     }
+
                     applyStandardHeaders(res);
+
                     const method =
                         typeof req.method === "string"
                             ? req.method.toUpperCase()
@@ -187,10 +243,12 @@
                         res.end("Method Not Allowed");
                         return;
                     }
+
                     if (parsedUrl.pathname === "/gyazo/callback") {
                         const code = parsedUrl.searchParams.get("code");
                         const error = parsedUrl.searchParams.get("error");
                         const state = parsedUrl.searchParams.get("state");
+
                         if (error) {
                             writeOAuthErrorPage(res, String(error));
                         } else if (code && state) {
@@ -204,6 +262,7 @@
                         res.end("Not Found");
                     }
                 });
+
                 server.on("error", (error) => {
                     if (isAddressInUseError(error)) {
                         logWithContext(
@@ -225,6 +284,7 @@
                         reject(error);
                     }
                 });
+
                 server.listen(port, "localhost", () => {
                     setAppState("gyazoServer", server);
                     setAppState("gyazoServerPort", port);
@@ -246,11 +306,12 @@
             }
         });
     }
+
     /**
      * Stops the Gyazo OAuth callback server if it is currently running.
      */
-    async function stopGyazoOAuthServer() {
-        return new Promise((resolve) => {
+    async function stopGyazoOAuthServer(): Promise<StopServerResult> {
+        return new Promise<StopServerResult>((resolve) => {
             const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
             if (gyazoServer) {
                 try {
@@ -289,6 +350,7 @@
             }
         });
     }
+
     module.exports = {
         startGyazoOAuthServer,
         stopGyazoOAuthServer,

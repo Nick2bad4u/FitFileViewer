@@ -61,6 +61,7 @@
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
         "main/menu/setupMenuAndEventHandlers.ts",
+        "main/oauth/gyazoOAuthServer.ts",
         "main/updater/autoUpdaterAccess.ts",
         "main/updater/setupAutoUpdater.ts",
         "main/runtime/electronAccess.ts",
