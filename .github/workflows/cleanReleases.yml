@@ -1,4 +1,5 @@
 name: Clean Old Releases
+run-name: Clean Old Releases (${{ github.ref_name }})
 
 on:
     workflow_run:
@@ -11,18 +12,30 @@ on:
         inputs:
             keep_last:
                 description: "Number of most recent releases to keep"
+                type: string
                 required: true
                 default: "10"
             delete_tags:
                 description: "Also delete git tags (true/false)"
+                type: boolean
                 required: true
-                default: "true"
+                default: true
 
-permissions: write-all
+concurrency:
+    group: clean-releases-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: write
 
 jobs:
-    clean_releases:
+    clean-releases:
+        name: Clean Old Releases
         runs-on: ubuntu-latest
+        timeout-minutes: 30
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -41,8 +54,8 @@ jobs:
             - name: Clean old releases and tags
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  KEEP_LAST: ${{ github.event.inputs.keep_last }}
-                  DELETE_TAGS: ${{ github.event.inputs.delete_tags }}
+                  KEEP_LAST: ${{ inputs.keep_last }}
+                  DELETE_TAGS: ${{ inputs.delete_tags }}
               run: |
                   KEEP_LAST=${KEEP_LAST:-10}
                   DELETE_TAGS=${DELETE_TAGS:-true}

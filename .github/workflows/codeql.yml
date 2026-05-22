@@ -9,10 +9,13 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: "CodeQL"
+name: Code Ql
+run-name: Code Ql (${{ github.ref_name }})
 
 on:
     push:
+        branches:
+            - main
         paths-ignore:
             - "*"
             - "*/**"
@@ -23,6 +26,8 @@ on:
             - "**/CHANGELOG.md"
             - "CHANGELOG.md"
     pull_request:
+        branches:
+            - main
         paths-ignore:
             - "*"
             - "*/**"
@@ -32,6 +37,9 @@ on:
             - "!electron-app"
             - "**/CHANGELOG.md"
             - "CHANGELOG.md"
+    merge_group:
+        types:
+            - checks_requested
     workflow_dispatch:
     schedule:
         - cron: "44 2 * * 4" # run once a week on Thursday at 2:44 AM UTC
@@ -39,23 +47,26 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: codeql-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     analyze:
         name: Analyze
         runs-on: ubuntu-latest
+        timeout-minutes: 45
+        defaults:
+            run:
+                shell: bash
         permissions:
             actions: read
             contents: read
             security-events: write
-
-        concurrency:
-            group: codeql-${{ github.ref }}
-            cancel-in-progress: false
-
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
-                language: ["javascript", "typescript"]
+                language: ["javascript-typescript"]
                 # CodeQL supports [ $supported-codeql-languages ]
                 # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
@@ -94,13 +105,6 @@ jobs:
             - name: Install dependencies
               run: npm install
               working-directory: electron-app
-
-            # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-            # If this step fails, then you should remove it and run the build manually (see below)
-            - name: Autobuild
-              uses: github/codeql-action/autobuild@b20883b0cd1f46c72ae0ba6d1090936928f9fa30 # v3.29.5
-              with:
-                  working-directory: electron-app
 
             # ℹ️ Command-line programs to run using the OS shell.
             # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun

@@ -2,6 +2,7 @@
 # This workflow builds your Electron app as a Flatpak using flatpak-builder directly.
 
 name: Build Flatpak
+run-name: Build Flatpak (${{ github.ref_name }})
 
 on:
     workflow_dispatch:
@@ -9,14 +10,24 @@ on:
         workflows: ["Build and Release Electron App"]
         types:
             - completed
+        branches:
+            - main
 
 concurrency:
     group: flatpak-build-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true
+
+permissions:
+    contents: write
 
 jobs:
     build-flatpak:
+        name: Build Flatpak
         runs-on: ubuntu-latest
+        timeout-minutes: 60
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1

@@ -1,8 +1,12 @@
-name: TruffleHog Secret Scan
+name: Truffle Hog Secret Scan
+run-name: Truffle Hog Secret Scan (${{ github.ref_name }})
 
 on:
     push:
     pull_request:
+    merge_group:
+        types:
+            - checks_requested
     workflow_dispatch:
     schedule:
         - cron: "44 4 * * 0" # Runs every Sunday at midnight UTC; https://crontab.guru/#0_0_*_*_0
@@ -10,12 +14,15 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: trufflehog-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     trufflehog:
+        name: Truffle Hog Secret Scan
         runs-on: ubuntu-latest
-        concurrency:
-            group: trufflehog-${{ github.ref }}
-            cancel-in-progress: false
+        timeout-minutes: 20
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1

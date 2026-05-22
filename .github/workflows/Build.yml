@@ -1,4 +1,5 @@
-name: Build and Release Electron App
+name: Build And Release Electron App
+run-name: Build And Release Electron App (${{ github.ref_name }})
 
 concurrency:
     group: build-${{ github.ref }}
@@ -9,15 +10,22 @@ on:
         inputs:
             branch:
                 description: "Branch to run against"
+                type: string
                 required: true
                 default: "main"
 
-permissions: write-all
+permissions:
+    actions: read
+    checks: write
+    contents: write
 jobs:
     bump-version:
+        name: Bump Version
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         defaults:
             run:
+                shell: bash
                 working-directory: electron-app
         outputs:
             new_version: ${{ steps.bump.outputs.new_version }}
@@ -33,7 +41,7 @@ jobs:
               id: checkout_code
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
-                  ref: ${{ github.event.inputs.branch || github.ref }}
+                  ref: ${{ inputs.branch || github.ref }}
                   fetch-depth: 0
                   fetch-tags: true
 
@@ -85,7 +93,7 @@ jobs:
               run: |
                   set -euo pipefail
 
-                  target_branch="${{ github.event.inputs.branch || github.ref_name }}"
+                  target_branch="${{ inputs.branch || github.ref_name }}"
 
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -106,8 +114,10 @@ jobs:
                   git push origin "v${{ steps.bump.outputs.new_version }}"
 
     build:
+        name: Build (${{ matrix.os }}, ${{ matrix.arch }})
         needs: bump-version
         runs-on: ${{ matrix.os }}
+        timeout-minutes: 60
         env:
             # Vite/electron-builder can be memory intensive across renderer/main/preload builds.
             # Keep this aligned with the known-good workflow pattern.
@@ -180,6 +190,7 @@ jobs:
             - name: Install Linux build dependencies
               id: install_linux_deps
               if: runner.os == 'Linux'
+              shell: bash
               run: |
                   sudo apt-get update
                   sudo apt-get install -y rpm dpkg fakeroot xz-utils flatpak flatpak-builder ruby ruby-dev build-essential zlib1g-dev
@@ -192,18 +203,21 @@ jobs:
             - name: Install macOS build dependencies
               id: install_macos_deps
               if: runner.os == 'macOS'
+              shell: bash
               run: |
                   brew install rpm dpkg xz gnu-tar
 
             - name: Install dmg-license workaround for Mac Builder
               id: install_dmg_license
               if: runner.os == 'macOS'
+              shell: bash
               run: npm install --force --no-save --no-audit --no-fund dmg-license
               working-directory: electron-app
 
             - name: Install Windows build dependencies (Chocolatey)
               id: install_windows_deps
               if: runner.os == 'Windows'
+              shell: pwsh
               run: |
                   choco install -y 7zip.install
                   # Install NSIS (makensis) to avoid issues with NSIS target building on some runners
@@ -241,6 +255,7 @@ jobs:
 
             - name: Install NPM dependencies (electron-app package.json)
               id: install_dependencies
+              shell: bash
               run: npm install --force --no-audit --no-fund
 
             # - name: Install electron-builder
@@ -381,8 +396,13 @@ jobs:
                     echo "| ${{ needs.bump-version.outputs.new_version }} | ${{ matrix.os }} | ${{ matrix.arch }} | Build Status: $STATUS |" >> "$GITHUB_STEP_SUMMARY"
 
     release:
+        name: Create Release
         needs: [build, bump-version]
         runs-on: ubuntu-latest
+        timeout-minutes: 45
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -815,9 +835,14 @@ jobs:
                   } >> "$GITHUB_STEP_SUMMARY"
 
     update-changelogs:
+        name: Update Changelogs
         needs: [release, bump-version]
         if: ${{ needs.release.result == 'success' && needs.bump-version.result == 'success' }}
         runs-on: ubuntu-latest
+        timeout-minutes: 30
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -901,7 +926,7 @@ jobs:
                     echo "No changelog changes to commit"
                   else
                     git commit -m "chore: update changelogs for v${{ needs.bump-version.outputs.new_version }} [skip ci]"
-                    git push origin ${{ github.event.inputs.branch || github.ref_name }}
+                    git push origin ${{ inputs.branch || github.ref_name }}
                     echo "Changelogs updated and pushed to repository"
                   fi
 

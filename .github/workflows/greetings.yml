@@ -1,12 +1,20 @@
 name: Greetings
+run-name: Greetings (${{ github.ref_name }})
 
 # Define the events that trigger this workflow
 on:
-    pull_request_target: # Trigger on pull request events targeting the repository
-    issues: # Trigger on issue events
-    discussion: # Trigger on discussion events
-    project: # Trigger on project events
-    fork: # Trigger on fork events
+    pull_request_target:
+        branches:
+            - main
+        types:
+            - opened
+            - reopened
+    issues:
+        types:
+            - opened
+    discussion:
+        types:
+            - created
     workflow_dispatch: # Allow manual triggering of the workflow
 
 # Define permissions required for the workflow
@@ -15,12 +23,14 @@ permissions:
 
 concurrency:
     group: greetings-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true
 
 jobs:
     greeting:
+        name: Greetings
         # Specify the runner to use (ubuntu-latest)
         runs-on: ubuntu-latest
+        timeout-minutes: 10
 
         # Define permissions specific to the job
         permissions:

@@ -25,18 +25,26 @@
 #        - Uses the 'actions/dependency-review-action' (version v4.5.0) to perform a dependency review.
 
 name: "Dependency Review"
-on: [pull_request]
+run-name: Dependency Review (${{ github.ref_name }})
+
+on:
+    pull_request:
+    merge_group:
+        types:
+            - checks_requested
 
 permissions:
     contents: read
 
 concurrency:
     group: dependency-review-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true
 
 jobs:
     dependency-review:
+        name: Dependency Review
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -47,3 +55,5 @@ jobs:
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
             - name: "Dependency Review"
               uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
+              with:
+                  fail-on-severity: high

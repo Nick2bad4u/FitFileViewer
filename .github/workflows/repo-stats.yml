@@ -1,4 +1,5 @@
-name: Metrics - Repository Stats
+name: Metrics Repository Stats
+run-name: Metrics Repository Stats (${{ github.ref_name }})
 
 on:
     workflow_dispatch:
@@ -6,13 +7,21 @@ on:
         workflows: ["Build and Release Electron App"]
         types:
             - completed
+        branches:
+            - main
+
+concurrency:
+    group: repo-stats-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
 
 jobs:
     metrics:
+        name: Metrics Repository Stats
         runs-on: ubuntu-latest
-        concurrency:
-            group: repo-stats-${{ github.ref }}
-            cancel-in-progress: false
+        timeout-minutes: 30
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1

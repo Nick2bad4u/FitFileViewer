@@ -1,6 +1,10 @@
-name: GitLeaks Scan
+name: Git Leaks Scan
+run-name: Git Leaks Scan (${{ github.ref_name }})
 on:
     pull_request:
+    merge_group:
+        types:
+            - checks_requested
     push:
     workflow_dispatch:
     schedule:
@@ -9,19 +13,24 @@ jobs:
     scan:
         name: gitleaks
         runs-on: ubuntu-latest
+        timeout-minutes: 20
+        permissions:
+            contents: read
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
               with:
                   egress-policy: audit
 
-            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+            - name: Checkout Repository
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   fetch-depth: 0
-            - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+            - name: Run Gitleaks
+              uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Uncomment if using in an organization
 concurrency:
     group: gitleaks-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true

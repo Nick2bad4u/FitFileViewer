@@ -22,12 +22,15 @@
 # For more information on configuring the `actions/stale` action, visit:
 # https://github.com/actions/stale
 
-name: Mark stale issues and pull requests
+name: Mark Stale Issues And Pull Requests
+run-name: Mark Stale Issues And Pull Requests (${{ github.ref_name }})
 
 on:
     schedule:
         - cron: "38 7 * * *"
     pull_request_target:
+        branches:
+            - main
         types: [opened, reopened, synchronize]
     issues:
         types: [opened, reopened, edited]
@@ -36,15 +39,18 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: stale-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     stale:
+        name: Mark Stale Issues And Pull Requests
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         permissions:
             issues: write
             pull-requests: write
-        concurrency:
-            group: stale-${{ github.ref }}
-            cancel-in-progress: false
 
         steps:
             - name: Harden Runner
@@ -52,7 +58,8 @@ jobs:
               with:
                   egress-policy: audit
 
-            - uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
+            - name: Mark Stale Issues And Pull Requests
+              uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
                   stale-issue-message: "Stale issue"

@@ -1,4 +1,5 @@
-name: Update ChangeLogs
+name: Update Change Logs
+run-name: Update Change Logs (${{ github.ref_name }})
 
 on:
     workflow_dispatch:
@@ -16,8 +17,10 @@ permissions:
     statuses: write
 
 jobs:
-    update_changelogs:
+    update-changelogs:
+        name: Update Change Logs
         runs-on: windows-latest
+        timeout-minutes: 30
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1

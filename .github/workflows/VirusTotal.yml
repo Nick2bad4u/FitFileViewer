@@ -1,7 +1,8 @@
 # This workflow scans distributable files in release-dist/ with VirusTotal after every push to main or manual dispatch.
 # It uses the crazy-max/ghaction-virustotal action and your provided API key (should be stored as a secret in production).
 
-name: VirusTotal Scan
+name: Virus Total Scan
+run-name: Virus Total Scan (${{ github.ref_name }})
 
 on:
     workflow_dispatch:
@@ -9,17 +10,21 @@ on:
         workflows: ["Build and Release Electron App"]
         types:
             - completed
+        branches:
+            - main
 
 permissions:
     contents: read
 
 concurrency:
     group: virustotal-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true
 
 jobs:
     virustotal:
+        name: Virus Total Scan
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1

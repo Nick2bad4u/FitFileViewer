@@ -1,4 +1,5 @@
 name: Automatic Rebase
+run-name: Automatic Rebase (${{ github.ref_name }})
 on:
     issue_comment:
         types: [created]
@@ -12,6 +13,7 @@ jobs:
             pull-requests: read # for cirrus-actions/rebase to get info about PR
         name: Rebase
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         if: >-
             github.event.issue.pull_request != '' &&
             (
