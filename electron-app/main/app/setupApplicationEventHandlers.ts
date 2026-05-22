@@ -1,45 +1,197 @@
-"use strict";
 {
-    const { fileURLToPath } = require("node:url");
-    const { CONSTANTS } = require("../constants");
-    const { logWithContext } = require("../logging/logWithContext");
-    const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu");
-    const {
-        startGyazoOAuthServer,
-        stopGyazoOAuthServer,
-    } = require("../oauth/gyazoOAuthServer");
-    const {
-        appRef,
-        browserWindowRef,
-        shellRef,
-    } = require("../runtime/electronAccess");
-    const { httpRef, path } = require("../runtime/nodeModules");
-    const { validateExternalUrl } = require("../security/externalUrlPolicy");
-    const { getAppState, setAppState } = require("../state/appState");
-    const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
-    const { validateWindow } = require("../window/windowValidation");
+    type HttpModule = typeof import("node:http");
+    type PathModule = typeof import("node:path");
+    type ElectronBrowserWindow = import("electron").BrowserWindow;
+    type ElectronPermissionCheckDetails =
+        import("electron").PermissionCheckHandlerHandlerDetails;
+    type ElectronPermissionRequestDetails =
+        | import("electron").FilesystemPermissionRequest
+        | import("electron").MediaAccessPermissionRequest
+        | import("electron").OpenExternalPermissionRequest
+        | import("electron").PermissionRequest;
+    type ElectronWebContents = import("electron").WebContents;
+
+    type AppListener = (...args: unknown[]) => void;
+    type PermissionDetailsLike =
+        | ElectronPermissionCheckDetails
+        | ElectronPermissionRequestDetails
+        | {
+              requestingOrigin?: string;
+              requestingURL?: string;
+              requestingUrl?: string;
+          }
+        | null
+        | undefined;
+
+    interface AppLike {
+        getAppPath?: () => string;
+        on?: (eventName: string, listener: AppListener) => void;
+        quit?: () => void;
+        removeListener?: (eventName: string, listener: AppListener) => void;
+    }
+
+    interface BrowserWindowStaticLike {
+        fromWebContents?: (
+            webContents: ElectronWebContents
+        ) => ElectronBrowserWindow | null;
+        getAllWindows?: () => unknown[];
+        getFocusedWindow?: () => unknown;
+    }
+
+    interface DownloadItemLike {
+        cancel?: () => void;
+        getURL?: () => string;
+    }
+
+    interface PreventableEvent {
+        preventDefault?: () => void;
+    }
+
+    interface SessionLike {
+        on?: (
+            eventName: "will-download",
+            listener: (event: PreventableEvent, item: DownloadItemLike) => void
+        ) => void;
+        setPermissionCheckHandler?: (
+            handler: (
+                webContents: ElectronWebContents,
+                permission: string,
+                requestingOrigin: string,
+                details?: PermissionDetailsLike
+            ) => boolean
+        ) => void;
+        setPermissionRequestHandler?: (
+            handler: (
+                webContents: ElectronWebContents,
+                permission: string,
+                callback: (granted: boolean) => void,
+                details?: PermissionDetailsLike
+            ) => void
+        ) => void;
+    }
+
+    interface WebContentsLike {
+        on?: (
+            eventName: string,
+            listener: (...args: unknown[]) => void
+        ) => void;
+        session?: SessionLike;
+        setWindowOpenHandler?: (
+            handler: (details: { url: string }) => {
+                action: "allow" | "deny";
+            }
+        ) => void;
+    }
+
+    interface DialogLike {
+        showMessageBox?: (
+            browserWindow: ElectronBrowserWindow | undefined,
+            options: {
+                buttons: string[];
+                cancelId: number;
+                defaultId: number;
+                detail: string;
+                message: string;
+                noLink: boolean;
+                title: string;
+                type: "question";
+            }
+        ) => Promise<{ response?: number }>;
+    }
+
+    interface ShellLike {
+        openExternal?: (url: string) => Promise<unknown> | unknown;
+    }
+
+    const { fileURLToPath } = require("node:url") as typeof import("node:url");
+
+    const { CONSTANTS } = require("../constants") as {
+        CONSTANTS: {
+            DEFAULT_THEME: string;
+            PLATFORMS: { DARWIN: NodeJS.Platform; LINUX: NodeJS.Platform };
+        };
+    };
+    const { logWithContext } = require("../logging/logWithContext") as {
+        logWithContext: (
+            level: string,
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+    const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
+        safeCreateAppMenu: (
+            win: unknown,
+            theme: string,
+            loadedFitFilePath?: null | string
+        ) => void;
+    };
+    const { startGyazoOAuthServer, stopGyazoOAuthServer } =
+        require("../oauth/gyazoOAuthServer") as {
+            startGyazoOAuthServer: () => Promise<unknown>;
+            stopGyazoOAuthServer: () => Promise<unknown>;
+        };
+    const { appRef, browserWindowRef, shellRef } =
+        require("../runtime/electronAccess") as {
+            appRef: () => AppLike | undefined;
+            browserWindowRef: () => BrowserWindowStaticLike | undefined;
+            shellRef: () => ShellLike | undefined;
+        };
+    const { httpRef, path } = require("../runtime/nodeModules") as {
+        httpRef: () => HttpModule | null;
+        path: PathModule;
+    };
+    const { validateExternalUrl } =
+        require("../security/externalUrlPolicy") as {
+            validateExternalUrl: (url: string) => string;
+        };
+    const { getAppState, setAppState } = require("../state/appState") as {
+        getAppState: (key: string) => unknown;
+        setAppState: (
+            key: string,
+            value: unknown,
+            options?: Record<string, unknown>
+        ) => void;
+    };
+    const { getThemeFromRenderer } =
+        require("../theme/getThemeFromRenderer") as {
+            getThemeFromRenderer: (win: unknown) => Promise<string>;
+        };
+    const { validateWindow } = require("../window/windowValidation") as {
+        validateWindow: (win?: null | unknown, context?: string) => boolean;
+    };
+
     const SESSION_PERMISSIONS_MARKER =
         "__ffvSessionPermissionHandlersRegistered";
     const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
-    const APP_LISTENER_REGISTRY = new Map();
-    function asRecord(value) {
+    const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
+
+    function asRecord(value: unknown): Record<string, unknown> | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? value
+            ? (value as Record<string, unknown>)
             : null;
     }
-    function getStringProperty(value, key) {
+
+    function getStringProperty(
+        value: unknown,
+        key: string
+    ): string | undefined {
         const record = asRecord(value);
         const property = record ? Reflect.get(record, key) : undefined;
         return typeof property === "string" ? property : undefined;
     }
-    function getErrorMessage(error) {
+
+    function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
-    function configureSessionDownloadPolicy(session) {
+
+    function configureSessionDownloadPolicy(
+        session: SessionLike | null | undefined
+    ): void {
         if (!session || typeof session !== "object") return;
         if (!markOnce(session, SESSION_DOWNLOAD_MARKER)) return;
         if (typeof session.on !== "function") return;
+
         try {
             session.on("will-download", (event, item) => {
                 try {
@@ -48,11 +200,14 @@
                     const parsed =
                         typeof url === "string" ? safeParseUrl(url) : null;
                     const protocol = parsed?.protocol;
+
                     if (protocol === "blob:" || protocol === "data:") {
                         return;
                     }
+
                     preventDownload(event, item);
                     logWithContext("warn", "Blocked download", { url });
+
                     if (typeof url === "string") {
                         tryOpenExternal(url);
                     }
@@ -64,7 +219,11 @@
             /* ignore */
         }
     }
-    function preventDownload(event, item) {
+
+    function preventDownload(
+        event: PreventableEvent | undefined,
+        item: DownloadItemLike | undefined
+    ): void {
         try {
             event?.preventDefault?.();
             item?.cancel?.();
@@ -72,32 +231,42 @@
             /* ignore */
         }
     }
-    function configureSessionPermissionHandlers(session) {
+
+    function configureSessionPermissionHandlers(
+        session: SessionLike | null | undefined
+    ): void {
         if (!session || typeof session !== "object") return;
         if (!markOnce(session, SESSION_PERMISSIONS_MARKER)) return;
-        const isTrustedRequest = (details) => {
+
+        const isTrustedRequest = (details: PermissionDetailsLike): boolean => {
             if (isTestMode()) {
                 return true;
             }
+
             const requestingUrl =
                 getStringProperty(details, "requestingUrl") ??
                 getStringProperty(details, "requestingURL") ??
                 getStringProperty(details, "requestingOrigin") ??
                 "";
+
             const parsed = requestingUrl ? safeParseUrl(requestingUrl) : null;
             const protocol = parsed?.protocol;
+
             if (protocol === "file:") {
                 return true;
             }
+
             if (requestingUrl === "about:blank" || protocol === "about:") {
                 return true;
             }
+
             return false;
         };
+
         const promptForGeolocationOncePerSession = async (
-            webContents,
-            details
-        ) => {
+            webContents: ElectronWebContents | null | undefined,
+            details: PermissionDetailsLike
+        ): Promise<boolean> => {
             try {
                 const cached = getAppState("permissions.geolocation.allowed");
                 if (typeof cached === "boolean") {
@@ -106,6 +275,7 @@
             } catch {
                 /* ignore */
             }
+
             if (isTestMode()) {
                 try {
                     setAppState("permissions.geolocation.allowed", true, {
@@ -116,7 +286,8 @@
                 }
                 return true;
             }
-            let browserWindow = null;
+
+            let browserWindow: ElectronBrowserWindow | null = null;
             try {
                 const BrowserWindow = browserWindowRef();
                 if (
@@ -129,9 +300,10 @@
             } catch {
                 /* ignore */
             }
+
             let allow = false;
             try {
-                const electron = require("electron");
+                const electron = require("electron") as { dialog?: DialogLike };
                 const dialog = electron?.dialog;
                 if (!dialog || typeof dialog.showMessageBox !== "function") {
                     allow = false;
@@ -157,6 +329,7 @@
             } catch {
                 allow = false;
             }
+
             try {
                 setAppState("permissions.geolocation.allowed", allow, {
                     source: "permissions.geolocation",
@@ -164,6 +337,7 @@
             } catch {
                 /* ignore */
             }
+
             if (!allow) {
                 logWithContext(
                     "warn",
@@ -176,8 +350,10 @@
                     }
                 );
             }
+
             return allow;
         };
+
         try {
             if (typeof session.setPermissionRequestHandler === "function") {
                 session.setPermissionRequestHandler(
@@ -186,6 +362,7 @@
                             safelyResolvePermission(callback, false);
                             return;
                         }
+
                         if (isTestMode()) {
                             try {
                                 setAppState(
@@ -199,10 +376,12 @@
                             safelyResolvePermission(callback, true);
                             return;
                         }
+
                         if (!isTrustedRequest(details)) {
                             safelyResolvePermission(callback, false);
                             return;
                         }
+
                         void promptForGeolocationOncePerSession(
                             webContents,
                             details
@@ -222,6 +401,7 @@
         } catch {
             /* ignore */
         }
+
         try {
             if (typeof session.setPermissionCheckHandler === "function") {
                 session.setPermissionCheckHandler(
@@ -229,9 +409,11 @@
                         if (permission !== "geolocation") {
                             return false;
                         }
+
                         if (!isTrustedRequest(details)) {
                             return false;
                         }
+
                         try {
                             const allowed = getAppState(
                                 "permissions.geolocation.allowed"
@@ -242,6 +424,7 @@
                             if (allowed === false) {
                                 return false;
                             }
+
                             return true;
                         } catch {
                             return true;
@@ -253,28 +436,36 @@
             /* ignore */
         }
     }
-    function safelyResolvePermission(callback, granted) {
+
+    function safelyResolvePermission(
+        callback: (granted: boolean) => void,
+        granted: boolean
+    ): void {
         try {
             callback(granted);
         } catch {
             /* ignore */
         }
     }
-    function isAllowedFileUrl(candidate) {
+
+    function isAllowedFileUrl(candidate: string): boolean {
         if (isTestMode()) {
             return true;
         }
+
         const parsed = safeParseUrl(candidate);
         if (!parsed || parsed.protocol !== "file:") {
             return false;
         }
-        let targetPath;
+
+        let targetPath: string;
         try {
             targetPath = fileURLToPath(parsed);
         } catch {
             return false;
         }
-        const allowedRoots = [];
+
+        const allowedRoots: string[] = [];
         try {
             const app = appRef();
             if (app && typeof app.getAppPath === "function") {
@@ -283,18 +474,21 @@
         } catch {
             /* ignore */
         }
+
         if (
             typeof process !== "undefined" &&
             typeof process.resourcesPath === "string"
         ) {
             allowedRoots.push(process.resourcesPath);
         }
-        const normalize = (value) => {
+
+        const normalize = (value: string): string => {
             const resolved = path.resolve(value);
             return process.platform === "win32"
                 ? resolved.toLowerCase()
                 : resolved;
         };
+
         const targetNorm = normalize(targetPath);
         return allowedRoots.some((root) => {
             const rootNorm = normalize(root);
@@ -304,12 +498,15 @@
             );
         });
     }
-    function isAllowedInAppUrl(candidate) {
+
+    function isAllowedInAppUrl(candidate: unknown): boolean {
         if (typeof candidate !== "string") return false;
         const trimmed = candidate.trim();
         if (!trimmed) return false;
+
         if (trimmed.startsWith("file://")) return isAllowedFileUrl(trimmed);
         if (trimmed === "about:blank") return true;
+
         if (
             isDevMode() &&
             (trimmed.startsWith("chrome-devtools://") ||
@@ -317,10 +514,13 @@
         ) {
             return true;
         }
+
         const parsed = safeParseUrl(trimmed);
         if (!parsed) return false;
+
         if (parsed.protocol !== "https:") return false;
         if (parsed.username || parsed.password) return false;
+
         const allowPrefixes = [
             "https://gyazo.com/oauth/",
             "https://gyazo.com/api/oauth/login",
@@ -330,7 +530,8 @@
         ];
         return allowPrefixes.some((prefix) => trimmed.startsWith(prefix));
     }
-    function isDevMode() {
+
+    function isDevMode(): boolean {
         return (
             typeof process !== "undefined" &&
             (process.env?.["NODE_ENV"] === "development" ||
@@ -339,14 +540,17 @@
                 process.env?.["FFV_DEVTOOLS"] === "true")
         );
     }
-    function isTestMode() {
+
+    function isTestMode(): boolean {
         return (
             typeof process !== "undefined" &&
             process.env?.["NODE_ENV"] === "test"
         );
     }
-    function markOnce(target, key) {
+
+    function markOnce(target: object, key: string): boolean {
         if (!target || typeof target !== "object") return true;
+
         if (Object.hasOwn(target, key) && Boolean(Reflect.get(target, key))) {
             return false;
         }
@@ -366,11 +570,16 @@
         }
         return true;
     }
-    function registerAppListener(eventName, listener) {
+
+    function registerAppListener(
+        eventName: string,
+        listener: AppListener
+    ): void {
         const app = appRef();
         if (!app || typeof app.on !== "function") {
             return;
         }
+
         const existing = APP_LISTENER_REGISTRY.get(eventName);
         if (existing && typeof app.removeListener === "function") {
             try {
@@ -379,20 +588,23 @@
                 /* ignore */
             }
         }
+
         app.on(eventName, listener);
         APP_LISTENER_REGISTRY.set(eventName, listener);
     }
-    function safeParseUrl(url) {
+
+    function safeParseUrl(url: string): URL | null {
         try {
             return new URL(url);
         } catch {
             return null;
         }
     }
+
     /**
      * Registers core application-level Electron event handlers.
      */
-    function setupApplicationEventHandlers() {
+    function setupApplicationEventHandlers(): void {
         registerAppListener("activate", () => {
             try {
                 const BrowserWindow = browserWindowRef();
@@ -408,9 +620,10 @@
                         }
                     })();
                     if (Array.isArray(windows) && windows.length === 0) {
-                        const {
-                            createWindow,
-                        } = require("../../windowStateUtils");
+                        const { createWindow } =
+                            require("../../windowStateUtils") as {
+                                createWindow: () => unknown;
+                            };
                         const win = createWindow();
                         safeCreateAppMenu(
                             win,
@@ -441,8 +654,9 @@
                 /* ignore errors during activation handling */
             }
         });
+
         registerAppListener("browser-window-focus", (_event, win) => {
-            void (async () => {
+            void (async (): Promise<void> => {
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     try {
                         const theme = await getThemeFromRenderer(win);
@@ -459,6 +673,7 @@
                 }
             })();
         });
+
         registerAppListener("window-all-closed", () => {
             setAppState("appIsQuitting", true);
             if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
@@ -466,12 +681,13 @@
                 if (app && app.quit) app.quit();
             }
         });
+
         registerAppListener("before-quit", (event) => {
-            void (async () => {
+            void (async (): Promise<void> => {
                 setAppState("appIsQuitting", true);
                 const gyazoServer = getAppState("gyazoServer");
                 if (gyazoServer) {
-                    event.preventDefault?.();
+                    (event as PreventableEvent).preventDefault?.();
                     try {
                         await stopGyazoOAuthServer();
                         appRef()?.quit?.();
@@ -488,42 +704,52 @@
                 }
             })();
         });
+
         registerAppListener("web-contents-created", (_event, contents) => {
-            const webContents = contents;
+            const webContents = contents as WebContentsLike | null | undefined;
             try {
                 configureSessionPermissionHandlers(webContents?.session);
                 configureSessionDownloadPolicy(webContents?.session);
             } catch {
                 /* ignore */
             }
+
             if (webContents && typeof webContents.on === "function") {
                 webContents.on("will-attach-webview", (event) => {
                     try {
-                        event.preventDefault?.();
+                        (event as PreventableEvent).preventDefault?.();
                     } catch {
                         /* ignore */
                     }
                     logWithContext("warn", "Blocked webview attachment");
                 });
-                const handleNavigationAttempt = (event, url) => {
+
+                const handleNavigationAttempt = (
+                    event: unknown,
+                    url: unknown
+                ): void => {
                     if (isAllowedInAppUrl(url)) {
                         return;
                     }
                     try {
-                        event.preventDefault?.();
+                        (event as PreventableEvent).preventDefault?.();
                     } catch {
                         /* ignore */
                     }
+
                     logWithContext(
                         "warn",
                         "Blocked navigation to untrusted URL:",
                         { url }
                     );
+
                     if (typeof url === "string") tryOpenExternal(url);
                 };
+
                 webContents.on("will-navigate", handleNavigationAttempt);
                 webContents.on("will-redirect", handleNavigationAttempt);
             }
+
             if (
                 webContents &&
                 typeof webContents.setWindowOpenHandler === "function"
@@ -543,6 +769,7 @@
                 });
             }
         });
+
         if (
             process.env &&
             process.env["GYAZO_CLIENT_ID"] &&
@@ -576,20 +803,23 @@
             );
         }
     }
-    function getLoadedFitFilePath() {
+
+    function getLoadedFitFilePath(): string | undefined {
         const loadedFitFilePath = getAppState("loadedFitFilePath");
         return typeof loadedFitFilePath === "string"
             ? loadedFitFilePath
             : undefined;
     }
-    function rememberStartupTimer(handle) {
+
+    function rememberStartupTimer(handle: ReturnType<typeof setTimeout>): void {
         try {
             Reflect.set(globalThis, "__ffvGyazoStartupTimer", handle);
         } catch {
             /* ignore */
         }
     }
-    function tryOpenExternal(url) {
+
+    function tryOpenExternal(url: string): void {
         try {
             const validated = validateExternalUrl(url);
             const shell = shellRef();
@@ -605,5 +835,6 @@
             /* ignore */
         }
     }
+
     module.exports = { setupApplicationEventHandlers };
 }

@@ -45,6 +45,7 @@
         "useUnknownInCatchVariables": true
     },
     "files": [
+        "main/app/setupApplicationEventHandlers.ts",
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
         "main/ipc/ipcRegistry.ts",
