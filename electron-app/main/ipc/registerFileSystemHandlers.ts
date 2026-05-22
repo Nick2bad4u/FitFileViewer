@@ -1,9 +1,38 @@
-"use strict";
 {
-    const { z } = require("zod");
-    const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
-    const getErrorMessage = (error) =>
+    const { z } = require("zod") as typeof import("zod");
+
+    const { assertFileReadAllowed } =
+        require("../security/fileAccessPolicy") as {
+            assertFileReadAllowed: (filePath: string) => string;
+        };
+
+    type FileSystemModule = Pick<typeof import("node:fs"), "readFile" | "stat">;
+
+    type RegisterFileSystemIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => unknown;
+
+    type RegisterFileSystemIpcHandle = (
+        channel: string,
+        handler: RegisterFileSystemIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterFileSystemHandlersOptions {
+        fs: FileSystemModule;
+        logWithContext?: LogWithContext;
+        registerIpcHandle: RegisterFileSystemIpcHandle;
+    }
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
     // Keep this validation minimal; fileAccessPolicy performs the authoritative
     // security checks (approved paths + .fit extension). This is primarily:
     // - to fail fast on obviously invalid inputs
@@ -17,9 +46,11 @@
         .refine((filePath) => filePath.length <= 4096, {
             message: "Invalid file path provided",
         });
-    const truncateLogValue = (text) =>
+
+    const truncateLogValue = (text: string): string =>
         text.length > 300 ? `${text.slice(0, 300)}…` : text;
-    const safeLogValue = (value) => {
+
+    const safeLogValue = (value: unknown): string => {
         try {
             const text =
                 typeof value === "string" ? value : JSON.stringify(value);
@@ -29,14 +60,17 @@
         } catch {
             // Fall through to String coercion below.
         }
+
         try {
             return truncateLogValue(String(value));
         } catch {
             return "<unserializable>";
         }
     };
+
     // Keep aligned with other IPC size caps (e.g., registerFitFileHandlers).
     const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
+
     /**
      * Registers IPC handlers for filesystem operations.
      */
@@ -44,17 +78,20 @@
         registerIpcHandle,
         fs,
         logWithContext,
-    }) {
+    }: RegisterFileSystemHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
+
         registerIpcHandle("file:read", async (_event, filePath) => {
-            let authorizedPath;
+            let authorizedPath: string | undefined;
+
             try {
                 const parsedPath = filePathSchema.safeParse(filePath);
                 if (!parsedPath.success) {
                     throw new Error("Invalid file path provided");
                 }
+
                 try {
                     authorizedPath = assertFileReadAllowed(parsedPath.data);
                 } catch (policyError) {
@@ -63,17 +100,20 @@
                         : new Error(String(policyError));
                 }
                 const fileReadPath = authorizedPath;
-                return await new Promise((resolve, reject) => {
+
+                return await new Promise<ArrayBuffer>((resolve, reject) => {
                     if (!fs || typeof fs.readFile !== "function") {
                         reject(new Error("Filesystem module unavailable"));
                         return;
                     }
-                    const read = () => {
+
+                    const read = (): void => {
                         fs.readFile(fileReadPath, (err, data) => {
                             if (err) {
                                 reject(err);
                                 return;
                             }
+
                             // Node can return strings when an encoding is provided. We expect binary.
                             if (
                                 !data ||
@@ -85,14 +125,16 @@
                                 );
                                 return;
                             }
+
                             if (data.byteLength > MAX_FIT_FILE_BYTES) {
                                 reject(
                                     new Error("File size exceeds 100MB limit")
                                 );
                                 return;
                             }
+
                             // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
-                            const sourceBuffer = data.buffer;
+                            const sourceBuffer = data.buffer as ArrayBuffer;
                             resolve(
                                 sourceBuffer.slice(
                                     data.byteOffset,
@@ -101,6 +143,7 @@
                             );
                         });
                     };
+
                     // Best-effort preflight size check to avoid huge reads.
                     if (typeof fs.stat === "function") {
                         fs.stat(fileReadPath, (statErr, stats) => {
@@ -123,6 +166,7 @@
                         });
                         return;
                     }
+
                     read();
                 });
             } catch (error) {
@@ -135,5 +179,6 @@
             }
         });
     }
+
     module.exports = { registerFileSystemHandlers };
 }
