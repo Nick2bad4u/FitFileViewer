@@ -63,6 +63,7 @@
         "main/updater/autoUpdaterAccess.ts",
         "main/runtime/electronAccess.ts",
         "main/runtime/fitParserIntegration.ts",
+        "main/runtime/initializeApplication.ts",
         "main/runtime/nodeModules.ts",
         "main/security/externalUrlPolicy.ts",
         "main/security/fileAccessPolicy.ts",
