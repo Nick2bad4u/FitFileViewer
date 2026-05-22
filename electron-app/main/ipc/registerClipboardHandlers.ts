@@ -1,22 +1,58 @@
-"use strict";
 {
-    const { z } = require("zod");
-    const getErrorMessage = (error) =>
+    const { z } = require("zod") as typeof import("zod");
+
+    interface ClipboardWriter {
+        writeImage?: (image: unknown) => void;
+        writeText?: (text: string) => void;
+    }
+
+    interface NativeImageFactory {
+        createFromDataURL?: (dataUrl: string) => unknown;
+    }
+
+    type RegisterClipboardIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => unknown;
+
+    type RegisterClipboardIpcHandle = (
+        channel: string,
+        handler: RegisterClipboardIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterClipboardHandlersOptions {
+        clipboardRef?: () => ClipboardWriter | null | undefined;
+        logWithContext?: LogWithContext;
+        nativeImageRef?: () => NativeImageFactory | null | undefined;
+        registerIpcHandle: RegisterClipboardIpcHandle;
+    }
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
     // Keep payload limits conservative to defend against accidental huge
     // clipboard writes. CSV exports can be large, so allow several MB.
     const MAX_TEXT_CHARS = 5_000_000;
     const MAX_DATA_URL_CHARS = 25_000_000;
+
     const textSchema = z
         .string()
         .max(MAX_TEXT_CHARS)
         .transform((value) => value);
+
     const pngDataUrlSchema = z
         .string()
         .max(MAX_DATA_URL_CHARS)
         .refine((value) => value.startsWith("data:image/png"), {
             message: "Expected a PNG data URL",
         });
+
     /**
      * Registers IPC handlers that write to the OS clipboard.
      *
@@ -30,20 +66,23 @@
         clipboardRef,
         nativeImageRef,
         logWithContext,
-    }) {
+    }: RegisterClipboardHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
+
         registerIpcHandle("clipboard:writeText", async (_event, text) => {
             try {
                 const parsed = textSchema.safeParse(String(text));
                 if (!parsed.success) {
                     return false;
                 }
+
                 const clipboard = clipboardRef?.();
                 if (!clipboard || typeof clipboard.writeText !== "function") {
                     return false;
                 }
+
                 clipboard.writeText(parsed.data);
                 return true;
             } catch (error) {
@@ -53,6 +92,7 @@
                 return false;
             }
         });
+
         registerIpcHandle(
             "clipboard:writePngDataUrl",
             async (_event, pngDataUrl) => {
@@ -63,6 +103,7 @@
                     if (!parsed.success) {
                         return false;
                     }
+
                     const clipboard = clipboardRef?.();
                     const nativeImage = nativeImageRef?.();
                     if (
@@ -77,6 +118,7 @@
                     ) {
                         return false;
                     }
+
                     const image = nativeImage.createFromDataURL(parsed.data);
                     clipboard.writeImage(image);
                     return true;
@@ -93,5 +135,6 @@
             }
         );
     }
+
     module.exports = { registerClipboardHandlers };
 }
