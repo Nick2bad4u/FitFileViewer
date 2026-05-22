@@ -67,6 +67,7 @@
         "main/runtime/initializeApplication.ts",
         "main/runtime/nodeModules.ts",
         "main/runtime/primeTestEnvironment.ts",
+        "main/runtime/setupMainLifecycle.ts",
         "main/security/externalUrlPolicy.ts",
         "main/security/fileAccessPolicy.ts",
         "main/state/appState.ts",
