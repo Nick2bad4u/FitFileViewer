@@ -1,8 +1,70 @@
-"use strict";
 {
-    const fileAccessPolicy = require("../security/fileAccessPolicy");
-    const getErrorMessage = (error) =>
+    type BrowserWindow = import("electron").BrowserWindow;
+    type OpenDialogOptions = import("electron").OpenDialogOptions;
+    type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
+
+    const fileAccessPolicy = require("../security/fileAccessPolicy") as {
+        approveFilePath: (
+            filePath: unknown,
+            options?: { source?: string }
+        ) => string;
+        approveFilePaths: (
+            filePaths: unknown,
+            options?: { source?: string }
+        ) => void;
+    };
+
+    interface DialogApi {
+        showOpenDialog: (
+            options: OpenDialogOptions
+        ) => Promise<OpenDialogReturnValue>;
+    }
+
+    interface BrowserWindowApi {
+        getFocusedWindow?: () => BrowserWindow | null;
+    }
+
+    interface DialogConstants {
+        DIALOG_FILTERS: {
+            FIT_FILES: NonNullable<OpenDialogOptions["filters"]>;
+        };
+    }
+
+    type RegisterDialogIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => unknown;
+
+    type RegisterDialogIpcHandle = (
+        channel: string,
+        handler: RegisterDialogIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterDialogHandlersOptions {
+        addRecentFile: (filePath: string) => void;
+        browserWindowRef: () => BrowserWindowApi | null | undefined;
+        CONSTANTS: DialogConstants;
+        dialogRef: () => DialogApi | null | undefined;
+        getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
+        logWithContext?: LogWithContext;
+        mainWindow?: BrowserWindow | null;
+        registerIpcHandle: RegisterDialogIpcHandle;
+        safeCreateAppMenu: (
+            win: BrowserWindow,
+            theme: string,
+            loadedFitFilePath?: string | null
+        ) => void;
+    }
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
     /**
      * Registers dialog IPC handlers for opening FIT files and overlay
      * selections.
@@ -17,10 +79,11 @@
         safeCreateAppMenu,
         logWithContext,
         mainWindow,
-    }) {
+    }: RegisterDialogHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
+
         registerIpcHandle("dialog:openFile", async () => {
             try {
                 const dialog =
@@ -28,10 +91,12 @@
                 if (!dialog || typeof dialog.showOpenDialog !== "function") {
                     throw new Error("Dialog module unavailable");
                 }
+
                 const { canceled, filePaths } = await dialog.showOpenDialog({
                     filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                     properties: ["openFile"],
                 });
+
                 if (
                     canceled ||
                     !Array.isArray(filePaths) ||
@@ -39,10 +104,12 @@
                 ) {
                     return null;
                 }
+
                 const [firstPath] = filePaths;
                 if (!firstPath) {
                     return null;
                 }
+
                 try {
                     fileAccessPolicy.approveFilePath(firstPath, {
                         source: "dialog:openFile",
@@ -57,9 +124,11 @@
                         }
                     );
                 }
+
                 if (typeof addRecentFile === "function") {
                     addRecentFile(firstPath);
                 }
+
                 const win = resolveTargetWindow(browserWindowRef, mainWindow);
                 if (
                     win &&
@@ -84,6 +153,7 @@
                         );
                     }
                 }
+
                 return firstPath;
             } catch (error) {
                 logWithContext?.("error", "Error in dialog:openFile", {
@@ -92,6 +162,7 @@
                 throw error;
             }
         });
+
         registerIpcHandle("dialog:openOverlayFiles", async () => {
             try {
                 const dialog =
@@ -99,10 +170,12 @@
                 if (!dialog || typeof dialog.showOpenDialog !== "function") {
                     throw new Error("Dialog module unavailable");
                 }
+
                 const { canceled, filePaths } = await dialog.showOpenDialog({
                     filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                     properties: ["openFile", "multiSelections"],
                 });
+
                 if (
                     canceled ||
                     !Array.isArray(filePaths) ||
@@ -110,10 +183,12 @@
                 ) {
                     return [];
                 }
+
                 const filtered = filePaths.filter(
-                    (entry) =>
+                    (entry): entry is string =>
                         typeof entry === "string" && entry.trim().length > 0
                 );
+
                 try {
                     fileAccessPolicy.approveFilePaths(filtered, {
                         source: "dialog:openOverlayFiles",
@@ -127,6 +202,7 @@
                         }
                     );
                 }
+
                 return filtered;
             } catch (error) {
                 logWithContext?.("error", "Error in dialog:openOverlayFiles", {
@@ -136,10 +212,14 @@
             }
         });
     }
+
     /**
      * Resolves a sensible target window for menu updates.
      */
-    function resolveTargetWindow(browserWindowRef, fallback) {
+    function resolveTargetWindow(
+        browserWindowRef: () => BrowserWindowApi | null | undefined,
+        fallback?: BrowserWindow | null
+    ): BrowserWindow | null {
         try {
             const api =
                 typeof browserWindowRef === "function"
@@ -154,7 +234,9 @@
         } catch {
             // Ignore lookup issues and fall back to provided window.
         }
+
         return fallback || null;
     }
+
     module.exports = { registerDialogHandlers };
 }
