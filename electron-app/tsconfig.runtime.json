@@ -50,6 +50,7 @@
         "main/ipc/ipcRegistry.ts",
         "main/ipc/registerClipboardHandlers.ts",
         "main/ipc/registerExternalHandlers.ts",
+        "main/ipc/registerFitFileHandlers.ts",
         "main/ipc/sendToRenderer.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",

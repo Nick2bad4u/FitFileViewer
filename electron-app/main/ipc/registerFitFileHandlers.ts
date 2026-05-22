@@ -1,9 +1,38 @@
-"use strict";
 {
+    type FitDecodeResult = import("../../shared/fit").FitDecodeResult;
+
+    type FitFileIpcHandler = (
+        event: unknown,
+        arrayBuffer: unknown
+    ) => Promise<FitDecodeResult>;
+
+    type RegisterIpcHandle = (
+        channel: string,
+        handler: FitFileIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface FitParserModule {
+        decodeFitFile: (buffer: Buffer) => Promise<FitDecodeResult>;
+    }
+
+    interface RegisterFitFileHandlersOptions {
+        ensureFitParserStateIntegration: () => Promise<void>;
+        fitParserModule?: FitParserModule;
+        logWithContext: LogWithContext;
+        registerIpcHandle: RegisterIpcHandle;
+    }
+
     // Hard safety guard to prevent renderer-driven memory blowups.
     // Keep aligned with the file read size cap enforced by the main process.
     const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
-    const assertWithinFitLimit = (byteLength) => {
+
+    const assertWithinFitLimit = (byteLength: number): void => {
         if (!Number.isFinite(byteLength) || byteLength < 0) {
             throw new TypeError(
                 "Invalid FIT data: expected a finite byte length"
@@ -13,6 +42,7 @@
             throw new Error("File size exceeds 100MB limit");
         }
     };
+
     /**
      * Normalizes IPC payloads into a Node Buffer.
      *
@@ -20,11 +50,12 @@
      * defensively validate the input here so a compromised renderer cannot feed
      * unexpected types into the FIT decoder.
      */
-    const toBuffer = (value) => {
+    const toBuffer = (value: unknown): Buffer => {
         if (value instanceof ArrayBuffer) {
             assertWithinFitLimit(value.byteLength);
             return Buffer.from(value);
         }
+
         if (
             value &&
             typeof value === "object" &&
@@ -38,8 +69,10 @@
                 value.byteLength
             );
         }
+
         throw new TypeError("Invalid FIT data: expected ArrayBuffer");
     };
+
     /**
      * Registers IPC handlers for FIT file parsing and decoding operations.
      */
@@ -48,17 +81,19 @@
         ensureFitParserStateIntegration,
         logWithContext,
         fitParserModule,
-    }) {
+    }: RegisterFitFileHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
-        const registerHandler = (channel) => {
+
+        const registerHandler = (channel: string): void => {
             registerIpcHandle(channel, async (_event, arrayBuffer) => {
                 try {
                     await ensureFitParserStateIntegration();
                     const buffer = toBuffer(arrayBuffer);
                     const fitParser =
-                        fitParserModule ?? require("../../fitParser");
+                        fitParserModule ??
+                        (require("../../fitParser") as FitParserModule);
                     return await fitParser.decodeFitFile(buffer);
                 } catch (error) {
                     logWithContext?.("error", `Error in ${channel}:`, {
@@ -71,8 +106,10 @@
                 }
             });
         };
+
         registerHandler("fit:parse");
         registerHandler("fit:decode");
     }
+
     module.exports = { registerFitFileHandlers };
 }
