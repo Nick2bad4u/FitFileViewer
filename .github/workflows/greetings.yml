@@ -38,6 +38,6 @@ jobs:
             - name: First Interaction
               uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
               with:
-                  repo-token: ${{ secrets.GITHUB_TOKEN }} # Use the repository token for authentication
-                  issue-message: "Greetings, thanks for opening an issue, I'll look when I can." # Message for new issues
-                  pr-message: "Greetings, thanks for opening a pull request, I'll look when I can." # Message for new pull requests
+                  repo_token: ${{ secrets.GITHUB_TOKEN }}
+                  issue_message: "Greetings, thanks for opening an issue, I'll look when I can." # Message for new issues
+                  pr_message: "Greetings, thanks for opening a pull request, I'll look when I can." # Message for new pull requests
