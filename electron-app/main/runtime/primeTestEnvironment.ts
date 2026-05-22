@@ -1,23 +1,60 @@
-"use strict";
 {
-    const { getAppState, setAppState } = require("../state/appState");
+    type PrimeTestElectronLike = {
+        app?: unknown;
+        BrowserWindow?: unknown;
+        default?: unknown;
+    };
+
+    type PrimeTestMainWindowLike = {
+        isDestroyed?: () => boolean;
+        webContents?: {
+            isDestroyed?: () => boolean;
+        };
+    };
+
+    type PrimeTestInitializeApplication =
+        () => Promise<PrimeTestMainWindowLike>;
+
+    type PrimeTestAppLike = {
+        emit?: (event: string) => boolean;
+        listenerCount?: (event: string) => number;
+        on?: (event: string, listener: () => void) => unknown;
+        whenReady?: () => Promise<unknown> | unknown;
+    };
+
+    type PrimeTestBrowserWindowLike = {
+        getAllWindows?: () => PrimeTestMainWindowLike[];
+    };
+
+    const { getAppState, setAppState } = require("../state/appState") as {
+        getAppState: (key: string) => unknown;
+        setAppState: (key: string, value: unknown) => void;
+    };
     const {
         appRef,
         browserWindowRef,
         getElectronOverride,
         setElectronOverride,
-    } = require("./electronAccess");
+    } = require("./electronAccess") as {
+        appRef: () => unknown;
+        browserWindowRef: () => unknown;
+        getElectronOverride: () => unknown;
+        setElectronOverride: (override: unknown) => void;
+    };
+
     const PROBE_EVENT = "__test_probe__";
-    function asRecord(value) {
+
+    function asRecord(value: unknown): Record<string, unknown> | null {
         if (
             value &&
             (typeof value === "object" || typeof value === "function")
         ) {
-            return value;
+            return value as Record<string, unknown>;
         }
         return null;
     }
-    function getProperty(value, key) {
+
+    function getProperty(value: unknown, key: string): unknown {
         const record = asRecord(value);
         if (!record) return undefined;
         try {
@@ -26,27 +63,34 @@
             return undefined;
         }
     }
-    function asElectronLike(value) {
+
+    function asElectronLike(value: unknown): PrimeTestElectronLike | null {
         const record = asRecord(value);
-        return record ? record : null;
+        return record ? (record as PrimeTestElectronLike) : null;
     }
-    function hasElectronApis(value) {
+
+    function hasElectronApis(value: unknown): value is PrimeTestElectronLike {
         return Boolean(
             asRecord(value) &&
             (getProperty(value, "app") || getProperty(value, "BrowserWindow"))
         );
     }
-    function resolveElectronModule(value) {
+
+    function resolveElectronModule(
+        value: unknown
+    ): PrimeTestElectronLike | null {
         if (hasElectronApis(value)) return asElectronLike(value);
         const defaultValue = getProperty(value, "default");
         if (hasElectronApis(defaultValue)) return asElectronLike(defaultValue);
         return asElectronLike(value);
     }
-    function getHoistedElectronMock() {
+
+    function getHoistedElectronMock(): PrimeTestElectronLike | null {
         if (typeof globalThis === "undefined") return null;
         return asElectronLike(getProperty(globalThis, "__electronHoistedMock"));
     }
-    function isTestEnvironment() {
+
+    function isTestEnvironment(): boolean {
         return Boolean(
             (typeof process !== "undefined" &&
                 process.env &&
@@ -54,23 +98,34 @@
             getHoistedElectronMock()
         );
     }
-    function asAppLike(value) {
+
+    function asAppLike(value: unknown): PrimeTestAppLike | null {
         const record = asRecord(value);
-        return record ? record : null;
+        return record ? (record as PrimeTestAppLike) : null;
     }
-    function asBrowserWindowLike(value) {
+
+    function asBrowserWindowLike(
+        value: unknown
+    ): PrimeTestBrowserWindowLike | null {
         const record = asRecord(value);
-        return record ? record : null;
+        return record ? (record as PrimeTestBrowserWindowLike) : null;
     }
-    function getApp(electronModule) {
+
+    function getApp(
+        electronModule: PrimeTestElectronLike | null | undefined
+    ): PrimeTestAppLike | null {
         return asAppLike(getProperty(electronModule, "app"));
     }
-    function getBrowserWindow(electronModule) {
+
+    function getBrowserWindow(
+        electronModule: PrimeTestElectronLike | null | undefined
+    ): PrimeTestBrowserWindowLike | null {
         return asBrowserWindowLike(
             getProperty(electronModule, "BrowserWindow")
         );
     }
-    function callWhenReady(app) {
+
+    function callWhenReady(app: PrimeTestAppLike | null | undefined): boolean {
         if (!app || typeof app.whenReady !== "function") return false;
         try {
             app.whenReady();
@@ -79,13 +134,17 @@
             return false;
         }
     }
-    function getAllWindows(BrowserWindow) {
+
+    function getAllWindows(
+        BrowserWindow: PrimeTestBrowserWindowLike | null | undefined
+    ): PrimeTestMainWindowLike[] | null {
         if (
             !BrowserWindow ||
             typeof BrowserWindow.getAllWindows !== "function"
         ) {
             return null;
         }
+
         try {
             const windows = BrowserWindow.getAllWindows();
             return Array.isArray(windows) ? windows : null;
@@ -93,11 +152,12 @@
             return null;
         }
     }
+
     function setFirstWindowIfMissing(
-        windows,
-        initializeApplication,
+        windows: PrimeTestMainWindowLike[] | null,
+        initializeApplication: PrimeTestInitializeApplication,
         shouldInitialize = false
-    ) {
+    ): void {
         if (
             Array.isArray(windows) &&
             windows.length > 0 &&
@@ -113,9 +173,11 @@
             }
         }
     }
-    function isProbeInstalled(app) {
+
+    function isProbeInstalled(app: unknown): boolean {
         const appLike = asAppLike(app);
         if (!appLike) return false;
+
         const listenerCount =
             typeof appLike.listenerCount === "function"
                 ? appLike.listenerCount(PROBE_EVENT)
@@ -125,7 +187,8 @@
             getProperty(appLike, "__ffvTestProbeInstalled") === true
         );
     }
-    function markProbeInstalled(app) {
+
+    function markProbeInstalled(app: unknown): void {
         const record = asRecord(app);
         if (!record) return;
         try {
@@ -134,22 +197,29 @@
             /* ignore */
         }
     }
-    function rememberTestTimer(handle) {
+
+    function rememberTestTimer(handle: ReturnType<typeof setTimeout>): void {
         const timerKey = "__ffvTestRetryTimers";
         const existing = getProperty(globalThis, timerKey);
-        const timers = Array.isArray(existing) ? existing : [];
+        const timers = Array.isArray(existing)
+            ? (existing as Array<ReturnType<typeof setTimeout>>)
+            : [];
         timers.push(handle);
         Reflect.set(globalThis, timerKey, timers);
     }
-    function scheduleTestRetry(callback) {
+
+    function scheduleTestRetry(callback: () => void): void {
         rememberTestTimer(setTimeout(callback, 0));
     }
+
     /**
      * Executes the elaborate test-environment priming logic that historically
      * lived in main.js. The routine ensures mocked Electron modules expose
      * whenReady/getAllWindows calls before tests run.
      */
-    function primeTestEnvironment(initializeApplication) {
+    function primeTestEnvironment(
+        initializeApplication: PrimeTestInitializeApplication
+    ): void {
         try {
             if (isTestEnvironment()) {
                 try {
@@ -166,14 +236,16 @@
                 } catch {
                     /* Ignore mock detection errors */
                 }
+
                 try {
                     Promise.resolve().then(async () => {
                         try {
-                            const esm = await import("electron");
+                            const esm = (await import("electron")) as unknown;
                             const mod = resolveElectronModule(esm);
                             if (hasElectronApis(mod)) {
                                 setElectronOverride(mod);
                             }
+
                             callWhenReady(asAppLike(appRef()));
                             setFirstWindowIfMissing(
                                 getAllWindows(
@@ -195,7 +267,8 @@
                 } catch {
                     /* Ignore promise setup errors */
                 }
-                const electronModule = require("electron");
+
+                const electronModule = require("electron") as unknown;
                 const resolved = resolveElectronModule(electronModule);
                 try {
                     callWhenReady(getApp(resolved));
@@ -211,12 +284,13 @@
         } catch {
             /* Ignore overall setup errors */
         }
+
         try {
             if (isTestEnvironment()) {
                 let attempts = 0;
-                const retryPrime = () => {
+                const retryPrime = (): void => {
                     try {
-                        const raw = require("electron");
+                        const raw = require("electron") as unknown;
                         const mod = resolveElectronModule(raw);
                         const readyCalled = callWhenReady(getApp(mod));
                         const windows = getAllWindows(getBrowserWindow(mod));
@@ -241,15 +315,17 @@
         } catch {
             /* Ignore module priming errors */
         }
+
         try {
             if (isTestEnvironment()) {
                 /**
                  * Single shared no-op handler used for the probe listener.
                  */
-                const probeHandler = () => {
+                const probeHandler = (): void => {
                     /* no-op */
                 };
-                const keepaliveTick = () => {
+
+                const keepaliveTick = (): void => {
                     try {
                         const app = asAppLike(appRef());
                         callWhenReady(app);
@@ -263,6 +339,7 @@
                                     app.on(PROBE_EVENT, probeHandler);
                                     markProbeInstalled(app);
                                 }
+
                                 if (typeof app.emit === "function") {
                                     try {
                                         app.emit(PROBE_EVENT);
@@ -283,6 +360,7 @@
                         /* ignore */
                     }
                 };
+
                 if (!getProperty(globalThis, "__ffvTestKeepalive")) {
                     keepaliveTick();
                     Reflect.set(
@@ -298,5 +376,6 @@
             /* ignore */
         }
     }
+
     module.exports = { primeTestEnvironment };
 }

@@ -61,6 +61,8 @@ export default defineConfig({
                 "utils/performance/**",
                 // State integration bridges are environment-coupled and not part of the strict unit coverage contract
                 "utils/state/integration/**",
+                // Test-only Electron mock priming is exercised through the generated CommonJS runtime file.
+                "main/runtime/primeTestEnvironment.ts",
                 // UI state manager is currently exercised mostly via integration flows
                 "utils/state/domain/uiStateManager.js",
                 // Some newer state modules are not yet held to the strict unit coverage contract
