@@ -57,6 +57,7 @@
         "main/ipc/registerInfoHandlers.ts",
         "main/ipc/registerRecentFileHandlers.ts",
         "main/ipc/sendToRenderer.ts",
+        "main/ipc/setupIPCHandlers.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
         "main/updater/autoUpdaterAccess.ts",
