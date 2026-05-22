@@ -54,6 +54,7 @@
         "main/ipc/registerFitFileHandlers.ts",
         "main/ipc/registerFileSystemHandlers.ts",
         "main/ipc/registerInfoHandlers.ts",
+        "main/ipc/registerRecentFileHandlers.ts",
         "main/ipc/sendToRenderer.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
