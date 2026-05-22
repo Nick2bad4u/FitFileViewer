@@ -61,6 +61,7 @@
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
         "main/updater/autoUpdaterAccess.ts",
+        "main/updater/setupAutoUpdater.ts",
         "main/runtime/electronAccess.ts",
         "main/runtime/fitParserIntegration.ts",
         "main/runtime/initializeApplication.ts",

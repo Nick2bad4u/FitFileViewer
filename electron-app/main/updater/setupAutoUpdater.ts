@@ -1,24 +1,112 @@
-"use strict";
 {
-    const { CONSTANTS } = require("../constants");
-    const { sendToRenderer } = require("../ipc/sendToRenderer");
-    const { logWithContext } = require("../logging/logWithContext");
-    const { menuRef } = require("../runtime/electronAccess");
-    const { mainProcessState } = require("../state/appState");
-    const { isWindowUsable } = require("../window/windowValidation");
-    const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess");
-    function getErrorMessage(error) {
+    interface AutoUpdaterLike {
+        autoDownload?: boolean;
+        checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
+        feedURL?: unknown;
+        logger?: unknown;
+        on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
+    }
+
+    interface FileTransportLike {
+        level?: string;
+    }
+
+    interface UpdaterLoggerLike {
+        error?: (message: string) => void;
+        info?: (message: string) => void;
+        transports?: { file?: FileTransportLike };
+    }
+
+    type ConfigurableAutoUpdater = AutoUpdaterLike & {
+        autoDownload: boolean;
+        feedURL?: unknown;
+        logger?: UpdaterLoggerLike;
+        on: (event: string, listener: (...args: unknown[]) => void) => unknown;
+    };
+
+    interface MainWindowLike {
+        isDestroyed?: () => boolean;
+        webContents?: {
+            isDestroyed?: () => boolean;
+            send?: (channel: string, ...args: unknown[]) => void;
+        };
+    }
+
+    interface MainProcessConstants {
+        LOG_LEVELS: {
+            INFO: string;
+        };
+        UPDATE_EVENTS: {
+            AVAILABLE: string;
+            CHECKING: string;
+            DOWNLOAD_PROGRESS: string;
+            DOWNLOADED: string;
+            ERROR: string;
+            NOT_AVAILABLE: string;
+        };
+    }
+
+    interface MenuLike {
+        getMenuItemById?: (id: string) => { enabled?: boolean } | null;
+    }
+
+    interface MenuModuleLike {
+        getApplicationMenu?: () => MenuLike | null;
+    }
+
+    interface MainProcessStateLike {
+        registerEventHandler?: (
+            emitter: unknown,
+            event: string,
+            handler: (...args: unknown[]) => void,
+            handlerId: string
+        ) => void;
+        unregisterEventHandler?: (handlerId: string) => void;
+    }
+
+    const { CONSTANTS } = require("../constants") as {
+        CONSTANTS: MainProcessConstants;
+    };
+    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
+        sendToRenderer: (
+            win: MainWindowLike | null | undefined,
+            channel: string,
+            ...args: unknown[]
+        ) => void;
+    };
+    const { logWithContext } = require("../logging/logWithContext") as {
+        logWithContext: (
+            level: "error" | "info" | "warn",
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+    const { menuRef } = require("../runtime/electronAccess") as {
+        menuRef: () => MenuModuleLike | undefined;
+    };
+    const { mainProcessState } = require("../state/appState") as {
+        mainProcessState: MainProcessStateLike;
+    };
+    const { isWindowUsable } = require("../window/windowValidation") as {
+        isWindowUsable: (win?: MainWindowLike | null) => boolean;
+    };
+    const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess") as {
+        resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
+    };
+
+    function getErrorMessage(error: unknown): string {
         if (error instanceof Error) {
             return error.message;
         }
         return error == null ? "unknown" : String(error);
     }
+
     /**
      * Redact credentials from a URL-like string for logging.
      *
      * This is intentionally best-effort and must never throw.
      */
-    function redactUrlCredentials(value) {
+    function redactUrlCredentials(value: string): string {
         try {
             const parsed = new URL(value);
             if (!parsed.username && !parsed.password) return value;
@@ -30,18 +118,21 @@
             return value;
         }
     }
-    function asUpdaterLoggerLike(value) {
+
+    function asUpdaterLoggerLike(value: unknown): UpdaterLoggerLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? value
+            ? (value as UpdaterLoggerLike)
             : null;
     }
-    function resolveLogger() {
+
+    function resolveLogger(): UpdaterLoggerLike {
         try {
             const log = asUpdaterLoggerLike(require("electron-log"));
             if (log) {
                 return log;
             }
+
             logWithContext(
                 "warn",
                 "Logger initialization failed. Falling back to console logging."
@@ -51,9 +142,11 @@
                 error: getErrorMessage(error),
             });
         }
+
         return console;
     }
-    function enableRestartMenuItem() {
+
+    function enableRestartMenuItem(): void {
         const menuModule = menuRef();
         const menu =
             typeof menuModule?.getApplicationMenu === "function"
@@ -64,13 +157,17 @@
             restartItem.enabled = true;
         }
     }
+
     /**
      * Configures electron-updater for the application, wiring all event
      * handlers to relay progress to the renderer. The logic matches the
      * historic main.js implementation so behaviour and logging stay
      * consistent.
      */
-    function setupAutoUpdater(mainWindow, providedAutoUpdater) {
+    function setupAutoUpdater(
+        mainWindow?: MainWindowLike | null,
+        providedAutoUpdater?: AutoUpdaterLike | null
+    ): void {
         // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
         const autoUpdater =
             providedAutoUpdater === undefined
@@ -82,6 +179,7 @@
             );
             return;
         }
+
         if (
             !autoUpdater ||
             (typeof autoUpdater !== "object" &&
@@ -92,6 +190,7 @@
             );
             return;
         }
+
         // Electron-updater instances are EventEmitters. If it can't register handlers, it's unusable.
         if (typeof autoUpdater.on !== "function") {
             console.warn(
@@ -99,9 +198,11 @@
             );
             return;
         }
-        const updater = autoUpdater;
+
+        const updater = autoUpdater as ConfigurableAutoUpdater;
         updater.autoDownload = true;
         updater.logger = resolveLogger();
+
         try {
             const transportsFile = updater.logger?.transports?.file;
             if (transportsFile && "level" in transportsFile) {
@@ -110,6 +211,7 @@
         } catch {
             // Non-fatal; logger implementations differ between environments.
         }
+
         const rawFeedUrl = updater.feedURL;
         if (rawFeedUrl !== undefined && rawFeedUrl !== null) {
             const safeFeedUrl = redactUrlCredentials(String(rawFeedUrl));
@@ -125,18 +227,22 @@
                 "AutoUpdater using default feed (likely GitHub releases)"
             );
         }
-        const updateEventHandlers = {
+
+        const updateEventHandlers: Record<
+            string,
+            (...args: unknown[]) => void
+        > = {
             "checking-for-update": () => {
                 sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
             },
-            "download-progress": (progressObj) => {
+            "download-progress": (progressObj: unknown) => {
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS,
                     progressObj
                 );
             },
-            error: (err) => {
+            error: (err: unknown) => {
                 const errorMessage = getErrorMessage(err);
                 updater.logger?.error?.(`AutoUpdater Error: ${errorMessage}`);
                 sendToRenderer(
@@ -145,14 +251,14 @@
                     errorMessage
                 );
             },
-            "update-available": (info) => {
+            "update-available": (info: unknown) => {
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.AVAILABLE,
                     info
                 );
             },
-            "update-downloaded": (info) => {
+            "update-downloaded": (info: unknown) => {
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.DOWNLOADED,
@@ -160,7 +266,7 @@
                 );
                 enableRestartMenuItem();
             },
-            "update-not-available": (info) => {
+            "update-not-available": (info: unknown) => {
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE,
@@ -168,6 +274,7 @@
                 );
             },
         };
+
         for (const [event, handler] of Object.entries(updateEventHandlers)) {
             const handlerId = `autoUpdater:${event}`;
             if (typeof mainProcessState.unregisterEventHandler === "function") {
@@ -183,5 +290,6 @@
             }
         }
     }
+
     module.exports = { setupAutoUpdater };
 }
