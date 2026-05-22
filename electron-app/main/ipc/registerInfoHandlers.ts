@@ -1,7 +1,65 @@
-"use strict";
 {
-    const getErrorMessage = (error) =>
+    interface AppInfoProvider {
+        getAppPath?: () => string;
+        getVersion?: () => string;
+    }
+
+    interface FileReader {
+        readFileSync?: (path: string) => Buffer | string;
+    }
+
+    interface PathJoiner {
+        join: (...paths: string[]) => string;
+    }
+
+    interface InfoConstants {
+        DEFAULT_THEME: string;
+        SETTINGS_CONFIG_NAME: string;
+    }
+
+    interface ConfStore {
+        get: (key: string, fallback: unknown) => unknown;
+    }
+
+    type ConfConstructor = new (options: { name: string }) => ConfStore;
+
+    interface ElectronConfModule {
+        Conf: ConfConstructor;
+    }
+
+    type InfoIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => Promise<unknown>;
+
+    type RegisterInfoIpcHandle = (
+        channel: string,
+        handler: InfoIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterInfoHandlersOptions {
+        appRef: () => AppInfoProvider | null | undefined;
+        confModule?: ElectronConfModule;
+        CONSTANTS: InfoConstants;
+        fs: FileReader;
+        logWithContext?: LogWithContext;
+        path: PathJoiner;
+        registerIpcHandle: RegisterInfoIpcHandle;
+    }
+
+    interface PackageMetadata {
+        license?: unknown;
+    }
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
     /**
      * Registers IPC handlers that expose platform and application metadata.
      */
@@ -13,13 +71,20 @@
         CONSTANTS,
         logWithContext,
         confModule,
-    }) {
+    }: RegisterInfoHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
-        const safeConfGet = (key, fallback, normalize) => {
+
+        const safeConfGet = <T>(
+            key: string,
+            fallback: T,
+            normalize: (value: unknown) => T
+        ): T => {
             try {
-                const configModule = confModule ?? require("electron-conf");
+                const configModule =
+                    confModule ??
+                    (require("electron-conf") as ElectronConfModule);
                 const { Conf } = configModule;
                 const conf = new Conf({
                     name: CONSTANTS.SETTINGS_CONFIG_NAME,
@@ -37,14 +102,16 @@
                 return normalize(fallback);
             }
         };
-        const normalizeTheme = (value) => {
+
+        const normalizeTheme = (value: unknown): string => {
             const theme =
                 typeof value === "string" ? value.trim().toLowerCase() : "";
             return theme === "dark" || theme === "light" || theme === "auto"
                 ? theme
                 : CONSTANTS.DEFAULT_THEME;
         };
-        const normalizeMapTab = (value) => {
+
+        const normalizeMapTab = (value: unknown): string => {
             const tab = typeof value === "string" ? value.trim() : "";
             // Conservative: only allow simple identifier-like tab names.
             if (/^[a-z0-9_-]{1,32}$/iu.test(tab)) {
@@ -52,7 +119,8 @@
             }
             return "map";
         };
-        const handlers = {
+
+        const handlers: Record<string, InfoIpcHandler> = {
             getAppVersion: async () => {
                 const app = appRef();
                 return app && typeof app.getVersion === "function"
@@ -75,7 +143,7 @@
                     const packageJsonBuffer = fs.readFileSync(pkgPath);
                     const packageJson = JSON.parse(
                         packageJsonBuffer.toString("utf8")
-                    );
+                    ) as PackageMetadata;
                     return typeof packageJson.license === "string"
                         ? packageJson.license
                         : "Unknown";
@@ -100,6 +168,7 @@
             "theme:get": async () =>
                 safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
         };
+
         for (const [channel, handler] of Object.entries(handlers)) {
             registerIpcHandle(channel, async (...args) => {
                 try {
@@ -113,5 +182,6 @@
             });
         }
     }
+
     module.exports = { registerInfoHandlers };
 }
