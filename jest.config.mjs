@@ -21,24 +21,26 @@
  *   extension.
  */
 
-module.exports = {
-    testEnvironment: "jsdom",
-    roots: ["<rootDir>/electron-app/tests/jest-placeholder"],
-    testMatch: ["**/*.jest.test.(js|ts)"],
-    setupFilesAfterEnv: [
-        "<rootDir>/electron-app/tests/jest-placeholder/jest.setup.js",
-    ],
-    transform: {},
+const config = {
     moduleFileExtensions: [
         "js",
         "ts",
         "json",
     ],
+    roots: ["<rootDir>/electron-app/tests/jest-placeholder"],
+    setupFilesAfterEnv: [
+        "<rootDir>/electron-app/tests/jest-placeholder/jest.setup.js",
+    ],
+    testEnvironment: "jsdom",
+    testMatch: ["**/*.jest.test.(js|ts)"],
     // Keep it isolated so Jest doesn't try to run the Vitest suites
     testPathIgnorePatterns: [
         "/node_modules/",
         "/electron-app/tests/(?!jest-placeholder)/",
     ],
+    transform: {},
     // Silence verbose logs from Electron-mocked globals if any
     verbose: false,
 };
+
+export default config;

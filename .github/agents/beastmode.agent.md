@@ -2,23 +2,20 @@
 name: BeastMode
 description: Beast Mode 3.1 (Custom)
 argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
-agents: ["*"]
+agents: "*"
 tools:
- [
-  "vscode",
-  "execute",
-  "read",
-  "agent",
-  "edit",
-  "search",
-  "web",
-  "tavily-remote-mcp-system/*",
-  "vscode-mcp/*",
-  "github/*",
-  "github/*",
-  "memory",
-  "todo",
- ]
+    - vscode
+    - execute
+    - read
+    - agent
+    - edit
+    - search
+    - web
+    - tavily-remote-mcp-system/*
+    - vscode-mcp/*
+    - github/*
+    - memory
+    - todo
 handoffs:
  - label: Consistency
    agent: BeastMode
@@ -76,7 +73,7 @@ user-invokable: true
 
   </planning>
 
-**Making Code Changes**
+# Making Code Changes
 
 **Code Edits**
 

@@ -1,82 +1,82 @@
 {
     "tasks": [
         {
-            "type": "npm",
-            "script": "watch",
-            "problemMatcher": "$tsc-watch",
+            "group": {
+                "isDefault": true,
+                "kind": "build"
+            },
             "isBackground": true,
             "presentation": {
                 "reveal": "never"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "problemMatcher": "$tsc-watch",
+            "script": "watch",
+            "type": "npm"
         },
         {
-            "label": "run vitest in electron-app",
-            "type": "shell",
-            "command": "npm",
             "args": [
                 "test"
             ],
+            "command": "npm",
+            "group": "build",
+            "isBackground": false,
+            "label": "run vitest in electron-app",
             "options": {
                 "cwd": "${workspaceFolder}/electron-app"
             },
-            "isBackground": false,
             "problemMatcher": [
                 "$eslint-stylish"
             ],
-            "group": "build"
+            "type": "shell"
         },
         {
-            "label": "Run High Altitude Test Root",
-            "type": "shell",
             "command": "cd electron-app; npm run test -- tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts > ../temp/task_test_output.txt 2>&1",
+            "group": "test",
             "isBackground": false,
-            "group": "test"
+            "label": "Run High Altitude Test Root",
+            "type": "shell"
         },
         {
-            "label": "Run High Altitude Test Verbose",
-            "type": "shell",
             "command": "cd electron-app; npx vitest run tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts --no-color > ../temp/test_output_verbose.txt 2>&1",
+            "group": "test",
             "isBackground": false,
-            "group": "test"
+            "label": "Run High Altitude Test Verbose",
+            "type": "shell"
         },
         {
-            "label": "Run Verify Fix Script",
-            "type": "shell",
+            "args": [],
             "command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_task_output.txt 2>&1",
-            "args": [],
+            "group": "test",
             "isBackground": false,
+            "label": "Run Verify Fix Script",
             "problemMatcher": [],
-            "group": "test"
+            "type": "shell"
         },
         {
-            "label": "Run Verify Fix Script 2",
-            "type": "shell",
+            "args": [],
             "command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_task_output_2.txt 2>&1",
-            "args": [],
+            "group": "test",
             "isBackground": false,
+            "label": "Run Verify Fix Script 2",
             "problemMatcher": [],
-            "group": "test"
+            "type": "shell"
         },
         {
-            "label": "Run Final Verification",
-            "type": "shell",
+            "args": [],
             "command": "cd electron-app && node verify-fix.mjs > ../temp/verify_fix_final_output.txt 2>&1",
-            "args": [],
+            "group": "test",
             "isBackground": false,
+            "label": "Run Final Verification",
             "problemMatcher": [],
-            "group": "test"
+            "type": "shell"
         },
         {
-            "label": "Delete Verify Fix Script",
-            "type": "shell",
-            "command": "del electron-app\\verify-fix.mjs",
             "args": [],
+            "command": "del electron-app\\verify-fix.mjs",
+            "group": "none",
             "isBackground": false,
-            "group": "none"
+            "label": "Delete Verify Fix Script",
+            "type": "shell"
         }
     ],
     "version": "2.0.0"

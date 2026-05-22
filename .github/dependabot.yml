@@ -8,7 +8,6 @@
 # - Grouping updates by ecosystem with specific patterns for version updates.
 
 version: 2
-enable-beta-ecosystems: true
 
 multi-ecosystem-groups:
     dependabot-all:
@@ -28,7 +27,11 @@ multi-ecosystem-groups:
 
 updates:
     - package-ecosystem: github-actions
+      cooldown:
+          default-days: 3
+          include: ["*"]
       directory: /
+      target-branch: main
       allow:
           # Allow both direct and indirect updates for all packages
           - dependency-type: "all"
@@ -39,7 +42,11 @@ updates:
           - "*"
 
     - package-ecosystem: npm
+      cooldown:
+          default-days: 3
+          include: ["*"]
       directory: /electron-app
+      target-branch: main
       versioning-strategy: increase
       allow:
           # Allow both direct and indirect updates for all packages
@@ -60,6 +67,7 @@ updates:
           default-days: 3
           include: ["*"]
       directory: /docs/docusaurus
+      target-branch: main
       rebase-strategy: auto
       versioning-strategy: increase
       allow:

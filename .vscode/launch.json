@@ -1,18 +1,18 @@
 {
     "configurations": [
         {
-            "type": "node",
-            "request": "attach",
             "name": "Attach to Electron Main",
-            "port": 9229
+            "port": 9229,
+            "request": "attach",
+            "type": "node"
         },
         {
-            "name": "Run Extension",
-            "type": "extensionHost",
-            "request": "launch",
             "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+            "name": "Run Extension",
             "outFiles": ["${workspaceFolder}/out/**/*.js"],
-            "preLaunchTask": "${defaultBuildTask}"
+            "preLaunchTask": "${defaultBuildTask}",
+            "request": "launch",
+            "type": "extensionHost"
         }
     ],
     "version": "0.2.0"
