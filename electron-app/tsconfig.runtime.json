@@ -55,6 +55,7 @@
         "main/runtime/nodeModules.ts",
         "main/security/externalUrlPolicy.ts",
         "main/security/fileAccessPolicy.ts",
+        "main/state/appState.ts",
         "main/theme/getThemeFromRenderer.ts",
         "main/window/windowValidation.ts",
         "windowStateUtils.ts",
