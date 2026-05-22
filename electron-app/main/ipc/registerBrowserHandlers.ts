@@ -1,18 +1,112 @@
-"use strict";
 {
-    const { approveFilePath } = require("../security/fileAccessPolicy");
+    type OpenDialogOptions = import("electron").OpenDialogOptions;
+    type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
+
+    const { approveFilePath } = require("../security/fileAccessPolicy") as {
+        approveFilePath: (
+            filePath: unknown,
+            options?: { source?: string }
+        ) => string;
+    };
+
+    interface DialogApi {
+        showOpenDialog: (
+            options: OpenDialogOptions
+        ) => Promise<OpenDialogReturnValue>;
+    }
+
+    interface StatLike {
+        isDirectory: () => boolean;
+    }
+
+    interface DirentLike {
+        isDirectory?: () => boolean;
+        isFile?: () => boolean;
+        name?: unknown;
+    }
+
+    interface FsApi {
+        promises?: {
+            readdir?: (
+                folder: string,
+                options: { withFileTypes: true }
+            ) => Promise<DirentLike[]>;
+            stat?: (path: string) => Promise<StatLike>;
+        };
+    }
+
+    interface PathApi {
+        isAbsolute: (path: string) => boolean;
+        resolve: (...paths: string[]) => string;
+        sep: string;
+    }
+
+    interface BrowserConstants {
+        SETTINGS_CONFIG_NAME: string;
+    }
+
+    type BrowserConfValue = boolean | string | null;
+
+    interface BrowserConfStore {
+        get: (key: string, fallback?: BrowserConfValue) => BrowserConfValue;
+        set: (key: string, value: boolean | string) => void;
+    }
+
+    interface BrowserConfModule {
+        Conf: new (options: { name: string }) => BrowserConfStore;
+    }
+
+    type RegisterBrowserIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => unknown;
+
+    type RegisterBrowserIpcHandle = (
+        channel: string,
+        handler: RegisterBrowserIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterBrowserHandlersOptions {
+        CONSTANTS: BrowserConstants;
+        confModule?: BrowserConfModule;
+        dialogRef: () => DialogApi | null | undefined;
+        fs: FsApi;
+        logWithContext?: LogWithContext;
+        path: PathApi;
+        registerIpcHandle: RegisterBrowserIpcHandle;
+    }
+
+    interface BrowserEntry {
+        fullPath: string;
+        kind: "dir" | "file";
+        name: string;
+        relPath: string;
+    }
+
     const CONF_KEY_ENABLED = "fitBrowser.enabled";
     const CONF_KEY_ROOT_FOLDER = "fitBrowser.rootFolder";
     const CONF_KEY_ROOT_FOLDER_MODE = "fitBrowser.rootFolderMode";
-    const getErrorMessage = (error) =>
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
-    function normalizeAbsoluteFolder(value, path) {
+
+    function normalizeAbsoluteFolder(
+        value: unknown,
+        path: Pick<PathApi, "isAbsolute">
+    ): string | null {
         const v = typeof value === "string" ? value.trim() : "";
         if (!v) {
             return null;
         }
         return path.isAbsolute(v) ? v : null;
     }
+
     /**
      * IPC handlers for the built-in FIT file browser tab.
      */
@@ -24,13 +118,16 @@
         CONSTANTS,
         logWithContext,
         confModule,
-    }) {
+    }: RegisterBrowserHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
-        const tryGetConf = () => {
+
+        const tryGetConf = (): BrowserConfStore | null => {
             try {
-                const { Conf } = confModule ?? require("electron-conf");
+                const { Conf } =
+                    confModule ??
+                    (require("electron-conf") as BrowserConfModule);
                 return new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             } catch (error) {
                 logWithContext?.(
@@ -43,7 +140,8 @@
                 return null;
             }
         };
-        const readRootFolder = () => {
+
+        const readRootFolder = (): string | null => {
             const conf = tryGetConf();
             if (!conf) {
                 return null;
@@ -53,7 +151,8 @@
                 path
             );
         };
-        const readEnabled = () => {
+
+        const readEnabled = (): boolean => {
             const conf = tryGetConf();
             if (!conf) {
                 return true;
@@ -61,7 +160,8 @@
             const value = conf.get(CONF_KEY_ENABLED, true);
             return value === true;
         };
-        const writeRootFolder = (folder) => {
+
+        const writeRootFolder = (folder: string): void => {
             const conf = tryGetConf();
             if (!conf) {
                 return;
@@ -78,7 +178,8 @@
                 );
             }
         };
-        const writeRootFolderMode = (mode) => {
+
+        const writeRootFolderMode = (mode: "auto" | "manual"): void => {
             const conf = tryGetConf();
             if (!conf) {
                 return;
@@ -96,7 +197,8 @@
                 );
             }
         };
-        const writeEnabled = (enabled) => {
+
+        const writeEnabled = (enabled: boolean): void => {
             const conf = tryGetConf();
             if (!conf) {
                 return;
@@ -113,15 +215,20 @@
                 );
             }
         };
-        const validateAndPersistFolder = async (folder) => {
+
+        const validateAndPersistFolder = async (
+            folder: string
+        ): Promise<boolean> => {
             const normalized = normalizeAbsoluteFolder(folder, path);
             if (!normalized) {
                 return false;
             }
+
             const stat = fs?.promises?.stat;
             if (typeof stat !== "function") {
                 return false;
             }
+
             try {
                 const s = await stat(normalized);
                 if (
@@ -139,24 +246,31 @@
                 return false;
             }
         };
+
         registerIpcHandle("browser:isEnabled", async () => readEnabled());
+
         registerIpcHandle("browser:setEnabled", async (_event, enabled) => {
             writeEnabled(enabled === true);
             return readEnabled();
         });
+
         registerIpcHandle("browser:getFolder", async () => readRootFolder());
+
         registerIpcHandle("browser:setFolder", async (_event, folder) =>
             validateAndPersistFolder(typeof folder === "string" ? folder : "")
         );
+
         registerIpcHandle("dialog:openFolder", async () => {
             const dialog = typeof dialogRef === "function" ? dialogRef() : null;
             if (!dialog || typeof dialog.showOpenDialog !== "function") {
                 return null;
             }
+
             const result = await dialog.showOpenDialog({
                 properties: ["openDirectory"],
                 title: "Select FIT Files Folder",
             });
+
             if (
                 !result ||
                 result.canceled ||
@@ -165,13 +279,16 @@
             ) {
                 return null;
             }
+
             const folder = normalizeAbsoluteFolder(result.filePaths[0], path);
             if (!folder) {
                 return null;
             }
+
             await validateAndPersistFolder(folder);
             return folder;
         });
+
         registerIpcHandle(
             "browser:listFolder",
             async (_event, relPath = "") => {
@@ -182,10 +299,12 @@
                 if (!root) {
                     return { entries: [], relPath: "", root };
                 }
+
                 const abs = resolveWithinRoot(root, relPath, path);
                 if (!abs) {
                     return { entries: [], relPath: "", root };
                 }
+
                 const readdir = fs?.promises?.readdir;
                 const stat = fs?.promises?.stat;
                 if (
@@ -194,6 +313,7 @@
                 ) {
                     return { entries: [], relPath: "", root };
                 }
+
                 try {
                     const s = await stat(abs);
                     if (
@@ -203,7 +323,8 @@
                     ) {
                         return { entries: [], relPath: "", root };
                     }
-                    const out = [];
+
+                    const out: BrowserEntry[] = [];
                     const dirents = await readdir(abs, { withFileTypes: true });
                     const baseRel =
                         typeof relPath === "string"
@@ -212,12 +333,14 @@
                                   .replaceAll("\\", "/")
                                   .replace(/^\/+/, "")
                             : "";
+
                     for (const d of dirents) {
                         const name =
                             d && typeof d.name === "string" ? d.name : "";
                         if (!name || name === "." || name === "..") {
                             continue;
                         }
+
                         const childRel = baseRel ? `${baseRel}/${name}` : name;
                         const childAbs = resolveWithinRoot(
                             root,
@@ -227,6 +350,7 @@
                         if (!childAbs) {
                             continue;
                         }
+
                         if (
                             typeof d.isDirectory === "function" &&
                             d.isDirectory()
@@ -239,11 +363,13 @@
                             });
                             continue;
                         }
+
                         if (typeof d.isFile === "function" && d.isFile()) {
                             const lower = name.toLowerCase();
                             if (!lower.endsWith(".fit")) {
                                 continue;
                             }
+
                             // Approve the file for subsequent readFile() use.
                             try {
                                 approveFilePath(childAbs);
@@ -257,6 +383,7 @@
                                     }
                                 );
                             }
+
                             out.push({
                                 fullPath: childAbs,
                                 kind: "file",
@@ -265,12 +392,14 @@
                             });
                         }
                     }
+
                     out.sort((a, b) => {
                         if (a.kind !== b.kind) {
                             return a.kind === "dir" ? -1 : 1;
                         }
                         return a.name.localeCompare(b.name);
                     });
+
                     // Hard cap to avoid renderer-driven perf issues.
                     return {
                         entries: out.slice(0, 500),
@@ -292,25 +421,36 @@
             }
         );
     }
-    function resolveWithinRoot(root, rel, path) {
+
+    function resolveWithinRoot(
+        root: string,
+        rel: unknown,
+        path: Pick<PathApi, "resolve" | "sep">
+    ): string | null {
         const safeRel = typeof rel === "string" ? rel.trim() : "";
         if (!safeRel) {
             return path.resolve(root);
         }
+
         const normalized = safeRel.replaceAll("\\", "/").replace(/^\/+/, "");
         const parts = normalized.split("/").filter((p) => p.length > 0);
+
         if (parts.some((p) => p === "." || p === "..")) {
             return null;
         }
+
         const abs = path.resolve(root, ...parts);
         const rootAbs = path.resolve(root);
         const rootPrefix = rootAbs.endsWith(path.sep)
             ? rootAbs
             : `${rootAbs}${path.sep}`;
+
         if (abs !== rootAbs && !abs.startsWith(rootPrefix)) {
             return null;
         }
+
         return abs;
     }
+
     module.exports = { registerBrowserHandlers };
 }

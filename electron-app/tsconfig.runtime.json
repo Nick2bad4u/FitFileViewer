@@ -48,6 +48,7 @@
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
         "main/ipc/ipcRegistry.ts",
+        "main/ipc/registerBrowserHandlers.ts",
         "main/ipc/registerClipboardHandlers.ts",
         "main/ipc/registerDialogHandlers.ts",
         "main/ipc/registerExternalHandlers.ts",
