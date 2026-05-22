@@ -60,6 +60,7 @@
         "main/ipc/setupIPCHandlers.ts",
         "main/logging/logWithContext.ts",
         "main/menu/safeCreateAppMenu.ts",
+        "main/menu/setupMenuAndEventHandlers.ts",
         "main/updater/autoUpdaterAccess.ts",
         "main/updater/setupAutoUpdater.ts",
         "main/runtime/electronAccess.ts",

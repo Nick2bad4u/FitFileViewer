@@ -1,36 +1,130 @@
-"use strict";
 {
-    const { CONSTANTS } = require("../constants");
-    const {
-        registerIpcHandle,
-        registerIpcListener,
-    } = require("../ipc/ipcRegistry");
-    const { sendToRenderer } = require("../ipc/sendToRenderer");
-    const { logWithContext } = require("../logging/logWithContext");
-    const {
-        browserWindowRef,
-        dialogRef,
-    } = require("../runtime/electronAccess");
-    const { fs } = require("../runtime/nodeModules");
-    const { getAppState } = require("../state/appState");
-    const { validateWindow } = require("../window/windowValidation");
-    const { safeCreateAppMenu } = require("./safeCreateAppMenu");
-    function getErrorMessage(error) {
+    type BrowserWindow = import("electron").BrowserWindow;
+    type FileFilter = import("electron").FileFilter;
+    type SaveDialogOptions = import("electron").SaveDialogOptions;
+
+    interface IpcEventLike {
+        sender: unknown;
+    }
+
+    interface BrowserWindowRefLike {
+        fromWebContents: (webContents: unknown) => BrowserWindow | null;
+        getFocusedWindow: () => BrowserWindow | null;
+    }
+
+    interface DialogLike {
+        showMessageBox: (options: {
+            message: string;
+            title: string;
+            type: "info";
+        }) => Promise<unknown> | unknown;
+        showSaveDialog: (
+            window: BrowserWindow,
+            options: SaveDialogOptions
+        ) => Promise<{ canceled: boolean; filePath?: string }>;
+    }
+
+    interface AutoUpdaterLike {
+        checkForUpdates?: () => Promise<unknown> | unknown;
+        quitAndInstall?: () => void;
+    }
+
+    interface ElectronUpdaterModuleLike {
+        autoUpdater?: AutoUpdaterLike;
+    }
+
+    interface ConfStore {
+        set: (key: string, value: unknown) => void;
+    }
+
+    interface ElectronConfModuleLike {
+        Conf?: new (options: { name: string }) => ConfStore;
+    }
+
+    type IpcCallback = (...args: unknown[]) => unknown;
+
+    const { CONSTANTS } = require("../constants") as {
+        CONSTANTS: {
+            DEFAULT_THEME: string;
+            DIALOG_FILTERS: {
+                ALL_FILES: FileFilter[];
+                EXPORT_FILES: FileFilter[];
+            };
+            PLATFORMS: {
+                LINUX: NodeJS.Platform;
+            };
+            SETTINGS_CONFIG_NAME: string;
+        };
+    };
+    const { registerIpcHandle, registerIpcListener } =
+        require("../ipc/ipcRegistry") as {
+            registerIpcHandle: (channel: string, handler: IpcCallback) => void;
+            registerIpcListener: (
+                channel: string,
+                listener: IpcCallback
+            ) => void;
+        };
+    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
+        sendToRenderer: (
+            win: BrowserWindow | null | undefined,
+            channel: string,
+            ...args: unknown[]
+        ) => void;
+    };
+    const { logWithContext } = require("../logging/logWithContext") as {
+        logWithContext: (
+            level: string,
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+    const { browserWindowRef, dialogRef } =
+        require("../runtime/electronAccess") as {
+            browserWindowRef: () => BrowserWindowRefLike;
+            dialogRef: () => DialogLike | undefined;
+        };
+    const { fs } = require("../runtime/nodeModules") as {
+        fs: typeof import("node:fs") | null;
+    };
+    const { getAppState } = require("../state/appState") as {
+        getAppState: (key: string) => unknown;
+    };
+    const { validateWindow } = require("../window/windowValidation") as {
+        validateWindow: (
+            win?: BrowserWindow | null,
+            context?: string
+        ) => boolean;
+    };
+    const { safeCreateAppMenu } = require("./safeCreateAppMenu") as {
+        safeCreateAppMenu: (
+            win: BrowserWindow,
+            theme: string,
+            loadedPath?: null | string
+        ) => void;
+    };
+
+    function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
-    function getBrowserWindowFromEvent(event) {
+
+    function getBrowserWindowFromEvent(
+        event: IpcEventLike
+    ): BrowserWindow | null {
         return browserWindowRef().fromWebContents(event.sender);
     }
-    function getLoadedFitFilePath() {
+
+    function getLoadedFitFilePath(): string | undefined {
         const loadedFilePath = getAppState("loadedFitFilePath");
         return typeof loadedFilePath === "string" ? loadedFilePath : undefined;
     }
-    function getThemeFromPayload(theme) {
+
+    function getThemeFromPayload(theme: unknown): string {
         return typeof theme === "string" && theme
             ? theme
             : CONSTANTS.DEFAULT_THEME;
     }
-    function normalizePersistedTheme(theme) {
+
+    function normalizePersistedTheme(theme: unknown): string | null {
         const raw = typeof theme === "string" ? theme.trim().toLowerCase() : "";
         const normalized = raw === "system" ? "auto" : raw;
         return normalized === "dark" ||
@@ -39,31 +133,38 @@
             ? normalized
             : null;
     }
-    function persistThemeForMenu(theme) {
+
+    function persistThemeForMenu(theme: unknown): void {
         const normalized = normalizePersistedTheme(theme);
         if (!normalized) {
             return;
         }
-        const { Conf } = require("electron-conf");
+
+        const { Conf } = require("electron-conf") as ElectronConfModuleLike;
         if (typeof Conf !== "function") {
             return;
         }
+
         const conf = new Conf({
             name: CONSTANTS.SETTINGS_CONFIG_NAME,
         });
         conf.set("theme", normalized);
     }
-    function requireAutoUpdater() {
-        const { autoUpdater } = require("electron-updater");
+
+    function requireAutoUpdater(): AutoUpdaterLike {
+        const { autoUpdater } =
+            require("electron-updater") as ElectronUpdaterModuleLike;
         if (!autoUpdater) {
             throw new Error("electron-updater autoUpdater is unavailable");
         }
         return autoUpdater;
     }
-    function showLinuxManualUpdateMessage() {
+
+    function showLinuxManualUpdateMessage(): void {
         if (process.platform !== CONSTANTS.PLATFORMS.LINUX) {
             return;
         }
+
         const dialog = dialogRef();
         if (dialog && typeof dialog.showMessageBox === "function") {
             void dialog.showMessageBox({
@@ -74,17 +175,19 @@
             });
         }
     }
-    function logUpdaterError(message, error) {
+
+    function logUpdaterError(message: string, error: unknown): void {
         logWithContext("error", message, {
             error: getErrorMessage(error),
         });
     }
+
     /**
      * Registers menu-related IPC handlers and listeners.
      */
-    function setupMenuAndEventHandlers() {
+    function setupMenuAndEventHandlers(): void {
         registerIpcListener("theme-changed", async (event, theme) => {
-            const win = getBrowserWindowFromEvent(event);
+            const win = getBrowserWindowFromEvent(event as IpcEventLike);
             if (win && validateWindow(win, "theme-changed event")) {
                 // Persist the theme in main-process settings so `theme:get`
                 // stays in sync with renderer localStorage.
@@ -93,6 +196,7 @@
                 } catch {
                     // Best-effort persistence; menu creation should still proceed.
                 }
+
                 safeCreateAppMenu(
                     win,
                     getThemeFromPayload(theme),
@@ -100,7 +204,8 @@
                 );
             }
         });
-        const updateHandlers = {
+
+        const updateHandlers: Record<string, () => void> = {
             "install-update": () => {
                 try {
                     requireAutoUpdater().quitAndInstall?.();
@@ -125,18 +230,21 @@
                 }
             },
         };
+
         for (const [event, handler] of Object.entries(updateHandlers)) {
             registerIpcListener(event, handler);
         }
-        const fileMenuHandlers = {
+
+        const fileMenuHandlers: Record<string, IpcCallback> = {
             "menu-export": (event) => {
-                const ipcEvent = event;
-                return (async () => {
+                const ipcEvent = event as IpcEventLike;
+                return (async (): Promise<void> => {
                     const loadedFilePath = getLoadedFitFilePath();
                     const win = getBrowserWindowFromEvent(ipcEvent);
                     if (!loadedFilePath || !win) {
                         return;
                     }
+
                     try {
                         const dialog = dialogRef();
                         if (
@@ -145,6 +253,7 @@
                         ) {
                             throw new Error("Save dialog is unavailable");
                         }
+
                         const { canceled, filePath } =
                             await dialog.showSaveDialog(win, {
                                 defaultPath: loadedFilePath.replace(
@@ -154,6 +263,7 @@
                                 filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                                 title: "Export As",
                             });
+
                         if (!canceled && filePath) {
                             sendToRenderer(win, "export-file", filePath);
                         }
@@ -169,13 +279,14 @@
                 })();
             },
             "menu-save-as": (event) => {
-                const ipcEvent = event;
-                return (async () => {
+                const ipcEvent = event as IpcEventLike;
+                return (async (): Promise<void> => {
                     const loadedFilePath = getLoadedFitFilePath();
                     const win = getBrowserWindowFromEvent(ipcEvent);
                     if (!loadedFilePath || !win) {
                         return;
                     }
+
                     try {
                         const dialog = dialogRef();
                         if (
@@ -187,12 +298,14 @@
                         if (!fs) {
                             throw new Error("fs module is unavailable");
                         }
+
                         const { canceled, filePath } =
                             await dialog.showSaveDialog(win, {
                                 defaultPath: loadedFilePath,
                                 filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                                 title: "Save As",
                             });
+
                         if (!canceled && filePath) {
                             fs.copyFileSync(loadedFilePath, filePath);
                             sendToRenderer(
@@ -216,15 +329,18 @@
                 })();
             },
         };
+
         for (const [event, handler] of Object.entries(fileMenuHandlers)) {
             registerIpcListener(event, handler);
         }
+
         registerIpcListener("set-fullscreen", (_event, flag) => {
             const win = browserWindowRef().getFocusedWindow();
             if (win && validateWindow(win, "set-fullscreen event")) {
                 win.setFullScreen(Boolean(flag));
             }
         });
+
         registerIpcHandle(
             "devtools-inject-menu",
             (event, theme, fitFilePath) => {
@@ -233,7 +349,7 @@
                         ? fitFilePath
                         : null;
                 const resolvedTheme = getThemeFromPayload(theme);
-                const win = getBrowserWindowFromEvent(event);
+                const win = getBrowserWindowFromEvent(event as IpcEventLike);
                 logWithContext("info", "Manual menu injection requested", {
                     fitFilePath: filePath,
                     theme: resolvedTheme,
@@ -245,5 +361,6 @@
             }
         );
     }
+
     module.exports = { setupMenuAndEventHandlers };
 }
