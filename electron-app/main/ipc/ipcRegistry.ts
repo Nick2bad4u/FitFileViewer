@@ -1,33 +1,66 @@
-"use strict";
 {
-    const { ipcMainRef } = require("../runtime/electronAccess");
-    const IPC_HANDLE_REGISTRY = new Map();
-    const IPC_EVENT_LISTENER_REGISTRY = new Map();
+    type IpcCallback = (...args: unknown[]) => unknown;
+
+    interface IpcMainLike {
+        handle?: (channel: string, handler: IpcCallback) => void;
+        on?: (channel: string, listener: IpcCallback) => void;
+        removeHandler?: (channel: string) => void;
+        removeListener?: (channel: string, listener: IpcCallback) => void;
+    }
+
+    interface IpcHandleRegistryEntry {
+        handler: IpcCallback;
+        ipcMain: IpcMainLike;
+    }
+
+    interface IpcListenerRegistryEntry {
+        ipcMain: IpcMainLike;
+        listener: IpcCallback;
+    }
+
+    const { ipcMainRef } = require("../runtime/electronAccess") as {
+        ipcMainRef: () => IpcMainLike | undefined;
+    };
+
+    const IPC_HANDLE_REGISTRY = new Map<string, IpcHandleRegistryEntry>();
+    const IPC_EVENT_LISTENER_REGISTRY = new Map<
+        string,
+        IpcListenerRegistryEntry
+    >();
+
     /**
      * Registers an IPC handler ensuring the previous handler is safely removed
      * first.
      *
      * @throws Re-throws registration errors for new ipcMain instances.
      */
-    function registerIpcHandle(channel, handler) {
+    function registerIpcHandle<T extends IpcCallback>(
+        channel: string,
+        handler: T
+    ): void {
         const ipcMain = ipcMainRef();
         if (!ipcMain || typeof ipcMain.handle !== "function") {
             return;
         }
+
         const existing = IPC_HANDLE_REGISTRY.get(channel);
         const hasExistingForSameIpcMain = Boolean(
             existing && existing.ipcMain === ipcMain
         );
+
         if (hasExistingForSameIpcMain && existing?.handler === handler) {
             return;
         }
+
         const canRemove = typeof ipcMain.removeHandler === "function";
+
         // In real Electron, removeHandler exists and we can safely replace
         // handlers. Some tests use lightweight ipcMain mocks without
         // removeHandler, where duplicate registration would leak listeners.
         if (hasExistingForSameIpcMain && !canRemove) {
             return;
         }
+
         if (canRemove) {
             try {
                 ipcMain.removeHandler?.(channel);
@@ -35,6 +68,7 @@
                 /* Ignore handler removal errors */
             }
         }
+
         try {
             ipcMain.handle(channel, handler);
             IPC_HANDLE_REGISTRY.set(channel, { handler, ipcMain });
@@ -46,30 +80,39 @@
             }
         }
     }
+
     /**
      * Registers an IPC event listener, guaranteeing previous listeners are
      * removed to avoid duplicates.
      *
      * @throws Re-throws listener registration errors for new ipcMain instances.
      */
-    function registerIpcListener(channel, listener) {
+    function registerIpcListener<T extends IpcCallback>(
+        channel: string,
+        listener: T
+    ): void {
         const ipcMain = ipcMainRef();
         if (!ipcMain || typeof ipcMain.on !== "function") {
             return;
         }
+
         const existing = IPC_EVENT_LISTENER_REGISTRY.get(channel);
         const hasExistingForSameIpcMain = Boolean(
             existing && existing.ipcMain === ipcMain
         );
+
         if (hasExistingForSameIpcMain && existing?.listener === listener) {
             return;
         }
+
         const canRemove = typeof ipcMain.removeListener === "function";
+
         // Similar to registerIpcHandle: if we cannot remove old listeners, be
         // idempotent.
         if (hasExistingForSameIpcMain && !canRemove) {
             return;
         }
+
         if (hasExistingForSameIpcMain && canRemove && existing) {
             try {
                 ipcMain.removeListener?.(channel, existing.listener);
@@ -77,6 +120,7 @@
                 /* Ignore listener removal errors */
             }
         }
+
         try {
             ipcMain.on(channel, listener);
             IPC_EVENT_LISTENER_REGISTRY.set(channel, { listener, ipcMain });
@@ -86,12 +130,14 @@
             }
         }
     }
+
     /**
      * Clears all cached IPC registrations. Primarily used by tests when they
      * need to reset state between suites.
      */
-    function resetIpcRegistries() {
+    function resetIpcRegistries(): void {
         const ipcMain = ipcMainRef();
+
         // Best-effort cleanup of actual ipcMain registrations.
         // This is primarily used by tests to avoid cross-suite pollution.
         if (ipcMain) {
@@ -104,6 +150,7 @@
                     }
                 }
             }
+
             if (typeof ipcMain.removeListener === "function") {
                 for (const [
                     channel,
@@ -117,9 +164,11 @@
                 }
             }
         }
+
         IPC_HANDLE_REGISTRY.clear();
         IPC_EVENT_LISTENER_REGISTRY.clear();
     }
+
     module.exports = {
         registerIpcHandle,
         registerIpcListener,
