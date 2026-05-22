@@ -72,7 +72,7 @@
 
 ### Main Window Layout
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ File  Edit  View  Tools  Window  Help          [ _ □ × ]    │
 ├─────────────────────────────────────────────────────────────┤
@@ -380,7 +380,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 **Solutions**:
 
 1. Verify the file is a valid FIT file (not corrupted)
-2. Check file size (very large files may take time to load)
+2. Check file size (large files may take time to load)
 3. Try closing other applications to free memory
 4. Restart FitFileViewer and try again
 
@@ -456,6 +456,6 @@ A: FitFileViewer is a viewer application and doesn't support editing FIT data. I
 A: Files up to 100MB are generally supported, but performance may vary depending on your system's available memory.
 
 **Q: Can I use FitFileViewer offline?**
-A: Yes! FitFileViewer works completely offline. Internet connection is only needed for map tiles if you haven't visited those areas before.
+A: Yes! FitFileViewer works offline. Internet connection is only needed for map tiles if you haven't visited those areas before.
 
 This user guide provides comprehensive coverage of all FitFileViewer features and functionality, helping users get the most out of their fitness data analysis experience.

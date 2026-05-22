@@ -126,6 +126,7 @@ function cycleColors() {
 
 // Example: Random color on button click
 function setRandomColor() {
+    // eslint-disable-next-line sdl/no-insecure-random -- Documentation-only UI color randomization is not used for secrets.
     const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
     setAccentColor(randomColor, "dark");
 }
@@ -344,6 +345,7 @@ async function testAllPresets() {
 // EXPORT FOR USE
 // ============================================================================
 
+/* eslint-disable no-barrel-files/no-barrel-files -- Documentation example intentionally re-exports imported snippets. */
 export {
     darkenColor,
     debugAccentColors,
@@ -356,6 +358,7 @@ export {
     testAllPresets,
     validateColor,
 };
+/* eslint-enable no-barrel-files/no-barrel-files */
 
 // ============================================================================
 // QUICK REFERENCE SUMMARY

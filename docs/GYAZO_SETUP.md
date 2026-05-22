@@ -1,4 +1,4 @@
-# Gyazo Integration Setup [Advanced Users Only]
+# Gyazo Integration Setup (Advanced Users Only)
 
 This guide explains how to set up Gyazo integration for FitFileViewer to
 enable direct chart uploads to Gyazo.
@@ -10,7 +10,7 @@ enable direct chart uploads to Gyazo.
 
 ## Setup Steps
 
-### 1\. Register Your Application [Advanced Users Only]
+### 1\. Register Your Application (Advanced Users Only)
 
 1. Visit the [Gyazo Developer Applications page](https://gyazo.com/oauth/applications)
 2. Click "Create New Application" or "Register New Application"

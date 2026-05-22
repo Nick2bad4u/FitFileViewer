@@ -27,7 +27,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 
 ## Runtime Architecture
 
-```
+```text
 Launcher → main.js → BrowserWindow preload:preload.js → renderer renderer.js
                        │                                    │
                        │ (IPC handlers, auto-update,        │ (State manager bootstrap,
@@ -86,7 +86,7 @@ The preload script exposes a constrained API (all methods validate their argumen
   - `uiStateManager.js` (tab visibility, theme application, loading indicators)
   - `settingsStateManager.js` (persistent decoder options)
 - **Main process mirror:** `utils/state/integration/mainProcessStateManager.js` maintains cross-process state (window references, operations, errors) and exposes IPC endpoints.
-- **Fallbacks:** Many paths fall back to `electron-conf` when the state manager cannot initialize, ensuring backward compatibility.
+- **Fallbacks:** Legacy paths fall back to `electron-conf` when the state manager cannot initialize, ensuring backward compatibility.
 
 ## FIT File Handling Pipeline
 

@@ -17,6 +17,7 @@
         "node_modules/**"
     ],
     "include": [
+        ".*.mjs",
         "*.js",
         "*.mjs",
         ".github/**/*.js",

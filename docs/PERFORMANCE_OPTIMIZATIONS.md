@@ -136,7 +136,7 @@ No additional memoization was needed as the existing system is comprehensive.
    - Verify smooth transitions with no lag
 
 3. **Chart Rendering:**
-   - Load a FIT file with many data points
+   - Load a FIT file with a high-volume data set
    - Switch to chart tab
    - Verify charts render correctly
    - Verify notification appears only when on chart tab

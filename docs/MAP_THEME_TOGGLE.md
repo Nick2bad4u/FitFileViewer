@@ -121,9 +121,9 @@ The dark-map effect is achieved by applying a filter to Leaflet **tile panes onl
 - ✅ Filtered: `.leaflet-tile-pane` (basemap tiles)
 - ❌ Not filtered: `#leaflet-map` container (controls/tooltips/popups must remain readable)
 
-```css
-filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
-```
+  ```css
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
+  ```
 
 ## Benefits
 

@@ -58,10 +58,10 @@
 </p>
 
 <!--
-	This README file references multiple GitHub Actions workflows via badges to indicate
-	the current status of various checks (linting, security scanning, deployment, etc.).
-	Each badge provides a direct link to the corresponding workflow run,
-	offering at-a-glance insight into the project's health checks and automation processes.
+    This README file references multiple GitHub Actions workflows via badges to indicate
+    the current status of checks (linting, security scanning, deployment, etc.).
+    Each badge provides a direct link to the corresponding workflow run,
+    offering at-a-glance insight into the project's health checks and automation processes.
 -->
 
 <div align="center">
@@ -143,10 +143,10 @@
 
 - [Overview](#-overview) 📖
 - [Screenshots](#-screenshots) 🖼️
-- [Installation](#%EF%B8%8F-installation) 🛠️
+- [Installation](#️-installation) 🛠️
 - [Usage](#-usage) 🚀
 - [Changelog](#-changelog) 📝
-- [Supported Builds](#%EF%B8%8F-supported-builds) 🏗️
+- [Supported Builds](#️-supported-builds) 🏗️
   - [Windows Builds](#-windows-builds) 🪟
   - [Mac Builds](#-mac-builds) 🍏
   - [Linux Builds](#-linux-builds) 🐧
@@ -161,7 +161,7 @@ Open `.fit` files, the popular file format used for recording activity data from
 - Interactive maps for visualizing activity routes. 🗺️
 - Data tables for detailed insights. 📋
 - Charts for analyzing trends and performance. 📈
-- Ability to export data and charts in various formats and to Imgur. 📤
+- Ability to export data and charts in multiple formats and to Imgur. 📤
 - Chart customization options for personalized views. 🎨
 - Full integration with [FitFileViewer.com](https://www.FitFileViewer.com/) 🌐
 - Support for multiple platforms: Windows, macOS, and Linux. 🖥
@@ -189,7 +189,7 @@ _Charts visualizing trends and performance data._
 2. Download the latest installer or zip for your operating system (Windows, macOS, or Linux).
 3. Extract the archive if needed, then run the installer or executable to launch FitFileViewer.
 
-_See the [Supported Builds](#%EF%B8%8F-supported-builds) section below for available formats and filenames._
+_See the [Supported Builds](#️-supported-builds) section below for available formats and filenames._
 
 ---
 
@@ -247,7 +247,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32  | MSI TAR.XZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.xz   |
 | Windows  | ia32 / win32  | MSI ZIP       | Fit-File-Viewer-msi-ia32-X.X.X.zip      |
 | Windows  | ia32 / win32  | Portable      | Fit-File-Viewer-portable-ia32-X.X.X.exe |
-| Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-X.X.X.exe[.zip]    |
+| Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-X.X.X.exe\[.zip]   |
 
 <details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
 

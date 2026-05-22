@@ -20,7 +20,6 @@
         "lint:root": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root --fix . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
         "lint:root:check": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\""
     },
-    "dependencies": {},
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.1.0",
         "prettier": "^3.8.3",
@@ -28,12 +27,12 @@
         "remark": "^15.0.1",
         "remark-cli": "^12.0.1",
         "remark-config-nick2bad4u": "^1.0.2",
+        "remark-lint-check-toc": "^1.0.0",
         "secretlint": "^13.0.2",
         "secretlint-config-nick2bad4u": "^1.0.5",
         "stylelint": "^17.11.1",
         "stylelint-config-nick2bad4u": "^1.0.12"
     },
-    "peerDependencies": {},
     "packageManager": "npm@11.14.1",
     "engines": {
         "node": ">=16.0.0",

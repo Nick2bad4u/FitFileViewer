@@ -29,7 +29,7 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 
 ### 1. Multi-Process Architecture (Electron)
 
-```
+```text
 ┌─────────────────┐         IPC         ┌─────────────────┐
 │   Main Process  │ ◄─────────────────► │ Renderer Process │
 │                 │                     │                  │
@@ -52,7 +52,7 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 
 ### 2. Modular Component Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    FitFileViewer Application                 │
 ├─────────────────────────────────────────────────────────────┤
@@ -96,7 +96,7 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 
 ### 2. Utility Module System (50+ modules)
 
-```
+```text
 utils/
 ├── app/                     # Application-level utilities
 │   ├── aboutModal.js       # About dialog management
@@ -140,7 +140,7 @@ utils/
 
 ### 3. Data Processing Pipeline
 
-```
+```text
 ┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
 │ .fit File   │ ───► │FIT Parser   │ ───► │Data Proc.   │ ───► │Visualization│
 │ Input       │      │(Garmin SDK) │      │& Formatting │      │Components   │
@@ -250,7 +250,7 @@ import { DISTANCE_UNITS, CONVERSION_FACTORS } from "./utils/config/index.js";
 
 ### FIT File Processing Flow
 
-```
+```text
               User Action (Open File)
                         │
                         ▼

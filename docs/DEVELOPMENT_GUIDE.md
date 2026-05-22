@@ -531,7 +531,7 @@ console.log("Memory usage:", process.memoryUsage());
 
 ### Commit Message Format
 
-```
+```text
 type(scope): description
 
 Examples:

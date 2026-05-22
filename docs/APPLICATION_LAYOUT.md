@@ -12,7 +12,7 @@
 
 ## Project Structure
 
-```
+```text
 FitFileViewer/                          # Root directory
 ├── .github/                            # GitHub configuration & workflows
 ├── docs/                              # Documentation files
@@ -31,7 +31,7 @@ FitFileViewer/                          # Root directory
 
 ### Entry Points & Process Management
 
-```
+```text
 electron-app/
 ├── main.js                           # Main Electron process (2,000+ lines)
 │   ├── App lifecycle management
@@ -64,7 +64,7 @@ electron-app/
 
 ### Core Application Logic
 
-```
+```text
 electron-app/
 ├── fitParser.js                      # FIT file parsing (Garmin SDK integration)
 ├── windowStateUtils.js               # Window state persistence
@@ -77,7 +77,7 @@ electron-app/
 
 ### Complete Module Breakdown (50+ Modules)
 
-```
+```text
 electron-app/utils/
 ├── app/                              # Application-level utilities
 │   ├── aboutModal.js                # About dialog management
@@ -320,7 +320,7 @@ electron-app/utils/
 
 ### Build Configuration
 
-```
+```text
 electron-app/
 ├── package.json                      # Main package configuration
 │   ├── Electron Builder configuration
@@ -339,7 +339,7 @@ electron-app/
 
 ### Environment Configuration
 
-```
+```text
 electron-app/
 ├── .cache/                          # Build cache
 ├── .prettier-cache                  # Prettier cache
@@ -353,7 +353,7 @@ electron-app/
 
 ### Test Organization
 
-```
+```text
 electron-app/tests/
 ├── unit/                            # Unit tests (4,000+ tests)
 │   ├── utils/                       # Utility function tests
@@ -375,7 +375,7 @@ electron-app/tests/
 
 ### Test Support Files
 
-```
+```text
 electron-app/
 ├── __mocks__/                       # Module mocks
 │   ├── electron.js                  # Electron API mocks
@@ -390,7 +390,7 @@ electron-app/
 
 ### Documentation Structure
 
-```
+```text
 docs/
 ├── APPLICATION_ARCHITECTURE.md      # Architecture overview
 ├── APPLICATION_LAYOUT.md           # This file - complete layout
@@ -403,7 +403,7 @@ docs/
 
 ### Application Assets
 
-```
+```text
 electron-app/
 ├── icons/                           # Application icons
 │   ├── favicon.ico                  # Main application icon
@@ -422,7 +422,7 @@ electron-app/
 
 ### GitHub Workflows
 
-```
+```text
 .github/
 ├── workflows/                       # GitHub Actions workflows (30+ workflows)
 │   ├── Build.yml                   # Multi-platform builds
@@ -440,7 +440,7 @@ electron-app/
 
 ### Build & Release System
 
-```
+```text
 Root Level Files:
 ├── .gitignore                      # Git ignore patterns
 ├── .gitattributes                  # Git attributes
