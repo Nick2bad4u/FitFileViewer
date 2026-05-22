@@ -1,9 +1,55 @@
-"use strict";
 {
-    const { z } = require("zod");
-    const { validateExternalUrl } = require("../security/externalUrlPolicy");
-    const getErrorMessage = (error) =>
+    const { z } = require("zod") as typeof import("zod");
+
+    const { validateExternalUrl } =
+        require("../security/externalUrlPolicy") as {
+            validateExternalUrl: (url: unknown) => string;
+        };
+
+    interface ExternalShell {
+        openExternal: (url: string) => Promise<void>;
+    }
+
+    interface GyazoServerStartResult {
+        message: string;
+        port?: number;
+        success: boolean;
+    }
+
+    interface GyazoServerStopResult {
+        message: string;
+        success: boolean;
+    }
+
+    type RegisterExternalIpcHandler = (
+        event: unknown,
+        ...args: unknown[]
+    ) => unknown;
+
+    type RegisterExternalIpcHandle = (
+        channel: string,
+        handler: RegisterExternalIpcHandler
+    ) => void;
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface RegisterExternalHandlersOptions {
+        logWithContext?: LogWithContext;
+        registerIpcHandle: RegisterExternalIpcHandle;
+        shellRef?: () => ExternalShell | null | undefined;
+        startGyazoOAuthServer?: (
+            port?: number
+        ) => Promise<GyazoServerStartResult>;
+        stopGyazoOAuthServer?: () => Promise<GyazoServerStopResult>;
+    }
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
     // Security: restrict the callback server to non-privileged ports.
     // Allow 0 so the OS can choose an ephemeral port.
     const gyazoPortSchema = z.coerce
@@ -14,6 +60,7 @@
         .refine((port) => port === 0 || port >= 1024, {
             message: "Invalid port provided",
         });
+
     /**
      * Registers IPC handlers for external integrations (shell and Gyazo server
      * control).
@@ -24,17 +71,20 @@
         startGyazoOAuthServer,
         stopGyazoOAuthServer,
         logWithContext,
-    }) {
+    }: RegisterExternalHandlersOptions): void {
         if (typeof registerIpcHandle !== "function") {
             return;
         }
+
         registerIpcHandle("shell:openExternal", async (_event, url) => {
             try {
                 const validatedUrl = validateExternalUrl(url);
+
                 const shell = shellRef?.();
                 if (!shell || typeof shell.openExternal !== "function") {
                     throw new Error("shell.openExternal unavailable");
                 }
+
                 // eslint-disable-next-line sdl/no-electron-untrusted-open-external -- validateExternalUrl allows only https/mailto URLs without credentials.
                 await shell.openExternal(validatedUrl);
                 return true;
@@ -45,15 +95,18 @@
                 throw error;
             }
         });
+
         registerIpcHandle("gyazo:server:start", async (_event, port = 3000) => {
             try {
                 if (typeof startGyazoOAuthServer !== "function") {
                     throw new TypeError("Gyazo OAuth server start unavailable");
                 }
+
                 const parsed = gyazoPortSchema.safeParse(port);
                 if (!parsed.success) {
                     throw new Error("Invalid port provided");
                 }
+
                 return await startGyazoOAuthServer(parsed.data);
             } catch (error) {
                 logWithContext?.("error", "Error in gyazo:server:start:", {
@@ -62,11 +115,13 @@
                 throw error;
             }
         });
+
         registerIpcHandle("gyazo:server:stop", async () => {
             try {
                 if (typeof stopGyazoOAuthServer !== "function") {
                     throw new TypeError("Gyazo OAuth server stop unavailable");
                 }
+
                 return await stopGyazoOAuthServer();
             } catch (error) {
                 logWithContext?.("error", "Error in gyazo:server:stop:", {
@@ -76,5 +131,6 @@
             }
         });
     }
+
     module.exports = { registerExternalHandlers };
 }
