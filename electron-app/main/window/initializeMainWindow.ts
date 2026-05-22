@@ -1,18 +1,87 @@
-"use strict";
 {
-    function getErrorMessage(error) {
+    interface WebContentsLike {
+        executeJavaScript?: (script: string) => Promise<unknown>;
+        isDestroyed?: () => boolean;
+        on?: (
+            event: "did-finish-load",
+            listener: () => Promise<void> | void
+        ) => void;
+        send?: (channel: string, ...args: unknown[]) => void;
+    }
+
+    interface MainWindowLike {
+        isDestroyed?: () => boolean;
+        webContents?: WebContentsLike;
+    }
+
+    interface BrowserWindowApi {
+        getAllWindows?: () => MainWindowLike[];
+    }
+
+    type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
+    type AppStateValue = boolean | MainWindowLike | null | string | undefined;
+
+    interface AutoUpdaterLike {
+        checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
+    }
+
+    type LogWithContext = (
+        level: "error" | "info" | "warn",
+        message: string,
+        context?: Record<string, unknown>
+    ) => void;
+
+    interface InitializeMainWindowOptions {
+        browserWindowRef: () =>
+            | BrowserWindowApi
+            | BrowserWindowConstructor
+            | null
+            | undefined;
+        CONSTANTS: { DEFAULT_THEME: string };
+        getAppState: (key: string) => AppStateValue;
+        getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
+        logWithContext: LogWithContext;
+        resolveAutoUpdater: () => Promise<AutoUpdaterLike | null>;
+        safeCreateAppMenu: (
+            win: MainWindowLike,
+            theme: string,
+            loadedPath?: null | string
+        ) => void;
+        sendToRenderer: (
+            win: MainWindowLike,
+            channel: string,
+            ...args: unknown[]
+        ) => void;
+        setAppState: (key: string, value: AppStateValue) => void;
+        setupAutoUpdater: (
+            mainWindow: MainWindowLike,
+            autoUpdater: AutoUpdaterLike | null
+        ) => void;
+    }
+
+    interface ElectronModuleLike {
+        app?: {
+            whenReady?: () => Promise<unknown> | unknown;
+        };
+        BrowserWindow?: BrowserWindowApi;
+    }
+
+    function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
-    function asElectronModule(value) {
+
+    function asElectronModule(value: unknown): ElectronModuleLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? value
+            ? (value as ElectronModuleLike)
             : null;
     }
-    function callElectronWhenReadyForTests() {
+
+    function callElectronWhenReadyForTests(): void {
         if (process.env["NODE_ENV"] !== "test") {
             return;
         }
+
         try {
             const electron = asElectronModule(require("electron"));
             const app = electron?.app;
@@ -27,7 +96,8 @@
             /* Ignore errors */
         }
     }
-    function getElectronWindowsForTests() {
+
+    function getElectronWindowsForTests(): MainWindowLike[] | undefined {
         try {
             const electron = asElectronModule(require("electron"));
             const BrowserWindow = electron?.BrowserWindow;
@@ -44,22 +114,33 @@
         } catch {
             /* Ignore errors */
         }
+
         return undefined;
     }
-    function getWindowsFromBrowserWindowRef(BrowserWindow) {
+
+    function getWindowsFromBrowserWindowRef(
+        BrowserWindow:
+            | BrowserWindowApi
+            | BrowserWindowConstructor
+            | null
+            | undefined
+    ): MainWindowLike[] | undefined {
         if (
             BrowserWindow &&
-            typeof BrowserWindow.getAllWindows === "function"
+            typeof (BrowserWindow as BrowserWindowApi).getAllWindows ===
+                "function"
         ) {
             try {
-                return BrowserWindow.getAllWindows?.();
+                return (BrowserWindow as BrowserWindowApi).getAllWindows?.();
             } catch {
                 /* Ignore errors */
             }
         }
+
         return undefined;
     }
-    function createFallbackWindow(defaultTheme) {
+
+    function createFallbackWindow(defaultTheme: string): MainWindowLike {
         return {
             isDestroyed: () => false,
             webContents: {
@@ -70,6 +151,7 @@
             },
         };
     }
+
     /**
      * Create or reuse the main application window and wire core lifecycle
      * handlers.
@@ -85,11 +167,13 @@
         resolveAutoUpdater,
         setupAutoUpdater,
         logWithContext,
-    }) {
+    }: InitializeMainWindowOptions): Promise<MainWindowLike> {
         callElectronWhenReadyForTests();
+
         const BrowserWindow = browserWindowRef();
         const isConstructor = typeof BrowserWindow === "function";
-        let mainWindow;
+
+        let mainWindow: MainWindowLike | undefined;
         if (process.env["NODE_ENV"] === "test" || !isConstructor) {
             try {
                 let list = getElectronWindowsForTests();
@@ -103,12 +187,17 @@
             } catch {
                 /* Ignore errors */
             }
+
             mainWindow ??= createFallbackWindow(CONSTANTS.DEFAULT_THEME);
         } else {
-            const { createWindow } = require("../windowStateUtils");
+            const { createWindow } = require("../windowStateUtils") as {
+                createWindow: () => MainWindowLike;
+            };
             mainWindow = createWindow();
         }
+
         setAppState("mainWindow", mainWindow);
+
         logWithContext(
             "info",
             "Calling createAppMenu after window selection/creation"
@@ -116,14 +205,16 @@
         safeCreateAppMenu(
             mainWindow,
             CONSTANTS.DEFAULT_THEME,
-            getAppState("loadedFitFilePath")
+            getAppState("loadedFitFilePath") as null | string | undefined
         );
+
         if (typeof mainWindow.webContents?.on === "function") {
             mainWindow.webContents.on("did-finish-load", async () => {
                 logWithContext(
                     "info",
                     "did-finish-load event fired, syncing theme"
                 );
+
                 if (!getAppState("autoUpdaterInitialized")) {
                     try {
                         const autoUpdater = await resolveAutoUpdater();
@@ -146,6 +237,7 @@
                         );
                     }
                 }
+
                 try {
                     const theme = await getThemeFromRenderer(mainWindow);
                     logWithContext("info", "Retrieved theme from renderer", {
@@ -154,7 +246,10 @@
                     safeCreateAppMenu(
                         mainWindow,
                         theme,
-                        getAppState("loadedFitFilePath")
+                        getAppState("loadedFitFilePath") as
+                            | null
+                            | string
+                            | undefined
                     );
                     sendToRenderer(mainWindow, "set-theme", theme);
                 } catch (error) {
@@ -168,7 +263,10 @@
                     safeCreateAppMenu(
                         mainWindow,
                         CONSTANTS.DEFAULT_THEME,
-                        getAppState("loadedFitFilePath")
+                        getAppState("loadedFitFilePath") as
+                            | null
+                            | string
+                            | undefined
                     );
                     sendToRenderer(
                         mainWindow,
@@ -178,8 +276,10 @@
                 }
             });
         }
+
         return mainWindow;
     }
+
     module.exports = {
         initializeMainWindow,
     };

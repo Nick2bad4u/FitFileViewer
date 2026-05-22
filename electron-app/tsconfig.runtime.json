@@ -71,6 +71,7 @@
         "main/state/appState.ts",
         "main/theme/getThemeFromRenderer.ts",
         "main/window/windowValidation.ts",
+        "main/window/initializeMainWindow.ts",
         "windowStateUtils.ts",
         "utils.ts",
         "utils/config/constants.ts",
