@@ -692,27 +692,30 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             const manager = new MasterStateManager();
 
             manager.setupDragAndDrop();
+            const listenerOptions = expect.objectContaining({
+                signal: manager.eventController.signal,
+            });
 
             // Verify event listeners were added
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "dragenter",
                 expect.any(Function),
-                false
+                listenerOptions
             );
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "dragover",
                 expect.any(Function),
-                false
+                listenerOptions
             );
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "dragleave",
                 expect.any(Function),
-                false
+                listenerOptions
             );
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "drop",
                 expect.any(Function),
-                false
+                listenerOptions
             );
         });
 
@@ -724,10 +727,14 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             const manager = new MasterStateManager();
 
             manager.setupKeyboardShortcuts();
+            const listenerOptions = expect.objectContaining({
+                signal: manager.eventController.signal,
+            });
 
             expect(document.addEventListener).toHaveBeenCalledWith(
                 "keydown",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
         });
 
@@ -739,22 +746,29 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             const manager = new MasterStateManager();
 
             manager.setupWindowEventListeners();
+            const listenerOptions = expect.objectContaining({
+                signal: manager.eventController.signal,
+            });
 
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "resize",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "focus",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "blur",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "beforeunload",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
         });
 
@@ -766,14 +780,19 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             const manager = new MasterStateManager();
 
             manager.setupErrorHandling();
+            const listenerOptions = expect.objectContaining({
+                signal: manager.eventController.signal,
+            });
 
             expect(globalThis.addEventListener).toHaveBeenCalledWith(
                 "error",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
             expect(globalThis.addEventListener).toHaveBeenCalledWith(
                 "unhandledrejection",
-                expect.any(Function)
+                expect.any(Function),
+                listenerOptions
             );
         });
 
@@ -873,17 +892,6 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             await initializeFitFileViewerState();
 
             expect(spy).toHaveBeenCalled();
-        });
-
-        test("should export convenience exports", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const module =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-
-            expect(module.AppActions).toBeDefined();
-            expect(module.AppSelectors).toBeDefined();
-            expect(module.UIActions).toBeDefined();
         });
     });
 

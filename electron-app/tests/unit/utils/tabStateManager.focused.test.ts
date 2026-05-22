@@ -12,6 +12,7 @@ vi.mock("../../../utils/state/core/stateManager", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
     subscribe: vi.fn(() => vi.fn()), // Return unsubscribe function
+    updateState: vi.fn(),
 }));
 
 vi.mock("../../../utils/ui/notifications/showNotification", () => ({

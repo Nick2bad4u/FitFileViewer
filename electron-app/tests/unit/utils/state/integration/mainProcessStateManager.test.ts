@@ -703,10 +703,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             }).not.toThrow();
         });
 
-        test("should handle setByPath with null target", () => {
+        test("should reject setByPath through primitive intermediate values", () => {
             stateInstance.data.primitive = "string";
 
-            // This will actually throw because you can't set properties on strings
             expect(() => {
                 stateInstance.setByPath(
                     stateInstance.data,
@@ -716,14 +715,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             }).toThrow();
         });
 
-        test("should handle setByPath with null target", () => {
-            stateInstance.data.primitive = "string";
+        test("should reject setByPath through null intermediate values", () => {
+            stateInstance.data.nullish = null;
 
-            // This will actually throw because you can't set properties on strings
             expect(() => {
                 stateInstance.setByPath(
                     stateInstance.data,
-                    "primitive.property",
+                    "nullish.property",
                     "value"
                 );
             }).toThrow();
@@ -856,6 +854,12 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     test("should handle main-state:get IPC calls", () => {
         const testInstance = new MainProcessState();
+        const mockEvent = {
+            sender: {
+                send: vi.fn(),
+                isDestroyed: vi.fn(() => false),
+            },
+        };
 
         // Get the handler function that was registered
         const getHandler = mockIpcMain.handle.mock.calls.find(
@@ -863,16 +867,22 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         )![1];
 
         // Test getting specific path
-        const result1 = getHandler({}, "loadedFitFilePath");
+        const result1 = getHandler(mockEvent, "loadedFitFilePath");
         expect(result1).toBeNull();
 
         // Test getting all data
-        const result2 = getHandler({}, "");
+        const result2 = getHandler(mockEvent, "");
         expect(result2).toBeDefined();
     });
 
     test("should handle main-state:set IPC calls with allowed paths", () => {
         const testInstance = new MainProcessState();
+        const mockEvent = {
+            sender: {
+                send: vi.fn(),
+                isDestroyed: vi.fn(() => false),
+            },
+        };
 
         // Get the handler function that was registered
         const setHandler = mockIpcMain.handle.mock.calls.find(
@@ -880,11 +890,15 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         )![1];
 
         // Test allowed path
-        const result1 = setHandler({}, "loadedFitFilePath", "/test/path");
+        const result1 = setHandler(
+            mockEvent,
+            "loadedFitFilePath",
+            "/test/path"
+        );
         expect(result1).toBe(true);
 
         // Test restricted path
-        const result2 = setHandler({}, "restrictedPath", "value");
+        const result2 = setHandler(mockEvent, "restrictedPath", "value");
         expect(result2).toBe(false);
     });
 

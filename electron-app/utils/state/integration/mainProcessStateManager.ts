@@ -921,8 +921,12 @@ class MainProcessState {
         let target: LooseRecord = obj;
         for (const key of keys) {
             const next = target[key];
-            if (!isObjectRecord(next)) {
+            if (next === undefined) {
                 target[key] = {};
+            } else if (!isObjectRecord(next)) {
+                throw new TypeError(
+                    `Cannot set nested state path through non-object key: ${key}`
+                );
             }
             target = target[key] as LooseRecord;
         }
@@ -1007,14 +1011,32 @@ class MainProcessState {
                     return false;
                 }
 
-                // Only allow certain paths to be set from renderer
-                const allowedRoots = ["loadedFitFilePath", "operations"],
-                    rootPath = safePath.split(".")[0] || "";
-                if (allowedRoots.includes(rootPath)) {
-                    this.set(safePath, value, {
-                        ...options,
-                        source: "renderer",
-                    });
+                // Only allow specific renderer-owned paths. `loadedFitFilePath`
+                // is a scalar field, so nested writes under it are never valid.
+                const isAllowedPath =
+                    safePath === "loadedFitFilePath" ||
+                    safePath === "operations" ||
+                    safePath.startsWith("operations.");
+                if (isAllowedPath) {
+                    try {
+                        this.set(safePath, value, {
+                            ...options,
+                            source: "renderer",
+                        });
+                    } catch (error) {
+                        logWithContext(
+                            "warn",
+                            "Renderer attempted invalid state update",
+                            {
+                                error:
+                                    error instanceof Error
+                                        ? error.message
+                                        : String(error),
+                                path: safePath,
+                            }
+                        );
+                        return false;
+                    }
                     return true;
                 }
 

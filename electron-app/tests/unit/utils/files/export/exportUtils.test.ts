@@ -309,8 +309,11 @@ describe("exportUtils", () => {
 
             await exportUtils.downloadChartAsPNG(chart);
 
-            // Should still create link and attempt export with fallback behavior
-            expect(global.document.createElement).toHaveBeenCalledWith("a");
+            expect(global.document.createElement).not.toHaveBeenCalledWith("a");
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Failed to export chart as PNG",
+                "error"
+            );
         });
     });
 

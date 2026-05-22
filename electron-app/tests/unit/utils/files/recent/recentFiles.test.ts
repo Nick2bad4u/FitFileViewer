@@ -86,7 +86,7 @@ describe("recentFiles utility", () => {
         // Verify
         expect(result).toEqual(testData);
         expect(cfs.existsSync).toHaveBeenCalledWith(TEST_FILE_PATH);
-        expect(cfs.readFileSync).toHaveBeenCalledWith(TEST_FILE_PATH);
+        expect(cfs.readFileSync).toHaveBeenCalledWith(TEST_FILE_PATH, "utf8");
     });
 
     it("loadRecentFiles handles file read errors", () => {

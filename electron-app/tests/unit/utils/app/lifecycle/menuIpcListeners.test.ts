@@ -2,10 +2,26 @@ import { describe, expect, it, vi } from "vitest";
 import { registerMenuIpcListeners } from "../../../../../utils/app/lifecycle/menuIpcListeners.js";
 import { openFileSelector } from "../../../../../utils/files/import/openFileSelector.js";
 
+const keyboardShortcutsModalMock = vi.hoisted(() => ({
+    moduleHasExport: true,
+    showKeyboardShortcutsModal: vi.fn<() => void>(),
+}));
+
 vi.mock(
     import("../../../../../utils/files/import/openFileSelector.js"),
     () => ({
         openFileSelector: vi.fn<() => Promise<void>>(),
+    })
+);
+
+vi.mock(
+    import("../../../../../utils/ui/modals/keyboardShortcutsModal.js"),
+    () => ({
+        get showKeyboardShortcutsModal() {
+            return keyboardShortcutsModalMock.moduleHasExport
+                ? keyboardShortcutsModalMock.showKeyboardShortcutsModal
+                : undefined;
+        },
     })
 );
 
@@ -60,6 +76,8 @@ function cleanupFixture(): void {
     delete holder.showKeyboardShortcutsModal;
     document.head.replaceChildren();
     openFileSelectorMock.mockReset();
+    keyboardShortcutsModalMock.moduleHasExport = true;
+    keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
     vi.restoreAllMocks();
 }
 
@@ -184,48 +202,48 @@ describe(registerMenuIpcListeners, () => {
         }
     });
 
-    it("loads the keyboard shortcut script when the global modal is missing", () => {
+    it("loads the keyboard shortcuts module when the global modal is missing", async () => {
         expect.assertions(3);
 
         const fixture = setupFixture();
-        const showKeyboardShortcutsModal = vi.fn<() => void>();
 
         try {
-            getRequiredHandler(fixture.handlers, "menu-keyboard-shortcuts")();
+            await getRequiredHandler(
+                fixture.handlers,
+                "menu-keyboard-shortcuts"
+            )();
 
-            const script = document.head.querySelector(
-                "script[src='./utils/keyboardShortcutsModal.js']"
-            );
-            (globalThis as MenuIpcTestGlobal).showKeyboardShortcutsModal =
-                showKeyboardShortcutsModal;
-            script?.dispatchEvent(new Event("load"));
-
-            expect(script).toBeInstanceOf(HTMLScriptElement);
+            expect(
+                keyboardShortcutsModalMock.showKeyboardShortcutsModal
+            ).toHaveBeenCalledOnce();
+            expect(
+                (globalThis as MenuIpcTestGlobal).showKeyboardShortcutsModal
+            ).toBe(keyboardShortcutsModalMock.showKeyboardShortcutsModal);
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
-                "Script loaded successfully"
+                "Keyboard shortcuts modal not loaded, importing dynamically..."
             );
-            expect(showKeyboardShortcutsModal).toHaveBeenCalledOnce();
         } finally {
             cleanupFixture();
         }
     });
 
-    it("shows fallback keyboard shortcut HTML when the script fails", () => {
+    it("shows fallback keyboard shortcut HTML when the module has no presenter", async () => {
         expect.assertions(2);
 
+        keyboardShortcutsModalMock.moduleHasExport = false;
         const fixture = setupFixture();
 
         try {
-            getRequiredHandler(fixture.handlers, "menu-keyboard-shortcuts")();
+            await getRequiredHandler(
+                fixture.handlers,
+                "menu-keyboard-shortcuts"
+            )();
 
-            const script = document.head.querySelector(
-                "script[src='./utils/keyboardShortcutsModal.js']"
-            );
-            script?.dispatchEvent(new Event("error"));
-
-            expect(script).toBeInstanceOf(HTMLScriptElement);
             expect(fixture.showAboutModal).toHaveBeenCalledWith(
                 expect.stringContaining("Keyboard Shortcuts")
+            );
+            expect(fixture.debugMenuLog).toHaveBeenCalledWith(
+                "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"
             );
         } finally {
             cleanupFixture();

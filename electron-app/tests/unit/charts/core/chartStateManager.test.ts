@@ -304,7 +304,7 @@ describe("ChartStateManager", () => {
                 .mockImplementation(() => {});
             vi.mocked(getState)
                 .mockReturnValueOnce({ isRendered: false })
-                .mockReturnValueOnce({ recordMesgs: [] });
+                .mockReturnValueOnce({ recordMesgs: [{ timestamp: 1 }] });
 
             chartStateManager.handleTabActivation();
 

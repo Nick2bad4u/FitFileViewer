@@ -76,9 +76,13 @@ function loadRecentFiles() {
         }
         const data = fs.readFileSync(RECENT_FILES_PATH, "utf8");
         const parsed = JSON.parse(data);
-        return Array.isArray(parsed)
-            ? parsed.filter((entry) => typeof entry === "string")
-            : [];
+        if (!Array.isArray(parsed)) {
+            console.warn(
+                "Invalid recent files list, resetting to an empty array."
+            );
+            return [];
+        }
+        return parsed.filter((entry) => typeof entry === "string");
     } catch (error) {
         console.error("Failed to load recent files:", error);
     }

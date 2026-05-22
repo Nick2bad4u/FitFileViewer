@@ -270,6 +270,9 @@ describe("mapDrawLaps", () => {
             (globalThis as any)._mainPolylineOriginalBounds = {
                 existing: "bounds",
             };
+            (globalThis as any).window._mainPolylineOriginalBounds = {
+                existing: "bounds",
+            };
 
             mapDrawLaps(0, {
                 map: mockMap,
@@ -287,7 +290,7 @@ describe("mapDrawLaps", () => {
                 existing: "data",
             });
             expect(
-                (globalThis as any)._mainPolylineOriginalBounds
+                (globalThis as any).window._mainPolylineOriginalBounds
             ).toBeUndefined();
         });
 

@@ -2,11 +2,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const dependencyMocks = vi.hoisted(() => ({
+    keyboardShortcutsModal: vi.fn(),
     openFileSelector: vi.fn(),
 }));
 
 vi.mock("../../../../../utils/files/import/openFileSelector.js", () => ({
     openFileSelector: dependencyMocks.openFileSelector,
+}));
+
+vi.mock("../../../../../utils/ui/modals/keyboardShortcutsModal.js", () => ({
+    showKeyboardShortcutsModal: dependencyMocks.keyboardShortcutsModal,
 }));
 
 const openFileSelectorMock = dependencyMocks.openFileSelector;
@@ -633,29 +638,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.emit("menu-about");
         expect(showAboutModal).toHaveBeenCalled();
 
-        // keyboard-shortcuts first time: script loader path failing -> fallback modal
-        // Intercept script creation
-        const createEl = document.createElement.bind(document);
-        let capturedScript: HTMLScriptElement | null = null;
-        vi.spyOn(document, "createElement").mockImplementation((tag: any) => {
-            const el = createEl(tag) as any;
-            if (tag === "script") capturedScript = el as HTMLScriptElement;
-            return el;
-        });
+        await window.electronAPI.emit("menu-keyboard-shortcuts");
 
-        window.electronAPI.emit("menu-keyboard-shortcuts");
-        // Simulate load error to trigger fallback path
-        capturedScript?.dispatchEvent(new Event("error"));
-
-        expect(showAboutModal).toHaveBeenCalledTimes(2);
-        const lastArg = showAboutModal.mock.calls.at(-1)?.[0];
-        expect(typeof lastArg).toBe("string");
-        expect(String(lastArg)).toContain("Keyboard Shortcuts");
+        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalled();
 
         // Second time: provide function so it calls directly
-        (window as any).showKeyboardShortcutsModal = vi.fn();
+        (globalThis as any).showKeyboardShortcutsModal = vi.fn();
         window.electronAPI.emit("menu-keyboard-shortcuts");
-        expect((window as any).showKeyboardShortcutsModal).toHaveBeenCalled();
+        expect(
+            (globalThis as any).showKeyboardShortcutsModal
+        ).toHaveBeenCalled();
     });
 
     it("Updater events forward to showUpdateNotification", async () => {

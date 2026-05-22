@@ -4,17 +4,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Create hoisted fns to be used inside vi.mock factory
-const { mockGetState, mockSetState, mockSubscribe } =
+const { mockGetState, mockSetState, mockSubscribe, mockUpdateState } =
     /** @type {any} */ vi.hoisted(() => ({
         mockGetState: vi.fn(),
         mockSetState: vi.fn(),
         mockSubscribe: vi.fn(),
+        mockUpdateState: vi.fn(),
     }));
 
 vi.mock("../../../../../utils/state/core/stateManager", () => ({
     getState: mockGetState,
     setState: mockSetState,
     subscribe: mockSubscribe,
+    updateState: mockUpdateState,
 }));
 
 // We won't mock showNotification path here to avoid path resolution mismatches.
@@ -44,6 +46,7 @@ describe("tabStateManager.behavior", () => {
         mockGetState.mockReset();
         mockSetState.mockReset();
         mockSubscribe.mockReset();
+        mockUpdateState.mockReset();
 
         mockGetState.mockImplementation((/** @type {any} */ key) => {
             switch (key) {
@@ -68,6 +71,7 @@ describe("tabStateManager.behavior", () => {
             getState: mockGetState,
             setState: mockSetState,
             subscribe: mockSubscribe,
+            updateState: mockUpdateState,
         };
 
         // Quiet logs for deterministic tests

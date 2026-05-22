@@ -2,6 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setupListeners } from "../../../../utils/app/events.js";
 
+const keyboardShortcutsModalMock = vi.hoisted(() => ({
+    showKeyboardShortcutsModal: vi.fn<() => void>(),
+}));
+
+vi.mock(
+    import("../../../../utils/ui/modals/keyboardShortcutsModal.js"),
+    () => ({
+        showKeyboardShortcutsModal:
+            keyboardShortcutsModalMock.showKeyboardShortcutsModal,
+    })
+);
+
 type TestGlobals = typeof globalThis & {
     electronAPI?: any;
     showFitData?: ReturnType<typeof vi.fn>;
@@ -78,6 +90,7 @@ describe("setupListeners", () => {
         globalAny.copyTableAsCSV = vi.fn();
         globalAny.ChartUpdater = { updateCharts: vi.fn() };
         globalAny.globalData = { recordMesgs: [] };
+        keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
         globalAny.loadedFitFiles = [];
 
         setupListeners({
@@ -418,38 +431,23 @@ describe("setupListeners", () => {
         );
     });
 
-    it("loads keyboard shortcuts script and invokes the modal presenter when available", () => {
+    it("loads keyboard shortcuts module and invokes the modal presenter when available", async () => {
         delete globalAny.showKeyboardShortcutsModal;
-        const originalCreateElement = document.createElement.bind(document);
-        const createdScripts: HTMLScriptElement[] = [];
-        vi.spyOn(document, "createElement").mockImplementation(((
-            tagName: string,
-            options?: ElementCreationOptions
-        ) => {
-            const element = originalCreateElement(
-                tagName,
-                options
-            ) as HTMLElement;
-            if (tagName === "script") {
-                createdScripts.push(element as HTMLScriptElement);
-            }
-            return element;
-        }) as typeof document.createElement);
 
         const handler = ipcHandlers.get("menu-keyboard-shortcuts");
-        handler?.();
-        expect(createdScripts).toHaveLength(1);
-        const [script] = createdScripts;
-        globalAny.showKeyboardShortcutsModal = vi.fn();
-        // The implementation wires `load` via addEventListener, not the onload property.
-        script.dispatchEvent(new Event("load"));
-        expect(globalAny.showKeyboardShortcutsModal).toHaveBeenCalled();
+        await handler?.();
+
+        expect(
+            keyboardShortcutsModalMock.showKeyboardShortcutsModal
+        ).toHaveBeenCalledOnce();
+        expect(globalAny.showKeyboardShortcutsModal).toBe(
+            keyboardShortcutsModalMock.showKeyboardShortcutsModal
+        );
     });
 
-    it("falls back to inline shortcuts list when script fails to load", () => {
+    it("does not use script tag injection for keyboard shortcuts", async () => {
         delete globalAny.showKeyboardShortcutsModal;
-        const handlers = ipcHandlers;
-        const shortcutsHandler = handlers.get("menu-keyboard-shortcuts");
+        const shortcutsHandler = ipcHandlers.get("menu-keyboard-shortcuts");
         expect(shortcutsHandler).toBeTruthy();
 
         const createdScripts: HTMLScriptElement[] = [];
@@ -468,11 +466,10 @@ describe("setupListeners", () => {
             return element;
         }) as typeof document.createElement);
 
-        shortcutsHandler?.();
-        expect(createdScripts).toHaveLength(1);
-        const [script] = createdScripts;
-        script.dispatchEvent(new Event("error"));
-        expect(showAboutModal).toHaveBeenCalled();
+        await shortcutsHandler?.();
+
+        expect(createdScripts).toHaveLength(0);
+        expect(showAboutModal).not.toHaveBeenCalled();
     });
 
     it("invokes showKeyboardShortcutsModal when script already present", () => {

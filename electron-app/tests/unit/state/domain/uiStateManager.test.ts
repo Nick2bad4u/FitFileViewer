@@ -347,7 +347,8 @@ describe("UIStateManager - comprehensive coverage", () => {
             const tabButton = document.querySelector('[data-tab="charts"]');
             expect(addEventListenerSpy).toHaveBeenCalledWith(
                 "click",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
         });
 
@@ -370,7 +371,8 @@ describe("UIStateManager - comprehensive coverage", () => {
             const themeButton = document.querySelector('[data-theme="dark"]');
             expect(addEventListenerSpy).toHaveBeenCalledWith(
                 "click",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
         });
 
@@ -395,7 +397,8 @@ describe("UIStateManager - comprehensive coverage", () => {
             );
             expect(addEventListenerSpy).toHaveBeenCalledWith(
                 "click",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
         });
 
@@ -420,7 +423,8 @@ describe("UIStateManager - comprehensive coverage", () => {
             );
             expect(addEventListenerSpy).toHaveBeenCalledWith(
                 "click",
-                expect.any(Function)
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
         });
 
