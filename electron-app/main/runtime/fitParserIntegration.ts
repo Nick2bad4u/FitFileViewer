@@ -1,12 +1,105 @@
-"use strict";
 {
-    const { logWithContext } = require("../logging/logWithContext");
-    const {
-        mainProcessState,
-        resolveFitParserSettingsConf,
-    } = require("../state/appState");
-    const FIT_PARSER_OPERATION_ID = "fitFile:decode";
-    let fitParserStateIntegrationPromise = null;
+    type DecoderOptions = import("../../shared/fit").DecoderOptions;
+    type FitFileLoadedPayload = import("../../shared/fit").FitFileLoadedPayload;
+    type FitMessages = import("../../shared/fit").FitMessages;
+    type FitParserStateManagers =
+        import("../../types/fitParser").FitParserStateManagers;
+
+    interface FitParserModule {
+        initializeStateManagement?: (
+            stateManagers?: FitParserStateManagers
+        ) => void;
+    }
+
+    interface FitParserSettingsConf {
+        get: (key: string) => unknown;
+        set: (key: string, value: unknown) => void;
+    }
+
+    interface MainProcessStateLike {
+        completeOperation: (
+            operationId: string,
+            result?: Record<string, unknown>
+        ) => void;
+        failOperation: (operationId: string, error: unknown) => void;
+        get: (statePath: string) => unknown;
+        recordMetric: (
+            metricName: string,
+            value: number,
+            metadata?: Record<string, unknown>
+        ) => void;
+        set: (
+            statePath: string,
+            value: unknown,
+            options?: Record<string, unknown>
+        ) => void;
+        startOperation: (
+            operationId: string,
+            operationData?: Record<string, unknown>
+        ) => void;
+        updateOperation: (
+            operationId: string,
+            updates: Record<string, unknown>
+        ) => void;
+    }
+
+    interface FitFileStateManager {
+        getRecordCount: (messages: FitMessages) => number;
+        handleFileLoaded: (payload: FitFileLoadedPayload) => void;
+        handleFileLoadingError: (error: Error) => void;
+        updateLoadingProgress: (progress: number) => void;
+    }
+
+    interface PerformanceMonitor {
+        endTimer: (operationId: string) => number | null;
+        getOperationTime: (operationId: string) => number | null;
+        isEnabled: boolean;
+        startTimer: (operationId: string) => void;
+    }
+
+    interface SettingsStateManager {
+        getCategory: (
+            category: string
+        ) => Partial<DecoderOptions> | null | undefined;
+        updateCategory: (
+            category: string,
+            value: Partial<DecoderOptions>,
+            options?: Record<string, unknown>
+        ) => void;
+    }
+
+    interface FitParserStateAdapters {
+        fitFileStateManager: FitFileStateManager;
+        performanceMonitor: PerformanceMonitor;
+        settingsStateManager: SettingsStateManager;
+    }
+
+    type TimerState = {
+        duration: number | null;
+        start: number;
+    };
+
+    type FitParserTestGlobal = typeof globalThis & {
+        __fitParserStateAdaptersOverride?: unknown;
+        __resetFitParserStateIntegrationForTests?: () => void;
+    };
+
+    const { logWithContext } = require("../logging/logWithContext") as {
+        logWithContext: (
+            level: "error" | "info" | "warn",
+            message: string,
+            context?: Record<string, unknown>
+        ) => void;
+    };
+    const { mainProcessState, resolveFitParserSettingsConf } =
+        require("../state/appState") as {
+            mainProcessState: MainProcessStateLike;
+            resolveFitParserSettingsConf: () => FitParserSettingsConf | null;
+        };
+
+    const FIT_PARSER_OPERATION_ID = "fitFile:decode" as const;
+    let fitParserStateIntegrationPromise: Promise<void> | null = null;
+
     if (
         typeof process !== "undefined" &&
         process.env &&
@@ -24,31 +117,40 @@
             }
         );
     }
-    const getErrorMessage = (error) =>
+
+    const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : "Unknown error";
-    function isFitParserStateManagers(value) {
+
+    function isFitParserStateManagers(
+        value: unknown
+    ): value is FitParserStateManagers {
         return Boolean(value && typeof value === "object");
     }
-    function getFitParserStateAdaptersOverride() {
+
+    function getFitParserStateAdaptersOverride(): FitParserStateManagers | null {
         if (typeof globalThis === "undefined") {
             return null;
         }
-        const candidate = globalThis.__fitParserStateAdaptersOverride;
+
+        const candidate = (globalThis as FitParserTestGlobal)
+            .__fitParserStateAdaptersOverride;
         return isFitParserStateManagers(candidate) ? candidate : null;
     }
+
     /**
      * Builds the adapter collection consumed by the fit parser's state
      * integration layer.
      */
-    function createFitParserStateAdapters() {
-        const timers = new Map();
-        const now = () =>
+    function createFitParserStateAdapters(): FitParserStateAdapters {
+        const timers = new Map<string, TimerState>();
+        const now = (): number =>
             typeof performance !== "undefined" &&
             performance &&
             typeof performance.now === "function"
                 ? performance.now()
                 : Date.now();
-        const ensureOperationStarted = () => {
+
+        const ensureOperationStarted = (): void => {
             try {
                 if (
                     mainProcessState.get(
@@ -57,6 +159,7 @@
                 ) {
                     return;
                 }
+
                 mainProcessState.startOperation(FIT_PARSER_OPERATION_ID, {
                     message: "Decoding FIT file",
                     metadata: { source: "fitParser" },
@@ -71,28 +174,39 @@
                 );
             }
         };
-        const fitFileStateManager = {
+
+        const fitFileStateManager: FitFileStateManager = {
             getRecordCount(messages) {
                 if (!messages || typeof messages !== "object") {
                     return 0;
                 }
-                const messagesLike = messages;
+
+                const messagesLike = messages as Record<string, unknown>;
                 const recordCandidates =
                     messagesLike["recordMesgs"] ?? messagesLike["records"];
+
                 if (Array.isArray(recordCandidates)) {
                     return recordCandidates.length;
                 }
+
                 if (
                     recordCandidates &&
                     typeof recordCandidates === "object" &&
-                    typeof recordCandidates.length === "number"
+                    typeof (recordCandidates as { length?: unknown }).length ===
+                        "number"
                 ) {
-                    return Number(recordCandidates.length) || 0;
+                    return (
+                        Number(
+                            (recordCandidates as { length: number }).length
+                        ) || 0
+                    );
                 }
+
                 return 0;
             },
             handleFileLoaded(payload) {
                 ensureOperationStarted();
+
                 try {
                     mainProcessState.updateOperation(FIT_PARSER_OPERATION_ID, {
                         progress: 100,
@@ -113,6 +227,7 @@
                         }
                     );
                 }
+
                 try {
                     mainProcessState.set(
                         "fitFile.lastResult",
@@ -134,6 +249,7 @@
             },
             handleFileLoadingError(error) {
                 ensureOperationStarted();
+
                 try {
                     mainProcessState.failOperation(
                         FIT_PARSER_OPERATION_ID,
@@ -151,6 +267,7 @@
             },
             updateLoadingProgress(progress) {
                 ensureOperationStarted();
+
                 try {
                     const numeric = Number(progress);
                     const clamped = Number.isFinite(numeric)
@@ -171,37 +288,44 @@
                 }
             },
         };
-        const settingsStateManager = {
+
+        const settingsStateManager: SettingsStateManager = {
             getCategory(category) {
                 if (!category) {
                     return null;
                 }
+
                 try {
                     const stateValue = mainProcessState.get(
                         `settings.${category}`
                     );
                     if (stateValue !== undefined && stateValue !== null) {
-                        return stateValue;
+                        return stateValue as Partial<DecoderOptions>;
                     }
                 } catch {
                     /* ignore state read errors */
                 }
+
                 if (category === "decoder") {
                     const conf = resolveFitParserSettingsConf();
                     if (conf && typeof conf.get === "function") {
                         try {
-                            return conf.get("decoderOptions");
+                            return conf.get(
+                                "decoderOptions"
+                            ) as Partial<DecoderOptions>;
                         } catch {
                             /* ignore conf read errors */
                         }
                     }
                 }
+
                 return null;
             },
             updateCategory(category, value, options = {}) {
                 if (!category) {
                     return;
                 }
+
                 try {
                     mainProcessState.set(`settings.${category}`, value, {
                         source: "fitParser",
@@ -219,6 +343,7 @@
                         }
                     );
                 }
+
                 if (category === "decoder") {
                     const conf = resolveFitParserSettingsConf();
                     if (conf && typeof conf.set === "function") {
@@ -237,18 +362,22 @@
                 }
             },
         };
-        const performanceMonitor = {
+
+        const performanceMonitor: PerformanceMonitor = {
             isEnabled: true,
             endTimer(operationId) {
                 if (!operationId) {
                     return null;
                 }
+
                 const timer = timers.get(operationId);
                 if (!timer) {
                     return null;
                 }
+
                 timer.duration = now() - timer.start;
                 timers.set(operationId, timer);
+
                 try {
                     mainProcessState.recordMetric(operationId, timer.duration, {
                         source: "fitParser",
@@ -256,6 +385,7 @@
                 } catch {
                     /* ignore metric errors */
                 }
+
                 return timer.duration;
             },
             getOperationTime(operationId) {
@@ -263,45 +393,53 @@
                 if (!timer) {
                     return null;
                 }
+
                 if (typeof timer.duration === "number") {
                     return timer.duration;
                 }
+
                 return now() - timer.start;
             },
             startTimer(operationId) {
                 if (!operationId) {
                     return;
                 }
+
                 timers.set(operationId, { duration: null, start: now() });
             },
         };
+
         return {
             fitFileStateManager,
             performanceMonitor,
             settingsStateManager,
         };
     }
+
     /**
      * Ensures that fit parser state integration has executed once. Subsequent
      * calls reuse the same promise to avoid re-registering identical adapters.
      */
-    async function ensureFitParserStateIntegration() {
+    async function ensureFitParserStateIntegration(): Promise<void> {
         if (fitParserStateIntegrationPromise) {
             return fitParserStateIntegrationPromise;
         }
+
         fitParserStateIntegrationPromise = (async () => {
             try {
-                const fitParser = require("../../fitParser");
+                const fitParser = require("../../fitParser") as FitParserModule;
                 if (
                     !fitParser ||
                     typeof fitParser.initializeStateManagement !== "function"
                 ) {
                     return;
                 }
+
                 const adapters =
                     getFitParserStateAdaptersOverride() ??
                     createFitParserStateAdapters();
                 fitParser.initializeStateManagement(adapters);
+
                 logWithContext(
                     "info",
                     "Fit parser state management initialized"
@@ -316,8 +454,10 @@
                 );
             }
         })();
+
         return fitParserStateIntegrationPromise;
     }
+
     module.exports = {
         FIT_PARSER_OPERATION_ID,
         createFitParserStateAdapters,
