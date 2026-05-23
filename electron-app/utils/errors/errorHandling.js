@@ -28,7 +28,7 @@ function isPromiseLike(value) {
         typeof value === "object" &&
         value !== null &&
         "then" in value &&
-        typeof value.then === "function"
+        typeof Reflect.get(value, "then") === "function"
     );
 }
 /**

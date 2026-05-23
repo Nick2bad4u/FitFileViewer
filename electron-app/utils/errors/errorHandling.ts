@@ -109,7 +109,7 @@ function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
         typeof value === "object" &&
         value !== null &&
         "then" in value &&
-        typeof (value as { then?: unknown }).then === "function"
+        typeof Reflect.get(value, "then") === "function"
     );
 }
 
