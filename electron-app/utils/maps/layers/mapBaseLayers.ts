@@ -24,8 +24,15 @@ function isLeafletMinimal(value: unknown): value is LeafletMinimal {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
-    return typeof candidate["tileLayer"] === "function";
+    return hasFunctionProperty(value, "tileLayer");
+}
+
+function hasFunctionProperty(value: object, key: "tileLayer"): boolean {
+    if (!(key in value)) {
+        return false;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 /**

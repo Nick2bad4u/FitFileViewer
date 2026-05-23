@@ -5,8 +5,13 @@ function isLeafletMinimal(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return typeof candidate["tileLayer"] === "function";
+    return hasFunctionProperty(value, "tileLayer");
+}
+function hasFunctionProperty(value, key) {
+    if (!(key in value)) {
+        return false;
+    }
+    return typeof value[key] === "function";
 }
 /**
  * Resolve the Leaflet global if present, else return a shim with minimal API
