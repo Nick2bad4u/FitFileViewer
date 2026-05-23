@@ -8,7 +8,7 @@
         setElectronOverride,
     } = require("./electronAccess");
     const PROBE_EVENT = "__test_probe__";
-    function asRecord(value) {
+    function asReflectTarget(value) {
         if (
             value &&
             (typeof value === "object" || typeof value === "function")
@@ -18,7 +18,7 @@
         return null;
     }
     function getProperty(value, key) {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         if (!record) return undefined;
         try {
             return Reflect.get(record, key);
@@ -27,12 +27,12 @@
         }
     }
     function asElectronLike(value) {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? record : null;
     }
     function hasElectronApis(value) {
         return Boolean(
-            asRecord(value) &&
+            asReflectTarget(value) &&
             (getProperty(value, "app") || getProperty(value, "BrowserWindow"))
         );
     }
@@ -55,11 +55,11 @@
         );
     }
     function asAppLike(value) {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? record : null;
     }
     function asBrowserWindowLike(value) {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? record : null;
     }
     function getApp(electronModule) {
@@ -126,7 +126,7 @@
         );
     }
     function markProbeInstalled(app) {
-        const record = asRecord(app);
+        const record = asReflectTarget(app);
         if (!record) return;
         try {
             Reflect.set(record, "__ffvTestProbeInstalled", true);

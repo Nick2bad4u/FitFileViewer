@@ -44,18 +44,20 @@
 
     const PROBE_EVENT = "__test_probe__";
 
-    function asRecord(value: unknown): Record<string, unknown> | null {
+    type ReflectTarget = object & { [key: PropertyKey]: unknown };
+
+    function asReflectTarget(value: unknown): ReflectTarget | null {
         if (
             value &&
             (typeof value === "object" || typeof value === "function")
         ) {
-            return value as Record<string, unknown>;
+            return value as ReflectTarget;
         }
         return null;
     }
 
     function getProperty(value: unknown, key: string): unknown {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         if (!record) return undefined;
         try {
             return Reflect.get(record, key);
@@ -65,13 +67,13 @@
     }
 
     function asElectronLike(value: unknown): PrimeTestElectronLike | null {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? (record as PrimeTestElectronLike) : null;
     }
 
     function hasElectronApis(value: unknown): value is PrimeTestElectronLike {
         return Boolean(
-            asRecord(value) &&
+            asReflectTarget(value) &&
             (getProperty(value, "app") || getProperty(value, "BrowserWindow"))
         );
     }
@@ -100,14 +102,14 @@
     }
 
     function asAppLike(value: unknown): PrimeTestAppLike | null {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? (record as PrimeTestAppLike) : null;
     }
 
     function asBrowserWindowLike(
         value: unknown
     ): PrimeTestBrowserWindowLike | null {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         return record ? (record as PrimeTestBrowserWindowLike) : null;
     }
 
@@ -189,7 +191,7 @@
     }
 
     function markProbeInstalled(app: unknown): void {
-        const record = asRecord(app);
+        const record = asReflectTarget(app);
         if (!record) return;
         try {
             Reflect.set(record, "__ffvTestProbeInstalled", true);
