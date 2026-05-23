@@ -21,7 +21,6 @@
 // access while walking objects.
 //
 // We treat the renderer as untrusted: validate any path before traversing.
-/* @type {ReadonlySet<string>} */
 const FORBIDDEN_DOT_PATH_SEGMENTS = new Set([
     "__proto__",
     "constructor",
@@ -45,7 +44,6 @@ class MainProcessState {
     _senderFallbackIds;
     _nextSenderFallbackId;
     constructor() {
-        /* @type {MainProcessStateData} */
         this.data = {
             // Error tracking
             errors: [],
@@ -72,9 +70,7 @@ class MainProcessState {
             // OAuth state
             pendingOAuthResolvers: new Map(),
         };
-        /* @type {Map<string, Set<Function>>} */
         this.listeners = new Map();
-        /* @type {Function[]} */
         this.middleware = [];
         this.devMode =
             (typeof process !== "undefined" &&
@@ -83,25 +79,18 @@ class MainProcessState {
             (typeof process !== "undefined" &&
                 Array.isArray(process.argv) &&
                 process.argv.includes("--dev"));
-        /* @type {boolean} */
         this._ipcHandlersRegistered = false;
         /*
          * IPC listener bookkeeping: "<webContentsId>:<path>" -> unsubscribe
-         *
-         * @type {Map<string, () => void>}
          */
         this.ipcSubscriptions = new Map();
         this.operationCleanupTimers = new Map();
-        /* @type {Set<number>} */
         this.senderCleanupRegistered = new Set();
         /*
          * Fallback sender id assignment for test/mocked senders lacking numeric
          * id.
-         *
-         * @type {WeakMap<object, number>}
          */
         this._senderFallbackIds = new WeakMap();
-        /* @type {number} */
         this._nextSenderFallbackId = 1;
         this.setupIPCHandlers();
     }

@@ -28,12 +28,6 @@ async function stopGyazoServerIfAvailable() {
 // By consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
 // Or when no mock is registered, we simply use the real implementations.
 /*
- * @typedef {Record<string, unknown>} ManualMockModule
- * @typedef {typeof globalThis & {
- *     __vitest_manual_mocks__?: Map<string, unknown>;
- * }} VitestManualMockGlobal
- */
-/*
  * @param {unknown} value
  *
  * @returns {value is ManualMockModule}
@@ -97,7 +91,6 @@ try {
     if (debugEnabled) {
         const __dbgReg = __getManualMockRegistry();
         if (__dbgReg && typeof __dbgReg.forEach === "function") {
-            /* @type {string[]} */
             const keys = [];
             for (const [k] of __dbgReg.entries()) keys.push(String(k));
             console.log("[exportUtils][debug] manual-mock keys:", keys);
@@ -121,32 +114,6 @@ const showNotification =
     __notifMod?.["showNotification"] ?? __realShowNotification;
 const detectCurrentTheme =
     __chartThemeMod?.["detectCurrentTheme"] ?? __realDetectCurrentTheme;
-/*
- * @typedef {{
- *     getItem?: (key: string) => string | null;
- *     removeItem?: (key: string) => void;
- *     setItem?: (key: string, value: string) => void;
- * }} ExportStorageLike
- * @typedef {() => ExportStorageLike | null} ExportStorageProvider
- */
-/*
- * @typedef {typeof globalThis & {
- *     crypto?: Pick<Crypto, "getRandomValues">;
- * }} SecureRandomGlobal
- * @typedef {{ base64?: boolean }} ExportZipFileOptions
- * @typedef {{
- *     file: (
- *         name: string,
- *         data: string | Blob,
- *         options?: ExportZipFileOptions
- *     ) => ExportZipLike;
- *     generateAsync: (options: { type: "blob" }) => Promise<Blob>;
- * }} ExportZipLike
- * @typedef {new () => ExportZipLike} ExportZipConstructor
- * @typedef {typeof globalThis & {
- *     JSZip?: ExportZipConstructor;
- * }} ExportZipGlobal
- */
 /*
  * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
  * without using fetch().
@@ -316,12 +283,6 @@ const GyazoUploadResponseSchema = z
     })
     .passthrough();
 /*
- * @typedef {{ code: string; state: string }} GyazoOAuthCallbackPayload
- * @typedef {{ access_token: string } & Record<string, unknown>} GyazoTokenResponse
- * @typedef {{ permalink_url?: string; url?: string } & Record<string, unknown>} GyazoUploadResponse
- * @typedef {Response & Partial<GyazoUploadResponse>} GyazoUploadFetchResponse
- */
-/*
  * @param {unknown} value
  *
  * @returns {value is GyazoOAuthCallbackPayload}
@@ -448,13 +409,6 @@ function validateImgurEndpointUrl(url, allowedHosts) {
     return trimmed;
 }
 // Internal dependency container, overridable in tests
-/*
- * @type {{
- *     showNotification: typeof __realShowNotification;
- *     detectCurrentTheme: typeof __realDetectCurrentTheme;
- *     getStorage: ExportStorageProvider;
- * }}
- */
 let __deps = {
     detectCurrentTheme,
     getStorage: () => globalThis.localStorage ?? null,
@@ -473,49 +427,6 @@ export function __setTestDeps(overrides) {
     }
 }
 // JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.
-/*
- * @typedef {string | number | Date} ChartDataPointX
- * @typedef {string | number | null | undefined} ChartDataPointY
- * @typedef {{ x: ChartDataPointX; y: ChartDataPointY }} ChartDataPoint
- * @typedef {{ data?: ChartDataPoint[]; label?: string }} ChartDataset
- * @typedef {{ datasets?: ChartDataset[] }} ChartData
- */
-/*
- * @typedef {Object} ChartJSInstance
- *
- * @property {HTMLCanvasElement} canvas - Chart canvas element
- * @property {{ type?: string }} config - Chart configuration
- * @property {ChartData} data - Chart data object
- * @property {Object} options - Chart options object
- * @property {(type?: string, quality?: number, backgroundColor?: string) => string} toBase64Image - Function to export chart as base64 image
- * @property {() => void} update - Function to update chart
- * @property {() => void} destroy - Function to destroy chart
- */
-/*
- * @typedef {Object} GyazoConfig
- *
- * @property {string | null} clientId - Gyazo client ID
- * @property {string | null} clientSecret - Gyazo client secret
- * @property {string} redirectUri - Gyazo redirect URI
- * @property {string} tokenUrl - Gyazo token URL
- * @property {string} authUrl - Gyazo auth URL
- * @property {string} uploadUrl - Gyazo upload URL
- */
-/*
- * @typedef {Object} WindowExtensions
- *
- * @property {Object} _chartjsInstances - Chart.js instances array
- * @property {Function} showNotification - Notification function
- * @property {Object} electronAPI - Electron API object
- * @property {ExportZipConstructor} [JSZip] - JSZip constructor
- */
-/*
- * @typedef {Object} ExportResult
- *
- * @property {boolean} success - Whether export was successful
- * @property {string} [url] - URL if uploaded
- * @property {string} [error] - Error message if failed
- */
 /*
  * @param {ChartJSInstance} chart
  *
@@ -537,7 +448,6 @@ export const exportUtils = {
      */
     async addCombinedCSVToZip(zip, charts) {
         try {
-            /* @type {Set<ChartDataPointX>} */
             const allTimestamps = new Set();
             for (const chart of charts) {
                 const dataset = getFirstChartDataset(chart);
@@ -1180,9 +1090,7 @@ export const exportUtils = {
         authLink.textContent = "🌐 Open Gyazo Login in Browser";
         authLinkContainer.append(authLink);
         modal.append(authLinkContainer);
-        /* @type {HTMLInputElement | null} */
         let codeInput = null;
-        /* @type {HTMLButtonElement | null} */
         let completeAuthBtn = null;
         if (!useServerFlag) {
             const codeInputSection = document.createElement("div"),
@@ -1253,8 +1161,7 @@ export const exportUtils = {
             completeAuthBtn.addEventListener(
                 "click",
                 async () => {
-                    const code =
-                        /* @type {HTMLInputElement} */ codeInput.value.trim();
+                    const code = codeInput.value.trim();
                     if (!code) {
                         showNotification(
                             "Please enter the authorization code",
@@ -1463,7 +1370,7 @@ export const exportUtils = {
                 await response.json()
             );
             if (parsed.success) {
-                return /* @type {GyazoTokenResponse} */ parsed.data;
+                return parsed.data;
             }
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
@@ -1730,7 +1637,6 @@ export const exportUtils = {
                 throw new Error("No charts provided");
             }
             // Get all unique timestamps
-            /* @type {Set<ChartDataPointX>} */
             const allTimestamps = new Set();
             for (const chart of charts) {
                 const dataset = getFirstChartDataset(chart);
@@ -2861,24 +2767,18 @@ body {
         };
         // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
         if (clientIdInput) {
-            /* @type {HTMLInputElement} */ clientIdInput.value = String(
-                config.clientId ?? ""
-            );
+            clientIdInput.value = String(config.clientId ?? "");
         }
         if (clientSecretInput) {
-            /* @type {HTMLInputElement} */ clientSecretInput.value = String(
-                config.clientSecret ?? ""
-            );
+            clientSecretInput.value = String(config.clientSecret ?? "");
         }
         // Save credentials
         if (saveCredsBtn) {
             saveCredsBtn.addEventListener(
                 "click",
                 () => {
-                    const clientId =
-                            /* @type {HTMLInputElement} */ clientIdInput?.value.trim(),
-                        clientSecret =
-                            /* @type {HTMLInputElement} */ clientSecretInput?.value.trim();
+                    const clientId = clientIdInput.value.trim(),
+                        clientSecret = clientSecretInput.value.trim();
                     if (!clientId || !clientSecret) {
                         showNotification(
                             "Please enter both Client ID and Client Secret",
@@ -3216,15 +3116,10 @@ body {
                 exportUtils.getGyazoConfig().uploadUrl,
                 new Set(["upload.gyazo.com"])
             );
-            const uploadResponse =
-                /* @type {GyazoUploadFetchResponse} */ await fetchWithTimeout(
-                    uploadUrl,
-                    15_000,
-                    {
-                        body: formData,
-                        method: "POST",
-                    }
-                );
+            const uploadResponse = await fetchWithTimeout(uploadUrl, 15_000, {
+                body: formData,
+                method: "POST",
+            });
             // Treat missing `ok` (common in test doubles) as success.
             // A real Fetch Response always has a boolean `ok`.
             if (uploadResponse.ok === false) {
@@ -3248,7 +3143,7 @@ body {
             if (!parsed.success) {
                 throw new Error("Invalid Gyazo upload response");
             }
-            const data = /* @type {GyazoUploadResponse} */ parsed.data;
+            const data = parsed.data;
             if (data.permalink_url) {
                 return data.permalink_url;
             } else if (data.url) {

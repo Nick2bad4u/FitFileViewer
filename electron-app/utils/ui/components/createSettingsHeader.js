@@ -37,37 +37,6 @@ function getGlobalData() {
 function getChartDev() {
     return globalThis.__chartjs_dev;
 }
-// ==========================================
-// Type Definitions (JSDoc)
-// ==========================================
-/*
- * @typedef {Object} WindowExtensions
- *
- * @property {unknown[]} [_chartjsInstances] - ChartJS instances
- * @property {Object} [globalData] - Global data object
- * @property {unknown[]} [globalData.timeInZoneMesgs] - Time in zone messages
- * @property {unknown[]} [globalData.eventMesgs] - Event messages
- * @property {unknown[]} [globalData.recordMesgs] - Record messages
- */
-/*
- * @typedef {Object} ChartOption
- *
- * @property {string} id - Option identifier
- * @property {string} label - Display label
- * @property {string} type - Option type (slider, toggle, select)
- * @property {number} [min] - Minimum value for sliders
- * @property {number} [max] - Maximum value for sliders
- * @property {number} [step] - Step value for sliders
- * @property {any} [defaultValue] - Default value
- * @property {any} [default] - Default value (alternate property)
- * @property {unknown[]} [options] - Options for select controls
- */
-/*
- * @typedef {HTMLInputElement & { timeout?: ReturnType<typeof setTimeout> }} HTMLInputElementExtended
- */
-/*
- * @typedef {HTMLDivElement & { _updateFromReset?: Function }} HTMLDivElementExtended
- */
 /*
  * Resolve chart instances from the renderer global. In Electron's renderer,
  * `globalThis` and `window` normally point at the same object; Vitest's jsdom
@@ -189,13 +158,13 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Save as PNG",
-                    (/* @type {any} */ chart) => {
+                    (chart) => {
                         const [dataset] = chart.data.datasets,
                             fieldName = dataset?.label || "chart",
                             filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
                         extendedExportUtils.downloadChartAsPNG(chart, filename);
                     },
-                    (/* @type {any} */ charts) =>
+                    (charts) =>
                         extendedExportUtils.createCombinedChartsImage(
                             charts,
                             "combined-charts.png"
@@ -208,9 +177,8 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Copy to Clipboard",
-                    (/* @type {any} */ chart) =>
-                        extendedExportUtils.copyChartToClipboard(chart),
-                    (/* @type {any} */ charts) =>
+                    (chart) => extendedExportUtils.copyChartToClipboard(chart),
+                    (charts) =>
                         extendedExportUtils.copyCombinedChartsToClipboard(
                             charts
                         )
@@ -222,7 +190,7 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Export as CSV",
-                    (/* @type {any} */ chart) => {
+                    (chart) => {
                         const [dataset] = chart.data.datasets;
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
@@ -234,7 +202,7 @@ export function createExportSection(wrapper) {
                             );
                         }
                     },
-                    (/* @type {any} */ charts) =>
+                    (charts) =>
                         extendedExportUtils.exportCombinedChartsDataAsCSV(
                             charts,
                             "combined-charts-data.csv"
@@ -247,7 +215,7 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Export as JSON",
-                    (/* @type {any} */ chart) => {
+                    (chart) => {
                         const [dataset] = chart.data.datasets;
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
@@ -300,10 +268,8 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Print",
-                    (/* @type {any} */ chart) =>
-                        extendedExportUtils.printChart(chart),
-                    (/* @type {any} */ charts) =>
-                        extendedExportUtils.printCombinedCharts(charts)
+                    (chart) => extendedExportUtils.printChart(chart),
+                    (charts) => extendedExportUtils.printCombinedCharts(charts)
                 ),
             icon: "🖨️",
             text: "Print",
@@ -489,7 +455,7 @@ export function createFieldTogglesSection(wrapper) {
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
-    /* @type {string[]} */ for (const field of formatChartFields) {
+    for (const field of formatChartFields) {
         const fieldToggle = createFieldToggle(field);
         fieldsGrid.append(fieldToggle);
     } // Add GPS track toggle
@@ -664,7 +630,7 @@ export function showChartSelectionModal(
         return;
     }
     // Filter out invalid charts using exportUtils validation
-    const validCharts = charts.filter((/* @type {any} */ chart) =>
+    const validCharts = charts.filter((chart) =>
         extendedExportUtils.isValidChart(chart)
     );
     if (validCharts.length === 0) {
@@ -914,8 +880,6 @@ function createActionButton(text, title, onClick, className = "") {
  */
 /*
  * Creates individual control groups for each setting
- *
- * @param {any} option - The control option configuration
  */
 function createControlGroup(option) {
     const group = document.createElement("div");
@@ -1094,10 +1058,7 @@ function createFieldToggle(field) {
                         const { power } = row;
                         return parseFiniteNumber(power) !== null;
                     });
-                } else if (
-                    /* @type {string[]} */ formatChartFields
-                        /* @type {unknown} */ .includes(field)
-                ) {
+                } else if (formatChartFields.includes(field)) {
                     // Regular chart field
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
@@ -1203,9 +1164,7 @@ function createFieldToggle(field) {
         };
         const storedColor = getChartSetting(`color_${field}`);
         const candidate =
-            storedColor ||
-            /* @type {any} */ fieldColors[field] ||
-            themeConfig.colors?.accent;
+            storedColor || fieldColors[field] || themeConfig.colors?.accent;
         colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
         colorPicker.style.cssText = `
 			width: 32px;
@@ -1635,7 +1594,7 @@ function toggleAllFields(enable) {
     try {
         const // Get all possible field keys
             allFields = [
-                .../* @type {string[]} */ /* @type {unknown} */ formatChartFields,
+                ...formatChartFields,
                 "gps_track",
                 "speed_vs_distance",
                 "power_vs_hr",
