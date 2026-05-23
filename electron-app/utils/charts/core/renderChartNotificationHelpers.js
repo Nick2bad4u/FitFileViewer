@@ -65,20 +65,6 @@ export async function notify(
             await globalNotifier(message, type);
             return;
         }
-        if (typeof chartGlobal.require === "function") {
-            try {
-                const reqMod = chartGlobal.require(
-                    "../../ui/notifications/showNotification.js"
-                );
-                const requiredNotifier = resolveNotificationInvoker(reqMod);
-                if (requiredNotifier) {
-                    await requiredNotifier(message, type);
-                    return;
-                }
-            } catch {
-                // Ignore and fall through to dynamic import.
-            }
-        }
         const mod = await import("../../ui/notifications/showNotification.js");
         const importedNotifier = resolveNotificationInvoker(mod);
         if (importedNotifier) {

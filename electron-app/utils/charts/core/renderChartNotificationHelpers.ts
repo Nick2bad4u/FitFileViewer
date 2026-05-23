@@ -15,7 +15,6 @@ interface RenderChartNotificationOptions extends NotificationOptions {
 
 interface RenderChartNotificationGlobal {
     __FFV_suppressNotifications?: boolean;
-    require?: unknown;
     showNotification?: unknown;
 }
 
@@ -98,21 +97,6 @@ export async function notify(
         if (globalNotifier) {
             await globalNotifier(message, type);
             return;
-        }
-
-        if (typeof chartGlobal.require === "function") {
-            try {
-                const reqMod = chartGlobal.require(
-                    "../../ui/notifications/showNotification.js"
-                );
-                const requiredNotifier = resolveNotificationInvoker(reqMod);
-                if (requiredNotifier) {
-                    await requiredNotifier(message, type);
-                    return;
-                }
-            } catch {
-                // Ignore and fall through to dynamic import.
-            }
         }
 
         const mod = await import("../../ui/notifications/showNotification.js");

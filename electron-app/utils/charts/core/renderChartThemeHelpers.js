@@ -137,19 +137,6 @@ export async function getThemeConfigSafe() {
         if (!themeConfig && globalProvider) {
             themeConfig = globalProvider();
         }
-        if (!themeConfig && typeof chartGlobal.require === "function") {
-            try {
-                const reqMod = chartGlobal.require(
-                    "../../theming/core/theme.js"
-                );
-                const requiredProvider = resolveThemeConfigProvider(reqMod);
-                if (requiredProvider) {
-                    themeConfig = requiredProvider();
-                }
-            } catch {
-                // Ignore and fall through to normalized fallback colors.
-            }
-        }
     } catch (error) {
         console.warn("[ChartJS] getThemeConfigSafe() fallback:", error);
     }
