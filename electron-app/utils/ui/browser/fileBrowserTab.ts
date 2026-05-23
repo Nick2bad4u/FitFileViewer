@@ -9,6 +9,7 @@
  *   path.
  */
 
+import type { FitBrowserListFolderResult } from "../../../shared/ipc";
 import pLimitCompat from "../../async/pLimitCompat.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
@@ -25,19 +26,6 @@ type CalendarState = {
 };
 
 type DistanceUnit = "km" | "mi";
-
-type FitBrowserEntry = {
-    fullPath: string;
-    kind: "dir" | "file";
-    name: string;
-    relPath: string;
-};
-
-type FitBrowserListResponse = {
-    entries: FitBrowserEntry[];
-    relPath: string;
-    root: null | string;
-};
 
 type FitBrowserGlobal = typeof globalThis & {
     __ffvLibraryCache?: Record<string, FitLibraryCachePayload>;
@@ -413,9 +401,7 @@ async function decodeLibraryItem(
         const decoded = await api.decodeFitFile(buf);
         const decodedRecord = asRecord(decoded);
         const sessionMesgs = decodedRecord?.["sessionMesgs"];
-        const session = Array.isArray(sessionMesgs)
-            ? sessionMesgs[0]
-            : null;
+        const session = Array.isArray(sessionMesgs) ? sessionMesgs[0] : null;
         const sessionRecord = asRecord(session);
 
         const startRaw =
@@ -537,7 +523,7 @@ function groupItemsByDay(
 
 function isFitBrowserListResponse(
     value: unknown
-): value is FitBrowserListResponse {
+): value is FitBrowserListFolderResult {
     if (!value || typeof value !== "object") return false;
     const v = value as { entries?: unknown; relPath?: unknown; root?: unknown };
     if (v.root !== null && typeof v.root !== "string" && v.root !== undefined)

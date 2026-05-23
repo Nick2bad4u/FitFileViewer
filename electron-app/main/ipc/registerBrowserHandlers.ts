@@ -1,4 +1,9 @@
 {
+    type FitBrowserEntry = import("../../shared/ipc").FitBrowserEntry;
+    type FitBrowserInvokeChannel =
+        import("../../shared/ipc").FitBrowserInvokeChannel;
+    type FitBrowserListFolderResult =
+        import("../../shared/ipc").FitBrowserListFolderResult;
     type OpenDialogOptions = import("electron").OpenDialogOptions;
     type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
 
@@ -62,7 +67,7 @@
     ) => unknown;
 
     type RegisterBrowserIpcHandle = (
-        channel: string,
+        channel: FitBrowserInvokeChannel,
         handler: RegisterBrowserIpcHandler
     ) => void;
 
@@ -80,13 +85,6 @@
         logWithContext?: LogWithContext;
         path: PathApi;
         registerIpcHandle: RegisterBrowserIpcHandle;
-    }
-
-    interface BrowserEntry {
-        fullPath: string;
-        kind: "dir" | "file";
-        name: string;
-        relPath: string;
     }
 
     const CONF_KEY_ENABLED = "fitBrowser.enabled";
@@ -291,7 +289,10 @@
 
         registerIpcHandle(
             "browser:listFolder",
-            async (_event, relPath = "") => {
+            async (
+                _event,
+                relPath = ""
+            ): Promise<FitBrowserListFolderResult> => {
                 if (!readEnabled()) {
                     return { entries: [], relPath: "", root: readRootFolder() };
                 }
@@ -324,7 +325,7 @@
                         return { entries: [], relPath: "", root };
                     }
 
-                    const out: BrowserEntry[] = [];
+                    const out: FitBrowserEntry[] = [];
                     const dirents = await readdir(abs, { withFileTypes: true });
                     const baseRel =
                         typeof relPath === "string"

@@ -54,6 +54,32 @@ export type InfoInvokeChannel = Extract<
     | "theme:get"
 >;
 
+/** FIT browser invoke channels used by the folder-browser bridge. */
+export type FitBrowserInvokeChannel = Extract<
+    GenericInvokeChannel,
+    | "browser:getFolder"
+    | "browser:isEnabled"
+    | "browser:listFolder"
+    | "browser:setEnabled"
+    | "browser:setFolder"
+    | "dialog:openFolder"
+>;
+
+/** A single entry returned from the FIT browser directory listing. */
+export interface FitBrowserEntry {
+    fullPath: string;
+    kind: "dir" | "file";
+    name: string;
+    relPath: string;
+}
+
+/** Directory listing payload returned by browser:listFolder. */
+export interface FitBrowserListFolderResult {
+    entries: FitBrowserEntry[];
+    relPath: string;
+    root: null | string;
+}
+
 /** Result returned when the Gyazo OAuth helper server starts. */
 export interface GyazoServerStartResult {
     message?: string;

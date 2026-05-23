@@ -1,6 +1,7 @@
 import type { FitDecodeResult, FitMessages } from "./fit";
 import type {
     ChannelInfo,
+    FitBrowserListFolderResult,
     GenericInvokeChannel,
     GenericSendChannel,
     GyazoServerStartResult,
@@ -42,7 +43,9 @@ export interface ElectronAPI {
     /** Get the persisted FIT browser folder (main process setting). */
     getFitBrowserFolder: () => Promise<null | string>;
     /** List entries under the persisted FIT browser folder. */
-    listFitBrowserFolder: (relPath?: string) => Promise<IpcSerializable>;
+    listFitBrowserFolder: (
+        relPath?: string
+    ) => Promise<FitBrowserListFolderResult>;
     isFitBrowserEnabled: () => Promise<boolean>;
     setFitBrowserEnabled: (enabled: boolean) => Promise<boolean>;
     setFitBrowserFolder: (folderPath: string) => Promise<boolean>;
