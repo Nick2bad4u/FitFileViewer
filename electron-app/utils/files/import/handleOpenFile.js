@@ -5,6 +5,11 @@
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import * as stateManager from "../../state/core/stateManager.js";
+import {
+    getFitMessagesSessionCount,
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "./fitParsePayload.js";
 const __TEST_ONLY_exposedStateManager = stateManager;
 // Constants for better maintainability
 const FILE_OPEN_CONSTANTS = {
@@ -156,21 +161,21 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
-        const parseErrorMessage = getParseErrorMessage(result);
+        const parseErrorMessage = getFitParseErrorMessage(result);
         if (parseErrorMessage) {
             showNotification(`Error: ${parseErrorMessage.display}`, "error");
             notifyFileLoadError(new Error(parseErrorMessage.summary));
             updateUIState(uiElements, false, false);
             return false;
         }
-        const fitData = unwrapFileParseResult(result);
+        const fitData = unwrapFitParseMessages(result);
         if (
             typeof process !== "undefined" &&
             process.env &&
             process.env["NODE_ENV"] !== "production"
         ) {
             console.log("[DEBUG] FIT parse result:", result);
-            const sessionCount = getSessionCount(fitData);
+            const sessionCount = getFitMessagesSessionCount(fitData);
             console.log(
                 `[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`
             );
@@ -215,66 +220,6 @@ async function handleOpenFile(
             /* ignore */
         }
     }
-}
-function getParseErrorMessage(result) {
-    const errorPayload = isFitDecodeErrorPayload(result)
-        ? result
-        : isFileParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
-          ? result.data
-          : undefined;
-    if (errorPayload) {
-        return formatParseError(errorPayload.error, errorPayload.details);
-    }
-    if (isFileParseEnvelope(result) && typeof result.error === "string") {
-        return formatParseError(result.error, result.details);
-    }
-    return null;
-}
-function unwrapFileParseResult(result) {
-    if (isFileParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
-        return result.data;
-    }
-    if (isFitDecodeResultLike(result)) {
-        return result;
-    }
-    throw new TypeError("Invalid FIT parse result");
-}
-function isFileParseEnvelope(value) {
-    return isPlainRecord(value);
-}
-function isFitDecodeErrorPayload(value) {
-    return isPlainRecord(value) && typeof value.error === "string";
-}
-function isFitDecodeResultLike(value) {
-    return isPlainRecord(value);
-}
-function isPlainRecord(value) {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function formatParseError(error, details) {
-    const detailText = formatErrorDetails(details);
-    const display = detailText ? `${error}\n${detailText}` : error;
-    return { display, summary: error };
-}
-function formatErrorDetails(details) {
-    if (details === undefined || details === null || details === "") {
-        return "";
-    }
-    if (typeof details === "string") {
-        return details;
-    }
-    try {
-        return JSON.stringify(details);
-    } catch {
-        return String(details);
-    }
-}
-function getSessionCount(data) {
-    if (!("sessions" in data)) {
-        return 0;
-    }
-    const { sessions } = data;
-    return Array.isArray(sessions) ? sessions.length : 0;
 }
 function logWithContext(message, level = "info", context = {}) {
     const normalizedLevel =

@@ -3,16 +3,17 @@
  * size. Recent files context menu wiring.
  */
 
-type FitParseResult = {
-    data?: unknown;
-    details?: string;
-    error?: string;
-};
+import {
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "../../files/import/fitParsePayload.js";
+import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
+import type { FitMessages } from "../../../shared/fit";
 
 type RecentFilesElectronApi = {
     addRecentFile: (file: string) => Promise<unknown>;
     approveRecentFile?: (file: string) => Promise<boolean>;
-    parseFitFile: (data: ArrayBuffer) => Promise<FitParseResult>;
+    parseFitFile: (data: ArrayBuffer) => Promise<FitParsePayload>;
     readFile: (file: string) => Promise<ArrayBuffer>;
     recentFiles: () => Promise<string[]>;
 };
@@ -20,7 +21,7 @@ type RecentFilesElectronApi = {
 type RecentFilesGlobal = typeof globalThis & {
     electronAPI?: RecentFilesElectronApi;
     sendFitFileToAltFitReader?: (data: ArrayBuffer) => Promise<void> | void;
-    showFitData?: (data: unknown, filePath: string) => void;
+    showFitData?: (data: FitMessages, filePath: string) => void;
 };
 
 type AttachRecentFilesContextMenuParams = {
@@ -256,33 +257,24 @@ export function attachRecentFilesContextMenu({
                                     arrayBuffer
                                 );
 
-                        if (result && result.error) {
+                        const parseErrorMessage =
+                            getFitParseErrorMessage(result);
+                        if (parseErrorMessage) {
                             showNotification(
-                                `Error: ${result.error}\n${result.details || ""}`,
+                                `Error: ${parseErrorMessage.display}`,
                                 "error"
                             );
                             return;
                         }
 
-                        // Extract data using the same logic as handleOpenFile.js and IPC handler
-                        const dataToShow = result.data || result;
+                        const dataToShow = unwrapFitParseMessages(result);
 
-                        if (dataToShow) {
-                            // Optional chaining avoids undefined invocation
-                            appGlobal.showFitData?.(dataToShow, file);
-                            // Optional integration - guarded
-                            if (appGlobal.sendFitFileToAltFitReader) {
-                                appGlobal.sendFitFileToAltFitReader(
-                                    arrayBuffer
-                                );
-                            }
-                            await activeElectronAPI.addRecentFile(file);
-                        } else {
-                            showNotification(
-                                "Error: No valid FIT data found in file",
-                                "error"
-                            );
+                        appGlobal.showFitData?.(dataToShow, file);
+                        // Optional integration - guarded
+                        if (appGlobal.sendFitFileToAltFitReader) {
+                            appGlobal.sendFitFileToAltFitReader(arrayBuffer);
                         }
+                        await activeElectronAPI.addRecentFile(file);
                     } catch (error) {
                         showNotification(
                             `Error opening recent file: ${error}`,

@@ -1,0 +1,123 @@
+import type {
+    FitDecodeErrorPayload,
+    FitDecodeResult,
+    FitFieldValue,
+    FitMessages,
+} from "../../../shared/fit";
+
+/** Parser results may arrive wrapped by legacy IPC paths. */
+export type FitParseEnvelope = {
+    data?: FitDecodeResult;
+    details?: FitFieldValue;
+    error?: string;
+    success?: boolean;
+} & Record<string, unknown>;
+
+/** FIT parser payload shape accepted by renderer file-open flows. */
+export type FitParsePayload = FitDecodeResult | FitParseEnvelope;
+
+/** User-facing and error-state summaries for FIT parser failures. */
+export type FitParseErrorMessage = {
+    display: string;
+    summary: string;
+};
+
+/** Extract a parser failure from either direct or wrapped FIT parse payloads. */
+export function getFitParseErrorMessage(
+    result: FitParsePayload
+): FitParseErrorMessage | null {
+    const errorPayload = isFitDecodeErrorPayload(result)
+        ? result
+        : isFitParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
+          ? result.data
+          : undefined;
+
+    if (errorPayload) {
+        return formatFitParseError(errorPayload.error, errorPayload.details);
+    }
+
+    if (isFitParseEnvelope(result) && typeof result.error === "string") {
+        return formatFitParseError(result.error, result.details);
+    }
+
+    return null;
+}
+
+/** Count decoded sessions defensively for debug logging. */
+export function getFitMessagesSessionCount(data: FitMessages): number {
+    if (!("sessions" in data)) {
+        return 0;
+    }
+
+    const { sessions } = data as { sessions?: unknown };
+    return Array.isArray(sessions) ? sessions.length : 0;
+}
+
+/**
+ * Return decoded FIT messages or throw for parser error payloads.
+ *
+ * @throws Error when the parser returned a FIT decode error payload.
+ * @throws TypeError when the parser returned a non-object payload.
+ */
+export function unwrapFitParseMessages(result: FitParsePayload): FitMessages {
+    const parseErrorMessage = getFitParseErrorMessage(result);
+    if (parseErrorMessage) {
+        throw new Error(parseErrorMessage.display);
+    }
+
+    if (isFitParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
+        return result.data as FitMessages;
+    }
+
+    if (isFitDecodeResultLike(result)) {
+        return result as FitMessages;
+    }
+
+    throw new TypeError("Invalid FIT parse result");
+}
+
+function formatFitParseError(
+    error: string,
+    details: FitFieldValue | undefined
+): FitParseErrorMessage {
+    const detailText = formatErrorDetails(details);
+    const display = detailText ? `${error}\n${detailText}` : error;
+    return { display, summary: error };
+}
+
+function formatErrorDetails(details: FitFieldValue | undefined): string {
+    if (details === undefined || details === null || details === "") {
+        return "";
+    }
+
+    if (typeof details === "string") {
+        return details;
+    }
+
+    try {
+        return JSON.stringify(details);
+    } catch {
+        return String(details);
+    }
+}
+
+function isFitDecodeErrorPayload(
+    value: unknown
+): value is FitDecodeErrorPayload {
+    return (
+        isPlainRecord(value) &&
+        typeof (value as { error?: unknown }).error === "string"
+    );
+}
+
+function isFitDecodeResultLike(value: unknown): value is FitDecodeResult {
+    return isPlainRecord(value);
+}
+
+function isFitParseEnvelope(value: FitParsePayload): value is FitParseEnvelope {
+    return isPlainRecord(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}

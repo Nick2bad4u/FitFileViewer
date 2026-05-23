@@ -4,6 +4,7 @@
  * Used by the Browser tab (folder-based activity browsing) to open a selected
  * .fit file without showing the native file picker.
  */
+import { unwrapFitParseMessages } from "./fitParsePayload.js";
 /**
  * Open and parse a FIT file from a path exposed by the renderer file browser.
  *
@@ -44,7 +45,7 @@ export async function openFitFileFromPath({
         ) {
             throw new Error("Invalid or unsupported file buffer");
         }
-        const data = unwrapParsedFitMessages(
+        const data = unwrapFitParseMessages(
             await api.parseFitFile(arrayBuffer)
         );
         if (typeof appGlobal.showFitData !== "function") {
@@ -98,43 +99,6 @@ function resolveFitFileElectronAPI() {
         return undefined;
     }
     return electronAPI;
-}
-function unwrapParsedFitMessages(result) {
-    const decoded = unwrapParsedFitData(result);
-    if (isFitDecodeErrorPayload(decoded)) {
-        throw new Error(formatFitDecodeError(decoded));
-    }
-    return decoded;
-}
-function unwrapParsedFitData(result) {
-    if (isParsedFitWrapper(result)) {
-        return result.data;
-    }
-    return result;
-}
-function isFitDecodeErrorPayload(value) {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        typeof value.error === "string"
-    );
-}
-function formatFitDecodeError(errorPayload) {
-    if (typeof errorPayload.details === "string") {
-        return `${errorPayload.error}\n${errorPayload.details}`;
-    }
-    return errorPayload.error;
-}
-function isFitDecodeResultLike(value) {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function isParsedFitWrapper(result) {
-    if (!("data" in result)) {
-        return false;
-    }
-    const candidate = result;
-    return isFitDecodeResultLike(candidate.data);
 }
 /**
  * Resolve the renderer-side fit file state manager if it has been installed.
