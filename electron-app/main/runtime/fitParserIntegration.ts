@@ -175,31 +175,39 @@
             }
         };
 
+        const getMessageRecordCandidates = (messages: object): unknown => {
+            if ("recordMesgs" in messages) {
+                return messages.recordMesgs;
+            }
+
+            return "records" in messages ? messages.records : undefined;
+        };
+
+        const getArrayLikeLength = (value: unknown): number | null => {
+            if (!value || typeof value !== "object" || !("length" in value)) {
+                return null;
+            }
+
+            return typeof value.length === "number"
+                ? Number(value.length) || 0
+                : null;
+        };
+
         const fitFileStateManager: FitFileStateManager = {
             getRecordCount(messages) {
                 if (!messages || typeof messages !== "object") {
                     return 0;
                 }
 
-                const messagesLike = messages as Record<string, unknown>;
-                const recordCandidates =
-                    messagesLike["recordMesgs"] ?? messagesLike["records"];
+                const recordCandidates = getMessageRecordCandidates(messages);
 
                 if (Array.isArray(recordCandidates)) {
                     return recordCandidates.length;
                 }
 
-                if (
-                    recordCandidates &&
-                    typeof recordCandidates === "object" &&
-                    typeof (recordCandidates as { length?: unknown }).length ===
-                        "number"
-                ) {
-                    return (
-                        Number(
-                            (recordCandidates as { length: number }).length
-                        ) || 0
-                    );
+                const arrayLikeLength = getArrayLikeLength(recordCandidates);
+                if (arrayLikeLength !== null) {
+                    return arrayLikeLength;
                 }
 
                 return 0;
