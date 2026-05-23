@@ -43,6 +43,10 @@ const { Buffer } = require("node:buffer");
  * @typedef {import("./shared/fitSdk").FitSdkModule} FitSdkModule
  *
  * @typedef {import("./shared/fitSdk").FitSdkReadResult} FitSdkReadResult
+ *
+ * @typedef {import("./shared/fitSdk").FitSdkReadOptions & {
+ *     filePath?: unknown;
+ * }} FitParserReadOptions
  */
 
 /**
@@ -163,6 +167,23 @@ class FitDecodeError extends Error {
 }
 
 /**
+ * Validates the minimal Garmin SDK module surface used by the parser.
+ *
+ * @param {unknown} value Module candidate.
+ *
+ * @returns {FitSdkModule} Valid SDK module.
+ */
+function assertFitSdkModule(value) {
+    if (isFitSdkModule(value)) {
+        return value;
+    }
+
+    throw new TypeError(
+        "Garmin FIT SDK module is missing Decoder or Stream.fromBuffer"
+    );
+}
+
+/**
  * Extracts a stable user-facing message and optional stack from an unknown
  * thrown value.
  *
@@ -180,6 +201,25 @@ function describeError(error) {
         };
     }
     return { message: "Failed to decode file", stack: null };
+}
+
+/**
+ * Formats FIT SDK detail values for diagnostic strings.
+ *
+ * @param {FitFieldValue} value Detail value from the SDK.
+ *
+ * @returns {string} Diagnostic-safe string.
+ */
+function formatFitFieldValue(value) {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+
+    if (value === null || typeof value !== "object") {
+        return String(value);
+    }
+
+    return JSON.stringify(value);
 }
 
 function getConf() {
@@ -232,6 +272,74 @@ function initializeStateManagement(stateManagers = {}) {
         hasPerformanceMonitor: Boolean(performanceMonitor),
         hasSettings: Boolean(settingsStateManager),
     });
+}
+
+/**
+ * Checks whether a value exposes the Garmin SDK surface used by this parser.
+ *
+ * @param {unknown} value Module candidate.
+ *
+ * @returns {value is FitSdkModule}
+ */
+function isFitSdkModule(value) {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const candidate = /** @type {{ Decoder?: unknown; Stream?: unknown }} */ (
+        value
+    );
+    if (typeof candidate.Decoder !== "function") {
+        return false;
+    }
+
+    const { Stream } = candidate;
+    if (Stream === null || typeof Stream !== "object") {
+        return false;
+    }
+
+    return (
+        typeof /** @type {{ fromBuffer?: unknown }} */ (Stream).fromBuffer ===
+        "function"
+    );
+}
+
+/**
+ * Loads the Garmin FIT SDK, allowing tests to inject the small surface the
+ * parser needs.
+ *
+ * @param {FitSdkModule | null} fitsdk Optional injected SDK module.
+ *
+ * @returns {Promise<FitSdkModule>} Garmin SDK module surface.
+ */
+async function loadFitSdk(fitsdk) {
+    if (fitsdk) {
+        return fitsdk;
+    }
+
+    return assertFitSdkModule(await import("@garmin/fitsdk"));
+}
+
+/**
+ * Copies caller-supplied decoder options into a plain object before merging
+ * with persisted defaults.
+ *
+ * @param {unknown} options Caller-supplied decoder options.
+ *
+ * @returns {FitParserReadOptions} Plain decoder options.
+ */
+function normalizeDecoderReadOptions(options) {
+    if (
+        options === null ||
+        options === undefined ||
+        typeof options !== "object"
+    ) {
+        return {};
+    }
+
+    return /** @type {FitParserReadOptions} */ (
+        Object.fromEntries(Object.entries(options))
+    );
 }
 
 /**
@@ -389,7 +497,7 @@ function validateDecoderOptions(options) {
                     validatedOptions[key] = value;
                 } else {
                     errors.push(
-                        `${String(key)} must be of type ${schema.type}, got ${typeof value}`
+                        `${key} must be of type ${schema.type}, got ${typeof value}`
                     );
                 }
             }
@@ -476,16 +584,16 @@ function applyUnknownMessageLabels(messages) {
  * Decodes a FIT file buffer using the Garmin FIT SDK with integrated state
  * management.
  *
- * @param {Buffer | Uint8Array} fileBuffer - The FIT file buffer to decode.
- * @param {Partial<DecoderOptions>} [options] - Optional decoder.read options.
+ * @param {unknown} fileBuffer - The FIT file buffer to decode.
+ * @param {unknown} [options] - Optional decoder.read options.
  * @param {FitSdkModule | null} [fitsdk] - Optional fitsdk dependency for
  *   testing/mocking.
  *
  * @returns {Promise<FitDecodeResult>} Decoded messages or error object.
  */
 /**
- * @param {Buffer | Uint8Array} fileBuffer
- * @param {Partial<DecoderOptions>} [options]
+ * @param {unknown} fileBuffer
+ * @param {unknown} [options]
  * @param {FitSdkModule | null} [fitsdk] Optional injected sdk for tests.
  *
  * @returns {Promise<FitDecodeResult>}
@@ -499,138 +607,53 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
     }
 
     // Update FIT file state to indicate decoding started
-    if (fitFileStateManager) {
-        try {
-            fitFileStateManager.updateLoadingProgress(10); // Starting decode
-        } catch (error) {
-            writeParserDiagnostic(
-                "warn",
-                "[FitParser] Failed to update loading progress:",
-                error
-            );
-        }
-    }
+    reportLoadingProgress(10);
 
     // Input validation
-    if (
-        !fileBuffer ||
-        (!(fileBuffer instanceof Buffer) && !(fileBuffer instanceof Uint8Array))
-    ) {
-        const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
-        writeParserDiagnostic("error", msg);
-
-        // Update state with error
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.handleFileLoadingError(
-                    new FitDecodeError(msg, null)
-                );
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update error state:",
-                    error
-                );
-            }
-        }
-
-        throw new FitDecodeError(msg, null);
-    }
+    const buffer = normalizeDecodeBuffer(fileBuffer);
 
     try {
-        const buffer = Buffer.isBuffer(fileBuffer)
-                ? fileBuffer
-                : Buffer.from(fileBuffer),
-            sdk = fitsdk ?? (await import("@garmin/fitsdk")),
+        const sdk = await loadFitSdk(fitsdk),
             { Decoder, Stream } = sdk,
             stream = Stream.fromBuffer(buffer),
             decoder = new Decoder(stream);
 
         // Update progress - SDK loaded
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.updateLoadingProgress(30);
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update loading progress:",
-                    error
-                );
-            }
-        }
+        reportLoadingProgress(30);
 
         if (!decoder.checkIntegrity()) {
-            const integrityErrors =
-                    typeof decoder.getIntegrityErrors === "function"
-                        ? decoder.getIntegrityErrors()
-                        : "No additional details available",
-                msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
+            const integrityErrors = getDecoderIntegrityDetails(decoder),
+                msg = `FIT file integrity check failed. Details: ${formatFitFieldValue(integrityErrors)}`;
             writeParserDiagnostic("error", msg);
 
             const error = new FitDecodeError(msg, integrityErrors);
-            if (fitFileStateManager) {
-                try {
-                    fitFileStateManager.handleFileLoadingError(error);
-                } catch (stateError) {
-                    writeParserDiagnostic(
-                        "warn",
-                        "[FitParser] Failed to update error state:",
-                        stateError
-                    );
-                }
-            }
+            reportLoadingError(error);
 
             throw error;
         }
 
         // Update progress - Integrity check passed
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.updateLoadingProgress(50);
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update loading progress:",
-                    error
-                );
-            }
-        }
+        reportLoadingProgress(50);
 
         // Default decoder options from persistent store
-        const persistedOptions = getPersistedDecoderOptions(),
-            readOptions = { ...persistedOptions, ...options };
+        const optionOverrides = normalizeDecoderReadOptions(options),
+            persistedOptions = normalizeDecoderReadOptions(
+                getPersistedDecoderOptions()
+            ),
+            /** @type {FitParserReadOptions} */
+            readOptions = { ...persistedOptions, ...optionOverrides };
 
         // Update progress - Starting decode
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.updateLoadingProgress(70);
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update loading progress:",
-                    error
-                );
-            }
-        }
+        reportLoadingProgress(70);
 
         const { errors, messages } = decoder.read(readOptions);
 
-        if (errors && errors.length > 0) {
+        if (Array.isArray(errors) && errors.length > 0) {
             const msg = "Decoding errors occurred";
             writeParserDiagnostic("error", msg, errors);
 
             const error = new FitDecodeError(msg, errors);
-            if (fitFileStateManager) {
-                try {
-                    fitFileStateManager.handleFileLoadingError(error);
-                } catch (stateError) {
-                    writeParserDiagnostic(
-                        "warn",
-                        "[FitParser] Failed to update error state:",
-                        stateError
-                    );
-                }
-            }
+            reportLoadingError(error);
 
             throw error;
         }
@@ -641,73 +664,18 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             writeParserDiagnostic("error", msg);
 
             const error = new FitDecodeError(msg, null);
-            if (fitFileStateManager) {
-                try {
-                    fitFileStateManager.handleFileLoadingError(error);
-                } catch (stateError) {
-                    writeParserDiagnostic(
-                        "warn",
-                        "[FitParser] Failed to update error state:",
-                        stateError
-                    );
-                }
-            }
+            reportLoadingError(error);
 
             throw error;
         }
 
         // Update progress - Applying labels
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.updateLoadingProgress(90);
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update loading progress:",
-                    error
-                );
-            }
-        }
+        reportLoadingProgress(90);
 
         const processedMessages = applyUnknownMessageLabels(messages);
 
         // Update progress - Complete
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.updateLoadingProgress(100);
-                fitFileStateManager.handleFileLoaded(
-                    {
-                        messages: processedMessages,
-                        metadata: {
-                            decodingOptions: readOptions,
-                            processingTime: performanceMonitor
-                                ? performanceMonitor.getOperationTime(
-                                      operationId
-                                  )
-                                : null,
-                            recordCount:
-                                fitFileStateManager.getRecordCount(
-                                    processedMessages
-                                ),
-                        },
-                    },
-                    {
-                        filePath:
-                            typeof readOptions?.filePath === "string" &&
-                            readOptions.filePath.length > 0
-                                ? readOptions.filePath
-                                : null,
-                        source: "fitParser.decodeFitFile",
-                    }
-                );
-            } catch (error) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update success state:",
-                    error
-                );
-            }
-        }
+        reportFileLoaded(processedMessages, readOptions, operationId);
 
         writeParserDiagnostic(
             "log",
@@ -736,19 +704,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         );
 
         // Update state with generic error
-        if (fitFileStateManager) {
-            try {
-                fitFileStateManager.handleFileLoadingError(
-                    normalizeError(error)
-                );
-            } catch (stateError) {
-                writeParserDiagnostic(
-                    "warn",
-                    "[FitParser] Failed to update error state:",
-                    stateError
-                );
-            }
-        }
+        reportLoadingError(normalizeError(error));
 
         const errorDescription = describeError(error);
         return {
@@ -765,6 +721,20 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
  */
 function getCurrentDecoderOptions() {
     return getPersistedDecoderOptions();
+}
+
+/**
+ * Gets optional SDK integrity details when the concrete Garmin SDK version
+ * exposes them.
+ *
+ * @param {import("./shared/fitSdk").FitSdkDecoder} decoder Decoder instance.
+ *
+ * @returns {FitFieldValue} Integrity failure details.
+ */
+function getDecoderIntegrityDetails(decoder) {
+    return typeof decoder.getIntegrityErrors === "function"
+        ? decoder.getIntegrityErrors()
+        : "No additional details available";
 }
 
 /**
@@ -801,6 +771,124 @@ function getPersistedDecoderOptions() {
         ),
         validation = validateDecoderOptions(storedOptions);
     return validation.validatedOptions;
+}
+
+/**
+ * Returns the optional source file path carried by decoder options.
+ *
+ * @param {FitParserReadOptions} readOptions Effective decoder options.
+ *
+ * @returns {null | string} Source file path for state metadata.
+ */
+function getReadOptionsFilePath(readOptions) {
+    const { filePath } = readOptions;
+    return typeof filePath === "string" && filePath.length > 0
+        ? filePath
+        : null;
+}
+
+/**
+ * Normalizes supported decode inputs into a Node Buffer.
+ *
+ * @param {unknown} fileBuffer Input supplied to decodeFitFile.
+ *
+ * @returns {Buffer} Buffer accepted by Garmin FIT SDK.
+ */
+function normalizeDecodeBuffer(fileBuffer) {
+    if (!(fileBuffer instanceof Buffer) && !(fileBuffer instanceof Uint8Array)) {
+        const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
+        writeParserDiagnostic("error", msg);
+
+        const error = new FitDecodeError(msg, null);
+        reportLoadingError(error);
+        throw error;
+    }
+
+    return Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer);
+}
+
+/**
+ * Records a successful decode in state management.
+ *
+ * @param {FitMessages} processedMessages Messages after unknown-label mapping.
+ * @param {Partial<DecoderOptions>} readOptions Effective decoder options.
+ * @param {string} operationId Performance operation id.
+ */
+function reportFileLoaded(processedMessages, readOptions, operationId) {
+    if (!fitFileStateManager) {
+        return;
+    }
+
+    try {
+        fitFileStateManager.updateLoadingProgress(100);
+        fitFileStateManager.handleFileLoaded(
+            {
+                messages: processedMessages,
+                metadata: {
+                    decodingOptions: readOptions,
+                    processingTime: performanceMonitor
+                        ? performanceMonitor.getOperationTime(operationId)
+                        : null,
+                    recordCount:
+                        fitFileStateManager.getRecordCount(processedMessages),
+                },
+            },
+            {
+                filePath: getReadOptionsFilePath(readOptions),
+                source: "fitParser.decodeFitFile",
+            }
+        );
+    } catch (error) {
+        writeParserDiagnostic(
+            "warn",
+            "[FitParser] Failed to update success state:",
+            error
+        );
+    }
+}
+
+/**
+ * Records a decode error in state management, preserving parser behavior if the
+ * state layer itself fails.
+ *
+ * @param {Error} error Error to record.
+ */
+function reportLoadingError(error) {
+    if (!fitFileStateManager) {
+        return;
+    }
+
+    try {
+        fitFileStateManager.handleFileLoadingError(error);
+    } catch (stateError) {
+        writeParserDiagnostic(
+            "warn",
+            "[FitParser] Failed to update error state:",
+            stateError
+        );
+    }
+}
+
+/**
+ * Updates state-manager decode progress without letting UI state failures
+ * interrupt FIT decoding.
+ *
+ * @param {number} progress Progress percentage to report.
+ */
+function reportLoadingProgress(progress) {
+    if (!fitFileStateManager) {
+        return;
+    }
+
+    try {
+        fitFileStateManager.updateLoadingProgress(progress);
+    } catch (error) {
+        writeParserDiagnostic(
+            "warn",
+            "[FitParser] Failed to update loading progress:",
+            error
+        );
+    }
 }
 
 /**

@@ -31,8 +31,8 @@ export interface FitSdkReadOptions extends PartialDecoderOptions {
 
 /** Result returned from Garmin SDK Decoder.read. */
 export interface FitSdkReadResult {
-    errors?: FitFieldValue[];
-    messages: FitMessages;
+    errors?: FitFieldValue[] | null;
+    messages?: FitMessages | null;
     profileVersion?: null | string;
 }
 
@@ -53,6 +53,7 @@ export interface FitSdkStreamConstructor {
 /** Decoder instance surface FitFileViewer uses from the Garmin SDK. */
 export interface FitSdkDecoder {
     checkIntegrity(): boolean;
+    getIntegrityErrors?: () => FitFieldValue;
     isFIT(): boolean;
     read(options?: FitSdkReadOptions): FitSdkReadResult;
 }
