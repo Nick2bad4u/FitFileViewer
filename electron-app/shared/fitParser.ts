@@ -13,6 +13,7 @@ import type { FitSdkModule } from "./fitSdk";
 /** Settings adapter surface consumed by the FIT parser. */
 export interface SettingsStateManager {
     getCategory: (category: string) => Partial<DecoderOptions> | null | undefined;
+    /** Persist a category synchronously; async adapters are rejected by the parser. */
     updateCategory: (
         category: string,
         value: Partial<DecoderOptions>,

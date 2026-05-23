@@ -284,6 +284,21 @@ function isFitSdkModule(value) {
 }
 
 /**
+ * Checks for promise-like values returned by invalid synchronous adapters.
+ *
+ * @param {unknown} value Adapter return value.
+ *
+ * @returns {value is PromiseLike<unknown>}
+ */
+function isThenable(value) {
+    return (
+        (typeof value === "object" || typeof value === "function") &&
+        value !== null &&
+        typeof /** @type {{ then?: unknown }} */ (value).then === "function"
+    );
+}
+
+/**
  * Loads the Garmin FIT SDK, allowing tests to inject the small surface the
  * parser needs.
  *
@@ -339,6 +354,18 @@ function normalizeError(error) {
 }
 
 /**
+ * Attaches a rejection observer to an invalid async settings adapter result.
+ *
+ * @param {PromiseLike<unknown>} updateResult Async adapter result.
+ */
+function observeAsyncDecoderOptionsUpdate(updateResult) {
+    // eslint-disable-next-line promise/prefer-await-to-then -- updateDecoderOptions is intentionally synchronous; this observes an invalid async adapter without changing the public API.
+    Promise.resolve(updateResult).catch(
+        reportAsyncDecoderOptionsUpdateRejection
+    );
+}
+
+/**
  * Returns a shallow copy without one dynamic key. This avoids dynamic delete
  * while preserving the legacy object-map behavior.
  *
@@ -356,6 +383,20 @@ function omitMessageKey(messages, omittedKey) {
         }
     }
     return nextMessages;
+}
+
+/**
+ * Logs async adapter rejections after the synchronous parser boundary has
+ * already rejected the adapter result.
+ *
+ * @param {unknown} error Rejection reason.
+ */
+function reportAsyncDecoderOptionsUpdateRejection(error) {
+    writeParserDiagnostic(
+        "warn",
+        "[FitParser] Async decoder options update rejected after synchronous boundary:",
+        error
+    );
 }
 
 /**
@@ -896,10 +937,23 @@ function updateDecoderOptions(newOptions) {
 
     if (settingsStateManager) {
         try {
-            settingsStateManager.updateCategory(
+            const updateCategory =
+                /** @type {(category: string, value: Partial<DecoderOptions>) => unknown} */ (
+                    settingsStateManager.updateCategory
+                );
+            const updateResult = updateCategory(
                 "decoder",
                 validation.validatedOptions
             );
+            if (isThenable(updateResult)) {
+                observeAsyncDecoderOptionsUpdate(updateResult);
+                return {
+                    errors: [
+                        "Settings state manager update must be synchronous",
+                    ],
+                    success: false,
+                };
+            }
             writeParserDiagnostic(
                 "log",
                 "[FitParser] Decoder options updated in state management"

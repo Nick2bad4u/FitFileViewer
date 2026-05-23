@@ -319,7 +319,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             });
         });
 
-        it("should report async-looking state manager update failures synchronously", () => {
+        it("should reject async-looking state manager update failures synchronously", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
                     updateCategory: vi
@@ -331,7 +331,10 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const res = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: false,
             });
-            expect(res.success).toBe(true);
+            expect(res).toStrictEqual({
+                errors: ["Settings state manager update must be synchronous"],
+                success: false,
+            });
         });
 
         it("should reject decoder updates when state manager collection is empty", () => {
