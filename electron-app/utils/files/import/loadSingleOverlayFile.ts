@@ -1,3 +1,9 @@
+import {
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "./fitParsePayload.js";
+import type { FitDecodeResult } from "../../../shared/fit";
+
 /** Decoded FIT data used by map overlay loading. */
 export type OverlayFitData = {
     cachedFilePath?: string;
@@ -20,7 +26,7 @@ export type OverlayLoadResult =
 type OverlayElectronAPI = {
     decodeFitFile?: (
         arrayBuffer: ArrayBuffer
-    ) => Promise<OverlayFitData | undefined>;
+    ) => Promise<FitDecodeResult | undefined>;
 };
 
 type OverlayFileGlobal = typeof globalThis & {
@@ -74,15 +80,18 @@ export async function loadSingleOverlayFile(
             };
         }
 
-        const fitData = await api.decodeFitFile(arrayBuffer);
-        const fitDataError = getFitDataError(fitData);
-        if (!fitData || fitDataError) {
+        const result = await api.decodeFitFile(arrayBuffer);
+        const parseErrorMessage = result
+            ? getFitParseErrorMessage(result)
+            : null;
+        if (!result || parseErrorMessage) {
             return {
-                error: fitDataError || "Failed to parse FIT file",
+                error: parseErrorMessage?.display || "Failed to parse FIT file",
                 success: false,
             };
         }
 
+        const fitData = unwrapFitParseMessages(result) as OverlayFitData;
         if (!hasValidLocationRecords(fitData.recordMesgs)) {
             return {
                 error: "No valid location data found in file",
@@ -134,7 +143,7 @@ function resolveOverlayElectronAPI():
     | {
           decodeFitFile: (
               arrayBuffer: ArrayBuffer
-          ) => Promise<OverlayFitData | undefined>;
+          ) => Promise<FitDecodeResult | undefined>;
       }
     | undefined {
     const { electronAPI } = getOverlayFileGlobal();
@@ -195,16 +204,6 @@ function readFileWithFileReader(file: Blob): Promise<ArrayBuffer | undefined> {
         );
         reader.readAsArrayBuffer(file);
     });
-}
-
-function getFitDataError(fitData: OverlayFitData | undefined): string {
-    if (!fitData || typeof fitData !== "object") {
-        return "";
-    }
-
-    return typeof fitData.error === "string" && fitData.error.trim()
-        ? fitData.error
-        : "";
 }
 
 function hasValidLocationRecords(records: unknown): boolean {

@@ -1,3 +1,7 @@
+import {
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "./fitParsePayload.js";
 const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
 /**
  * Loads one FIT file as a map overlay.
@@ -31,14 +35,17 @@ export async function loadSingleOverlayFile(file) {
                 success: false,
             };
         }
-        const fitData = await api.decodeFitFile(arrayBuffer);
-        const fitDataError = getFitDataError(fitData);
-        if (!fitData || fitDataError) {
+        const result = await api.decodeFitFile(arrayBuffer);
+        const parseErrorMessage = result
+            ? getFitParseErrorMessage(result)
+            : null;
+        if (!result || parseErrorMessage) {
             return {
-                error: fitDataError || "Failed to parse FIT file",
+                error: parseErrorMessage?.display || "Failed to parse FIT file",
                 success: false,
             };
         }
+        const fitData = unwrapFitParseMessages(result);
         if (!hasValidLocationRecords(fitData.recordMesgs)) {
             return {
                 error: "No valid location data found in file",
@@ -131,14 +138,6 @@ function readFileWithFileReader(file) {
         );
         reader.readAsArrayBuffer(file);
     });
-}
-function getFitDataError(fitData) {
-    if (!fitData || typeof fitData !== "object") {
-        return "";
-    }
-    return typeof fitData.error === "string" && fitData.error.trim()
-        ? fitData.error
-        : "";
 }
 function hasValidLocationRecords(records) {
     if (!Array.isArray(records) || records.length === 0) {
