@@ -36,13 +36,23 @@ function isMeasureLeaflet(value: unknown): value is MeasureLeaflet {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
     return (
-        typeof candidate["divIcon"] === "function" &&
-        typeof candidate["latLng"] === "function" &&
-        typeof candidate["marker"] === "function" &&
-        typeof candidate["polyline"] === "function"
+        hasFunctionProperty(value, "divIcon") &&
+        hasFunctionProperty(value, "latLng") &&
+        hasFunctionProperty(value, "marker") &&
+        hasFunctionProperty(value, "polyline")
     );
+}
+
+function hasFunctionProperty(
+    value: object,
+    key: keyof MeasureLeaflet
+): boolean {
+    if (!(key in value)) {
+        return false;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 function getMeasureToolGlobal(): MeasureToolGlobal {

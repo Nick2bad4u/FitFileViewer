@@ -5,13 +5,18 @@ function isMeasureLeaflet(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
     return (
-        typeof candidate["divIcon"] === "function" &&
-        typeof candidate["latLng"] === "function" &&
-        typeof candidate["marker"] === "function" &&
-        typeof candidate["polyline"] === "function"
+        hasFunctionProperty(value, "divIcon") &&
+        hasFunctionProperty(value, "latLng") &&
+        hasFunctionProperty(value, "marker") &&
+        hasFunctionProperty(value, "polyline")
     );
+}
+function hasFunctionProperty(value, key) {
+    if (!(key in value)) {
+        return false;
+    }
+    return typeof value[key] === "function";
 }
 function getMeasureToolGlobal() {
     return globalThis;
