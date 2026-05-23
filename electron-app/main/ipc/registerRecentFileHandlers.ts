@@ -1,5 +1,13 @@
 {
     type BrowserWindow = import("electron").BrowserWindow;
+    type RecentFilesApprovalResponse =
+        import("../../shared/ipc").RecentFilesApprovalResponse;
+    type RecentFilesInvokeChannel =
+        import("../../shared/ipc").RecentFilesInvokeChannel;
+    type RecentFilesListResponse =
+        import("../../shared/ipc").RecentFilesListResponse;
+    type RecentFilesResponsePayload =
+        import("../../shared/ipc").RecentFilesResponsePayload;
 
     const fileAccessPolicy = require("../security/fileAccessPolicy") as {
         approveFilePath: (
@@ -17,10 +25,10 @@
     type RegisterRecentFileIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => unknown;
+    ) => Promise<RecentFilesResponsePayload> | RecentFilesResponsePayload;
 
     type RegisterRecentFileIpcHandle = (
-        channel: string,
+        channel: RecentFilesInvokeChannel,
         handler: RegisterRecentFileIpcHandler
     ) => void;
 
@@ -67,135 +75,147 @@
             return;
         }
 
-        registerIpcHandle("recentFiles:get", async () => {
-            try {
-                // Important: This handler is intentionally side-effect free.
-                // Do NOT seed file read approvals here, otherwise a compromised renderer can
-                // escalate immediately into reading *all* persisted recent paths.
-                return sanitizeRecentFilesList(loadRecentFiles());
-            } catch (error) {
-                logWithContext?.("error", "Error in recentFiles:get:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
-            }
-        });
-
-        registerIpcHandle("recentFiles:approve", async (_event, filePath) => {
-            try {
-                if (
-                    typeof filePath !== "string" ||
-                    filePath.trim().length === 0
-                ) {
-                    logWithContext?.(
-                        "warn",
-                        "Rejected recentFiles:approve for invalid path",
-                        {
-                            filePath,
-                        }
-                    );
-                    return false;
-                }
-
-                const trimmed = filePath.trim();
-                const list = sanitizeRecentFilesList(loadRecentFiles());
-                if (!list.includes(trimmed)) {
-                    logWithContext?.(
-                        "warn",
-                        "Rejected recentFiles:approve for path not in recent list",
-                        {
-                            filePath: trimmed,
-                        }
-                    );
-                    return false;
-                }
-
+        registerIpcHandle(
+            "recentFiles:get",
+            async (): Promise<RecentFilesListResponse> => {
                 try {
-                    fileAccessPolicy.approveFilePath(trimmed, {
-                        source: "recentFiles:approve",
+                    // Important: This handler is intentionally side-effect free.
+                    // Do NOT seed file read approvals here, otherwise a compromised renderer can
+                    // escalate immediately into reading *all* persisted recent paths.
+                    return sanitizeRecentFilesList(loadRecentFiles());
+                } catch (error) {
+                    logWithContext?.("error", "Error in recentFiles:get:", {
+                        error: getErrorMessage(error),
                     });
-                    return true;
-                } catch (policyError) {
-                    logWithContext?.(
-                        "warn",
-                        "Rejected recentFiles:approve due to policy validation",
-                        {
-                            error: getErrorMessage(policyError),
-                            filePath: trimmed,
-                        }
-                    );
-                    return false;
+                    throw error;
                 }
-            } catch (error) {
-                logWithContext?.("error", "Error in recentFiles:approve:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
             }
-        });
+        );
 
-        registerIpcHandle("recentFiles:add", async (_event, filePath) => {
-            try {
-                if (
-                    typeof filePath !== "string" ||
-                    filePath.trim().length === 0
-                ) {
-                    logWithContext?.(
-                        "warn",
-                        "Rejected recentFiles:add for invalid path",
-                        {
-                            filePath,
-                        }
-                    );
-                    return sanitizeRecentFilesList(loadRecentFiles());
-                }
-
-                // Security boundary:
-                // file:read only accepts paths approved by trusted main-process flows.
-                // If we allowed arbitrary renderer paths here, a compromised renderer
-                // could turn the recent list into a path-confusion surface.
-                if (!fileAccessPolicy.isApprovedFilePath(filePath)) {
-                    logWithContext?.(
-                        "warn",
-                        "Rejected recentFiles:add for unapproved path",
-                        {
-                            filePath,
-                        }
-                    );
-                    return sanitizeRecentFilesList(loadRecentFiles());
-                }
-
-                addRecentFile(filePath);
-                const win = resolveTargetWindow(browserWindowRef, mainWindow);
-                if (!win) {
-                    return sanitizeRecentFilesList(loadRecentFiles());
-                }
-
+        registerIpcHandle(
+            "recentFiles:approve",
+            async (_event, filePath): Promise<RecentFilesApprovalResponse> => {
                 try {
-                    const theme = await getThemeFromRenderer(win);
-                    safeCreateAppMenu(
-                        win,
-                        theme,
-                        getAppState("loadedFitFilePath")
-                    );
-                } catch (menuError) {
-                    logWithContext?.(
-                        "warn",
-                        "Failed to refresh menu after recent file add",
-                        {
-                            error: getErrorMessage(menuError),
-                        }
-                    );
-                }
+                    if (
+                        typeof filePath !== "string" ||
+                        filePath.trim().length === 0
+                    ) {
+                        logWithContext?.(
+                            "warn",
+                            "Rejected recentFiles:approve for invalid path",
+                            {
+                                filePath,
+                            }
+                        );
+                        return false;
+                    }
 
-                return sanitizeRecentFilesList(loadRecentFiles());
-            } catch (error) {
-                logWithContext?.("error", "Error in recentFiles:add:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
+                    const trimmed = filePath.trim();
+                    const list = sanitizeRecentFilesList(loadRecentFiles());
+                    if (!list.includes(trimmed)) {
+                        logWithContext?.(
+                            "warn",
+                            "Rejected recentFiles:approve for path not in recent list",
+                            {
+                                filePath: trimmed,
+                            }
+                        );
+                        return false;
+                    }
+
+                    try {
+                        fileAccessPolicy.approveFilePath(trimmed, {
+                            source: "recentFiles:approve",
+                        });
+                        return true;
+                    } catch (policyError) {
+                        logWithContext?.(
+                            "warn",
+                            "Rejected recentFiles:approve due to policy validation",
+                            {
+                                error: getErrorMessage(policyError),
+                                filePath: trimmed,
+                            }
+                        );
+                        return false;
+                    }
+                } catch (error) {
+                    logWithContext?.("error", "Error in recentFiles:approve:", {
+                        error: getErrorMessage(error),
+                    });
+                    throw error;
+                }
             }
-        });
+        );
+
+        registerIpcHandle(
+            "recentFiles:add",
+            async (_event, filePath): Promise<RecentFilesListResponse> => {
+                try {
+                    if (
+                        typeof filePath !== "string" ||
+                        filePath.trim().length === 0
+                    ) {
+                        logWithContext?.(
+                            "warn",
+                            "Rejected recentFiles:add for invalid path",
+                            {
+                                filePath,
+                            }
+                        );
+                        return sanitizeRecentFilesList(loadRecentFiles());
+                    }
+
+                    // Security boundary:
+                    // file:read only accepts paths approved by trusted main-process flows.
+                    // If we allowed arbitrary renderer paths here, a compromised renderer
+                    // could turn the recent list into a path-confusion surface.
+                    if (!fileAccessPolicy.isApprovedFilePath(filePath)) {
+                        logWithContext?.(
+                            "warn",
+                            "Rejected recentFiles:add for unapproved path",
+                            {
+                                filePath,
+                            }
+                        );
+                        return sanitizeRecentFilesList(loadRecentFiles());
+                    }
+
+                    addRecentFile(filePath);
+                    const win = resolveTargetWindow(
+                        browserWindowRef,
+                        mainWindow
+                    );
+                    if (!win) {
+                        return sanitizeRecentFilesList(loadRecentFiles());
+                    }
+
+                    try {
+                        const theme = await getThemeFromRenderer(win);
+                        safeCreateAppMenu(
+                            win,
+                            theme,
+                            getAppState("loadedFitFilePath")
+                        );
+                    } catch (menuError) {
+                        logWithContext?.(
+                            "warn",
+                            "Failed to refresh menu after recent file add",
+                            {
+                                error: getErrorMessage(menuError),
+                            }
+                        );
+                    }
+
+                    return sanitizeRecentFilesList(loadRecentFiles());
+                } catch (error) {
+                    logWithContext?.("error", "Error in recentFiles:add:", {
+                        error: getErrorMessage(error),
+                    });
+                    throw error;
+                }
+            }
+        );
     }
 
     /**

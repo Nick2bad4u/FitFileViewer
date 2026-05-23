@@ -22,6 +22,9 @@ export interface InvokeRequestPayloadByChannel {
     "fit:decode": ArrayBuffer;
     "fit:parse": ArrayBuffer;
     "file:read": string;
+    "recentFiles:add": string;
+    "recentFiles:approve": string;
+    "recentFiles:get": never;
 }
 
 /** Response payloads for invoke channels with explicit contracts. */
@@ -31,6 +34,9 @@ export interface InvokeResponsePayloadByChannel {
     "fit:decode": FitDecodeResult;
     "fit:parse": FitDecodeResult;
     "file:read": ArrayBuffer;
+    "recentFiles:add": string[];
+    "recentFiles:approve": boolean;
+    "recentFiles:get": string[];
 }
 
 /** FIT decode/parse invoke channels handled by the main process parser bridge. */
@@ -93,6 +99,30 @@ export type FileSystemRequestPayload =
 /** Response payload returned by filesystem invoke handlers. */
 export type FileSystemResponsePayload =
     InvokeResponsePayloadByChannel[FileSystemInvokeChannel];
+
+/** Recent-file invoke channels handled by main-process recent-file IPC. */
+export type RecentFilesInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "recentFiles:add" | "recentFiles:approve" | "recentFiles:get"
+>;
+
+/** Request payload accepted by recent-file mutation invoke handlers. */
+export type RecentFileRequestPayload = InvokeRequestPayloadByChannel[
+    | "recentFiles:add"
+    | "recentFiles:approve"];
+
+/** Response payload returned by recent-file invoke handlers. */
+export type RecentFilesResponsePayload =
+    InvokeResponsePayloadByChannel[RecentFilesInvokeChannel];
+
+/** Recent-file list returned by recentFiles:get and recentFiles:add. */
+export type RecentFilesListResponse = InvokeResponsePayloadByChannel[
+    | "recentFiles:add"
+    | "recentFiles:get"];
+
+/** Approval result returned by recentFiles:approve. */
+export type RecentFilesApprovalResponse =
+    InvokeResponsePayloadByChannel["recentFiles:approve"];
 
 /** FIT browser invoke channels used by the folder-browser bridge. */
 export type FitBrowserInvokeChannel = Extract<

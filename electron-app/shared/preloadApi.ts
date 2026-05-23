@@ -16,6 +16,9 @@ import type {
     IpcSerializable,
     MainStateListener,
     PlatformInfo,
+    RecentFileRequestPayload,
+    RecentFilesApprovalResponse,
+    RecentFilesListResponse,
     RendererIpcEventChannel,
     UpdateEventName,
 } from "./ipc";
@@ -23,7 +26,9 @@ import type {
 /** Renderer-facing API exposed by the Electron preload script. */
 export interface ElectronAPI {
     /** Approve a persisted recent file path for subsequent readFile() calls. */
-    approveRecentFile: (filePath: string) => Promise<boolean>;
+    approveRecentFile: (
+        filePath: RecentFileRequestPayload
+    ) => Promise<RecentFilesApprovalResponse>;
     /**
      * Opens the native single-file FIT dialog; returns selected path or null
      * when cancelled.
@@ -55,8 +60,10 @@ export interface ElectronAPI {
     isFitBrowserEnabled: () => Promise<boolean>;
     setFitBrowserEnabled: (enabled: boolean) => Promise<boolean>;
     setFitBrowserFolder: (folderPath: string) => Promise<boolean>;
-    recentFiles: () => Promise<string[]>;
-    addRecentFile: (filePath: string) => Promise<string[]>;
+    recentFiles: () => Promise<RecentFilesListResponse>;
+    addRecentFile: (
+        filePath: RecentFileRequestPayload
+    ) => Promise<RecentFilesListResponse>;
 
     getTheme: () => Promise<string>;
     sendThemeChanged: (theme: string) => void;
