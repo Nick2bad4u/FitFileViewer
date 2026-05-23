@@ -50,10 +50,6 @@
               };
     }
 
-    interface MaybeDestroyableWindow {
-        isDestroyed?: unknown;
-    }
-
     interface WindowStateUtilsExports {
         CONSTANTS: typeof CONSTANTS;
         createWindow: () => BrowserWindowInstance;
@@ -100,7 +96,7 @@
     }
 
     function getEnvironmentValue(key: string): string | undefined {
-        const processValue: unknown = globalThis.process;
+        const processValue: unknown = Reflect.get(globalThis, "process");
         if (
             processValue === null ||
             typeof processValue !== "object" ||
@@ -114,7 +110,7 @@
             return undefined;
         }
 
-        const value = env[key as keyof typeof env];
+        const value: unknown = Reflect.get(env, key);
         return typeof value === "string" ? value : undefined;
     }
 
@@ -123,7 +119,9 @@
     }
 
     function isObjectRecord(value: unknown): value is Record<string, unknown> {
-        return value !== null && typeof value === "object";
+        return (
+            value !== null && typeof value === "object" && !Array.isArray(value)
+        );
     }
 
     function validateWindowState(state: unknown): state is WindowState {
@@ -241,7 +239,7 @@
             return false;
         }
 
-        const { isDestroyed } = win as MaybeDestroyableWindow;
+        const isDestroyed: unknown = Reflect.get(win, "isDestroyed");
         return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
     }
 

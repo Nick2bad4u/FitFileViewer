@@ -37,7 +37,7 @@
         return error instanceof Error ? error.message : String(error);
     }
     function getEnvironmentValue(key) {
-        const processValue = globalThis.process;
+        const processValue = Reflect.get(globalThis, "process");
         if (
             processValue === null ||
             typeof processValue !== "object" ||
@@ -49,14 +49,16 @@
         if (env === null || typeof env !== "object" || !(key in env)) {
             return undefined;
         }
-        const value = env[key];
+        const value = Reflect.get(env, key);
         return typeof value === "string" ? value : undefined;
     }
     function isBooleanCallback(value) {
         return typeof value === "function";
     }
     function isObjectRecord(value) {
-        return value !== null && typeof value === "object";
+        return (
+            value !== null && typeof value === "object" && !Array.isArray(value)
+        );
     }
     function validateWindowState(state) {
         if (!isObjectRecord(state)) {
@@ -160,7 +162,7 @@
         if (win === null || typeof win !== "object") {
             return false;
         }
-        const { isDestroyed } = win;
+        const isDestroyed = Reflect.get(win, "isDestroyed");
         return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
     }
     function saveWindowState(win) {
