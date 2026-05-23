@@ -5,17 +5,17 @@
  *
  * @returns Normalized error information.
  */
+function getStringProperty(value, key) {
+    if (!(key in value)) {
+        return undefined;
+    }
+    const property = value[key];
+    return typeof property === "string" ? property : undefined;
+}
 export function getErrorInfo(err) {
     if (err && typeof err === "object") {
-        const errorRecord = err;
-        const message =
-            typeof errorRecord["message"] === "string"
-                ? errorRecord["message"]
-                : String(err);
-        const stack =
-            typeof errorRecord["stack"] === "string"
-                ? errorRecord["stack"]
-                : undefined;
+        const message = getStringProperty(err, "message") ?? String(err);
+        const stack = getStringProperty(err, "stack");
         return stack === undefined ? { message } : { message, stack };
     }
     return { message: String(err) };
