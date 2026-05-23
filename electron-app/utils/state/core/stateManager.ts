@@ -449,6 +449,12 @@ export function subscribe(path: string, callback: StateListener): Unsubscribe {
     };
 }
 
+function createSubscriptionRegistry(): Record<string, Unsubscribe> {
+    const registry: Record<string, Unsubscribe> = {};
+    Object.setPrototypeOf(registry, null);
+    return registry;
+}
+
 /**
  * Subscribes to state changes using a singleton id to avoid duplicate active
  * subscriptions.
@@ -469,9 +475,8 @@ export function subscribeSingleton(
         globalState.__ffvSingletonStateSubscriptions === undefined ||
         globalState.__ffvSingletonStateSubscriptions === null
     ) {
-        globalState.__ffvSingletonStateSubscriptions = Object.create(
-            null
-        ) as Record<string, Unsubscribe>;
+        globalState.__ffvSingletonStateSubscriptions =
+            createSubscriptionRegistry();
     }
 
     const registry = globalState.__ffvSingletonStateSubscriptions;

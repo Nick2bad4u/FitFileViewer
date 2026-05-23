@@ -324,6 +324,11 @@ export function subscribe(path, callback) {
         }
     };
 }
+function createSubscriptionRegistry() {
+    const registry = {};
+    Object.setPrototypeOf(registry, null);
+    return registry;
+}
 /**
  * Subscribes to state changes using a singleton id to avoid duplicate active
  * subscriptions.
@@ -340,7 +345,8 @@ export function subscribeSingleton(path, id, callback) {
         globalState.__ffvSingletonStateSubscriptions === undefined ||
         globalState.__ffvSingletonStateSubscriptions === null
     ) {
-        globalState.__ffvSingletonStateSubscriptions = Object.create(null);
+        globalState.__ffvSingletonStateSubscriptions =
+            createSubscriptionRegistry();
     }
     const registry = globalState.__ffvSingletonStateSubscriptions;
     const key = id.trim();
