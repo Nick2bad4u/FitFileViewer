@@ -13,6 +13,7 @@ import { masterStateManager } from "../../state/core/masterStateManager.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import { getFitParseErrorMessage } from "./fitParsePayload.js";
 const DEFAULT_DECODER_OPTIONS = {
     applyScaleAndOffset: true,
     convertDateTimesToDates: true,
@@ -28,15 +29,10 @@ const DEFAULT_DECODER_OPTIONS = {
  * @returns {DecoderOptions}
  */
 function normalizeDecoderOptions(value) {
-    return isPlainRecord(value)
-        ? value
-        : {};
+    return isPlainRecord(value) ? value : {};
 }
 function loadFitParser() {
     return require("../../../fitParser.js");
-}
-function isFitDecodeErrorPayload(value) {
-    return isPlainRecord(value) && typeof value["error"] === "string";
 }
 function isPlainRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -54,9 +50,7 @@ function createFitParserStateManagers() {
             handleFileLoaded(payload, context) {
                 fitFileStateManager.handleFileLoaded(payload.messages, {
                     filePath:
-                        context?.filePath ??
-                        payload.metadata.filePath ??
-                        null,
+                        context?.filePath ?? payload.metadata.filePath ?? null,
                 });
             },
             handleFileLoadingError(error) {
@@ -98,8 +92,7 @@ function createFitParserStateManagers() {
                         ? { source: options.source ?? "FitParserIntegration" }
                         : {
                               silent: options.silent,
-                              source:
-                                  options.source ?? "FitParserIntegration",
+                              source: options.source ?? "FitParserIntegration",
                           }
                 );
             },
@@ -161,11 +154,8 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
             // Decode the file with state management integration
             result = await fitParser.decodeFitFile(fileBuffer, options);
         // If successful, update master state
-        if (
-            result &&
-            !isFitDecodeErrorPayload(result) && // Update global state with the decoded data
-            masterStateManager
-        ) {
+        const parseErrorMessage = getFitParseErrorMessage(result);
+        if (result && !parseErrorMessage && masterStateManager) {
             setState("globalData", result);
             setState("currentFile.status", "loaded");
             setState("currentFile.lastModified", new Date().toISOString());
@@ -234,8 +224,7 @@ export async function initializeFitParserIntegration() {
             const settingsManager = settingsStateManager;
             const existingDecoder = settingsManager.getSetting?.("decoder");
             if (existingDecoder == null) {
-                const defaultOptions =
-                    fitParser.getDefaultDecoderOptions();
+                const defaultOptions = fitParser.getDefaultDecoderOptions();
                 setState("settings.decoder", defaultOptions, {
                     source: "FitParserIntegration",
                 });

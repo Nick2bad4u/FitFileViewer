@@ -14,6 +14,8 @@ import { masterStateManager } from "../../state/core/masterStateManager.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import { getFitParseErrorMessage } from "./fitParsePayload.js";
+import type { FitParseEnvelope } from "./fitParsePayload.js";
 import type {
     ContextBridge,
     IpcMain,
@@ -22,9 +24,7 @@ import type {
 } from "electron";
 import type {
     DecoderOptions,
-    FitDecodeErrorPayload,
     FitDecodeResult,
-    FitFieldValue,
     PartialDecoderOptions,
 } from "../../../shared/fit";
 import type {
@@ -34,9 +34,7 @@ import type {
 } from "../../../shared/fitParser";
 
 type IntegrationResult = { error?: string; success: boolean };
-type DecoderIpcFailure = {
-    details?: FitFieldValue;
-    error?: string;
+type DecoderIpcFailure = FitParseEnvelope & {
     success: false;
 };
 type DecodeWithStateResult = DecoderIpcFailure | FitDecodeResult;
@@ -73,19 +71,11 @@ const DEFAULT_DECODER_OPTIONS: DecoderOptions = {
  * @returns {PartialDecoderOptions}
  */
 function normalizeDecoderOptions(value: unknown): PartialDecoderOptions {
-    return isPlainRecord(value)
-        ? (value as PartialDecoderOptions)
-        : {};
+    return isPlainRecord(value) ? (value as PartialDecoderOptions) : {};
 }
 
 function loadFitParser(): FitParserModule {
     return require("../../../fitParser.js") as FitParserModule;
-}
-
-function isFitDecodeErrorPayload(
-    value: FitDecodeResult
-): value is FitDecodeErrorPayload {
-    return isPlainRecord(value) && typeof value["error"] === "string";
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
@@ -107,9 +97,7 @@ function createFitParserStateManagers(): FitParserStateManagers {
             handleFileLoaded(payload, context) {
                 fitFileStateManager.handleFileLoaded(payload.messages, {
                     filePath:
-                        context?.filePath ??
-                        payload.metadata.filePath ??
-                        null,
+                        context?.filePath ?? payload.metadata.filePath ?? null,
                 });
             },
             handleFileLoadingError(error) {
@@ -154,8 +142,7 @@ function createFitParserStateManagers(): FitParserStateManagers {
                         ? { source: options.source ?? "FitParserIntegration" }
                         : {
                               silent: options.silent,
-                              source:
-                                  options.source ?? "FitParserIntegration",
+                              source: options.source ?? "FitParserIntegration",
                           }
                 );
             },
@@ -230,11 +217,8 @@ export async function decodeFitFileWithState(
             result = await fitParser.decodeFitFile(fileBuffer, options);
 
         // If successful, update master state
-        if (
-            result &&
-            !isFitDecodeErrorPayload(result) && // Update global state with the decoded data
-            masterStateManager
-        ) {
+        const parseErrorMessage = getFitParseErrorMessage(result);
+        if (result && !parseErrorMessage && masterStateManager) {
             setState("globalData", result);
             setState("currentFile.status", "loaded");
             setState("currentFile.lastModified", new Date().toISOString());
@@ -310,8 +294,7 @@ export async function initializeFitParserIntegration(): Promise<IntegrationResul
                 settingsStateManager as SettingsManagerFacade;
             const existingDecoder = settingsManager.getSetting?.("decoder");
             if (existingDecoder == null) {
-                const defaultOptions =
-                    fitParser.getDefaultDecoderOptions();
+                const defaultOptions = fitParser.getDefaultDecoderOptions();
                 setState("settings.decoder", defaultOptions, {
                     source: "FitParserIntegration",
                 });
