@@ -84,6 +84,7 @@
     const ipcMainRef = () => getElectron().ipcMain;
     const menuRef = () => getElectron().Menu;
     const nativeImageRef = () => getElectron().nativeImage;
+    const sessionRef = () => getElectron().session;
     const shellRef = () => getElectron().shell;
     module.exports = {
         appRef,
@@ -95,6 +96,7 @@
         ipcMainRef,
         menuRef,
         nativeImageRef,
+        sessionRef,
         setElectronOverride,
         shellRef,
     };

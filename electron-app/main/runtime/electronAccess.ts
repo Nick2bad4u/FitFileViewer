@@ -108,6 +108,8 @@
     const nativeImageRef = ():
         | typeof import("electron").nativeImage
         | undefined => getElectron().nativeImage;
+    const sessionRef = (): typeof import("electron").session | undefined =>
+        getElectron().session;
     const shellRef = (): typeof import("electron").shell | undefined =>
         getElectron().shell;
 
@@ -121,6 +123,7 @@
         ipcMainRef,
         menuRef,
         nativeImageRef,
+        sessionRef,
         setElectronOverride,
         shellRef,
     };

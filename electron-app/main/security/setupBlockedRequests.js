@@ -18,9 +18,8 @@ const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
  */
 function setupBlockedRequests() {
     try {
-        // Prefer direct electron require so this module stays independent of runtime helpers.
-        const electron = require("electron");
-        const session = electron?.session?.defaultSession;
+        const { sessionRef } = require("../runtime/electronAccess");
+        const session = sessionRef()?.defaultSession;
         if (
             !session ||
             !session.webRequest ||
