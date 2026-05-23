@@ -2,6 +2,9 @@
 function getMenuGlobal() {
     return globalThis;
 }
+function isRecord(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 let __electronCached = null;
 function getElectron() {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
@@ -996,9 +999,7 @@ function createAppMenu(
 }
 function getDecoderOptions() {
     const options = getConf().get("decoderOptions", decoderOptionDefaults);
-    return options && typeof options === "object"
-        ? options
-        : { ...decoderOptionDefaults };
+    return isRecord(options) ? options : { ...decoderOptionDefaults };
 }
 // Add platform-specific (macOS) App menu for About, Preferences, and Quit
 function getPlatformAppMenu(mainWindow) {

@@ -80,6 +80,10 @@ function getMenuGlobal(): FitFileViewerGlobal {
     return globalThis as FitFileViewerGlobal;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 let __electronCached: ElectronLike | null = null;
 function getElectron(): ElectronLike {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
@@ -1099,9 +1103,7 @@ function createAppMenu(
 
 function getDecoderOptions(): Record<string, unknown> {
     const options = getConf().get("decoderOptions", decoderOptionDefaults);
-    return options && typeof options === "object"
-        ? (options as Record<string, unknown>)
-        : { ...decoderOptionDefaults };
+    return isRecord(options) ? options : { ...decoderOptionDefaults };
 }
 
 // Add platform-specific (macOS) App menu for About, Preferences, and Quit
