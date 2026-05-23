@@ -84,6 +84,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+const { getElectron: getRuntimeElectron } =
+    require("../../../main/runtime/electronAccess") as {
+        getElectron: () => ElectronLike;
+    };
+
 let __electronCached: ElectronLike | null = null;
 function getElectron(): ElectronLike {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
@@ -108,7 +113,7 @@ function getElectron(): ElectronLike {
         return __electronCached;
     }
     try {
-        const e = require("electron") as ElectronLike;
+        const e = getRuntimeElectron();
         __electronCached = e;
         return e;
     } catch {

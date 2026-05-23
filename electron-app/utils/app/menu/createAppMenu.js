@@ -5,6 +5,9 @@ function getMenuGlobal() {
 function isRecord(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
+const {
+    getElectron: getRuntimeElectron,
+} = require("../../../main/runtime/electronAccess");
 let __electronCached = null;
 function getElectron() {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
@@ -29,7 +32,7 @@ function getElectron() {
         return __electronCached;
     }
     try {
-        const e = require("electron");
+        const e = getRuntimeElectron();
         __electronCached = e;
         return e;
     } catch {
