@@ -1,8 +1,38 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
+import type { Mock } from "vitest";
+import type {
+    DecoderOptions,
+    FitFieldValue,
+    FitMessages,
+} from "../../shared/fit";
+import type {
+    FitParserModule,
+    SettingsStateManager,
+} from "../../shared/fitParser";
+import type { FitSdkStream } from "../../shared/fitSdk";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Buffer } from "node:buffer";
+
+type MockFitSdkDecoder = {
+    checkIntegrity: Mock<() => boolean>;
+    getIntegrityErrors?: Mock<() => FitFieldValue>;
+    isFIT: Mock<() => boolean>;
+    read?: Mock<
+        () => {
+            errors: FitFieldValue[];
+            messages: FitMessages;
+        }
+    >;
+};
+
+type MockFitSdkStream = FitSdkStream & {
+    buffer: Buffer;
+};
+
+type MockUpdateCategory = (
+    category: string,
+    value: Partial<DecoderOptions>
+) => never;
 
 // Mock external dependencies
 const mockFitSDK = {
@@ -38,9 +68,9 @@ const mockPerformanceMonitor = {
 vi.mock("@garmin/fitsdk", () => mockFitSDK);
 
 describe("fitParser.js - Comprehensive Coverage", () => {
-    let fitParser: any;
-    let mockDecoder: any;
-    let mockStream: any;
+    let fitParser: FitParserModule;
+    let mockDecoder: MockFitSdkDecoder;
+    let mockStream: MockFitSdkStream;
 
     beforeEach(async () => {
         // Reset all mocks
@@ -50,6 +80,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         mockDecoder = {
             checkIntegrity: vi.fn().mockReturnValue(true),
             getIntegrityErrors: vi.fn().mockReturnValue([]),
+            isFIT: vi.fn().mockReturnValue(true),
             read: vi.fn().mockReturnValue({
                 messages: {
                     activity: [{ sport: "cycling" }],
@@ -66,6 +97,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 3,
                 4,
             ]),
+            bytesRead: 0,
+            length: 4,
+            position: 0,
         };
 
         mockFitSDK.Decoder.mockImplementation(function MockDecoder() {
@@ -79,7 +113,8 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Import the module after setting up mocks
-        fitParser = await import("../../fitParser.js");
+        fitParser =
+            (await import("../../fitParser.js")) as unknown as FitParserModule;
     });
 
     afterEach(() => {
@@ -251,12 +286,14 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         it("should fail clearly when state manager update throws", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
-                    updateCategory: vi.fn().mockImplementation(() => {
-                        throw new Error("fail");
-                    }),
+                    updateCategory: vi
+                        .fn<MockUpdateCategory>()
+                        .mockImplementation(() => {
+                            throw new Error("fail");
+                        }),
                     getCategory: vi.fn().mockReturnValue(undefined),
                 },
-            } as any);
+            });
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
@@ -267,7 +304,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should return default decoder options when no state manager is configured", () => {
-            fitParser.initializeStateManagement(undefined as any);
+            fitParser.initializeStateManagement(undefined);
             const options = fitParser.getPersistedDecoderOptions();
 
             expect(options).toStrictEqual(fitParser.getDefaultDecoderOptions());
@@ -293,12 +330,14 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         it("should report state manager update failures without persistence fallback", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
-                    updateCategory: vi.fn().mockImplementation(() => {
-                        throw new Error("update failed");
-                    }),
+                    updateCategory: vi
+                        .fn<MockUpdateCategory>()
+                        .mockImplementation(() => {
+                            throw new Error("update failed");
+                        }),
                     getCategory: vi.fn(),
                 },
-            } as any);
+            });
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: false,
             });
@@ -309,7 +348,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should reject decoder updates when no state manager is configured", () => {
-            fitParser.initializeStateManagement(undefined as any);
+            fitParser.initializeStateManagement(undefined);
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
@@ -320,14 +359,18 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should reject async-looking state manager update failures synchronously", () => {
+            const updateCategory = vi
+                .fn<() => Promise<never>>()
+                .mockRejectedValue(
+                    new Error("reject")
+                ) as unknown as SettingsStateManager["updateCategory"];
+
             fitParser.initializeStateManagement({
                 settingsStateManager: {
-                    updateCategory: vi
-                        .fn()
-                        .mockRejectedValue(new Error("reject")),
+                    updateCategory,
                     getCategory: vi.fn(),
                 },
-            } as any);
+            });
             const res = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: false,
             });
@@ -338,7 +381,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should reject decoder updates when state manager collection is empty", () => {
-            fitParser.initializeStateManagement({} as any);
+            fitParser.initializeStateManagement({});
             const res = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
