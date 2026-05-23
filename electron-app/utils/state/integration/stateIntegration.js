@@ -408,10 +408,14 @@ function setNestedValue(obj, path, value) {
         if (!key) {
             continue;
         }
-        if (!isRecord(target[key])) {
-            target[key] = {};
+        const nextTarget = target[key];
+        if (!isRecord(nextTarget)) {
+            const container = {};
+            target[key] = container;
+            target = container;
+            continue;
         }
-        target = target[key];
+        target = nextTarget;
     }
     const finalKey = keys.at(-1);
     if (finalKey) {

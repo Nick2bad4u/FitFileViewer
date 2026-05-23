@@ -522,11 +522,15 @@ function setNestedValue(
             continue;
         }
 
-        if (!isRecord(target[key])) {
-            target[key] = {};
+        const nextTarget = target[key];
+        if (!isRecord(nextTarget)) {
+            const container: Record<string, unknown> = {};
+            target[key] = container;
+            target = container;
+            continue;
         }
 
-        target = target[key] as Record<string, unknown>;
+        target = nextTarget;
     }
 
     const finalKey = keys.at(-1);
