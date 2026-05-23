@@ -1,4 +1,6 @@
 {
+    type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
+
     interface AppInfoProvider {
         getAppPath?: () => string;
         getVersion?: () => string;
@@ -33,7 +35,7 @@
     ) => Promise<unknown>;
 
     type RegisterInfoIpcHandle = (
-        channel: string,
+        channel: InfoInvokeChannel,
         handler: InfoIpcHandler
     ) => void;
 
@@ -120,7 +122,7 @@
             return "map";
         };
 
-        const handlers: Record<string, InfoIpcHandler> = {
+        const handlers: Record<InfoInvokeChannel, InfoIpcHandler> = {
             getAppVersion: async () => {
                 const app = appRef();
                 return app && typeof app.getVersion === "function"
@@ -169,7 +171,8 @@
                 safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
         };
 
-        for (const [channel, handler] of Object.entries(handlers)) {
+        for (const channel of Object.keys(handlers) as InfoInvokeChannel[]) {
+            const handler = handlers[channel];
             registerIpcHandle(channel, async (...args) => {
                 try {
                     return await handler(...args);

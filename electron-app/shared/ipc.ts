@@ -41,6 +41,19 @@ export type FitFileRequestPayload =
 export type FitFileResponsePayload =
     InvokeResponsePayloadByChannel[FitFileInvokeChannel];
 
+/** App and preference metadata invoke channels handled by info IPC handlers. */
+export type InfoInvokeChannel = Extract<
+    GenericInvokeChannel,
+    | "getAppVersion"
+    | "getChromeVersion"
+    | "getElectronVersion"
+    | "getLicenseInfo"
+    | "getNodeVersion"
+    | "getPlatformInfo"
+    | "map-tab:get"
+    | "theme:get"
+>;
+
 /** Result returned when the Gyazo OAuth helper server starts. */
 export interface GyazoServerStartResult {
     message?: string;
@@ -130,6 +143,7 @@ export type GenericInvokeChannel =
     | "main-state:operations"
     | "main-state:set"
     | "main-state:unlisten"
+    | "map-tab:get"
     | "recentFiles:add"
     | "recentFiles:approve"
     | "recentFiles:get"
