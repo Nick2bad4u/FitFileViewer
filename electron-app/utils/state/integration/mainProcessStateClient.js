@@ -5,6 +5,15 @@ function getMainStateElectronAPI() {
     }
     return stateGlobal.electronAPI ?? stateGlobal.window.electronAPI;
 }
+function isIpcSerializableRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function toOperationRecord(value) {
+    if (!isIpcSerializableRecord(value)) {
+        throw new TypeError("Expected main process operations to be a record");
+    }
+    return { ...value };
+}
 /**
  * Renderer-side interface to state held in the Electron main process.
  */
@@ -143,7 +152,7 @@ export class MainProcessStateClient {
     async getOperations() {
         const electronAPI = this.requireElectronAPI();
         try {
-            return await electronAPI.getOperations();
+            return toOperationRecord(await electronAPI.getOperations());
         } catch (error) {
             console.error(
                 "[MainProcessStateClient] Error getting operations:",

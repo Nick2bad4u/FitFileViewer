@@ -59,6 +59,20 @@ function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
     return stateGlobal.electronAPI ?? stateGlobal.window.electronAPI;
 }
 
+function isIpcSerializableRecord(
+    value: IpcSerializable
+): value is { readonly [key: string]: IpcSerializable } {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function toOperationRecord(value: IpcSerializable): Record<string, Operation> {
+    if (!isIpcSerializableRecord(value)) {
+        throw new TypeError("Expected main process operations to be a record");
+    }
+
+    return { ...value };
+}
+
 /**
  * Renderer-side interface to state held in the Electron main process.
  */
@@ -232,10 +246,7 @@ export class MainProcessStateClient {
         const electronAPI = this.requireElectronAPI();
 
         try {
-            return (await electronAPI.getOperations()) as Record<
-                string,
-                Operation
-            >;
+            return toOperationRecord(await electronAPI.getOperations());
         } catch (error) {
             console.error(
                 "[MainProcessStateClient] Error getting operations:",
