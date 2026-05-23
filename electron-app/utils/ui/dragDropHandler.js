@@ -1,6 +1,10 @@
 import { AppActions } from "../app/lifecycle/appActions.js";
 import { UI_CONSTANTS } from "../config/constants.js";
 import { performanceMonitor } from "../debug/stateDevTools.js";
+import {
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "../files/import/fitParsePayload.js";
 import { showFitData } from "../rendering/core/showFitData.js";
 import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
@@ -26,14 +30,6 @@ function getDroppedFilePath(file) {
     return typeof path === "string" && path.trim().length > 0
         ? path
         : file.name;
-}
-function isFitDecodeErrorPayload(value) {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        typeof value.error === "string"
-    );
 }
 /** Coordinates global FIT-file drag/drop handling and drop overlay state. */
 export class DragDropHandler {
@@ -109,11 +105,15 @@ export class DragDropHandler {
                 showNotification(message, "error");
                 return;
             }
-            const fitData =
+            const result =
                 await getDragDropGlobal().electronAPI?.decodeFitFile?.(
                     arrayBuffer
                 );
-            if (fitData && !isFitDecodeErrorPayload(fitData)) {
+            const parseErrorMessage = result
+                ? getFitParseErrorMessage(result)
+                : null;
+            if (result && !parseErrorMessage) {
+                const fitData = unwrapFitParseMessages(result);
                 showFitData(fitData, filePath);
                 getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
                 showNotification(
@@ -124,9 +124,8 @@ export class DragDropHandler {
                 showNotification("Failed to load FIT file", "error");
                 // Handle error in state manager
                 if (fitFileStateManager) {
-                    const errorMessage = isFitDecodeErrorPayload(fitData)
-                        ? fitData.error
-                        : "Unknown error";
+                    const errorMessage =
+                        parseErrorMessage?.display ?? "Unknown error";
                     fitFileStateManager.handleFileLoadingError?.(
                         new Error(errorMessage)
                     );

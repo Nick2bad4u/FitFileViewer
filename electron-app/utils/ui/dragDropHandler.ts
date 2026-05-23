@@ -1,6 +1,10 @@
 import { AppActions } from "../app/lifecycle/appActions.js";
 import { UI_CONSTANTS } from "../config/constants.js";
 import { performanceMonitor } from "../debug/stateDevTools.js";
+import {
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "../files/import/fitParsePayload.js";
 import { showFitData } from "../rendering/core/showFitData.js";
 import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
@@ -10,10 +14,7 @@ import {
     validateElement,
 } from "./mainUiDomUtils.js";
 import { showNotification } from "./notifications/showNotification.js";
-import type {
-    FitDecodeErrorPayload,
-    FitDecodeResult,
-} from "../../shared/fit";
+import type { FitDecodeResult } from "../../shared/fit";
 
 type DroppedFile = File & { path?: string };
 
@@ -52,17 +53,6 @@ function getDroppedFilePath(file: File): string {
     return typeof path === "string" && path.trim().length > 0
         ? path
         : file.name;
-}
-
-function isFitDecodeErrorPayload(
-    value: FitDecodeResult | undefined
-): value is FitDecodeErrorPayload {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        typeof (value as { error?: unknown }).error === "string"
-    );
 }
 
 /** Coordinates global FIT-file drag/drop handling and drop overlay state. */
@@ -149,11 +139,15 @@ export class DragDropHandler {
                 return;
             }
 
-            const fitData =
+            const result =
                 await getDragDropGlobal().electronAPI?.decodeFitFile?.(
                     arrayBuffer
                 );
-            if (fitData && !isFitDecodeErrorPayload(fitData)) {
+            const parseErrorMessage = result
+                ? getFitParseErrorMessage(result)
+                : null;
+            if (result && !parseErrorMessage) {
+                const fitData = unwrapFitParseMessages(result);
                 showFitData(fitData, filePath);
                 getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
                 showNotification(
@@ -165,9 +159,8 @@ export class DragDropHandler {
 
                 // Handle error in state manager
                 if (fitFileStateManager) {
-                    const errorMessage = isFitDecodeErrorPayload(fitData)
-                        ? fitData.error
-                        : "Unknown error";
+                    const errorMessage =
+                        parseErrorMessage?.display ?? "Unknown error";
                     fitFileStateManager.handleFileLoadingError?.(
                         new Error(errorMessage)
                     );
