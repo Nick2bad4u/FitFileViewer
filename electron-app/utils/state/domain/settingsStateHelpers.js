@@ -7,10 +7,11 @@ import { SETTINGS_SCHEMA } from "./settingsStateSchema.js";
 import { settingsStateManager } from "./settingsStateCore.js";
 const CHART_FIELD_VISIBILITY_KEY = "fieldVisibility";
 const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
+function isPlainSettingsRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 function asRecord(value) {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
+    return isPlainSettingsRecord(value) ? value : {};
 }
 function asChartFieldVisibilityMap(value) {
     const record = asRecord(value),
@@ -155,10 +156,8 @@ export function removeChartSetting(key) {
         localStorage.removeItem(storageKey);
         const rootState = getState("settings");
         const currentSettings =
-            rootState &&
-            typeof rootState === "object" &&
-            rootState["chart"] &&
-            typeof rootState["chart"] === "object"
+            isPlainSettingsRecord(rootState) &&
+            isPlainSettingsRecord(rootState["chart"])
                 ? rootState["chart"]
                 : {};
         if (currentSettings && Object.hasOwn(currentSettings, key)) {

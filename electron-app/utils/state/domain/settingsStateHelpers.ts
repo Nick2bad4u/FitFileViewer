@@ -37,10 +37,14 @@ interface ExportedSettings {
 const CHART_FIELD_VISIBILITY_KEY = "fieldVisibility";
 const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
 
+function isPlainSettingsRecord(
+    value: unknown
+): value is Record<string, unknown> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? (value as Record<string, unknown>)
-        : {};
+    return isPlainSettingsRecord(value) ? value : {};
 }
 
 function asChartFieldVisibilityMap(value: unknown): ChartFieldVisibilityMap {
@@ -211,15 +215,11 @@ export function removeChartSetting(key: string): boolean {
         const storageKey = `${SETTINGS_SCHEMA.chart.key}${key}`;
         localStorage.removeItem(storageKey);
 
-        const rootState = getState("settings") as
-            | Record<string, unknown>
-            | undefined;
+        const rootState = getState("settings");
         const currentSettings =
-            rootState &&
-            typeof rootState === "object" &&
-            rootState["chart"] &&
-            typeof rootState["chart"] === "object"
-                ? (rootState["chart"] as Record<string, unknown>)
+            isPlainSettingsRecord(rootState) &&
+            isPlainSettingsRecord(rootState["chart"])
+                ? rootState["chart"]
                 : {};
 
         if (currentSettings && Object.hasOwn(currentSettings, key)) {
