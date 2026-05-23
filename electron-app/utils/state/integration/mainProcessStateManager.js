@@ -32,6 +32,9 @@ const MAX_DOT_PATH_LENGTH = 512;
 const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
 const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
+const {
+    getElectron: getStateRuntimeElectron,
+} = require("../../../main/runtime/electronAccess");
 class MainProcessState {
     data;
     listeners;
@@ -1115,7 +1118,6 @@ function getErrorMessage(error) {
     return error instanceof Error ? error.message : String(error);
 }
 function safeElectron() {
-    let mod;
     const unwrap = (m) => {
         if (!isObjectRecord(m)) return {};
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
@@ -1125,30 +1127,10 @@ function safeElectron() {
         return m;
     };
     try {
-        // Only clear cache in tests to pick up per-test mocks
-        if (
-            typeof process !== "undefined" &&
-            process.env &&
-            process.env["NODE_ENV"] === "test"
-        ) {
-            try {
-                const key =
-                    typeof require.resolve === "function"
-                        ? require.resolve("electron")
-                        : undefined;
-                if (key && require.cache && require.cache[key]) {
-                    delete require.cache[key];
-                }
-            } catch {
-                /* ignore */
-            }
-        }
-        mod = require("electron");
+        return unwrap(getStateRuntimeElectron());
     } catch {
-        mod = undefined;
+        return {};
     }
-    let resolved = unwrap(mod);
-    return resolved || {};
 }
 function hasElectronApis(value) {
     return (

@@ -36,6 +36,11 @@ const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
 const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
 
+const { getElectron: getStateRuntimeElectron } =
+    require("../../../main/runtime/electronAccess") as {
+        getElectron: () => unknown;
+    };
+
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
 type LooseRecord = Record<string, unknown>;
@@ -1388,7 +1393,6 @@ function getErrorMessage(error: unknown): string {
 }
 
 function safeElectron(): MainElectronLike {
-    let mod: unknown;
     const unwrap = (m: unknown): MainElectronLike => {
         if (!isObjectRecord(m)) return {};
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
@@ -1399,32 +1403,10 @@ function safeElectron(): MainElectronLike {
     };
 
     try {
-        // Only clear cache in tests to pick up per-test mocks
-        if (
-            typeof process !== "undefined" &&
-            process.env &&
-            process.env["NODE_ENV"] === "test"
-        ) {
-            try {
-                const key =
-                    typeof require.resolve === "function"
-                        ? require.resolve("electron")
-                        : undefined;
-                if (key && require.cache && require.cache[key]) {
-                    delete require.cache[key];
-                }
-            } catch {
-                /* ignore */
-            }
-        }
-        mod = require("electron");
+        return unwrap(getStateRuntimeElectron());
     } catch {
-        mod = undefined;
+        return {};
     }
-
-    let resolved = unwrap(mod);
-
-    return resolved || {};
 }
 
 function hasElectronApis(value: unknown): value is MainElectronLike {
