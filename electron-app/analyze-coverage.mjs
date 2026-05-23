@@ -1,543 +1,841 @@
 /**
- * Analyzes code coverage statistics from a coverage-final.json file.
- *
- * @remarks
- * This script reads the Istanbul coverage-final.json file from the coverage
- * directory, analyzes statement, function, and branch coverage for each file,
- * and prints a summary of files with the lowest coverage. It is intended to
- * help developers identify files that need more tests.
- *
- * @example Run this script from the project root using Node.js:
- *
- * ```
- * ```bash
- * node scripts/analyze-coverage.mjs
- * ```;
- * ```
- *
- * @param input - Coverage/coverage-final.json: Istanbul JSON coverage report.
- *
- * @returns Console output listing files with low function and branch coverage,
- *   and a summary.
+ * Analyze Istanbul coverage-final.json output and print the lowest-coverage
+ * files in table, CSV, or JSON form.
  */
 
-import fs from "node:fs";
-import { createRequire } from "node:module";
+import { access, readFile } from "node:fs/promises";
 import os from "node:os";
-import path from "node:path";
-// Small ANSI color helpers (avoid extra deps)
-const colors = {
-    reset: (/** @type {any} */ s) => `\u001B[0m${s}\u001B[0m`,
-    bold: (/** @type {any} */ s) => `\u001B[1m${s}\u001B[22m`,
-    red: (/** @type {any} */ s) => `\u001B[31m${s}\u001B[39m`,
-    green: (/** @type {any} */ s) => `\u001B[32m${s}\u001B[39m`,
-    yellow: (/** @type {any} */ s) => `\u001B[33m${s}\u001B[39m`,
-    cyan: (/** @type {any} */ s) => `\u001B[36m${s}\u001B[39m`,
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** @typedef {"csv" | "json" | "table"} OutputFormat */
+/** @typedef {(text: string) => string} Colorize */
+
+/**
+ * @typedef {Record<string, number>} CountMap
+ */
+
+/**
+ * @typedef {{ line: number }} IstanbulPosition
+ */
+
+/**
+ * @typedef {{ end?: IstanbulPosition; start?: IstanbulPosition }} IstanbulLocation
+ */
+
+/**
+ * @typedef {Record<string, IstanbulLocation>} StatementMap
+ */
+
+/**
+ * @typedef {{
+ *     b?: Record<string, number | number[]>;
+ *     f?: CountMap;
+ *     l?: CountMap;
+ *     s?: CountMap;
+ *     statementMap?: StatementMap;
+ * }} IstanbulFileCoverage
+ */
+
+/**
+ * @typedef {Record<string, IstanbulFileCoverage>} IstanbulCoverage
+ */
+
+/**
+ * @typedef {{ covered: number; percentage: number; total: number }} CoverageMetric
+ */
+
+/**
+ * @typedef {{
+ *     branches: CoverageMetric;
+ *     file: string;
+ *     functions: CoverageMetric;
+ *     lines: CoverageMetric;
+ *     statements: CoverageMetric;
+ * }} FileCoverageAnalysis
+ */
+
+/**
+ * @typedef {{
+ *     coveragePath: string;
+ *     debugFile: string | undefined;
+ *     fileDisplayLimit: number;
+ *     noColor: boolean;
+ *     outputFormat: OutputFormat;
+ *     projectRoot: string;
+ *     truncateFilePath: number;
+ * }} AnalyzeOptions
+ */
+
+const DEFAULT_FILE_DISPLAY_LIMIT = 15;
+const DEFAULT_TRUNCATE_FILE_PATH = 80;
+const FILE_COLUMN_MIN_WIDTH = 30;
+const NUMERIC_COLUMN_WIDTH = 14;
+const COVERAGE_FILE_NAME = "coverage-final.json";
+const LOW_COVERAGE_THRESHOLD = 90;
+
+// eslint-disable-next-line unicorn/prefer-import-meta-properties -- package.json still supports Node 16; import.meta.dirname requires newer Node.
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const packageRoot = scriptDirectory;
+const repositoryRoot = path.resolve(packageRoot, "..");
+
+/** @type {Record<string, Colorize>} */
+const ANSI_COLORS = {
+    bold: (text) => `\u001B[1m${text}\u001B[22m`,
+    cyan: (text) => `\u001B[36m${text}\u001B[39m`,
+    green: (text) => `\u001B[32m${text}\u001B[39m`,
+    red: (text) => `\u001B[31m${text}\u001B[39m`,
+    yellow: (text) => `\u001B[33m${text}\u001B[39m`,
 };
 
-// Read the coverage file
-const { dirname } = import.meta;
+/** @type {Record<string, Colorize>} */
+const PLAIN_COLORS = {
+    bold: (text) => text,
+    cyan: (text) => text,
+    green: (text) => text,
+    red: (text) => text,
+    yellow: (text) => text,
+};
 
-// Resolve coverage-final.json from multiple candidate locations
-function findCoveragePath() {
-    // 1) Explicit env override
-    if (process.env.VITEST_COVERAGE_DIR) {
-        const p = path.join(
-            process.env.VITEST_COVERAGE_DIR,
-            "coverage-final.json"
+/**
+ * @param {IstanbulCoverage} coverageData
+ * @param {string} projectRoot
+ *
+ * @returns {FileCoverageAnalysis[]}
+ */
+function analyzeCoverage(coverageData, projectRoot) {
+    return Object.entries(coverageData).map(([filePath, data]) => {
+        const lines = deriveLineCounts(
+            data.l ?? {},
+            data.s ?? {},
+            data.statementMap ?? {}
         );
-        if (fs.existsSync(p)) return p;
+
+        return {
+            branches: calculateBranchCoverage(data.b ?? {}),
+            file: path.relative(projectRoot, filePath),
+            functions: calculateCountCoverage(data.f ?? {}),
+            lines: calculateCountCoverage(lines),
+            statements: calculateCountCoverage(data.s ?? {}),
+        };
+    });
+}
+
+/**
+ * @param {Record<string, number | number[]>} branches
+ *
+ * @returns {CoverageMetric}
+ */
+function calculateBranchCoverage(branches) {
+    const total = Object.keys(branches).length;
+    const covered = Object.values(branches).filter((branchCount) =>
+        isBranchCovered(branchCount)
+    ).length;
+    return {
+        covered,
+        percentage: total > 0 ? (covered / total) * 100 : 100,
+        total,
+    };
+}
+
+/**
+ * @param {CountMap} counts
+ *
+ * @returns {CoverageMetric}
+ */
+function calculateCountCoverage(counts) {
+    const total = Object.keys(counts).length;
+    const covered = Object.values(counts).filter((count) => count > 0).length;
+    return {
+        covered,
+        percentage: total > 0 ? (covered / total) * 100 : 100,
+        total,
+    };
+}
+
+/**
+ * @param {CoverageMetric} metric
+ * @param {Record<string, Colorize>} colors
+ *
+ * @returns {string}
+ */
+function colorizeMetric(metric, colors) {
+    const text = formatMetric(metric);
+    if (metric.percentage >= 90) {
+        return colors.green(text);
     }
-    // 2) Vitest config may redirect to OS temp on Windows/Dropbox
-    const tmpCandidate = path.join(
-        os.tmpdir(),
-        "ffv-vitest-coverage",
-        "coverage-final.json"
+
+    return metric.percentage >= 75 ? colors.yellow(text) : colors.red(text);
+}
+
+/**
+ * @param {string} value
+ *
+ * @returns {string}
+ */
+function csvEscape(value) {
+    return value.includes(",") || value.includes('"') || value.includes("\n")
+        ? `"${value.replaceAll('"', '""')}"`
+        : value;
+}
+
+/**
+ * @param {CountMap} lines
+ * @param {CountMap} statements
+ * @param {StatementMap} statementMap
+ *
+ * @returns {CountMap}
+ */
+function deriveLineCounts(lines, statements, statementMap) {
+    if (
+        Object.keys(lines).length > 0 ||
+        Object.keys(statementMap).length === 0
+    ) {
+        return lines;
+    }
+
+    /** @type {CountMap} */
+    const derivedLines = {};
+    for (const [statementId, location] of Object.entries(statementMap)) {
+        const startLine = location.start.line;
+        const endLine = location.end?.line ?? startLine;
+        const covered = (statements[statementId] ?? 0) > 0 ? 1 : 0;
+        for (
+            let lineNumber = startLine;
+            lineNumber <= endLine;
+            lineNumber += 1
+        ) {
+            const lineKey = String(lineNumber);
+            const currentLineCount = derivedLines[lineKey] ?? 0;
+            derivedLines[lineKey] = currentLineCount + covered;
+        }
+    }
+
+    return derivedLines;
+}
+
+/**
+ * @param {string} text
+ * @param {number} maxLength
+ *
+ * @returns {string}
+ */
+function ellipsize(text, maxLength) {
+    if (maxLength <= 0 || text.length <= maxLength) {
+        return text;
+    }
+
+    if (maxLength <= 4) {
+        return text.slice(-maxLength);
+    }
+
+    const headLength = Math.ceil(maxLength * 0.4);
+    const tailLength = maxLength - headLength - 3;
+    return `${text.slice(0, headLength)}...${text.slice(-tailLength)}`;
+}
+
+/**
+ * @returns {Promise<string>}
+ */
+async function findCoveragePath() {
+    const explicitCoverageDirectory = getEnvironmentValue(
+        "VITEST_COVERAGE_DIR"
     );
-    if (fs.existsSync(tmpCandidate)) return tmpCandidate;
-    // 3) Default local coverage directory under electron-app
-    const localCandidate = path.join(
-        dirname,
-        "..",
-        "electron-app",
-        "coverage",
-        "coverage-final.json"
+    const candidates = [
+        explicitCoverageDirectory === undefined
+            ? undefined
+            : path.join(explicitCoverageDirectory, COVERAGE_FILE_NAME),
+        path.join(os.tmpdir(), "ffv-vitest-coverage", COVERAGE_FILE_NAME),
+        path.join(packageRoot, "coverage", COVERAGE_FILE_NAME),
+        path.join(repositoryRoot, "coverage", COVERAGE_FILE_NAME),
+    ].filter((candidatePath) => candidatePath !== undefined);
+
+    const results = await Promise.all(
+        candidates.map(async (candidatePath) => ({
+            candidatePath,
+            exists: await pathExists(candidatePath),
+        }))
     );
-    if (fs.existsSync(localCandidate)) return localCandidate;
-    // 4) Fallback: try project root coverage folder
-    const rootCandidate = path.join(
-        dirname,
-        "..",
-        "coverage",
-        "coverage-final.json"
-    );
-    if (fs.existsSync(rootCandidate)) return rootCandidate;
+    const found = results.find((result) => result.exists);
+    if (found !== undefined) {
+        return found.candidatePath;
+    }
+
     throw new Error(
         "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, electron-app/coverage, and project coverage."
     );
 }
 
-const coveragePath = findCoveragePath();
-
-const coverageData = JSON.parse(fs.readFileSync(coveragePath, "utf8"));
-
-// --------- Configurable defaults (tweak these at top of file) ---------
-const DEFAULTS = {
-    coverageRelativePath: path.join("coverage", "coverage-final.json"),
-    projectRoot: path.resolve(import.meta.dirname, ".."),
-    fileDisplayLimit: Number(process.env.COVERAGE_FILE_LIMIT) || 15,
-    minFileColumnWidth: 30,
-    numericColumnWidth: 20,
-    truncateFilePath: 80, // Max characters in File column; longer paths will be ellipsized
-    defaultFormat: "table", // 'table' | 'csv' | 'json'
-};
-
-// CLI flags
-const noColor = process.argv.includes("--no-color");
-const formatIndex = process.argv.indexOf("--format");
-const outputFormat =
-    formatIndex === -1 ? DEFAULTS.defaultFormat : process.argv[formatIndex + 1];
-const limitArgIndex2 = process.argv.indexOf("--limit");
-const limitOverride =
-    limitArgIndex2 === -1 ? null : Number(process.argv[limitArgIndex2 + 1]);
-
-// Respect --no-color by overriding color helpers to pass-through
-if (noColor) {
-    for (const k of Object.keys(colors)) {
-        // @ts-expect-error
-        colors[k] = (/** @type {any} */ s) => s;
-    }
-}
-
-// Analyze each file
-const fileAnalysis = [];
-const {
-    projectRoot,
-    numericColumnWidth,
-    truncateFilePath,
-    minFileColumnWidth,
-} = DEFAULTS;
-
-for (const [filePath, data] of Object.entries(coverageData)) {
-    const relativePath = path.relative(projectRoot, filePath);
-
-    // Calculate coverage percentages (guard missing maps)
-    const statements = data.s ?? {};
-    const functions = data.f ?? {};
-    const branches = data.b ?? {};
-    const lines = data.l ?? {};
-
-    // Calculate statement coverage
-    const totalStatements = Object.keys(statements).length;
-    // In Istanbul format, statements map values are counts (0 = missed, >0 = covered)
-    const coveredStatements = Object.values(statements).filter(
-        (count) => Number(count) > 0
-    ).length;
-    const statementCoverage =
-        totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 100;
-
-    // Calculate line coverage
-    // If l (lines) map is missing or empty, try to derive per-line coverage from statementMap
-    const statementMap = data.statementMap ?? data.statementMap ?? {};
-    let derivedLines = lines;
-    if (
-        Object.keys(derivedLines).length === 0 &&
-        statementMap &&
-        Object.keys(statementMap).length > 0
-    ) {
-        // Build a map of line -> coveredCount based on statements covering those lines
-        derivedLines = {};
-        for (const [stmtId, loc] of Object.entries(statementMap)) {
-            // Loc has start.line and end.line typically
-            const startLine =
-                loc && loc.start && loc.start.line ? loc.start.line : null;
-            const endLine =
-                loc && loc.end && loc.end.line ? loc.end.line : startLine;
-            if (startLine === null || startLine === undefined) continue;
-            const covered = Number(statements[stmtId]) > 0 ? 1 : 0;
-            for (let ln = startLine; ln <= (endLine ?? startLine); ln++) {
-                // Accumulate coverage counts per line
-                derivedLines[ln] = (derivedLines[ln] || 0) + covered;
-            }
-        }
-    }
-
-    const totalLines = Object.keys(derivedLines).length;
-    // Line map values are counts as well (or derived counts)
-    const coveredLines = Object.values(derivedLines).filter(
-        (count) => Number(count) > 0
-    ).length;
-    const lineCoverage =
-        totalLines > 0 ? (coveredLines / totalLines) * 100 : 100;
-
-    // Calculate function coverage
-    const totalFunctions = Object.keys(functions).length;
-    const coveredFunctions = Object.values(functions).filter(
-        (count) => count > 0
-    ).length;
-    const functionCoverage =
-        totalFunctions > 0 ? (coveredFunctions / totalFunctions) * 100 : 100;
-
-    // Helper to determine if a branch is covered
-    /**
-     * Determines if a branch is covered based on its coverage array or count.
-     *
-     * @param {number | number[]} branchArray - The branch coverage data, either
-     *   a number or an array of numbers.
-     *
-     * @returns {boolean} True if the branch is covered, false otherwise.
-     */
-    function isBranchCovered(branchArray) {
-        return Array.isArray(branchArray)
-            ? branchArray.some((count) => count > 0)
-            : branchArray > 0;
-    }
-
-    // Calculate branch coverage
-    const totalBranches = Object.keys(branches).length;
-    const coveredBranches = Object.values(branches).filter((element) =>
-        isBranchCovered(element)
-    ).length;
-    const branchCoverage =
-        totalBranches > 0 ? (coveredBranches / totalBranches) * 100 : 100;
-
-    /**
-     * Represents coverage analysis for a single file.
-     *
-     * @property {string} file - Relative path to the file.
-     * @property {Object} statements - Statement coverage details.
-     * @property {number} statements.total - Total number of statements.
-     * @property {number} statements.covered - Number of covered statements.
-     * @property {number} statements.percentage - Percentage of covered
-     *   statements.
-     * @property {Object} functions - Function coverage details.
-     * @property {number} functions.total - Total number of functions.
-     * @property {number} functions.covered - Number of covered functions.
-     * @property {number} functions.percentage - Percentage of covered
-     *   functions.
-     * @property {Object} branches - Branch coverage details.
-     * @property {number} branches.total - Total number of branches.
-     * @property {number} branches.covered - Number of covered branches.
-     * @property {number} branches.percentage - Percentage of covered branches.
-     *
-     *   The analysis object summarizes coverage statistics for each file.
-     */
-    fileAnalysis.push({
-        file: relativePath,
-        statements: {
-            total: totalStatements,
-            covered: coveredStatements,
-            percentage: statementCoverage,
-        },
-        functions: {
-            total: totalFunctions,
-            covered: coveredFunctions,
-            percentage: functionCoverage,
-        },
-        branches: {
-            total: totalBranches,
-            covered: coveredBranches,
-            percentage: branchCoverage,
-        },
-        lines: {
-            total: totalLines,
-            covered: coveredLines,
-            percentage: lineCoverage,
-        },
-    });
-}
-
-// Sort by function coverage (lowest first) using immutable operation
-const sortedByFunctionCoverage = fileAnalysis.toSorted(
-    (a, b) => a.functions.percentage - b.functions.percentage
-);
-
-// Get limit from CLI argument or environment variable
-const fileDisplayLimit = limitOverride ?? DEFAULTS.fileDisplayLimit;
-
-// Debug flag: --debug <relative/path/to/file>
-const debugIndex = process.argv.indexOf("--debug");
-const debugFile = debugIndex === -1 ? null : process.argv[debugIndex + 1];
-
-// If debug flag provided, print the matching processed entry and raw coverage entry and exit
-if (debugFile) {
-    const match = fileAnalysis.find(
-        (f) => f.file === debugFile || f.file.endsWith(debugFile)
-    );
-    if (match) {
-        console.log("\n=== DEBUG COVERAGE ENTRY (processed) ===");
-        console.log(JSON.stringify(match, null, 2));
-        // Find raw coverage key
-        const rawKey = Object.keys(coverageData).find((k) => {
-            const rel = path.relative(projectRoot, k);
-            return rel === debugFile || rel.endsWith(debugFile);
-        });
-        if (rawKey) {
-            console.log("\n=== DEBUG RAW COVERAGE ===");
-            console.log(JSON.stringify(coverageData[rawKey], null, 2));
-        }
-        // eslint-disable-next-line n/no-process-exit
-        process.exit(0);
-    } else {
-        console.log(`\nNo coverage entry found for debug file: ${debugFile}`);
-        // eslint-disable-next-line n/no-process-exit
-        process.exit(1);
-    }
-}
-
-// Helper: format a fixed-width table for coverage sections
 /**
- * @param {any[]} displayed
+ * @param {CoverageMetric} metric
+ *
+ * @returns {string}
  */
-function computeColWidths(displayed) {
-    // File column width + four numeric columns
-    const minFileCol = 30;
-    const fileCol = Math.max(
-        minFileCol,
+function formatMetric(metric) {
+    return `${metric.covered}/${metric.total} (${metric.percentage.toFixed(2)}%)`;
+}
+
+/**
+ * @param {string} key
+ *
+ * @returns {string | undefined}
+ */
+function getEnvironmentValue(key) {
+    const processValue = Reflect.get(globalThis, "process");
+    if (typeof processValue !== "object" || !("env" in processValue)) {
+        return undefined;
+    }
+
+    const envValue = Reflect.get(processValue, "env");
+    if (typeof envValue !== "object") {
+        return undefined;
+    }
+
+    const value = Reflect.get(envValue, key);
+    return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * @param {number | number[]} branchCount
+ *
+ * @returns {boolean}
+ */
+function isBranchCovered(branchCount) {
+    return Array.isArray(branchCount)
+        ? branchCount.some((count) => count > 0)
+        : branchCount > 0;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is IstanbulPosition}
+ */
+function isIstanbulPosition(value) {
+    return isRecord(value) && typeof value.line === "number";
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+function isRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+async function main() {
+    const options = await parseOptions();
+    const coverageData = await readCoverageData(options.coveragePath);
+    const fileAnalysis = analyzeCoverage(coverageData, options.projectRoot);
+
+    if (
+        printDebugEntry(
+            options.debugFile,
+            fileAnalysis,
+            coverageData,
+            options.projectRoot
+        )
+    ) {
+        return;
+    }
+
+    if (options.outputFormat === "json") {
+        printJson(fileAnalysis);
+        return;
+    }
+
+    if (options.outputFormat === "csv") {
+        printCsv(fileAnalysis);
+        return;
+    }
+
+    printTable(fileAnalysis, options);
+}
+
+/**
+ * @param {string} text
+ * @param {number} width
+ *
+ * @returns {string}
+ */
+function padLeft(text, width) {
+    return text.length >= width
+        ? text
+        : `${" ".repeat(width - text.length)}${text}`;
+}
+
+/**
+ * @param {string} text
+ * @param {number} width
+ *
+ * @returns {string}
+ */
+function padRight(text, width) {
+    return text.length >= width
+        ? text
+        : `${text}${" ".repeat(width - text.length)}`;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {IstanbulCoverage}
+ */
+function parseCoverageData(value) {
+    if (!isRecord(value)) {
+        throw new Error("coverage-final.json must contain an object.");
+    }
+
+    /** @type {IstanbulCoverage} */
+    const coverageData = {};
+    for (const [filePath, rawCoverage] of Object.entries(value)) {
+        if (isRecord(rawCoverage)) {
+            coverageData[filePath] = {
+                b: toBranchMap(Reflect.get(rawCoverage, "b")),
+                f: toCountMap(Reflect.get(rawCoverage, "f")),
+                l: toCountMap(Reflect.get(rawCoverage, "l")),
+                s: toCountMap(Reflect.get(rawCoverage, "s")),
+                statementMap: toStatementMap(
+                    Reflect.get(rawCoverage, "statementMap")
+                ),
+            };
+        }
+    }
+
+    return coverageData;
+}
+
+/**
+ * @returns {Promise<AnalyzeOptions>}
+ */
+async function parseOptions() {
+    const argv = process.argv.slice(2);
+    const coveragePath = await findCoveragePath();
+    const formatValue = readFlagValue(argv, "--format") ?? "table";
+    const limitValue =
+        readFlagValue(argv, "--limit") ??
+        getEnvironmentValue("COVERAGE_FILE_LIMIT");
+
+    return {
+        coveragePath,
+        debugFile: readFlagValue(argv, "--debug"),
+        fileDisplayLimit: parsePositiveInteger(
+            limitValue,
+            DEFAULT_FILE_DISPLAY_LIMIT
+        ),
+        noColor: argv.includes("--no-color"),
+        outputFormat: parseOutputFormat(formatValue),
+        projectRoot: repositoryRoot,
+        truncateFilePath: DEFAULT_TRUNCATE_FILE_PATH,
+    };
+}
+
+/**
+ * @param {string} value
+ *
+ * @returns {OutputFormat}
+ */
+function parseOutputFormat(value) {
+    if (value === "csv" || value === "json" || value === "table") {
+        return value;
+    }
+
+    throw new Error(
+        `Unsupported coverage output format "${value}". Use table, csv, or json.`
+    );
+}
+
+/**
+ * @param {string | undefined} value
+ * @param {number} fallback
+ *
+ * @returns {number}
+ */
+function parsePositiveInteger(value, fallback) {
+    if (value === undefined || value.trim() === "") {
+        return fallback;
+    }
+
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/**
+ * @param {string} candidatePath
+ *
+ * @returns {Promise<boolean>}
+ */
+async function pathExists(candidatePath) {
+    try {
+        await access(candidatePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @param {string} header
+ * @param {FileCoverageAnalysis[]} files
+ * @param {AnalyzeOptions} options
+ * @param {Record<string, Colorize>} colors
+ *
+ * @returns {void}
+ */
+function printCoverageSection(header, files, options, colors) {
+    writeLine(colors.bold(`=== ${header} ===`));
+
+    const displayed = files.slice(0, options.fileDisplayLimit);
+    const fileColumnWidth = Math.max(
+        FILE_COLUMN_MIN_WIDTH,
         ...displayed.map(
-            (/** @type {{ file: string | any[] }} */ f) => f.file.length
+            (file) => ellipsize(file.file, options.truncateFilePath).length
         )
     );
-    // Other columns get a reasonable width
-    const numCol = numericColumnWidth ?? 20;
-    return [
-        fileCol,
-        numCol,
-        numCol,
-        numCol,
-        numCol,
-    ];
-}
-
-// Shorten long paths by keeping head and tail with ellipsis in the middle
-/**
- * @param {any} s
- * @param {number} max
- */
-function ellipsize(s, max) {
-    const str = String(s);
-    if (!max || str.length <= max) return str;
-    if (max <= 4) return str.slice(-max);
-    const head = Math.ceil(max * 0.4);
-    const tail = max - head - 3; // For '...'
-    return `${str.slice(0, head)}...${str.slice(-tail)}`;
-}
-
-/**
- * @param {string} s
- * @param {number} width
- */
-function padLeft(s, width) {
-    const str = String(s);
-    if (str.length >= width) return str;
-    return " ".repeat(width - str.length) + str;
-}
-
-// Small helpers for padding
-/**
- * @param {string} s
- * @param {number} width
- */
-function padRight(s, width) {
-    const str = String(s);
-    if (str.length >= width) return str;
-    return str + " ".repeat(width - str.length);
-}
-
-/**
- * Print a table section with aligned headers and numeric columns.
- *
- * @param {string} header - The section title
- * @param {any[]} files - Array of file analysis objects
- */
-function printCoverageSection(header, files) {
-    console.log(colors.bold(`=== ${header} ===`));
-
-    const displayed = files.slice(0, fileDisplayLimit);
-    // Try to require cli-table3 synchronously so we avoid top-level await lint warnings
-    try {
-        const requireC = createRequire(import.meta.url);
-        // @ts-ignore require possibly missing in some environments
-        const Table = requireC("cli-table3");
-
-        const table = new Table({
-            head: [
-                "File",
-                "Functions",
-                "Branches",
-                "Statements",
-                "Lines",
-            ].map((h) => colors.bold(h)),
-            style: { head: [], border: [] },
-            colWidths: computeColWidths(displayed),
-        });
-
-        for (const f of displayed) {
-            const fmt = (
-                /** @type {{ percentage: number; covered: any; total: any }} */ cov
-            ) => {
-                if (!cov) return "-";
-                const pct = cov.percentage ?? 0;
-                const pctStr = `${pct.toFixed(2)}%`;
-                const text = `${cov.covered}/${cov.total} (${pctStr})`;
-                return pct >= 90
-                    ? colors.green(text)
-                    : pct >= 75
-                      ? colors.yellow(text)
-                      : colors.red(text);
-            };
-            table.push([
-                ellipsize(f.file, truncateFilePath),
-                fmt(f.functions),
-                fmt(f.branches),
-                fmt(f.statements),
-                fmt(f.lines),
-            ]);
-        }
-
-        console.log(table.toString());
-        console.log();
-        return;
-    } catch {
-        // If cli-table3 isn't installed, fall back to the pad-based renderer
-    }
-
-    // Fallback: pad-based renderer (keeps previous behavior)
-    const minFileCol = minFileColumnWidth;
-    const fileCol = Math.max(
-        minFileCol,
-        ...displayed.map((f) => ellipsize(f.file, truncateFilePath).length)
+    writeLine(
+        colors.bold(
+            `${padRight("File", fileColumnWidth)}  ${padLeft("Functions", NUMERIC_COLUMN_WIDTH)}  ${padLeft("Branches", NUMERIC_COLUMN_WIDTH)}  ${padLeft("Statements", NUMERIC_COLUMN_WIDTH)}  ${padLeft("Lines", NUMERIC_COLUMN_WIDTH)}`
+        )
     );
-    const hdr = `${padRight("File", fileCol)}  ${padLeft("Functions", 14)}  ${padLeft("Branches", 14)}  ${padLeft("Statements", 14)}  ${padLeft("Lines", 14)}`;
-    console.log(colors.bold(hdr));
 
-    for (const f of displayed) {
-        const rFile = padRight(ellipsize(f.file, truncateFilePath), fileCol);
-        const cell = (
-            /** @type {{ percentage: number; covered: any; total: any }} */ cov
-        ) => {
-            if (!cov) return padLeft("-", 14);
-            const pct = cov.percentage ?? 0;
-            const pctStr = `${pct.toFixed(2)}%`;
-            const plain = `${cov.covered}/${cov.total} (${pctStr})`;
-            const padded = padLeft(plain, 14);
-            const colored =
-                pct >= 90
-                    ? colors.green(padded)
-                    : pct >= 75
-                      ? colors.yellow(padded)
-                      : colors.red(padded);
-            return colored;
-        };
-
-        console.log(
-            `${colors.cyan(rFile)}  ${cell(f.functions)}  ${cell(f.branches)}  ${cell(f.statements)}  ${cell(f.lines)}`
+    for (const file of displayed) {
+        const renderedFile = padRight(
+            ellipsize(file.file, options.truncateFilePath),
+            fileColumnWidth
+        );
+        writeLine(
+            `${colors.cyan(renderedFile)}  ${padLeft(renderMetricCell(file.functions, colors), NUMERIC_COLUMN_WIDTH)}  ${padLeft(renderMetricCell(file.branches, colors), NUMERIC_COLUMN_WIDTH)}  ${padLeft(renderMetricCell(file.statements, colors), NUMERIC_COLUMN_WIDTH)}  ${padLeft(renderMetricCell(file.lines, colors), NUMERIC_COLUMN_WIDTH)}`
         );
     }
-    console.log();
+    writeLine();
 }
 
-// Show files with function coverage < 90%
-const lowFunctionCoverage = sortedByFunctionCoverage.filter(
-    (file) => file.functions.percentage < 90
-);
-// If output format is JSON or CSV, emit that and exit early for tooling/CI
-if (outputFormat === "json") {
-    // Emit the full analysis as JSON
-    console.log(JSON.stringify(fileAnalysis, null, 2));
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(0);
-}
+/**
+ * @param {FileCoverageAnalysis[]} fileAnalysis
+ *
+ * @returns {void}
+ */
+function printCsv(fileAnalysis) {
+    writeLine(
+        [
+            "file",
+            "functions_total",
+            "functions_covered",
+            "functions_pct",
+            "branches_total",
+            "branches_covered",
+            "branches_pct",
+            "statements_total",
+            "statements_covered",
+            "statements_pct",
+            "lines_total",
+            "lines_covered",
+            "lines_pct",
+        ].join(",")
+    );
 
-if (outputFormat === "csv") {
-    // Build CSV header
-    const hdr = [
-        "file",
-        "functions_total",
-        "functions_covered",
-        "functions_pct",
-        "branches_total",
-        "branches_covered",
-        "branches_pct",
-        "statements_total",
-        "statements_covered",
-        "statements_pct",
-        "lines_total",
-        "lines_covered",
-        "lines_pct",
-    ].join(",");
-    console.log(hdr);
-    for (const f of fileAnalysis) {
-        const csvEscape = (/** @type {string | null | undefined} */ v) => {
-            if (v === null || v === undefined) return "";
-            const s = String(v);
-            if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-                return `"${s.replaceAll('"', '""')}"`;
-            }
-            return s;
-        };
-        const row = [
-            csvEscape(f.file),
-            f.functions.total,
-            f.functions.covered,
-            f.functions.percentage.toFixed(2),
-            f.branches.total,
-            f.branches.covered,
-            f.branches.percentage.toFixed(2),
-            f.statements.total,
-            f.statements.covered,
-            f.statements.percentage.toFixed(2),
-            f.lines.total,
-            f.lines.covered,
-            f.lines.percentage.toFixed(2),
-        ].join(",");
-        console.log(row);
+    for (const file of fileAnalysis) {
+        writeLine(
+            [
+                csvEscape(file.file),
+                file.functions.total,
+                file.functions.covered,
+                file.functions.percentage.toFixed(2),
+                file.branches.total,
+                file.branches.covered,
+                file.branches.percentage.toFixed(2),
+                file.statements.total,
+                file.statements.covered,
+                file.statements.percentage.toFixed(2),
+                file.lines.total,
+                file.lines.covered,
+                file.lines.percentage.toFixed(2),
+            ].join(",")
+        );
     }
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(0);
 }
 
-// Default: table output
-printCoverageSection(
-    "FILES WITH LOWEST FUNCTION COVERAGE",
-    lowFunctionCoverage
-);
+/**
+ * @param {string | undefined} debugFile
+ * @param {FileCoverageAnalysis[]} fileAnalysis
+ * @param {IstanbulCoverage} coverageData
+ * @param {string} projectRoot
+ *
+ * @returns {boolean}
+ */
+function printDebugEntry(debugFile, fileAnalysis, coverageData, projectRoot) {
+    if (debugFile === undefined) {
+        return false;
+    }
 
-// Sort by branch coverage using immutable operation
-const sortedByBranchCoverage = fileAnalysis.toSorted(
-    (a, b) => a.branches.percentage - b.branches.percentage
-);
-const lowBranchCoverage = sortedByBranchCoverage.filter(
-    (file) => file.branches.percentage < 90
-);
-printCoverageSection("FILES WITH LOWEST BRANCH COVERAGE", lowBranchCoverage);
+    const match = fileAnalysis.find(
+        (file) => file.file === debugFile || file.file.endsWith(debugFile)
+    );
+    if (match === undefined) {
+        writeLine(`\nNo coverage entry found for debug file: ${debugFile}`);
+        process.exitCode = 1;
+        return true;
+    }
 
-// Sort by statement coverage using immutable operation
-const sortedByStatementCoverage = fileAnalysis.toSorted(
-    (a, b) => a.statements.percentage - b.statements.percentage
-);
-const lowStatementCoverage = sortedByStatementCoverage.filter(
-    (file) => file.statements.percentage < 90
-);
-printCoverageSection(
-    "FILES WITH LOWEST STATEMENT COVERAGE",
-    lowStatementCoverage
-);
+    writeLine("\n=== DEBUG COVERAGE ENTRY (processed) ===");
+    writeLine(JSON.stringify(match, null, 2));
 
-// Sort by line coverage using immutable operation
-const sortedByLineCoverage = fileAnalysis.toSorted(
-    (a, b) => (a.lines?.percentage ?? 100) - (b.lines?.percentage ?? 100)
-);
-const lowLineCoverage = sortedByLineCoverage.filter(
-    (file) => (file.lines?.percentage ?? 100) < 90
-);
-printCoverageSection("FILES WITH LOWEST LINE COVERAGE", lowLineCoverage);
+    const rawKey = Object.keys(coverageData).find((coverageFilePath) => {
+        const relativePath = path.relative(projectRoot, coverageFilePath);
+        return relativePath === debugFile || relativePath.endsWith(debugFile);
+    });
 
-console.log("\n=== SUMMARY ===");
-console.log(`Total files analyzed: ${fileAnalysis.length}`);
-console.log(
-    `Files with <90% function coverage: ${fileAnalysis.filter((f) => f.functions.percentage < 90).length}`
-);
-console.log(
-    `Files with <90% branch coverage: ${fileAnalysis.filter((f) => f.branches.percentage < 90).length}`
+    if (rawKey !== undefined) {
+        writeLine("\n=== DEBUG RAW COVERAGE ===");
+        writeLine(JSON.stringify(coverageData[rawKey], null, 2));
+    }
+
+    return true;
+}
+
+/**
+ * @param {FileCoverageAnalysis[]} fileAnalysis
+ *
+ * @returns {void}
+ */
+function printJson(fileAnalysis) {
+    writeLine(JSON.stringify(fileAnalysis, null, 2));
+}
+
+/**
+ * @param {FileCoverageAnalysis[]} fileAnalysis
+ * @param {AnalyzeOptions} options
+ *
+ * @returns {void}
+ */
+function printTable(fileAnalysis, options) {
+    const colors = options.noColor ? PLAIN_COLORS : ANSI_COLORS;
+    const lowFunctionCoverage = sortByMetric(
+        fileAnalysis,
+        (file) => file.functions.percentage
+    ).filter((file) => file.functions.percentage < LOW_COVERAGE_THRESHOLD);
+    printCoverageSection(
+        "FILES WITH LOWEST FUNCTION COVERAGE",
+        lowFunctionCoverage,
+        options,
+        colors
+    );
+
+    const lowBranchCoverage = sortByMetric(
+        fileAnalysis,
+        (file) => file.branches.percentage
+    ).filter((file) => file.branches.percentage < LOW_COVERAGE_THRESHOLD);
+    printCoverageSection(
+        "FILES WITH LOWEST BRANCH COVERAGE",
+        lowBranchCoverage,
+        options,
+        colors
+    );
+
+    const lowStatementCoverage = sortByMetric(
+        fileAnalysis,
+        (file) => file.statements.percentage
+    ).filter((file) => file.statements.percentage < LOW_COVERAGE_THRESHOLD);
+    printCoverageSection(
+        "FILES WITH LOWEST STATEMENT COVERAGE",
+        lowStatementCoverage,
+        options,
+        colors
+    );
+
+    const lowLineCoverage = sortByMetric(
+        fileAnalysis,
+        (file) => file.lines.percentage
+    ).filter((file) => file.lines.percentage < LOW_COVERAGE_THRESHOLD);
+    printCoverageSection(
+        "FILES WITH LOWEST LINE COVERAGE",
+        lowLineCoverage,
+        options,
+        colors
+    );
+
+    writeLine("\n=== SUMMARY ===");
+    writeLine(`Total files analyzed: ${fileAnalysis.length}`);
+    writeLine(
+        `Files with <90% function coverage: ${fileAnalysis.filter((file) => file.functions.percentage < LOW_COVERAGE_THRESHOLD).length}`
+    );
+    writeLine(
+        `Files with <90% branch coverage: ${fileAnalysis.filter((file) => file.branches.percentage < LOW_COVERAGE_THRESHOLD).length}`
+    );
+}
+
+/**
+ * @param {string} coveragePath
+ *
+ * @returns {Promise<IstanbulCoverage>}
+ */
+async function readCoverageData(coveragePath) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- coveragePath is selected from validated coverage file candidates.
+    const coverageJson = await readFile(coveragePath, "utf8");
+    return parseCoverageData(JSON.parse(coverageJson));
+}
+
+/**
+ * @param {readonly string[]} argv
+ * @param {string} flag
+ *
+ * @returns {string | undefined}
+ */
+function readFlagValue(argv, flag) {
+    const flagIndex = argv.indexOf(flag);
+    if (flagIndex === -1) {
+        return undefined;
+    }
+
+    const value = argv[flagIndex + 1];
+    return value === undefined || value.startsWith("--") ? undefined : value;
+}
+
+/**
+ * @param {CoverageMetric} metric
+ * @param {Record<string, Colorize>} colors
+ *
+ * @returns {string}
+ */
+function renderMetricCell(metric, colors) {
+    return colorizeMetric(
+        {
+            ...metric,
+            covered: metric.covered,
+            percentage: metric.percentage,
+            total: metric.total,
+        },
+        colors
+    );
+}
+
+/**
+ * @param {FileCoverageAnalysis[]} analyses
+ * @param {(analysis: FileCoverageAnalysis) => number} selector
+ *
+ * @returns {FileCoverageAnalysis[]}
+ */
+function sortByMetric(analyses, selector) {
+    /** @type {FileCoverageAnalysis[]} */
+    const sorted = [];
+    for (const analysis of analyses) {
+        const metric = selector(analysis);
+        const insertAt = sorted.findIndex(
+            (sortedAnalysis) => metric < selector(sortedAnalysis)
+        );
+        if (insertAt === -1) {
+            sorted.push(analysis);
+        } else {
+            sorted.splice(insertAt, 0, analysis);
+        }
+    }
+
+    return sorted;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {Record<string, number | number[]>}
+ */
+function toBranchMap(value) {
+    if (!isRecord(value)) {
+        return {};
+    }
+
+    /** @type {Record<string, number | number[]>} */
+    const branches = {};
+    for (const [key, count] of Object.entries(value)) {
+        if (typeof count === "number") {
+            branches[key] = count;
+        } else if (
+            Array.isArray(count) &&
+            count.every((entry) => typeof entry === "number")
+        ) {
+            branches[key] = count;
+        }
+    }
+
+    return branches;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {CountMap}
+ */
+function toCountMap(value) {
+    if (!isRecord(value)) {
+        return {};
+    }
+
+    /** @type {CountMap} */
+    const counts = {};
+    for (const [key, count] of Object.entries(value)) {
+        if (typeof count === "number") {
+            counts[key] = count;
+        }
+    }
+
+    return counts;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {StatementMap}
+ */
+function toStatementMap(value) {
+    if (!isRecord(value)) {
+        return {};
+    }
+
+    /** @type {StatementMap} */
+    const statementMap = {};
+    for (const [key, location] of Object.entries(value)) {
+        if (isRecord(location)) {
+            const start = Reflect.get(location, "start");
+            const end = Reflect.get(location, "end");
+            if (isIstanbulPosition(start)) {
+                statementMap[key] = {
+                    end: isIstanbulPosition(end) ? end : start,
+                    start,
+                };
+            }
+        }
+    }
+
+    return statementMap;
+}
+
+/**
+ * @param {string} message
+ *
+ * @returns {void}
+ */
+function writeError(message) {
+    process.stderr.write(`${message}\n`);
+}
+
+/**
+ * @param {string} line
+ *
+ * @returns {void}
+ */
+function writeLine(line = "") {
+    process.stdout.write(`${line}\n`);
+}
+
+// eslint-disable-next-line unicorn/prefer-top-level-await -- n/no-top-level-await forbids TLA for published modules in this package.
+main().catch(
+    /**
+     * @param {unknown} error
+     *
+     * @returns {void}
+     */
+    (error) => {
+        writeError(error instanceof Error ? error.message : String(error));
+        process.exitCode = 1;
+    }
 );
