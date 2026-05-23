@@ -43,8 +43,7 @@ function isResizableChart(value: unknown): value is ResizableChart {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
-    return typeof candidate["resize"] === "function";
+    return "resize" in value && typeof value.resize === "function";
 }
 
 function getLegacyCanvasChart(canvas: HTMLCanvasElement): unknown {

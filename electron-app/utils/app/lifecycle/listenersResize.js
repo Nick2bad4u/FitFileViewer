@@ -16,8 +16,7 @@ function isResizableChart(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return typeof candidate["resize"] === "function";
+    return "resize" in value && typeof value.resize === "function";
 }
 function getLegacyCanvasChart(canvas) {
     return canvas.__chartjs;
