@@ -32,10 +32,10 @@ export function unwrapFitParseMessages(result) {
     if (parseErrorMessage) {
         throw new Error(parseErrorMessage.display);
     }
-    if (isFitParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
+    if (isFitParseEnvelope(result) && isFitMessages(result.data)) {
         return result.data;
     }
-    if (isFitDecodeResultLike(result)) {
+    if (isFitMessages(result)) {
         return result;
     }
     throw new TypeError("Invalid FIT parse result");
@@ -61,8 +61,11 @@ function formatErrorDetails(details) {
 function isFitDecodeErrorPayload(value) {
     return isPlainRecord(value) && typeof value.error === "string";
 }
-function isFitDecodeResultLike(value) {
-    return isPlainRecord(value);
+function isFitMessages(value) {
+    return isPlainRecord(value) && Object.values(value).every(isFitMessageRows);
+}
+function isFitMessageRows(value) {
+    return Array.isArray(value) && value.every(isPlainRecord);
 }
 function isFitParseEnvelope(value) {
     return isPlainRecord(value);

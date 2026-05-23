@@ -2,6 +2,7 @@ import type {
     FitDecodeErrorPayload,
     FitDecodeResult,
     FitFieldValue,
+    FitMessageRow,
     FitMessages,
 } from "../../../shared/fit";
 
@@ -65,12 +66,12 @@ export function unwrapFitParseMessages(result: FitParsePayload): FitMessages {
         throw new Error(parseErrorMessage.display);
     }
 
-    if (isFitParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
-        return result.data as FitMessages;
+    if (isFitParseEnvelope(result) && isFitMessages(result.data)) {
+        return result.data;
     }
 
-    if (isFitDecodeResultLike(result)) {
-        return result as FitMessages;
+    if (isFitMessages(result)) {
+        return result;
     }
 
     throw new TypeError("Invalid FIT parse result");
@@ -110,8 +111,12 @@ function isFitDecodeErrorPayload(
     );
 }
 
-function isFitDecodeResultLike(value: unknown): value is FitDecodeResult {
-    return isPlainRecord(value);
+function isFitMessages(value: unknown): value is FitMessages {
+    return isPlainRecord(value) && Object.values(value).every(isFitMessageRows);
+}
+
+function isFitMessageRows(value: unknown): value is FitMessageRow[] {
+    return Array.isArray(value) && value.every(isPlainRecord);
 }
 
 function isFitParseEnvelope(value: FitParsePayload): value is FitParseEnvelope {
