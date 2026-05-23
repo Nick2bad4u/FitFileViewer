@@ -79,7 +79,6 @@ export interface SerializedFitDecodeError {
 
 /** Successful decoder option update result. */
 export interface DecoderOptionsUpdateSuccess {
-    fallback?: true;
     options: DecoderOptions;
     success: true;
 }

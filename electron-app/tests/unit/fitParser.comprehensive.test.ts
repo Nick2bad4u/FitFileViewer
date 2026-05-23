@@ -322,8 +322,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(options.applyScaleAndOffset).toBe(false);
         });
 
-        it("should fallback to electron-conf when state manager fails (smoke)", async () => {
-            // Arrange: ensure state manager update throws, electron-conf present
+        it("should fail clearly when state manager update throws", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
                     updateCategory: vi.fn().mockImplementation(() => {
@@ -332,23 +331,20 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                     getCategory: vi.fn().mockReturnValue(undefined),
                 },
             } as any);
-            // Force import of electron-conf mock from earlier doMock in beforeEach
-            const { Conf } = await import("electron-conf");
-            expect(Conf).toBeDefined();
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
-            expect(result.success).toBe(true);
+            expect(result).toStrictEqual({
+                errors: ["Failed to update decoder options in state manager"],
+                success: false,
+            });
         });
 
-        it("should get persisted decoder options from electron-conf when no state manager (smoke)", async () => {
-            // Arrange: no state manager
+        it("should return default decoder options when no state manager is configured", () => {
             fitParser.initializeStateManagement(undefined as any);
-            const { Conf } = await import("electron-conf");
-            expect(Conf).toBeDefined();
             const options = fitParser.getPersistedDecoderOptions();
-            // Should be defined (falls back to defaults if none persisted)
-            expect(options).toBeDefined();
+
+            expect(options).toStrictEqual(fitParser.getDefaultDecoderOptions());
         });
 
         it("should update decoder options in state manager", () => {
@@ -368,7 +364,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             );
         });
 
-        it("should fallback to electron-conf when state manager update fails (smoke)", async () => {
+        it("should report state manager update failures without persistence fallback", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
                     updateCategory: vi.fn().mockImplementation(() => {
@@ -377,25 +373,27 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                     getCategory: vi.fn(),
                 },
             } as any);
-            const { Conf } = await import("electron-conf");
-            expect(Conf).toBeDefined();
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: false,
             });
-            expect(result.success).toBe(true);
+            expect(result).toStrictEqual({
+                errors: ["Failed to update decoder options in state manager"],
+                success: false,
+            });
         });
 
-        it("should update decoder options in electron-conf when no state manager (smoke)", async () => {
+        it("should reject decoder updates when no state manager is configured", () => {
             fitParser.initializeStateManagement(undefined as any);
-            const { Conf } = await import("electron-conf");
-            expect(Conf).toBeDefined();
             const result = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
-            expect(result.success).toBe(true);
+            expect(result).toStrictEqual({
+                errors: ["No settings state manager configured"],
+                success: false,
+            });
         });
 
-        it("should handle settings state manager update failure and fallback to electron-conf (smoke)", async () => {
+        it("should report async-looking state manager update failures synchronously", () => {
             fitParser.initializeStateManagement({
                 settingsStateManager: {
                     updateCategory: vi
@@ -410,12 +408,15 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(res.success).toBe(true);
         });
 
-        it("should use electron-conf directly when no settings state manager (smoke)", async () => {
+        it("should reject decoder updates when state manager collection is empty", () => {
             fitParser.initializeStateManagement({} as any);
             const res = fitParser.updateDecoderOptions({
                 applyScaleAndOffset: true,
             });
-            expect(res.success).toBe(true);
+            expect(res).toStrictEqual({
+                errors: ["No settings state manager configured"],
+                success: false,
+            });
         });
 
         it("should reject invalid options in update", () => {
@@ -434,6 +435,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         });
 
         it("should reset decoder options to defaults", () => {
+            fitParser.initializeStateManagement({
+                settingsStateManager: mockSettingsStateManager,
+            });
             const result = fitParser.resetDecoderOptions();
             expect(result.success).toBe(true);
             expect(result.options).toMatchObject(

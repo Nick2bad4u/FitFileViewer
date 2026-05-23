@@ -1,7 +1,7 @@
 /**
  * Decodes FIT files using Garmin SDK with integrated state management for
- * progress tracking, error handling, and settings persistence. Supports both
- * new state management system and electron-conf fallback.
+ * progress tracking, error handling, and settings persistence through injected
+ * state adapters.
  *
  * @version 2.0.0
  *
@@ -11,8 +11,6 @@
  */
 
 const { Buffer } = require("node:buffer");
-// Electron-conf imported dynamically in getConf() to avoid module loading issues in tests
-
 /**
  * # ============================= Typedef Section =============================
  *
@@ -103,13 +101,6 @@ const { Buffer } = require("node:buffer");
  * @typedef {Record<string, UnknownMessageMapping>} UnknownMessageMappings
  */
 
-/**
- * @typedef {Object} ConfStore
- *
- * @property {(key: string, defaultValue?: unknown) => unknown} get
- * @property {(key: string, value: unknown) => void} set
- */
-
 // State management integration
 /** @type {SettingsStateManager | null} */
 /** @type {FitFileStateManager | null} */
@@ -118,10 +109,6 @@ let fitFileStateManager = null,
     performanceMonitor = null,
     /** @type {SettingsStateManager | null} */
     settingsStateManager = null;
-
-// Fallback to electron-conf for backwards compatibility - lazy initialization
-/** @type {ConfStore | null} */
-let conf = null;
 
 /**
  * Custom error class for FIT file decoding issues with enhanced metadata for
@@ -220,14 +207,6 @@ function formatFitFieldValue(value) {
     }
 
     return JSON.stringify(value);
-}
-
-function getConf() {
-    if (!conf) {
-        const { Conf } = require("electron-conf");
-        conf = new Conf({ name: "settings" });
-    }
-    return conf;
 }
 
 /**
@@ -738,8 +717,8 @@ function getDecoderIntegrityDetails(decoder) {
 }
 
 /**
- * Retrieves persisted decoder options from the state management system or
- * fallback to electron-conf.
+ * Retrieves persisted decoder options from the injected state management
+ * adapter, falling back to defaults when no adapter is configured.
  *
  * @returns {Object} Persisted decoder options with validation
  */
@@ -759,18 +738,13 @@ function getPersistedDecoderOptions() {
         } catch (error) {
             writeParserDiagnostic(
                 "warn",
-                "[FitParser] Failed to get decoder options from state manager, falling back to electron-conf:",
+                "[FitParser] Failed to get decoder options from state manager, falling back to defaults:",
                 error
             );
         }
     }
 
-    // Fallback to electron-conf
-    const storedOptions = /** @type {Partial<DecoderOptions>} */ (
-            getConf().get("decoderOptions", defaults)
-        ),
-        validation = validateDecoderOptions(storedOptions);
-    return validation.validatedOptions;
+    return defaults;
 }
 
 /**
@@ -934,25 +908,20 @@ function updateDecoderOptions(newOptions) {
         } catch (error) {
             writeParserDiagnostic(
                 "warn",
-                "[FitParser] Failed to update decoder options in state manager, falling back to electron-conf:",
+                "[FitParser] Failed to update decoder options in state manager:",
                 error
             );
-            getConf().set("decoderOptions", validation.validatedOptions);
             return {
-                fallback: true,
-                options: validation.validatedOptions,
-                success: true,
+                errors: ["Failed to update decoder options in state manager"],
+                success: false,
             };
         }
-    } else {
-        // Fallback to electron-conf
-        getConf().set("decoderOptions", validation.validatedOptions);
-        return {
-            fallback: true,
-            options: validation.validatedOptions,
-            success: true,
-        };
     }
+
+    return {
+        errors: ["No settings state manager configured"],
+        success: false,
+    };
 }
 
 module.exports = {
