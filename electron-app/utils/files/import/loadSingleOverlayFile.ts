@@ -2,14 +2,18 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
-import type { FitDecodeResult } from "../../../shared/fit";
+import type {
+    FitDecodeResult,
+    FitMessageRow,
+    FitMessages,
+} from "../../../shared/fit";
 
 /** Decoded FIT data used by map overlay loading. */
 export type OverlayFitData = {
     cachedFilePath?: string;
     error?: string;
-    recordMesgs?: unknown[];
-    [key: string]: unknown;
+    recordMesgs?: FitMessageRow[];
+    [messageName: string]: FitMessageRow[] | string | undefined;
 };
 
 /** Result returned after attempting to load and validate one overlay file. */
@@ -91,7 +95,7 @@ export async function loadSingleOverlayFile(
             };
         }
 
-        const fitData = unwrapFitParseMessages(result) as OverlayFitData;
+        const fitData = toOverlayFitData(unwrapFitParseMessages(result));
         if (!hasValidLocationRecords(fitData.recordMesgs)) {
             return {
                 error: "No valid location data found in file",
@@ -111,6 +115,10 @@ export async function loadSingleOverlayFile(
             success: false,
         };
     }
+}
+
+function toOverlayFitData(messages: FitMessages): OverlayFitData {
+    return messages;
 }
 
 function validateOverlayFilePreflight(file: File | OverlayFileLike): string {
@@ -206,23 +214,19 @@ function readFileWithFileReader(file: Blob): Promise<ArrayBuffer | undefined> {
     });
 }
 
-function hasValidLocationRecords(records: unknown): boolean {
-    if (!Array.isArray(records) || records.length === 0) {
+function hasValidLocationRecords(
+    records: readonly FitMessageRow[] | undefined
+): boolean {
+    if (!records || records.length === 0) {
         return false;
     }
 
     return records.some((record) => hasNumericLocation(record));
 }
 
-function hasNumericLocation(record: unknown): boolean {
-    if (!record || typeof record !== "object") {
-        return false;
-    }
-
-    const { positionLat, positionLong } = record as {
-        positionLat?: unknown;
-        positionLong?: unknown;
-    };
+function hasNumericLocation(record: FitMessageRow): boolean {
+    const positionLat = record["positionLat"];
+    const positionLong = record["positionLong"];
 
     return typeof positionLat === "number" && typeof positionLong === "number";
 }

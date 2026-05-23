@@ -45,7 +45,7 @@ export async function loadSingleOverlayFile(file) {
                 success: false,
             };
         }
-        const fitData = unwrapFitParseMessages(result);
+        const fitData = toOverlayFitData(unwrapFitParseMessages(result));
         if (!hasValidLocationRecords(fitData.recordMesgs)) {
             return {
                 error: "No valid location data found in file",
@@ -64,6 +64,9 @@ export async function loadSingleOverlayFile(file) {
             success: false,
         };
     }
+}
+function toOverlayFitData(messages) {
+    return messages;
 }
 function validateOverlayFilePreflight(file) {
     const { name, size } = file;
@@ -140,16 +143,14 @@ function readFileWithFileReader(file) {
     });
 }
 function hasValidLocationRecords(records) {
-    if (!Array.isArray(records) || records.length === 0) {
+    if (!records || records.length === 0) {
         return false;
     }
     return records.some((record) => hasNumericLocation(record));
 }
 function hasNumericLocation(record) {
-    if (!record || typeof record !== "object") {
-        return false;
-    }
-    const { positionLat, positionLong } = record;
+    const positionLat = record["positionLat"];
+    const positionLong = record["positionLong"];
     return typeof positionLat === "number" && typeof positionLong === "number";
 }
 function getOverlayFileName(file) {

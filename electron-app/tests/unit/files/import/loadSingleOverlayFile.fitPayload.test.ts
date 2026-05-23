@@ -84,4 +84,22 @@ describe(loadSingleOverlayFile, () => {
             });
         });
     });
+
+    it("rejects malformed success payloads before map overlay validation", async () => {
+        expect.assertions(1);
+
+        await withOverlayHarness(async (harness) => {
+            harness.decodeFitFile.mockResolvedValue({
+                success: true,
+                type: "not-fit-data",
+            } as unknown as FitDecodeResult);
+
+            const result = await loadSingleOverlayFile(createOverlayFile());
+
+            expect(result).toStrictEqual({
+                error: "Invalid FIT parse result",
+                success: false,
+            });
+        });
+    });
 });
