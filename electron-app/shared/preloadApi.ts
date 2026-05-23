@@ -6,7 +6,13 @@ import type {
     DialogOpenFileResponse,
     DialogOpenFolderResponse,
     DialogOpenOverlayFilesResponse,
-    FitBrowserListFolderResult,
+    FitBrowserEnabledResponse,
+    FitBrowserGetFolderResponse,
+    FitBrowserListFolderRequest,
+    FitBrowserListFolderResponse,
+    FitBrowserSetEnabledRequest,
+    FitBrowserSetFolderRequest,
+    FitBrowserSetFolderResponse,
     FileSystemRequestPayload,
     FileSystemResponsePayload,
     GenericInvokeChannel,
@@ -55,14 +61,18 @@ export interface ElectronAPI {
     parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitDecodeResult>;
     decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitDecodeResult>;
     /** Get the persisted FIT browser folder (main process setting). */
-    getFitBrowserFolder: () => Promise<null | string>;
+    getFitBrowserFolder: () => Promise<FitBrowserGetFolderResponse>;
     /** List entries under the persisted FIT browser folder. */
     listFitBrowserFolder: (
-        relPath?: string
-    ) => Promise<FitBrowserListFolderResult>;
-    isFitBrowserEnabled: () => Promise<boolean>;
-    setFitBrowserEnabled: (enabled: boolean) => Promise<boolean>;
-    setFitBrowserFolder: (folderPath: string) => Promise<boolean>;
+        relPath?: FitBrowserListFolderRequest
+    ) => Promise<FitBrowserListFolderResponse>;
+    isFitBrowserEnabled: () => Promise<FitBrowserEnabledResponse>;
+    setFitBrowserEnabled: (
+        enabled: FitBrowserSetEnabledRequest
+    ) => Promise<FitBrowserEnabledResponse>;
+    setFitBrowserFolder: (
+        folderPath: FitBrowserSetFolderRequest
+    ) => Promise<FitBrowserSetFolderResponse>;
     recentFiles: () => Promise<RecentFilesListResponse>;
     addRecentFile: (
         filePath: RecentFileRequestPayload

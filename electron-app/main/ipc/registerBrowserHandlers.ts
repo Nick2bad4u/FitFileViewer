@@ -2,10 +2,24 @@
     type DialogOpenFolderResponse =
         import("../../shared/ipc").DialogOpenFolderResponse;
     type FitBrowserEntry = import("../../shared/ipc").FitBrowserEntry;
+    type FitBrowserEnabledResponse =
+        import("../../shared/ipc").FitBrowserEnabledResponse;
+    type FitBrowserGetFolderResponse =
+        import("../../shared/ipc").FitBrowserGetFolderResponse;
     type FitBrowserInvokeChannel =
         import("../../shared/ipc").FitBrowserInvokeChannel;
-    type FitBrowserListFolderResult =
-        import("../../shared/ipc").FitBrowserListFolderResult;
+    type FitBrowserListFolderRequest =
+        import("../../shared/ipc").FitBrowserListFolderRequest;
+    type FitBrowserListFolderResponse =
+        import("../../shared/ipc").FitBrowserListFolderResponse;
+    type FitBrowserResponsePayload =
+        import("../../shared/ipc").FitBrowserResponsePayload;
+    type FitBrowserSetEnabledRequest =
+        import("../../shared/ipc").FitBrowserSetEnabledRequest;
+    type FitBrowserSetFolderRequest =
+        import("../../shared/ipc").FitBrowserSetFolderRequest;
+    type FitBrowserSetFolderResponse =
+        import("../../shared/ipc").FitBrowserSetFolderResponse;
     type OpenDialogOptions = import("electron").OpenDialogOptions;
     type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
 
@@ -66,7 +80,7 @@
     type RegisterBrowserIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => unknown;
+    ) => FitBrowserResponsePayload | Promise<FitBrowserResponsePayload>;
 
     type RegisterBrowserIpcHandle = (
         channel: FitBrowserInvokeChannel,
@@ -141,7 +155,7 @@
             }
         };
 
-        const readRootFolder = (): string | null => {
+        const readRootFolder = (): FitBrowserGetFolderResponse => {
             const conf = tryGetConf();
             if (!conf) {
                 return null;
@@ -152,7 +166,7 @@
             );
         };
 
-        const readEnabled = (): boolean => {
+        const readEnabled = (): FitBrowserEnabledResponse => {
             const conf = tryGetConf();
             if (!conf) {
                 return true;
@@ -218,7 +232,7 @@
 
         const validateAndPersistFolder = async (
             folder: string
-        ): Promise<boolean> => {
+        ): Promise<FitBrowserSetFolderResponse> => {
             const normalized = normalizeAbsoluteFolder(folder, path);
             if (!normalized) {
                 return false;
@@ -247,17 +261,39 @@
             }
         };
 
-        registerIpcHandle("browser:isEnabled", async () => readEnabled());
+        registerIpcHandle(
+            "browser:isEnabled",
+            async (): Promise<FitBrowserEnabledResponse> => readEnabled()
+        );
 
-        registerIpcHandle("browser:setEnabled", async (_event, enabled) => {
-            writeEnabled(enabled === true);
-            return readEnabled();
-        });
+        registerIpcHandle(
+            "browser:setEnabled",
+            async (
+                _event,
+                enabled: unknown
+            ): Promise<FitBrowserEnabledResponse> => {
+                const requestedEnabled: FitBrowserSetEnabledRequest =
+                    enabled === true;
+                writeEnabled(requestedEnabled);
+                return readEnabled();
+            }
+        );
 
-        registerIpcHandle("browser:getFolder", async () => readRootFolder());
+        registerIpcHandle(
+            "browser:getFolder",
+            async (): Promise<FitBrowserGetFolderResponse> => readRootFolder()
+        );
 
-        registerIpcHandle("browser:setFolder", async (_event, folder) =>
-            validateAndPersistFolder(typeof folder === "string" ? folder : "")
+        registerIpcHandle(
+            "browser:setFolder",
+            async (
+                _event,
+                folder: unknown
+            ): Promise<FitBrowserSetFolderResponse> => {
+                const folderPath: FitBrowserSetFolderRequest =
+                    typeof folder === "string" ? folder : "";
+                return validateAndPersistFolder(folderPath);
+            }
         );
 
         registerIpcHandle(
@@ -300,8 +336,8 @@
             "browser:listFolder",
             async (
                 _event,
-                relPath = ""
-            ): Promise<FitBrowserListFolderResult> => {
+                relPath: unknown = ""
+            ): Promise<FitBrowserListFolderResponse> => {
                 if (!readEnabled()) {
                     return { entries: [], relPath: "", root: readRootFolder() };
                 }
@@ -310,7 +346,10 @@
                     return { entries: [], relPath: "", root };
                 }
 
-                const abs = resolveWithinRoot(root, relPath, path);
+                const listRelPath: FitBrowserListFolderRequest =
+                    typeof relPath === "string" ? relPath : "";
+
+                const abs = resolveWithinRoot(root, listRelPath, path);
                 if (!abs) {
                     return { entries: [], relPath: "", root };
                 }
@@ -336,13 +375,10 @@
 
                     const out: FitBrowserEntry[] = [];
                     const dirents = await readdir(abs, { withFileTypes: true });
-                    const baseRel =
-                        typeof relPath === "string"
-                            ? relPath
-                                  .trim()
-                                  .replaceAll("\\", "/")
-                                  .replace(/^\/+/, "")
-                            : "";
+                    const baseRel = listRelPath
+                        .trim()
+                        .replaceAll("\\", "/")
+                        .replace(/^\/+/, "");
 
                     for (const d of dirents) {
                         const name =

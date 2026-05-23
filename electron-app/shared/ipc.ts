@@ -17,6 +17,11 @@ export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 
 /** Request payloads for invoke channels with explicit contracts. */
 export interface InvokeRequestPayloadByChannel {
+    "browser:getFolder": never;
+    "browser:isEnabled": never;
+    "browser:listFolder": string;
+    "browser:setEnabled": boolean;
+    "browser:setFolder": string;
     "clipboard:writePngDataUrl": string;
     "clipboard:writeText": string;
     "dialog:openFile": never;
@@ -32,6 +37,11 @@ export interface InvokeRequestPayloadByChannel {
 
 /** Response payloads for invoke channels with explicit contracts. */
 export interface InvokeResponsePayloadByChannel {
+    "browser:getFolder": null | string;
+    "browser:isEnabled": boolean;
+    "browser:listFolder": FitBrowserListFolderResult;
+    "browser:setEnabled": boolean;
+    "browser:setFolder": boolean;
     "clipboard:writePngDataUrl": boolean;
     "clipboard:writeText": boolean;
     "dialog:openFile": null | string;
@@ -162,6 +172,43 @@ export type FitBrowserInvokeChannel = Extract<
     | "browser:setFolder"
     | "dialog:openFolder"
 >;
+
+/** Request payload accepted by FIT browser invoke handlers. */
+export type FitBrowserRequestPayload =
+    InvokeRequestPayloadByChannel[FitBrowserInvokeChannel];
+
+/** Response payload returned by FIT browser invoke handlers. */
+export type FitBrowserResponsePayload =
+    InvokeResponsePayloadByChannel[FitBrowserInvokeChannel];
+
+/** Persisted FIT browser root folder, or null when unavailable. */
+export type FitBrowserGetFolderResponse =
+    InvokeResponsePayloadByChannel["browser:getFolder"];
+
+/** Relative directory path accepted by browser:listFolder. */
+export type FitBrowserListFolderRequest =
+    InvokeRequestPayloadByChannel["browser:listFolder"];
+
+/** Directory listing payload returned by browser:listFolder. */
+export type FitBrowserListFolderResponse =
+    InvokeResponsePayloadByChannel["browser:listFolder"];
+
+/** Enabled flag accepted by browser:setEnabled. */
+export type FitBrowserSetEnabledRequest =
+    InvokeRequestPayloadByChannel["browser:setEnabled"];
+
+/** Enabled flag returned by browser:isEnabled and browser:setEnabled. */
+export type FitBrowserEnabledResponse = InvokeResponsePayloadByChannel[
+    | "browser:isEnabled"
+    | "browser:setEnabled"];
+
+/** Root folder path accepted by browser:setFolder. */
+export type FitBrowserSetFolderRequest =
+    InvokeRequestPayloadByChannel["browser:setFolder"];
+
+/** Result returned after browser:setFolder validation and persistence. */
+export type FitBrowserSetFolderResponse =
+    InvokeResponsePayloadByChannel["browser:setFolder"];
 
 /** A single entry returned from the FIT browser directory listing. */
 export interface FitBrowserEntry {
