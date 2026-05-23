@@ -22,8 +22,8 @@ export function drawOverlayForFitFile({
 }) {
     const L = getLeaflet();
     const sourceFitData = fitData ?? {};
-    const lapMesgs = sourceFitData.lapMesgs || [];
-    const recordMesgs = sourceFitData.recordMesgs || [];
+    const lapMesgs = asLapMesgs(sourceFitData.lapMesgs);
+    const recordMesgs = asRecordMesgs(sourceFitData.recordMesgs);
     patchLapIndices(lapMesgs, recordMesgs);
     const coords = recordMesgs
         .map((row, idx) => {
@@ -331,8 +331,8 @@ export function mapDrawLaps(
         "[mapDrawLaps] DEBUG win.globalData?.recordMesgs =",
         __w.globalData?.recordMesgs
     );
-    const lapMesgs = getWin().globalData?.lapMesgs || [],
-        recordMesgs = getWin().globalData?.recordMesgs || [];
+    const lapMesgs = asLapMesgs(getWin().globalData?.lapMesgs),
+        recordMesgs = asRecordMesgs(getWin().globalData?.recordMesgs);
     patchLapIndices(lapMesgs, recordMesgs);
     function safeFitBounds(lmap, lBounds, options = {}) {
         // Attempt immediately
@@ -1309,6 +1309,21 @@ function buildPolylineOptions(options) {
         ...options,
         smoothFactor: getPolylineSmoothFactor(),
     };
+}
+function asLapMesgs(value) {
+    return Array.isArray(value) ? value.filter(isLapMesg) : [];
+}
+function asRecordMesgs(value) {
+    return Array.isArray(value) ? value.filter(isRecordMesg) : [];
+}
+function isFitObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isLapMesg(value) {
+    return isFitObject(value);
+}
+function isRecordMesg(value) {
+    return isFitObject(value);
 }
 function findClosestRecordIndexByLatLon(lat, lon, records) {
     let minDist = Infinity,
