@@ -1,13 +1,17 @@
 {
     type DecoderOptions = import("../../shared/fit").DecoderOptions;
-    type FitFileLoadedPayload = import("../../shared/fit").FitFileLoadedPayload;
-    type FitMessages = import("../../shared/fit").FitMessages;
+    type FitFileStateManager =
+        import("../../shared/fitParser").FitFileStateManager;
     type FitParserStateManagers =
         import("../../shared/fitParser").FitParserStateManagers;
     type FitParserModule = Pick<
         import("../../shared/fitParser").FitParserModule,
         "initializeStateManagement"
     >;
+    type PerformanceMonitor =
+        import("../../shared/fitParser").PerformanceMonitor;
+    type SettingsStateManager =
+        import("../../shared/fitParser").SettingsStateManager;
     type FitParserFacade = {
         getFitParserModule: () => FitParserModule;
     };
@@ -41,31 +45,6 @@
         updateOperation: (
             operationId: string,
             updates: Record<string, unknown>
-        ) => void;
-    }
-
-    interface FitFileStateManager {
-        getRecordCount: (messages: FitMessages) => number;
-        handleFileLoaded: (payload: FitFileLoadedPayload) => void;
-        handleFileLoadingError: (error: Error) => void;
-        updateLoadingProgress: (progress: number) => void;
-    }
-
-    interface PerformanceMonitor {
-        endTimer: (operationId: string) => number | null;
-        getOperationTime: (operationId: string) => number | null;
-        isEnabled: boolean;
-        startTimer: (operationId: string) => void;
-    }
-
-    interface SettingsStateManager {
-        getCategory: (
-            category: string
-        ) => Partial<DecoderOptions> | null | undefined;
-        updateCategory: (
-            category: string,
-            value: Partial<DecoderOptions>,
-            options?: Record<string, unknown>
         ) => void;
     }
 
