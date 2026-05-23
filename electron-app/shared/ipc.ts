@@ -17,6 +17,8 @@ export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 
 /** Request payloads for invoke channels with explicit contracts. */
 export interface InvokeRequestPayloadByChannel {
+    "clipboard:writePngDataUrl": string;
+    "clipboard:writeText": string;
     "fit:decode": ArrayBuffer;
     "fit:parse": ArrayBuffer;
     "file:read": string;
@@ -24,6 +26,8 @@ export interface InvokeRequestPayloadByChannel {
 
 /** Response payloads for invoke channels with explicit contracts. */
 export interface InvokeResponsePayloadByChannel {
+    "clipboard:writePngDataUrl": boolean;
+    "clipboard:writeText": boolean;
     "fit:decode": FitDecodeResult;
     "fit:parse": FitDecodeResult;
     "file:read": ArrayBuffer;
@@ -61,6 +65,20 @@ export type ExternalInvokeChannel = Extract<
     GenericInvokeChannel,
     "gyazo:server:start" | "gyazo:server:stop" | "shell:openExternal"
 >;
+
+/** Clipboard invoke channels handled by main-process clipboard IPC. */
+export type ClipboardInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "clipboard:writePngDataUrl" | "clipboard:writeText"
+>;
+
+/** Request payload accepted by clipboard invoke handlers. */
+export type ClipboardRequestPayload =
+    InvokeRequestPayloadByChannel[ClipboardInvokeChannel];
+
+/** Response payload returned by clipboard invoke handlers. */
+export type ClipboardResponsePayload =
+    InvokeResponsePayloadByChannel[ClipboardInvokeChannel];
 
 /** Filesystem invoke channels handled by main-process file access IPC. */
 export type FileSystemInvokeChannel = Extract<

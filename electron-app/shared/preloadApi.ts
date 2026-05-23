@@ -1,6 +1,8 @@
 import type { FitDecodeResult, FitMessages } from "./fit";
 import type {
     ChannelInfo,
+    ClipboardRequestPayload,
+    ClipboardResponsePayload,
     FitBrowserListFolderResult,
     FileSystemRequestPayload,
     FileSystemResponsePayload,
@@ -68,8 +70,12 @@ export interface ElectronAPI {
 
     openExternal: (url: string) => Promise<boolean>;
 
-    writeClipboardText: (text: string) => Promise<boolean>;
-    writeClipboardPngDataUrl: (pngDataUrl: string) => Promise<boolean>;
+    writeClipboardText: (
+        text: ClipboardRequestPayload
+    ) => Promise<ClipboardResponsePayload>;
+    writeClipboardPngDataUrl: (
+        pngDataUrl: ClipboardRequestPayload
+    ) => Promise<ClipboardResponsePayload>;
 
     startGyazoServer: (port: number) => Promise<GyazoServerStartResult>;
     stopGyazoServer: () => Promise<GyazoServerStopResult>;

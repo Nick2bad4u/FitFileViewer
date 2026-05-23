@@ -1,4 +1,8 @@
 {
+    type ClipboardInvokeChannel =
+        import("../../shared/ipc").ClipboardInvokeChannel;
+    type ClipboardResult = import("../../shared/ipc").ClipboardResponsePayload;
+
     const { z } = require("zod") as typeof import("zod");
 
     interface ClipboardWriter {
@@ -16,7 +20,7 @@
     ) => unknown;
 
     type RegisterClipboardIpcHandle = (
-        channel: string,
+        channel: ClipboardInvokeChannel,
         handler: RegisterClipboardIpcHandler
     ) => void;
 
@@ -71,31 +75,37 @@
             return;
         }
 
-        registerIpcHandle("clipboard:writeText", async (_event, text) => {
-            try {
-                const parsed = textSchema.safeParse(String(text));
-                if (!parsed.success) {
+        registerIpcHandle(
+            "clipboard:writeText",
+            async (_event, text): Promise<ClipboardResult> => {
+                try {
+                    const parsed = textSchema.safeParse(String(text));
+                    if (!parsed.success) {
+                        return false;
+                    }
+
+                    const clipboard = clipboardRef?.();
+                    if (
+                        !clipboard ||
+                        typeof clipboard.writeText !== "function"
+                    ) {
+                        return false;
+                    }
+
+                    clipboard.writeText(parsed.data);
+                    return true;
+                } catch (error) {
+                    logWithContext?.("warn", "clipboard:writeText failed", {
+                        error: getErrorMessage(error),
+                    });
                     return false;
                 }
-
-                const clipboard = clipboardRef?.();
-                if (!clipboard || typeof clipboard.writeText !== "function") {
-                    return false;
-                }
-
-                clipboard.writeText(parsed.data);
-                return true;
-            } catch (error) {
-                logWithContext?.("warn", "clipboard:writeText failed", {
-                    error: getErrorMessage(error),
-                });
-                return false;
             }
-        });
+        );
 
         registerIpcHandle(
             "clipboard:writePngDataUrl",
-            async (_event, pngDataUrl) => {
+            async (_event, pngDataUrl): Promise<ClipboardResult> => {
                 try {
                     const parsed = pngDataUrlSchema.safeParse(
                         String(pngDataUrl)
