@@ -1,3 +1,6 @@
+import type { FitDecodeResult } from "./fit";
+
+/** JSON-like values plus arrays and objects that are safe to move over IPC. */
 export type IpcSerializable =
     | boolean
     | null
@@ -6,26 +9,44 @@ export type IpcSerializable =
     | readonly IpcSerializable[]
     | { readonly [key: string]: IpcSerializable };
 
+/** Payload shape accepted by generic invoke wrappers. */
 export type IpcRequestPayload = IpcSerializable | ArrayBuffer;
 
+/** Payload shape returned by generic invoke wrappers. */
 export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 
+/** Request payloads for invoke channels with explicit contracts. */
+export interface InvokeRequestPayloadByChannel {
+    "fit:decode": ArrayBuffer;
+    "fit:parse": ArrayBuffer;
+}
+
+/** Response payloads for invoke channels with explicit contracts. */
+export interface InvokeResponsePayloadByChannel {
+    "fit:decode": FitDecodeResult;
+    "fit:parse": FitDecodeResult;
+}
+
+/** Result returned when the Gyazo OAuth helper server starts. */
 export interface GyazoServerStartResult {
     message?: string;
     port: number;
     success: boolean;
 }
 
+/** Result returned when the Gyazo OAuth helper server stops. */
 export interface GyazoServerStopResult {
     message?: string;
     success: boolean;
 }
 
+/** Platform details exposed to the renderer. */
 export interface PlatformInfo {
     arch: string;
     platform: string;
 }
 
+/** Summary of preload-exposed channels and events. */
 export interface ChannelInfo {
     channels: Record<string, string>;
     events: Record<string, string>;
@@ -33,6 +54,7 @@ export interface ChannelInfo {
     totalEvents: number;
 }
 
+/** State change payload emitted by the main-process state bridge. */
 export interface MainStateChange {
     path: string;
     source?: string;
@@ -40,8 +62,10 @@ export interface MainStateChange {
     value: IpcSerializable;
 }
 
+/** Callback used for main-process state change subscriptions. */
 export type MainStateListener = (change: MainStateChange) => void;
 
+/** Auto-update event names sent from the main process to the renderer. */
 export type UpdateEventName =
     | "update-available"
     | "update-checking"
@@ -50,6 +74,7 @@ export type UpdateEventName =
     | "update-error"
     | "update-not-available";
 
+/** Fire-and-forget channels the renderer can send through preload. */
 export type GenericSendChannel =
     | "fit-file-loaded"
     | "install-update"
@@ -59,6 +84,7 @@ export type GenericSendChannel =
     | "set-fullscreen"
     | "theme-changed";
 
+/** Invoke channels the renderer can call through preload. */
 export type GenericInvokeChannel =
     | "browser:getFolder"
     | "browser:isEnabled"
@@ -96,6 +122,7 @@ export type GenericInvokeChannel =
     | "shell:openExternal"
     | "theme:get";
 
+/** Event channels the renderer can subscribe to through preload. */
 export type RendererIpcEventChannel =
     | GenericSendChannel
     | UpdateEventName
@@ -116,6 +143,7 @@ export type RendererIpcEventChannel =
     | "show-notification"
     | "unload-fit-file";
 
+/** Callback signature for raw IPC event subscriptions exposed by preload. */
 export type IpcEventCallback = (
     event: object,
     ...args: IpcResponsePayload[]

@@ -1,5 +1,4 @@
 {
-    type FitDecodeResult = import("../../shared/fit").FitDecodeResult;
     type FitParserModule = Pick<
         import("../../types/fitParser").FitParserModule,
         "decodeFitFile"
@@ -11,11 +10,15 @@
         import("../../shared/ipc").GenericInvokeChannel,
         "fit:decode" | "fit:parse"
     >;
+    type FitFileRequestPayload =
+        import("../../shared/ipc").InvokeRequestPayloadByChannel[FitFileInvokeChannel];
+    type FitFileResponsePayload =
+        import("../../shared/ipc").InvokeResponsePayloadByChannel[FitFileInvokeChannel];
 
     type FitFileIpcHandler = (
         event: unknown,
-        arrayBuffer: unknown
-    ) => Promise<FitDecodeResult>;
+        arrayBuffer: FitFileRequestPayload
+    ) => Promise<FitFileResponsePayload>;
 
     type RegisterIpcHandle = (
         channel: FitFileInvokeChannel,
