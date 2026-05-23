@@ -156,21 +156,21 @@ async function handleOpenFile(
             updateUIState(uiElements, false, false);
             return false;
         }
-        if (result?.error) {
-            const details = result.details ? `\n${result.details}` : "";
-            const message = `${result.error}${details}`;
-            showNotification(`Error: ${message}`, "error");
-            notifyFileLoadError(new Error(result.error));
+        const parseErrorMessage = getParseErrorMessage(result);
+        if (parseErrorMessage) {
+            showNotification(`Error: ${parseErrorMessage.display}`, "error");
+            notifyFileLoadError(new Error(parseErrorMessage.summary));
             updateUIState(uiElements, false, false);
             return false;
         }
+        const fitData = unwrapFileParseResult(result);
         if (
             typeof process !== "undefined" &&
             process.env &&
             process.env["NODE_ENV"] !== "production"
         ) {
             console.log("[DEBUG] FIT parse result:", result);
-            const sessionCount = getSessionCount(result);
+            const sessionCount = getSessionCount(fitData);
             console.log(
                 `[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`
             );
@@ -178,7 +178,7 @@ async function handleOpenFile(
         try {
             const { showFitData } = getFileOpenGlobal();
             if (typeof showFitData === "function") {
-                showFitData(result.data || result, filePathString);
+                showFitData(fitData, filePathString);
             }
             const { sendFitFileToAltFitReader } = getFileOpenGlobal();
             if (typeof sendFitFileToAltFitReader === "function") {
@@ -216,9 +216,61 @@ async function handleOpenFile(
         }
     }
 }
-function getSessionCount(result) {
-    const { data } = result;
-    if (!data || typeof data !== "object" || !("sessions" in data)) {
+function getParseErrorMessage(result) {
+    const errorPayload = isFitDecodeErrorPayload(result)
+        ? result
+        : isFileParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
+          ? result.data
+          : undefined;
+    if (errorPayload) {
+        return formatParseError(errorPayload.error, errorPayload.details);
+    }
+    if (isFileParseEnvelope(result) && typeof result.error === "string") {
+        return formatParseError(result.error, result.details);
+    }
+    return null;
+}
+function unwrapFileParseResult(result) {
+    if (isFileParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
+        return result.data;
+    }
+    if (isFitDecodeResultLike(result)) {
+        return result;
+    }
+    throw new TypeError("Invalid FIT parse result");
+}
+function isFileParseEnvelope(value) {
+    return isPlainRecord(value);
+}
+function isFitDecodeErrorPayload(value) {
+    return isPlainRecord(value) && typeof value.error === "string";
+}
+function isFitDecodeResultLike(value) {
+    return isPlainRecord(value);
+}
+function isPlainRecord(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function formatParseError(error, details) {
+    const detailText = formatErrorDetails(details);
+    const display = detailText ? `${error}\n${detailText}` : error;
+    return { display, summary: error };
+}
+function formatErrorDetails(details) {
+    if (details === undefined || details === null || details === "") {
+        return "";
+    }
+    if (typeof details === "string") {
+        return details;
+    }
+    try {
+        return JSON.stringify(details);
+    } catch {
+        return String(details);
+    }
+}
+function getSessionCount(data) {
+    if (!("sessions" in data)) {
         return 0;
     }
     const { sessions } = data;

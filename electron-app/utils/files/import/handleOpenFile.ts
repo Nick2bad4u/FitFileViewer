@@ -7,6 +7,12 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import type { RendererLogLevel } from "../../logging/rendererLogger.js";
 import * as stateManager from "../../state/core/stateManager.js";
+import type {
+    FitDecodeErrorPayload,
+    FitDecodeResult,
+    FitFieldValue,
+    FitMessages,
+} from "../../../shared/fit";
 
 const __TEST_ONLY_exposedStateManager = stateManager;
 
@@ -35,11 +41,14 @@ type HandleOpenFileOptions = {
     validateFileSize?: boolean;
 };
 
-type FileParseResult = {
-    data?: unknown;
-    details?: unknown;
+type FileParseEnvelope = {
+    data?: FitDecodeResult;
+    details?: FitFieldValue;
     error?: string;
+    success?: boolean;
 } & Record<string, unknown>;
+
+type FileParseResult = FileParseEnvelope | FitDecodeResult;
 
 type FileOpenElectronAPI = {
     openFile: () => Promise<null | string | string[]>;
@@ -51,7 +60,7 @@ type FileOpenRendererGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FileOpenElectronAPI>;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
-    showFitData?: (data: unknown, fileName?: string) => void;
+    showFitData?: (data: FitMessages, fileName?: string) => void;
 };
 
 type FitFileStateManagerFacade = {
@@ -239,14 +248,15 @@ async function handleOpenFile(
             return false;
         }
 
-        if (result?.error) {
-            const details = result.details ? `\n${result.details}` : "";
-            const message = `${result.error}${details}`;
-            showNotification(`Error: ${message}`, "error");
-            notifyFileLoadError(new Error(result.error));
+        const parseErrorMessage = getParseErrorMessage(result);
+        if (parseErrorMessage) {
+            showNotification(`Error: ${parseErrorMessage.display}`, "error");
+            notifyFileLoadError(new Error(parseErrorMessage.summary));
             updateUIState(uiElements, false, false);
             return false;
         }
+
+        const fitData = unwrapFileParseResult(result);
 
         if (
             typeof process !== "undefined" &&
@@ -254,7 +264,7 @@ async function handleOpenFile(
             process.env["NODE_ENV"] !== "production"
         ) {
             console.log("[DEBUG] FIT parse result:", result);
-            const sessionCount = getSessionCount(result);
+            const sessionCount = getSessionCount(fitData);
             console.log(
                 `[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`
             );
@@ -263,7 +273,7 @@ async function handleOpenFile(
         try {
             const { showFitData } = getFileOpenGlobal();
             if (typeof showFitData === "function") {
-                showFitData(result.data || result, filePathString);
+                showFitData(fitData, filePathString);
             }
 
             const { sendFitFileToAltFitReader } = getFileOpenGlobal();
@@ -304,9 +314,93 @@ async function handleOpenFile(
     }
 }
 
-function getSessionCount(result: FileParseResult): number {
-    const { data } = result;
-    if (!data || typeof data !== "object" || !("sessions" in data)) {
+type ParseErrorMessage = {
+    display: string;
+    summary: string;
+};
+
+function getParseErrorMessage(
+    result: FileParseResult
+): null | ParseErrorMessage {
+    const errorPayload = isFitDecodeErrorPayload(result)
+        ? result
+        : isFileParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
+          ? result.data
+          : undefined;
+
+    if (errorPayload) {
+        return formatParseError(errorPayload.error, errorPayload.details);
+    }
+
+    if (isFileParseEnvelope(result) && typeof result.error === "string") {
+        return formatParseError(result.error, result.details);
+    }
+
+    return null;
+}
+
+function unwrapFileParseResult(result: FileParseResult): FitMessages {
+    if (isFileParseEnvelope(result) && isFitDecodeResultLike(result.data)) {
+        return result.data as FitMessages;
+    }
+
+    if (isFitDecodeResultLike(result)) {
+        return result as FitMessages;
+    }
+
+    throw new TypeError("Invalid FIT parse result");
+}
+
+function isFileParseEnvelope(
+    value: FileParseResult
+): value is FileParseEnvelope {
+    return isPlainRecord(value);
+}
+
+function isFitDecodeErrorPayload(
+    value: unknown
+): value is FitDecodeErrorPayload {
+    return (
+        isPlainRecord(value) &&
+        typeof (value as { error?: unknown }).error === "string"
+    );
+}
+
+function isFitDecodeResultLike(value: unknown): value is FitDecodeResult {
+    return isPlainRecord(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function formatParseError(
+    error: string,
+    details: FitFieldValue | undefined
+): ParseErrorMessage {
+    const detailText = formatErrorDetails(details);
+    const display = detailText ? `${error}\n${detailText}` : error;
+    return { display, summary: error };
+}
+
+function formatErrorDetails(details: FitFieldValue | undefined): string {
+    if (details === undefined || details === null || details === "") {
+        return "";
+    }
+
+    if (typeof details === "string") {
+        return details;
+    }
+
+    try {
+        return JSON.stringify(details);
+    } catch {
+        return String(details);
+    }
+}
+
+function getSessionCount(data: FitMessages): number {
+    if (!("sessions" in data)) {
         return 0;
     }
 
