@@ -1,10 +1,53 @@
 "use strict";
 {
     function asElectronModule(value) {
-        return value &&
+        if (!isObjectLike(value)) {
+            return null;
+        }
+        const electron = {};
+        const app = asAppLike(Reflect.get(value, "app"));
+        if (app !== undefined) {
+            electron.app = app;
+        }
+        const BrowserWindow = asBrowserWindowLike(
+            Reflect.get(value, "BrowserWindow")
+        );
+        if (BrowserWindow !== undefined) {
+            electron.BrowserWindow = BrowserWindow;
+        }
+        return electron;
+    }
+    function isObjectLike(value) {
+        return (
+            value !== null &&
             (typeof value === "object" || typeof value === "function")
-            ? value
-            : null;
+        );
+    }
+    function asAppLike(value) {
+        if (!isObjectLike(value)) {
+            return undefined;
+        }
+        const whenReady = Reflect.get(value, "whenReady");
+        return typeof whenReady === "function"
+            ? {
+                  whenReady: () =>
+                      Promise.resolve(Reflect.apply(whenReady, value, [])),
+              }
+            : {};
+    }
+    function asBrowserWindowLike(value) {
+        if (!isObjectLike(value)) {
+            return undefined;
+        }
+        const getAllWindows = Reflect.get(value, "getAllWindows");
+        return typeof getAllWindows === "function"
+            ? {
+                  getAllWindows: () => {
+                      const windows = Reflect.apply(getAllWindows, value, []);
+                      return Array.isArray(windows) ? windows : [];
+                  },
+              }
+            : {};
     }
     function getErrorMessage(error) {
         return error instanceof Error ? error.message : String(error);

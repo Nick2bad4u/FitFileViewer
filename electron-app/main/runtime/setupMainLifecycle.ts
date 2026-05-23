@@ -38,11 +38,64 @@
         setupMenuAndEventHandlers: () => void;
     };
 
-    function asElectronModule(value: unknown): ElectronModuleLike | null {
-        return value &&
+    function isObjectLike(value: unknown): value is object {
+        return (
+            value !== null &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as ElectronModuleLike)
-            : null;
+        );
+    }
+
+    function asAppLike(value: unknown): AppLike | undefined {
+        if (!isObjectLike(value)) {
+            return undefined;
+        }
+
+        const whenReady = Reflect.get(value, "whenReady");
+        return typeof whenReady === "function"
+            ? {
+                  whenReady: () =>
+                      Promise.resolve(Reflect.apply(whenReady, value, [])),
+              }
+            : {};
+    }
+
+    function asBrowserWindowLike(
+        value: unknown
+    ): BrowserWindowLike | undefined {
+        if (!isObjectLike(value)) {
+            return undefined;
+        }
+
+        const getAllWindows = Reflect.get(value, "getAllWindows");
+        return typeof getAllWindows === "function"
+            ? {
+                  getAllWindows: () => {
+                      const windows = Reflect.apply(getAllWindows, value, []);
+                      return Array.isArray(windows) ? windows : [];
+                  },
+              }
+            : {};
+    }
+
+    function asElectronModule(value: unknown): ElectronModuleLike | null {
+        if (!isObjectLike(value)) {
+            return null;
+        }
+
+        const electron: ElectronModuleLike = {};
+        const app = asAppLike(Reflect.get(value, "app"));
+        if (app !== undefined) {
+            electron.app = app;
+        }
+
+        const BrowserWindow = asBrowserWindowLike(
+            Reflect.get(value, "BrowserWindow")
+        );
+        if (BrowserWindow !== undefined) {
+            electron.BrowserWindow = BrowserWindow;
+        }
+
+        return electron;
     }
 
     function getErrorMessage(error: unknown): string {
@@ -61,7 +114,7 @@
         appRef: () => AppLike | undefined
     ): AppLike | undefined {
         try {
-            const electron = asElectronModule(require("electron") as unknown);
+            const electron = asElectronModule(require("electron"));
             if (electron?.app && typeof electron.app === "object") {
                 return electron.app;
             }
@@ -161,7 +214,7 @@
 
             try {
                 const electron = asElectronModule(
-                    require("electron") as unknown
+                    require("electron")
                 );
                 invokeGetAllWindows(electron?.BrowserWindow);
             } catch {
