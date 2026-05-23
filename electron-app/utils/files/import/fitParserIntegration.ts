@@ -11,7 +11,7 @@
 import { performanceMonitor } from "../../debug/stateDevTools.js";
 // Corrected import paths to actual state manager locations
 import { masterStateManager } from "../../state/core/masterStateManager.js";
-import { setState } from "../../state/core/stateManager.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
 import type {
@@ -20,51 +20,147 @@ import type {
     IpcMainInvokeEvent,
     IpcRenderer,
 } from "electron";
+import type {
+    DecoderOptions,
+    FitDecodeErrorPayload,
+    FitDecodeResult,
+    FitFieldValue,
+    PartialDecoderOptions,
+} from "../../../shared/fit";
+import type {
+    DecoderOptionsUpdateResult,
+    FitParserModule as SharedFitParserModule,
+    FitParserStateManagers,
+} from "../../../shared/fitParser";
 
 type IntegrationResult = { error?: string; success: boolean };
-type DecoderOptions = Record<string, unknown>;
-type DecoderResult = {
+type DecoderIpcFailure = {
+    details?: FitFieldValue;
     error?: string;
-    options?: DecoderOptions;
-    success?: boolean;
-} & Record<string, unknown>;
-
-type FitParserModule = {
-    decodeFitFile: (
-        fileBuffer: Buffer | Uint8Array,
-        options?: DecoderOptions
-    ) => Promise<DecoderResult>;
-    getCurrentDecoderOptions?: () => DecoderOptions;
-    getDefaultDecoderOptions?: () => DecoderOptions;
-    initializeStateManagement?: (deps: {
-        fitFileStateManager: unknown;
-        performanceMonitor: unknown;
-        settingsStateManager: unknown;
-    }) => void;
-    resetDecoderOptions?: () => DecoderResult | Promise<DecoderResult>;
-    updateDecoderOptions?: (
-        newOptions: DecoderOptions
-    ) => DecoderResult | Promise<DecoderResult>;
+    success: false;
 };
+type DecodeWithStateResult = DecoderIpcFailure | FitDecodeResult;
+type DecoderOptionsIpcResult = DecoderIpcFailure | DecoderOptionsUpdateResult;
+
+type FitParserModule = Pick<
+    SharedFitParserModule,
+    | "decodeFitFile"
+    | "getCurrentDecoderOptions"
+    | "getDefaultDecoderOptions"
+    | "initializeStateManagement"
+    | "resetDecoderOptions"
+    | "updateDecoderOptions"
+>;
 
 type DecodeBuffer = ArrayBuffer | Buffer | Uint8Array;
 type SettingsManagerFacade = {
     getSetting?: (key: string) => unknown;
 };
 
+const DEFAULT_DECODER_OPTIONS: DecoderOptions = {
+    applyScaleAndOffset: true,
+    convertDateTimesToDates: true,
+    convertTypesToStrings: true,
+    expandComponents: true,
+    expandSubFields: true,
+    includeUnknownData: true,
+    mergeHeartRates: true,
+};
+
 /*
  * @param {unknown} value
  *
- * @returns {DecoderOptions}
+ * @returns {PartialDecoderOptions}
  */
-function normalizeDecoderOptions(value: unknown): DecoderOptions {
-    return typeof value === "object" && value !== null && !Array.isArray(value)
-        ? (value as DecoderOptions)
+function normalizeDecoderOptions(value: unknown): PartialDecoderOptions {
+    return isPlainRecord(value)
+        ? (value as PartialDecoderOptions)
         : {};
 }
 
 function loadFitParser(): FitParserModule {
     return require("../../../fitParser.js") as FitParserModule;
+}
+
+function isFitDecodeErrorPayload(
+    value: FitDecodeResult
+): value is FitDecodeErrorPayload {
+    return isPlainRecord(value) && typeof value["error"] === "string";
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getFallbackDecoderOptions(): DecoderOptions {
+    return { ...DEFAULT_DECODER_OPTIONS };
+}
+
+function createFitParserStateManagers(): FitParserStateManagers {
+    const operationTimes = new Map<string, number>();
+
+    return {
+        fitFileStateManager: {
+            getRecordCount(messages) {
+                return fitFileStateManager.getRecordCount(messages);
+            },
+            handleFileLoaded(payload, context) {
+                fitFileStateManager.handleFileLoaded(payload.messages, {
+                    filePath:
+                        context?.filePath ??
+                        payload.metadata.filePath ??
+                        null,
+                });
+            },
+            handleFileLoadingError(error) {
+                fitFileStateManager.handleFileLoadingError(error);
+            },
+            updateLoadingProgress(progress) {
+                fitFileStateManager.updateLoadingProgress(progress);
+            },
+        },
+        performanceMonitor: {
+            isEnabled: performanceMonitor.isEnabled,
+            endTimer(operationId) {
+                const duration = performanceMonitor.endTimer(operationId);
+                if (typeof duration === "number") {
+                    operationTimes.set(operationId, duration);
+                }
+            },
+            getOperationTime(operationId) {
+                return operationTimes.get(operationId) ?? null;
+            },
+            startTimer(operationId) {
+                performanceMonitor.startTimer(operationId);
+            },
+        },
+        settingsStateManager: {
+            getCategory(category) {
+                const stateValue = getState(`settings.${category}`);
+                if (isPlainRecord(stateValue)) {
+                    return stateValue as PartialDecoderOptions;
+                }
+
+                const settingValue = settingsStateManager.getSetting(category);
+                return isPlainRecord(settingValue)
+                    ? (settingValue as PartialDecoderOptions)
+                    : null;
+            },
+            updateCategory(category, value, options = {}) {
+                setState(
+                    `settings.${category}`,
+                    value,
+                    options.silent === undefined
+                        ? { source: options.source ?? "FitParserIntegration" }
+                        : {
+                              silent: options.silent,
+                              source:
+                                  options.source ?? "FitParserIntegration",
+                          }
+                );
+            },
+        },
+    };
 }
 
 function isTrustedFitParserIpcEvent(event: IpcMainInvokeEvent): boolean {
@@ -92,7 +188,7 @@ function isTrustedFitParserIpcEvent(event: IpcMainInvokeEvent): boolean {
 function rejectUntrustedFitParserIpc(
     event: IpcMainInvokeEvent,
     channel: string
-): DecoderResult | null {
+): DecoderIpcFailure | null {
     if (isTrustedFitParserIpcEvent(event)) {
         return null;
     }
@@ -126,8 +222,8 @@ function rejectUntrustedFitParserIpc(
 /** Decodes a FIT file and mirrors successful or failed state transitions. */
 export async function decodeFitFileWithState(
     fileBuffer: Buffer | Uint8Array,
-    options: DecoderOptions = {}
-): Promise<DecoderResult> {
+    options: PartialDecoderOptions = {}
+): Promise<DecodeWithStateResult> {
     try {
         const fitParser = loadFitParser(),
             // Decode the file with state management integration
@@ -136,7 +232,7 @@ export async function decodeFitFileWithState(
         // If successful, update master state
         if (
             result &&
-            !result.error && // Update global state with the decoded data
+            !isFitDecodeErrorPayload(result) && // Update global state with the decoded data
             masterStateManager
         ) {
             setState("globalData", result);
@@ -161,7 +257,7 @@ export async function decodeFitFileWithState(
                 timestamp: new Date().toISOString(),
             });
         }
-        return { details: stack, error: message };
+        return { details: stack ?? null, error: message, success: false };
     }
 }
 
@@ -179,11 +275,7 @@ export async function decodeFitFileWithState(
 export function getCurrentDecoderOptionsWithState(): DecoderOptions {
     try {
         const fitParser = loadFitParser();
-        return typeof fitParser.getCurrentDecoderOptions === "function"
-            ? fitParser.getCurrentDecoderOptions()
-            : typeof fitParser.getDefaultDecoderOptions === "function"
-              ? fitParser.getDefaultDecoderOptions()
-              : {};
+        return fitParser.getCurrentDecoderOptions();
     } catch (error) {
         console.error(
             "[FitParserIntegration] Error getting decoder options:",
@@ -191,12 +283,9 @@ export function getCurrentDecoderOptionsWithState(): DecoderOptions {
         );
         try {
             const fitParserFallback = loadFitParser();
-            return typeof fitParserFallback.getDefaultDecoderOptions ===
-                "function"
-                ? fitParserFallback.getDefaultDecoderOptions()
-                : {};
+            return fitParserFallback.getDefaultDecoderOptions();
         } catch {
-            return {};
+            return getFallbackDecoderOptions();
         }
     }
 }
@@ -212,13 +301,7 @@ export async function initializeFitParserIntegration(): Promise<IntegrationResul
         const fitParser = loadFitParser();
 
         // Initialize with state management instances
-        if (typeof fitParser.initializeStateManagement === "function") {
-            fitParser.initializeStateManagement({
-                fitFileStateManager,
-                performanceMonitor,
-                settingsStateManager,
-            });
-        }
+        fitParser.initializeStateManagement(createFitParserStateManagers());
 
         // Set up decoder options schema in settings if not already present
         try {
@@ -228,9 +311,7 @@ export async function initializeFitParserIntegration(): Promise<IntegrationResul
             const existingDecoder = settingsManager.getSetting?.("decoder");
             if (existingDecoder == null) {
                 const defaultOptions =
-                    typeof fitParser.getDefaultDecoderOptions === "function"
-                        ? fitParser.getDefaultDecoderOptions()
-                        : {};
+                    fitParser.getDefaultDecoderOptions();
                 setState("settings.decoder", defaultOptions, {
                     source: "FitParserIntegration",
                 });
@@ -446,16 +527,11 @@ export function setupFitParserPreload(
  */
 /** Updates decoder options and mirrors successful changes into settings state. */
 export async function updateDecoderOptionsWithState(
-    newOptions: DecoderOptions
-): Promise<DecoderResult> {
+    newOptions: PartialDecoderOptions
+): Promise<DecoderOptionsIpcResult> {
     try {
         const fitParser = loadFitParser(),
-            result = await (typeof fitParser.updateDecoderOptions === "function"
-                ? fitParser.updateDecoderOptions(newOptions)
-                : {
-                      error: "updateDecoderOptions not available",
-                      success: false,
-                  });
+            result = await fitParser.updateDecoderOptions(newOptions);
 
         if (result.success && masterStateManager) {
             try {
