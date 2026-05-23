@@ -27,6 +27,20 @@ export interface InvokeResponsePayloadByChannel {
     "fit:parse": FitDecodeResult;
 }
 
+/** FIT decode/parse invoke channels handled by the main process parser bridge. */
+export type FitFileInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "fit:decode" | "fit:parse"
+>;
+
+/** Request payload accepted by FIT file invoke handlers. */
+export type FitFileRequestPayload =
+    InvokeRequestPayloadByChannel[FitFileInvokeChannel];
+
+/** Response payload returned by FIT file invoke handlers. */
+export type FitFileResponsePayload =
+    InvokeResponsePayloadByChannel[FitFileInvokeChannel];
+
 /** Result returned when the Gyazo OAuth helper server starts. */
 export interface GyazoServerStartResult {
     message?: string;

@@ -6,14 +6,11 @@
     type FitParserFacade = {
         getFitParserModule: () => FitParserModule;
     };
-    type FitFileInvokeChannel = Extract<
-        import("../../shared/ipc").GenericInvokeChannel,
-        "fit:decode" | "fit:parse"
-    >;
+    type FitFileInvokeChannel = import("../../shared/ipc").FitFileInvokeChannel;
     type FitFileRequestPayload =
-        import("../../shared/ipc").InvokeRequestPayloadByChannel[FitFileInvokeChannel];
+        import("../../shared/ipc").FitFileRequestPayload;
     type FitFileResponsePayload =
-        import("../../shared/ipc").InvokeResponsePayloadByChannel[FitFileInvokeChannel];
+        import("../../shared/ipc").FitFileResponsePayload;
 
     type FitFileIpcHandler = (
         event: unknown,
