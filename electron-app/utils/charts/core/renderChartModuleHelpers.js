@@ -25,26 +25,8 @@ export function getRecordFunction(value, key) {
     return typeof candidate === "function" ? candidate : null;
 }
 /**
- * Reads a function property when a legacy injection boundary supplies an
- * implementation whose runtime signature is validated by the caller's tests.
- */
-export function getTypedRecordFunction(value, key) {
-    const candidate = getRecordValue(value, key);
-    return typeof candidate === "function" ? candidate : null;
-}
-/**
  * Checks whether an unknown object exposes a chart-style destroy hook.
  */
 export function hasDestroy(value) {
     return getRecordFunction(value, "destroy") !== null;
-}
-/**
- * Reads a module from the CommonJS-like require hook used by tests.
- */
-export function getInjectedModule(modulePath) {
-    const chartGlobal = globalThis;
-    if (typeof chartGlobal.require !== "function") {
-        return null;
-    }
-    return chartGlobal.require(modulePath);
 }

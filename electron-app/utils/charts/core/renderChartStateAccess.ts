@@ -5,11 +5,6 @@ import {
     type StateUpdateOptions,
     updateState,
 } from "../../state/core/stateManager.js";
-import {
-    getInjectedModule,
-    getRecordFunction,
-    isObjectRecord,
-} from "./renderChartModuleHelpers.js";
 
 type GetStateFunction = (path?: string) => unknown;
 type SetStateFunction = typeof setState;
@@ -28,32 +23,8 @@ export type ChartStateManagerAccess = {
     readonly updateState: UpdateStateFunction;
 };
 
-/** Reads the state manager, preferring test-injected modules when present. */
+/** Reads the state manager used by chart rendering. */
 export function getStateManagerSafe(): ChartStateManagerAccess {
-    try {
-        const mod = getInjectedModule("../../state/core/stateManager.js");
-        if (isObjectRecord(mod)) {
-            const injectedGetState = getRecordFunction(mod, "getState");
-            const injectedSetState = getRecordFunction(mod, "setState");
-            const injectedSubscribe = getRecordFunction(mod, "subscribe");
-            const injectedUpdateState = getRecordFunction(mod, "updateState");
-            if (injectedGetState || injectedSetState || injectedUpdateState) {
-                return {
-                    getState: (injectedGetState ||
-                        getState) as GetStateFunction,
-                    setState: (injectedSetState ||
-                        setState) as SetStateFunction,
-                    subscribe: (injectedSubscribe ||
-                        subscribe) as SubscribeFunction,
-                    updateState: (injectedUpdateState ||
-                        updateState) as UpdateStateFunction,
-                };
-            }
-        }
-    } catch {
-        // Fall back to direct imports below.
-    }
-
     return {
         getState,
         setState,
@@ -62,18 +33,8 @@ export function getStateManagerSafe(): ChartStateManagerAccess {
     };
 }
 
-/** Reads chart state through the injectable state manager with direct fallback. */
+/** Reads chart state through the centralized state manager. */
 export function callGetState(path: string): unknown {
-    try {
-        const { getState: getStateSafe } = getStateManagerSafe();
-        const value = getStateSafe(path);
-        if (value !== undefined) {
-            return value;
-        }
-    } catch {
-        // Fall back to direct import below.
-    }
-
     try {
         return getState(path);
     } catch {
@@ -81,19 +42,12 @@ export function callGetState(path: string): unknown {
     }
 }
 
-/** Writes chart state through the injectable state manager and direct fallback. */
+/** Writes chart state through the centralized state manager. */
 export function callSetState(
     path: string,
     value: unknown,
     options?: StateUpdateOptions
 ): void {
-    try {
-        const { setState: setStateSafe } = getStateManagerSafe();
-        setStateSafe(path, value, options);
-    } catch {
-        // Continue to direct import fallback below.
-    }
-
     try {
         setState(path, value, options);
     } catch {
@@ -101,19 +55,12 @@ export function callSetState(
     }
 }
 
-/** Updates chart state through the injectable state manager and direct fallback. */
+/** Updates chart state through the centralized state manager. */
 export function callUpdateState(
     path: string,
     value: Record<string, unknown>,
     options?: StateUpdateOptions
 ): void {
-    try {
-        const { updateState: updateStateSafe } = getStateManagerSafe();
-        updateStateSafe(path, value, options);
-    } catch {
-        // Continue to direct import fallback below.
-    }
-
     try {
         updateState(path, value, options);
     } catch {

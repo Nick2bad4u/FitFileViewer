@@ -37,15 +37,11 @@ import {
 } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
+import { getRecordValue } from "./renderChartModuleHelpers.js";
 import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
 } from "./renderChartDataSettingsCache.js";
-import {
-    getInjectedModule,
-    getRecordFunction,
-    getRecordValue,
-} from "./renderChartModuleHelpers.js";
 import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import { createExportChartsWithState } from "./renderChartExportState.js";
 import { clearChartLabelsCache } from "./renderChartLabelCache.js";
@@ -232,10 +228,6 @@ export const chartState = createChartStateView({
     getFieldVisibility: (field) =>
         chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
-    getInjectedModule,
-    getRecordFunction: (value, key) =>
-        getRecordFunction(value, key) ?? undefined,
-    getRecordValue,
     getState: callGetState,
 });
 /** State-backed chart action handlers exposed to chart integrations. */
@@ -573,7 +565,7 @@ async function renderChartsWithData(
             startTime,
             temperatureUnits,
             timeUnits,
-            zoomPluginConfig: zoomPluginConfig,
+            zoomPluginConfig,
         }
     );
     if (chartDataRenderResult.aborted) {
