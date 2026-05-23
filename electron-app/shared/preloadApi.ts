@@ -19,16 +19,18 @@ import type {
     GenericSendChannel,
     GyazoServerStartResult,
     GyazoServerStopResult,
+    InfoPlatformResponse,
+    InfoStringResponse,
     IpcEventCallback,
     IpcRequestPayload,
     IpcResponsePayload,
     IpcSerializable,
     MainStateListener,
-    PlatformInfo,
     RecentFileRequestPayload,
     RecentFilesApprovalResponse,
     RecentFilesListResponse,
     RendererIpcEventChannel,
+    ThemePreferenceResponse,
     UpdateEventName,
 } from "./ipc";
 
@@ -78,15 +80,15 @@ export interface ElectronAPI {
         filePath: RecentFileRequestPayload
     ) => Promise<RecentFilesListResponse>;
 
-    getTheme: () => Promise<string>;
+    getTheme: () => Promise<ThemePreferenceResponse>;
     sendThemeChanged: (theme: string) => void;
 
-    getAppVersion: () => Promise<string>;
-    getElectronVersion: () => Promise<string>;
-    getNodeVersion: () => Promise<string>;
-    getChromeVersion: () => Promise<string>;
-    getLicenseInfo: () => Promise<string>;
-    getPlatformInfo: () => Promise<PlatformInfo>;
+    getAppVersion: () => Promise<InfoStringResponse>;
+    getElectronVersion: () => Promise<InfoStringResponse>;
+    getNodeVersion: () => Promise<InfoStringResponse>;
+    getChromeVersion: () => Promise<InfoStringResponse>;
+    getLicenseInfo: () => Promise<InfoStringResponse>;
+    getPlatformInfo: () => Promise<InfoPlatformResponse>;
 
     openExternal: (url: string) => Promise<boolean>;
 

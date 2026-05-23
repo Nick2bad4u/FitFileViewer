@@ -1,5 +1,12 @@
 {
     type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
+    type InfoPlatformResponse = import("../../shared/ipc").InfoPlatformResponse;
+    type InfoResponsePayload = import("../../shared/ipc").InfoResponsePayload;
+    type InfoStringResponse = import("../../shared/ipc").InfoStringResponse;
+    type MapTabSelectionResponse =
+        import("../../shared/ipc").MapTabSelectionResponse;
+    type ThemePreferenceResponse =
+        import("../../shared/ipc").ThemePreferenceResponse;
 
     interface AppInfoProvider {
         getAppPath?: () => string;
@@ -32,7 +39,7 @@
     type InfoIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => Promise<unknown>;
+    ) => Promise<InfoResponsePayload>;
 
     type RegisterInfoIpcHandle = (
         channel: InfoInvokeChannel,
@@ -105,7 +112,7 @@
             }
         };
 
-        const normalizeTheme = (value: unknown): string => {
+        const normalizeTheme = (value: unknown): ThemePreferenceResponse => {
             const theme =
                 typeof value === "string" ? value.trim().toLowerCase() : "";
             return theme === "dark" || theme === "light" || theme === "auto"
@@ -113,7 +120,7 @@
                 : CONSTANTS.DEFAULT_THEME;
         };
 
-        const normalizeMapTab = (value: unknown): string => {
+        const normalizeMapTab = (value: unknown): MapTabSelectionResponse => {
             const tab = typeof value === "string" ? value.trim() : "";
             // Conservative: only allow simple identifier-like tab names.
             if (/^[a-z0-9_-]{1,32}$/iu.test(tab)) {
@@ -123,15 +130,17 @@
         };
 
         const handlers: Record<InfoInvokeChannel, InfoIpcHandler> = {
-            getAppVersion: async () => {
+            getAppVersion: async (): Promise<InfoStringResponse> => {
                 const app = appRef();
                 return app && typeof app.getVersion === "function"
                     ? app.getVersion()
                     : "";
             },
-            getChromeVersion: async () => process.versions.chrome,
-            getElectronVersion: async () => process.versions.electron,
-            getLicenseInfo: async () => {
+            getChromeVersion: async (): Promise<InfoStringResponse> =>
+                process.versions.chrome,
+            getElectronVersion: async (): Promise<InfoStringResponse> =>
+                process.versions.electron,
+            getLicenseInfo: async (): Promise<InfoStringResponse> => {
                 try {
                     const app = appRef();
                     const basePath =
@@ -160,8 +169,9 @@
                     return "Unknown";
                 }
             },
-            getNodeVersion: async () => process.versions.node,
-            getPlatformInfo: async () => ({
+            getNodeVersion: async (): Promise<InfoStringResponse> =>
+                process.versions.node,
+            getPlatformInfo: async (): Promise<InfoPlatformResponse> => ({
                 arch: process.arch,
                 platform: process.platform,
             }),

@@ -30,9 +30,17 @@ export interface InvokeRequestPayloadByChannel {
     "fit:decode": ArrayBuffer;
     "fit:parse": ArrayBuffer;
     "file:read": string;
+    getAppVersion: never;
+    getChromeVersion: never;
+    getElectronVersion: never;
+    getLicenseInfo: never;
+    getNodeVersion: never;
+    getPlatformInfo: never;
+    "map-tab:get": never;
     "recentFiles:add": string;
     "recentFiles:approve": string;
     "recentFiles:get": never;
+    "theme:get": never;
 }
 
 /** Response payloads for invoke channels with explicit contracts. */
@@ -50,9 +58,17 @@ export interface InvokeResponsePayloadByChannel {
     "fit:decode": FitDecodeResult;
     "fit:parse": FitDecodeResult;
     "file:read": ArrayBuffer;
+    getAppVersion: string;
+    getChromeVersion: string;
+    getElectronVersion: string;
+    getLicenseInfo: string;
+    getNodeVersion: string;
+    getPlatformInfo: PlatformInfo;
+    "map-tab:get": string;
     "recentFiles:add": string[];
     "recentFiles:approve": boolean;
     "recentFiles:get": string[];
+    "theme:get": string;
 }
 
 /** FIT decode/parse invoke channels handled by the main process parser bridge. */
@@ -81,6 +97,36 @@ export type InfoInvokeChannel = Extract<
     | "map-tab:get"
     | "theme:get"
 >;
+
+/** Request payload accepted by app and preference metadata handlers. */
+export type InfoRequestPayload =
+    InvokeRequestPayloadByChannel[InfoInvokeChannel];
+
+/** Response payload returned by app and preference metadata handlers. */
+export type InfoResponsePayload =
+    InvokeResponsePayloadByChannel[InfoInvokeChannel];
+
+/** String metadata returned by version, license, theme, and map-tab channels. */
+export type InfoStringResponse = InvokeResponsePayloadByChannel[
+    | "getAppVersion"
+    | "getChromeVersion"
+    | "getElectronVersion"
+    | "getLicenseInfo"
+    | "getNodeVersion"
+    | "map-tab:get"
+    | "theme:get"];
+
+/** Platform details returned by getPlatformInfo. */
+export type InfoPlatformResponse =
+    InvokeResponsePayloadByChannel["getPlatformInfo"];
+
+/** Theme preference returned by theme:get. */
+export type ThemePreferenceResponse =
+    InvokeResponsePayloadByChannel["theme:get"];
+
+/** Selected map tab identifier returned by map-tab:get. */
+export type MapTabSelectionResponse =
+    InvokeResponsePayloadByChannel["map-tab:get"];
 
 /** External integration invoke channels handled by shell and Gyazo IPC. */
 export type ExternalInvokeChannel = Extract<
