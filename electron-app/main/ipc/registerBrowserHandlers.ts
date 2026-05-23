@@ -1,4 +1,6 @@
 {
+    type DialogOpenFolderResponse =
+        import("../../shared/ipc").DialogOpenFolderResponse;
     type FitBrowserEntry = import("../../shared/ipc").FitBrowserEntry;
     type FitBrowserInvokeChannel =
         import("../../shared/ipc").FitBrowserInvokeChannel;
@@ -258,34 +260,41 @@
             validateAndPersistFolder(typeof folder === "string" ? folder : "")
         );
 
-        registerIpcHandle("dialog:openFolder", async () => {
-            const dialog = typeof dialogRef === "function" ? dialogRef() : null;
-            if (!dialog || typeof dialog.showOpenDialog !== "function") {
-                return null;
+        registerIpcHandle(
+            "dialog:openFolder",
+            async (): Promise<DialogOpenFolderResponse> => {
+                const dialog =
+                    typeof dialogRef === "function" ? dialogRef() : null;
+                if (!dialog || typeof dialog.showOpenDialog !== "function") {
+                    return null;
+                }
+
+                const result = await dialog.showOpenDialog({
+                    properties: ["openDirectory"],
+                    title: "Select FIT Files Folder",
+                });
+
+                if (
+                    !result ||
+                    result.canceled ||
+                    !Array.isArray(result.filePaths) ||
+                    result.filePaths.length === 0
+                ) {
+                    return null;
+                }
+
+                const folder = normalizeAbsoluteFolder(
+                    result.filePaths[0],
+                    path
+                );
+                if (!folder) {
+                    return null;
+                }
+
+                await validateAndPersistFolder(folder);
+                return folder;
             }
-
-            const result = await dialog.showOpenDialog({
-                properties: ["openDirectory"],
-                title: "Select FIT Files Folder",
-            });
-
-            if (
-                !result ||
-                result.canceled ||
-                !Array.isArray(result.filePaths) ||
-                result.filePaths.length === 0
-            ) {
-                return null;
-            }
-
-            const folder = normalizeAbsoluteFolder(result.filePaths[0], path);
-            if (!folder) {
-                return null;
-            }
-
-            await validateAndPersistFolder(folder);
-            return folder;
-        });
+        );
 
         registerIpcHandle(
             "browser:listFolder",

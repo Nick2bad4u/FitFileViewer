@@ -3,6 +3,9 @@ import type {
     ChannelInfo,
     ClipboardRequestPayload,
     ClipboardResponsePayload,
+    DialogOpenFileResponse,
+    DialogOpenFolderResponse,
+    DialogOpenOverlayFilesResponse,
     FitBrowserListFolderResult,
     FileSystemRequestPayload,
     FileSystemResponsePayload,
@@ -33,19 +36,19 @@ export interface ElectronAPI {
      * Opens the native single-file FIT dialog; returns selected path or null
      * when cancelled.
      */
-    openFile: () => Promise<null | string>;
+    openFile: () => Promise<DialogOpenFileResponse>;
     /** Alias for openFile; returns selected path or null when cancelled. */
-    openFileDialog: () => Promise<null | string>;
+    openFileDialog: () => Promise<DialogOpenFileResponse>;
     /**
      * Opens a folder picker dialog; returns selected folder path or null when
      * cancelled.
      */
-    openFolderDialog: () => Promise<null | string>;
+    openFolderDialog: () => Promise<DialogOpenFolderResponse>;
     /**
      * Opens the native multi-select overlay dialog; returns selected paths
      * (possibly empty).
      */
-    openOverlayDialog: () => Promise<string[]>;
+    openOverlayDialog: () => Promise<DialogOpenOverlayFilesResponse>;
     readFile: (
         filePath: FileSystemRequestPayload
     ) => Promise<FileSystemResponsePayload>;

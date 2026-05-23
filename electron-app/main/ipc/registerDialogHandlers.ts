@@ -1,5 +1,12 @@
 {
     type BrowserWindow = import("electron").BrowserWindow;
+    type DialogInvokeChannel = import("../../shared/ipc").DialogInvokeChannel;
+    type DialogOpenFileResponse =
+        import("../../shared/ipc").DialogOpenFileResponse;
+    type DialogOpenOverlayFilesResponse =
+        import("../../shared/ipc").DialogOpenOverlayFilesResponse;
+    type DialogResponsePayload =
+        import("../../shared/ipc").DialogResponsePayload;
     type OpenDialogOptions = import("electron").OpenDialogOptions;
     type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
 
@@ -33,10 +40,10 @@
     type RegisterDialogIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => unknown;
+    ) => DialogResponsePayload | Promise<DialogResponsePayload>;
 
     type RegisterDialogIpcHandle = (
-        channel: string,
+        channel: DialogInvokeChannel,
         handler: RegisterDialogIpcHandler
     ) => void;
 
@@ -84,133 +91,156 @@
             return;
         }
 
-        registerIpcHandle("dialog:openFile", async () => {
-            try {
-                const dialog =
-                    typeof dialogRef === "function" ? dialogRef() : null;
-                if (!dialog || typeof dialog.showOpenDialog !== "function") {
-                    throw new Error("Dialog module unavailable");
-                }
-
-                const { canceled, filePaths } = await dialog.showOpenDialog({
-                    filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
-                    properties: ["openFile"],
-                });
-
-                if (
-                    canceled ||
-                    !Array.isArray(filePaths) ||
-                    filePaths.length === 0
-                ) {
-                    return null;
-                }
-
-                const [firstPath] = filePaths;
-                if (!firstPath) {
-                    return null;
-                }
-
+        registerIpcHandle(
+            "dialog:openFile",
+            async (): Promise<DialogOpenFileResponse> => {
                 try {
-                    fileAccessPolicy.approveFilePath(firstPath, {
-                        source: "dialog:openFile",
-                    });
-                } catch (policyError) {
-                    logWithContext?.(
-                        "warn",
-                        "Failed to approve file path for reading",
+                    const dialog =
+                        typeof dialogRef === "function" ? dialogRef() : null;
+                    if (
+                        !dialog ||
+                        typeof dialog.showOpenDialog !== "function"
+                    ) {
+                        throw new Error("Dialog module unavailable");
+                    }
+
+                    const { canceled, filePaths } = await dialog.showOpenDialog(
                         {
-                            error: getErrorMessage(policyError),
-                            filePath: firstPath,
+                            filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+                            properties: ["openFile"],
                         }
                     );
-                }
 
-                if (typeof addRecentFile === "function") {
-                    addRecentFile(firstPath);
-                }
+                    if (
+                        canceled ||
+                        !Array.isArray(filePaths) ||
+                        filePaths.length === 0
+                    ) {
+                        return null;
+                    }
 
-                const win = resolveTargetWindow(browserWindowRef, mainWindow);
-                if (
-                    win &&
-                    typeof getThemeFromRenderer === "function" &&
-                    typeof safeCreateAppMenu === "function"
-                ) {
+                    const [firstPath] = filePaths;
+                    if (!firstPath) {
+                        return null;
+                    }
+
                     try {
-                        const theme = await getThemeFromRenderer(win);
-                        // Do NOT treat a dialog selection as a "loaded" file.
-                        // We only set loadedFitFilePath when the renderer confirms
-                        // a successful load via the "fit-file-loaded" IPC event.
-                        // This keeps file-dependent actions (e.g. Summary Columns)
-                        // correctly disabled until data is actually available.
-                        safeCreateAppMenu(win, theme, null);
-                    } catch (menuError) {
+                        fileAccessPolicy.approveFilePath(firstPath, {
+                            source: "dialog:openFile",
+                        });
+                    } catch (policyError) {
                         logWithContext?.(
                             "warn",
-                            "Failed to refresh menu after file dialog selection",
+                            "Failed to approve file path for reading",
                             {
-                                error: getErrorMessage(menuError),
+                                error: getErrorMessage(policyError),
+                                filePath: firstPath,
                             }
                         );
                     }
-                }
 
-                return firstPath;
-            } catch (error) {
-                logWithContext?.("error", "Error in dialog:openFile", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
-            }
-        });
+                    if (typeof addRecentFile === "function") {
+                        addRecentFile(firstPath);
+                    }
 
-        registerIpcHandle("dialog:openOverlayFiles", async () => {
-            try {
-                const dialog =
-                    typeof dialogRef === "function" ? dialogRef() : null;
-                if (!dialog || typeof dialog.showOpenDialog !== "function") {
-                    throw new Error("Dialog module unavailable");
-                }
+                    const win = resolveTargetWindow(
+                        browserWindowRef,
+                        mainWindow
+                    );
+                    if (
+                        win &&
+                        typeof getThemeFromRenderer === "function" &&
+                        typeof safeCreateAppMenu === "function"
+                    ) {
+                        try {
+                            const theme = await getThemeFromRenderer(win);
+                            // Do NOT treat a dialog selection as a "loaded" file.
+                            // We only set loadedFitFilePath when the renderer confirms
+                            // a successful load via the "fit-file-loaded" IPC event.
+                            // This keeps file-dependent actions (e.g. Summary Columns)
+                            // correctly disabled until data is actually available.
+                            safeCreateAppMenu(win, theme, null);
+                        } catch (menuError) {
+                            logWithContext?.(
+                                "warn",
+                                "Failed to refresh menu after file dialog selection",
+                                {
+                                    error: getErrorMessage(menuError),
+                                }
+                            );
+                        }
+                    }
 
-                const { canceled, filePaths } = await dialog.showOpenDialog({
-                    filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
-                    properties: ["openFile", "multiSelections"],
-                });
-
-                if (
-                    canceled ||
-                    !Array.isArray(filePaths) ||
-                    filePaths.length === 0
-                ) {
-                    return [];
-                }
-
-                const filtered = filePaths.filter(
-                    (entry): entry is string =>
-                        typeof entry === "string" && entry.trim().length > 0
-                );
-
-                try {
-                    fileAccessPolicy.approveFilePaths(filtered, {
-                        source: "dialog:openOverlayFiles",
+                    return firstPath;
+                } catch (error) {
+                    logWithContext?.("error", "Error in dialog:openFile", {
+                        error: getErrorMessage(error),
                     });
-                } catch (policyError) {
-                    logWithContext?.(
-                        "warn",
-                        "Failed to approve overlay file paths for reading",
+                    throw error;
+                }
+            }
+        );
+
+        registerIpcHandle(
+            "dialog:openOverlayFiles",
+            async (): Promise<DialogOpenOverlayFilesResponse> => {
+                try {
+                    const dialog =
+                        typeof dialogRef === "function" ? dialogRef() : null;
+                    if (
+                        !dialog ||
+                        typeof dialog.showOpenDialog !== "function"
+                    ) {
+                        throw new Error("Dialog module unavailable");
+                    }
+
+                    const { canceled, filePaths } = await dialog.showOpenDialog(
                         {
-                            error: getErrorMessage(policyError),
+                            filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+                            properties: ["openFile", "multiSelections"],
                         }
                     );
-                }
 
-                return filtered;
-            } catch (error) {
-                logWithContext?.("error", "Error in dialog:openOverlayFiles", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
+                    if (
+                        canceled ||
+                        !Array.isArray(filePaths) ||
+                        filePaths.length === 0
+                    ) {
+                        return [];
+                    }
+
+                    const filtered = filePaths.filter(
+                        (entry): entry is string =>
+                            typeof entry === "string" && entry.trim().length > 0
+                    );
+
+                    try {
+                        fileAccessPolicy.approveFilePaths(filtered, {
+                            source: "dialog:openOverlayFiles",
+                        });
+                    } catch (policyError) {
+                        logWithContext?.(
+                            "warn",
+                            "Failed to approve overlay file paths for reading",
+                            {
+                                error: getErrorMessage(policyError),
+                            }
+                        );
+                    }
+
+                    return filtered;
+                } catch (error) {
+                    logWithContext?.(
+                        "error",
+                        "Error in dialog:openOverlayFiles",
+                        {
+                            error: getErrorMessage(error),
+                        }
+                    );
+                    throw error;
+                }
             }
-        });
+        );
     }
 
     /**

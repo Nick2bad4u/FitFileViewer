@@ -19,6 +19,9 @@ export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 export interface InvokeRequestPayloadByChannel {
     "clipboard:writePngDataUrl": string;
     "clipboard:writeText": string;
+    "dialog:openFile": never;
+    "dialog:openFolder": never;
+    "dialog:openOverlayFiles": never;
     "fit:decode": ArrayBuffer;
     "fit:parse": ArrayBuffer;
     "file:read": string;
@@ -31,6 +34,9 @@ export interface InvokeRequestPayloadByChannel {
 export interface InvokeResponsePayloadByChannel {
     "clipboard:writePngDataUrl": boolean;
     "clipboard:writeText": boolean;
+    "dialog:openFile": null | string;
+    "dialog:openFolder": null | string;
+    "dialog:openOverlayFiles": string[];
     "fit:decode": FitDecodeResult;
     "fit:parse": FitDecodeResult;
     "file:read": ArrayBuffer;
@@ -85,6 +91,28 @@ export type ClipboardRequestPayload =
 /** Response payload returned by clipboard invoke handlers. */
 export type ClipboardResponsePayload =
     InvokeResponsePayloadByChannel[ClipboardInvokeChannel];
+
+/** Native dialog invoke channels handled by main-process dialog IPC. */
+export type DialogInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "dialog:openFile" | "dialog:openFolder" | "dialog:openOverlayFiles"
+>;
+
+/** Response payload returned by native dialog invoke handlers. */
+export type DialogResponsePayload =
+    InvokeResponsePayloadByChannel[DialogInvokeChannel];
+
+/** Selected FIT file path returned by dialog:openFile, or null on cancel. */
+export type DialogOpenFileResponse =
+    InvokeResponsePayloadByChannel["dialog:openFile"];
+
+/** Selected folder path returned by dialog:openFolder, or null on cancel. */
+export type DialogOpenFolderResponse =
+    InvokeResponsePayloadByChannel["dialog:openFolder"];
+
+/** Selected overlay FIT file paths returned by dialog:openOverlayFiles. */
+export type DialogOpenOverlayFilesResponse =
+    InvokeResponsePayloadByChannel["dialog:openOverlayFiles"];
 
 /** Filesystem invoke channels handled by main-process file access IPC. */
 export type FileSystemInvokeChannel = Extract<
