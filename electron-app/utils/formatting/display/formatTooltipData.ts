@@ -53,12 +53,12 @@ export function formatTooltipData(
     recordMesgsOverride?: RecordMessage[]
 ): string {
     try {
-        if (!row || typeof row !== "object") {
+        if (!isRecordMessage(row)) {
             logWithContext("Invalid row data provided", "warn");
             return "No data available";
         }
 
-        const record = row as RecordMessage;
+        const record = row;
         const recordMesgs =
             recordMesgsOverride ??
             getRecordMessagesFromState() ??
@@ -259,12 +259,12 @@ function getGlobalData(): Record<string, unknown> | undefined {
         return stateGlobalData;
     }
 
-    const globalData = (globalThis as { globalData?: unknown }).globalData;
+    const globalData = Reflect.get(globalThis, "globalData");
     return isRecord(globalData) ? globalData : undefined;
 }
 
 function getRecordMessagesFromGlobal(): RecordMessage[] | undefined {
-    const globalData = (globalThis as { globalData?: unknown }).globalData;
+    const globalData = Reflect.get(globalThis, "globalData");
     if (!isRecord(globalData)) {
         return undefined;
     }
@@ -281,11 +281,15 @@ function isFiniteNumber(value: unknown): value is number {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isRecordMessage(value: unknown): value is RecordMessage {
+    return isRecord(value);
 }
 
 function asRecordMessageArray(value: unknown): RecordMessage[] | undefined {
-    return Array.isArray(value) ? (value as RecordMessage[]) : undefined;
+    return Array.isArray(value) ? value.filter(isRecordMessage) : undefined;
 }
 
 function logWithContext(message: string, level = "info"): void {

@@ -32,7 +32,7 @@ const FORMATTING_CONSTANTS = {
  */
 export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
     try {
-        if (!row || typeof row !== "object") {
+        if (!isRecordMessage(row)) {
             logWithContext("Invalid row data provided", "warn");
             return "No data available";
         }
@@ -205,11 +205,11 @@ function getGlobalData() {
     if (isRecord(stateGlobalData)) {
         return stateGlobalData;
     }
-    const globalData = globalThis.globalData;
+    const globalData = Reflect.get(globalThis, "globalData");
     return isRecord(globalData) ? globalData : undefined;
 }
 function getRecordMessagesFromGlobal() {
-    const globalData = globalThis.globalData;
+    const globalData = Reflect.get(globalThis, "globalData");
     if (!isRecord(globalData)) {
         return undefined;
     }
@@ -222,10 +222,13 @@ function isFiniteNumber(value) {
     return typeof value === "number" && Number.isFinite(value);
 }
 function isRecord(value) {
-    return typeof value === "object" && value !== null;
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isRecordMessage(value) {
+    return isRecord(value);
 }
 function asRecordMessageArray(value) {
-    return Array.isArray(value) ? value : undefined;
+    return Array.isArray(value) ? value.filter(isRecordMessage) : undefined;
 }
 function logWithContext(message, level = "info") {
     try {
