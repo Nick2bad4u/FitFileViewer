@@ -74,6 +74,20 @@ const FILE_OPEN_CONSTANTS = {
 
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
+const REQUIRED_ELECTRON_API_METHODS = [
+    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.OPEN_FILE,
+    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.PARSE_FIT_FILE,
+    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.READ_FILE,
+] satisfies readonly (keyof FileOpenElectronAPI)[];
+
+function isFileOpenElectronAPI(
+    electronAPI: Partial<FileOpenElectronAPI>
+): electronAPI is FileOpenElectronAPI {
+    return REQUIRED_ELECTRON_API_METHODS.every(
+        (method) => typeof electronAPI[method] === "function"
+    );
+}
+
 function getFileOpenGlobal(): FileOpenRendererGlobal {
     return globalThis as FileOpenRendererGlobal;
 }
@@ -143,7 +157,8 @@ async function handleOpenFile(
         AppActions.setFileOpening(true);
         updateUIState(uiElements, true, true);
 
-        if (!validateElectronAPI()) {
+        const electronAPI = getValidatedElectronAPI();
+        if (!electronAPI) {
             showNotification(
                 "Electron API not available. Please restart the app.",
                 "error",
@@ -155,8 +170,6 @@ async function handleOpenFile(
 
         log("info", "Opening file dialog");
 
-        const electronAPI = getFileOpenGlobal()
-            .electronAPI as FileOpenElectronAPI;
         let filePath: null | string | string[];
         try {
             filePath = await electronAPI.openFile();
@@ -402,28 +415,29 @@ function updateUIState(
 }
 
 /** Validates that all required Electron API methods are available. */
-function validateElectronAPI(): boolean {
-    const { ELECTRON_API_METHODS } = FILE_OPEN_CONSTANTS;
+function getValidatedElectronAPI(): FileOpenElectronAPI | null {
     const { electronAPI } = getFileOpenGlobal();
 
     if (!electronAPI) {
         log("error", "Electron API not available");
-        return false;
+        return null;
     }
 
-    const electronAPIRecord = electronAPI as Record<string, unknown>;
-    const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        (method) => typeof electronAPIRecord[method] !== "function"
-    );
-
-    if (missingMethods.length > 0) {
+    if (!isFileOpenElectronAPI(electronAPI)) {
         log("error", "Missing Electron API methods", {
-            methods: missingMethods,
+            methods: REQUIRED_ELECTRON_API_METHODS.filter(
+                (method) => typeof electronAPI[method] !== "function"
+            ),
         });
-        return false;
+        return null;
     }
 
-    return true;
+    return electronAPI;
+}
+
+/** Validates that all required Electron API methods are available. */
+function validateElectronAPI(): boolean {
+    return getValidatedElectronAPI() !== null;
 }
 
 // Export functions for testing
