@@ -1,4 +1,8 @@
 {
+    type FileSystemInvokeChannel =
+        import("../../shared/ipc").FileSystemInvokeChannel;
+    type FileReadResult = import("../../shared/ipc").FileSystemResponsePayload;
+
     const { z } = require("zod") as typeof import("zod");
 
     const { assertFileReadAllowed } =
@@ -14,7 +18,7 @@
     ) => unknown;
 
     type RegisterFileSystemIpcHandle = (
-        channel: string,
+        channel: FileSystemInvokeChannel,
         handler: RegisterFileSystemIpcHandler
     ) => void;
 
@@ -101,7 +105,7 @@
                 }
                 const fileReadPath = authorizedPath;
 
-                return await new Promise<ArrayBuffer>((resolve, reject) => {
+                return await new Promise<FileReadResult>((resolve, reject) => {
                     if (!fs || typeof fs.readFile !== "function") {
                         reject(new Error("Filesystem module unavailable"));
                         return;

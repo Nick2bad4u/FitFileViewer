@@ -19,12 +19,14 @@ export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 export interface InvokeRequestPayloadByChannel {
     "fit:decode": ArrayBuffer;
     "fit:parse": ArrayBuffer;
+    "file:read": string;
 }
 
 /** Response payloads for invoke channels with explicit contracts. */
 export interface InvokeResponsePayloadByChannel {
     "fit:decode": FitDecodeResult;
     "fit:parse": FitDecodeResult;
+    "file:read": ArrayBuffer;
 }
 
 /** FIT decode/parse invoke channels handled by the main process parser bridge. */
@@ -59,6 +61,20 @@ export type ExternalInvokeChannel = Extract<
     GenericInvokeChannel,
     "gyazo:server:start" | "gyazo:server:stop" | "shell:openExternal"
 >;
+
+/** Filesystem invoke channels handled by main-process file access IPC. */
+export type FileSystemInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "file:read"
+>;
+
+/** Request payload accepted by filesystem invoke handlers. */
+export type FileSystemRequestPayload =
+    InvokeRequestPayloadByChannel[FileSystemInvokeChannel];
+
+/** Response payload returned by filesystem invoke handlers. */
+export type FileSystemResponsePayload =
+    InvokeResponsePayloadByChannel[FileSystemInvokeChannel];
 
 /** FIT browser invoke channels used by the folder-browser bridge. */
 export type FitBrowserInvokeChannel = Extract<

@@ -2,6 +2,8 @@ import type { FitDecodeResult, FitMessages } from "./fit";
 import type {
     ChannelInfo,
     FitBrowserListFolderResult,
+    FileSystemRequestPayload,
+    FileSystemResponsePayload,
     GenericInvokeChannel,
     GenericSendChannel,
     GyazoServerStartResult,
@@ -37,7 +39,9 @@ export interface ElectronAPI {
      * (possibly empty).
      */
     openOverlayDialog: () => Promise<string[]>;
-    readFile: (filePath: string) => Promise<ArrayBuffer>;
+    readFile: (
+        filePath: FileSystemRequestPayload
+    ) => Promise<FileSystemResponsePayload>;
     parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitDecodeResult>;
     decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitDecodeResult>;
     /** Get the persisted FIT browser folder (main process setting). */
