@@ -18,6 +18,10 @@
         getAllWindows?: () => MainWindowLike[];
     }
 
+    interface ElectronAppLike {
+        whenReady?: () => Promise<unknown> | unknown;
+    }
+
     type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
     type AppStateValue = boolean | MainWindowLike | null | string | undefined;
 
@@ -59,22 +63,14 @@
         ) => void;
     }
 
-    interface ElectronModuleLike {
-        app?: {
-            whenReady?: () => Promise<unknown> | unknown;
+    const { appRef: runtimeAppRef, browserWindowRef: runtimeBrowserWindowRef } =
+        require("../runtime/electronAccess") as {
+            appRef: () => ElectronAppLike | undefined;
+            browserWindowRef: () => BrowserWindowApi | undefined;
         };
-        BrowserWindow?: BrowserWindowApi;
-    }
 
     function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
-    }
-
-    function asElectronModule(value: unknown): ElectronModuleLike | null {
-        return value &&
-            (typeof value === "object" || typeof value === "function")
-            ? (value as ElectronModuleLike)
-            : null;
     }
 
     function callElectronWhenReadyForTests(): void {
@@ -83,8 +79,7 @@
         }
 
         try {
-            const electron = asElectronModule(require("electron"));
-            const app = electron?.app;
+            const app = runtimeAppRef();
             if (app && typeof app.whenReady === "function") {
                 try {
                     app.whenReady();
@@ -99,8 +94,7 @@
 
     function getElectronWindowsForTests(): MainWindowLike[] | undefined {
         try {
-            const electron = asElectronModule(require("electron"));
-            const BrowserWindow = electron?.BrowserWindow;
+            const BrowserWindow = runtimeBrowserWindowRef();
             if (
                 BrowserWindow &&
                 typeof BrowserWindow.getAllWindows === "function"

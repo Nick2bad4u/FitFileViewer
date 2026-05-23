@@ -3,19 +3,16 @@
     function getErrorMessage(error) {
         return error instanceof Error ? error.message : String(error);
     }
-    function asElectronModule(value) {
-        return value &&
-            (typeof value === "object" || typeof value === "function")
-            ? value
-            : null;
-    }
+    const {
+        appRef: runtimeAppRef,
+        browserWindowRef: runtimeBrowserWindowRef,
+    } = require("../runtime/electronAccess");
     function callElectronWhenReadyForTests() {
         if (process.env["NODE_ENV"] !== "test") {
             return;
         }
         try {
-            const electron = asElectronModule(require("electron"));
-            const app = electron?.app;
+            const app = runtimeAppRef();
             if (app && typeof app.whenReady === "function") {
                 try {
                     app.whenReady();
@@ -29,8 +26,7 @@
     }
     function getElectronWindowsForTests() {
         try {
-            const electron = asElectronModule(require("electron"));
-            const BrowserWindow = electron?.BrowserWindow;
+            const BrowserWindow = runtimeBrowserWindowRef();
             if (
                 BrowserWindow &&
                 typeof BrowserWindow.getAllWindows === "function"
