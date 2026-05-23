@@ -105,10 +105,10 @@
             href="node_modules/leaflet-measure/dist/leaflet-measure.css"
             rel="stylesheet"
         />
-        <!-- DOMPurify is loaded as a classic script (global DOMPurify) to avoid bare-module specifier issues under file:// in Electron. -->
+        <!-- DOMPurify is loaded as a curated classic vendor script (global DOMPurify) under file:// in Electron. -->
         <script
             defer
-            src="node_modules/dompurify/dist/purify.min.js"
+            src="vendor/purify.min.js"
         ></script>
 
         <script
