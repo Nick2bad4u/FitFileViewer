@@ -268,12 +268,12 @@ async function decodeLibraryItem(api, file) {
     try {
         const buf = await api.readFile(file.fullPath);
         const decoded = await api.decodeFitFile(buf);
-        const session =
-            decoded && typeof decoded === "object"
-                ? decoded.sessionMesgs?.[0]
-                : null;
-        const sessionRecord =
-            session && typeof session === "object" ? session : null;
+        const decodedRecord = asRecord(decoded);
+        const sessionMesgs = decodedRecord?.["sessionMesgs"];
+        const session = Array.isArray(sessionMesgs)
+            ? sessionMesgs[0]
+            : null;
+        const sessionRecord = asRecord(session);
         const startRaw =
             sessionRecord?.["start_time"] ??
             sessionRecord?.["startTime"] ??
@@ -425,8 +425,11 @@ async function listAllFitFiles(api) {
     await walk("");
     return out;
 }
+function isRecord(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 function asRecord(value) {
-    return value && typeof value === "object" ? value : null;
+    return isRecord(value) ? value : null;
 }
 function loadPersistedLibraryCache(root) {
     try {
