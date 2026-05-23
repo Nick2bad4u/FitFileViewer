@@ -33,11 +33,13 @@
     const {
         appRef,
         browserWindowRef,
+        getElectron: getRuntimeElectron,
         getElectronOverride,
         setElectronOverride,
     } = require("./electronAccess") as {
         appRef: () => unknown;
         browserWindowRef: () => unknown;
+        getElectron: () => unknown;
         getElectronOverride: () => unknown;
         setElectronOverride: (override: unknown) => void;
     };
@@ -240,10 +242,10 @@
                 }
 
                 try {
-                    Promise.resolve().then(async () => {
+                    Promise.resolve().then(() => {
                         try {
-                            const esm = (await import("electron")) as unknown;
-                            const mod = resolveElectronModule(esm);
+                            const mod =
+                                resolveElectronModule(getRuntimeElectron());
                             if (hasElectronApis(mod)) {
                                 setElectronOverride(mod);
                             }
@@ -270,8 +272,7 @@
                     /* Ignore promise setup errors */
                 }
 
-                const electronModule = require("electron") as unknown;
-                const resolved = resolveElectronModule(electronModule);
+                const resolved = resolveElectronModule(getRuntimeElectron());
                 try {
                     callWhenReady(getApp(resolved));
                 } catch {
@@ -292,8 +293,7 @@
                 let attempts = 0;
                 const retryPrime = (): void => {
                     try {
-                        const raw = require("electron") as unknown;
-                        const mod = resolveElectronModule(raw);
+                        const mod = resolveElectronModule(getRuntimeElectron());
                         const readyCalled = callWhenReady(getApp(mod));
                         const windows = getAllWindows(getBrowserWindow(mod));
                         const windowsCalled = Array.isArray(windows);

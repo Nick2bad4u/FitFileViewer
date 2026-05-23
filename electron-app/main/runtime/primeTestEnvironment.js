@@ -4,6 +4,7 @@
     const {
         appRef,
         browserWindowRef,
+        getElectron: getRuntimeElectron,
         getElectronOverride,
         setElectronOverride,
     } = require("./electronAccess");
@@ -167,10 +168,10 @@
                     /* Ignore mock detection errors */
                 }
                 try {
-                    Promise.resolve().then(async () => {
+                    Promise.resolve().then(() => {
                         try {
-                            const esm = await import("electron");
-                            const mod = resolveElectronModule(esm);
+                            const mod =
+                                resolveElectronModule(getRuntimeElectron());
                             if (hasElectronApis(mod)) {
                                 setElectronOverride(mod);
                             }
@@ -195,8 +196,7 @@
                 } catch {
                     /* Ignore promise setup errors */
                 }
-                const electronModule = require("electron");
-                const resolved = resolveElectronModule(electronModule);
+                const resolved = resolveElectronModule(getRuntimeElectron());
                 try {
                     callWhenReady(getApp(resolved));
                 } catch {
@@ -216,8 +216,7 @@
                 let attempts = 0;
                 const retryPrime = () => {
                     try {
-                        const raw = require("electron");
-                        const mod = resolveElectronModule(raw);
+                        const mod = resolveElectronModule(getRuntimeElectron());
                         const readyCalled = callWhenReady(getApp(mod));
                         const windows = getAllWindows(getBrowserWindow(mod));
                         const windowsCalled = Array.isArray(windows);
