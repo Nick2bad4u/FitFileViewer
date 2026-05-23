@@ -1,19 +1,10 @@
-type IpcSerializable =
-    | boolean
-    | null
-    | number
-    | string
-    | readonly IpcSerializable[]
-    | { readonly [key: string]: IpcSerializable };
+import type {
+    IpcSerializable,
+    MainStateChange,
+    MainStateListener,
+} from "../../../shared/ipc";
+import type { ElectronAPI } from "../../../shared/preloadApi";
 
-type MainStateChange = {
-    path: string;
-    source?: string;
-    timestamp?: number;
-    value: IpcSerializable;
-};
-
-type MainStateListener = (change: MainStateChange) => void;
 type Operation = IpcSerializable;
 type ErrorEntry = IpcSerializable;
 type Metrics = IpcSerializable;
@@ -24,22 +15,16 @@ export type StateChangeEvent = MainStateChange & {
     oldValue?: IpcSerializable;
 };
 
-type MainStateElectronAPI = {
-    getErrors: (limit?: number) => Promise<IpcSerializable>;
-    getMainState: (path?: string) => Promise<IpcSerializable>;
-    getMetrics: () => Promise<IpcSerializable>;
-    getOperation: (operationId: string) => Promise<IpcSerializable | null>;
-    getOperations: () => Promise<IpcSerializable>;
-    listenToMainState: (
-        path: string,
-        callback: MainStateListener
-    ) => Promise<boolean>;
-    setMainState: (
-        path: string,
-        value: IpcSerializable,
-        options?: IpcSerializable
-    ) => Promise<boolean>;
-};
+type MainStateElectronAPI = Pick<
+    ElectronAPI,
+    | "getErrors"
+    | "getMainState"
+    | "getMetrics"
+    | "getOperation"
+    | "getOperations"
+    | "listenToMainState"
+    | "setMainState"
+>;
 
 type MainStateWindow = {
     electronAPI?: MainStateElectronAPI;
