@@ -1148,28 +1148,6 @@ function safeElectron() {
         mod = undefined;
     }
     let resolved = unwrap(mod);
-    // If module-scoped require didn't yield a usable ipcMain, try global shim
-    if (
-        !resolved ||
-        !resolved.ipcMain ||
-        typeof resolved.ipcMain.handle !== "function"
-    ) {
-        try {
-            const hasGlobal =
-                typeof globalThis === "object" && globalThis !== null;
-            const gReq =
-                hasGlobal &&
-                "require" in globalThis &&
-                typeof globalThis.require === "function"
-                    ? globalThis.require
-                    : undefined;
-            if (typeof gReq === "function") {
-                resolved = unwrap(gReq("electron"));
-            }
-        } catch {
-            /* ignore */
-        }
-    }
     return resolved || {};
 }
 function hasElectronApis(value) {
