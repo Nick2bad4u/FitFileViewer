@@ -206,7 +206,7 @@ function buildElevationProfilePopup(
     viewport.name = "viewport";
     viewport.content = "width=device-width, initial-scale=1";
     const chartScript = chartDoc.createElement("script");
-    chartScript.src = "./node_modules/chart.js/dist/chart.umd.js";
+    chartScript.src = "./vendor/chart.umd.js";
     const stylesheet = chartDoc.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = "./elevProfile.css";
