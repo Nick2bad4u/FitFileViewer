@@ -22,14 +22,14 @@
         "__ffvSessionPermissionHandlersRegistered";
     const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
     const APP_LISTENER_REGISTRY = new Map();
-    function asRecord(value) {
+    function asReflectTarget(value) {
         return value &&
             (typeof value === "object" || typeof value === "function")
             ? value
             : null;
     }
     function getStringProperty(value, key) {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         const property = record ? Reflect.get(record, key) : undefined;
         return typeof property === "string" ? property : undefined;
     }

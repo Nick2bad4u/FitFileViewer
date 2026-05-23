@@ -165,10 +165,12 @@
     const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
 
-    function asRecord(value: unknown): Record<string, unknown> | null {
+    type ReflectTarget = object & { [key: PropertyKey]: unknown };
+
+    function asReflectTarget(value: unknown): ReflectTarget | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as Record<string, unknown>)
+            ? (value as ReflectTarget)
             : null;
     }
 
@@ -176,7 +178,7 @@
         value: unknown,
         key: string
     ): string | undefined {
-        const record = asRecord(value);
+        const record = asReflectTarget(value);
         const property = record ? Reflect.get(record, key) : undefined;
         return typeof property === "string" ? property : undefined;
     }
