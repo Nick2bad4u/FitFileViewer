@@ -46,6 +46,10 @@ const { Buffer } = require("node:buffer");
  *
  * @typedef {import("./shared/fitParser").FitFileStateManager} FitFileStateManager
  *
+ * @typedef {import("./shared/fitParser").FitParserModule} FitParserModule
+ *
+ * @typedef {import("./shared/fitParser").FitParserStateManagers} FitParserStateManagers
+ *
  * @typedef {import("./shared/fitParser").PerformanceMonitor} PerformanceMonitor
  *
  * @typedef {import("./shared/fitParser").SettingsStateManager} SettingsStateManager
@@ -97,7 +101,7 @@ class FitDecodeError extends Error {
     /**
      * Convert error to JSON for state management
      *
-     * @returns {FitDecodeErrorPayload & { name: string; stack?: string }}
+     * @returns {FitDecodeErrorPayload & { name: "FitDecodeError"; stack?: string }}
      *   Serializable error object
      */
     toJSON() {
@@ -105,7 +109,7 @@ class FitDecodeError extends Error {
             details: this.details,
             message: this.message,
             metadata: this.metadata,
-            name: this.name,
+            name: "FitDecodeError",
             stack: this.stack,
         };
     }
@@ -184,20 +188,7 @@ function hasOwnKey(record, key) {
  * Initialize state management integration for the FIT parser This should be
  * called during application startup to connect the parser to the state system
  *
- * @param {Object} stateManagers - State management instances
- * @param {Object} stateManagers.settingsStateManager - Settings state manager
- *   for decoder options
- * @param {Object} stateManagers.fitFileStateManager - FIT file state manager
- *   for progress tracking
- * @param {Object} stateManagers.performanceMonitor - Performance monitor for
- *   timing operations
- */
-/**
- * @param {{
- *     settingsStateManager?: SettingsStateManager;
- *     fitFileStateManager?: FitFileStateManager;
- *     performanceMonitor?: PerformanceMonitor;
- * }} [stateManagers]
+ * @param {FitParserStateManagers} [stateManagers] State management instances.
  */
 function initializeStateManagement(stateManagers = {}) {
     settingsStateManager = stateManagers.settingsStateManager ?? null;
@@ -427,9 +418,6 @@ const DECODER_OPTION_KEYS = [
 /**
  * Get default decoder options
  *
- * @returns {Object} Default decoder options
- */
-/**
  * @returns {DecoderOptions}
  */
 function getDefaultDecoderOptions() {
@@ -449,11 +437,6 @@ function getDefaultDecoderOptions() {
 /**
  * Validates decoder options against schema
  *
- * @param {Object} options - Options to validate
- *
- * @returns {Object} Validation result with isValid and errors properties
- */
-/**
  * @param {Partial<DecoderOptions> | null | undefined} options
  *
  * @returns {DecoderOptionsValidationResult}
@@ -504,11 +487,6 @@ const unknownMessageMappings = {
 /**
  * Applies human-readable names and field labels to unknown messages.
  *
- * @param {Object} messages - The decoded FIT messages.
- *
- * @returns {Object} Messages with updated labels for unknown types.
- */
-/**
  * @param {FitMessages} messages
  *
  * @returns {FitMessages}
@@ -695,7 +673,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
 /**
  * Get current decoder options
  *
- * @returns {Object} Current decoder options
+ * @returns {DecoderOptions} Current decoder options.
  */
 function getCurrentDecoderOptions() {
     return getPersistedDecoderOptions();
@@ -719,7 +697,7 @@ function getDecoderIntegrityDetails(decoder) {
  * Retrieves persisted decoder options from the injected state management
  * adapter, falling back to defaults when no adapter is configured.
  *
- * @returns {Object} Persisted decoder options with validation
+ * @returns {DecoderOptions} Persisted decoder options with validation.
  */
 function getPersistedDecoderOptions() {
     const defaults = getDefaultDecoderOptions();
@@ -867,7 +845,7 @@ function reportLoadingProgress(progress) {
 /**
  * Reset decoder options to defaults
  *
- * @returns {Object} Result with success status
+ * @returns {import("./shared/fitParser").DecoderOptionsUpdateResult} Result with success status.
  */
 function resetDecoderOptions() {
     const defaults = getDefaultDecoderOptions();
@@ -877,9 +855,9 @@ function resetDecoderOptions() {
 /**
  * Update decoder options in the state management system with validation
  *
- * @param {Object} newOptions - New decoder options to persist
+ * @param {Partial<DecoderOptions>} newOptions New decoder options to persist.
  *
- * @returns {Object} Result with success status and validation errors
+ * @returns {import("./shared/fitParser").DecoderOptionsUpdateResult} Result with success status and validation errors.
  */
 function updateDecoderOptions(newOptions) {
     // Validate options first
@@ -936,6 +914,7 @@ function updateDecoderOptions(newOptions) {
     };
 }
 
+/** @type {FitParserModule} */
 module.exports = {
     applyUnknownMessageLabels,
     // Core functionality
