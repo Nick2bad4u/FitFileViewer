@@ -7,6 +7,10 @@
     type FitParserFacade = {
         getFitParserModule: () => FitParserModule;
     };
+    type FitFileInvokeChannel = Extract<
+        import("../../shared/ipc").GenericInvokeChannel,
+        "fit:decode" | "fit:parse"
+    >;
 
     type FitFileIpcHandler = (
         event: unknown,
@@ -14,7 +18,7 @@
     ) => Promise<FitDecodeResult>;
 
     type RegisterIpcHandle = (
-        channel: string,
+        channel: FitFileInvokeChannel,
         handler: FitFileIpcHandler
     ) => void;
 
@@ -89,7 +93,7 @@
             return;
         }
 
-        const registerHandler = (channel: string): void => {
+        const registerHandler = (channel: FitFileInvokeChannel): void => {
             registerIpcHandle(channel, async (_event, arrayBuffer) => {
                 try {
                     await ensureFitParserStateIntegration();
