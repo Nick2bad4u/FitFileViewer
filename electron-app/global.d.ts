@@ -1,25 +1,10 @@
-/* eslint-disable @typescript-eslint/method-signature-style, @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-object-types, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type {
     FitDecodeResult,
-    FitMessages,
 } from "./shared/fit";
+import type { ElectronAPIWithDevFlags } from "./shared/preloadApi";
 import type * as Leaflet from "leaflet";
 import type screenfull from "screenfull";
-import type {
-    ChannelInfo,
-    GenericInvokeChannel,
-    GenericSendChannel,
-    GyazoServerStartResult,
-    GyazoServerStopResult,
-    IpcEventCallback,
-    IpcRequestPayload,
-    IpcResponsePayload,
-    IpcSerializable,
-    MainStateListener,
-    PlatformInfo,
-    RendererIpcEventChannel,
-    UpdateEventName,
-} from "./shared/ipc";
 
 /*
  Global ambient type augmentation for values injected via the Electron preload script.
@@ -29,139 +14,13 @@ import type {
  Legacy globals remain isolated below while the preload API uses explicit IPC contract types.
 */
 
-interface ElectronAPI {
-    // File operations
-    /** Approve a persisted recent file path for subsequent readFile() calls. */
-    approveRecentFile(filePath: string): Promise<boolean>;
-    /**
-     * Opens the native single-file FIT dialog; returns selected path or null
-     * when cancelled.
-     */
-    openFile(): Promise<string | null>;
-    /** Alias for openFile; returns selected path or null when cancelled. */
-    openFileDialog(): Promise<string | null>;
-    /**
-     * Opens a folder picker dialog; returns selected folder path or null when
-     * cancelled.
-     */
-    openFolderDialog(): Promise<string | null>;
-    /**
-     * Opens the native multi-select overlay dialog; returns selected paths
-     * (possibly empty).
-     */
-    openOverlayDialog(): Promise<string[]>;
-    readFile(filePath: string): Promise<ArrayBuffer>;
-    parseFitFile(arrayBuffer: ArrayBuffer): Promise<FitDecodeResult>;
-    decodeFitFile(arrayBuffer: ArrayBuffer): Promise<FitDecodeResult>;
-    /** Get the persisted FIT browser folder (main process setting). */
-    getFitBrowserFolder(): Promise<string | null>;
-    /** List entries under the persisted FIT browser folder. */
-    listFitBrowserFolder(relPath?: string): Promise<IpcSerializable>;
-    isFitBrowserEnabled(): Promise<boolean>;
-    setFitBrowserEnabled(enabled: boolean): Promise<boolean>;
-    setFitBrowserFolder(folderPath: string): Promise<boolean>;
-    recentFiles(): Promise<string[]>;
-    addRecentFile(filePath: string): Promise<string[]>;
-
-    // Theme
-    getTheme(): Promise<string>;
-    sendThemeChanged(theme: string): void;
-
-    // Versions / metadata
-    getAppVersion(): Promise<string>;
-    getElectronVersion(): Promise<string>;
-    getNodeVersion(): Promise<string>;
-    getChromeVersion(): Promise<string>;
-    getLicenseInfo(): Promise<string>;
-    getPlatformInfo(): Promise<PlatformInfo>;
-
-    // External
-    openExternal(url: string): Promise<boolean>;
-
-    // Clipboard
-    writeClipboardText(text: string): Promise<boolean>;
-    writeClipboardPngDataUrl(pngDataUrl: string): Promise<boolean>;
-
-    // Gyazo server
-    startGyazoServer(port: number): Promise<GyazoServerStartResult>;
-    stopGyazoServer(): Promise<GyazoServerStopResult>;
-
-    // Events (registration functions return an unsubscribe function)
-    onMenuOpenFile(callback: () => void): () => void;
-    onMenuOpenOverlay(callback: () => void): () => void;
-    onOpenRecentFile(callback: (filePath: string) => void): () => void;
-    onSetTheme(callback: (theme: string) => void): () => void;
-    onOpenSummaryColumnSelector(callback: () => void): () => void;
-    onUpdateEvent(
-        eventName: UpdateEventName,
-        callback: (...args: IpcResponsePayload[]) => void
-    ): () => void;
-    /** Fired when a file is opened and parsed in main process */
-    onFileOpened?(
-        callback: (fileData: FitMessages, filePath: string) => void
-    ): void;
-
-    // Updater
-    checkForUpdates(): void;
-    installUpdate(): void;
-    setFullScreen(flag: boolean): void;
-
-    // Generic IPC
-    onIpc(
-        channel: RendererIpcEventChannel,
-        callback: IpcEventCallback
-    ): (() => void) | undefined;
-    send(channel: GenericSendChannel, ...args: IpcRequestPayload[]): void;
-    invoke(
-        channel: GenericInvokeChannel,
-        ...args: IpcRequestPayload[]
-    ): Promise<IpcResponsePayload>;
-
-    // Main process state bridge
-    getMainState(path?: string): Promise<IpcSerializable>;
-    setMainState(
-        path: string,
-        value: IpcSerializable,
-        options?: IpcSerializable
-    ): Promise<boolean>;
-    listenToMainState(
-        path: string,
-        callback: MainStateListener
-    ): Promise<boolean>;
-    unlistenFromMainState(
-        path: string,
-        callback: MainStateListener
-    ): Promise<boolean>;
-    subscribeToMainState(
-        path: string,
-        callback: MainStateListener
-    ): Promise<() => Promise<boolean>>;
-    getOperation(operationId: string): Promise<IpcSerializable | null>;
-    getOperations(): Promise<IpcSerializable>;
-    getErrors(limit?: number): Promise<IpcSerializable>;
-    getMetrics(): Promise<IpcSerializable>;
-
-    // Dev / debug
-    /** Notify main process of the currently loaded file (or null when cleared). */
-    notifyFitFileLoaded(filePath: string | null): void;
-    injectMenu(
-        theme?: string | null,
-        fitFilePath?: string | null
-    ): Promise<boolean>;
-    getChannelInfo(): ChannelInfo;
-    validateAPI(): boolean;
-}
-
 declare global {
     /** Canonical document reference provided by the Vitest setup harness */
     var __vitest_effective_document__: Document | undefined;
 
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
-        electronAPI: ElectronAPI & {
-            _summaryColListenerAdded?: boolean;
-            __devMode?: boolean;
-        };
+        electronAPI: ElectronAPIWithDevFlags;
 
         // --- Data / state objects ---
         globalData?: FitDecodeResult | null;
@@ -269,4 +128,4 @@ export interface ZoneInfo {
 }
 
 export {};
-/* eslint-enable @typescript-eslint/method-signature-style, @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-object-types, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
+/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */

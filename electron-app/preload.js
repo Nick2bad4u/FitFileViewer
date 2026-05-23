@@ -147,84 +147,7 @@ const // Constants for better maintainability
      * }} PreloadGlobal
      */
     /**
-     * @typedef {Object} ElectronAPI
-     *
-     * @property {(filePath: string) => Promise<boolean>} approveRecentFile
-     * @property {() => Promise<string | null>} openFile
-     * @property {() => Promise<string | null>} openFileDialog
-     * @property {() => Promise<string | null>} openFolderDialog
-     * @property {() => Promise<string[]>} openOverlayDialog
-     * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
-     * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} parseFitFile
-     * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} decodeFitFile
-     * @property {() => Promise<string | null>} getFitBrowserFolder
-     * @property {(relPath?: string) => Promise<IpcSerializable>} listFitBrowserFolder
-     * @property {() => Promise<boolean>} isFitBrowserEnabled
-     * @property {(enabled: boolean) => Promise<boolean>} setFitBrowserEnabled
-     * @property {(folderPath: string) => Promise<boolean>} setFitBrowserFolder
-     * @property {() => Promise<string[]>} recentFiles
-     * @property {(filePath: string) => Promise<string[]>} addRecentFile
-     * @property {() => Promise<string>} getTheme
-     * @property {(theme: string) => void} sendThemeChanged
-     * @property {() => Promise<string>} getAppVersion
-     * @property {() => Promise<string>} getElectronVersion
-     * @property {() => Promise<string>} getNodeVersion
-     * @property {() => Promise<string>} getChromeVersion
-     * @property {() => Promise<string>} getLicenseInfo
-     * @property {() => Promise<PlatformInfo>} getPlatformInfo
-     * @property {(url: string) => Promise<boolean>} openExternal
-     * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
-     * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
-     * @property {(callback: () => void) => () => void} onMenuOpenFile
-     * @property {(callback: () => void) => () => void} onMenuOpenOverlay
-     * @property {(callback: (filePath: string) => void) => () => void} onOpenRecentFile
-     * @property {(callback: (theme: string) => void) => () => void} onSetTheme
-     * @property {(callback: () => void) => () => void} onOpenSummaryColumnSelector
-     * @property {(
-     *     eventName: string,
-     *     callback: (...args: IpcSerializable[]) => void
-     * ) => () => void} onUpdateEvent
-     * @property {() => void} checkForUpdates
-     * @property {() => void} installUpdate
-     * @property {(flag: boolean) => void} setFullScreen
-     * @property {(
-     *     channel: string,
-     *     callback: (event: object, ...args: IpcSerializable[]) => void
-     * ) => (() => void) | void} onIpc
-     * @property {(channel: string, ...args: IpcSerializable[]) => void} send
-     * @property {(
-     *     channel: string,
-     *     ...args: IpcSerializable[]
-     * ) => Promise<IpcSerializable | ArrayBuffer>} invoke
-     * @property {(filePath: string | null) => void} notifyFitFileLoaded
-     * @property {(
-     *     theme?: string | null,
-     *     fitFilePath?: string | null
-     * ) => Promise<boolean>} injectMenu
-     * @property {(path?: string) => Promise<IpcSerializable>} getMainState
-     * @property {(
-     *     path: string,
-     *     value: IpcSerializable,
-     *     options?: IpcSerializable
-     * ) => Promise<boolean>} setMainState
-     * @property {(
-     *     path: string,
-     *     callback: (change: IpcSerializable) => void
-     * ) => Promise<boolean>} listenToMainState
-     * @property {(
-     *     path: string,
-     *     callback: (change: IpcSerializable) => void
-     * ) => Promise<boolean>} unlistenFromMainState
-     * @property {(
-     *     path: string,
-     *     callback: (change: IpcSerializable) => void
-     * ) => Promise<() => Promise<boolean>>} subscribeToMainState
-     * @property {(operationId: string) => Promise<IpcSerializable | null>} getOperation
-     * @property {() => Promise<IpcSerializable>} getOperations
-     * @property {(limit?: number) => Promise<IpcSerializable>} getErrors
-     * @property {() => Promise<IpcSerializable>} getMetrics
-     * @property {() => ChannelInfo} getChannelInfo
-     * @property {() => boolean} validateAPI
+     * @typedef {import("./shared/preloadApi").ElectronAPI} ElectronAPI
      */
 
     // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
@@ -741,7 +664,7 @@ const electronAPI = {
      *
      * @param {ArrayBuffer} arrayBuffer
      *
-     * @returns {Promise<IpcSerializable>}
+     * @returns {Promise<import("./shared/fit").FitDecodeResult>}
      */
     decodeFitFile: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.FIT_DECODE,
@@ -1268,7 +1191,7 @@ const electronAPI = {
      *
      * @param {ArrayBuffer} arrayBuffer
      *
-     * @returns {Promise<IpcSerializable>}
+     * @returns {Promise<import("./shared/fit").FitDecodeResult>}
      */
     parseFitFile: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.FIT_PARSE,
