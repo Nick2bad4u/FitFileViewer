@@ -10,8 +10,10 @@ import {
     validateElement,
 } from "./mainUiDomUtils.js";
 import { showNotification } from "./notifications/showNotification.js";
-
-type FitDecodeResult = { error?: unknown } & Record<string, unknown>;
+import type {
+    FitDecodeErrorPayload,
+    FitDecodeResult,
+} from "../../shared/fit";
 
 type DroppedFile = File & { path?: string };
 
@@ -50,6 +52,17 @@ function getDroppedFilePath(file: File): string {
     return typeof path === "string" && path.trim().length > 0
         ? path
         : file.name;
+}
+
+function isFitDecodeErrorPayload(
+    value: FitDecodeResult | undefined
+): value is FitDecodeErrorPayload {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        typeof (value as { error?: unknown }).error === "string"
+    );
 }
 
 /** Coordinates global FIT-file drag/drop handling and drop overlay state. */
@@ -140,7 +153,7 @@ export class DragDropHandler {
                 await getDragDropGlobal().electronAPI?.decodeFitFile?.(
                     arrayBuffer
                 );
-            if (fitData && !fitData.error) {
+            if (fitData && !isFitDecodeErrorPayload(fitData)) {
                 showFitData(fitData, filePath);
                 getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
                 showNotification(
@@ -152,8 +165,11 @@ export class DragDropHandler {
 
                 // Handle error in state manager
                 if (fitFileStateManager) {
+                    const errorMessage = isFitDecodeErrorPayload(fitData)
+                        ? fitData.error
+                        : "Unknown error";
                     fitFileStateManager.handleFileLoadingError?.(
-                        new Error(String(fitData?.error || "Unknown error"))
+                        new Error(errorMessage)
                     );
                 }
             }

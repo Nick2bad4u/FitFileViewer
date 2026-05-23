@@ -27,6 +27,14 @@ function getDroppedFilePath(file) {
         ? path
         : file.name;
 }
+function isFitDecodeErrorPayload(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        typeof value.error === "string"
+    );
+}
 /** Coordinates global FIT-file drag/drop handling and drop overlay state. */
 export class DragDropHandler {
     dragCounter = 0;
@@ -105,7 +113,7 @@ export class DragDropHandler {
                 await getDragDropGlobal().electronAPI?.decodeFitFile?.(
                     arrayBuffer
                 );
-            if (fitData && !fitData.error) {
+            if (fitData && !isFitDecodeErrorPayload(fitData)) {
                 showFitData(fitData, filePath);
                 getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
                 showNotification(
@@ -116,8 +124,11 @@ export class DragDropHandler {
                 showNotification("Failed to load FIT file", "error");
                 // Handle error in state manager
                 if (fitFileStateManager) {
+                    const errorMessage = isFitDecodeErrorPayload(fitData)
+                        ? fitData.error
+                        : "Unknown error";
                     fitFileStateManager.handleFileLoadingError?.(
-                        new Error(String(fitData?.error || "Unknown error"))
+                        new Error(errorMessage)
                     );
                 }
             }
