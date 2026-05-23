@@ -111,20 +111,6 @@
             src="node_modules/dompurify/dist/purify.min.js"
         ></script>
 
-        <!--
-            Browser-run modules (loaded via <script type="module"> under file://) cannot resolve
-            Node-style bare specifiers. Provide an import map for the few packages used directly
-            by renderer-side modules.
-        -->
-        <script type="importmap">
-            {
-                "imports": {
-                    "p-limit": "./node_modules/p-limit/index.js",
-                    "yocto-queue": "./node_modules/yocto-queue/index.js",
-                    "zod": "./node_modules/zod/index.js"
-                }
-            }
-        </script>
         <script
             defer
             src="node_modules/jquery/dist/jquery.min.js"
