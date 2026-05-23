@@ -4,12 +4,13 @@
     type FitMessages = import("../../shared/fit").FitMessages;
     type FitParserStateManagers =
         import("../../types/fitParser").FitParserStateManagers;
-
-    interface FitParserModule {
-        initializeStateManagement?: (
-            stateManagers?: FitParserStateManagers
-        ) => void;
-    }
+    type FitParserModule = Pick<
+        import("../../types/fitParser").FitParserModule,
+        "initializeStateManagement"
+    >;
+    type FitParserFacade = {
+        getFitParserModule: () => FitParserModule;
+    };
 
     interface FitParserSettingsConf {
         get: (key: string) => unknown;
@@ -435,7 +436,9 @@
 
         fitParserStateIntegrationPromise = (async () => {
             try {
-                const fitParser = require("../../fitParser") as FitParserModule;
+                const { getFitParserModule } =
+                    require("./fitParserFacade") as FitParserFacade;
+                const fitParser = getFitParserModule();
                 if (
                     !fitParser ||
                     typeof fitParser.initializeStateManagement !== "function"

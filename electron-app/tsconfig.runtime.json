@@ -66,6 +66,7 @@
         "main/updater/autoUpdaterAccess.ts",
         "main/updater/setupAutoUpdater.ts",
         "main/runtime/electronAccess.ts",
+        "main/runtime/fitParserFacade.ts",
         "main/runtime/fitParserIntegration.ts",
         "main/runtime/initializeApplication.ts",
         "main/runtime/nodeModules.ts",

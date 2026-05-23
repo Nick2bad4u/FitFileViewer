@@ -57,8 +57,10 @@
                 try {
                     await ensureFitParserStateIntegration();
                     const buffer = toBuffer(arrayBuffer);
-                    const fitParser =
-                        fitParserModule ?? require("../../fitParser");
+                    const {
+                        getFitParserModule,
+                    } = require("../runtime/fitParserFacade");
+                    const fitParser = fitParserModule ?? getFitParserModule();
                     return await fitParser.decodeFitFile(buffer);
                 } catch (error) {
                     logWithContext?.("error", `Error in ${channel}:`, {

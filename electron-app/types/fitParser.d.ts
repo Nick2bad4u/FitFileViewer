@@ -138,3 +138,17 @@ export function updateDecoderOptions(
 export function validateDecoderOptions(
     options: Partial<DecoderOptions> | null | undefined
 ): DecoderOptionsValidationResult;
+
+export interface FitParserModule {
+    applyUnknownMessageLabels: typeof applyUnknownMessageLabels;
+    decodeFitFile: typeof decodeFitFile;
+    DECODER_OPTIONS_SCHEMA: typeof DECODER_OPTIONS_SCHEMA;
+    FitDecodeError: typeof FitDecodeError;
+    getCurrentDecoderOptions: typeof getCurrentDecoderOptions;
+    getDefaultDecoderOptions: typeof getDefaultDecoderOptions;
+    getPersistedDecoderOptions: typeof getPersistedDecoderOptions;
+    initializeStateManagement: typeof initializeStateManagement;
+    resetDecoderOptions: typeof resetDecoderOptions;
+    updateDecoderOptions: typeof updateDecoderOptions;
+    validateDecoderOptions: typeof validateDecoderOptions;
+}

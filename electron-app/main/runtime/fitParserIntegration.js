@@ -300,7 +300,8 @@
         }
         fitParserStateIntegrationPromise = (async () => {
             try {
-                const fitParser = require("../../fitParser");
+                const { getFitParserModule } = require("./fitParserFacade");
+                const fitParser = getFitParserModule();
                 if (
                     !fitParser ||
                     typeof fitParser.initializeStateManagement !== "function"

@@ -1,5 +1,12 @@
 {
     type FitDecodeResult = import("../../shared/fit").FitDecodeResult;
+    type FitParserModule = Pick<
+        import("../../types/fitParser").FitParserModule,
+        "decodeFitFile"
+    >;
+    type FitParserFacade = {
+        getFitParserModule: () => FitParserModule;
+    };
 
     type FitFileIpcHandler = (
         event: unknown,
@@ -16,10 +23,6 @@
         message: string,
         context?: Record<string, unknown>
     ) => void;
-
-    interface FitParserModule {
-        decodeFitFile: (buffer: Buffer) => Promise<FitDecodeResult>;
-    }
 
     interface RegisterFitFileHandlersOptions {
         ensureFitParserStateIntegration: () => Promise<void>;
@@ -91,9 +94,9 @@
                 try {
                     await ensureFitParserStateIntegration();
                     const buffer = toBuffer(arrayBuffer);
-                    const fitParser =
-                        fitParserModule ??
-                        (require("../../fitParser") as FitParserModule);
+                    const { getFitParserModule } =
+                        require("../runtime/fitParserFacade") as FitParserFacade;
+                    const fitParser = fitParserModule ?? getFitParserModule();
                     return await fitParser.decodeFitFile(buffer);
                 } catch (error) {
                     logWithContext?.("error", `Error in ${channel}:`, {
