@@ -1,18 +1,20 @@
 import type {
-    IpcSerializable,
     MainStateChange,
+    MainStateIpcValue,
     MainStateListener,
+    MainStateSetOptions,
+    MainStateSetValue,
 } from "../../../shared/ipc";
 import type { ElectronAPI } from "../../../shared/preloadApi";
 
-type Operation = IpcSerializable;
-type ErrorEntry = IpcSerializable;
-type Metrics = IpcSerializable;
+type Operation = MainStateIpcValue;
+type ErrorEntry = MainStateIpcValue;
+type Metrics = MainStateIpcValue;
 
 /** State change payload delivered by the main-process state bridge. */
 export type StateChangeEvent = MainStateChange & {
-    metadata?: IpcSerializable;
-    oldValue?: IpcSerializable;
+    metadata?: MainStateIpcValue;
+    oldValue?: MainStateIpcValue;
 };
 
 type MainStateElectronAPI = Pick<
@@ -44,14 +46,16 @@ function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
     return stateGlobal.electronAPI ?? stateGlobal.window.electronAPI;
 }
 
-function isIpcSerializableRecord(
-    value: IpcSerializable
-): value is { readonly [key: string]: IpcSerializable } {
+function isMainStateRecord(
+    value: MainStateIpcValue
+): value is { readonly [key: string]: MainStateIpcValue } {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function toOperationRecord(value: IpcSerializable): Record<string, Operation> {
-    if (!isIpcSerializableRecord(value)) {
+function toOperationRecord(
+    value: MainStateIpcValue
+): Record<string, Operation> {
+    if (!isMainStateRecord(value)) {
         throw new TypeError("Expected main process operations to be a record");
     }
 
@@ -103,7 +107,7 @@ export class MainProcessStateClient {
      * @throws Error when the preload state bridge is unavailable or the IPC
      *   call fails.
      */
-    public async get(path?: string): Promise<IpcSerializable> {
+    public async get(path?: string): Promise<MainStateIpcValue> {
         const electronAPI = this.requireElectronAPI();
 
         try {
@@ -159,7 +163,7 @@ export class MainProcessStateClient {
     /** Gets the current Gyazo server state from main process state. */
     public async getGyazoServerState(): Promise<{
         port: null | number;
-        server: IpcSerializable;
+        server: MainStateIpcValue;
     }> {
         const [server, port] = await Promise.all([
             this.get("gyazoServer"),
@@ -175,7 +179,7 @@ export class MainProcessStateClient {
     }
 
     /** Gets the serialized main window reference from state. */
-    public async getMainWindow(): Promise<IpcSerializable> {
+    public async getMainWindow(): Promise<MainStateIpcValue> {
         return this.get("mainWindow");
     }
 
@@ -293,8 +297,8 @@ export class MainProcessStateClient {
      */
     public async set(
         path: string,
-        value: IpcSerializable,
-        options: IpcSerializable = {}
+        value: MainStateSetValue,
+        options: MainStateSetOptions = {}
     ): Promise<boolean> {
         const electronAPI = this.requireElectronAPI();
 

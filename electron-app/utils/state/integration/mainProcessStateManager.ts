@@ -45,17 +45,36 @@ type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
 type LooseRecord = Record<string, unknown>;
 type IpcHandlerArgs = unknown[];
+type MainStateErrorsRequest =
+    import("../../../shared/ipc").MainStateErrorsRequest;
+type MainStateErrorsResponse =
+    import("../../../shared/ipc").MainStateErrorsResponse;
+type MainStateGetRequest = import("../../../shared/ipc").MainStateGetRequest;
+type MainStateGetResponse = import("../../../shared/ipc").MainStateGetResponse;
+type MainStateIpcValue = import("../../../shared/ipc").MainStateIpcValue;
+type MainStateListenRequest =
+    import("../../../shared/ipc").MainStateListenRequest;
+type MainStateListenResponse =
+    import("../../../shared/ipc").MainStateListenResponse;
+type MainStateMetricsResponse =
+    import("../../../shared/ipc").MainStateMetricsResponse;
+type MainStateOperationRequest =
+    import("../../../shared/ipc").MainStateOperationRequest;
+type MainStateOperationResponse =
+    import("../../../shared/ipc").MainStateOperationResponse;
+type MainStateOperationsResponse =
+    import("../../../shared/ipc").MainStateOperationsResponse;
+type MainStateSetOptions = import("../../../shared/ipc").MainStateSetOptions;
+type MainStateSetResponse = import("../../../shared/ipc").MainStateSetResponse;
+type MainStateSetValue = import("../../../shared/ipc").MainStateSetValue;
+type MainStateUnlistenRequest =
+    import("../../../shared/ipc").MainStateUnlistenRequest;
+type MainStateUnlistenResponse =
+    import("../../../shared/ipc").MainStateUnlistenResponse;
 interface SerializableRecord {
     [key: string]: SerializableValue;
 }
-type SerializableValue =
-    | boolean
-    | null
-    | number
-    | SerializableValue[]
-    | SerializableRecord
-    | string
-    | undefined;
+type SerializableValue = MainStateIpcValue;
 
 type StateChange = {
     metadata?: LooseRecord;
@@ -951,7 +970,10 @@ class MainProcessState {
         // Get main process state
         ipcMain.handle(
             "main-state:get",
-            (event: MainIpcEventLike, path: string) => {
+            (
+                event: MainIpcEventLike,
+                path: MainStateGetRequest
+            ): MainStateGetResponse => {
                 if (!validate(event)) {
                     return undefined;
                 }
@@ -983,9 +1005,9 @@ class MainProcessState {
             (
                 event: MainIpcEventLike,
                 path: string,
-                value: unknown,
-                options: LooseRecord = {}
-            ) => {
+                value: MainStateSetValue,
+                options: MainStateSetOptions = {}
+            ): MainStateSetResponse => {
                 if (!validate(event)) {
                     return false;
                 }
@@ -1046,7 +1068,10 @@ class MainProcessState {
         // Listen to main process state changes
         ipcMain.handle(
             "main-state:listen",
-            (event: MainIpcEventLike, path: string) => {
+            (
+                event: MainIpcEventLike,
+                path: MainStateListenRequest
+            ): MainStateListenResponse => {
                 if (!validate(event)) {
                     return false;
                 }
@@ -1108,7 +1133,10 @@ class MainProcessState {
 
         ipcMain.handle(
             "main-state:unlisten",
-            (event: MainIpcEventLike, path: string) => {
+            (
+                event: MainIpcEventLike,
+                path: MainStateUnlistenRequest
+            ): MainStateUnlistenResponse => {
                 if (!validate(event)) {
                     return false;
                 }
@@ -1142,7 +1170,10 @@ class MainProcessState {
         // Get operation status
         ipcMain.handle(
             "main-state:operation",
-            (event: MainIpcEventLike, operationId: string) => {
+            (
+                event: MainIpcEventLike,
+                operationId: MainStateOperationRequest
+            ): MainStateOperationResponse => {
                 if (!validate(event)) {
                     return undefined;
                 }
@@ -1163,30 +1194,40 @@ class MainProcessState {
                 }
 
                 const val = this.get(`operations.${safeOperationId}`);
-                return val === null ? undefined : val;
+                return val === null ? undefined : this.makeSerializable(val);
             }
         );
 
         // Get all operations
-        ipcMain.handle("main-state:operations", () => {
-            const ops = this.get("operations");
-            if (!ops) return {};
-            // Convert Map to plain object if needed
-            if (ops instanceof Map) {
-                return Object.fromEntries(ops.entries());
+        ipcMain.handle(
+            "main-state:operations",
+            (): MainStateOperationsResponse => {
+                const ops = this.get("operations");
+                if (!ops) return {};
+                // Convert Map to plain object if needed
+                if (ops instanceof Map) {
+                    return this.makeSerializable(
+                        Object.fromEntries(ops.entries())
+                    );
+                }
+                return this.makeSerializable(ops) || {};
             }
-            return this.makeSerializable(ops) || {};
-        });
+        );
 
         // Get errors
         ipcMain.handle(
             "main-state:errors",
-            (event: MainIpcEventLike, limit = 50) => {
+            (
+                event: MainIpcEventLike,
+                limit: MainStateErrorsRequest = 50
+            ): MainStateErrorsResponse => {
                 if (!validate(event)) {
                     return [];
                 }
 
-                const errors = asArray(this.get("errors"));
+                const errors = asArray(this.get("errors")).map((error) =>
+                    this.makeSerializable(error)
+                );
                 const max = 100;
                 const n =
                     typeof limit === "number" && Number.isFinite(limit)
@@ -1198,8 +1239,10 @@ class MainProcessState {
         );
 
         // Get metrics
-        ipcMain.handle("main-state:metrics", () =>
-            this.makeSerializable(this.getSerializableMetrics())
+        ipcMain.handle(
+            "main-state:metrics",
+            (): MainStateMetricsResponse =>
+                this.makeSerializable(this.getSerializableMetrics())
         );
 
         this._ipcHandlersRegistered = true;

@@ -28,8 +28,23 @@ import type {
     IpcEventCallback,
     IpcRequestPayload,
     IpcResponsePayload,
-    IpcSerializable,
+    MainStateErrorsRequest,
+    MainStateErrorsResponse,
+    MainStateGetRequest,
+    MainStateGetResponse,
     MainStateListener,
+    MainStateListenRequest,
+    MainStateListenResponse,
+    MainStateMetricsResponse,
+    MainStateOperationRequest,
+    MainStateOperationResponse,
+    MainStateOperationsResponse,
+    MainStatePath,
+    MainStateSetOptions,
+    MainStateSetResponse,
+    MainStateSetValue,
+    MainStateUnlistenRequest,
+    MainStateUnlistenResponse,
     RecentFileRequestPayload,
     RecentFilesApprovalResponse,
     RecentFilesListResponse,
@@ -140,28 +155,32 @@ export interface ElectronAPI {
         ...args: IpcRequestPayload[]
     ) => Promise<IpcResponsePayload>;
 
-    getMainState: (path?: string) => Promise<IpcSerializable>;
+    getMainState: (path?: MainStateGetRequest) => Promise<MainStateGetResponse>;
     setMainState: (
-        path: string,
-        value: IpcSerializable,
-        options?: IpcSerializable
-    ) => Promise<boolean>;
+        path: MainStatePath,
+        value: MainStateSetValue,
+        options?: MainStateSetOptions
+    ) => Promise<MainStateSetResponse>;
     listenToMainState: (
-        path: string,
+        path: MainStateListenRequest,
         callback: MainStateListener
-    ) => Promise<boolean>;
+    ) => Promise<MainStateListenResponse>;
     unlistenFromMainState: (
-        path: string,
+        path: MainStateUnlistenRequest,
         callback: MainStateListener
-    ) => Promise<boolean>;
+    ) => Promise<MainStateUnlistenResponse>;
     subscribeToMainState: (
-        path: string,
+        path: MainStatePath,
         callback: MainStateListener
     ) => Promise<() => Promise<boolean>>;
-    getOperation: (operationId: string) => Promise<IpcSerializable | null>;
-    getOperations: () => Promise<IpcSerializable>;
-    getErrors: (limit?: number) => Promise<IpcSerializable>;
-    getMetrics: () => Promise<IpcSerializable>;
+    getOperation: (
+        operationId: MainStateOperationRequest
+    ) => Promise<MainStateOperationResponse | null>;
+    getOperations: () => Promise<MainStateOperationsResponse>;
+    getErrors: (
+        limit?: MainStateErrorsRequest
+    ) => Promise<MainStateErrorsResponse>;
+    getMetrics: () => Promise<MainStateMetricsResponse>;
 
     /** Notify main process of the currently loaded file (or null when cleared). */
     notifyFitFileLoaded: (filePath: null | string) => void;

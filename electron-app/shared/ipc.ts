@@ -15,6 +15,27 @@ export type IpcRequestPayload = IpcSerializable | ArrayBuffer;
 /** Payload shape returned by generic invoke wrappers. */
 export type IpcResponsePayload = IpcSerializable | ArrayBuffer;
 
+/** Main-state values after IPC serialization. */
+export type MainStateIpcValue =
+    | boolean
+    | null
+    | number
+    | string
+    | undefined
+    | readonly MainStateIpcValue[]
+    | { readonly [key: string]: MainStateIpcValue };
+
+/** Dot-path accepted by the main-process state bridge. */
+export type MainStatePath = string;
+
+/** Metadata accepted when renderer-owned main-state values are updated. */
+export type MainStateSetOptions = {
+    readonly [key: string]: MainStateIpcValue;
+};
+
+/** Renderer-provided main-state value. */
+export type MainStateSetValue = MainStateIpcValue;
+
 /** Request payloads for invoke channels with explicit contracts. */
 export interface InvokeRequestPayloadByChannel {
     "browser:getFolder": never;
@@ -42,6 +63,18 @@ export interface InvokeRequestPayloadByChannel {
     getPlatformInfo: never;
     "gyazo:server:start": number;
     "gyazo:server:stop": never;
+    "main-state:errors": number | undefined;
+    "main-state:get": MainStatePath | undefined;
+    "main-state:listen": MainStatePath;
+    "main-state:metrics": never;
+    "main-state:operation": string;
+    "main-state:operations": never;
+    "main-state:set": [
+        path: MainStatePath,
+        value: MainStateSetValue,
+        options?: MainStateSetOptions,
+    ];
+    "main-state:unlisten": MainStatePath;
     "map-tab:get": never;
     "recentFiles:add": string;
     "recentFiles:approve": string;
@@ -74,6 +107,14 @@ export interface InvokeResponsePayloadByChannel {
     getPlatformInfo: PlatformInfo;
     "gyazo:server:start": GyazoServerStartResult;
     "gyazo:server:stop": GyazoServerStopResult;
+    "main-state:errors": MainStateIpcValue[];
+    "main-state:get": MainStateIpcValue;
+    "main-state:listen": boolean;
+    "main-state:metrics": MainStateIpcValue;
+    "main-state:operation": MainStateIpcValue;
+    "main-state:operations": MainStateIpcValue;
+    "main-state:set": boolean;
+    "main-state:unlisten": boolean;
     "map-tab:get": string;
     "recentFiles:add": string[];
     "recentFiles:approve": boolean;
@@ -192,6 +233,79 @@ export type DevtoolsInjectMenuFitFilePath = null | string;
 /** Success flag returned after devtools menu injection. */
 export type DevtoolsInjectMenuResponse =
     InvokeResponsePayloadByChannel["devtools-inject-menu"];
+
+/** Main-process state invoke channels handled by the state bridge. */
+export type MainStateInvokeChannel = Extract<
+    GenericInvokeChannel,
+    | "main-state:errors"
+    | "main-state:get"
+    | "main-state:listen"
+    | "main-state:metrics"
+    | "main-state:operation"
+    | "main-state:operations"
+    | "main-state:set"
+    | "main-state:unlisten"
+>;
+
+/** Request payload accepted by main-state invoke handlers. */
+export type MainStateRequestPayload =
+    InvokeRequestPayloadByChannel[MainStateInvokeChannel];
+
+/** Response payload returned by main-state invoke handlers. */
+export type MainStateResponsePayload =
+    InvokeResponsePayloadByChannel[MainStateInvokeChannel];
+
+/** Optional path accepted by main-state:get. */
+export type MainStateGetRequest =
+    InvokeRequestPayloadByChannel["main-state:get"];
+
+/** Value returned by main-state:get. */
+export type MainStateGetResponse =
+    InvokeResponsePayloadByChannel["main-state:get"];
+
+/** Request tuple accepted by main-state:set. */
+export type MainStateSetRequest =
+    InvokeRequestPayloadByChannel["main-state:set"];
+
+/** Success flag returned by main-state:set. */
+export type MainStateSetResponse =
+    InvokeResponsePayloadByChannel["main-state:set"];
+
+/** Path accepted by main-state:listen. */
+export type MainStateListenRequest =
+    InvokeRequestPayloadByChannel["main-state:listen"];
+
+/** Success flag returned by main-state:listen. */
+export type MainStateListenResponse =
+    InvokeResponsePayloadByChannel["main-state:listen"];
+
+/** Path accepted by main-state:unlisten. */
+export type MainStateUnlistenRequest =
+    InvokeRequestPayloadByChannel["main-state:unlisten"];
+
+/** Success flag returned by main-state:unlisten. */
+export type MainStateUnlistenResponse =
+    InvokeResponsePayloadByChannel["main-state:unlisten"];
+
+/** Operation id accepted by main-state:operation. */
+export type MainStateOperationRequest =
+    InvokeRequestPayloadByChannel["main-state:operation"];
+
+/** Single operation status returned by main-state:operation. */
+export type MainStateOperationResponse = MainStateIpcValue;
+
+/** All operation statuses returned by main-state:operations. */
+export type MainStateOperationsResponse = MainStateIpcValue;
+
+/** Optional limit accepted by main-state:errors. */
+export type MainStateErrorsRequest =
+    InvokeRequestPayloadByChannel["main-state:errors"];
+
+/** Recent errors returned by main-state:errors. */
+export type MainStateErrorsResponse = MainStateIpcValue[];
+
+/** Metrics snapshot returned by main-state:metrics. */
+export type MainStateMetricsResponse = MainStateIpcValue;
 
 /** Clipboard invoke channels handled by main-process clipboard IPC. */
 export type ClipboardInvokeChannel = Extract<
@@ -362,7 +476,7 @@ export interface MainStateChange {
     path: string;
     source?: string;
     timestamp?: number;
-    value: IpcSerializable;
+    value: MainStateIpcValue;
 }
 
 /** Callback used for main-process state change subscriptions. */

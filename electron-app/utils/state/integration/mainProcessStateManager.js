@@ -919,7 +919,7 @@ class MainProcessState {
                 return;
             }
             const val = this.get(`operations.${safeOperationId}`);
-            return val === null ? undefined : val;
+            return val === null ? undefined : this.makeSerializable(val);
         });
         // Get all operations
         ipcMain.handle("main-state:operations", () => {
@@ -927,7 +927,7 @@ class MainProcessState {
             if (!ops) return {};
             // Convert Map to plain object if needed
             if (ops instanceof Map) {
-                return Object.fromEntries(ops.entries());
+                return this.makeSerializable(Object.fromEntries(ops.entries()));
             }
             return this.makeSerializable(ops) || {};
         });
@@ -936,7 +936,9 @@ class MainProcessState {
             if (!validate(event)) {
                 return [];
             }
-            const errors = asArray(this.get("errors"));
+            const errors = asArray(this.get("errors")).map((error) =>
+                this.makeSerializable(error)
+            );
             const max = 100;
             const n =
                 typeof limit === "number" && Number.isFinite(limit)

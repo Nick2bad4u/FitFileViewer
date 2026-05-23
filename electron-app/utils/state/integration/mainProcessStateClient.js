@@ -5,11 +5,11 @@ function getMainStateElectronAPI() {
     }
     return stateGlobal.electronAPI ?? stateGlobal.window.electronAPI;
 }
-function isIpcSerializableRecord(value) {
+function isMainStateRecord(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 function toOperationRecord(value) {
-    if (!isIpcSerializableRecord(value)) {
+    if (!isMainStateRecord(value)) {
         throw new TypeError("Expected main process operations to be a record");
     }
     return { ...value };
