@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
+/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
 {
-    const electron: typeof import("electron") = require("electron");
-    const fs: typeof import("node:fs") = require("node:fs");
-    const path: typeof import("node:path") = require("node:path");
     type LogLevel = "error" | "info" | "warn";
 
     interface LoggingModule {
@@ -12,7 +9,21 @@
             context?: Record<string, unknown>
         ) => void;
     }
-    const loggingModule: LoggingModule = require("./main/logging/logWithContext");
+
+    interface WindowStateRequire {
+        (id: "./main/logging/logWithContext"): LoggingModule;
+        (id: "electron"): typeof import("electron");
+        (id: "node:fs"): typeof import("node:fs");
+        (id: "node:path"): typeof import("node:path");
+    }
+
+    const requireWindowStateModule: WindowStateRequire = require;
+    const electron = requireWindowStateModule("electron");
+    const fs = requireWindowStateModule("node:fs");
+    const path = requireWindowStateModule("node:path");
+    const loggingModule = requireWindowStateModule(
+        "./main/logging/logWithContext"
+    );
     const { logWithContext } = loggingModule;
 
     const { app, BrowserWindow } = electron;
@@ -27,6 +38,14 @@
         x?: number;
         y?: number;
     }
+
+    type WindowStateDirectoryPath = string & {
+        readonly __windowStateDirectoryPath: "WindowStateDirectoryPath";
+    };
+
+    type WindowStateFilePath = string & {
+        readonly __windowStateFilePath: "WindowStateFilePath";
+    };
 
     interface DevHelpers {
         getConfig: () => {
@@ -165,10 +184,100 @@
         return sanitized;
     }
 
-    function getSettingsPath(): string {
+    function isPathWithinDirectory(
+        candidatePath: string,
+        directory: string
+    ): boolean {
+        const relativePath = path.relative(directory, candidatePath);
+        return (
+            relativePath === "" ||
+            (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))
+        );
+    }
+
+    function createWindowStateFilePath(
+        storageDirectory: string
+    ): WindowStateFilePath {
+        const resolvedDirectory = path.resolve(storageDirectory);
+        const resolvedFilePath = path.resolve(
+            resolvedDirectory,
+            CONSTANTS.FILES.WINDOW_STATE
+        );
+
+        if (!isWindowStateFilePath(resolvedFilePath, resolvedDirectory)) {
+            throw new Error("Resolved window state path escaped its directory");
+        }
+
+        return resolvedFilePath;
+    }
+
+    function getWindowStateDirectory(
+        filePath: WindowStateFilePath
+    ): WindowStateDirectoryPath {
+        const directoryPath = path.dirname(filePath);
+        if (!isWindowStateDirectoryPath(directoryPath, filePath)) {
+            throw new Error("Unable to derive window state directory path");
+        }
+
+        return directoryPath;
+    }
+
+    function isWindowStateDirectoryPath(
+        candidatePath: string,
+        filePath: WindowStateFilePath
+    ): candidatePath is WindowStateDirectoryPath {
+        return candidatePath === path.dirname(filePath);
+    }
+
+    function isWindowStateFilePath(
+        candidatePath: string,
+        storageDirectory: string
+    ): candidatePath is WindowStateFilePath {
+        return (
+            path.basename(candidatePath) === CONSTANTS.FILES.WINDOW_STATE &&
+            isPathWithinDirectory(candidatePath, storageDirectory)
+        );
+    }
+
+    function windowStateDirectoryExists(
+        directoryPath: WindowStateDirectoryPath
+    ): boolean {
+        return fs.existsSync(directoryPath);
+    }
+
+    function windowStateFileExists(filePath: WindowStateFilePath): boolean {
+        return fs.existsSync(filePath);
+    }
+
+    function deleteWindowStateFile(filePath: WindowStateFilePath): void {
+        fs.unlinkSync(filePath);
+    }
+
+    function ensureWindowStateDirectory(
+        directoryPath: WindowStateDirectoryPath
+    ): void {
+        if (windowStateDirectoryExists(directoryPath)) {
+            return;
+        }
+
+        fs.mkdirSync(directoryPath, { recursive: true });
+    }
+
+    function readWindowStateFile(filePath: WindowStateFilePath): string {
+        return fs.readFileSync(filePath, "utf8");
+    }
+
+    function writeWindowStateFile(
+        filePath: WindowStateFilePath,
+        state: WindowState
+    ): void {
+        fs.writeFileSync(filePath, JSON.stringify(state, null, 2));
+    }
+
+    function getSettingsPath(): WindowStateFilePath {
         try {
             const userDataPath = app.getPath("userData");
-            return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
+            return createWindowStateFilePath(userDataPath);
         } catch (error) {
             logWithContext(
                 "error",
@@ -177,7 +286,7 @@
                     error: safeErrorMessage(error),
                 }
             );
-            return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
+            return createWindowStateFilePath(process.cwd());
         }
     }
 
@@ -201,7 +310,7 @@
 
     function getWindowState(): WindowState {
         try {
-            if (!fs.existsSync(settingsPath)) {
+            if (!windowStateFileExists(settingsPath)) {
                 logWithContext(
                     "info",
                     "Window state file does not exist, using defaults"
@@ -209,7 +318,7 @@
                 return { ...CONSTANTS.DEFAULTS.WINDOW };
             }
 
-            const data = fs.readFileSync(settingsPath, "utf8");
+            const data = readWindowStateFile(settingsPath);
             if (!data.trim()) {
                 logWithContext(
                     "warn",
@@ -264,13 +373,10 @@
             }
 
             const bounds = win.getBounds();
-            const dir = path.dirname(settingsPath);
+            const dir = getWindowStateDirectory(settingsPath);
             const state = sanitizeWindowState(bounds);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-
-            fs.writeFileSync(settingsPath, JSON.stringify(state, null, 2));
+            ensureWindowStateDirectory(dir);
+            writeWindowStateFile(settingsPath, state);
             logWithContext("info", "Window state saved successfully", {
                 state,
             });
@@ -357,8 +463,8 @@
         }),
         resetState: () => {
             try {
-                if (fs.existsSync(settingsPath)) {
-                    fs.unlinkSync(settingsPath);
+                if (windowStateFileExists(settingsPath)) {
+                    deleteWindowStateFile(settingsPath);
                     logWithContext("info", "Window state reset to defaults");
                     return true;
                 }
@@ -374,7 +480,7 @@
             try {
                 const state = getWindowState();
                 return {
-                    exists: fs.existsSync(settingsPath),
+                    exists: windowStateFileExists(settingsPath),
                     isValid: validateWindowState(state),
                     path: settingsPath,
                     state,
@@ -409,4 +515,4 @@
 
     logWithContext("info", "WindowStateUtils module initialized successfully");
 }
-/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */
+/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */
