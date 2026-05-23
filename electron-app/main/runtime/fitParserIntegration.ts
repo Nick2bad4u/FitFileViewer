@@ -3,9 +3,9 @@
     type FitFileLoadedPayload = import("../../shared/fit").FitFileLoadedPayload;
     type FitMessages = import("../../shared/fit").FitMessages;
     type FitParserStateManagers =
-        import("../../types/fitParser").FitParserStateManagers;
+        import("../../shared/fitParser").FitParserStateManagers;
     type FitParserModule = Pick<
-        import("../../types/fitParser").FitParserModule,
+        import("../../shared/fitParser").FitParserModule,
         "initializeStateManagement"
     >;
     type FitParserFacade = {

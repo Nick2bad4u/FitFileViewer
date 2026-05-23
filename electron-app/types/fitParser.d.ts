@@ -5,9 +5,16 @@ import type {
     FitDecodeMetadata,
     FitDecodeResult,
     FitFieldValue,
-    FitFileLoadedPayload,
     FitMessages,
 } from "../shared/fit";
+import type {
+    DecoderOptionSchemaEntry,
+    DecoderOptionsUpdateResult,
+    FitParserErrorMetadata,
+    FitParserModule,
+    FitParserStateManagers,
+    SerializedFitDecodeError,
+} from "../shared/fitParser";
 import type { FitSdkModule } from "../shared/fitSdk";
 
 export type {
@@ -16,82 +23,24 @@ export type {
     FitDecodeMetadata,
     FitDecodeResult,
     FitFieldValue,
-    FitFileLoadedPayload,
     FitMessages,
 } from "../shared/fit";
-
-export interface SettingsStateManager {
-    getCategory: (category: string) => Partial<DecoderOptions> | null | undefined;
-    updateCategory: (
-        category: string,
-        value: Partial<DecoderOptions>,
-        opts?: { silent?: boolean; source?: string }
-    ) => void;
-}
-
-export interface FitFileStateManager {
-    updateLoadingProgress: (progress: number) => void;
-    handleFileLoadingError: (error: Error) => void;
-    handleFileLoaded: (
-        payload: FitFileLoadedPayload,
-        context?: { filePath: null | string; source: string }
-    ) => void;
-    getRecordCount: (messages: FitMessages) => number;
-}
-
-export interface PerformanceMonitor {
-    startTimer: (id: string) => void;
-    endTimer: (id: string) => void;
-    getOperationTime: (id: string) => null | number;
-    isEnabled?: boolean;
-}
-
-export interface DecoderOptionSchemaEntry {
-    type: "boolean";
-    default: boolean;
-    description: string;
-}
-
-export interface UnknownMessageMapping {
-    name: string;
-    fields: string[];
-}
-
-export type UnknownMessageMappings = Record<string, UnknownMessageMapping>;
-
-export interface FitParserStateManagers {
-    settingsStateManager?: SettingsStateManager;
-    fitFileStateManager?: FitFileStateManager;
-    performanceMonitor?: PerformanceMonitor;
-}
-
-export interface FitParserErrorMetadata extends FitDecodeMetadata {
-    category: string;
-    timestamp: string;
-}
-
-export interface SerializedFitDecodeError {
-    details: FitFieldValue;
-    message: string;
-    metadata: FitParserErrorMetadata;
-    name: "FitDecodeError";
-    stack?: string;
-}
-
-export interface DecoderOptionsUpdateSuccess {
-    fallback?: true;
-    options: DecoderOptions;
-    success: true;
-}
-
-export interface DecoderOptionsUpdateFailure {
-    errors: string[];
-    success: false;
-}
-
-export type DecoderOptionsUpdateResult =
-    | DecoderOptionsUpdateFailure
-    | DecoderOptionsUpdateSuccess;
+export type {
+    DecoderOptionSchemaEntry,
+    DecoderOptionsUpdateFailure,
+    DecoderOptionsUpdateResult,
+    DecoderOptionsUpdateSuccess,
+    FitDecodeErrorConstructor,
+    FitFileStateManager,
+    FitParserErrorMetadata,
+    FitParserModule,
+    FitParserStateManagers,
+    PerformanceMonitor,
+    SerializedFitDecodeError,
+    SettingsStateManager,
+    UnknownMessageMapping,
+    UnknownMessageMappings,
+} from "../shared/fitParser";
 
 export const DECODER_OPTIONS_SCHEMA: Record<
     keyof DecoderOptions,
@@ -138,17 +87,3 @@ export function updateDecoderOptions(
 export function validateDecoderOptions(
     options: Partial<DecoderOptions> | null | undefined
 ): DecoderOptionsValidationResult;
-
-export interface FitParserModule {
-    applyUnknownMessageLabels: typeof applyUnknownMessageLabels;
-    decodeFitFile: typeof decodeFitFile;
-    DECODER_OPTIONS_SCHEMA: typeof DECODER_OPTIONS_SCHEMA;
-    FitDecodeError: typeof FitDecodeError;
-    getCurrentDecoderOptions: typeof getCurrentDecoderOptions;
-    getDefaultDecoderOptions: typeof getDefaultDecoderOptions;
-    getPersistedDecoderOptions: typeof getPersistedDecoderOptions;
-    initializeStateManagement: typeof initializeStateManagement;
-    resetDecoderOptions: typeof resetDecoderOptions;
-    updateDecoderOptions: typeof updateDecoderOptions;
-    validateDecoderOptions: typeof validateDecoderOptions;
-}

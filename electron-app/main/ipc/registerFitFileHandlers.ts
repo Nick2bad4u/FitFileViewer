@@ -1,6 +1,6 @@
 {
     type FitParserModule = Pick<
-        import("../../types/fitParser").FitParserModule,
+        import("../../shared/fitParser").FitParserModule,
         "decodeFitFile"
     >;
     type FitParserFacade = {

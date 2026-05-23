@@ -1,5 +1,5 @@
 {
-    type FitParserModule = import("../../types/fitParser").FitParserModule;
+    type FitParserModule = import("../../shared/fitParser").FitParserModule;
 
     let fitParserModule: FitParserModule | undefined;
 
