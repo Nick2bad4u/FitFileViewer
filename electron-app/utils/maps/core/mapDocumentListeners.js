@@ -13,8 +13,7 @@ function isMapZoomDraggingRef(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return typeof candidate["current"] === "boolean";
+    return "current" in value && typeof value.current === "boolean";
 }
 function collapseLayersPanelIfClickOutside(event) {
     try {

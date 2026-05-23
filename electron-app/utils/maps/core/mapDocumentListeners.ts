@@ -26,8 +26,7 @@ function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
-    return typeof candidate["current"] === "boolean";
+    return "current" in value && typeof value.current === "boolean";
 }
 
 function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
