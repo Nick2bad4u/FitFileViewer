@@ -77,7 +77,6 @@ type MasterStateGlobal = typeof globalThis & {
     __STATE_MANAGER_API__?: Partial<StateManagerApi>;
     __state_debug?: StateDebug;
     electronAPI?: ElectronRendererAPI;
-    require?: CjsRequire;
 };
 
 type ModuleCache = Record<string, { exports?: unknown } | undefined>;
@@ -989,13 +988,6 @@ function getAppLifecycleModule() {
 // Helper to dynamically resolve mocked state API in tests (require.cache injection)
 // Helper to obtain CommonJS require in both CJS and ESM contexts (used by Vitest cache-injection tests)
 function getCjsRequire(): CjsRequire | null {
-    // Prefer globally exposed require when available (some test runners set global.require)
-    try {
-        const gReq = getMasterGlobal().require;
-        if (gReq && gReq.cache) return gReq;
-    } catch {
-        // ignore
-    }
     // Fall back to native require when present (CommonJS context)
     try {
         if (typeof require !== "undefined" && (require as CjsRequire).cache) {
