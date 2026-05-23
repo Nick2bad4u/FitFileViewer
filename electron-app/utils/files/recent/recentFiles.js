@@ -1,5 +1,5 @@
 "use strict";
-const { app } = require("electron");
+const { appRef } = require("../../../main/runtime/electronAccess");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -10,6 +10,7 @@ if (RECENT_ENV) {
 } else {
     let userDataPath = null;
     try {
+        const app = appRef();
         userDataPath =
             app && typeof app.getPath === "function"
                 ? app.getPath("userData")

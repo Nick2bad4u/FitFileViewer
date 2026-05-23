@@ -1,5 +1,5 @@
-const { app } = require("electron") as {
-    app?: { getPath(name: "userData"): string };
+const { appRef } = require("../../../main/runtime/electronAccess") as {
+    appRef: () => { getPath(name: "userData"): string } | undefined;
 };
 const fs = require("node:fs") as typeof import("node:fs");
 const os = require("node:os") as typeof import("node:os");
@@ -13,6 +13,7 @@ if (RECENT_ENV) {
 } else {
     let userDataPath: string | null = null;
     try {
+        const app = appRef();
         userDataPath =
             app && typeof app.getPath === "function"
                 ? app.getPath("userData")
