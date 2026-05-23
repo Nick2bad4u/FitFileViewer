@@ -54,6 +54,12 @@ export type InfoInvokeChannel = Extract<
     | "theme:get"
 >;
 
+/** External integration invoke channels handled by shell and Gyazo IPC. */
+export type ExternalInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "gyazo:server:start" | "gyazo:server:stop" | "shell:openExternal"
+>;
+
 /** FIT browser invoke channels used by the folder-browser bridge. */
 export type FitBrowserInvokeChannel = Extract<
     GenericInvokeChannel,

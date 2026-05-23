@@ -1,4 +1,11 @@
 {
+    type ExternalInvokeChannel =
+        import("../../shared/ipc").ExternalInvokeChannel;
+    type GyazoServerStartResult =
+        import("../../shared/ipc").GyazoServerStartResult;
+    type GyazoServerStopResult =
+        import("../../shared/ipc").GyazoServerStopResult;
+
     const { z } = require("zod") as typeof import("zod");
 
     const { validateExternalUrl } =
@@ -10,24 +17,13 @@
         openExternal: (url: string) => Promise<void>;
     }
 
-    interface GyazoServerStartResult {
-        message: string;
-        port?: number;
-        success: boolean;
-    }
-
-    interface GyazoServerStopResult {
-        message: string;
-        success: boolean;
-    }
-
     type RegisterExternalIpcHandler = (
         event: unknown,
         ...args: unknown[]
     ) => unknown;
 
     type RegisterExternalIpcHandle = (
-        channel: string,
+        channel: ExternalInvokeChannel,
         handler: RegisterExternalIpcHandler
     ) => void;
 

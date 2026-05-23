@@ -1,5 +1,9 @@
 {
     type HttpModule = typeof import("node:http");
+    type GyazoServerStartResult =
+        import("../../shared/ipc").GyazoServerStartResult;
+    type GyazoServerStopResult =
+        import("../../shared/ipc").GyazoServerStopResult;
     type OAuthServer = import("node:http").Server;
     type ServerResponse = import("node:http").ServerResponse;
 
@@ -9,17 +13,6 @@
             isDestroyed?: () => boolean;
             send?: (channel: string, ...args: unknown[]) => void;
         };
-    }
-
-    interface StartServerResult {
-        message: string;
-        port?: number;
-        success: boolean;
-    }
-
-    interface StopServerResult {
-        message: string;
-        success: boolean;
     }
 
     const { logWithContext } = require("../logging/logWithContext") as {
@@ -207,13 +200,13 @@
      */
     async function startGyazoOAuthServer(
         port = 3000
-    ): Promise<StartServerResult> {
+    ): Promise<GyazoServerStartResult> {
         const existingServer = getAppState("gyazoServer");
         if (existingServer) {
             await stopGyazoOAuthServer();
         }
 
-        return new Promise<StartServerResult>((resolve, reject) => {
+        return new Promise<GyazoServerStartResult>((resolve, reject) => {
             try {
                 const http = httpRef();
                 if (!http || typeof http.createServer !== "function") {
@@ -310,8 +303,8 @@
     /**
      * Stops the Gyazo OAuth callback server if it is currently running.
      */
-    async function stopGyazoOAuthServer(): Promise<StopServerResult> {
-        return new Promise<StopServerResult>((resolve) => {
+    async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
+        return new Promise<GyazoServerStopResult>((resolve) => {
             const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
             if (gyazoServer) {
                 try {
