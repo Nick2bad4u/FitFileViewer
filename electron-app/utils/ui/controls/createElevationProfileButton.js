@@ -173,13 +173,16 @@ function isAltitudeRecord(value) {
     if (!value || typeof value !== "object") {
         return false;
     }
-    const record = value;
+    const altitude = getAltitudeRecordProperty(value, "altitude");
     return (
-        record["positionLat"] != null &&
-        record["positionLong"] != null &&
-        typeof record["altitude"] === "number" &&
-        Number.isFinite(record["altitude"])
+        getAltitudeRecordProperty(value, "positionLat") != null &&
+        getAltitudeRecordProperty(value, "positionLong") != null &&
+        typeof altitude === "number" &&
+        Number.isFinite(altitude)
     );
+}
+function getAltitudeRecordProperty(value, key) {
+    return key in value ? value[key] : undefined;
 }
 function isElevationFitData(value) {
     return value !== null && typeof value === "object";

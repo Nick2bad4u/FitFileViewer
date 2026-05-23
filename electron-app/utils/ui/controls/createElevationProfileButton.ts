@@ -331,13 +331,20 @@ function isAltitudeRecord(value: unknown): value is {
         return false;
     }
 
-    const record = value as Record<string, unknown>;
+    const altitude = getAltitudeRecordProperty(value, "altitude");
     return (
-        record["positionLat"] != null &&
-        record["positionLong"] != null &&
-        typeof record["altitude"] === "number" &&
-        Number.isFinite(record["altitude"])
+        getAltitudeRecordProperty(value, "positionLat") != null &&
+        getAltitudeRecordProperty(value, "positionLong") != null &&
+        typeof altitude === "number" &&
+        Number.isFinite(altitude)
     );
+}
+
+function getAltitudeRecordProperty(
+    value: object,
+    key: "altitude" | "positionLat" | "positionLong"
+): unknown {
+    return key in value ? value[key as keyof typeof value] : undefined;
 }
 
 function isElevationFitData(value: unknown): value is ElevationFitData {
