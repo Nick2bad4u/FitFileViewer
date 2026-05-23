@@ -1,17 +1,19 @@
-/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
+/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
 {
-    const electron = require("electron") as typeof import("electron");
-    const fs = require("node:fs") as typeof import("node:fs");
-    const path = require("node:path") as typeof import("node:path");
+    const electron: typeof import("electron") = require("electron");
+    const fs: typeof import("node:fs") = require("node:fs");
+    const path: typeof import("node:path") = require("node:path");
     type LogLevel = "error" | "info" | "warn";
 
-    const { logWithContext } = require("./main/logging/logWithContext") as {
+    interface LoggingModule {
         logWithContext: (
             level: LogLevel,
             message: string,
             context?: Record<string, unknown>
         ) => void;
-    };
+    }
+    const loggingModule: LoggingModule = require("./main/logging/logWithContext");
+    const { logWithContext } = loggingModule;
 
     const { app, BrowserWindow } = electron;
 
@@ -407,4 +409,4 @@
 
     logWithContext("info", "WindowStateUtils module initialized successfully");
 }
-/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */
+/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */
