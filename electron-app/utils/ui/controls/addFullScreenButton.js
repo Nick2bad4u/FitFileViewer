@@ -26,7 +26,7 @@ const getFullscreenGlobal = () => globalThis;
 const getElectronAPI = () => getFullscreenGlobal().electronAPI;
 const getScreenfullInstance = () => getFullscreenGlobal().screenfull;
 const getStoredHandler = (key) => {
-    const handler = globalThis[key];
+    const handler = getFullscreenGlobal()[key];
     return typeof handler === "function" ? handler : null;
 };
 const setStoredHandler = (key, handler) => {

@@ -9,6 +9,8 @@ type ElectronFullscreenAPI = {
 };
 
 type FullscreenGlobal = typeof globalThis & {
+    __ffvFullscreenKeydownHandler?: null | ((event: Event) => void);
+    __ffvNativeFullscreenChangeHandler?: null | ((event: Event) => void);
     electronAPI?: ElectronFullscreenAPI;
     screenfull?: ScreenfullInstance;
 };
@@ -16,6 +18,9 @@ type FullscreenGlobal = typeof globalThis & {
 type ScreenfullInstance = typeof import("screenfull").default;
 
 type StoredEventHandler = (event: Event) => void;
+type StoredHandlerKey =
+    | "__ffvFullscreenKeydownHandler"
+    | "__ffvNativeFullscreenChangeHandler";
 
 type VendorFullscreenDocument = Document & {
     MSFullscreenElement?: Element | null;
@@ -62,15 +67,13 @@ const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
 const getScreenfullInstance = (): ScreenfullInstance | undefined =>
     getFullscreenGlobal().screenfull;
 
-const getStoredHandler = (key: string): null | StoredEventHandler => {
-    const handler = (globalThis as Record<string, unknown>)[key];
-    return typeof handler === "function"
-        ? (handler as StoredEventHandler)
-        : null;
+const getStoredHandler = (key: StoredHandlerKey): null | StoredEventHandler => {
+    const handler = getFullscreenGlobal()[key];
+    return typeof handler === "function" ? handler : null;
 };
 
 const setStoredHandler = (
-    key: string,
+    key: StoredHandlerKey,
     handler: null | StoredEventHandler
 ): void => {
     Object.defineProperty(globalThis, key, {
