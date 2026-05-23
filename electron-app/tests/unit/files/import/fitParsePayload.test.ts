@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+    getFitMessageRows,
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
@@ -21,6 +22,22 @@ describe("fitParsePayload", () => {
 
         expect(unwrapFitParseMessages(messages)).toBe(messages);
         expect(getFitMessagesSessionCount(messages)).toBe(1);
+    });
+
+    it("reads named FIT message row collections with Garmin and legacy aliases", () => {
+        expect.assertions(4);
+
+        const messages: FitMessages = {
+            recordMesgs: [{ distance: 1000 }],
+            sessionMesgs: [{ total_distance: 1000 }],
+        };
+
+        expect(getFitMessageRows(messages, "recordMesgs")).toBe(
+            messages.recordMesgs
+        );
+        expect(getFitMessageRows(messages, "missingMesgs")).toStrictEqual([]);
+        expect(getFitMessagesSessionCount(messages)).toBe(1);
+        expect(getFitMessagesSessionCount({ session: [{}] })).toBe(1);
     });
 
     it("unwraps legacy success envelopes that contain FIT messages", () => {

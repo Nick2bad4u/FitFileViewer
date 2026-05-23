@@ -1,4 +1,5 @@
 import {
+    getFitMessageRows,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
@@ -45,14 +46,15 @@ export async function loadSingleOverlayFile(file) {
                 success: false,
             };
         }
-        const fitData = toOverlayFitData(unwrapFitParseMessages(result));
-        if (!hasValidLocationRecords(fitData.recordMesgs)) {
+        const messages = unwrapFitParseMessages(result);
+        const recordMesgs = getFitMessageRows(messages, "recordMesgs");
+        if (!hasValidLocationRecords(recordMesgs)) {
             return {
                 error: "No valid location data found in file",
                 success: false,
             };
         }
-        return { data: fitData, success: true };
+        return { data: toOverlayFitData(messages), success: true };
     } catch (error) {
         console.error(
             "[loadSingleOverlayFile] Error processing file:",

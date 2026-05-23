@@ -13,13 +13,17 @@ export function getFitParseErrorMessage(result) {
     }
     return null;
 }
+/** Return a named FIT message row collection using a typed indexed access. */
+export function getFitMessageRows(data, messageName) {
+    return data[messageName] ?? [];
+}
 /** Count decoded sessions defensively for debug logging. */
 export function getFitMessagesSessionCount(data) {
-    if (!("sessions" in data)) {
-        return 0;
-    }
-    const { sessions } = data;
-    return Array.isArray(sessions) ? sessions.length : 0;
+    return Math.max(
+        getFitMessageRows(data, "sessionMesgs").length,
+        getFitMessageRows(data, "sessions").length,
+        getFitMessageRows(data, "session").length
+    );
 }
 /**
  * Return decoded FIT messages or throw for parser error payloads.

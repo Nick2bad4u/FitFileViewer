@@ -23,6 +23,14 @@ export type FitParseErrorMessage = {
     summary: string;
 };
 
+/** Return a named FIT message row collection using a typed indexed access. */
+export function getFitMessageRows(
+    data: FitMessages,
+    messageName: string
+): FitMessageRow[] {
+    return data[messageName] ?? [];
+}
+
 /** Extract a parser failure from either direct or wrapped FIT parse payloads. */
 export function getFitParseErrorMessage(
     result: FitParsePayload
@@ -46,12 +54,11 @@ export function getFitParseErrorMessage(
 
 /** Count decoded sessions defensively for debug logging. */
 export function getFitMessagesSessionCount(data: FitMessages): number {
-    if (!("sessions" in data)) {
-        return 0;
-    }
-
-    const { sessions } = data as { sessions?: unknown };
-    return Array.isArray(sessions) ? sessions.length : 0;
+    return Math.max(
+        getFitMessageRows(data, "sessionMesgs").length,
+        getFitMessageRows(data, "sessions").length,
+        getFitMessageRows(data, "session").length
+    );
 }
 
 /**
