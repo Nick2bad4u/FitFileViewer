@@ -367,3 +367,6 @@ electron-app/temp-win7/
 # Ignore generated doc coverage badges
 docs/docusaurus/static/img/coverage.json
 docs/docusaurus/static/img/coverage.svg
+
+# Generated declarations for bundled FFV static assets are not source types.
+electron-app/types/ffv/assets/
