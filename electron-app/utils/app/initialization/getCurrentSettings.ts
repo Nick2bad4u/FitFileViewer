@@ -121,10 +121,9 @@ function isChartActionsLike(value: unknown): value is ChartActionsLike {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
     return (
-        typeof candidate["clearCharts"] === "function" ||
-        typeof candidate["requestRerender"] === "function"
+        hasFunctionProperty(value, "clearCharts") ||
+        hasFunctionProperty(value, "requestRerender")
     );
 }
 
@@ -135,8 +134,7 @@ function isChartRenderManagerLike(
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
-    return typeof candidate["debouncedRender"] === "function";
+    return hasFunctionProperty(value, "debouncedRender");
 }
 
 function isDestroyableChart(value: unknown): value is DestroyableChart {
@@ -144,8 +142,18 @@ function isDestroyableChart(value: unknown): value is DestroyableChart {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
-    return typeof candidate["destroy"] === "function";
+    return hasFunctionProperty(value, "destroy");
+}
+
+function hasFunctionProperty(
+    value: object,
+    key: "clearCharts" | "debouncedRender" | "destroy" | "requestRerender"
+): boolean {
+    if (!(key in value)) {
+        return false;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 function isInputElement(value: unknown): value is HTMLInputElement {

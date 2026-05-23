@@ -50,25 +50,28 @@ function isChartActionsLike(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
     return (
-        typeof candidate["clearCharts"] === "function" ||
-        typeof candidate["requestRerender"] === "function"
+        hasFunctionProperty(value, "clearCharts") ||
+        hasFunctionProperty(value, "requestRerender")
     );
 }
 function isChartRenderManagerLike(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return typeof candidate["debouncedRender"] === "function";
+    return hasFunctionProperty(value, "debouncedRender");
 }
 function isDestroyableChart(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
-    return typeof candidate["destroy"] === "function";
+    return hasFunctionProperty(value, "destroy");
+}
+function hasFunctionProperty(value, key) {
+    if (!(key in value)) {
+        return false;
+    }
+    return typeof value[key] === "function";
 }
 function isInputElement(value) {
     return value instanceof HTMLInputElement;
