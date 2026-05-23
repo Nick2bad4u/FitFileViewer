@@ -175,24 +175,25 @@ function normalizeNotification(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
         return null;
     }
-    const candidate = value;
-    if (
-        typeof candidate["message"] === "string" &&
-        isNotificationType(candidate["type"])
-    ) {
-        const timestamp = candidate["timestamp"];
+    const message = getNotificationProperty(value, "message");
+    const type = getNotificationProperty(value, "type");
+    if (typeof message === "string" && isNotificationType(type)) {
+        const timestamp = getNotificationProperty(value, "timestamp");
         return typeof timestamp === "number"
             ? {
-                  message: candidate["message"],
+                  message,
                   timestamp,
-                  type: candidate["type"],
+                  type,
               }
             : {
-                  message: candidate["message"],
-                  type: candidate["type"],
+                  message,
+                  type,
               };
     }
     return null;
+}
+function getNotificationProperty(value, key) {
+    return key in value ? value[key] : undefined;
 }
 function isNotificationType(value) {
     return (

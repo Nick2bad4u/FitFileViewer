@@ -229,27 +229,32 @@ function normalizeNotification(value: unknown): null | RendererNotification {
         return null;
     }
 
-    const candidate = value as Record<string, unknown>;
+    const message = getNotificationProperty(value, "message");
+    const type = getNotificationProperty(value, "type");
 
-    if (
-        typeof candidate["message"] === "string" &&
-        isNotificationType(candidate["type"])
-    ) {
-        const timestamp = candidate["timestamp"];
+    if (typeof message === "string" && isNotificationType(type)) {
+        const timestamp = getNotificationProperty(value, "timestamp");
 
         return typeof timestamp === "number"
             ? {
-                  message: candidate["message"],
+                  message,
                   timestamp,
-                  type: candidate["type"],
+                  type,
               }
             : {
-                  message: candidate["message"],
-                  type: candidate["type"],
+                  message,
+                  type,
               };
     }
 
     return null;
+}
+
+function getNotificationProperty(
+    value: object,
+    key: "message" | "timestamp" | "type"
+): unknown {
+    return key in value ? value[key as keyof typeof value] : undefined;
 }
 
 function isNotificationType(value: unknown): value is NotificationType {
