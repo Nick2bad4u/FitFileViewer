@@ -1,9 +1,13 @@
 import {
+    getFitFileBufferValidationError,
+    isFitFileArrayBuffer,
+    MAX_FIT_FILE_BYTES,
+} from "./fitFileValidation.js";
+import {
     getFitMessageRows,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
-const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
 /**
  * Loads one FIT file as a map overlay.
  */
@@ -14,20 +18,19 @@ export async function loadSingleOverlayFile(file) {
             return { error: preflightError, success: false };
         }
         const arrayBuffer = await readOverlayArrayBuffer(file);
-        if (!(arrayBuffer instanceof ArrayBuffer)) {
+        const bufferValidationError =
+            getFitFileBufferValidationError(arrayBuffer);
+        if (bufferValidationError) {
+            return {
+                error: bufferValidationError,
+                success: false,
+            };
+        }
+        if (!isFitFileArrayBuffer(arrayBuffer)) {
             return {
                 error: "Failed to read file as ArrayBuffer",
                 success: false,
             };
-        }
-        if (arrayBuffer.byteLength === 0) {
-            return {
-                error: "Selected file appears to be empty",
-                success: false,
-            };
-        }
-        if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
-            return { error: "File size exceeds 100MB limit", success: false };
         }
         const api = resolveOverlayElectronAPI();
         if (!api) {

@@ -124,6 +124,28 @@ describe(openFitFileFromPath, () => {
         });
     });
 
+    it("reports empty file buffers before parsing", async () => {
+        expect.assertions(4);
+
+        await withOpenFitFileHarness(async (harness) => {
+            harness.readFile.mockResolvedValue(new ArrayBuffer(0));
+
+            const result = await openFitFileFromPath({
+                filePath: "C:\\activities\\empty.fit",
+                showNotification: harness.showNotification,
+            });
+
+            expect({ result }).toStrictEqual({ result: false });
+            expect(harness.parseFitFile).not.toHaveBeenCalled();
+            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(harness.showNotification).toHaveBeenCalledWith(
+                "Failed to open file: Selected file appears to be empty",
+                "error",
+                8000
+            );
+        });
+    });
+
     it("reports wrapped parser error payloads without displaying them", async () => {
         expect.assertions(3);
 

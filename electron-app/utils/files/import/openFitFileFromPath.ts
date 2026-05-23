@@ -5,6 +5,7 @@
  * .fit file without showing the native file picker.
  */
 
+import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { unwrapFitParseMessages } from "./fitParsePayload.js";
 import type { FitParsePayload } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
@@ -76,11 +77,10 @@ export async function openFitFileFromPath({
         disableBtn();
 
         const arrayBuffer = await api.readFile(filePath);
-        if (
-            !(arrayBuffer instanceof ArrayBuffer) ||
-            !isValidFitBuffer(arrayBuffer)
-        ) {
-            throw new Error("Invalid or unsupported file buffer");
+        const bufferValidationError =
+            getFitFileBufferValidationError(arrayBuffer);
+        if (bufferValidationError) {
+            throw new Error(bufferValidationError);
         }
 
         const data = unwrapFitParseMessages(
@@ -124,11 +124,6 @@ export async function openFitFileFromPath({
 
 function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
-}
-
-function isValidFitBuffer(buffer: ArrayBuffer): boolean {
-    // Hard cap: 100MB
-    return buffer.byteLength > 0 && buffer.byteLength <= 100 * 1024 * 1024;
 }
 
 function getOpenFitFileGlobal(): OpenFitFileGlobal {

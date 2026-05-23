@@ -4,6 +4,7 @@
  */
 export * from "./getOverlayFileName.js";
 export * from "./handleOpenFile.js";
+export * from "./fitFileValidation.js";
 export { loadOverlayFiles } from "./loadOverlayFiles.js";
 export type {
     LoadedFitFileEntry,

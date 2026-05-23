@@ -4,6 +4,7 @@
  * Used by the Browser tab (folder-based activity browsing) to open a selected
  * .fit file without showing the native file picker.
  */
+import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { unwrapFitParseMessages } from "./fitParsePayload.js";
 /**
  * Open and parse a FIT file from a path exposed by the renderer file browser.
@@ -39,11 +40,10 @@ export async function openFitFileFromPath({
     try {
         disableBtn();
         const arrayBuffer = await api.readFile(filePath);
-        if (
-            !(arrayBuffer instanceof ArrayBuffer) ||
-            !isValidFitBuffer(arrayBuffer)
-        ) {
-            throw new Error("Invalid or unsupported file buffer");
+        const bufferValidationError =
+            getFitFileBufferValidationError(arrayBuffer);
+        if (bufferValidationError) {
+            throw new Error(bufferValidationError);
         }
         const data = unwrapFitParseMessages(
             await api.parseFitFile(arrayBuffer)
@@ -79,10 +79,6 @@ export async function openFitFileFromPath({
 }
 function isNonEmptyString(value) {
     return typeof value === "string" && value.trim().length > 0;
-}
-function isValidFitBuffer(buffer) {
-    // Hard cap: 100MB
-    return buffer.byteLength > 0 && buffer.byteLength <= 100 * 1024 * 1024;
 }
 function getOpenFitFileGlobal() {
     return globalThis;

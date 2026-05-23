@@ -12,6 +12,7 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
+import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import type { FitParsePayload } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 
@@ -216,8 +217,15 @@ async function handleOpenFile(
             return false;
         }
 
-        if (config.validateFileSize && arrayBuffer.byteLength === 0) {
-            const message = "Selected file appears to be empty";
+        const bufferValidationError = getFitFileBufferValidationError(
+            arrayBuffer,
+            {
+                allowEmpty: !config.validateFileSize,
+                enforceMaxSize: config.validateFileSize,
+            }
+        );
+        if (bufferValidationError) {
+            const message = bufferValidationError;
             log("error", message, { filePath: filePathString });
             showNotification(message, "error");
             notifyFileLoadError(new Error(message));
