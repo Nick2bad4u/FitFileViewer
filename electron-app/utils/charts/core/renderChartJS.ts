@@ -646,10 +646,7 @@ async function renderChartsWithData(
             startTime,
             temperatureUnits,
             timeUnits,
-            zoomPluginConfig: zoomPluginConfig as unknown as Record<
-                string,
-                unknown
-            >,
+            zoomPluginConfig,
         }
     );
     if (chartDataRenderResult.aborted) {

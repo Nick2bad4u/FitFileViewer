@@ -1,7 +1,7 @@
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 
-interface ChartZoomPluginConfig {
+interface ChartZoomPluginConfig extends Record<string, unknown> {
     limits: {
         x: {
             max: "original";
