@@ -28,7 +28,7 @@ let versionLoadPromise = null;
 let electronAPICheckTimerId;
 let attachUtilitiesTimerId;
 function isRecord(value) {
-    return value !== null && typeof value === "object";
+    return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 function isNamedUtilityFunction(value) {
     return typeof value === "function";
@@ -148,11 +148,30 @@ if (globalThis.window !== undefined) {
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
         logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-    const logger = console[level] ?? console.log.bind(console);
+    const logger = getConsoleLogger(level);
     if (context && Object.keys(context).length > 0) {
         logger(logMessage, context);
     } else {
         logger(logMessage);
+    }
+}
+function getConsoleLogger(level) {
+    switch (level) {
+        case "debug": {
+            return console.debug.bind(console);
+        }
+        case "error": {
+            return console.error.bind(console);
+        }
+        case "info": {
+            return console.info.bind(console);
+        }
+        case "warn": {
+            return console.warn.bind(console);
+        }
+        default: {
+            return console.log.bind(console);
+        }
     }
 }
 /**
@@ -253,13 +272,13 @@ function attachUtilityToWindow(results, globalWindow, utilityName, utility) {
             results,
             utilityName,
             utility,
-            globalWindow[utilityName]
+            Reflect.get(globalWindow, utilityName)
         )
     ) {
         return;
     }
     try {
-        globalWindow[utilityName] = utility;
+        Reflect.set(globalWindow, utilityName, utility);
         results.successful.push(utilityName);
     } catch (error) {
         const errorMessage =
@@ -300,7 +319,7 @@ function logAttachmentResults(results) {
 }
 // Enhanced global attachment with validation and error handling
 function attachUtilitiesToWindow() {
-    const globalWindow = getGlobalWindowRecord();
+    const globalWindow = getGlobalWindowTarget();
     const attachmentResults = {
         collisions: [],
         failed: [],
@@ -327,8 +346,8 @@ function attachUtilitiesToWindow() {
         };
     }
 }
-function getGlobalWindowRecord() {
-    return globalThis.window;
+function getGlobalWindowTarget() {
+    return globalThis.window ?? globalThis;
 }
 function hasUtility(name) {
     return Object.keys(utils).includes(name);
@@ -341,7 +360,7 @@ const FitFileViewerUtils = {
             clearTimeout(attachUtilitiesTimerId);
             attachUtilitiesTimerId = undefined;
         }
-        const globalWindow = getGlobalWindowRecord();
+        const globalWindow = getGlobalWindowTarget();
         for (const key of Object.keys(utils)) {
             try {
                 Reflect.deleteProperty(globalWindow, key);

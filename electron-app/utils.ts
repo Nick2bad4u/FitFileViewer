@@ -87,6 +87,8 @@ type NamedUtilityFunction = UtilityFunction & {
     readonly name: string;
 };
 
+type UtilityAttachmentTarget = object;
+
 interface VersionElectronAPI {
     getAppVersion: () => Promise<string>;
 }
@@ -110,7 +112,7 @@ let electronAPICheckTimerId: ReturnType<typeof setTimeout> | undefined;
 let attachUtilitiesTimerId: ReturnType<typeof setTimeout> | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === "object";
+    return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function isNamedUtilityFunction(value: unknown): value is NamedUtilityFunction {
@@ -248,15 +250,32 @@ function logWithContext(
 ): void {
     const timestamp = new Date().toISOString(),
         logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-    const logger =
-        (console as unknown as Record<string, (...args: unknown[]) => void>)[
-            level
-        ] ?? console.log.bind(console);
+    const logger = getConsoleLogger(level);
 
     if (context && Object.keys(context).length > 0) {
         logger(logMessage, context);
     } else {
         logger(logMessage);
+    }
+}
+
+function getConsoleLogger(level: string): (...args: unknown[]) => void {
+    switch (level) {
+        case "debug": {
+            return console.debug.bind(console);
+        }
+        case "error": {
+            return console.error.bind(console);
+        }
+        case "info": {
+            return console.info.bind(console);
+        }
+        case "warn": {
+            return console.warn.bind(console);
+        }
+        default: {
+            return console.log.bind(console);
+        }
     }
 }
 
@@ -374,7 +393,7 @@ function handleUtilityCollision(
 
 function attachUtilityToWindow(
     results: AttachmentResults,
-    globalWindow: Record<string, unknown>,
+    globalWindow: UtilityAttachmentTarget,
     utilityName: string,
     utility: unknown
 ): void {
@@ -395,14 +414,14 @@ function attachUtilityToWindow(
             results,
             utilityName,
             utility,
-            globalWindow[utilityName]
+            Reflect.get(globalWindow, utilityName)
         )
     ) {
         return;
     }
 
     try {
-        globalWindow[utilityName] = utility;
+        Reflect.set(globalWindow, utilityName, utility);
         results.successful.push(utilityName);
     } catch (error) {
         const errorMessage =
@@ -447,7 +466,7 @@ function logAttachmentResults(results: AttachmentResults): void {
 
 // Enhanced global attachment with validation and error handling
 function attachUtilitiesToWindow(): AttachmentResults {
-    const globalWindow = getGlobalWindowRecord();
+    const globalWindow = getGlobalWindowTarget();
     const attachmentResults: AttachmentResults = {
         collisions: [],
         failed: [],
@@ -477,8 +496,8 @@ function attachUtilitiesToWindow(): AttachmentResults {
     }
 }
 
-function getGlobalWindowRecord(): Record<string, unknown> {
-    return globalThis.window as unknown as Record<string, unknown>;
+function getGlobalWindowTarget(): UtilityAttachmentTarget {
+    return globalThis.window ?? globalThis;
 }
 
 function hasUtility(name: string): boolean {
@@ -494,7 +513,7 @@ const FitFileViewerUtils: FitFileViewerUtilsApi = {
             attachUtilitiesTimerId = undefined;
         }
 
-        const globalWindow = getGlobalWindowRecord();
+        const globalWindow = getGlobalWindowTarget();
         for (const key of Object.keys(utils)) {
             try {
                 Reflect.deleteProperty(globalWindow, key);
