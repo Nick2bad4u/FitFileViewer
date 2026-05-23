@@ -28,6 +28,8 @@ import type {
     IpcEventCallback,
     IpcRequestPayload,
     IpcResponsePayload,
+    InvokeRequestArgs,
+    InvokeResponsePayloadForChannel,
     MainStateErrorsRequest,
     MainStateErrorsResponse,
     MainStateGetRequest,
@@ -150,10 +152,10 @@ export interface ElectronAPI {
         callback: IpcEventCallback
     ) => (() => void) | undefined;
     send: (channel: GenericSendChannel, ...args: IpcRequestPayload[]) => void;
-    invoke: (
-        channel: GenericInvokeChannel,
-        ...args: IpcRequestPayload[]
-    ) => Promise<IpcResponsePayload>;
+    invoke: <Channel extends GenericInvokeChannel>(
+        channel: Channel,
+        ...args: InvokeRequestArgs<Channel>
+    ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
 
     getMainState: (path?: MainStateGetRequest) => Promise<MainStateGetResponse>;
     setMainState: (

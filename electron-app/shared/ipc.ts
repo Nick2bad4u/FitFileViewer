@@ -123,6 +123,26 @@ export interface InvokeResponsePayloadByChannel {
     "theme:get": string;
 }
 
+type InvokeRequestArgsFromPayload<Payload> = [Payload] extends [never]
+    ? []
+    : Payload extends readonly unknown[]
+      ? [...Payload]
+      : [Payload];
+
+/** Request payload for a specific invoke channel. */
+export type InvokeRequestPayloadForChannel<
+    Channel extends GenericInvokeChannel,
+> = InvokeRequestPayloadByChannel[Channel];
+
+/** Argument tuple accepted by a specific invoke channel. */
+export type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
+    InvokeRequestArgsFromPayload<InvokeRequestPayloadByChannel[Channel]>;
+
+/** Response payload returned by a specific invoke channel. */
+export type InvokeResponsePayloadForChannel<
+    Channel extends GenericInvokeChannel,
+> = InvokeResponsePayloadByChannel[Channel];
+
 /** FIT decode/parse invoke channels handled by the main process parser bridge. */
 export type FitFileInvokeChannel = Extract<
     GenericInvokeChannel,
