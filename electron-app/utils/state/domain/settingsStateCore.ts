@@ -29,18 +29,16 @@ function getSettingsCategories(): SettingCategory[] {
     return Object.keys(settingsSchema) as SettingCategory[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function getDefaultObjectValue(defaultValue: unknown, key: string): unknown {
-    return defaultValue &&
-        typeof defaultValue === "object" &&
-        !Array.isArray(defaultValue)
-        ? (defaultValue as Record<string, unknown>)[key]
-        : undefined;
+    return isRecord(defaultValue) ? defaultValue[key] : undefined;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? (value as Record<string, unknown>)
-        : {};
+    return isRecord(value) ? value : {};
 }
 
 /**
@@ -476,15 +474,13 @@ class SettingsStateManager {
                 );
 
                 // Update state
-                const rootState = getState("settings") as
-                        | Record<string, unknown>
-                        | undefined,
+                const rootState = getState("settings"),
+                    existingSettings = isRecord(rootState)
+                        ? rootState[category]
+                        : undefined,
                     currentSettings =
-                        rootState &&
-                        typeof rootState === "object" &&
-                        rootState[category] &&
-                        typeof rootState[category] === "object"
-                            ? (rootState[category] as Record<string, unknown>)
+                        isRecord(existingSettings)
+                            ? { ...existingSettings }
                             : {};
                 currentSettings[key] = value;
                 setState(`settings.${category}`, currentSettings, {

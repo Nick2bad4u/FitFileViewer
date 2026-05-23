@@ -9,17 +9,14 @@ const settingsSchema = SETTINGS_SCHEMA;
 function getSettingsCategories() {
     return Object.keys(settingsSchema);
 }
+function isRecord(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 function getDefaultObjectValue(defaultValue, key) {
-    return defaultValue &&
-        typeof defaultValue === "object" &&
-        !Array.isArray(defaultValue)
-        ? defaultValue[key]
-        : undefined;
+    return isRecord(defaultValue) ? defaultValue[key] : undefined;
 }
 function asRecord(value) {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
+    return isRecord(value) ? value : {};
 }
 /**
  * Settings State Manager Class
@@ -394,12 +391,12 @@ class SettingsStateManager {
                 );
                 // Update state
                 const rootState = getState("settings"),
+                    existingSettings = isRecord(rootState)
+                        ? rootState[category]
+                        : undefined,
                     currentSettings =
-                        rootState &&
-                        typeof rootState === "object" &&
-                        rootState[category] &&
-                        typeof rootState[category] === "object"
-                            ? rootState[category]
+                        isRecord(existingSettings)
+                            ? { ...existingSettings }
                             : {};
                 currentSettings[key] = value;
                 setState(`settings.${category}`, currentSettings, {
