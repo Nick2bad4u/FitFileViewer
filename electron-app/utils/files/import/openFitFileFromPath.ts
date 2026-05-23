@@ -5,7 +5,11 @@
  * .fit file without showing the native file picker.
  */
 
-import type { FitDecodeResult } from "../../../shared/fit";
+import type {
+    FitDecodeErrorPayload,
+    FitDecodeResult,
+    FitMessages,
+} from "../../../shared/fit";
 
 type FitFileStateManagerLike = {
     handleFileLoadingError: (error: Error) => void;
@@ -22,7 +26,7 @@ type FitFileElectronAPI = {
 type OpenFitFileGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FitFileElectronAPI>;
-    showFitData?: (data: FitDecodeResult, filePath: string) => void;
+    showFitData?: (data: FitMessages, filePath: string) => void;
 };
 
 type ShowNotification = (
@@ -83,7 +87,9 @@ export async function openFitFileFromPath({
             throw new Error("Invalid or unsupported file buffer");
         }
 
-        const data = unwrapParsedFitData(await api.parseFitFile(arrayBuffer));
+        const data = unwrapParsedFitMessages(
+            await api.parseFitFile(arrayBuffer)
+        );
 
         if (typeof appGlobal.showFitData !== "function") {
             throw new TypeError("showFitData is not available");
@@ -149,12 +155,41 @@ function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {
     return electronAPI as FitFileElectronAPI;
 }
 
+function unwrapParsedFitMessages(result: ParsedFitPayload): FitMessages {
+    const decoded = unwrapParsedFitData(result);
+
+    if (isFitDecodeErrorPayload(decoded)) {
+        throw new Error(formatFitDecodeError(decoded));
+    }
+
+    return decoded;
+}
+
 function unwrapParsedFitData(result: ParsedFitPayload): FitDecodeResult {
     if (isParsedFitWrapper(result)) {
         return result.data;
     }
 
     return result;
+}
+
+function isFitDecodeErrorPayload(
+    value: FitDecodeResult
+): value is FitDecodeErrorPayload {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        typeof (value as { error?: unknown }).error === "string"
+    );
+}
+
+function formatFitDecodeError(errorPayload: FitDecodeErrorPayload): string {
+    if (typeof errorPayload.details === "string") {
+        return `${errorPayload.error}\n${errorPayload.details}`;
+    }
+
+    return errorPayload.error;
 }
 
 function isFitDecodeResultLike(value: unknown): value is FitDecodeResult {

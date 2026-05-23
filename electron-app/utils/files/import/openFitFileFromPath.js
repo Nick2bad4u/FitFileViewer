@@ -44,7 +44,9 @@ export async function openFitFileFromPath({
         ) {
             throw new Error("Invalid or unsupported file buffer");
         }
-        const data = unwrapParsedFitData(await api.parseFitFile(arrayBuffer));
+        const data = unwrapParsedFitMessages(
+            await api.parseFitFile(arrayBuffer)
+        );
         if (typeof appGlobal.showFitData !== "function") {
             throw new TypeError("showFitData is not available");
         }
@@ -97,11 +99,32 @@ function resolveFitFileElectronAPI() {
     }
     return electronAPI;
 }
+function unwrapParsedFitMessages(result) {
+    const decoded = unwrapParsedFitData(result);
+    if (isFitDecodeErrorPayload(decoded)) {
+        throw new Error(formatFitDecodeError(decoded));
+    }
+    return decoded;
+}
 function unwrapParsedFitData(result) {
     if (isParsedFitWrapper(result)) {
         return result.data;
     }
     return result;
+}
+function isFitDecodeErrorPayload(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        typeof value.error === "string"
+    );
+}
+function formatFitDecodeError(errorPayload) {
+    if (typeof errorPayload.details === "string") {
+        return `${errorPayload.error}\n${errorPayload.details}`;
+    }
+    return errorPayload.error;
 }
 function isFitDecodeResultLike(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
