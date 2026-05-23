@@ -1,22 +1,9 @@
 "use strict";
 {
-    function asElectronModule(value) {
-        if (!isObjectLike(value)) {
-            return null;
-        }
-        const electron = {};
-        const app = asAppLike(Reflect.get(value, "app"));
-        if (app !== undefined) {
-            electron.app = app;
-        }
-        const BrowserWindow = asBrowserWindowLike(
-            Reflect.get(value, "BrowserWindow")
-        );
-        if (BrowserWindow !== undefined) {
-            electron.BrowserWindow = BrowserWindow;
-        }
-        return electron;
-    }
+    const {
+        appRef: runtimeAppRef,
+        browserWindowRef: runtimeBrowserWindowRef,
+    } = require("./electronAccess");
     function isObjectLike(value) {
         return (
             value !== null &&
@@ -56,19 +43,11 @@
         return { error: getErrorMessage(error) };
     }
     /**
-     * Attempts to resolve Electron's App instance via require, falling back to
-     * appRef when the module is unavailable, such as during tests.
+     * Attempts to resolve Electron's App instance through the centralized
+     * runtime accessor, falling back to injected dependencies during tests.
      */
     function resolveElectronApp(appRef) {
-        try {
-            const electron = asElectronModule(require("electron"));
-            if (electron?.app && typeof electron.app === "object") {
-                return electron.app;
-            }
-        } catch {
-            /* ignore resolution errors */
-        }
-        return appRef();
+        return asAppLike(runtimeAppRef()) ?? appRef();
     }
     /**
      * Safely invokes a function, swallowing any errors to match the legacy
@@ -145,12 +124,10 @@
                     safeCall(() => candidate.getAllWindows?.());
                 }
             };
-            try {
-                const electron = asElectronModule(require("electron"));
-                invokeGetAllWindows(electron?.BrowserWindow);
-            } catch {
-                invokeGetAllWindows(browserWindowRef());
-            }
+            invokeGetAllWindows(
+                asBrowserWindowLike(runtimeBrowserWindowRef()) ??
+                    browserWindowRef()
+            );
         };
         const runMainInitialization = async () => {
             if (initCompleted) {

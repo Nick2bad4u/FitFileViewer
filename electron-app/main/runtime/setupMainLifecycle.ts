@@ -14,11 +14,6 @@
         getAllWindows?: () => WindowLike[];
     };
 
-    type ElectronModuleLike = {
-        app?: AppLike;
-        BrowserWindow?: BrowserWindowLike;
-    };
-
     type LifecycleDependencies = {
         appRef: () => AppLike | undefined;
         browserWindowRef: () => BrowserWindowLike | undefined;
@@ -37,6 +32,12 @@
         setupIPCHandlers: (win: WindowLike | undefined) => void;
         setupMenuAndEventHandlers: () => void;
     };
+
+    const { appRef: runtimeAppRef, browserWindowRef: runtimeBrowserWindowRef } =
+        require("./electronAccess") as {
+            appRef: () => unknown;
+            browserWindowRef: () => unknown;
+        };
 
     function isObjectLike(value: unknown): value is object {
         return (
@@ -77,27 +78,6 @@
             : {};
     }
 
-    function asElectronModule(value: unknown): ElectronModuleLike | null {
-        if (!isObjectLike(value)) {
-            return null;
-        }
-
-        const electron: ElectronModuleLike = {};
-        const app = asAppLike(Reflect.get(value, "app"));
-        if (app !== undefined) {
-            electron.app = app;
-        }
-
-        const BrowserWindow = asBrowserWindowLike(
-            Reflect.get(value, "BrowserWindow")
-        );
-        if (BrowserWindow !== undefined) {
-            electron.BrowserWindow = BrowserWindow;
-        }
-
-        return electron;
-    }
-
     function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
     }
@@ -107,21 +87,13 @@
     }
 
     /**
-     * Attempts to resolve Electron's App instance via require, falling back to
-     * appRef when the module is unavailable, such as during tests.
+     * Attempts to resolve Electron's App instance through the centralized
+     * runtime accessor, falling back to injected dependencies during tests.
      */
     function resolveElectronApp(
         appRef: () => AppLike | undefined
     ): AppLike | undefined {
-        try {
-            const electron = asElectronModule(require("electron"));
-            if (electron?.app && typeof electron.app === "object") {
-                return electron.app;
-            }
-        } catch {
-            /* ignore resolution errors */
-        }
-        return appRef();
+        return asAppLike(runtimeAppRef()) ?? appRef();
     }
 
     /**
@@ -212,14 +184,10 @@
                 }
             };
 
-            try {
-                const electron = asElectronModule(
-                    require("electron")
-                );
-                invokeGetAllWindows(electron?.BrowserWindow);
-            } catch {
-                invokeGetAllWindows(browserWindowRef());
-            }
+            invokeGetAllWindows(
+                asBrowserWindowLike(runtimeBrowserWindowRef()) ??
+                    browserWindowRef()
+            );
         };
 
         const runMainInitialization = async (): Promise<void> => {
