@@ -20,7 +20,7 @@
             "ES2024"
         ],
         "module": "ESNext",
-        "moduleDetection": "auto",
+        "moduleDetection": "force",
         "moduleResolution": "bundler",
         "noEmit": false,
         "noFallthroughCasesInSwitch": true,
