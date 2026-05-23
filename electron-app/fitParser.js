@@ -118,6 +118,21 @@ let fitFileStateManager = null,
 // Fallback to electron-conf for backwards compatibility - lazy initialization
 /** @type {ConfStore | null} */
 let conf = null;
+
+/**
+ * Centralizes the current parser diagnostics until this legacy CommonJS module
+ * moves onto the shared logging package.
+ *
+ * @param {"error" | "log" | "warn"} method Console method to preserve.
+ * @param {unknown[]} values Values to forward.
+ *
+ * @returns {void}
+ */
+function writeParserDiagnostic(method, ...values) {
+    // eslint-disable-next-line no-console -- Existing parser diagnostics are part of the tested behavior; keep the console boundary in one place.
+    console[method](...values);
+}
+
 /**
  * Custom error class for FIT file decoding issues with enhanced metadata for
  * state management
@@ -229,7 +244,7 @@ function initializeStateManagement(stateManagers = {}) {
     fitFileStateManager = stateManagers.fitFileStateManager || null;
     performanceMonitor = stateManagers.performanceMonitor || null;
 
-    console.log("[FitParser] State management initialized", {
+    writeParserDiagnostic("log", "[FitParser] State management initialized", {
         hasFitFileState: Boolean(fitFileStateManager),
         hasPerformanceMonitor: Boolean(performanceMonitor),
         hasSettings: Boolean(settingsStateManager),
@@ -477,7 +492,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         try {
             fitFileStateManager.updateLoadingProgress(10); // Starting decode
         } catch (error) {
-            console.warn(
+            writeParserDiagnostic(
+                "warn",
                 "[FitParser] Failed to update loading progress:",
                 error
             );
@@ -490,7 +506,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         !(fileBuffer instanceof Buffer || fileBuffer instanceof Uint8Array)
     ) {
         const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
-        console.error(msg);
+        writeParserDiagnostic("error", msg);
 
         // Update state with error
         if (fitFileStateManager) {
@@ -499,7 +515,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                     new FitDecodeError(msg, null)
                 );
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update error state:",
                     error
                 );
@@ -523,7 +540,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(30);
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update loading progress:",
                     error
                 );
@@ -536,14 +554,15 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                         ? decoder.getIntegrityErrors()
                         : "No additional details available",
                 msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
-            console.error(msg);
+            writeParserDiagnostic("error", msg);
 
             const error = new FitDecodeError(msg, integrityErrors);
             if (fitFileStateManager) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn(
+                    writeParserDiagnostic(
+                        "warn",
                         "[FitParser] Failed to update error state:",
                         stateError
                     );
@@ -558,7 +577,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(50);
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update loading progress:",
                     error
                 );
@@ -574,7 +594,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(70);
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update loading progress:",
                     error
                 );
@@ -585,14 +606,15 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
 
         if (errors && errors.length > 0) {
             const msg = "Decoding errors occurred";
-            console.error(msg, errors);
+            writeParserDiagnostic("error", msg, errors);
 
             const error = new FitDecodeError(msg, errors);
             if (fitFileStateManager) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn(
+                    writeParserDiagnostic(
+                        "warn",
                         "[FitParser] Failed to update error state:",
                         stateError
                     );
@@ -605,14 +627,15 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         if (!messages || Object.keys(messages).length === 0) {
             const msg =
                 "No valid messages decoded, FIT file might be corrupted.";
-            console.error(msg);
+            writeParserDiagnostic("error", msg);
 
             const error = new FitDecodeError(msg, null);
             if (fitFileStateManager) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
                 } catch (stateError) {
-                    console.warn(
+                    writeParserDiagnostic(
+                        "warn",
                         "[FitParser] Failed to update error state:",
                         stateError
                     );
@@ -627,7 +650,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             try {
                 fitFileStateManager.updateLoadingProgress(90);
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update loading progress:",
                     error
                 );
@@ -666,14 +690,18 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                     }
                 );
             } catch (error) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update success state:",
                     error
                 );
             }
         }
 
-        console.log("[FitParser] FIT file decoded successfully.");
+        writeParserDiagnostic(
+            "log",
+            "[FitParser] FIT file decoded successfully."
+        );
 
         // End performance monitoring
         if (performanceMonitor) {
@@ -690,7 +718,11 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         if (error instanceof FitDecodeError) {
             return { details: error.details, error: error.message };
         }
-        console.error("[FitParser] Failed to decode file", error);
+        writeParserDiagnostic(
+            "error",
+            "[FitParser] Failed to decode file",
+            error
+        );
 
         // Update state with generic error
         if (fitFileStateManager) {
@@ -699,7 +731,8 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
                     normalizeError(error)
                 );
             } catch (stateError) {
-                console.warn(
+                writeParserDiagnostic(
+                    "warn",
                     "[FitParser] Failed to update error state:",
                     stateError
                 );
@@ -743,7 +776,8 @@ function getPersistedDecoderOptions() {
                 });
             return validation.validatedOptions;
         } catch (error) {
-            console.warn(
+            writeParserDiagnostic(
+                "warn",
                 "[FitParser] Failed to get decoder options from state manager, falling back to electron-conf:",
                 error
             );
@@ -779,7 +813,8 @@ function updateDecoderOptions(newOptions) {
     // Validate options first
     const validation = validateDecoderOptions(newOptions);
     if (!validation.isValid) {
-        console.error(
+        writeParserDiagnostic(
+            "error",
             "[FitParser] Invalid decoder options:",
             validation.errors
         );
@@ -792,12 +827,14 @@ function updateDecoderOptions(newOptions) {
                 "decoder",
                 validation.validatedOptions
             );
-            console.log(
+            writeParserDiagnostic(
+                "log",
                 "[FitParser] Decoder options updated in state management"
             );
             return { options: validation.validatedOptions, success: true };
         } catch (error) {
-            console.warn(
+            writeParserDiagnostic(
+                "warn",
                 "[FitParser] Failed to update decoder options in state manager, falling back to electron-conf:",
                 error
             );
