@@ -3,6 +3,9 @@ import type {
     ChannelInfo,
     ClipboardRequestPayload,
     ClipboardResponsePayload,
+    DevtoolsInjectMenuFitFilePath,
+    DevtoolsInjectMenuResponse,
+    DevtoolsInjectMenuTheme,
     DialogOpenFileResponse,
     DialogOpenFolderResponse,
     DialogOpenOverlayFilesResponse,
@@ -163,9 +166,9 @@ export interface ElectronAPI {
     /** Notify main process of the currently loaded file (or null when cleared). */
     notifyFitFileLoaded: (filePath: null | string) => void;
     injectMenu: (
-        theme?: null | string,
-        fitFilePath?: null | string
-    ) => Promise<boolean>;
+        theme?: DevtoolsInjectMenuTheme,
+        fitFilePath?: DevtoolsInjectMenuFitFilePath
+    ) => Promise<DevtoolsInjectMenuResponse>;
     getChannelInfo: () => ChannelInfo;
     validateAPI: () => boolean;
 }

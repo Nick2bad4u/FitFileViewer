@@ -24,6 +24,10 @@ export interface InvokeRequestPayloadByChannel {
     "browser:setFolder": string;
     "clipboard:writePngDataUrl": string;
     "clipboard:writeText": string;
+    "devtools-inject-menu": [
+        theme?: null | string,
+        fitFilePath?: null | string,
+    ];
     "dialog:openFile": never;
     "dialog:openFolder": never;
     "dialog:openOverlayFiles": never;
@@ -55,6 +59,7 @@ export interface InvokeResponsePayloadByChannel {
     "browser:setFolder": boolean;
     "clipboard:writePngDataUrl": boolean;
     "clipboard:writeText": boolean;
+    "devtools-inject-menu": boolean;
     "dialog:openFile": null | string;
     "dialog:openFolder": null | string;
     "dialog:openOverlayFiles": string[];
@@ -167,6 +172,26 @@ export type GyazoServerStartResponse =
 /** Result returned when gyazo:server:stop completes. */
 export type GyazoServerStopResponse =
     InvokeResponsePayloadByChannel["gyazo:server:stop"];
+
+/** Development helper invoke channels handled by menu/devtools IPC. */
+export type DevtoolsInvokeChannel = Extract<
+    GenericInvokeChannel,
+    "devtools-inject-menu"
+>;
+
+/** Request arguments accepted by devtools menu injection. */
+export type DevtoolsInjectMenuRequest =
+    InvokeRequestPayloadByChannel["devtools-inject-menu"];
+
+/** Theme argument accepted by devtools menu injection. */
+export type DevtoolsInjectMenuTheme = null | string;
+
+/** FIT file path argument accepted by devtools menu injection. */
+export type DevtoolsInjectMenuFitFilePath = null | string;
+
+/** Success flag returned after devtools menu injection. */
+export type DevtoolsInjectMenuResponse =
+    InvokeResponsePayloadByChannel["devtools-inject-menu"];
 
 /** Clipboard invoke channels handled by main-process clipboard IPC. */
 export type ClipboardInvokeChannel = Extract<

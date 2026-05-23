@@ -1,5 +1,13 @@
 {
     type BrowserWindow = import("electron").BrowserWindow;
+    type DevtoolsInjectMenuFitFilePath =
+        import("../../shared/ipc").DevtoolsInjectMenuFitFilePath;
+    type DevtoolsInjectMenuResponse =
+        import("../../shared/ipc").DevtoolsInjectMenuResponse;
+    type DevtoolsInjectMenuTheme =
+        import("../../shared/ipc").DevtoolsInjectMenuTheme;
+    type DevtoolsInvokeChannel =
+        import("../../shared/ipc").DevtoolsInvokeChannel;
     type FileFilter = import("electron").FileFilter;
     type SaveDialogOptions = import("electron").SaveDialogOptions;
 
@@ -42,6 +50,11 @@
     }
 
     type IpcCallback = (...args: unknown[]) => unknown;
+    type DevtoolsIpcHandler = (
+        event: unknown,
+        theme?: DevtoolsInjectMenuTheme,
+        fitFilePath?: DevtoolsInjectMenuFitFilePath
+    ) => DevtoolsInjectMenuResponse;
 
     const { CONSTANTS } = require("../constants") as {
         CONSTANTS: {
@@ -58,7 +71,10 @@
     };
     const { registerIpcHandle, registerIpcListener } =
         require("../ipc/ipcRegistry") as {
-            registerIpcHandle: (channel: string, handler: IpcCallback) => void;
+            registerIpcHandle: (
+                channel: DevtoolsInvokeChannel,
+                handler: DevtoolsIpcHandler
+            ) => void;
             registerIpcListener: (
                 channel: string,
                 listener: IpcCallback
@@ -343,7 +359,7 @@
 
         registerIpcHandle(
             "devtools-inject-menu",
-            (event, theme, fitFilePath) => {
+            (event, theme, fitFilePath): DevtoolsInjectMenuResponse => {
                 const filePath =
                     typeof fitFilePath === "string" && fitFilePath
                         ? fitFilePath
