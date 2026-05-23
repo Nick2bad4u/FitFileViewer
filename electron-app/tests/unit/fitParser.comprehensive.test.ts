@@ -2,22 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createRequire } from "node:module";
-import { Buffer } from "buffer";
-
-// Shared mock instances
-let mockConf = {
-    get: vi.fn().mockReturnValue(undefined),
-    set: vi.fn(),
-    has: vi.fn().mockReturnValue(false),
-    delete: vi.fn(),
-    clear: vi.fn(),
-    onDidChange: vi.fn(),
-    onDidAnyChange: vi.fn(),
-    path: "/mock/path/settings.json",
-    size: 0,
-    store: {},
-};
+import { Buffer } from "node:buffer";
 
 // Mock external dependencies
 const mockFitSDK = {
@@ -61,62 +46,6 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         // Reset all mocks
         vi.resetAllMocks();
 
-        // Use dynamic mocking to ensure electron and electron-conf are mocked before fitParser import
-        vi.doMock("electron", () => ({
-            app: {
-                getPath: vi.fn((name: string) => {
-                    const paths = {
-                        userData: "/mock/path/userData",
-                        appData: "/mock/path/appData",
-                        temp: "/mock/path/temp",
-                        desktop: "/mock/path/desktop",
-                        documents: "/mock/path/documents",
-                        downloads: "/mock/path/downloads",
-                        music: "/mock/path/music",
-                        pictures: "/mock/path/pictures",
-                        videos: "/mock/path/videos",
-                        home: "/mock/path/home",
-                    };
-                    return (
-                        (paths as Record<string, string>)[name] ||
-                        `/mock/path/${name}`
-                    );
-                }),
-                isPackaged: false,
-                getVersion: vi.fn(() => "1.0.0"),
-                getName: vi.fn(() => "FitFileViewer"),
-                on: vi.fn(),
-                whenReady: vi.fn(() => Promise.resolve()),
-                quit: vi.fn(),
-            },
-        }));
-
-        // Primary mock via vi.doMock
-        vi.doMock("electron-conf", () => {
-            const ConfMock = vi.fn(function ConfMockCtor() {
-                return mockConf;
-            });
-            return { Conf: ConfMock };
-        });
-
-        // Hard guarantee: inject mock into Node's require cache so CJS require() sees it
-        try {
-            const req = createRequire(import.meta.url);
-            const resolved = req.resolve("electron-conf");
-            // Minimal export shape expected by fitParser.getConf()
-            const ConfMock = vi.fn(function ConfMockCtor() {
-                return mockConf;
-            });
-            (req as any).cache[resolved] = {
-                id: resolved,
-                filename: resolved,
-                loaded: true,
-                exports: { Conf: ConfMock },
-            } as any;
-        } catch {
-            // ignore if resolution fails; vi.doMock fallback should handle it
-        }
-
         // Setup mock decoder
         mockDecoder = {
             checkIntegrity: vi.fn().mockReturnValue(true),
@@ -143,9 +72,6 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             return mockDecoder;
         });
         mockFitSDK.Stream.fromBuffer.mockReturnValue(mockStream);
-
-        // Setup default conf behavior
-        mockConf.get.mockImplementation((key, defaultValue) => defaultValue);
 
         // Clear console spies
         vi.spyOn(console, "log").mockImplementation(() => {});
