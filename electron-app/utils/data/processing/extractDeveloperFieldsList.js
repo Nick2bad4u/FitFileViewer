@@ -42,21 +42,24 @@ function compareFieldIdentifiers(left, right) {
     return FIELD_IDENTIFIER_COLLATOR.compare(left, right);
 }
 function getDeveloperFieldsJson(row) {
-    if (!row || typeof row !== "object") {
+    if (!isRecordMessage(row)) {
         return;
     }
-    const candidate = row;
-    return typeof candidate.developerFields === "string" &&
-        candidate.developerFields.length > 0
-        ? candidate.developerFields
+    return typeof row.developerFields === "string" &&
+        row.developerFields.length > 0
+        ? row.developerFields
         : undefined;
+}
+function isDeveloperFieldsPayload(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isRecordMessage(value) {
+    return value !== null && typeof value === "object";
 }
 function parseDeveloperFields(developerFields) {
     try {
         const parsed = JSON.parse(developerFields);
-        return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-            ? parsed
-            : undefined;
+        return isDeveloperFieldsPayload(parsed) ? parsed : undefined;
     } catch {
         return;
     }

@@ -58,15 +58,24 @@ function compareFieldIdentifiers(left: string, right: string): number {
 }
 
 function getDeveloperFieldsJson(row: unknown): string | undefined {
-    if (!row || typeof row !== "object") {
+    if (!isRecordMessage(row)) {
         return;
     }
 
-    const candidate = row as RecordMessage;
-    return typeof candidate.developerFields === "string" &&
-        candidate.developerFields.length > 0
-        ? candidate.developerFields
+    return typeof row.developerFields === "string" &&
+        row.developerFields.length > 0
+        ? row.developerFields
         : undefined;
+}
+
+function isDeveloperFieldsPayload(
+    value: unknown
+): value is DeveloperFieldsPayload {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isRecordMessage(value: unknown): value is RecordMessage {
+    return value !== null && typeof value === "object";
 }
 
 function parseDeveloperFields(
@@ -74,9 +83,7 @@ function parseDeveloperFields(
 ): DeveloperFieldsPayload | undefined {
     try {
         const parsed: unknown = JSON.parse(developerFields);
-        return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-            ? (parsed as DeveloperFieldsPayload)
-            : undefined;
+        return isDeveloperFieldsPayload(parsed) ? parsed : undefined;
     } catch {
         return;
     }
