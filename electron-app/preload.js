@@ -105,6 +105,48 @@ const // Constants for better maintainability
      * @typedef {import("./shared/ipc").MainStateChange} MainStateChange
      */
     /**
+     * Minimal Electron surface used by preload before the full Electron types
+     * are available in this checked JavaScript file.
+     *
+     * @typedef {Object} PreloadContextBridge
+     *
+     * @property {(key: string, api: unknown) => void} [exposeInMainWorld]
+     */
+    /**
+     * @typedef {Object} PreloadIpcRenderer
+     *
+     * @property {(
+     *     channel: string,
+     *     ...args: IpcRequestPayload[]
+     * ) => Promise<IpcResponsePayload>} [invoke]
+     * @property {(channel: string, ...args: IpcRequestPayload[]) => void} [send]
+     * @property {(
+     *     channel: string,
+     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+     * ) => void} [on]
+     * @property {(
+     *     channel: string,
+     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+     * ) => void} [off]
+     * @property {(
+     *     channel: string,
+     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+     * ) => void} [removeListener]
+     * @property {(channel: string) => void} [removeAllListeners]
+     */
+    /**
+     * @typedef {Object} PreloadElectronBridge
+     *
+     * @property {PreloadContextBridge | null | undefined} [contextBridge]
+     * @property {PreloadIpcRenderer | null | undefined} [ipcRenderer]
+     * @property {PreloadElectronBridge | null | undefined} [default]
+     */
+    /**
+     * @typedef {typeof globalThis & {
+     *     __electronHoistedMock?: PreloadElectronBridge | null | undefined;
+     * }} PreloadGlobal
+     */
+    /**
      * @typedef {Object} ElectronAPI
      *
      * @property {(filePath: string) => Promise<boolean>} approveRecentFile
@@ -186,51 +228,97 @@ const // Constants for better maintainability
      */
 
     // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
-    __electronOverride =
-        (typeof globalThis !== "undefined" &&
-            /** @type {any} */ (globalThis).__electronHoistedMock) ||
-        null,
+    __electronOverride = getPreloadGlobal().__electronHoistedMock ?? null,
     contextBridge = (() => {
         let lastErr;
         try {
-            if (__electronOverride && __electronOverride.contextBridge)
-                return __electronOverride.contextBridge;
-            const mod = /** @type {any} */ (require("electron"));
-            const m =
-                mod && (mod.contextBridge || mod.ipcRenderer)
-                    ? mod
-                    : mod && mod.default
-                      ? mod.default
-                      : mod;
-            return m && m.contextBridge ? m.contextBridge : undefined;
+            const overrideContextBridge = __electronOverride?.contextBridge;
+            if (
+                overrideContextBridge !== null &&
+                overrideContextBridge !== undefined
+            )
+                return overrideContextBridge;
+            const m = loadElectronBridge();
+            return m?.contextBridge ?? undefined;
         } catch (error) {
             lastErr = error;
         }
         // If require failed and no override provided anything, surface error for robustness tests
-        if (!__electronOverride)
-            throw lastErr || new Error("Module loading failed");
+        if (__electronOverride === null) throw getModuleLoadError(lastErr);
         return null;
     })(),
     ipcRenderer = (() => {
         let lastErr;
         try {
-            if (__electronOverride && __electronOverride.ipcRenderer)
-                return __electronOverride.ipcRenderer;
-            const mod = /** @type {any} */ (require("electron"));
-            const m =
-                mod && (mod.contextBridge || mod.ipcRenderer)
-                    ? mod
-                    : mod && mod.default
-                      ? mod.default
-                      : mod;
-            return m && m.ipcRenderer ? m.ipcRenderer : undefined;
+            const overrideIpcRenderer = __electronOverride?.ipcRenderer;
+            if (
+                overrideIpcRenderer !== null &&
+                overrideIpcRenderer !== undefined
+            )
+                return overrideIpcRenderer;
+            const m = loadElectronBridge();
+            return m?.ipcRenderer ?? undefined;
         } catch (error) {
             lastErr = error;
         }
-        if (!__electronOverride)
-            throw lastErr || new Error("Module loading failed");
+        if (__electronOverride === null) throw getModuleLoadError(lastErr);
         return null;
     })();
+
+/**
+ * @returns {PreloadGlobal}
+ */
+function getPreloadGlobal() {
+    return /** @type {PreloadGlobal} */ (globalThis);
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+function isObjectRecord(value) {
+    return typeof value === "object" && value !== null;
+}
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {Error}
+ */
+function getModuleLoadError(error) {
+    return error instanceof Error ? error : new Error("Module loading failed");
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {PreloadElectronBridge | null}
+ */
+function unwrapElectronBridge(value) {
+    if (!isObjectRecord(value)) {
+        return null;
+    }
+
+    if ("contextBridge" in value || "ipcRenderer" in value) {
+        return /** @type {PreloadElectronBridge} */ (value);
+    }
+
+    if ("default" in value) {
+        return unwrapElectronBridge(value.default);
+    }
+
+    return /** @type {PreloadElectronBridge} */ (value);
+}
+
+/**
+ * @returns {PreloadElectronBridge | null}
+ */
+function loadElectronBridge() {
+    const electronModule = /** @type {unknown} */ (require("electron"));
+
+    return unwrapElectronBridge(electronModule);
+}
 
 /**
  * Wrapper to create a safe event subscription handler.
