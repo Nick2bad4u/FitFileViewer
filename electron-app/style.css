@@ -4993,7 +4993,7 @@ body .leaflet-control-minimap-toggle-display::before {
     position: absolute;
     inset: 3px;
     background-color: var(--color-fg);
-    mask-image: url("node_modules/leaflet-minimap/dist/images/toggle.svg");
+    mask-image: url("vendor/leaflet-minimap/images/toggle.svg");
     mask-repeat: no-repeat;
     mask-position: center;
     mask-size: cover;
