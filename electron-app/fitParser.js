@@ -14,9 +14,9 @@ const { Buffer } = require("node:buffer");
 /**
  * # ============================= Typedef Section =============================
  *
- * The project (allowJs + checkJs). They intentionally model only the pieces of
- * each object this module relies on so we can progressively enrich them without
- * over‑committing to full shapes up front.
+ * The project keeps this CommonJS module typed through JSDoc until it can move
+ * to TypeScript. Import shared contracts here instead of duplicating adapter
+ * surfaces locally.
  */
 
 /**
@@ -42,63 +42,21 @@ const { Buffer } = require("node:buffer");
  *
  * @typedef {import("./shared/fitSdk").FitSdkReadResult} FitSdkReadResult
  *
+ * @typedef {import("./shared/fitParser").DecoderOptionSchemaEntry} DecoderOptionSchemaEntry
+ *
+ * @typedef {import("./shared/fitParser").FitFileStateManager} FitFileStateManager
+ *
+ * @typedef {import("./shared/fitParser").PerformanceMonitor} PerformanceMonitor
+ *
+ * @typedef {import("./shared/fitParser").SettingsStateManager} SettingsStateManager
+ *
+ * @typedef {import("./shared/fitParser").UnknownMessageMapping} UnknownMessageMapping
+ *
+ * @typedef {import("./shared/fitParser").UnknownMessageMappings} UnknownMessageMappings
+ *
  * @typedef {import("./shared/fitSdk").FitSdkReadOptions & {
  *     filePath?: unknown;
  * }} FitParserReadOptions
- */
-
-/**
- * @typedef {Object} SettingsStateManager
- *
- * @property {(category: string) => Partial<DecoderOptions> | null | undefined} getCategory
- *   Retrieve a settings category
- * @property {(
- *     category: string,
- *     value: Partial<DecoderOptions>,
- *     opts?: { silent?: boolean; source?: string }
- * ) => void} updateCategory
- *   Update a settings category
- */
-
-/**
- * @typedef {Object} FitFileStateManager
- *
- * @property {(progress: number) => void} updateLoadingProgress Update decode
- *   progress percentage
- * @property {(error: Error) => void} handleFileLoadingError Record a loading
- *   error
- * @property {(payload: FitFileLoadedPayload) => void} handleFileLoaded Record
- *   successful load
- * @property {(messages: FitMessages) => number} getRecordCount Derive record
- *   count for metadata
- */
-
-/**
- * @typedef {Object} PerformanceMonitor
- *
- * @property {(id: string) => void} startTimer Start a named timing operation
- * @property {(id: string) => void} endTimer End a named timing operation
- * @property {(id: string) => number | null} getOperationTime Get elapsed ms
- * @property {boolean} [isEnabled] Optional flag for enablement
- */
-
-/**
- * @typedef {Object} DecoderOptionSchemaEntry
- *
- * @property {"boolean"} type Primitive type expected (only boolean currently)
- * @property {boolean} default Default value
- * @property {string} description Human readable description
- */
-
-/**
- * @typedef {Object} UnknownMessageMapping
- *
- * @property {string} name Canonical label to replace unknown_xxx key
- * @property {string[]} fields Ordered field labels for generic mapping path
- */
-
-/**
- * @typedef {Record<string, UnknownMessageMapping>} UnknownMessageMappings
  */
 
 // State management integration
