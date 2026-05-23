@@ -1,10 +1,16 @@
 {
     type ExternalInvokeChannel =
         import("../../shared/ipc").ExternalInvokeChannel;
-    type GyazoServerStartResult =
-        import("../../shared/ipc").GyazoServerStartResult;
-    type GyazoServerStopResult =
-        import("../../shared/ipc").GyazoServerStopResult;
+    type ExternalResponsePayload =
+        import("../../shared/ipc").ExternalResponsePayload;
+    type GyazoServerStartRequest =
+        import("../../shared/ipc").GyazoServerStartRequest;
+    type GyazoServerStartResponse =
+        import("../../shared/ipc").GyazoServerStartResponse;
+    type GyazoServerStopResponse =
+        import("../../shared/ipc").GyazoServerStopResponse;
+    type ShellOpenExternalResponse =
+        import("../../shared/ipc").ShellOpenExternalResponse;
 
     const { z } = require("zod") as typeof import("zod");
 
@@ -20,7 +26,7 @@
     type RegisterExternalIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => unknown;
+    ) => ExternalResponsePayload | Promise<ExternalResponsePayload>;
 
     type RegisterExternalIpcHandle = (
         channel: ExternalInvokeChannel,
@@ -38,9 +44,9 @@
         registerIpcHandle: RegisterExternalIpcHandle;
         shellRef?: () => ExternalShell | null | undefined;
         startGyazoOAuthServer?: (
-            port?: number
-        ) => Promise<GyazoServerStartResult>;
-        stopGyazoOAuthServer?: () => Promise<GyazoServerStopResult>;
+            port?: GyazoServerStartRequest
+        ) => Promise<GyazoServerStartResponse>;
+        stopGyazoOAuthServer?: () => Promise<GyazoServerStopResponse>;
     }
 
     const getErrorMessage = (error: unknown): string =>
@@ -72,60 +78,76 @@
             return;
         }
 
-        registerIpcHandle("shell:openExternal", async (_event, url) => {
-            try {
-                const validatedUrl = validateExternalUrl(url);
+        registerIpcHandle(
+            "shell:openExternal",
+            async (_event, url): Promise<ShellOpenExternalResponse> => {
+                try {
+                    const validatedUrl = validateExternalUrl(url);
 
-                const shell = shellRef?.();
-                if (!shell || typeof shell.openExternal !== "function") {
-                    throw new Error("shell.openExternal unavailable");
+                    const shell = shellRef?.();
+                    if (!shell || typeof shell.openExternal !== "function") {
+                        throw new Error("shell.openExternal unavailable");
+                    }
+
+                    // eslint-disable-next-line sdl/no-electron-untrusted-open-external -- validateExternalUrl allows only https/mailto URLs without credentials.
+                    await shell.openExternal(validatedUrl);
+                    return true;
+                } catch (error) {
+                    logWithContext?.("error", "Error in shell:openExternal:", {
+                        error: getErrorMessage(error),
+                    });
+                    throw error;
                 }
-
-                // eslint-disable-next-line sdl/no-electron-untrusted-open-external -- validateExternalUrl allows only https/mailto URLs without credentials.
-                await shell.openExternal(validatedUrl);
-                return true;
-            } catch (error) {
-                logWithContext?.("error", "Error in shell:openExternal:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
             }
-        });
+        );
 
-        registerIpcHandle("gyazo:server:start", async (_event, port = 3000) => {
-            try {
-                if (typeof startGyazoOAuthServer !== "function") {
-                    throw new TypeError("Gyazo OAuth server start unavailable");
+        registerIpcHandle(
+            "gyazo:server:start",
+            async (
+                _event,
+                port: unknown = 3000
+            ): Promise<GyazoServerStartResponse> => {
+                try {
+                    if (typeof startGyazoOAuthServer !== "function") {
+                        throw new TypeError(
+                            "Gyazo OAuth server start unavailable"
+                        );
+                    }
+
+                    const parsed = gyazoPortSchema.safeParse(port);
+                    if (!parsed.success) {
+                        throw new Error("Invalid port provided");
+                    }
+
+                    return await startGyazoOAuthServer(parsed.data);
+                } catch (error) {
+                    logWithContext?.("error", "Error in gyazo:server:start:", {
+                        error: getErrorMessage(error),
+                    });
+                    throw error;
                 }
-
-                const parsed = gyazoPortSchema.safeParse(port);
-                if (!parsed.success) {
-                    throw new Error("Invalid port provided");
-                }
-
-                return await startGyazoOAuthServer(parsed.data);
-            } catch (error) {
-                logWithContext?.("error", "Error in gyazo:server:start:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
             }
-        });
+        );
 
-        registerIpcHandle("gyazo:server:stop", async () => {
-            try {
-                if (typeof stopGyazoOAuthServer !== "function") {
-                    throw new TypeError("Gyazo OAuth server stop unavailable");
+        registerIpcHandle(
+            "gyazo:server:stop",
+            async (): Promise<GyazoServerStopResponse> => {
+                try {
+                    if (typeof stopGyazoOAuthServer !== "function") {
+                        throw new TypeError(
+                            "Gyazo OAuth server stop unavailable"
+                        );
+                    }
+
+                    return await stopGyazoOAuthServer();
+                } catch (error) {
+                    logWithContext?.("error", "Error in gyazo:server:stop:", {
+                        error: getErrorMessage(error),
+                    });
+                    throw error;
                 }
-
-                return await stopGyazoOAuthServer();
-            } catch (error) {
-                logWithContext?.("error", "Error in gyazo:server:stop:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
             }
-        });
+        );
     }
 
     module.exports = { registerExternalHandlers };

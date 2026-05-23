@@ -36,10 +36,13 @@ export interface InvokeRequestPayloadByChannel {
     getLicenseInfo: never;
     getNodeVersion: never;
     getPlatformInfo: never;
+    "gyazo:server:start": number;
+    "gyazo:server:stop": never;
     "map-tab:get": never;
     "recentFiles:add": string;
     "recentFiles:approve": string;
     "recentFiles:get": never;
+    "shell:openExternal": string;
     "theme:get": never;
 }
 
@@ -64,10 +67,13 @@ export interface InvokeResponsePayloadByChannel {
     getLicenseInfo: string;
     getNodeVersion: string;
     getPlatformInfo: PlatformInfo;
+    "gyazo:server:start": GyazoServerStartResult;
+    "gyazo:server:stop": GyazoServerStopResult;
     "map-tab:get": string;
     "recentFiles:add": string[];
     "recentFiles:approve": boolean;
     "recentFiles:get": string[];
+    "shell:openExternal": boolean;
     "theme:get": string;
 }
 
@@ -133,6 +139,34 @@ export type ExternalInvokeChannel = Extract<
     GenericInvokeChannel,
     "gyazo:server:start" | "gyazo:server:stop" | "shell:openExternal"
 >;
+
+/** Request payload accepted by external integration invoke handlers. */
+export type ExternalRequestPayload =
+    InvokeRequestPayloadByChannel[ExternalInvokeChannel];
+
+/** Response payload returned by external integration invoke handlers. */
+export type ExternalResponsePayload =
+    InvokeResponsePayloadByChannel[ExternalInvokeChannel];
+
+/** URL string accepted by shell:openExternal before policy validation. */
+export type ShellOpenExternalRequest =
+    InvokeRequestPayloadByChannel["shell:openExternal"];
+
+/** Success flag returned after shell:openExternal completes. */
+export type ShellOpenExternalResponse =
+    InvokeResponsePayloadByChannel["shell:openExternal"];
+
+/** Port requested by gyazo:server:start. */
+export type GyazoServerStartRequest =
+    InvokeRequestPayloadByChannel["gyazo:server:start"];
+
+/** Result returned when gyazo:server:start completes. */
+export type GyazoServerStartResponse =
+    InvokeResponsePayloadByChannel["gyazo:server:start"];
+
+/** Result returned when gyazo:server:stop completes. */
+export type GyazoServerStopResponse =
+    InvokeResponsePayloadByChannel["gyazo:server:stop"];
 
 /** Clipboard invoke channels handled by main-process clipboard IPC. */
 export type ClipboardInvokeChannel = Extract<

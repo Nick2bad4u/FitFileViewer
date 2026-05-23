@@ -17,8 +17,9 @@ import type {
     FileSystemResponsePayload,
     GenericInvokeChannel,
     GenericSendChannel,
-    GyazoServerStartResult,
-    GyazoServerStopResult,
+    GyazoServerStartRequest,
+    GyazoServerStartResponse,
+    GyazoServerStopResponse,
     InfoPlatformResponse,
     InfoStringResponse,
     IpcEventCallback,
@@ -30,6 +31,8 @@ import type {
     RecentFilesApprovalResponse,
     RecentFilesListResponse,
     RendererIpcEventChannel,
+    ShellOpenExternalRequest,
+    ShellOpenExternalResponse,
     ThemePreferenceResponse,
     UpdateEventName,
 } from "./ipc";
@@ -90,7 +93,9 @@ export interface ElectronAPI {
     getLicenseInfo: () => Promise<InfoStringResponse>;
     getPlatformInfo: () => Promise<InfoPlatformResponse>;
 
-    openExternal: (url: string) => Promise<boolean>;
+    openExternal: (
+        url: ShellOpenExternalRequest
+    ) => Promise<ShellOpenExternalResponse>;
 
     writeClipboardText: (
         text: ClipboardRequestPayload
@@ -99,8 +104,10 @@ export interface ElectronAPI {
         pngDataUrl: ClipboardRequestPayload
     ) => Promise<ClipboardResponsePayload>;
 
-    startGyazoServer: (port: number) => Promise<GyazoServerStartResult>;
-    stopGyazoServer: () => Promise<GyazoServerStopResult>;
+    startGyazoServer: (
+        port: GyazoServerStartRequest
+    ) => Promise<GyazoServerStartResponse>;
+    stopGyazoServer: () => Promise<GyazoServerStopResponse>;
 
     onMenuOpenFile: (callback: () => void) => () => void;
     onMenuOpenOverlay: (callback: () => void) => () => void;
