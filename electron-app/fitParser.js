@@ -120,17 +120,16 @@ let fitFileStateManager = null,
 let conf = null;
 
 /**
- * Centralizes the current parser diagnostics until this legacy CommonJS module
- * moves onto the shared logging package.
+ * Node 16.0 compatibility wrapper for own-property checks.
  *
- * @param {"error" | "log" | "warn"} method Console method to preserve.
- * @param {unknown[]} values Values to forward.
+ * @param {Record<string, unknown>} record Object to inspect.
+ * @param {string} key Property key to test.
  *
- * @returns {void}
+ * @returns {boolean}
  */
-function writeParserDiagnostic(method, ...values) {
-    // eslint-disable-next-line no-console -- Existing parser diagnostics are part of the tested behavior; keep the console boundary in one place.
-    console[method](...values);
+function hasOwnKey(record, key) {
+    // eslint-disable-next-line prefer-object-has-own -- Object.hasOwn requires Node 16.9; package.json still supports Node 16.0.
+    return Object.prototype.hasOwnProperty.call(record, key);
 }
 
 /**
@@ -174,6 +173,40 @@ class FitDecodeError extends Error {
             stack: this.stack,
         };
     }
+}
+
+/**
+ * Returns a shallow copy without one dynamic key. This avoids dynamic delete
+ * while preserving the legacy object-map behavior.
+ *
+ * @param {FitMessages} messages Message map to copy.
+ * @param {string} omittedKey Key to omit.
+ *
+ * @returns {FitMessages}
+ */
+function omitMessageKey(messages, omittedKey) {
+    /** @type {FitMessages} */
+    const nextMessages = {};
+    for (const [key, rows] of Object.entries(messages)) {
+        if (key !== omittedKey) {
+            nextMessages[key] = rows;
+        }
+    }
+    return nextMessages;
+}
+
+/**
+ * Centralizes the current parser diagnostics until this legacy CommonJS module
+ * moves onto the shared logging package.
+ *
+ * @param {"error" | "log" | "warn"} method Console method to preserve.
+ * @param {unknown[]} values Values to forward.
+ *
+ * @returns {void}
+ */
+function writeParserDiagnostic(method, ...values) {
+    // eslint-disable-next-line no-console -- Existing parser diagnostics are part of the tested behavior; keep the console boundary in one place.
+    console[method](...values);
 }
 
 function getConf() {
@@ -240,9 +273,9 @@ function normalizeError(error) {
  * }} [stateManagers]
  */
 function initializeStateManagement(stateManagers = {}) {
-    settingsStateManager = stateManagers.settingsStateManager || null;
-    fitFileStateManager = stateManagers.fitFileStateManager || null;
-    performanceMonitor = stateManagers.performanceMonitor || null;
+    settingsStateManager = stateManagers.settingsStateManager ?? null;
+    fitFileStateManager = stateManagers.fitFileStateManager ?? null;
+    performanceMonitor = stateManagers.performanceMonitor ?? null;
 
     writeParserDiagnostic("log", "[FitParser] State management initialized", {
         hasFitFileState: Boolean(fitFileStateManager),
@@ -397,65 +430,44 @@ const unknownMessageMappings = {
  */
 function applyUnknownMessageLabels(messages) {
     /** @type {FitMessages} */
-    const updated = { ...messages };
+    let updated = { ...messages };
     for (const msgNum of Object.keys(unknownMessageMappings)) {
         const mapping = unknownMessageMappings[msgNum];
-        if (!mapping) {
-            continue;
-        } // Safety guard
         const possibleKeys = [`unknown_${msgNum}`, msgNum];
         for (const key of possibleKeys) {
-            if (Object.hasOwn(updated, key)) {
+            if (hasOwnKey(updated, key)) {
                 const rows = updated[key];
-                if (!Array.isArray(rows)) {
-                    continue;
+                if (Array.isArray(rows)) {
+                    updated[mapping.name] =
+                        msgNum === "104"
+                            ? rows.map((row) => ({
+                                  battery_level: row[2],
+                                  battery_voltage: row[0],
+                                  field_4: row[4],
+                                  temperature: row[3],
+                                  timestamp: row[253],
+                              }))
+                            : rows.map((row) => {
+                                  /** @type {Record<string, FitFieldValue>} */
+                                  const labeled = {};
+                                  for (const [
+                                      idx,
+                                      field,
+                                  ] of mapping.fields.entries()) {
+                                      labeled[field] = row[idx];
+                                  }
+                                  return labeled;
+                              });
+                    updated = omitMessageKey(updated, key);
                 }
-                if (msgNum === "104") {
-                    updated[mapping.name] = rows.map((row) => {
-                        if (!row || typeof row !== "object") {
-                            return row;
-                        }
-                        return {
-                            battery_level: row[2],
-                            battery_voltage: row[0],
-                            field_4: row[4],
-                            temperature: row[3],
-                            timestamp: row[253],
-                        };
-                    });
-                } else {
-                    updated[mapping.name] = rows.map((row) => {
-                        if (!row || typeof row !== "object") {
-                            return row;
-                        }
-                        /** @type {Record<string, FitFieldValue>} */
-                        const labeled = {};
-                        if (mapping && Array.isArray(mapping.fields)) {
-                            for (const [
-                                idx,
-                                field,
-                            ] of mapping.fields.entries()) {
-                                labeled[field] = row[idx];
-                            }
-                        }
-                        return labeled;
-                    });
-                }
-                delete updated[key];
             }
         }
     }
     for (const msgNum of Object.keys(unknownMessageMappings)) {
         const mapping = unknownMessageMappings[msgNum];
-        if (!mapping) {
-            continue;
-        }
         const key = msgNum;
-        if (
-            Object.hasOwn(updated, key) &&
-            Object.hasOwn(updated, mapping.name)
-        ) {
-            delete updated[key];
+        if (hasOwnKey(updated, key) && hasOwnKey(updated, mapping.name)) {
+            updated = omitMessageKey(updated, key);
         }
     }
     return updated;
@@ -769,7 +781,7 @@ function getPersistedDecoderOptions() {
     if (settingsStateManager) {
         try {
             const decoderSettings =
-                    settingsStateManager.getCategory("decoder") || {},
+                    settingsStateManager.getCategory("decoder") ?? {},
                 validation = validateDecoderOptions({
                     ...defaults,
                     ...decoderSettings,
