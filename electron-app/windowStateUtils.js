@@ -55,22 +55,24 @@
     function isBooleanCallback(value) {
         return typeof value === "function";
     }
+    function isObjectRecord(value) {
+        return value !== null && typeof value === "object";
+    }
     function validateWindowState(state) {
-        if (state === null || typeof state !== "object") {
+        if (!isObjectRecord(state)) {
             return false;
         }
-        const obj = state;
-        const { height, width, x, y } = obj;
+        const { height, width, x, y } = state;
         if (typeof width !== "number" || width <= 0) {
             return false;
         }
         if (typeof height !== "number" || height <= 0) {
             return false;
         }
-        if ("x" in obj && x !== undefined && typeof x !== "number") {
+        if ("x" in state && x !== undefined && typeof x !== "number") {
             return false;
         }
-        if ("y" in obj && y !== undefined && typeof y !== "number") {
+        if ("y" in state && y !== undefined && typeof y !== "number") {
             return false;
         }
         return true;
@@ -296,7 +298,7 @@
             }
         },
     };
-    module.exports = {
+    const exportedApi = {
         CONSTANTS,
         createWindow,
         getWindowState,
@@ -310,6 +312,7 @@
         }),
         version: "1.0.0",
     };
+    module.exports = exportedApi;
     logWithContext("info", "WindowStateUtils module initialized successfully");
 }
 /* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/global-require, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */

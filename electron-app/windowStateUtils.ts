@@ -3,9 +3,11 @@
     const electron = require("electron") as typeof import("electron");
     const fs = require("node:fs") as typeof import("node:fs");
     const path = require("node:path") as typeof import("node:path");
+    type LogLevel = "error" | "info" | "warn";
+
     const { logWithContext } = require("./main/logging/logWithContext") as {
         logWithContext: (
-            level: "error" | "info" | "warn",
+            level: LogLevel,
             message: string,
             context?: Record<string, unknown>
         ) => void;
@@ -50,6 +52,19 @@
 
     interface MaybeDestroyableWindow {
         isDestroyed?: unknown;
+    }
+
+    interface WindowStateUtilsExports {
+        CONSTANTS: typeof CONSTANTS;
+        createWindow: () => BrowserWindowInstance;
+        devHelpers?: DevHelpers;
+        getWindowState: () => WindowState;
+        sanitizeWindowState: (state: unknown) => WindowState;
+        saveWindowState: (win: BrowserWindowInstance) => void;
+        settingsPath: string;
+        validateWindow: (win: unknown) => win is BrowserWindowInstance;
+        validateWindowState: (state: unknown) => state is WindowState;
+        version: "1.0.0";
     }
 
     const CONSTANTS = {
@@ -107,23 +122,26 @@
         return typeof value === "function";
     }
 
+    function isObjectRecord(value: unknown): value is Record<string, unknown> {
+        return value !== null && typeof value === "object";
+    }
+
     function validateWindowState(state: unknown): state is WindowState {
-        if (state === null || typeof state !== "object") {
+        if (!isObjectRecord(state)) {
             return false;
         }
 
-        const obj = state as Record<string, unknown>;
-        const { height, width, x, y } = obj;
+        const { height, width, x, y } = state;
         if (typeof width !== "number" || width <= 0) {
             return false;
         }
         if (typeof height !== "number" || height <= 0) {
             return false;
         }
-        if ("x" in obj && x !== undefined && typeof x !== "number") {
+        if ("x" in state && x !== undefined && typeof x !== "number") {
             return false;
         }
-        if ("y" in obj && y !== undefined && typeof y !== "number") {
+        if ("y" in state && y !== undefined && typeof y !== "number") {
             return false;
         }
         return true;
@@ -372,7 +390,7 @@
         },
     };
 
-    module.exports = {
+    const exportedApi: WindowStateUtilsExports = {
         CONSTANTS,
         createWindow,
         getWindowState,
@@ -386,6 +404,8 @@
         }),
         version: "1.0.0",
     };
+
+    module.exports = exportedApi;
 
     logWithContext("info", "WindowStateUtils module initialized successfully");
 }
