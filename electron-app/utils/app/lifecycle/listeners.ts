@@ -10,6 +10,12 @@ import {
     buildDownloadFilename,
     sanitizeFileExtension,
 } from "../../files/sanitizeFilename.js";
+import {
+    getFitMessagesSessionCount,
+    getFitParseErrorMessage,
+    unwrapFitParseMessages,
+} from "../../files/import/fitParsePayload.js";
+import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
@@ -49,12 +55,7 @@ export type SetupListenersOptions = {
     ) => unknown;
 };
 
-type FitParseResult = {
-    data?: FitData;
-    details?: string;
-    error?: string;
-    [key: string]: unknown;
-};
+type FitParseResult = FitParsePayload;
 
 type FitData = {
     cachedFilePath?: string;
@@ -272,14 +273,16 @@ export function setupListeners({
                         return;
                     }
 
-                    // Handle parsing errors
-                    if (result && result.error) {
+                    const parseErrorMessage = getFitParseErrorMessage(result);
+                    if (parseErrorMessage) {
                         showNotification(
-                            `Error: ${result.error}\n${result.details || ""}`,
+                            `Error: ${parseErrorMessage.display}`,
                             "error"
                         );
                         return;
                     }
+
+                    const fitData = unwrapFitParseMessages(result);
 
                     // Debug logging for development
                     if (
@@ -291,7 +294,8 @@ export function setupListeners({
                             "[DEBUG] Recent file parse result:",
                             result
                         );
-                        const sessionCount = result.data?.sessions?.length || 0;
+                        const sessionCount =
+                            getFitMessagesSessionCount(fitData);
                         console.log(
                             `[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`
                         );
@@ -300,10 +304,8 @@ export function setupListeners({
                     // Display the data with proper error handling
                     try {
                         if (lifecycleGlobal.showFitData) {
-                            // Extract data using the same logic as handleOpenFile.js
-                            const dataToShow = result.data || result;
                             lifecycleGlobal.showFitData(
-                                dataToShow,
+                                fitData,
                                 filePathString
                             );
                         }
@@ -385,17 +387,24 @@ export function setupListeners({
                                     : null
                             )
                             .then((result: FitParseResult | null) => {
-                                if (result && result.error) {
+                                if (!result) {
+                                    return;
+                                }
+
+                                const parseErrorMessage =
+                                    getFitParseErrorMessage(result);
+                                if (parseErrorMessage) {
                                     showNotification(
-                                        `Error: ${result.error}\n${result.details || ""}`,
+                                        `Error: ${parseErrorMessage.display}`,
                                         "error"
                                     );
-                                } else if (result) {
-                                    lifecycleGlobal.showFitData?.(
-                                        result,
-                                        filePath
-                                    );
+                                    return;
                                 }
+
+                                lifecycleGlobal.showFitData?.(
+                                    unwrapFitParseMessages(result),
+                                    filePath
+                                );
                             })
                             .catch((error: unknown) => {
                                 showNotification(
