@@ -120,19 +120,6 @@ let fitFileStateManager = null,
 let conf = null;
 
 /**
- * Node 16.0 compatibility wrapper for own-property checks.
- *
- * @param {Record<string, unknown>} record Object to inspect.
- * @param {string} key Property key to test.
- *
- * @returns {boolean}
- */
-function hasOwnKey(record, key) {
-    // eslint-disable-next-line prefer-object-has-own -- Object.hasOwn requires Node 16.9; package.json still supports Node 16.0.
-    return Object.prototype.hasOwnProperty.call(record, key);
-}
-
-/**
  * Custom error class for FIT file decoding issues with enhanced metadata for
  * state management
  *
@@ -176,6 +163,95 @@ class FitDecodeError extends Error {
 }
 
 /**
+ * Extracts a stable user-facing message and optional stack from an unknown
+ * thrown value.
+ *
+ * @param {unknown} error Thrown value from parser or integration code
+ *
+ * @returns {{ message: string; stack: string | null }}
+ */
+function describeError(error) {
+    if (error instanceof Error) {
+        const message =
+            error.message.length > 0 ? error.message : "Failed to decode file";
+        return {
+            message,
+            stack: typeof error.stack === "string" ? error.stack : null,
+        };
+    }
+    return { message: "Failed to decode file", stack: null };
+}
+
+function getConf() {
+    if (!conf) {
+        const { Conf } = require("electron-conf");
+        conf = new Conf({ name: "settings" });
+    }
+    return conf;
+}
+
+/**
+ * Node 16.0 compatibility wrapper for own-property checks.
+ *
+ * @param {Record<string, unknown>} record Object to inspect.
+ * @param {string} key Property key to test.
+ *
+ * @returns {boolean}
+ */
+function hasOwnKey(record, key) {
+    // eslint-disable-next-line prefer-object-has-own -- Object.hasOwn requires Node 16.9; package.json still supports Node 16.0.
+    return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+/**
+ * Initialize state management integration for the FIT parser This should be
+ * called during application startup to connect the parser to the state system
+ *
+ * @param {Object} stateManagers - State management instances
+ * @param {Object} stateManagers.settingsStateManager - Settings state manager
+ *   for decoder options
+ * @param {Object} stateManagers.fitFileStateManager - FIT file state manager
+ *   for progress tracking
+ * @param {Object} stateManagers.performanceMonitor - Performance monitor for
+ *   timing operations
+ */
+/**
+ * @param {{
+ *     settingsStateManager?: SettingsStateManager;
+ *     fitFileStateManager?: FitFileStateManager;
+ *     performanceMonitor?: PerformanceMonitor;
+ * }} [stateManagers]
+ */
+function initializeStateManagement(stateManagers = {}) {
+    settingsStateManager = stateManagers.settingsStateManager ?? null;
+    fitFileStateManager = stateManagers.fitFileStateManager ?? null;
+    performanceMonitor = stateManagers.performanceMonitor ?? null;
+
+    writeParserDiagnostic("log", "[FitParser] State management initialized", {
+        hasFitFileState: Boolean(fitFileStateManager),
+        hasPerformanceMonitor: Boolean(performanceMonitor),
+        hasSettings: Boolean(settingsStateManager),
+    });
+}
+
+/**
+ * Converts thrown values into Error instances for state-manager boundaries.
+ *
+ * @param {unknown} error Thrown value from parser or integration code
+ *
+ * @returns {Error}
+ */
+function normalizeError(error) {
+    if (error instanceof Error) {
+        return error;
+    }
+    if (typeof error === "string") {
+        return new Error(error);
+    }
+    return new Error("Unknown FIT parser error");
+}
+
+/**
  * Returns a shallow copy without one dynamic key. This avoids dynamic delete
  * while preserving the legacy object-map behavior.
  *
@@ -207,81 +283,6 @@ function omitMessageKey(messages, omittedKey) {
 function writeParserDiagnostic(method, ...values) {
     // eslint-disable-next-line no-console -- Existing parser diagnostics are part of the tested behavior; keep the console boundary in one place.
     console[method](...values);
-}
-
-function getConf() {
-    if (!conf) {
-        const { Conf } = require("electron-conf");
-        conf = new Conf({ name: "settings" });
-    }
-    return conf;
-}
-
-/**
- * Extracts a stable user-facing message and optional stack from an unknown
- * thrown value.
- *
- * @param {unknown} error Thrown value from parser or integration code
- *
- * @returns {{ message: string; stack: string | null }}
- */
-function describeError(error) {
-    if (error instanceof Error) {
-        const message =
-            error.message.length > 0 ? error.message : "Failed to decode file";
-        return {
-            message,
-            stack: typeof error.stack === "string" ? error.stack : null,
-        };
-    }
-    return { message: "Failed to decode file", stack: null };
-}
-
-/**
- * Converts thrown values into Error instances for state-manager boundaries.
- *
- * @param {unknown} error Thrown value from parser or integration code
- *
- * @returns {Error}
- */
-function normalizeError(error) {
-    if (error instanceof Error) {
-        return error;
-    }
-    if (typeof error === "string") {
-        return new Error(error);
-    }
-    return new Error("Unknown FIT parser error");
-}
-/**
- * Initialize state management integration for the FIT parser This should be
- * called during application startup to connect the parser to the state system
- *
- * @param {Object} stateManagers - State management instances
- * @param {Object} stateManagers.settingsStateManager - Settings state manager
- *   for decoder options
- * @param {Object} stateManagers.fitFileStateManager - FIT file state manager
- *   for progress tracking
- * @param {Object} stateManagers.performanceMonitor - Performance monitor for
- *   timing operations
- */
-/**
- * @param {{
- *     settingsStateManager?: SettingsStateManager;
- *     fitFileStateManager?: FitFileStateManager;
- *     performanceMonitor?: PerformanceMonitor;
- * }} [stateManagers]
- */
-function initializeStateManagement(stateManagers = {}) {
-    settingsStateManager = stateManagers.settingsStateManager ?? null;
-    fitFileStateManager = stateManagers.fitFileStateManager ?? null;
-    performanceMonitor = stateManagers.performanceMonitor ?? null;
-
-    writeParserDiagnostic("log", "[FitParser] State management initialized", {
-        hasFitFileState: Boolean(fitFileStateManager),
-        hasPerformanceMonitor: Boolean(performanceMonitor),
-        hasSettings: Boolean(settingsStateManager),
-    });
 }
 
 /**
