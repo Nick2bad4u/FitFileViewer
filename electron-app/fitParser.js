@@ -347,8 +347,7 @@ const DECODER_OPTION_KEYS = [
  * @returns {DecoderOptions}
  */
 function getDefaultDecoderOptions() {
-    /** @type {DecoderOptions} */
-    const defaults = {
+    return {
         applyScaleAndOffset: DECODER_OPTIONS_SCHEMA.applyScaleAndOffset.default,
         convertDateTimesToDates:
             DECODER_OPTIONS_SCHEMA.convertDateTimesToDates.default,
@@ -359,7 +358,6 @@ function getDefaultDecoderOptions() {
         includeUnknownData: DECODER_OPTIONS_SCHEMA.includeUnknownData.default,
         mergeHeartRates: DECODER_OPTIONS_SCHEMA.mergeHeartRates.default,
     };
-    return defaults;
 }
 
 /**
@@ -516,7 +514,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
     // Input validation
     if (
         !fileBuffer ||
-        !(fileBuffer instanceof Buffer || fileBuffer instanceof Uint8Array)
+        (!(fileBuffer instanceof Buffer) && !(fileBuffer instanceof Uint8Array))
     ) {
         const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
         writeParserDiagnostic("error", msg);
