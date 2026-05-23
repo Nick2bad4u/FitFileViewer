@@ -1,1 +1,0 @@
-export function exportAllCharts(): void;

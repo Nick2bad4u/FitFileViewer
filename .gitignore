@@ -368,5 +368,5 @@ electron-app/temp-win7/
 docs/docusaurus/static/img/coverage.json
 docs/docusaurus/static/img/coverage.svg
 
-# Generated declarations for bundled FFV static assets are not source types.
-electron-app/types/ffv/assets/
+# Generated declaration output; source TypeScript files are authoritative.
+electron-app/types/
