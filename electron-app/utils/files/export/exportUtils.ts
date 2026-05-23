@@ -484,10 +484,11 @@ function isGyazoOAuthCallbackPayload(
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
     return (
-        typeof candidate["code"] === "string" &&
-        typeof candidate["state"] === "string"
+        "code" in value &&
+        typeof value.code === "string" &&
+        "state" in value &&
+        typeof value.state === "string"
     );
 }
 
