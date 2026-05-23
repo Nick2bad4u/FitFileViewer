@@ -12,19 +12,25 @@ export interface ChartOptionConfig {
     type?: string;
 }
 
+function getChartOptionProperty(
+    option: object,
+    key: "default" | "id" | "type"
+): unknown {
+    return key in option ? option[key as keyof typeof option] : undefined;
+}
+
 function normalizeChartOption(option: unknown): ChartOptionConfig {
     if (typeof option !== "object" || option === null) {
         return { default: undefined, type: "" };
     }
 
-    const candidate = option as Record<string, unknown>;
-    const optionType = candidate["type"];
+    const optionType = getChartOptionProperty(option, "type");
     const normalized: ChartOptionConfig = {
-        default: candidate["default"],
+        default: getChartOptionProperty(option, "default"),
         type: typeof optionType === "string" ? optionType : "",
     };
 
-    const optionId = candidate["id"];
+    const optionId = getChartOptionProperty(option, "id");
     if (typeof optionId === "string") {
         normalized.id = optionId;
     }

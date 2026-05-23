@@ -1,14 +1,16 @@
+function getChartOptionProperty(option, key) {
+    return key in option ? option[key] : undefined;
+}
 function normalizeChartOption(option) {
     if (typeof option !== "object" || option === null) {
         return { default: undefined, type: "" };
     }
-    const candidate = option;
-    const optionType = candidate["type"];
+    const optionType = getChartOptionProperty(option, "type");
     const normalized = {
-        default: candidate["default"],
+        default: getChartOptionProperty(option, "default"),
         type: typeof optionType === "string" ? optionType : "",
     };
-    const optionId = candidate["id"];
+    const optionId = getChartOptionProperty(option, "id");
     if (typeof optionId === "string") {
         normalized.id = optionId;
     }
