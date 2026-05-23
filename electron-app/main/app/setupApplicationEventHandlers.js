@@ -11,6 +11,7 @@
     const {
         appRef,
         browserWindowRef,
+        dialogRef,
         shellRef,
     } = require("../runtime/electronAccess");
     const { httpRef, path } = require("../runtime/nodeModules");
@@ -131,8 +132,7 @@
             }
             let allow = false;
             try {
-                const electron = require("electron");
-                const dialog = electron?.dialog;
+                const dialog = dialogRef();
                 if (!dialog || typeof dialog.showMessageBox !== "function") {
                     allow = false;
                 } else {

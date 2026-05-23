@@ -130,10 +130,11 @@
             startGyazoOAuthServer: () => Promise<unknown>;
             stopGyazoOAuthServer: () => Promise<unknown>;
         };
-    const { appRef, browserWindowRef, shellRef } =
+    const { appRef, browserWindowRef, dialogRef, shellRef } =
         require("../runtime/electronAccess") as {
             appRef: () => AppLike | undefined;
             browserWindowRef: () => BrowserWindowStaticLike | undefined;
+            dialogRef: () => DialogLike | undefined;
             shellRef: () => ShellLike | undefined;
         };
     const { httpRef, path } = require("../runtime/nodeModules") as {
@@ -305,8 +306,7 @@
 
             let allow = false;
             try {
-                const electron = require("electron") as { dialog?: DialogLike };
-                const dialog = electron?.dialog;
+                const dialog = dialogRef();
                 if (!dialog || typeof dialog.showMessageBox !== "function") {
                     allow = false;
                 } else {
