@@ -80,6 +80,10 @@ const DEFAULT_PERSISTED_PATHS = [
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 /**
  * Clears all registered state listeners for test isolation.
  */
@@ -196,16 +200,15 @@ export function getState<T = unknown>(
     let value: unknown = AppState;
 
     for (const key of keys) {
-        if (value === null || typeof value !== "object") {
+        if (!isRecord(value)) {
             return undefined;
         }
 
-        const container = value as Record<string, unknown>;
-        if (!Object.hasOwn(container, key)) {
+        if (!Object.hasOwn(value, key)) {
             return undefined;
         }
 
-        value = container[key];
+        value = value[key];
     }
 
     return value as T;
@@ -309,12 +312,8 @@ export function persistState(
         const existingRaw = localStorage.getItem("fitFileViewer_state");
         if (existingRaw !== null && existingRaw !== "") {
             const parsed = JSON.parse(existingRaw) as unknown;
-            if (
-                parsed !== null &&
-                typeof parsed === "object" &&
-                !Array.isArray(parsed)
-            ) {
-                stateToSave = parsed as Record<string, unknown>;
+            if (isRecord(parsed)) {
+                stateToSave = parsed;
             }
         }
     } catch {
@@ -359,22 +358,20 @@ export function setState(
     for (let i = 0; i < keys.length - 1; i += 1) {
         const key = keys[i];
         if (key) {
-            if (target === null || typeof target !== "object") {
+            if (!isRecord(target)) {
                 console.warn("[StateManager] Invalid target for path", path);
                 return;
             }
 
-            const container = target as Record<string, unknown>;
-            const nextValue = container[key];
-            if (
-                nextValue === null ||
-                typeof nextValue !== "object" ||
-                Array.isArray(nextValue)
-            ) {
-                container[key] = {};
+            const nextValue = target[key];
+            if (!isRecord(nextValue)) {
+                const container: Record<string, unknown> = {};
+                target[key] = container;
+                target = container;
+                continue;
             }
 
-            target = container[key];
+            target = nextValue;
         }
     }
 
@@ -384,19 +381,16 @@ export function setState(
         return;
     }
 
-    if (target === null || typeof target !== "object") {
+    if (!isRecord(target)) {
         console.warn("[StateManager] Invalid target for path", path);
         return;
     }
 
-    const container = target as Record<string, unknown>;
-    if (shouldMergeStateValue(merge, oldValue, value)) {
-        container[finalKey] = {
-            ...(oldValue as Record<string, unknown>),
-            ...(value as Record<string, unknown>),
-        };
+    const mergedValue = getMergedStateValue(merge, oldValue, value);
+    if (mergedValue) {
+        target[finalKey] = mergedValue;
     } else {
-        container[finalKey] = value;
+        target[finalKey] = value;
     }
 
     const hasChanged = !Object.is(oldValue, value);
@@ -598,24 +592,17 @@ function notifyListeners(
 }
 
 function readGlobalProperty(propertyName: string): unknown {
-    const globalRecord = globalThis as Record<string, unknown>;
-    return globalRecord[propertyName];
+    return Reflect.get(globalThis, propertyName);
 }
 
-function shouldMergeStateValue(
+function getMergedStateValue(
     merge: boolean,
     oldValue: unknown,
     value: unknown
-): boolean {
-    return (
-        merge &&
-        oldValue !== null &&
-        value !== null &&
-        typeof oldValue === "object" &&
-        typeof value === "object" &&
-        !Array.isArray(oldValue) &&
-        !Array.isArray(value)
-    );
+): Record<string, unknown> | undefined {
+    return merge && isRecord(oldValue) && isRecord(value)
+        ? { ...oldValue, ...value }
+        : undefined;
 }
 
 try {

@@ -15,6 +15,9 @@ const DEFAULT_PERSISTED_PATHS = [
 ];
 const stateListeners = new Map();
 const stateManagerInitState = { initialized: false };
+function isRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 /**
  * Clears all registered state listeners for test isolation.
  */
@@ -114,14 +117,13 @@ export function getState(path = "") {
     const keys = path.split(".");
     let value = AppState;
     for (const key of keys) {
-        if (value === null || typeof value !== "object") {
+        if (!isRecord(value)) {
             return undefined;
         }
-        const container = value;
-        if (!Object.hasOwn(container, key)) {
+        if (!Object.hasOwn(value, key)) {
             return undefined;
         }
-        value = container[key];
+        value = value[key];
     }
     return value;
 }
@@ -206,9 +208,7 @@ export function persistState(paths = DEFAULT_PERSISTED_PATHS) {
         if (existingRaw !== null && existingRaw !== "") {
             const parsed = JSON.parse(existingRaw);
             if (
-                parsed !== null &&
-                typeof parsed === "object" &&
-                !Array.isArray(parsed)
+                isRecord(parsed)
             ) {
                 stateToSave = parsed;
             }
@@ -247,20 +247,18 @@ export function setState(path, value, options = {}) {
     for (let i = 0; i < keys.length - 1; i += 1) {
         const key = keys[i];
         if (key) {
-            if (target === null || typeof target !== "object") {
+            if (!isRecord(target)) {
                 console.warn("[StateManager] Invalid target for path", path);
                 return;
             }
-            const container = target;
-            const nextValue = container[key];
-            if (
-                nextValue === null ||
-                typeof nextValue !== "object" ||
-                Array.isArray(nextValue)
-            ) {
-                container[key] = {};
+            const nextValue = target[key];
+            if (!isRecord(nextValue)) {
+                const container = {};
+                target[key] = container;
+                target = container;
+                continue;
             }
-            target = container[key];
+            target = nextValue;
         }
     }
     const finalKey = keys.at(-1);
@@ -268,18 +266,15 @@ export function setState(path, value, options = {}) {
         console.warn("[StateManager] Invalid final key for path", path);
         return;
     }
-    if (target === null || typeof target !== "object") {
+    if (!isRecord(target)) {
         console.warn("[StateManager] Invalid target for path", path);
         return;
     }
-    const container = target;
-    if (shouldMergeStateValue(merge, oldValue, value)) {
-        container[finalKey] = {
-            ...oldValue,
-            ...value,
-        };
+    const mergedValue = getMergedStateValue(merge, oldValue, value);
+    if (mergedValue) {
+        target[finalKey] = mergedValue;
     } else {
-        container[finalKey] = value;
+        target[finalKey] = value;
     }
     const hasChanged = !Object.is(oldValue, value);
     if (hasChanged) {
@@ -443,19 +438,12 @@ function notifyListeners(path, newValue, oldValue) {
     }
 }
 function readGlobalProperty(propertyName) {
-    const globalRecord = globalThis;
-    return globalRecord[propertyName];
+    return Reflect.get(globalThis, propertyName);
 }
-function shouldMergeStateValue(merge, oldValue, value) {
-    return (
-        merge &&
-        oldValue !== null &&
-        value !== null &&
-        typeof oldValue === "object" &&
-        typeof value === "object" &&
-        !Array.isArray(oldValue) &&
-        !Array.isArray(value)
-    );
+function getMergedStateValue(merge, oldValue, value) {
+    return merge && isRecord(oldValue) && isRecord(value)
+        ? { ...oldValue, ...value }
+        : undefined;
 }
 try {
     const globalState = globalThis;
