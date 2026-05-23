@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- This file is the legacy global utility bridge; keep the unsafe global access quarantined here while the renderer moves to module imports. */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- This file is the legacy global utility bridge; keep the global access quarantined here while the renderer moves to module imports. */
 /**
  * Exposes utility functions globally for use in index.html and other scripts.
  *
@@ -43,7 +43,10 @@ function getVersionElectronAPI() {
         return undefined;
     }
     return {
-        getAppVersion: async () => String(await getAppVersion()),
+        getAppVersion: async () => {
+            const version = await Reflect.apply(getAppVersion, api, []);
+            return String(version);
+        },
     };
 }
 function getNodeEnvironment() {
@@ -191,8 +194,17 @@ function validateFunction(fn, name) {
     }
     return true;
 }
+function buildUtilityRegistry(utilities) {
+    const registry = {};
+    for (const [name, utility] of Object.entries(utilities)) {
+        if (validateFunction(utility, name)) {
+            registry[name] = utility;
+        }
+    }
+    return registry;
+}
 // List of utilities to expose globally with enhanced metadata
-const utils = globalUtilities;
+const utils = buildUtilityRegistry(globalUtilities);
 function recordFailedAttachment(results, name, reason, type) {
     results.failed.push({ name, reason, type });
 }
@@ -474,4 +486,4 @@ logWithContext(
 // Export for module usage (if needed)
 export default utils;
 export { FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };
-/* eslint-enable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- End legacy global utility bridge quarantine. */
+/* eslint-enable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- End legacy global utility bridge quarantine. */

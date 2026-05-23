@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- This file is the legacy global utility bridge; keep the unsafe global access quarantined here while the renderer moves to module imports. */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- This file is the legacy global utility bridge; keep the global access quarantined here while the renderer moves to module imports. */
 /**
  * Exposes utility functions globally for use in index.html and other scripts.
  *
@@ -131,7 +131,10 @@ function getVersionElectronAPI(): undefined | VersionElectronAPI {
     }
 
     return {
-        getAppVersion: async () => String(await getAppVersion()),
+        getAppVersion: async () => {
+            const version: unknown = await Reflect.apply(getAppVersion, api, []);
+            return String(version);
+        },
     };
 }
 
@@ -297,8 +300,20 @@ function validateFunction(fn: unknown, name: string): fn is UtilityFunction {
     return true;
 }
 
+function buildUtilityRegistry(
+    utilities: Readonly<Record<string, unknown>>
+): Record<string, UtilityFunction> {
+    const registry: Record<string, UtilityFunction> = {};
+    for (const [name, utility] of Object.entries(utilities)) {
+        if (validateFunction(utility, name)) {
+            registry[name] = utility;
+        }
+    }
+    return registry;
+}
+
 // List of utilities to expose globally with enhanced metadata
-const utils = globalUtilities as Record<string, UtilityFunction>;
+const utils = buildUtilityRegistry(globalUtilities);
 
 function recordFailedAttachment(
     results: AttachmentResults,
@@ -640,4 +655,4 @@ logWithContext(
 // Export for module usage (if needed)
 export default utils;
 export { FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };
-/* eslint-enable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- End legacy global utility bridge quarantine. */
+/* eslint-enable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-readonly-parameter-types, @typescript-eslint/strict-boolean-expressions, no-console, perfectionist/sort-modules, unicorn/prefer-top-level-await -- End legacy global utility bridge quarantine. */
