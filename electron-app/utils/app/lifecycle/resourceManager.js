@@ -3,7 +3,7 @@ function hasFunctionProperty(value, property) {
     return (
         typeof value === "object" &&
         value !== null &&
-        typeof value[property] === "function"
+        typeof Reflect.get(value, property) === "function"
     );
 }
 function isDestroyableChart(value) {

@@ -63,7 +63,7 @@ function hasFunctionProperty<TProperty extends string>(
     return (
         typeof value === "object" &&
         value !== null &&
-        typeof (value as Record<TProperty, unknown>)[property] === "function"
+        typeof Reflect.get(value, property) === "function"
     );
 }
 
