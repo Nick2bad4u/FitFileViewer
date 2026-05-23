@@ -6,11 +6,16 @@ function isLeafletIconFactory(value) {
     if (typeof value !== "object" || value === null) {
         return false;
     }
-    const candidate = value;
     return (
-        typeof candidate["divIcon"] === "function" &&
-        typeof candidate["icon"] === "function"
+        hasFunctionProperty(value, "divIcon") &&
+        hasFunctionProperty(value, "icon")
     );
+}
+function hasFunctionProperty(value, key) {
+    if (!(key in value)) {
+        return false;
+    }
+    return typeof value[key] === "function";
 }
 function getLeaflet() {
     const leaflet = globalThis.L;

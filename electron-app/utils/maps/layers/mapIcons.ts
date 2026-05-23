@@ -17,11 +17,18 @@ function isLeafletIconFactory(value: unknown): value is LeafletIconFactory {
         return false;
     }
 
-    const candidate = value as Record<string, unknown>;
     return (
-        typeof candidate["divIcon"] === "function" &&
-        typeof candidate["icon"] === "function"
+        hasFunctionProperty(value, "divIcon") &&
+        hasFunctionProperty(value, "icon")
     );
+}
+
+function hasFunctionProperty(value: object, key: "divIcon" | "icon"): boolean {
+    if (!(key in value)) {
+        return false;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 function getLeaflet(): LeafletIconFactory {
