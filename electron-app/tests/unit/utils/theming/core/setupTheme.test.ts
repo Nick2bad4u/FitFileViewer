@@ -1,7 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
-const MODULE_SPECIFIER = "../../../../../utils/theming/core/setupTheme.js";
-
 const stateManagerMocks = vi.hoisted(() => {
     return {
         getState: vi.fn<(key: string) => unknown>(() => undefined),
@@ -16,6 +14,10 @@ vi.mock(
     "../../../../../utils/state/core/stateManager.js",
     () => stateManagerMocks
 );
+
+async function importSetupThemeModule() {
+    return import("../../../../../utils/theming/core/setupTheme.js");
+}
 
 describe("setupTheme", () => {
     const originalConsole = {
@@ -61,7 +63,7 @@ describe("setupTheme", () => {
             }
         );
 
-        const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(applyTheme, listenForThemeChange);
 
         expect(result).toBe("light");
@@ -79,8 +81,12 @@ describe("setupTheme", () => {
         expect(listenForThemeChange).toHaveBeenCalledWith(expect.any(Function));
 
         // simulate external change notification
-        expect(externalListener).not.toBeNull();
-        externalListener?.("dark");
+        expect(externalListener).toBeTypeOf("function");
+        const handleExternalThemeChange = externalListener;
+        if (handleExternalThemeChange === null) {
+            throw new Error("Theme change listener was not registered");
+        }
+        handleExternalThemeChange("dark");
         expect(applyTheme).toHaveBeenCalledWith("dark");
         expect(localStorage.getItem("ffv-theme")).toBe("dark");
 
@@ -104,7 +110,7 @@ describe("setupTheme", () => {
         };
         localStorage.setItem("ffv-theme", "light");
 
-        const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(applyTheme, undefined);
 
         expect(result).toBe("light");
@@ -117,7 +123,7 @@ describe("setupTheme", () => {
         (globalThis as any).electronAPI = undefined;
         localStorage.setItem("ffv-theme", "light");
 
-        const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(applyTheme, undefined);
 
         expect(result).toBe("light");
@@ -140,7 +146,7 @@ describe("setupTheme", () => {
             });
 
         try {
-            const { setupTheme } = await import(MODULE_SPECIFIER);
+            const { setupTheme } = await importSetupThemeModule();
             const result = await setupTheme(applyTheme, undefined);
 
             expect(result).toBe("dark");
@@ -158,7 +164,7 @@ describe("setupTheme", () => {
             getTheme: vi.fn().mockResolvedValue("light"),
         };
 
-        const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(
             undefined as unknown as (theme: string) => void
         );
