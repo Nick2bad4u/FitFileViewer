@@ -8,6 +8,7 @@ const preloadIpcBridgeCatalog = requireFromTest(
 const preloadBeforeExitHandler = requireFromTest(
     "../../preload/beforeExitHandler.js"
 );
+const preloadValidators = requireFromTest("../../preload/validators.js");
 
 export function resolvePreloadScriptRequire(
     moduleName: string,
@@ -23,6 +24,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/beforeExitHandler.js") {
         return preloadBeforeExitHandler;
+    }
+
+    if (moduleName === "./preload/validators.js") {
+        return preloadValidators;
     }
 
     throw new Error(`Module not mocked: ${moduleName}`);

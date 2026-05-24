@@ -123,6 +123,10 @@ const { registerPreloadBeforeExitHandler } =
     /** @type {{ registerPreloadBeforeExitHandler: (options: { globalScope?: typeof globalThis; isDevelopmentMode: () => boolean; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; processRef?: NodeJS.Process }) => void }} */ (
         preloadRequire("./preload/beforeExitHandler.js")
     );
+const { createPreloadValidators } =
+    /** @type {{ createPreloadValidators: (preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void) => { validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback; validateChannelName: (value: unknown, paramName: string, methodName: string) => value is string; validateOptionalNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string | null | undefined; validateRequiredNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string } }} */ (
+        preloadRequire("./preload/validators.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -192,6 +196,13 @@ const ipcRenderer = (() => {
 function createNoopUnsubscribe() {
     return noopUnsubscribe;
 }
+
+const {
+    validateCallback,
+    validateChannelName,
+    validateOptionalNonEmptyString,
+    validateRequiredNonEmptyString,
+} = createPreloadValidators(preloadLog);
 
 /**
  * Wrapper to create a safe event subscription handler.
@@ -479,112 +490,6 @@ function ensureMainStateDispatcher() {
         }
     };
     ipcRenderer.on("main-state-change", mainStateDispatcher);
-}
-
-// Enhanced error handling and validation
-/**
- * @param {unknown} callback
- * @param {string} methodName
- *
- * @returns {callback is UnknownCallback}
- */
-function validateCallback(callback, methodName) {
-    if (typeof callback !== "function") {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: callback must be a function`
-        );
-        return false;
-    }
-    return true;
-}
-
-/**
- * Validate a channel/event name. IPC channels must always be a non-empty
- * string.
- *
- * @param {unknown} value
- * @param {string} paramName
- * @param {string} methodName
- *
- * @returns {value is string}
- */
-function validateChannelName(value, paramName, methodName) {
-    if (typeof value !== "string") {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a string`
-        );
-        return false;
-    }
-    if (value.trim().length === 0) {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
-        );
-        return false;
-    }
-    return true;
-}
-
-/**
- * Validate an optional string input.
- *
- * Accepts: undefined | null | non-empty string. Rejects: empty/whitespace-only
- * strings and non-strings.
- *
- * @param {unknown} value
- * @param {string} paramName
- * @param {string} methodName
- *
- * @returns {value is string | null | undefined}
- */
-function validateOptionalNonEmptyString(value, paramName, methodName) {
-    if (value === undefined || value === null) {
-        return true;
-    }
-    if (typeof value !== "string") {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a string or null`
-        );
-        return false;
-    }
-    if (value.trim().length === 0) {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a non-empty string or null`
-        );
-        return false;
-    }
-    return true;
-}
-
-/**
- * Validate a required non-empty string input.
- *
- * @param {unknown} value
- * @param {string} paramName
- * @param {string} methodName
- *
- * @returns {value is string}
- */
-function validateRequiredNonEmptyString(value, paramName, methodName) {
-    if (typeof value !== "string") {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a string`
-        );
-        return false;
-    }
-    if (value.trim().length === 0) {
-        preloadLog(
-            "error",
-            `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
-        );
-        return false;
-    }
-    return true;
 }
 
 /**
