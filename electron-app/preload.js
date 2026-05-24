@@ -168,6 +168,10 @@ const { createPreloadLogger } =
     /** @type {{ createPreloadLogger: (consoleRef?: Console) => (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void }} */ (
         preloadRequire("./preload/logger.js")
     );
+const { createMainStateApi } =
+    /** @type {{ createMainStateApi: (options: Record<string, unknown>) => Pick<ElectronAPI, "getErrors" | "getMainState" | "getMetrics" | "getOperation" | "getOperations" | "listenToMainState" | "setMainState" | "subscribeToMainState" | "unlistenFromMainState"> }} */ (
+        preloadRequire("./preload/mainStateApi.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -264,6 +268,13 @@ const apiDiagnostics = createApiDiagnostics({
     ipcRenderer,
     isDevelopmentMode,
     preloadLog,
+});
+const mainStateApi = createMainStateApi({
+    ipcRenderer,
+    mainStateBridge,
+    preloadLog,
+    validateCallback,
+    validateRequiredNonEmptyString,
 });
 const genericIpcApi = createGenericIpcApi({
     fitFileLoadedChannel: /** @type {GenericSendChannel} */ (
@@ -383,14 +394,7 @@ const electronAPI = {
      *
      * @returns {Promise<Array>} Array of recent errors
      */
-    getErrors: async (limit = 50) => {
-        try {
-            return await ipcRenderer.invoke("main-state:errors", limit);
-        } catch (error) {
-            preloadLog("error", "[preload.js] Error in getErrors:", error);
-            throw error;
-        }
-    },
+    getErrors: mainStateApi.getErrors,
 
     /**
      * Gets the persisted FIT browser folder (main process setting).
@@ -421,32 +425,14 @@ const electronAPI = {
      * @returns {Promise<IpcSerializable>} The requested state value or entire
      *   state if no path provided
      */
-    getMainState: async (path) => {
-        try {
-            return await ipcRenderer.invoke("main-state:get", path);
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in getMainState(${path ?? "all"}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    getMainState: mainStateApi.getMainState,
 
     /**
      * Gets performance metrics from the main process.
      *
      * @returns {Promise<Object>} Object containing performance metrics
      */
-    getMetrics: async () => {
-        try {
-            return await ipcRenderer.invoke("main-state:metrics");
-        } catch (error) {
-            preloadLog("error", "[preload.js] Error in getMetrics:", error);
-            throw error;
-        }
-    },
+    getMetrics: mainStateApi.getMetrics,
 
     /**
      * Gets the Node.js version.
@@ -465,45 +451,14 @@ const electronAPI = {
      *
      * @returns {Promise<IpcSerializable | null>} The operation status object
      */
-    getOperation: async (operationId) => {
-        if (
-            !validateRequiredNonEmptyString(
-                operationId,
-                "operationId",
-                "getOperation"
-            )
-        ) {
-            return null;
-        }
-
-        try {
-            return await ipcRenderer.invoke(
-                "main-state:operation",
-                operationId
-            );
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in getOperation(${operationId}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    getOperation: mainStateApi.getOperation,
 
     /**
      * Gets all operations from the main process.
      *
      * @returns {Promise<Object>} Object containing all operations
      */
-    getOperations: async () => {
-        try {
-            return await ipcRenderer.invoke("main-state:operations");
-        } catch (error) {
-            preloadLog("error", "[preload.js] Error in getOperations:", error);
-            throw error;
-        }
-    },
+    getOperations: mainStateApi.getOperations,
 
     getPlatformInfo: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.PLATFORM_INFO,
@@ -591,30 +546,7 @@ const electronAPI = {
      *
      * @returns {Promise<boolean>} True if listener was registered successfully
      */
-    listenToMainState: async (path, callback) => {
-        if (
-            !validateRequiredNonEmptyString(path, "path", "listenToMainState")
-        ) {
-            return false;
-        }
-        if (!validateCallback(callback, "listenToMainState")) {
-            return false;
-        }
-
-        try {
-            return await mainStateBridge.listenToMainState(
-                path,
-                /** @type {(change: MainStateChange) => void} */ (callback)
-            );
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in listenToMainState(${path}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    listenToMainState: mainStateApi.listenToMainState,
 
     /**
      * Lists the current directory under the persisted FIT browser folder.
@@ -867,27 +799,7 @@ const electronAPI = {
      * @returns {Promise<boolean>} True if successful, false if path is
      *   restricted
      */
-    setMainState: async (path, value, options = {}) => {
-        if (!validateRequiredNonEmptyString(path, "path", "setMainState")) {
-            return false;
-        }
-
-        try {
-            return await ipcRenderer.invoke(
-                "main-state:set",
-                path,
-                value,
-                options
-            );
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in setMainState(${path}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    setMainState: mainStateApi.setMainState,
 
     // Gyazo OAuth Server Functions
     /**
@@ -924,13 +836,7 @@ const electronAPI = {
      *
      * @returns {Promise<() => Promise<boolean>>}
      */
-    subscribeToMainState: async (path, callback) => {
-        const ok = await electronAPI.listenToMainState(path, callback);
-        if (!ok) {
-            return () => Promise.resolve(false);
-        }
-        return () => electronAPI.unlistenFromMainState(path, callback);
-    },
+    subscribeToMainState: mainStateApi.subscribeToMainState,
 
     /**
      * Removes a previously registered main state listener.
@@ -940,34 +846,7 @@ const electronAPI = {
      *
      * @returns {Promise<boolean>}
      */
-    unlistenFromMainState: async (path, callback) => {
-        if (
-            !validateRequiredNonEmptyString(
-                path,
-                "path",
-                "unlistenFromMainState"
-            )
-        ) {
-            return false;
-        }
-        if (!validateCallback(callback, "unlistenFromMainState")) {
-            return false;
-        }
-
-        try {
-            return await mainStateBridge.unlistenFromMainState(
-                path,
-                /** @type {(change: MainStateChange) => void} */ (callback)
-            );
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in unlistenFromMainState(${path}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    unlistenFromMainState: mainStateApi.unlistenFromMainState,
 
     /**
      * Validate the preload API is working correctly.

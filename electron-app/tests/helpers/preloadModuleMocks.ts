@@ -19,6 +19,7 @@ const preloadEnvironment = requireFromTest("../../preload/environment.js");
 const preloadGenericIpcApi = requireFromTest("../../preload/genericIpcApi.js");
 const preloadIpcHelpers = requireFromTest("../../preload/ipcHelpers.js");
 const preloadLogger = requireFromTest("../../preload/logger.js");
+const preloadMainStateApi = requireFromTest("../../preload/mainStateApi.js");
 const preloadMainStateBridge = requireFromTest(
     "../../preload/mainStateBridge.js"
 );
@@ -66,6 +67,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/logger.js") {
         return preloadLogger;
+    }
+
+    if (moduleName === "./preload/mainStateApi.js") {
+        return preloadMainStateApi;
     }
 
     if (moduleName === "./preload/mainStateBridge.js") {

@@ -59,6 +59,7 @@
         "preload/genericIpcApi.ts",
         "preload/ipcHelpers.ts",
         "preload/logger.ts",
+        "preload/mainStateApi.ts",
         "preload/mainStateBridge.ts",
         "preload/validators.ts",
         "preload/ipcBridgeCatalog.ts",
