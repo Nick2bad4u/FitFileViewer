@@ -13,10 +13,12 @@ const openFileSelectorMock = vi.mocked(openFileSelector);
 
 describe("utils/app/lifecycle/listeners.js", () => {
     beforeEach(() => {
-        document.body.innerHTML = `
-      <button id="openFileBtn">Open</button>
-      <div id="content-summary"></div>
-    `;
+        const openFileButton = document.createElement("button");
+        openFileButton.id = "openFileBtn";
+        openFileButton.textContent = "Open";
+        const contentSummary = document.createElement("div");
+        contentSummary.id = "content-summary";
+        document.body.replaceChildren(openFileButton, contentSummary);
         openFileSelectorMock.mockReset();
         openFileSelectorMock.mockImplementation(() => {});
         // Clean any previous window properties
@@ -41,8 +43,13 @@ describe("utils/app/lifecycle/listeners.js", () => {
         ) as HTMLButtonElement;
         const isOpeningFileRef = { current: false } as any;
         const setLoading = vi.fn();
-        const showNotification = vi.fn();
-        const handleOpenFile = vi.fn();
+        const showNotification = vi.fn((message: string, type: string) => {
+            document.body.dataset.lastNotification = `${type}:${message}`;
+        });
+        const handleOpenFile = vi.fn(({ isOpeningFileRef: ref }) => {
+            ref.current = true;
+            openFileBtn.dataset.opened = "true";
+        });
         const showUpdateNotification = vi.fn();
         const showAboutModal = vi.fn();
 
@@ -67,12 +74,23 @@ describe("utils/app/lifecycle/listeners.js", () => {
             showUpdateNotification,
             showAboutModal,
         });
-        return { openFileBtn, setLoading, showNotification, handleOpenFile };
+        return {
+            openFileBtn,
+            isOpeningFileRef,
+            setLoading,
+            showNotification,
+            handleOpenFile,
+        };
     }
 
     it("clicking openFileBtn calls handleOpenFile with expected args", () => {
-        const { openFileBtn, handleOpenFile, setLoading, showNotification } =
-            mount([]);
+        const {
+            openFileBtn,
+            handleOpenFile,
+            isOpeningFileRef,
+            setLoading,
+            showNotification,
+        } = mount([]);
         openFileBtn.click();
         expect(handleOpenFile).toHaveBeenCalledTimes(1);
         expect(handleOpenFile).toHaveBeenCalledWith({
@@ -81,6 +99,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
             setLoading,
             showNotification,
         });
+        expect(isOpeningFileRef.current).toBe(true);
+        expect(openFileBtn.dataset.opened).toBe("true");
     });
 
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {
@@ -104,7 +124,9 @@ describe("utils/app/lifecycle/listeners.js", () => {
         tab.id = "tab-chart";
         tab.classList.add("active");
         document.body.appendChild(tab);
-        const updateCharts = vi.fn();
+        const updateCharts = vi.fn((reason: string) => {
+            document.body.dataset.chartUpdateReason = reason;
+        });
         (window as any).ChartUpdater = { updateCharts };
 
         mount([]);
@@ -114,19 +136,24 @@ describe("utils/app/lifecycle/listeners.js", () => {
         // Allow debounce timeout of 200ms
         vi.advanceTimersByTime(210);
         expect(updateCharts).toHaveBeenCalledWith("window-resize");
+        expect(document.body.dataset.chartUpdateReason).toBe("window-resize");
         vi.useRealTimers();
     });
 
     it("menu-open-overlay IPC triggers openFileSelector", () => {
+        openFileSelectorMock.mockImplementationOnce(() => {
+            document.body.dataset.overlaySelectorOpened = "true";
+        });
         const { showNotification } = mount([]);
         const onIpcMock = (window as any).electronAPI.onIpc as Mock;
         const entry = onIpcMock.mock.calls.find(
             (args: any[]) => args[0] === "menu-open-overlay"
         );
-        expect(entry).toBeDefined();
-        const handler = entry ? (entry[1] as () => void) : undefined;
-        handler?.();
+        expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
+        const handler = entry[1] as () => void;
+        handler();
         expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(document.body.dataset.overlaySelectorOpened).toBe("true");
         expect(showNotification).not.toHaveBeenCalled();
     });
 
@@ -139,12 +166,16 @@ describe("utils/app/lifecycle/listeners.js", () => {
         const entry = onIpcMock.mock.calls.find(
             (args: any[]) => args[0] === "menu-open-overlay"
         );
-        const handler = entry ? (entry[1] as () => void) : undefined;
-        handler?.();
+        expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
+        const handler = entry[1] as () => void;
+        handler();
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
             "error",
             3000
+        );
+        expect(document.body.dataset.lastNotification).toBe(
+            "error:Failed to open overlay selector."
         );
     });
 });
